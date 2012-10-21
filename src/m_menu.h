@@ -105,6 +105,9 @@ typedef struct M_UIItem_s
 	const char* DrawVal;						// Draw Value
 	intptr_t DrawValInt;						// As Integer
 	
+	const char* SlideVal;						// Draw Value
+	intptr_t SlideValInt;						// As Integer
+	
 	intptr_t DataBits;							// Anything needed for data
 	
 	M_UIItemLRValChangeFuncType_t LRValChangeFunc;

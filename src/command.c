@@ -901,6 +901,28 @@ fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal)
 #undef BUFSIZE
 }
 
+/* CONL_VarSlideValue() -- Slide variable */
+bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
+{
+	/* Check */
+	if (!a_Var || !a_Right)
+		return false;
+	
+	/* Overloaded sliding? */
+	if (a_Var->SlideFunc)
+		return a_Var->SlideFunc(a_Var->RealLink, a_Var, a_Right);
+	
+	/* Cannot slide strings */
+	if (a_Var->Type == CLVT_STRING)
+		return false;
+	
+	/* Change value based on direction */
+	// TODO FIXME
+	
+	/* Success! */
+	return true;
+}
+
 /***********************
 *** CONSOLE COMMANDS ***
 ***********************/

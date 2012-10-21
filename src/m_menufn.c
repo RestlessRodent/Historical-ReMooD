@@ -625,13 +625,76 @@ CONL_StaticVar_t l_StaticMapVars[][MAXSPLITSCREEN] =
 
 /*** FUNCTIONS ***/
 
-
+/* MS_CurProfBack() -- Value changed */
 bool_t MS_CurProfBack(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_SVar)
 {
+	static bool_t Rec;
+	D_ProfileEx_t* Prof;
+	
+	/* Prevent infinite recursion */
+	// Say if guest does not exist!
+	if (Rec)
+		return false;
+	Rec = true;
+	
+	/* Get current profile */
+	Prof = D_FindProfileEx(a_SVar->Value->String);
+	
+	/* Does not exist? */
+	if (!Prof)
+		CONL_VarSetStr(a_SVar, "guest");
+	
+	/* Allow function to be called */
+	Rec = false;
+	return true;
 }
 
+/* MS_CurProfSlide() -- Value Slid */
 bool_t MS_CurProfSlide(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_SVar, const int32_t a_Right)
 {
+	D_ProfileEx_t* Prof, *NewProf;
+	
+	/* Get current profile */
+	Prof = D_FindProfileEx(a_SVar->Value->String);
+	
+	// Not found?
+	if (!Prof)
+		Prof = D_FindProfileEx("guest");
+	
+	// Still nothing?
+	if (!Prof)
+		return false;
+	
+	/* Change based on direction (a simple rove) */
+	if (a_Right > 0)
+		NewProf = Prof->Next;
+	else if (a_Right < 0)
+		NewProf = Prof->Prev;
+	
+	/* If there is no next/prev, then calculate a loop */
+	// Profiles are not a circularly linked list.
+	if (!NewProf)
+	{
+		NewProf = Prof;
+		
+		// If moving left, find the one all the way to the right
+		if (a_Right < 0)
+			while (NewProf->Next)
+				NewProf = NewProf->Next;
+		
+		// If moving right, find the one all the way to the left
+		else if (a_Right > 0)
+			while (NewProf->Prev)
+				NewProf = NewProf->Prev;
+	}
+	
+	/* No next/prev? No Change? */
+	if (!NewProf || Prof == NewProf)
+		return false;
+	
+	/* Set profile to new name */
+	CONL_VarSetStr(a_SVar, NewProf->AccountName);
+	return false;
 }
 
 /* M_DoMappedVars() -- Register menu variables */
@@ -750,6 +813,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	int32_t i, j;
 	P_LevelInfoEx_t* LInfo;
 	CONL_StaticVar_t* SVar;
+	D_ProfileEx_t* Prof;
 	
 	/* Quit Prompt */
 	if (strcasecmp(a_ArgV[0], "m_quitprompt") == 0)
@@ -893,8 +957,13 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		// Set player to use this profile, if found
 		if (SVar)
 		{
-			D_XNetChangeLocalProf(i, D_FindProfileEx(SVar->Value->String));
-			M_ExPopAllMenus(i);
+			Prof = D_FindProfileEx(SVar->Value->String);
+			
+			if (Prof)
+			{
+				D_XNetChangeLocalProf(i, Prof);
+				M_ExPopAllMenus(i);
+			}
 			return 0;
 		}
 		
@@ -958,6 +1027,38 @@ static bool_t MS_Gen_Console_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 #undef BUFSIZE
 }
 
+/* MS_SVarForValue() -- Gets static var for value */
+static CONL_StaticVar_t* MS_SVarForValue(const int32_t a_PlayerID, const char* const a_Value, const intptr_t a_ValInt)
+{
+	// Is mapped variable
+	if (*a_Value == '~')
+		return MS_MapToSV(a_PlayerID, NULL, a_ValInt, NULL);
+	
+	// Is variable?
+	else if (*a_Value == '$')
+		return CONL_VarLocateHash(a_ValInt);
+	
+	// Nothing
+	else
+		return NULL;
+}
+
+/* MS_Gen_Variable_Slide() -- Slide variable, left/right */
+static bool_t MS_Gen_Variable_Slide(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More)
+{
+	CONL_StaticVar_t* SVar;
+	
+	/* Attempt finding variable */
+	SVar = MS_SVarForValue(a_PlayerID, a_Item->DrawVal, a_Item->DrawValInt);
+	
+	// If not found, do nothing
+	if (!SVar)
+		return false;
+	
+	// Slide value
+	return CONL_VarSlideValue(SVar, (a_More ? 1 : -1));
+}
+
 /* MS_Gen_Variable_Value() -- Obtain variable string */
 static bool_t MS_Gen_Variable_Value(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const char** const a_ValOut)
 {
@@ -975,37 +1076,13 @@ static bool_t MS_Gen_Variable_Value(const int32_t a_PlayerID, struct M_UIMenu_s*
 	/* Has a draw value */
 	else
 	{
-		// Is mapped variable
-		if (*a_Item->DrawVal == '~')
-		{
-			// Locate mapping
-			SVar = MS_MapToSV(a_PlayerID, NULL, a_Item->DrawValInt, NULL);
-			
-			// Found?
-			if (SVar)
-				*a_ValOut = SVar->Value->String;
-			
-			// Not found, use illegal value
-			else
-				*a_ValOut = NULL;
-		}
+		SVar = MS_SVarForValue(a_PlayerID, a_Item->DrawVal, a_Item->DrawValInt);
 		
-		// Is variable?
-		else if (*a_Item->DrawVal == '$')
-		{
-			// Locate hash
-			SVar = CONL_VarLocateHash(a_Item->DrawValInt);
-			
-			// Found?
-			if (SVar)
-				*a_ValOut = SVar->Value->String;
-			
-			// Not found, use illegal value
-			else
-				*a_ValOut = NULL;
-		}
+		// Found variable?
+		if (SVar)
+			*a_ValOut = SVar->Value->String;
 		
-		// Standard string
+		// Not found
 		else
 			*a_ValOut = a_Item->DrawVal;
 	}
@@ -1186,6 +1263,8 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 							"SelectFunc", a_Value);
 					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
 							"DrawValueFunc", a_Value);
+					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
+							"SlideFunc", a_Value);
 				}
 				
 				// Omni Value?
@@ -1195,6 +1274,30 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 							"SelectVal", a_Value);
 					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
 							"DrawValueVal", a_Value);
+					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
+							"SlideVal", a_Value);
+				}
+				
+				// Sliding?
+				else if (strcasecmp("SlideFunc", a_Field) == 0)
+				{
+					if (strcasecmp("Variable", a_Value) == 0)
+						THISITEM->LRValChangeFunc = MS_Gen_Variable_Slide;
+					
+					// Illegal
+					else
+						THISITEM->LRValChangeFunc = NULL;
+				}
+				
+				// Slide Value?
+				else if (strcasecmp("SlideVal", a_Field) == 0)
+				{
+					if (THISITEM->SlideVal)
+						Z_Free(THISITEM->SlideVal);
+					
+					// Copy string
+					THISITEM->SlideVal = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+					THISITEM->SlideValInt = MS_ValToInt(a_Value);
 				}
 				
 				// Item Function?

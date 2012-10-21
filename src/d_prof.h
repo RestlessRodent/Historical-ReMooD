@@ -220,7 +220,5 @@ D_ProfileEx_t* D_FindProfileExByInstance(const uint32_t a_ID);
 void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data);
 int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV);
 
-void D_PopupProfileMenu(const int32_t a_Player);
-
 #endif							/* __D_PROF_H__ */
 
