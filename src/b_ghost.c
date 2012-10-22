@@ -110,7 +110,7 @@ typedef struct B_LineSet_s
 *** CONSTANTS ***
 ****************/
 
-#define MAXBOTTEMPLATES 48
+#define MAXBOTTEMPLATES 16
 
 /* c_BotTemplates -- Bot template */
 static const B_BotTemplate_t c_BotTemplates[MAXBOTTEMPLATES] =
@@ -189,6 +189,18 @@ static const B_BotTemplate_t c_BotTemplates[MAXBOTTEMPLATES] =
 	},
 	
 	{
+		6,										// ID
+		"redzbot",								// Account Name
+		"{1Red{bZ{x76Bot",					// Display Name
+		0x6,									// Color: BrightRed
+		{0xFF, 0x00, 0x00},						// Hex Color
+		"",										// Weapons
+		BGAP_DONTCARE,							// Posture
+		BGCM_DONTCARE,							// Coop Mode
+		"Random",								// Hexen Class
+	},
+	
+	{
 		UINT_MAX,
 		NULL,
 	}
@@ -247,23 +259,14 @@ const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name)
 /* B_GHOST_RandomTemplate() -- Loads a random template */
 const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 {
-	size_t i, j;
+	size_t i, j, r;
 	const B_BotTemplate_t* Rand;
-	int8_t Counts[MAXBOTTEMPLATES], MinCount, MaxCount, Failures, MinAt;
+	int8_t MinCount, MaxCount, Failures, MinAt;
 	const B_BotTemplate_t* Temp;
 	
-	/* Clear */
-	memset(Counts, 0, sizeof(Counts));
+	static Counts[MAXBOTTEMPLATES];
 	
 	/* Count */
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		Temp = B_BotGetTemplate(i);
-		
-		if (Temp)
-			Counts[Temp - c_BotTemplates]++;
-	}
-	
 	// Determine Minimum Count
 	MinCount = 125;
 	MaxCount = -125;
@@ -287,16 +290,23 @@ const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 	do
 	{
 		// Obtain Random Bot
-		Rand = B_GHOST_TemplateByID(abs(M_Random()) % i);
+		r = abs(M_Random()) % i;
+		Rand = B_GHOST_TemplateByID(r);
 		
 		// Bot Statifies Minimum Quantity
 		if (Counts[Rand - c_BotTemplates] == MinCount)
+		{
+			Counts[r]++;
 			break;
+		}
 	} while (++Failures < 32);	// Only try so much (anti-infinite loop)
 	
 	/* No bot? One final try */
 	if (!Rand)
+	{
 		Rand = B_GHOST_TemplateByID(c_BotTemplates[MinAt].BotIDNum);
+		Counts[c_BotTemplates[MinAt].BotIDNum]++;
+	}
 	
 	/* Return if found */
 	if (Rand)

@@ -994,7 +994,7 @@ void G_PlayerReborn(int player)
 		if (j > 0)
 		{
 			// Select a random gun from this list
-			i = P_Random() % j;
+			i = abs(P_SignedRandom()) % j;
 			
 			// Go through all weapons again
 			for (j = 0; j < NUMWEAPONS; j++)

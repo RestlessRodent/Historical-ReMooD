@@ -3099,6 +3099,11 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// Tics
 	D_ClearNetTics();
 	
+	// Global Commands
+	memset(l_GlobalTime, 0, sizeof(l_GlobalTime));
+	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	l_GlobalAt = -1;
+	
 	// Consistency problems
 	l_ConsistencyFailed = false;
 	
@@ -3698,6 +3703,10 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Find XPlayer */
 	XPlay = D_XNetPlayerByID(a_JoinData->ID);
+	
+	// Invalid? Oops!
+	if (!XPlay)
+		return;
 	
 	/* Setup XPlayer */
 	XPlay->InGameID = k;
