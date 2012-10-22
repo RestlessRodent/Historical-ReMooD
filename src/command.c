@@ -904,6 +904,8 @@ fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal)
 /* CONL_VarSlideValue() -- Slide variable */
 bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
 {
+	int32_t i, Hit, ixMi, ixMa;
+	
 	/* Check */
 	if (!a_Var || !a_Right)
 		return false;
@@ -916,7 +918,42 @@ bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
 	if (a_Var->Type == CLVT_STRING)
 		return false;
 	
+	/* If there is no possible value */
+	if (!a_Var->Possible)
+	{
+		// Integer
+		if (a_Var->Type == CLVT_INTEGER)
+			CONL_VarSetInt(a_Var, a_Var->Value->Int + (1 * a_Right));
+		
+		// Fixed point
+		else if (a_Var->Type == CLVT_FIXED)
+			CONL_VarSetFixed(a_Var, a_Var->Value->Fixed + ((fixed_t)8192 * (fixed_t)a_Right));
+		
+		// Was changed, hopefully
+		return true;
+	}
+	
 	/* Change value based on direction */
+	// Determine min/max and such
+	ixMi = ixMa = Hit = -1;
+	
+	// Go through options
+	for (i = 0; a_Var->Possible[i].StrAlias; i++)
+	{
+		// Is this value?
+		if (Hit == -1)
+			if (a_Var->Value->Int == a_Var->Possible[i].)
+				Hit = i;
+		
+		// Min?
+		if (strcasecmp(a_Var->Possible[i].StrAlias, "MINVALUE") == 0)
+			ixMi = i;
+		
+		// Max?
+		if (strcasecmp(a_Var->Possible[i].StrAlias, "MAXVALUE") == 0)
+			ixMa = i;
+	}
+	
 	// TODO FIXME
 	
 	/* Success! */
