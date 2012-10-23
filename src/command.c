@@ -942,7 +942,7 @@ bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
 	{
 		// Is this value?
 		if (Hit == -1)
-			if (a_Var->Value->Int == a_Var->Possible[i].)
+			if (a_Var->Value->Int == a_Var->Possible[i].IntVal)
 				Hit = i;
 		
 		// Min?
