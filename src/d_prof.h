@@ -191,6 +191,7 @@ typedef struct D_ProfileEx_s
 	int32_t MouseSens[2];						// Mouse Sensitivity
 	int32_t JoySens[2];							// Joystick Sensitivity
 	int32_t LookUpDownSpeed;					// Looking Up/Down Speed
+	int32_t AutoGrabJoy;						// Auto-Grab Joystick
 	
 	/* Network Related */
 	D_NetPlayer_t* NetPlayer;					// Network Player

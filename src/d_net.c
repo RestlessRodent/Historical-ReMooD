@@ -3646,6 +3646,15 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 	g_Splits[a_ScreenID].XPlayer->Profile = a_Profile;
 	g_Splits[a_ScreenID].Profile = a_Profile;
 	
+	/* Auto-Grab Joystick? */
+	// Only if it isn't grabbed by someone else
+	if (a_Profile->AutoGrabJoy > 0)
+		if (!D_JoyToPort(a_Profile->AutoGrabJoy))
+		{
+			g_Splits[a_ScreenID].JoyBound = true;
+			g_Splits[a_ScreenID].JoyID = a_Profile->AutoGrabJoy;
+		}
+	
 	/* Send information to server to change colors and stuff */
 	D_XNetSendColors(g_Splits[a_ScreenID].XPlayer);
 }

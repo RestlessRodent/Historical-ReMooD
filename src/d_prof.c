@@ -153,6 +153,7 @@ static const struct
 	QUICKDS(JoySens[0], 32),
 	QUICKDS(JoySens[1], 32),
 	QUICKDS(LookUpDownSpeed, 32),
+	QUICKDS(AutoGrabJoy, 32),
 	QUICKDS(ColorPickup, 8),
 	QUICKDS(ColorSecret, 8),
 	QUICKDS(SoundSecret, 5555),
