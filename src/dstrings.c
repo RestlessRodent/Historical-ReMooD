@@ -1024,6 +1024,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			"DPROFC_ALREADYEXIST", "Profile \"$1\" already exists!"},
 	{			"DPROFC_FAILEDCREATE", "Failed to create profile."},
 	{			"DPROFC_CONTROLUSAGE", "Usage: $1 control <Name> <Action> <Id> <Key>"},
+	{			  "DPROFC_MAXISUSAGE", "Usage: $1 maxis <Name> <Group> <Axis> <Action>"},
+	{			  "DPROFC_JAXISUSAGE", "Usage: $1 jaxis <Name> <Group> <Axis> <Action>"},
 	{				"DPROFC_NOTFOUND", "Profile $1 not found."},
 	{		  "DPROFC_NOTCONTROLNAME", "$1 is not a valid control."},
 	{			  "DPROFC_VALUEUSAGE", "Usage: $1 value <Option> <Value>"},

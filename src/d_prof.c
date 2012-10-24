@@ -329,7 +329,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		l_DefaultJoyAxis[1][1] = DPEXCMA_MOVEY;
 			// Mouse Look (Default 'S')
 		l_DefaultJoyAxis[2][0] = DPEXCMA_LOOKX;
-		l_DefaultJoyAxis[2][1] = DPEXCMA_LOOKY;
+		l_DefaultJoyAxis[2][1] = DPEXCMA_NEGLOOKY;
 	
 		// Now set
 		l_DefaultCtrlsMapped = true;
@@ -631,7 +631,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 			for (j = 0; j < MAXMOUSEAXIS; j++)
 			{
 				// If not the default, change
-				if (Rover->MouseAxis[i][j] != l_DefaultMouseAxis[i][j])
+				if (Rover->MouseAxis[i][j] == l_DefaultMouseAxis[i][j])
 					continue;
 					
 				// Write Axis
@@ -648,7 +648,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 			for (j = 0; j < MAXJOYAXIS; j++)
 			{
 				// If not the default, change
-				if (Rover->JoyAxis[i][j] != l_DefaultJoyAxis[i][j])
+				if (Rover->JoyAxis[i][j] == l_DefaultJoyAxis[i][j])
 					continue;
 					
 				// Write Axis
@@ -701,7 +701,8 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 	char BufA[BUFSIZE];
 	char BufB[BUFSIZE];
 	D_ProfileEx_t* New;
-	int i, k;
+	int i, j, k;
+	D_ProfileExCtrlMA_t* TMA;
 	
 	/* Not enough arguments? */
 	if (a_ArgC < 3)
@@ -820,24 +821,59 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		New->Ctrls[k][i] = DS_KeyStrToCode(a_ArgV[5]);
 	}
 	
-	// Mouse Axis
-	else if (strcasecmp(a_ArgV[1], "maxis") == 0)
+	// Mouse/Joy Axis
+	else if ((strcasecmp(a_ArgV[1], "maxis") == 0) || (strcasecmp(a_ArgV[1], "jaxis") == 0))
 	{
-#if 0
 		// Usage?
 		if (a_ArgC < 6)
 		{
-			CONL_OutputU(DSTR_DPROFC_CONTROLUSAGE, "%s\n", a_ArgV[0]);
+			CONL_OutputU(DSTR_DPROFC_MAXISUSAGE, "%s\n", a_ArgV[0]);
 			return 1;
 		}
-"profile maxis \"%s\" %i %i \"%s\"\n",
- 0       1     2      3  4  5
-#endif
-	}
-	
-	// Joystick Axis
-	else if (strcasecmp(a_ArgV[1], "yaxis") == 0)
-	{
+		
+		// Obtain current grouping and control set
+		i = C_strtou32(a_ArgV[3], NULL, 10);
+		j = C_strtou32(a_ArgV[4], NULL, 10);
+		
+		// Alternate overflow?
+		if (i < 0 || i >= MAXALTAXIS)
+			return 1;
+		
+		// Clear
+		TMA = NULL;
+		
+		// Modding Joy?
+		if (a_ArgV[1][0] == 'j')
+		{
+			// Out of range?
+			if (j < 0 || j >= MAXJOYAXIS)
+				return 1;
+			
+			// Set
+			TMA = &New->JoyAxis[i][j];
+		}
+		
+		// Modding Mouse?
+		else
+		{
+			// Out of range?
+			if (j < 0 || j >= MAXMOUSEAXIS)
+				return 1;
+			
+			// Set
+			TMA = &New->MouseAxis[i][j];
+		}
+		
+		// Find in list
+		for (k = 0; k < NUMDPROFILEEXCTRLMAS; k++)
+			if (strcasecmp(a_ArgV[5], c_AxisMap[k]) == 0)
+			{
+				*TMA = k;
+				return 0;
+			}
+			
+		// Failed?
+		return 1;
 	}
 	
 	return 0;
