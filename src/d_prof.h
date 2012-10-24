@@ -152,9 +152,16 @@ typedef enum D_ProfileExCtrlMA_e
 	DPEXCMA_LOOKX,								// Look on axis
 	DPEXCMA_LOOKY,
 	
+	DPEXCMA_NEGMOVEX,							// Negative Move on axis
+	DPEXCMA_NEGMOVEY,
+	DPEXCMA_NEGLOOKX,							// Negative Look on axis
+	DPEXCMA_NEGLOOKY,
+	
 	NUMDPROFILEEXCTRLMAS
 } D_ProfileExCtrlMA_t;
 
+#define MAXALTAXIS		3
+#define MAXMOUSEAXIS	2
 #define MAXJOYAXIS		8
 
 #define MAXPROFILEUUID (MAXPLAYERNAME * 2)
@@ -179,8 +186,8 @@ typedef struct D_ProfileEx_s
 	
 	/* Controls For Player */
 	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][4];	// Player Controls
-	D_ProfileExCtrlMA_t MouseAxis[3][2];		// Mouse Axis Movement
-	D_ProfileExCtrlMA_t JoyAxis[3][MAXJOYAXIS];	// Joy Axis Movement
+	D_ProfileExCtrlMA_t MouseAxis[MAXALTAXIS][MAXMOUSEAXIS];	// Mouse Axis Movement
+	D_ProfileExCtrlMA_t JoyAxis[MAXALTAXIS][MAXJOYAXIS];		// Joy Axis Movement
 	int32_t MouseSens[2];						// Mouse Sensitivity
 	int32_t JoySens[2];							// Joystick Sensitivity
 	int32_t LookUpDownSpeed;					// Looking Up/Down Speed

@@ -4468,7 +4468,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	int32_t TargetMove;
 	size_t i, PID, SID;
 	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
-	int32_t SideMove, ForwardMove, BaseAT, BaseAM;
+	int32_t SideMove, ForwardMove, BaseAT, BaseAM, NegMod;
 	bool_t IsTurning, GunInSlot, ResetAim;
 	int slot, j, l, k;
 	weapontype_t newweapon;
@@ -4546,29 +4546,43 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				TargetMove = ((float)l_JoyAxis[g_Splits[SID].JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
 			
 				// Which movement to perform?
+				NegMod = 1;
 				switch (Profile->JoyAxis[MouseMod][i])
 				{
 						// Movement
+					case DPEXCMA_NEGMOVEX:
+					case DPEXCMA_NEGMOVEY:
+						NegMod = -1;
+						
 					case DPEXCMA_MOVEX:
 					case DPEXCMA_MOVEY:
 						// Movement is fractionally based
 						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
+						TargetMove *= NegMod;
 					
 						// Now which action really?
-						if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX)
+						if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX ||
+								Profile->JoyAxis[MouseMod][i] == DPEXCMA_NEGMOVEX)
 							SideMove += TargetMove;
 						else
 							ForwardMove -= TargetMove;
 						break;
 					
 						// Looking Left/Right
+					case DPEXCMA_NEGLOOKX:
+						NegMod = -1;
+						
 					case DPEXCMA_LOOKX:
 						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
+						TargetMove *= NegMod;
 						IsTurning = true;
 						BaseAT -= TargetMove;
 						break;
 					
 						// Looking Up/Down
+					case DPEXCMA_NEGLOOKY:
+						NegMod = -1;
+						
 					case DPEXCMA_LOOKY:
 						break;
 				
@@ -4587,26 +4601,39 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			TargetMove = l_MouseMove[i] * ((((float)(Profile->MouseSens[SensMod] * Profile->MouseSens[SensMod])) / 110.0) + 0.1);
 			
 			// Do action for which movement type?
+			NegMod = 1;
 			switch (Profile->MouseAxis[MouseMod][i])
 			{
 					// Strafe Left/Right
+				case DPEXCMA_NEGMOVEX:
+					NegMod = -1;
+						
 				case DPEXCMA_MOVEX:
-					SideMove += TargetMove;
+					SideMove += TargetMove * NegMod;
 					break;
 					
 					// Move Forward/Back
+				case DPEXCMA_NEGMOVEY:
+					NegMod = -1;
+					
 				case DPEXCMA_MOVEY:
-					ForwardMove += TargetMove;
+					ForwardMove += TargetMove * NegMod;
 					break;
 					
 					// Left/Right Look
+				case DPEXCMA_NEGLOOKX:
+					NegMod = -1;
+				
 				case DPEXCMA_LOOKX:
-					BaseAT -= TargetMove * 8;
+					BaseAT -= TargetMove * 8 * NegMod;
 					break;
 					
 					// Up/Down Look
+				case DPEXCMA_NEGLOOKY:
+					NegMod = -1;
+					
 				case DPEXCMA_LOOKY:
-					BaseAM += TargetMove << 3;
+					BaseAM += (TargetMove * NegMod) << 3;
 					//localaiming[SID] += TargetMove << 19;
 					break;
 				

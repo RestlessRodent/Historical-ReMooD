@@ -348,8 +348,6 @@ void I_FinishUpdate(void)
 	// Clear
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	l_GLUpMode = IGLUM_TEXTURE;
-	
 	/* Send video buffer to screen */
 	switch (l_GLUpMode)
 	{
@@ -361,9 +359,9 @@ void I_FinishUpdate(void)
 				{
 					Bit = Buffer[(y * w) + x];
 					glColor3ub(
-							l_GLPalette[Bit].c[3],
-							l_GLPalette[Bit].c[2],
-							l_GLPalette[Bit].c[1]
+							l_GLPalette[Bit].c[0],
+							l_GLPalette[Bit].c[1],
+							l_GLPalette[Bit].c[2]
 						);
 					glVertex2i(x, y);
 				}
@@ -447,9 +445,10 @@ void I_SetPalette(RGBA_t* palette)
 	/* Clone Colors */
 	for (i = 0; i < 256; i++)
 	{
-		l_GLPalette[i].c[3] = palette[i].s.red;
-		l_GLPalette[i].c[2] = palette[i].s.green;
-		l_GLPalette[i].c[1] = palette[i].s.blue;
+		l_GLPalette[i].c[0] = palette[i].s.red;
+		l_GLPalette[i].c[1] = palette[i].s.green;
+		l_GLPalette[i].c[2] = palette[i].s.blue;
+		l_GLPalette[i].c[3] = 0xFF;
 	}
 }
 
@@ -534,6 +533,8 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		// Textures
 	else
 		l_GLUpMode = IGLUM_TEXTURE;
+		
+	l_GLUpMode = IGLUM_TEXTURE;
 		
 	/* Power of two width and height */
 	// Width

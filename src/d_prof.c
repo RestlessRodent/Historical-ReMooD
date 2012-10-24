@@ -121,6 +121,21 @@ static const struct
 	{"morestuff", "More Commands Modifier", DPEXIC_MORESTUFF},
 };
 
+/* c_AxisMap -- Map of axis names */
+static const char* const c_AxisMap[NUMDPROFILEEXCTRLMAS] =
+{
+	"null",										// DPEXCMA_NULL
+	"movex",									// DPEXCMA_MOVEX
+	"movey",									// DPEXCMA_MOVEY,
+	"lookx",									// DPEXCMA_LOOKX
+	"looky",									// DPEXCMA_LOOKY,
+	
+	"negmovex",									// DPEXCMA_NEGMOVEX
+	"negmovey",									// DPEXCMA_NEGMOVEY,
+	"neglookx",									// DPEXCMA_NEGLOOKX,
+	"neglooky",									// DPEXCMA_NEGLOOKY,
+};
+
 /* c_ProfDataStat -- Simplified config space */
 static const struct
 {
@@ -164,6 +179,8 @@ D_ProfileEx_t* g_KeyDefaultProfile = NULL;		// Profile with our key defaults
 static D_ProfileEx_t* l_FirstProfile = NULL;	// First in chain
 
 static bool_t l_DefaultCtrlsMapped = false;
+static D_ProfileExCtrlMA_t l_DefaultMouseAxis[MAXALTAXIS][MAXMOUSEAXIS];		// Mouse Axis Movement
+static D_ProfileExCtrlMA_t l_DefaultJoyAxis[MAXALTAXIS][MAXJOYAXIS];	// Joy Axis Movement
 static uint32_t l_DefaultCtrls[NUMDPROFILEEXINPUTCTRLS][4];
 
 /*** FUNCTIONS ***/
@@ -288,38 +305,40 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		SETJOYMORE(CHATMODE, 10);
 		SETJOYMORE(SUICIDE, 11);
 		
-		// Now set
-		l_DefaultCtrlsMapped = true;
-
 #undef SETJOY
 #undef SETKEY_M
 #undef SETKEY
+		
+		// Mouse Axis
+			// Not ALT
+		l_DefaultMouseAxis[0][0] = DPEXCMA_LOOKX;
+		l_DefaultMouseAxis[0][1] = DPEXCMA_MOVEY;
+			// ALT
+		l_DefaultMouseAxis[1][0] = DPEXCMA_MOVEX;
+		l_DefaultMouseAxis[1][1] = DPEXCMA_MOVEY;
+			// Mouse Look (Default 'S')
+		l_DefaultMouseAxis[2][0] = DPEXCMA_LOOKX;
+		l_DefaultMouseAxis[2][1] = DPEXCMA_LOOKY;
+	
+		// Joystick Axis
+			// Not ALT
+		l_DefaultJoyAxis[0][0] = DPEXCMA_LOOKX;
+		l_DefaultJoyAxis[0][1] = DPEXCMA_MOVEY;
+			// ALT
+		l_DefaultJoyAxis[1][0] = DPEXCMA_MOVEX;
+		l_DefaultJoyAxis[1][1] = DPEXCMA_MOVEY;
+			// Mouse Look (Default 'S')
+		l_DefaultJoyAxis[2][0] = DPEXCMA_LOOKX;
+		l_DefaultJoyAxis[2][1] = DPEXCMA_LOOKY;
+	
+		// Now set
+		l_DefaultCtrlsMapped = true;
 	}
 	
 	// Copy directly from defaults
 	memmove(New->Ctrls, l_DefaultCtrls, sizeof(l_DefaultCtrls));
-	
-	// Mouse Axis
-		// Not ALT
-	New->MouseAxis[0][0] = DPEXCMA_LOOKX;
-	New->MouseAxis[0][1] = DPEXCMA_MOVEY;
-		// ALT
-	New->MouseAxis[1][0] = DPEXCMA_MOVEX;
-	New->MouseAxis[1][1] = DPEXCMA_MOVEY;
-		// Mouse Look (Default 'S')
-	New->MouseAxis[2][0] = DPEXCMA_LOOKX;
-	New->MouseAxis[2][1] = DPEXCMA_LOOKY;
-	
-	// Joystick Axis
-		// Not ALT
-	New->JoyAxis[0][0] = DPEXCMA_LOOKX;
-	New->JoyAxis[0][1] = DPEXCMA_MOVEY;
-		// ALT
-	New->JoyAxis[1][0] = DPEXCMA_MOVEX;
-	New->JoyAxis[1][1] = DPEXCMA_MOVEY;
-		// Mouse Look (Default 'S')
-	New->JoyAxis[2][0] = DPEXCMA_LOOKX;
-	New->JoyAxis[2][1] = DPEXCMA_LOOKY;
+	memmove(New->MouseAxis, l_DefaultMouseAxis, sizeof(l_DefaultMouseAxis));
+	memmove(New->JoyAxis, l_DefaultJoyAxis, sizeof(l_DefaultJoyAxis));
 
 	// Default Sensitivities
 	New->MouseSens[0] = New->MouseSens[1] = 10;
@@ -605,6 +624,44 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 			a_WriteBack(Buf, a_Data);
 		}
 		
+		// Write Mouse/Joy Axis
+		for (i = 0; i < MAXALTAXIS; i++)
+		{
+			// Mouse
+			for (j = 0; j < MAXMOUSEAXIS; j++)
+			{
+				// If not the default, change
+				if (Rover->MouseAxis[i][j] != l_DefaultMouseAxis[i][j])
+					continue;
+					
+				// Write Axis
+				snprintf(Buf, BUFSIZE, "profile maxis \"%s\" %i %i \"%s\"\n",
+						EscapeUUID,
+						i,
+						j,
+						c_AxisMap[Rover->MouseAxis[i][j]]
+					);
+				a_WriteBack(Buf, a_Data);
+			}
+			
+			// Joystick
+			for (j = 0; j < MAXJOYAXIS; j++)
+			{
+				// If not the default, change
+				if (Rover->JoyAxis[i][j] != l_DefaultJoyAxis[i][j])
+					continue;
+					
+				// Write Axis
+				snprintf(Buf, BUFSIZE, "profile jaxis \"%s\" %i %i \"%s\"\n",
+						EscapeUUID,
+						i,
+						j,
+						c_AxisMap[Rover->JoyAxis[i][j]]
+					);
+				a_WriteBack(Buf, a_Data);
+			}
+		}
+		
 		// Write Controls
 		for (i = 0; i < NUMDPROFILEEXINPUTCTRLS; i++)
 			for (j = 0; j < 4; j++)
@@ -695,28 +752,32 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		// Set UUID if preformed
 		if (BufB[0])
 			strncpy(New->UUID, BufB, MAXPROFILEUUID);
+		
+		// Done
+		return true;
+	}
+	
+	/* After this all values are mostly the same */
+	// Read Name
+	CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);
+	
+	// Find profile
+	New = D_FindProfileEx(BufA);
+	
+	// Not found?
+	if (!New)
+	{
+		CONL_OutputU(DSTR_DPROFC_NOTFOUND, "%s\n", BufA);
+		return 1;
 	}
 	
 	// Change Value
-	else if (strcasecmp(a_ArgV[1], "value") == 0)
+	if (strcasecmp(a_ArgV[1], "value") == 0)
 	{
 		// Usage?
 		if (a_ArgC < 5)
 		{
 			CONL_OutputU(DSTR_DPROFC_VALUEUSAGE, "%s\n", a_ArgV[0]);
-			return 1;
-		}
-		
-		// Read Name
-		CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);
-		
-		// Find profile
-		New = D_FindProfileEx(BufA);
-		
-		// Not found?
-		if (!New)
-		{
-			CONL_OutputU(DSTR_DPROFC_NOTFOUND, "%s\n", BufA);
 			return 1;
 		}
 		
@@ -730,19 +791,6 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (a_ArgC < 6)
 		{
 			CONL_OutputU(DSTR_DPROFC_CONTROLUSAGE, "%s\n", a_ArgV[0]);
-			return 1;
-		}
-		
-		// Read Name
-		CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);
-		
-		// Find profile
-		New = D_FindProfileEx(BufA);
-		
-		// Not found?
-		if (!New)
-		{
-			CONL_OutputU(DSTR_DPROFC_NOTFOUND, "%s\n", BufA);
 			return 1;
 		}
 		
@@ -770,6 +818,26 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Back convert string to ID
 		New->Ctrls[k][i] = DS_KeyStrToCode(a_ArgV[5]);
+	}
+	
+	// Mouse Axis
+	else if (strcasecmp(a_ArgV[1], "maxis") == 0)
+	{
+#if 0
+		// Usage?
+		if (a_ArgC < 6)
+		{
+			CONL_OutputU(DSTR_DPROFC_CONTROLUSAGE, "%s\n", a_ArgV[0]);
+			return 1;
+		}
+"profile maxis \"%s\" %i %i \"%s\"\n",
+ 0       1     2      3  4  5
+#endif
+	}
+	
+	// Joystick Axis
+	else if (strcasecmp(a_ArgV[1], "yaxis") == 0)
+	{
 	}
 	
 	return 0;
