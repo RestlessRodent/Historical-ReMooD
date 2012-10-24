@@ -80,7 +80,7 @@ static I_GLUploadMode_t l_GLUpMode;				// Image upload mode
 static l_GLUTWinRef = 0;						// GLUT Window reference
 
 static uint8_t* l_GLImgBuffer;					// Image Buffer
-static uint32_t l_GLImgSize[2];					// Size of image
+static uint32_t l_GLImgSize[4];					// Size of image
 
 /****************
 *** FUNCTIONS ***
@@ -315,8 +315,8 @@ void I_FinishUpdate(void)
 {
 	uint8_t* Buffer;
 	uint32_t w, h, wPOT, hPOT;
-	uint32_t x, y, *o;
-	uint8_t Bit, *s;
+	uint32_t x, y;
+	uint8_t Bit;
 	
 	/* Obtain the software buffer */
 	Buffer = I_VideoSoftBuffer(&w, &h);
@@ -327,35 +327,10 @@ void I_FinishUpdate(void)
 	
 	/* Power of two width and height */
 	// Width
-	wPOT = w - 1;
-	wPOT |= (wPOT >> 1);
-	wPOT |= (wPOT >> 2);
-	wPOT |= (wPOT >> 4);
-	wPOT |= (wPOT >> 8);
-	wPOT |= (wPOT >> 16);
-	wPOT += 1;
+	wPOT = l_GLImgSize[0];
 	
 	// Height
-	hPOT = h - 1;
-	hPOT |= (hPOT >> 1);
-	hPOT |= (hPOT >> 2);
-	hPOT |= (hPOT >> 4);
-	hPOT |= (hPOT >> 8);
-	hPOT |= (hPOT >> 16);
-	hPOT += 1;
-	
-	/* Need new texture allocation? */
-	if (wPOT != l_GLImgSize[0] || hPOT != l_GLImgSize[1])
-	{
-		// Free
-		if (l_GLImgBuffer)
-			Z_Free(l_GLImgBuffer);
-		
-		// Allocate
-		l_GLImgBuffer = Z_Malloc(sizeof(uint32_t) * (wPOT * hPOT), PU_STATIC, NULL);
-		l_GLImgSize[0] = wPOT;
-		l_GLImgSize[1] = hPOT;
-	}
+	hPOT = l_GLImgSize[1];
 	
 	/* Clear the framebuffer */
 	// Set view port
@@ -421,6 +396,7 @@ void I_FinishUpdate(void)
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, 13);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, wPOT);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -432,11 +408,11 @@ void I_FinishUpdate(void)
 				glTexCoord2d(0, 0);
 				glVertex2i(0, 0);
 				glTexCoord2d(1, 0);
-				glVertex2i(w, 0);
+				glVertex2i(wPOT, 0);
 				glTexCoord2d(1, 1);
-				glVertex2i(w, h);
+				glVertex2i(wPOT, hPOT);
 				glTexCoord2d(0, 1);
-				glVertex2i(0, h);
+				glVertex2i(0, hPOT);
 			glEnd();
 			
 			glDisable(GL_TEXTURE_2D);
@@ -498,6 +474,8 @@ void VID_PrepareModeList(void)
 /* I_SetVideoMode() -- Sets the current video mode */
 bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
 {
+	uint32_t wPOT, hPOT;
+	
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
@@ -556,6 +534,42 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		// Textures
 	else
 		l_GLUpMode = IGLUM_TEXTURE;
+		
+	/* Power of two width and height */
+	// Width
+	wPOT = a_Width - 1;
+	wPOT |= (wPOT >> 1);
+	wPOT |= (wPOT >> 2);
+	wPOT |= (wPOT >> 4);
+	wPOT |= (wPOT >> 8);
+	wPOT |= (wPOT >> 16);
+	wPOT += 1;
+	
+	// Height
+	hPOT = a_Height - 1;
+	hPOT |= (hPOT >> 1);
+	hPOT |= (hPOT >> 2);
+	hPOT |= (hPOT >> 4);
+	hPOT |= (hPOT >> 8);
+	hPOT |= (hPOT >> 16);
+	hPOT += 1;
+	
+	/* Need new texture allocation? */
+	if (wPOT != l_GLImgSize[0] || hPOT != l_GLImgSize[1])
+	{
+		// Free
+		if (l_GLImgBuffer)
+			Z_Free(l_GLImgBuffer);
+		
+		// Allocate
+		l_GLImgBuffer = Z_Malloc(sizeof(uint32_t) * (wPOT * hPOT), PU_STATIC, NULL);
+		l_GLImgSize[0] = wPOT;
+		l_GLImgSize[1] = hPOT;
+	}
+	
+	/* Set image size */
+	l_GLImgSize[2] = a_Width;
+	l_GLImgSize[3] = a_Height;
 	
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
