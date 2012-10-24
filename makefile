@@ -209,6 +209,31 @@ ifeq (,$(strip $(__INT_ALLEGROLDFLAGS)))
 	endif
 endif
 
+### OPENGL ###
+
+#$(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
+#$(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
+
+### GLUT ###
+
+# C Flags
+ifeq (,$(strip $(__INT_GLUTCFLAGS)))
+	ifneq (,$(strip $(GLUT_INCLUDE)))
+		export __INT_GLUTCFLAGS  := -I$(GLUT_INCLUDE)
+	else
+		export __INT_GLUTCFLAGS  := -Iinclude -IGL
+	endif
+endif
+
+# LD Flags
+ifeq (,$(strip $(__INT_GLUTLDFLAGS)))
+	ifneq (,$(strip $(GLUT_LIB)))
+		export __INT_GLUTLDFLAGS := -L$(GLUT_LIB) -lglut
+	else
+		export __INT_GLUTLDFLAGS := -Llib -lglut
+	endif
+endif
+
 ###############
 ### TARGETS ###
 ##############/

@@ -1133,6 +1133,7 @@ void I_StartupGraphics(void)
 		CONL_PrintF("I_StartupGraphics: Failed to initialize SDL graphics.\n");
 		return;
 	}
+	
 	// Set unicode mode and key repeating
 	SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);

@@ -260,6 +260,14 @@ else
 					__XX_FPREFIX = p
 					__XX_FCFLAGS = -D__REMOOD_INTERFACE_PALMOS
 					__XX_FLDFLAGS = 
+				else
+					# OpenGL+GLUT+OpenAL interface
+					ifeq (glutal,$(strip $(__XX_DEFINTRF)))
+						__XX_IFACEDIR = glutal
+						__XX_FPREFIX = g
+						__XX_FCFLAGS = -D__REMOOD_INTERFACE_GLUTAL $(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
+						__XX_FLDFLAGS = $(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
+					endif
 				endif
 			endif
 		endif
