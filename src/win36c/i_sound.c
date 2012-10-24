@@ -43,7 +43,7 @@
 ****************/
 
 /* I_SoundDriverInit() -- Initializes sound */
-bool I_SoundDriverInit(void)
+bool_t I_SoundDriverInit(void)
 {
 	/* Success */
 	return true;

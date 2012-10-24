@@ -72,7 +72,7 @@ static uint8_t* l_ceScreenBuffer = NULL;
 ****************/
 
 /* ceWindowProc() -- Main window procedure */
-extern "C" LRESULT CALLBACK ceWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ceWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	static int32_t OldX, OldY;
 	HDC hDc, bufDc;
@@ -206,7 +206,7 @@ void VID_PrepareModeList(void)
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
-bool I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool a_Fullscreen)
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
 {
 	HDC hDc;
 	int i;
@@ -387,7 +387,7 @@ void I_ShutdownGraphics(void)
 }
 
 /* I_TextMode() -- Enter and leaves text mode */
-bool I_TextMode(const bool a_OnOff)
+bool_t I_TextMode(const bool_t a_OnOff)
 {
 	/* On */
 	if (a_OnOff)
@@ -414,33 +414,33 @@ void I_RemoveJoysticks(void)
 }
 
 /* I_GetJoystickID() -- Gets name of the joysticks */
-bool I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const a_Text, const size_t a_TextSize, char* const a_Cool, const size_t a_CoolSize)
+bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const a_Text, const size_t a_TextSize, char* const a_Cool, const size_t a_CoolSize)
 {
 	/* Always Fail */
 	return false;
 }
 
 /* I_GetJoystickCounts() -- Get joystick counts */
-bool I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint32_t* const a_NumButtons)
+bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint32_t* const a_NumButtons)
 {
 	/* Always Fail */
 	return false;
 }
 
 /* I_ProbeMouse() -- Probes Mice */
-bool I_ProbeMouse(const size_t a_ID)
+bool_t I_ProbeMouse(const size_t a_ID)
 {
 	return true;
 }
 
 /* I_RemoveMouse() -- Removes mice */
-bool I_RemoveMouse(const size_t a_ID)
+bool_t I_RemoveMouse(const size_t a_ID)
 {
 	return true;
 }
 
 /* I_MouseGrab() -- Sets mouse grabbing */
-void I_MouseGrab(const bool a_Grab)
+void I_MouseGrab(const bool_t a_Grab)
 {
 }
 

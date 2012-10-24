@@ -1272,9 +1272,11 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 	
 	// Use Win32 console color functions
 #elif defined(_WIN32)
+#if !defined(_WIN32_WCE)
 	// GetConsoleScreenBufferInfo
 	StdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(StdOut, c_BGColorToWin32[BG] | c_FGColorToWin32[FG & 7] | ((FG & 8) ? FOREGROUND_INTENSITY : 0));
+#endif
 	
 	// Use VT escape characters
 #elif defined(__unix__)
@@ -1413,7 +1415,7 @@ void I_ShutdownSystem(void)
 /* I_mkdir() -- Creates a new directory */
 int I_mkdir(const char* a_Path, int a_UNIXPowers)
 {
-#if defined(__REMOOD_SYSTEM_WINDOWS) || defined(__REMOOD_USECCSTUB)
+#if defined(__REMOOD_SYSTEM_WINDOWS) || defined(__REMOOD_SYSTEM_WINCE) || defined(__REMOOD_USECCSTUB)
 	return mkdir(a_Path);
 	
 #else
@@ -1429,7 +1431,14 @@ const char* I_GetUserName(void)
 	static char RememberName[MAXUSERNAME];
 	const char* p;
 	
-#if defined(_WIN32)
+#if defined(_WIN32_WCE)
+	LONG ErrRet;
+	HKEY hKey;
+	DWORD ByteCount;
+	DWORD Type;
+	TCHAR* ValBuf;
+	size_t i;
+#elif defined(_WIN32)
 	TCHAR Buf[MAXUSERNAME];
 	DWORD Size;
 	size_t i;
@@ -1439,8 +1448,52 @@ const char* I_GetUserName(void)
 	memset(RememberName, 0, sizeof(RememberName));
 	
 	/* Try system specific username getting */
+	// Under WinCE, Get the name of the owner (HKEY_CURRENT_USER\Control Panel\Owner)
+#if defined(_WIN32_WCE)
+	ErrRet = RegOpenKeyEx(HKEY_CURRENT_USER, (LPCWSTR)L"\\Control Panel\\Owner", 0, 0, &hKey);
+	
+	// If it is error success, it worked ok
+	if (ErrRet == ERROR_SUCCESS)
+	{
+		// Get the size of the key first
+		ErrRet = RegQueryValueEx(hKey, (LPCWSTR)L"Owner", NULL, &Type, NULL, &ByteCount);
+		if (ByteCount > 0)
+		{
+			// Allocate an array big enough for the value
+			ValBuf = Z_Malloc(sizeof(TCHAR) * (ByteCount + 1), PU_STATIC, NULL);
+			
+			// Re-obtain the value
+			ErrRet = RegQueryValueEx(hKey, (LPCWSTR)L"Owner", NULL, &Type, (LPBYTE)ValBuf, &ByteCount);
+			
+			// Copy value up to 32
+			for (i = 0; ValBuf[i] && i < 31; i++)
+				RememberName[i] = ValBuf[i];
+			
+			// Clear value
+			Z_Free(ValBuf);
+		}
+		
+		// Be sure to close the key
+		RegCloseKey(hKey);
+		
+		// Return the name obtained
+		if (RememberName[0])
+			return RememberName;
+	}
+	
+	// Under Win32, use GetUserName
+#elif defined(_WIN32)
+	Size = MAXUSERNAME - 1;
+	if (GetUserName(Buf, &Size))
+	{
+		// Cheap copy
+		for (i = 0; i <= Size; i++)
+			RememberName[i] = Buf[i] & 0x7F;
+		return RememberName;
+	}
+	
 	// Under UNIX, use getlogin
-#if defined(__unix__)
+#elif defined(__unix__)
 	// prefer getlogin_r if it exists
 #if _REENTRANT || _POSIX_C_SOURCE >= 199506L
 	if (getlogin_r(RememberName, MAXUSERNAME - 1))
@@ -1457,17 +1510,7 @@ const char* I_GetUserName(void)
 		return RememberName;
 	}
 #endif
-	
-	// Under Win32, use GetUserName
-#elif defined(_WIN32)
-	Size = MAXUSERNAME - 1;
-	if (GetUserName(Buf, &Size))
-	{
-		// Cheap copy
-		for (i = 0; i <= Size; i++)
-			RememberName[i] = Buf[i] & 0x7F;
-		return RememberName;
-	}
+
 	// Otherwise whoops!
 #else
 #endif

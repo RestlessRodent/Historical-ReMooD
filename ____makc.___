@@ -209,8 +209,10 @@ void ParseDefines(FILE* const InDef)
 /* Eval() -- Evaluates string */
 int Eval(const char* const String)
 {
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
 	char* Tok;
-	char* p;
+	char* p, *e;
 	int Xor;
 	int Result = 0;
 	int Op = 0;
@@ -220,11 +222,29 @@ int Eval(const char* const String)
 		return 0;
 		
 	// While there is a token
-	for (Tok = strtok((char* __restrict__)String, " "); Tok; Tok = strtok(NULL, " ")) 
+	for (Tok = strtok((char* __restrict__)String, " \t"); Tok; Tok = strtok(NULL, " \t")) 
 	{
 		// Reset
 		p = Tok;
 		Op = 0;
+		
+		// If a character is a pipe, only continue if the result is still zero
+		if (*p == '|')
+		{
+			if (Result)
+				break;
+			continue;
+		}
+		
+		// If character is an ampersand, only continue if result is non-zero
+		if (*p == '&')
+		{
+			// If the result is zero, then ignore
+			if (!Result)
+				return 0;
+			Result = 0;	// Clear result for next run (and)
+			continue;
+		}
 		
 		// If the character is a !, the result at the end of opposite
 		if (*p == '!')
@@ -247,6 +267,7 @@ int Eval(const char* const String)
 	
 	// Return result
 	return Result;
+#undef BUFSIZE
 }
 
 /* MakeMakefile() -- Creates a makefile */

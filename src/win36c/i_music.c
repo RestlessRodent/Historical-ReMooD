@@ -1,4 +1,4 @@
-// -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
+// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // -----------------------------------------------------------------------------
 //         :oCCCCOCoc.
 //     .cCO8OOOOOOOOO8Oo:
@@ -43,7 +43,7 @@
 ****************/
 
 /* I_MusicDriverInit() -- Initialize all music drivers */
-bool I_MusicDriverInit(void)
+bool_t I_MusicDriverInit(void)
 {
 	/* Success */
 	return true;

@@ -70,7 +70,7 @@ endif
 	__XX_EXTRAOBJ = 
 
 # Windows CE
-`ei ?_WIN32_WCE
+`ei ?_WIN32_WCE | ?__MINGW32CE__
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = b
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE -D_WIN32_WCE=0x0420
