@@ -1312,7 +1312,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		{
 			g_Splits[PlaceAt].Active = false;
 			g_Splits[PlaceAt].Console = 0;
-			g_Splits[PlaceAt].Display = 0;
+			g_Splits[PlaceAt].Display = -1;
 		}
 		
 		g_Splits[PlaceAt].RequestSent = false;
@@ -4464,7 +4464,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 {
 #define MAXWEAPONSLOTS 12
 	D_ProfileEx_t* Profile;
-	player_t* Player;
+	player_t* Player, *SpyCon, *SpyPOV, *SpyFake;
 	int32_t TargetMove;
 	size_t i, PID, SID;
 	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
@@ -4880,17 +4880,59 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		// Only every half second
 		if (gametic > (a_NPp->CoopSpyTime + (TICRATE >> 1)))
 		{
-			j = 0;
-			do
+			// Get current POV
+			SpyPOV = D_XFakePlayerGetPOV(SID);
+			SpyFake = D_XFakePlayerGet(SID);
+			
+			// Get current player
+			SpyCon = a_NPp->Player;
+			
+			if (!SpyCon)
+				SpyCon = SpyFake;
+			
+			// In spectator mode
+			if (!a_NPp->Player)
 			{
-				g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
-				j++;
-			} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display])));
+				// Go through all players
+					// If watching self, find first player
+					// If watching someone, find next player
+				for (j = ((SpyPOV == SpyFake) ? 0 : g_Splits[SID].Display + 1); j < MAXPLAYERS; j++)
+					if (playeringame[j])
+					{
+						g_Splits[SID].Display = j;
+						SpyPOV = &players[g_Splits[SID].Display];
+						break;
+					}
+				
+				// Nobody?
+				if (j >= MAXPLAYERS)
+				{
+					g_Splits[SID].Display = -1;
+					SpyPOV = SpyFake;
+				}
+				
+				else
+					SpyPOV = &players[g_Splits[SID].Display];
+			}
+			
+			// Normal Game Mode
+			else
+			{
+				j = 0;
+				do
+				{
+					g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
+					j++;
+				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display])));
+				
+				// Change POV
+				SpyPOV = &players[g_Splits[SID].Display];
+			}
 			
 			// Print Message
 			CONL_PrintF("%sYou are now watching %s.\n",
 					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
-					(g_Splits[SID].Display == g_Splits[SID].Console ? "Yourself" : D_NCSGetPlayerName(g_Splits[SID].Display))
+					(SpyCon == SpyPOV ? "Yourself" : D_NCSGetPlayerName(g_Splits[SID].Display))
 				);
 			
 			// Reset timeout
@@ -5520,10 +5562,10 @@ struct player_s* D_XFakePlayerGetPOV(const int32_t a_Screen)
 	/* There is one */
 	else
 		// Not playing? Return spectator
-		if (!g_Splits[a_Screen].XPlayer->Player)
+		if ((demoplayback && g_TitleScreenDemo) || !g_Splits[a_Screen].XPlayer->Player)
 			if (g_Splits[a_Screen].Display < 0 ||
 				g_Splits[a_Screen].Display >= MAXPLAYERS ||
-				!g_Splits[a_Screen].Display)
+				!playeringame[g_Splits[a_Screen].Display] || (demoplayback && g_TitleScreenDemo))
 				return D_XFakePlayerGet(a_Screen);
 			else
 				return &players[g_Splits[a_Screen].Display];

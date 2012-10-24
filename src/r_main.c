@@ -1037,6 +1037,10 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 	int x, y, a, b, c, d;
 	uint8_t* ExtraMap;
 	
+	/* Check */
+	if (!player || (player && !player->mo))
+		return;
+	
 	R_SetupFrame(player);
 	
 	// Clear buffers.

@@ -1235,7 +1235,15 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 			// Set in chain
 			if (m < CLOSEMOS)
 				ListMos[m++] = Mo;
+			
+			// Close object overflow?
+			if (m >= CLOSEMOS)
+				break;
 		}
+		
+		// Close object overflow?
+		if (m >= CLOSEMOS)
+			break;
 	}
 	
 	/* Find most important object */

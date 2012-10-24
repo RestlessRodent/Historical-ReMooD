@@ -1359,6 +1359,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	{
 		target->player->TotalDeaths++;
 		g_MapKIS[4]++;
+		P_UpdateScores();
 	}
 	
 	// dead target is no more shootable

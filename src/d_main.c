@@ -372,17 +372,16 @@ void D_Display(void)
 						else
 							viewwindowy = 0;
 							
-						if (!CoolDemo && playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && g_Splits[i].Active)
-							R_RenderPlayerView(&players[g_Splits[i].Display], i);
-						else if (CoolDemo)
-							R_RenderPlayerView(D_XFakePlayerGet(i), i);
-						else
+						R_RenderPlayerView(D_XFakePlayerGetPOV(i), i);
+						
+#if 0
 							V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0,
 									((i == 1 || i == 3) ? vid.width >> 1 : 0),
 							        ((i == 2 || i == 3) ? vid.height >> 1 : 0),
 							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
 							        (((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
 								);
+#endif
 								
 						viewwindowx = 0;
 						viewwindowy = 0;
@@ -395,12 +394,9 @@ void D_Display(void)
 					activeylookup = ylookup;
 					memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 					
-					if (!CoolDemo && playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[1].Active)
-						R_RenderPlayerView(&players[g_Splits[1].Display], 1);
-					else// if (CoolDemo)
-						R_RenderPlayerView(D_XFakePlayerGet(1), 1);
-					/*else
-						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);*/
+					R_RenderPlayerView(D_XFakePlayerGetPOV(1), 1);
+					
+					//V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
 						
 					viewwindowy = 0;
 					activeylookup = ylookup;
@@ -410,13 +406,7 @@ void D_Display(void)
 					activeylookup = ylookup;
 					
 					// Real Player
-					if (!CoolDemo && players[g_Splits[0].Display].mo && (g_Splits[0].Active || g_SplitScreen == -1))
-						R_RenderPlayerView(&players[g_Splits[0].Display], 0);
-					
-					// Fake Spectator
-					else
-						R_RenderPlayerView(D_XFakePlayerGet(0), 0);
-						//V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, 0, vid.width, vid.height >> (g_SplitScreen >= 1 ? 1 : 0));
+					R_RenderPlayerView(D_XFakePlayerGetPOV(0), 0);
 					break;
 			}
 		}
