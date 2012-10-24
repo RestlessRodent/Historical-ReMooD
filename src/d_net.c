@@ -3156,6 +3156,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 {
 	int32_t i;
 	D_XPlayer_t* SPlay;
+	player_t* FakeP;
 	
 	/* Disconnect First */
 	D_XNetDisconnect(false);
@@ -3186,6 +3187,13 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 			g_Splits[i].XPlayer = SPlay;
 			SPlay->ScreenID = i;
 			SPlay->Profile = g_Splits[i].Profile;	// if lucky
+			
+			// Get fake player
+			FakeP = D_XFakePlayerGet(i);
+			
+			// Map to this one
+			if (FakeP)
+				FakeP->XPlayer = SPlay;
 			
 			// Up splitscreen
 			g_SplitScreen = i;
@@ -3842,8 +3850,9 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 tic_t D_XNetTicsToRun(void)
 {
 	tic_t Diff, ThisTic;
-	bool_t Lagging;
+	bool_t Lagging, NonLocal;
 	int32_t i;
+	D_XPlayer_t* XPlay;
 	
 	/* Get current tic */
 	ThisTic = I_GetTime();
@@ -3885,7 +3894,28 @@ tic_t D_XNetTicsToRun(void)
 		
 		// See if everyone is not lagging behind
 			// If not, freeze the game until everyone catches up some
-		Lagging = false;
+		Lagging = NonLocal = false;
+		
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			// Get current
+			XPlay = g_XPlays[i];
+			
+			// Not here?
+			if (!XPlay)
+				continue;
+			
+			// Non-Local
+			if ((XPlay->Flags & DXPF_LOCAL) == 0)
+				NonLocal = true;
+		}
+		
+		// No other clients in game?
+		if (!NonLocal)
+			// If a menu or console is open
+			if (!demoplayback && ((M_ExAllUIActive() && g_ResumeMenu <= 0)
+					|| (l_CONPauseGame.Value->Int && CONL_IsActive())))
+				Lagging = true;
 		
 		// Clients need to catchup
 		if (Lagging)
@@ -4939,6 +4969,16 @@ void D_XNetUpdate(void)
 	
 	/* Modify spectators */
 	LastSpecTic = gametic;
+	
+	/* Handle transport layer */
+	D_IPPTHandleTransports();
+}
+
+/*** I/NTRA/-P/ORT/ P/ROTOCOL/ T/RANSLATOR/ (IPPT) ***/
+
+/* D_IPPTHandleTransports() -- Handles all player transports */
+void D_IPPTHandleTransports(void)
+{
 }
 
 /*** FAKE PLAYER ***/
@@ -4953,6 +4993,7 @@ void D_XFakePlayerInit(void)
 	mapthing_t* MapThing;
 	mobj_t* AnotherMo;
 	subsector_t* SubS;
+	D_XPlayer_t* XPlay;
 	
 	/* Reset */
 	memset(l_XFakePlayer, 0, sizeof(l_XFakePlayer));
@@ -5008,11 +5049,32 @@ void D_XFakePlayerInit(void)
 		// Correct View Hieght
 		l_XFakePlayer[i].viewz = l_XFakeMobj[i].z;
 	}
+	
+	/* Map fake screens to XPlayers */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		// Get
+		XPlay = g_XPlays[i];
+		
+		// Missing?
+		if (!XPlay)
+			continue;
+		
+		// Local?
+		if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
+			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+				l_XFakePlayer[XPlay->ScreenID].XPlayer = XPlay;
+	}
 }
 
 /* D_XFakePlayerGet() -- Returns the fake player */
 struct player_s* D_XFakePlayerGet(const int32_t a_Screen)
 {
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* Return associated screen */
 	return &l_XFakePlayer[a_Screen];
 }
 
@@ -5320,7 +5382,7 @@ void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 }
 
 /* D_XFakePlayerGetPOV() -- Get player point of view */
-struct player_c* D_XFakePlayerGetPOV(const int32_t a_Screen)
+struct player_s* D_XFakePlayerGetPOV(const int32_t a_Screen)
 {
 	/* Check */
 	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
@@ -5334,7 +5396,12 @@ struct player_c* D_XFakePlayerGetPOV(const int32_t a_Screen)
 	else
 		// Not playing? Return spectator
 		if (!g_Splits[a_Screen].XPlayer->Player)
-			return D_XFakePlayerGet(a_Screen);
+			if (g_Splits[a_Screen].Display < 0 ||
+				g_Splits[a_Screen].Display >= MAXPLAYERS ||
+				!g_Splits[a_Screen].Display)
+				return D_XFakePlayerGet(a_Screen);
+			else
+				return &players[g_Splits[a_Screen].Display];
 		
 		// Playing, return display
 		else if (playeringame[g_Splits[a_Screen].Display])
@@ -5342,6 +5409,9 @@ struct player_c* D_XFakePlayerGetPOV(const int32_t a_Screen)
 		
 		// Return standard player
 		else
+		{
+			g_Splits[a_Screen].Display = players - g_Splits[a_Screen].XPlayer->Player;
 			return g_Splits[a_Screen].XPlayer->Player;
+		}
 }
 

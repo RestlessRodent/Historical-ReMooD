@@ -166,7 +166,7 @@ int numdmstarts;
 //mapthing_t**    deathmatch_p;
 mapthing_t* playerstarts[MAXPLAYERS];
 
-int32_t g_MapKIS[4] = {0, 0, 0, 0};
+int32_t g_MapKIS[5] = {0, 0, 0, 0, 0};
 
 void P_SetupLevelSky(void)
 {
@@ -288,6 +288,11 @@ bool_t P_ExClearLevel(void)
 		players[i].killcount = 0;
 		players[i].itemcount = 0;
 		players[i].secretcount = 0;
+		players[i].TotalDeaths = 0;
+		players[i].TotalFrags = 0;
+		players[i].addfrags = 0;
+		
+		memset(players[i].frags, 0, sizeof(players[i].frags));
 		
 		// Junk
 		players[i].KeyCards[0] = 0;

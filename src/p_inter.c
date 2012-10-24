@@ -1356,7 +1356,10 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	// GhostlyDeath <May 22, 2012> -- Death total
 	if (target->player)
+	{
 		target->player->TotalDeaths++;
+		g_MapKIS[4]++;
+	}
 	
 	// dead target is no more shootable
 	if (!P_XGSVal(PGS_GAMESOLIDCORPSES))

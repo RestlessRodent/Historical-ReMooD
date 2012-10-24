@@ -1045,6 +1045,9 @@ typedef enum UnicodeStringID_e
 	/* command.c */
 	DSTR_COMMANDC_WOULDHASHCOLLIDE,
 	
+	/* st_stuff.c */
+	DSTR_STSTUFFC_SCOREBOARD,
+	
 	NUMUNICODESTRINGS
 } UnicodeStringID_t;
 

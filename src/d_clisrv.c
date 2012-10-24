@@ -213,10 +213,6 @@ void TryRunTics(tic_t realtics)
 	// Update Tics
 	//D_NCSNetUpdateSingleTic();
 	
-	// If the game is paused, don't do anything
-	if (D_SyncNetIsPaused())
-		return;
-	
 	// Get current time
 	LocalTic = I_GetTime();
 	

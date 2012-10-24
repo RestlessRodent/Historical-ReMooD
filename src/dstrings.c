@@ -1045,6 +1045,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** COMMAND.C ***/
 	{	  "COMMANDC_WOULDHASHCOLLIDE", "Variable \"$1\" hash collides with \"$2\"."},
+	
+	/*** ST_STUFF.C ***/
+	{			"STSTUFFC_SCOREBOARD", "Scoreboard"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

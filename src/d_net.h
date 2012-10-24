@@ -384,6 +384,17 @@ tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 
+/*** I/NTRA/-P/ORT/ P/ROTOCOL/ T/RANSLATOR/ (IPPT) ***/
+
+/* D_IPPTDef_t -- Protocol Definition */
+typedef struct D_IPPTDef_s
+{
+	const char* const Name;						// Name of protocol
+	const char* const ShortName;				// Short name
+} D_IPPTDef_t;
+
+void D_IPPTHandleTransports(void);
+
 /*** FAKE PLAYER ***/
 
 void D_XFakePlayerInit(void);
@@ -392,7 +403,7 @@ struct player_s* D_XFakePlayerGet(const int32_t a_Screen);
 void D_XFakePlayerTicker(void);
 void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd);
 
-struct player_c* D_XFakePlayerGetPOV(const int32_t a_Screen);
+struct player_s* D_XFakePlayerGetPOV(const int32_t a_Screen);
 
 #endif							/* __D_NET_H__ */
 

@@ -522,7 +522,7 @@ static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, in
 }
 
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar */
-static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
 {
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
@@ -534,6 +534,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	ammotype_t AmmoType;
 	bool_t BigLetters, IsMonster;
 	D_XPlayer_t* XPlay;
+	bool_t IsFake;
 	
 	/* Init */
 	// Font to use
@@ -553,8 +554,13 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	}
 	
 	/* Get players to draw for */
-	ConsoleP = &players[g_Splits[a_PID].Console];
-	DisplayP = &players[g_Splits[a_PID].Display];
+	ConsoleP = a_ConsoleP;
+	DisplayP = a_DisplayP;
+	
+	// Fake player?
+	IsFake = false;
+	if (DisplayP == D_XFakePlayerGet(a_PID))
+		IsFake = true;
 	
 	// Net player
 	XPlay = ConsoleP->XPlayer;
@@ -570,19 +576,23 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	}
 	
 	/* Obtain some info */
-	ReadyWeapon = DisplayP->readyweapon;
-	AmmoType = NUMAMMO;
-	if (DisplayP->weaponinfo)
-		AmmoType = DisplayP->weaponinfo[DisplayP->readyweapon]->ammo;
+	if (!IsFake)
+	{
+		ReadyWeapon = DisplayP->readyweapon;
+		AmmoType = NUMAMMO;
+		if (DisplayP->weaponinfo)
+			AmmoType = DisplayP->weaponinfo[DisplayP->readyweapon]->ammo;
+	}
 	
 	/* Monster? */
 	IsMonster = false;
-	if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || !(DisplayP->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
-		IsMonster = true;
+	if (!IsFake)
+		if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || !(DisplayP->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			IsMonster = true;
 	
 	/* Which status bar type to draw? */
 	// Overlay
-	if (true)
+	if (true && !IsFake)
 	{
 		//// HEALTH
 		// Draw Health Icon
@@ -694,12 +704,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Scoreboard */
 	if (XPlay && XPlay->Scores)
 	{
-		// Score Header
-		V_DrawStringA(
-					VFONT_LARGE | VFO_COLOR(VEX_MAP_BRIGHTWHITE), 0, "*** Scores ***",
-					a_X + STS_SBX(Profile, 8, a_W, a_H),
-					a_Y + STS_SBY(Profile, 8, a_W, a_H)
-				);
+		WI_DrawScoreBoard(false, DS_GetString(DSTR_STSTUFFC_SCOREBOARD), NULL);
 	}
 #undef BUFSIZE
 }
@@ -744,20 +749,16 @@ void ST_DrawPlayerBarsEx(void)
 	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
 	{
 		// Split player active
-		if (g_Splits[p].Active || (p == 0 && g_SplitScreen == -1))
+		if (D_ScrSplitVisible(p))
 		{
 			// Get players to draw for
-			ConsoleP = &players[g_Splits[p].Console];
-			DisplayP = &players[g_Splits[p].Display];
-		
-			// Display player not in game?
-			if (!playeringame[DisplayP - players])
-				DisplayP = ConsoleP;
-	
-			// Console player not in game?
-			if (!playeringame[ConsoleP - players])
-				continue;
-	
+			ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
+			DisplayP = D_XFakePlayerGetPOV(p);//&players[g_Splits[p].Display];
+			
+			// Missing player?
+			if (!ConsoleP)
+				ConsoleP = D_XFakePlayerGet(p);
+			
 			// Modify palette?
 			if (g_SplitScreen <= 0)	// Only 1 player inside
 			{
@@ -769,7 +770,7 @@ void ST_DrawPlayerBarsEx(void)
 			}
 	
 			// Draw Bar
-			STS_DrawPlayerBarEx(p, x, y, w, h);
+			STS_DrawPlayerBarEx(p, x, y, w, h, ConsoleP, DisplayP);
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)

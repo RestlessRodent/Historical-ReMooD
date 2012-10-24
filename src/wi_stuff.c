@@ -404,6 +404,7 @@ typedef struct WI_PlayerInfo_s
 	int32_t Items;
 	int32_t Secrets;
 	int32_t Frags;
+	int32_t Deaths;
 	
 	int32_t KillPcnt;
 	int32_t ItemPcnt;
@@ -424,7 +425,7 @@ typedef struct WI_PlayerInfo_s
 static V_Image_t* l_PicINTER = NULL;
 static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS + 1];
 static size_t l_NumDrawPlayers;
-static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets, l_TotalFrags;
+static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets, l_TotalFrags, l_TotalDeaths;
 
 /****************
 *** FUNCTIONS ***
@@ -1214,10 +1215,119 @@ static void WI_unloadData(void)
 /* WI_Drawer() -- Draws the intermission */
 void WI_Drawer(void)
 {
+	const char* Title;
+	const char* Author;
+	
+	/* Generic Drawing */
+	// Draw interpic
+	V_ImageDraw(0, l_PicINTER, 0, 0, NULL);
+	
+	/* Draw scoreboard */
+	// Clear
+	Title = Author = NULL;
+	
+	// Get title
+	if (g_CurrentLevelInfo)
+	{
+		Title = g_CurrentLevelInfo->Title;
+		Author = g_CurrentLevelInfo->Author;
+	}
+	
+	// Now draw it
+	WI_DrawScoreBoard(true, Title, Author);
+	
+#if 0
+	switch (state)
+	{
+		case StatCount:
+			if (cv_deathmatch.value)
+			{
+				if (cv_teamplay.value)
+					WI_drawTeamsStats();
+				else
+					WI_drawDeathmatchStats();
+			}
+			else if (multiplayer)
+				WI_drawNetgameStats();
+			else
+				WI_drawStats();
+			break;
+			
+		case ShowNextLoc:
+			WI_drawShowNextLoc();
+			break;
+			
+		case NoState:
+			WI_drawNoState();
+			break;
+	}
+#endif
+}
+
+/* WIS_ComparePI() -- Compares player info */
+static int WIS_ComparePI(const bool_t a_Deathmatch, WI_PlayerInfo_t* const a_A, WI_PlayerInfo_t* const a_B)
+{
+	/* Check */
+	if (!a_A || !a_B)
+		return 0;
+	
+	/* DM Mode */
+	if (a_Deathmatch)
+	{
+		// Frags!
+		if (a_A->Frags < a_B->Frags)
+			return -1;
+		else if (a_A->Frags > a_B->Frags)
+			return 1;
+		
+		// Deaths
+			// NOTE: Opposite (since lower == better)
+		if (a_A->Deaths > a_B->Deaths)
+			return -1;
+		else if (a_A->Deaths < a_B->Deaths)
+			return 1;
+	}
+	
+	/* Coop Mode */
+	else
+	{
+		// Kills most important
+		if (a_A->Kills < a_B->Kills)
+			return -1;
+		else if (a_A->Kills > a_B->Kills)
+			return 1;
+		
+		// Then secrets
+		if (a_A->Secrets < a_B->Secrets)
+			return -1;
+		else if (a_A->Secrets > a_B->Secrets)
+			return 1;
+		
+		// Then Items
+		if (a_A->Items < a_B->Items)
+			return -1;
+		else if (a_A->Items > a_B->Items)
+			return 1;
+			
+		// Then Deaths (the worst players)
+			// NOTE: Opposite (since lower == better)
+		if (a_A->Deaths > a_B->Deaths)
+			return -1;
+		else if (a_A->Deaths < a_B->Deaths)
+			return 1;
+	}
+	
+	/* Unknown? */
+	return 0;
+}
+
+/* WI_DrawScoreBoard() -- Draws the scoreboard */
+void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const char* const a_SubTitle)
+{
 #define BUFSIZE 64
 	char Buf[BUFSIZE];
 	size_t i, j;
-	int32_t xBase, yBase, yAdd, y, dp, k;
+	int32_t xBase, yBase, yAdd, y, dp, k, DrawCount;
 	bool_t IsOnScreen;
 	uint32_t DrawFlags;
 	int8_t ScreenNum;
@@ -1225,38 +1335,37 @@ void WI_Drawer(void)
 	int32_t Val, pVal;
 	bool_t Flash, All;
 	fixed_t mVal;
+	bool_t IsDM;
 	
-	/* Generic Drawing */
-	// Draw interpic
-	V_ImageDraw(0, l_PicINTER, 0, 0, NULL);
+	/* Deathmatch? */
+	IsDM = false;
+	if (P_XGSVal(PGS_GAMEDEATHMATCH))
+		IsDM = true;
 	
-	/* Draw Level Name */
-	if (g_CurrentLevelInfo)
+	/* Draw title */
+	// Use title?
+	if (a_Title)
 	{
-		// Use title?
-		if (g_CurrentLevelInfo->Title)
-		{
-			V_DrawStringA(
-				VFONT_LARGE,
-				VFO_COLOR(VEX_MAP_BRIGHTWHITE),
-				g_CurrentLevelInfo->Title,
-				5, 5
-			);
-			
-			// Draw Author?
-			if (g_CurrentLevelInfo->Author)
-				V_DrawStringA(
-					VFONT_SMALL,
-					VFO_COLOR(VEX_MAP_GREEN),
-					g_CurrentLevelInfo->Author,
-					5, 5 + V_FontHeight(VFONT_LARGE) + 1
-				);
-		}
+		V_DrawStringA(
+			VFONT_LARGE,
+			VFO_COLOR(VEX_MAP_BRIGHTWHITE),
+			a_Title,
+			5, 5
+		);
 		
-		// Otherwise use level picture
-		else if (g_CurrentLevelInfo->LevelPic)
-		{
-		}
+		// Draw Author?
+		if (a_SubTitle)
+			V_DrawStringA(
+				VFONT_SMALL,
+				VFO_COLOR(VEX_MAP_GREEN),
+				a_SubTitle,
+				5, 5 + V_FontHeight(VFONT_LARGE) + 1
+			);
+	}
+	
+	// Otherwise use level picture
+	else if (g_CurrentLevelInfo->LevelPic)
+	{
 	}
 	
 	/* Generalized Drawing */
@@ -1278,6 +1387,7 @@ void WI_Drawer(void)
 		dp = i;
 		dp--;
 		All = false;
+		DrawCount = 0;
 		
 		// Drawing A Player
 		if (dp >= 0 && dp < l_NumDrawPlayers)
@@ -1371,194 +1481,155 @@ void WI_Drawer(void)
 		}
 		
 		// Single-player/Cooperative
-		if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+		for (k = 0; k < 5; k++)
 		{
-			for (k = 0; k < 4; k++)
+			Val = 0;
+			
+			// Deaths
+			if (k == 0)
 			{
-				Val = 0;
-				
-				// Frags
-				if (dofrags && k == 0)
-				{
-					// Get frags value
-					if (dp < l_NumDrawPlayers)
-						if (l_DrawPlayers[dp].cntFragsPtr)
-							Val = *l_DrawPlayers[dp].cntFragsPtr;
-						else
-							Val = l_DrawPlayers[dp].Frags;
-					else
-						Val = l_TotalFrags;
-					
-					Title = "FRAG";
-				}
-				
-				// Skip frags drawing
-				else if (!dofrags && k == 0)
-					continue;
-				
-				// Secrets
-				else if (k == 1)
-				{
-					// Get Multiplier
-					mVal = FIXEDT_C(1);
-					if (dp < l_NumDrawPlayers)
-						if (l_DrawPlayers[dp].cntSecretsPtr)
-							mVal = FixedDiv(
-									(fixed_t)*l_DrawPlayers[dp].cntSecretsPtr,
-									(fixed_t)l_DrawPlayers[dp].SecretPcnt);
-					
-					// Get Value
-					if (dp >= 0)
-						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Secrets :
-								(!All ? l_TotalSecrets : totalsecret));
-								
-					// Multiply by percent
-					Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
-					if (Val < 0)
-						Val = 0;
-					
-					Title = "SCRT";
-				}
-				
-				// Items
-				else if (k == 2)
-				{
-					// Get Multiplier
-					mVal = FIXEDT_C(1);
-					if (dp < l_NumDrawPlayers)
-						if (l_DrawPlayers[dp].cntItemsPtr)
-							mVal = FixedDiv(
-									(fixed_t)*l_DrawPlayers[dp].cntItemsPtr,
-									(fixed_t)l_DrawPlayers[dp].ItemPcnt);
-					
-					// Get Value
-					if (dp >= 0)
-						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Items :
-								(!All ? l_TotalItems : totalitems));
-								
-					// Multiply by percent
-					Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
-					if (Val < 0)
-						Val = 0;
-					
-					Title = "ITEM";
-				}
-				
-				// Kills
-				else if (k == 3)
-				{
-					// Get Multiplier
-					mVal = FIXEDT_C(1);
-					if (dp < l_NumDrawPlayers)
-						if (l_DrawPlayers[dp].cntKillsPtr)
-							mVal = FixedDiv(
-									(fixed_t)*l_DrawPlayers[dp].cntKillsPtr,
-									(fixed_t)l_DrawPlayers[dp].KillPcnt);
-					
-					// Get Value
-					if (dp >= 0)
-						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Kills :
-								(!All ? l_TotalKills : totalkills));
-					
-					// Multiply by percent
-					Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
-					if (Val < 0)
-						Val = 0;
-					
-					Title = "KILL";
-				}
-				
-				// Which to draw?
-				if (dp >= 0)
-					snprintf(Buf, BUFSIZE - 1, "%i", Val);
+				// Get frags value
+				if (dp < l_NumDrawPlayers)
+					Val = l_DrawPlayers[dp].Deaths;
 				else
-					snprintf(Buf, BUFSIZE - 1, "%s", Title);
+					Val = l_TotalDeaths;
 				
-				// Draw
-				V_DrawStringA(
-						VFONT_SMALL,
-						DrawFlags,
-						Buf,
-						(320 - (xBase << 1)) - (35 * (k + (dofrags ? 1 : 0))), yBase + y
-					);
+				Title = "DTHS";
 			}
-		}
-		
-		// Deathmatch
-		else
-		{
+			
+			// Frags
+			else if ((IsDM || dofrags) && k == 1)
+			{
+				mVal = FIXEDT_C(1);
+				
+				// Get frags value
+				if (dp < l_NumDrawPlayers)
+					if (a_IsInter && l_DrawPlayers[dp].cntFragsPtr)
+						Val = *l_DrawPlayers[dp].cntFragsPtr;
+					else
+						Val = l_DrawPlayers[dp].Frags;
+				else
+					Val = l_TotalFrags;
+				
+				Title = "FRAG";
+			}
+			
+			// Skip frags drawing
+			else if (!(IsDM || dofrags) && k == 2)
+				continue;
+			
+			// Secrets
+			else if (!IsDM && k == 1)
+			{
+				// Get Multiplier
+				mVal = FIXEDT_C(1);
+				if (dp < l_NumDrawPlayers)
+					if (a_IsInter && l_DrawPlayers[dp].cntSecretsPtr)
+						mVal = FixedDiv(
+								(fixed_t)*l_DrawPlayers[dp].cntSecretsPtr,
+								(fixed_t)l_DrawPlayers[dp].SecretPcnt);
+				
+				// Get Value
+				if (dp >= 0)
+					Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Secrets :
+							(!All ? l_TotalSecrets : totalsecret));
+							
+				// Multiply by percent
+				Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
+				if (Val < 0)
+					Val = 0;
+				
+				Title = "SCRT";
+			}
+			
+			// Items
+			else if (!IsDM && k == 3)
+			{
+				// Get Multiplier
+				mVal = FIXEDT_C(1);
+				if (dp < l_NumDrawPlayers)
+					if (a_IsInter && l_DrawPlayers[dp].cntItemsPtr)
+						mVal = FixedDiv(
+								(fixed_t)*l_DrawPlayers[dp].cntItemsPtr,
+								(fixed_t)l_DrawPlayers[dp].ItemPcnt);
+				
+				// Get Value
+				if (dp >= 0)
+					Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Items :
+							(!All ? l_TotalItems : totalitems));
+							
+				// Multiply by percent
+				Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
+				if (Val < 0)
+					Val = 0;
+				
+				Title = "ITEM";
+			}
+			
+			// Kills
+			else if (!IsDM && k == 4)
+			{
+				// Get Multiplier
+				mVal = FIXEDT_C(1);
+				if (dp < l_NumDrawPlayers)
+					if (a_IsInter && l_DrawPlayers[dp].cntKillsPtr)
+						mVal = FixedDiv(
+								(fixed_t)*l_DrawPlayers[dp].cntKillsPtr,
+								(fixed_t)l_DrawPlayers[dp].KillPcnt);
+				
+				// Get Value
+				if (dp >= 0)
+					Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Kills :
+							(!All ? l_TotalKills : totalkills));
+				
+				// Multiply by percent
+				Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
+				if (Val < 0)
+					Val = 0;
+				
+				Title = "KILL";
+			}
+			
+			// Completely missed?
+			else
+				continue;
+			
+			// Which to draw?
+			if (dp >= 0)
+				// M?
+				if (Val >= 1000000)
+					snprintf(Buf, BUFSIZE - 1, "%i.%iM",
+							Val / 1000000,
+							(Val / 100000) % 10
+						);
+						
+				// K?
+				else if (Val >= 1000)
+					snprintf(Buf, BUFSIZE - 1, "%i.%iK",
+							Val / 1000,
+							(Val / 100) % 10
+						);
+				else
+					snprintf(Buf, BUFSIZE - 1, "%i", Val);
+			else
+				snprintf(Buf, BUFSIZE - 1, "%s", Title);
+			
+			// Draw
+			DrawCount++;
+			V_DrawStringA(
+					VFONT_SMALL,
+					DrawFlags,
+					Buf,
+					(320 - (xBase << 1)) - (35 * DrawCount), yBase + y
+				);
 		}
 	}
 	
-#if 0
-	switch (state)
-	{
-		case StatCount:
-			if (cv_deathmatch.value)
-			{
-				if (cv_teamplay.value)
-					WI_drawTeamsStats();
-				else
-					WI_drawDeathmatchStats();
-			}
-			else if (multiplayer)
-				WI_drawNetgameStats();
-			else
-				WI_drawStats();
-			break;
-			
-		case ShowNextLoc:
-			WI_drawShowNextLoc();
-			break;
-			
-		case NoState:
-			WI_drawNoState();
-			break;
-	}
-#endif
 #undef BUFSIZE
 }
 
-/* WIS_ComparePI() -- Compares player info */
-static int WIS_ComparePI(const bool_t a_Deathmatch, WI_PlayerInfo_t* const a_A, WI_PlayerInfo_t* const a_B)
-{
-	/* Check */
-	if (!a_A || !a_B)
-		return 0;
-	
-	/* DM Mode */
-	if (a_Deathmatch)
-	{
-	}
-	
-	/* Coop Mode */
-	else
-	{
-		// Kills most important
-		if (a_A->Kills < a_B->Kills)
-			return -1;
-		else if (a_A->Kills > a_B->Kills)
-			return 1;
-		
-		// Then secrets
-		if (a_A->Secrets < a_B->Secrets)
-			return -1;
-		else if (a_A->Secrets > a_B->Secrets)
-			return 1;
-		
-		// Then Items
-		if (a_A->Items < a_B->Items)
-			return -1;
-		else if (a_A->Items > a_B->Items)
-			return 1;
-	}
-	
-	/* Unknown? */
-	return 0;
-}
-
-/* WI_initVariables() -- Initializes variables */
-static void WI_initVariables(wbstartstruct_t* wbstartstruct)
+/* WI_BuildScoreBoard() -- Builds the scoreboard */
+void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter)
 {
 	int i, j, k;
 	WI_PlayerInfo_t TempDP[MAXPLAYERS + 1];
@@ -1569,46 +1640,11 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	
 	wbs = wbstartstruct;
 	
-#ifdef RANGECHECKING
-	if (gamemode != commercial)
-	{
-		if (gamemode == retail)
-			RNGCHECK(wbs->epsd, 0, 3);
-		else
-			RNGCHECK(wbs->epsd, 0, 2);
-	}
-	else
-	{
-		RNGCHECK(wbs->last, 0, 8);
-		RNGCHECK(wbs->next, 0, 8);
-	}
-	RNGCHECK(wbs->pnum, 0, MAXPLAYERS);
-#endif
-	
-	acceleratestage = 0;
-	cnt = bcnt = 0;
-	firstrefresh = 1;
-	me = wbs->pnum;
-	plrs = wbs->plyr;
-	
-	if (!wbs->maxkills)
-		wbs->maxkills = 1;
-		
-	if (!wbs->maxitems)
-		wbs->maxitems = 1;
-		
-	if (!wbs->maxsecret)
-		wbs->maxsecret = 1;
-		
-	if (gamemode != retail)
-		if (wbs->epsd > 2)
-			wbs->epsd -= 3;
-	
 	/* Determine Players to Draw */
 	// Clear
 	memset(l_DrawPlayers, 0, sizeof(l_DrawPlayers));
 	l_NumDrawPlayers = 0;
-	l_TotalKills = l_TotalItems = l_TotalSecrets = l_TotalFrags = 0;
+	l_TotalKills = l_TotalItems = l_TotalSecrets = l_TotalFrags = l_TotalDeaths = 0;
 	
 	memset(TempDP, 0, sizeof(TempDP));
 	NumTempDP = 0;
@@ -1627,6 +1663,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			l_TotalItems += Player->itemcount;
 			l_TotalSecrets += Player->secretcount;
 			l_TotalFrags += ST_PlayerFrags(i);
+			l_TotalDeaths += Player->TotalDeaths;
 			
 			// Determine if is local player (on screen)
 			for (k = 0; k < MAXSPLITSCREEN; k++)
@@ -1638,9 +1675,12 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 				}
 			
 			// True Percentage for kills, items, secrets, etc.
-			TempDP[NumTempDP].KillPcnt = (plrs[i].skills * 100) / wbs->maxkills;
-			TempDP[NumTempDP].ItemPcnt = (plrs[i].sitems * 100) / wbs->maxitems;
-			TempDP[NumTempDP].SecretPcnt = (plrs[i].ssecret * 100) / wbs->maxsecret;
+			if (a_IsInter)
+			{
+				TempDP[NumTempDP].KillPcnt = (plrs[i].skills * 100) / wbs->maxkills;
+				TempDP[NumTempDP].ItemPcnt = (plrs[i].sitems * 100) / wbs->maxitems;
+				TempDP[NumTempDP].SecretPcnt = (plrs[i].ssecret * 100) / wbs->maxsecret;
+			}
 			
 			// Setup fields
 			strncpy(TempDP[NumTempDP].PlayerName, D_NCSGetPlayerName(i), MAXPLAYERNAME - 1);
@@ -1648,6 +1688,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			TempDP[NumTempDP].Items = Player->itemcount;
 			TempDP[NumTempDP].Secrets = Player->secretcount;
 			TempDP[NumTempDP].Frags = ST_PlayerFrags(i);
+			TempDP[NumTempDP].Deaths = Player->TotalDeaths;
 			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
 			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];
 			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
@@ -1658,7 +1699,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	
 	// Un-Claimed Kills/Items/Secrets?
 	if (!P_XGSVal(PGS_GAMEDEATHMATCH))
-		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2] || l_TotalFrags < g_MapKIS[3])
+		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2] || l_TotalFrags < g_MapKIS[3] || l_TotalDeaths < g_MapKIS[4])
 		{
 			strncpy(TempDP[NumTempDP].PlayerName, "Un-Claimed", MAXPLAYERNAME - 1);
 			
@@ -1677,6 +1718,10 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			// Frags
 			if (l_TotalFrags < g_MapKIS[3])
 				TempDP[NumTempDP].Frags = g_MapKIS[3] - l_TotalFrags;
+				
+			// Deaths
+			if (l_TotalDeaths < g_MapKIS[4])
+				TempDP[NumTempDP].Deaths = g_MapKIS[4] - l_TotalDeaths;
 			
 			// Rank Last Always
 			TempDP[NumTempDP++].Rank = i;
@@ -1725,7 +1770,6 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 		}
 	}
 	
-	
 	/* Sort Final Draw Players */
 		// TODO FIXME: Slow selection sort, but max of 1024 runs
 	for (i = 0; i < l_NumDrawPlayers; i++)
@@ -1747,6 +1791,51 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	/* Re-Rank */
 	for (i = 0; i < l_NumDrawPlayers; i++)
 		l_DrawPlayers[i].Rank = i;
+}
+
+/* WI_initVariables() -- Initializes variables */
+static void WI_initVariables(wbstartstruct_t* wbstartstruct)
+{
+	int i, j, k;
+	
+	wbs = wbstartstruct;
+	
+#ifdef RANGECHECKING
+	if (gamemode != commercial)
+	{
+		if (gamemode == retail)
+			RNGCHECK(wbs->epsd, 0, 3);
+		else
+			RNGCHECK(wbs->epsd, 0, 2);
+	}
+	else
+	{
+		RNGCHECK(wbs->last, 0, 8);
+		RNGCHECK(wbs->next, 0, 8);
+	}
+	RNGCHECK(wbs->pnum, 0, MAXPLAYERS);
+#endif
+	
+	acceleratestage = 0;
+	cnt = bcnt = 0;
+	firstrefresh = 1;
+	me = wbs->pnum;
+	plrs = wbs->plyr;
+	
+	if (!wbs->maxkills)
+		wbs->maxkills = 1;
+		
+	if (!wbs->maxitems)
+		wbs->maxitems = 1;
+		
+	if (!wbs->maxsecret)
+		wbs->maxsecret = 1;
+		
+	if (gamemode != retail)
+		if (wbs->epsd > 2)
+			wbs->epsd -= 3;
+		
+	WI_BuildScoreBoard(wbstartstruct, true);
 }
 
 /* WI_Start() -- Starts the intermission */

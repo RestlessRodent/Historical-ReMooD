@@ -427,6 +427,7 @@ void D_Display(void)
 		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
 		ST_DrawPlayerBarsEx();
 	}
+	
 	// change gamma if needed
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
