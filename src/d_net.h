@@ -275,7 +275,7 @@ typedef struct D_XSocket_s
 
 struct player_s;
 struct D_ProfileEx_s;
-struct B_BotData_s;
+struct B_GhostBot_s;
 
 /* D_XPlayer_t -- A player, spectator, bot, whatever */
 typedef struct D_XPlayer_s
@@ -311,7 +311,7 @@ typedef struct D_XPlayer_s
 	int32_t InGameID;							// Player in game number
 	struct player_s* Player;					// Pointer to player
 	struct D_ProfileEx_s* Profile;				// Profile Used by player
-	struct B_BotData_s* BotData;				// Bot data used by player
+	struct B_GhostBot_s* BotData;				// Bot data used by player
 	int32_t Ping;								// Player's Ping
 	uint32_t StatusBits;						// Status Flags
 	

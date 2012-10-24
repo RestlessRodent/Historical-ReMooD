@@ -32,7 +32,7 @@
 *** INCLUDES ***
 ***************/
 
-#include "b_bot.h"
+#include "doomtype.h"
 #include "z_zone.h"
 #include "m_bbox.h"
 #include "p_mobj.h"
@@ -40,6 +40,7 @@
 #include "r_main.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "b_bot.h"
 
 /****************
 *** CONSTANTS ***
@@ -210,6 +211,7 @@ static const B_BotTemplate_t c_BotTemplates[MAXBOTTEMPLATES] =
 *** GLOBALS ***
 **************/
 
+bool_t g_BotDebug = false;						// Debugging Bots
 fixed_t g_GlobalBoundBox[4];					// Global bounding box
 bool_t g_GotBots = false;						// Got a bot?
 
@@ -1004,8 +1006,8 @@ void B_GHOST_Ticker(void)
 	}
 }
 
-/* B_GHOST_ClearLevel() -- Clears level */
-void B_GHOST_ClearLevel(void)
+/* B_ClearNodes() -- Clears level */
+void B_ClearNodes(void)
 {
 	size_t i, j;
 	
@@ -1021,6 +1023,7 @@ void B_GHOST_ClearLevel(void)
 	/* Destroy the unimatrix */
 	if (l_UMGrid)
 		Z_Free(l_UMGrid);
+	l_UMGrid = NULL;
 	l_UMSize[0] = l_UMSize[1] = 0;
 	l_UMBase[0] = l_UMBase[1] = 0;
 	
@@ -1035,13 +1038,13 @@ void B_GHOST_ClearLevel(void)
 	g_GotBots = false;
 }
 
-/* B_GHOST_InitLevel() -- Initializes level */
-void B_GHOST_InitLevel(void)
+/* B_InitNodes() -- Initializes level */
+void B_InitNodes(void)
 {
 	int i;
 	
 	/* Clear old data */
-	B_GHOST_ClearLevel();
+	B_ClearNodes();
 	
 	/* Prepare for sector initialization */
 	l_BNumSecs = numsectors;
@@ -1651,7 +1654,148 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 }
 
 /* B_XDestroyBot() -- Destroys Bot */
-void B_XDestroyBot(B_BotData_t* const a_BotData)
+void B_XDestroyBot(B_GhostBot_t* const a_BotData)
 {
+}
+
+/* B_InitBot() -- Initializes Bot */
+B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template)
+{
+	B_GhostBot_t* New;
+	thinker_t* currentthinker;
+	mobj_t* mo;
+	
+	/* Debugging? */
+	if (M_CheckParm("-devbots"))
+		g_BotDebug = true;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Set Data */
+	New->BotTemplate = a_Template;
+	
+	/* Set and return */
+	return New;
+}
+
+/* B_BotGetTemplate() -- Returns player bot template */
+const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXPLAYERS)
+		return NULL;
+	
+	/* Not playing? */
+	if (!playeringame[a_Player])
+		return NULL;
+	
+	/* No Net Player? */
+	if (!players[a_Player].NetPlayer)
+		return NULL;
+	
+	/* Not a bot? */
+	if (players[a_Player].NetPlayer->Type != DNPT_BOT)
+		return NULL;
+	
+	/* No Data? */
+	if (!players[a_Player].NetPlayer->BotData)
+		return NULL;
+	
+	/* Return the template */
+	return players[a_Player].NetPlayer->BotData->BotTemplate;
+}
+
+/* B_BotGetTemplateDataPtr() -- Get template by pointer */
+const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
+{
+	/* Check */
+	if (!a_BotData)
+		return NULL;
+	
+	/* Return the template used */
+	return a_BotData->BotTemplate;
+}
+
+/* B_BuildBotTicCmd() -- Builds tic command for bot */
+void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a_BotData, ticcmd_t* const a_TicCmd)
+{
+	size_t i;
+	player_t* Player;
+	
+	/* Check */
+	if (!a_BotData || !a_TicCmd)
+		return;
+	
+	/* Intermission? */
+	if (gamestate == GS_INTERMISSION)
+	{
+		// Check to see if there are other non-bot players, because if there are
+			// then do not press use! It would be very rude!
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+				if (players[i].NetPlayer)
+					if (players[i].NetPlayer->Type != DNPT_BOT)
+						return;
+		
+		// Otherwise press use
+		a_TicCmd->Std.buttons |= BT_USE;
+		
+		// Don't process anymore
+		return;
+	}
+	
+	/* Non-Level? */
+	if (gamestate != GS_LEVEL)
+		return;
+	
+	/* Get variables */
+	a_BotData->Player = a_XPlayer->Player;
+	Player = a_BotData->Player;
+	
+	// No player?
+	if (!Player)
+	{
+		// Spectating then, so try to join
+		a_TicCmd->Std.buttons |= BT_USE;
+		return;
+	}
+	
+	/* Depending on player state */
+	switch (Player->playerstate)
+	{
+			// Dead
+		case PST_DEAD:
+			// Was not previously dead, set time to revive
+			if (!a_BotData->IsDead)
+			{
+				a_BotData->IsDead = true;
+				a_BotData->DeathTime = gametic;
+			}
+			
+			// Is still dead, wait 2 seconds to respawn
+			else if (gametic > (a_BotData->DeathTime + (TICRATE * 2)))
+			{
+				// Press use
+				a_TicCmd->Std.buttons |= BT_USE;
+			}
+			break;
+		
+			// Alive
+		case PST_LIVE:
+			// Unmark as dead
+			a_BotData->IsDead = false;
+			
+			// Call Ghost thinker
+			a_BotData->Player = Player;
+			a_BotData->Mo = Player->mo;
+			a_BotData->XPlayer = a_XPlayer;
+			B_GHOST_Think(a_BotData, a_TicCmd);
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
 }
 

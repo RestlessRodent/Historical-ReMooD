@@ -35,6 +35,8 @@
 *** INCLUDES ***
 ***************/
 
+#include "doomtype.h"
+#include "doomdef.h"
 #include "d_netcmd.h"
 #include "d_prof.h"
 #include "d_ticcmd.h"
@@ -82,23 +84,23 @@ typedef enum B_GhostAtkPosture_e
 *** STRUCTURES ***
 *****************/
 
-typedef struct B_BotData_s B_BotData_t;
+typedef struct B_GhostBot_s B_GhostBot_t;
 struct B_BotTemplate_s;
 
 /* B_GhostBot_t -- GhostlyBots information */
-typedef struct B_GhostBot_s
+struct B_GhostBot_s
 {
 	uint8_t Junk;								// Junk Data
 	ticcmd_t* TicCmdPtr;						// Pointer to tic command
 	bool_t Initted;								// Initialized
 	void* AtNode;								// At node
 	void* OldNode;								// Old node
-	B_BotData_t* BotData;						// Data
 	player_t* Player;							// Player
 	mobj_t* Mo;									// Mo
 	struct B_BotTemplate_s* BotTemplate;		// Template
 	struct D_XPlayer_s* XPlayer;				// Bot's XPlayer
-	
+	bool_t IsDead;								// Bot is dead?
+	tic_t DeathTime;							// Time Died
 	int32_t RoamX, RoamY;						// Roaming X/Y
 	
 	struct
@@ -124,7 +126,7 @@ typedef struct B_GhostBot_s
 		B_GhostAtkPosture_t Posture;			// Bot Posture
 		B_GhostCoopMode_t CoopMode;				// Coop Mode
 	} AISpec;									// AI Specification
-} B_GhostBot_t;
+};
 
 /* B_BotTemplate_t -- Bot Template */
 typedef struct B_BotTemplate_s
@@ -155,29 +157,25 @@ extern bool_t g_GotBots;						// Got a bot?
 ****************/
 
 /*** B_BOT.C ***/
-B_BotData_t* B_InitBot(const B_BotTemplate_t* a_Template);
+B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template);
 const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
-const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_BotData_t* const a_BotData);
+const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData);
 void B_InitNodes(void);
 void B_ClearNodes(void);
 
-struct D_XPlayer_s;
-void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
-
-void B_RemoveMobj(void* const a_Mo);
-
 /*** B_GHOST.C ***/
 void B_GHOST_Ticker(void);
-void B_GHOST_ClearLevel(void);
-void B_GHOST_InitLevel(void);
+void B_ClearNodes(void);
+void B_InitNodes(void);
 
+void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a_BotData, ticcmd_t* const a_TicCmd);
 void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd);
 
 const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
 const B_BotTemplate_t* B_GHOST_RandomTemplate(void);
 const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID);
 
-void B_XDestroyBot(B_BotData_t* const a_BotData);
+void B_XDestroyBot(B_GhostBot_t* const a_BotData);
 
 #endif /* __B_BOT_H__ */
 

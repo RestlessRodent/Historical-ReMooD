@@ -81,7 +81,7 @@ typedef enum D_NetState_e
 
 struct D_ProfileEx_s;
 struct player_s;
-struct B_BotData_s;
+struct B_GhostBot_s;
 
 /* D_NetPlayer_t -- Network Player */
 typedef struct D_NetPlayer_s
@@ -120,7 +120,7 @@ typedef struct D_NetPlayer_s
 	int32_t Scores;								// Scoreboard showing
 	
 	/* Bot Related */
-	struct B_BotData_s* BotData;				// Bot Data
+	struct B_GhostBot_s* BotData;				// Bot Data
 	
 	struct D_NetPlayer_s* ChainPrev;			// Previous
 	struct D_NetPlayer_s* ChainNext;			// Next

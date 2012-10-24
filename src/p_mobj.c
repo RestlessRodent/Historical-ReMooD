@@ -1441,9 +1441,6 @@ void P_RemoveMobj(mobj_t* mobj)
 	// GhostlyDeath <May 8, 2012> -- Remove from queue
 	P_RemoveFromBodyQueue(mobj);
 	
-	// GhostlyDeath <May 21, 2012> -- Remove from bots
-	B_RemoveMobj(mobj);
-	
 	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN))
 	{
 		itemrespawnque[iquehead] = mobj->spawnpoint;
