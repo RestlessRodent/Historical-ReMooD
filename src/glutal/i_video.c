@@ -70,21 +70,235 @@ typedef enum I_GLUploadMode_e
 *** LOCALS ***
 *************/
 
-static struct
+static union
 {
-	uint8_t c[3];
+	uint8_t c[4];
+	uint32_t u;
 } l_GLPalette[256];								// OpenGL Palette
 
 static I_GLUploadMode_t l_GLUpMode;				// Image upload mode
 static l_GLUTWinRef = 0;						// GLUT Window reference
 
+static uint8_t* l_GLImgBuffer;					// Image Buffer
+static uint32_t l_GLImgSize[2];					// Size of image
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* IS_GLUTToIKBK() -- Converts GLUT to standard key */
+static I_KeyBoardKey_t IS_GLUTToIKBK(const int a_Key, const bool_t a_Special)
+{
+	/* Special Keys */
+	if (a_Special)
+	{
+		// Function Keys
+		if (a_Key >= GLUT_KEY_F1 && a_Key <= GLUT_KEY_F12)
+			return IKBK_F1 + (a_Key - GLUT_KEY_F1);
+		
+		// Others
+		else
+			switch (a_Key)
+			{
+				case GLUT_KEY_DELETE:		return IKBK_KDELETE;
+				case UINT8_C(0x1B):			return IKBK_ESCAPE;
+				case UINT8_C(0x91):			return IKBK_BACKSPACE;
+				case UINT8_C(0x92):			return IKBK_TAB;
+				case UINT8_C(0x0D):			return IKBK_RETURN;
+				case GLUT_KEY_PAGE_UP:		return IKBK_PAGEUP;
+				case GLUT_KEY_PAGE_DOWN:	return IKBK_PAGEDOWN;
+				case GLUT_KEY_HOME:			return IKBK_HOME;
+				case GLUT_KEY_END:			return IKBK_END;
+				case GLUT_KEY_LEFT:			return IKBK_LEFT;
+				case GLUT_KEY_RIGHT:		return IKBK_RIGHT;
+				case GLUT_KEY_UP:			return IKBK_UP;
+				case GLUT_KEY_DOWN:			return IKBK_DOWN;
+				case GLUT_KEY_INSERT:		return IKBK_INSERT;
+#if 0
+				case GLUT_KEY_PAD_DIVIDE:	return IKBK_NUMDIVIDE;
+				case GLUT_KEY_PAD_MULTIPLY:	return IKBK_NUMMULTIPLY;
+				case GLUT_KEY_PAD_SUBTRACT:	return IKBK_NUMSUBTRACT;
+				case GLUT_KEY_PAD_ADD:		return IKBK_NUMADD;
+				case GLUT_KEY_PAD_RETURN:	return IKBK_NUMENTER;
+				case GLUT_KEY_PAD_DECIMAL:	return IKBK_NUMPERIOD;
+				case GLUT_KEY_CONTROL:		return IKBK_CTRL;
+				case GLUT_KEY_ALT:			return IKBK_ALT;
+				case GLUT_KEY_SHIFT:		return IKBK_SHIFT;
+#endif
+			
+					// Unknown?
+				default:
+					return 0;
+			}
+	}
+	
+	/* Non-Special Keys */
+	else
+		switch (a_Key)
+		{
+			case UINT8_C(0x1B):			return IKBK_ESCAPE;
+			case UINT8_C(0x0D):			return IKBK_RETURN;
+			
+				// Standard
+			default:
+				return toupper(a_Key);
+		}
+}
+
+/* IS_HandleCAS() -- Handles ctrl/alt/shift */
+static void IS_HandleCAS(void)
+{
+	I_EventEx_t New;
+	static int LastMods;
+	int NowMods;
+	
+	/* Get Modifiers */
+	NowMods = glutGetModifiers();
+	
+	/* No Change? */
+	if (NowMods == LastMods)
+		return;
+	
+	/* Build event */
+	// Clear
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_KEYBOARD;
+	New.Data.Keyboard.Character = 0;
+	New.Data.Keyboard.Repeat = false;
+	
+	// Handle Ctrl
+	if ((NowMods & GLUT_ACTIVE_CTRL) != (LastMods & GLUT_ACTIVE_CTRL))
+	{
+		New.Data.Keyboard.Down = !!(NowMods & GLUT_ACTIVE_CTRL);
+		New.Data.Keyboard.KeyCode = IKBK_CTRL;
+		I_EventExPush(&New);
+	}
+	
+	// Handle Alt
+	if ((NowMods & GLUT_ACTIVE_ALT) != (LastMods & GLUT_ACTIVE_ALT))
+	{
+		New.Data.Keyboard.Down = !!(NowMods & GLUT_ACTIVE_ALT);
+		New.Data.Keyboard.KeyCode = IKBK_ALT;
+		I_EventExPush(&New);
+	}
+	
+	// Handle Shift
+	if ((NowMods & GLUT_ACTIVE_SHIFT) != (LastMods & GLUT_ACTIVE_SHIFT))
+	{
+		New.Data.Keyboard.Down = !!(NowMods & GLUT_ACTIVE_SHIFT);
+		New.Data.Keyboard.KeyCode = IKBK_SHIFT;
+		I_EventExPush(&New);
+	}
+	
+	/* Remember mods */
+	LastMods = NowMods;
+}
+
+/* IS_GLUTTimer() -- GLUT Timer */
+static void IS_GLUTTimer(int value)
+{
+}
+
+/* IS_GLUTKeyDown() -- Key is pressed */
+static void IS_GLUTKeyDown(unsigned char key, int x, int y)
+{
+	I_EventEx_t New;
+	
+	/* Setup event */
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_KEYBOARD;
+	New.Data.Keyboard.Down = true;
+	New.Data.Keyboard.Repeat = false;
+	New.Data.Keyboard.KeyCode = IS_GLUTToIKBK(key, false);
+	New.Data.Keyboard.Character = key;
+	
+	/* Send event away */
+	I_EventExPush(&New);
+	
+	/* Handle Ctrl/Alt/Shift */
+	IS_HandleCAS();
+}
+
+/* IS_GLUTKeyUp() -- Key released */
+static void IS_GLUTKeyUp(unsigned char key, int x, int y)
+{
+	I_EventEx_t New;
+	
+	/* Setup event */
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_KEYBOARD;
+	New.Data.Keyboard.Down = false;
+	New.Data.Keyboard.Repeat = false;
+	New.Data.Keyboard.KeyCode = IS_GLUTToIKBK(key, false);
+	New.Data.Keyboard.Character = key;
+
+	/* Send event away */
+	I_EventExPush(&New);
+	
+	/* Handle Ctrl/Alt/Shift */
+	IS_HandleCAS();
+}
+
+/* IS_GLUTSpecialDown() -- Special key is pressed */
+static void IS_GLUTSpecialDown(int key, int x, int y)
+{
+	I_EventEx_t New;
+	
+	/* Setup event */
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_KEYBOARD;
+	New.Data.Keyboard.Down = true;
+	New.Data.Keyboard.Repeat = false;
+	New.Data.Keyboard.KeyCode = IS_GLUTToIKBK(key, true);
+	New.Data.Keyboard.Character = 0;
+	
+	/* Send event away */
+	I_EventExPush(&New);
+	
+	/* Handle Ctrl/Alt/Shift */
+	IS_HandleCAS();
+}
+
+/* IS_GLUTSpecialUp() -- Special released */
+static void IS_GLUTSpecialUp(int key, int x, int y)
+{
+	I_EventEx_t New;
+	
+	/* Setup event */
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_KEYBOARD;
+	New.Data.Keyboard.Down = false;
+	New.Data.Keyboard.Repeat = false;
+	New.Data.Keyboard.KeyCode = IS_GLUTToIKBK(key, true);
+	New.Data.Keyboard.Character = 0;
+	
+	/* Send event away */
+	I_EventExPush(&New);
+	
+	/* Handle Ctrl/Alt/Shift */
+	IS_HandleCAS();
+}
+
+/* IS_GLUTDisplay() -- GLUT Window displayed */
+static void IS_GLUTDisplay(void)
+{
+}
+
 /* I_GetEvent() -- Gets an event and adds it to the queue */
 void I_GetEvent(void)
 {
+	/* Handle events in the GLUT loop */
+	glutMainLoopEvent();
 }
 
 void I_UpdateNoBlit(void)
@@ -100,9 +314,9 @@ void I_StartFrame(void)
 void I_FinishUpdate(void)
 {
 	uint8_t* Buffer;
-	uint32_t w, h;
-	uint32_t x, y;
-	uint8_t Bit;
+	uint32_t w, h, wPOT, hPOT;
+	uint32_t x, y, *o;
+	uint8_t Bit, *s;
 	
 	/* Obtain the software buffer */
 	Buffer = I_VideoSoftBuffer(&w, &h);
@@ -110,6 +324,38 @@ void I_FinishUpdate(void)
 	// Failed?
 	if (!Buffer)
 		return;
+	
+	/* Power of two width and height */
+	// Width
+	wPOT = w - 1;
+	wPOT |= (wPOT >> 1);
+	wPOT |= (wPOT >> 2);
+	wPOT |= (wPOT >> 4);
+	wPOT |= (wPOT >> 8);
+	wPOT |= (wPOT >> 16);
+	wPOT += 1;
+	
+	// Height
+	hPOT = h - 1;
+	hPOT |= (hPOT >> 1);
+	hPOT |= (hPOT >> 2);
+	hPOT |= (hPOT >> 4);
+	hPOT |= (hPOT >> 8);
+	hPOT |= (hPOT >> 16);
+	hPOT += 1;
+	
+	/* Need new texture allocation? */
+	if (wPOT != l_GLImgSize[0] || hPOT != l_GLImgSize[1])
+	{
+		// Free
+		if (l_GLImgBuffer)
+			Z_Free(l_GLImgBuffer);
+		
+		// Allocate
+		l_GLImgBuffer = Z_Malloc(sizeof(uint32_t) * (wPOT * hPOT), PU_STATIC, NULL);
+		l_GLImgSize[0] = wPOT;
+		l_GLImgSize[1] = hPOT;
+	}
 	
 	/* Clear the framebuffer */
 	// Set view port
@@ -127,7 +373,7 @@ void I_FinishUpdate(void)
 	// Clear
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	l_GLUpMode = IGLUM_PUTPIXEL;
+	l_GLUpMode = IGLUM_TEXTURE;
 	
 	/* Send video buffer to screen */
 	switch (l_GLUpMode)
@@ -140,9 +386,9 @@ void I_FinishUpdate(void)
 				{
 					Bit = Buffer[(y * w) + x];
 					glColor3ub(
-							l_GLPalette[Bit].c[0],
-							l_GLPalette[Bit].c[1],
-							l_GLPalette[Bit].c[2]
+							l_GLPalette[Bit].c[3],
+							l_GLPalette[Bit].c[2],
+							l_GLPalette[Bit].c[1]
 						);
 					glVertex2i(x, y);
 				}
@@ -155,6 +401,45 @@ void I_FinishUpdate(void)
 		
 			// Upload textures
 		case IGLUM_TEXTURE:
+			// Draw into texture space
+			memset(l_GLImgBuffer, I_GetTimeMS() & 0xFF, sizeof(uint32_t) * (wPOT * hPOT));
+#if 0
+			s = Buffer;
+			o = l_GLImgBuffer;
+			for (x = 0; x < (w * h); x++)
+				*(o++) = l_GLPalette[*(s++)].u;
+#else
+			for (y = 0; y < h; y++)
+				for (x = 0; x < w; x++)
+				{
+					Bit = Buffer[(y * w) + x];
+					((uint32_t*)l_GLImgBuffer)[(y * wPOT) + x] = l_GLPalette[Bit].u;
+				}
+#endif
+				
+			// Create OpenGL Texture
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 13);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, wPOT, hPOT, 0, GL_RGBA, GL_UNSIGNED_BYTE/*_8_8_8_8*/, l_GLImgBuffer);
+			
+			glBegin(GL_QUADS);
+				glTexCoord2d(0, 0);
+				glVertex2i(0, 0);
+				glTexCoord2d(1, 0);
+				glVertex2i(w, 0);
+				glTexCoord2d(1, 1);
+				glVertex2i(w, h);
+				glTexCoord2d(0, 1);
+				glVertex2i(0, h);
+			glEnd();
+			
+			glDisable(GL_TEXTURE_2D);
 			break;
 			
 			// EXT PBO
@@ -173,9 +458,6 @@ void I_FinishUpdate(void)
 	/* Swap */
 	glFlush();
 	glutSwapBuffers();
-	
-	/* Handle events in the GLUT loop */
-	glutMainLoopEvent();
 }
 
 /* I_SetPalette() -- Sets the current palette */
@@ -189,9 +471,9 @@ void I_SetPalette(RGBA_t* palette)
 	/* Clone Colors */
 	for (i = 0; i < 256; i++)
 	{
-		l_GLPalette[i].c[0] = palette[i].s.red;
-		l_GLPalette[i].c[1] = palette[i].s.green;
-		l_GLPalette[i].c[2] = palette[i].s.blue;
+		l_GLPalette[i].c[3] = palette[i].s.red;
+		l_GLPalette[i].c[2] = palette[i].s.green;
+		l_GLPalette[i].c[1] = palette[i].s.blue;
 	}
 }
 
@@ -203,7 +485,13 @@ void I_SetPalette(RGBA_t* palette)
 // add a duplicate mode anyway.
 void VID_PrepareModeList(void)
 {
+	/* Add Basic Modes */
 	VID_AddMode(320, 200, true);
+	VID_AddMode(320, 240, true);
+	VID_AddMode(640, 400, true);
+	VID_AddMode(640, 480, true);
+	VID_AddMode(800, 600, true);
+	VID_AddMode(1024, 768, true);
 	
 }
 
@@ -236,6 +524,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	else
 	{
 		// Create Window
+		glutInitWindowSize(a_Width, a_Height);
 		l_GLUTWinRef = glutCreateWindow("ReMooD " REMOOD_FULLVERSIONSTRING);
 		
 		// Failed?
@@ -246,6 +535,14 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		glutSetWindow(l_GLUTWinRef);
 		glutReshapeWindow(a_Width, a_Height);
 	}
+	
+	/* Register handlers */
+	glutDisplayFunc(IS_GLUTDisplay);
+	glutKeyboardFunc(IS_GLUTKeyDown);
+	glutKeyboardUpFunc(IS_GLUTKeyUp);
+	glutSpecialFunc(IS_GLUTSpecialDown);
+	glutSpecialUpFunc(IS_GLUTSpecialUp);
+	glutTimerFunc(200, IS_GLUTTimer, 1);
 	
 	/* Determine image uploading mode */
 		// ARB PBO
@@ -351,3 +648,4 @@ bool_t I_RemoveMouse(const size_t a_ID)
 void I_MouseGrab(const bool_t a_Grab)
 {
 }
+

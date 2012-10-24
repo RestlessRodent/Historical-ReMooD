@@ -2100,7 +2100,8 @@ void I_ShutdownSound(void)
 			CONL_PrintF("I_ShutdownSound: Failed to remove driver.\n");
 			
 	/* Destroy array */
-	Z_Free(l_SoundDrivers);
+	if (l_SoundDrivers)
+		Z_Free(l_SoundDrivers);
 	l_SoundDrivers = NULL;
 	l_NumSoundDrivers = 0;
 }
