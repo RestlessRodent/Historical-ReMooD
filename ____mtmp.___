@@ -73,8 +73,8 @@ endif
 `ei ?_WIN32_WCE
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = b
-	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE
-	__XX_ILDFLAGS = -lm
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE -D_WIN32_WCE=0x0420
+	__XX_ILDFLAGS = -lws2 -lm -Wl,--major-subsystem-version,4 -Wl,--minor-subsystem-version,20
 	__XX_DEFINTRF ?= win36c
 	__XX_EXTRAOBJ = 
 

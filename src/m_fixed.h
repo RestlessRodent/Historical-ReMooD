@@ -40,21 +40,21 @@
 //
 // Fixed point, 32bit as 16.16.
 // Constants
-#define _FIXED_FRACBITS 16
-#define _FIXED_ONE (1 << _FIXED_FRACBITS)
-#define _FIXED_TWO (2 << _FIXED_FRACBITS)
-#define _FIXED_NEGONE (-1 << _FIXED_FRACBITS)
-#define _FIXED_SIGN		0x80000000
-#define _FIXED_INT		0xFFFF0000
-#define _FIXED_FRAC		0x0000FFFF
-#define _FIXED_ROUND	0x00008000
+#define _FIXED_FRACBITS INT32_C(16)
+#define _FIXED_ONE (INT32_C(1) << _FIXED_FRACBITS)
+#define _FIXED_TWO (INT32_C(2) << _FIXED_FRACBITS)
+#define _FIXED_NEGONE (INT32_C(-1) << _FIXED_FRACBITS)
+#define _FIXED_SIGN		INT32_C(0x80000000)
+#define _FIXED_INT		INT32_C(0xFFFF0000)
+#define _FIXED_FRAC		INT32_C(0x0000FFFF)
+#define _FIXED_ROUND	INT32_C(0x00008000)
 
 // Compatibility
 #define FRACBITS _FIXED_FRACBITS
-#define FRACUNIT (1 << _FIXED_FRACBITS)
+#define FRACUNIT _FIXED_ONE//(1 << _FIXED_FRACBITS)
 
 typedef int32_t fixed_t;
-#define FIXEDT_C(c) (INT32_C(c) << INT32_C(FRACBITS))
+#define FIXEDT_C(c) (INT32_C(c) << FRACBITS)
 
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 #define FLOAT_TO_FIXED(x) (((fixed_t)(((float)(x)) * 65536.0)))
