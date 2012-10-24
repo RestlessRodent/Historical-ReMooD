@@ -471,7 +471,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{						  "WFGS_BOT", "Bot"},
 	
 	{						"WFJW_TITLE", "Connecting to Server"},
-	{				  "NET_SERVERDISCON", "Server Disconnected."},
+	{				  "NET_SERVERDISCON", "Server Disconnected"},
+	{						"NET_KICKED", "Kicked"},
 	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},

@@ -3272,6 +3272,58 @@ D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID)
 	return NULL;
 }
 
+/* D_XNetPlayerByString() -- Finds player by string */
+D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str)
+{
+	uint32_t IntNum;
+	D_XPlayer_t* XPlay;
+	
+	/* Check */
+	if (!a_Str)
+		return NULL;
+	
+	/* String empty */
+	if (strlen(a_Str) <= 0)
+		return NULL;
+	
+	/* Direct array slot */
+	IntNum = C_strtou32(a_Str, NULL, 10);
+	
+	// Hit?
+	if (IntNum >= 1 && IntNum <= g_NumXPlays)
+		if (g_XPlays[IntNum - 1])
+			return g_XPlays[IntNum - 1];
+	
+	/* By ID */
+	IntNum = C_strtou32(a_Str, NULL, 16);
+	
+	// Find?
+	XPlay = D_XNetPlayerByID(IntNum);
+	
+	// Found?
+	if (XPlay)
+		return XPlay;
+	
+	/* Try Account Match */
+	// Loop
+	for (IntNum = 0; IntNum < g_NumXPlays; IntNum++)
+	{
+		// Get
+		XPlay = g_XPlays[IntNum];
+		
+		// Missing?
+		if (!XPlay)
+			continue;
+			
+		// Name match?
+		if (strcasecmp(a_Str, XPlay->AccountName) == 0)
+			return XPlay;
+	}
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* D_XNetDelSocket() -- Deletes Socket */
 void D_XNetDelSocket(D_XSocket_t* const a_Socket)
 {
@@ -3976,7 +4028,11 @@ static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 /* DS_XNetCon() -- Command */
 static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 {
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
 	B_BotTemplate_t* BotTemp;
+	D_XPlayer_t* XPlay;
+	int32_t i;
 	
 	/* Not enough args? */
 	if (a_ArgC < 2)
@@ -3984,8 +4040,76 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		return 1;
 	}
 	
+	/* Listing Players */
+	if (strcasecmp(a_ArgV[1], "list") == 0)
+	{
+		// Print Header
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+				"%3s%-8s%s\n",
+				"Cl#",
+				"ID/Host#",
+				"Name/Account^Server"
+			);
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+				"%3s%-8s%s\n",
+				"---",
+				"--------",
+				"-------------------------"
+			);
+		
+		// Go through list
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			XPlay = g_XPlays[i];
+		
+			// No player?
+			if (!XPlay)
+				continue;
+		
+			// List details
+			CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+					"%3u%-08x%s\n",
+					i + 1,
+					XPlay->ID,
+					XPlay->DisplayName
+				);
+		
+			// Account w/ Server
+			snprintf(Buf, BUFSIZE, "%s^%s", XPlay->AccountName, XPlay->AccountServer);
+			CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+					"%3s%-08x%s\n",
+					"",
+					XPlay->HostID,
+					Buf
+				);
+		}
+	}
+	
+	/* Kicking Player */
+	else if (strcasecmp(a_ArgV[1], "kick") == 0)
+	{
+		// Not server?
+		if (!D_XNetIsServer())
+			return 1;
+		
+		// Not enough args?
+		if (a_ArgC < 3)
+			return 1;
+		
+		// Find player
+		XPlay = D_XNetPlayerByString(a_ArgV[2]);
+		
+		// Not found?
+		if (!XPlay)
+			return 1;
+		
+		// Kick player
+		D_XNetKickPlayer(XPlay, (a_ArgC > 3 ? a_ArgV[4] : DS_GetString(DSTR_NET_KICKED)));
+		return 0;
+	}
+	
 	/* Adding Bot */
-	if (strcasecmp(a_ArgV[1], "addbot") == 0)
+	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
 	{
 		// Not server?
 		if (!D_XNetIsServer())
@@ -4009,6 +4133,7 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Failure */
 	return 1;
+#undef BUFSIZE
 }
 
 /* D_XNetInit() -- Initializes the Extended Network Code */

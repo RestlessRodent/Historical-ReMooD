@@ -523,33 +523,31 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Find the player's ID
 				XPlayer = D_XNetPlayerByID(u32[0]);
 				
-				// Player exists in our structures
-				if (XPlayer)
+				if (u16[0] < MAXPLAYERS && playeringame[u16[0]])
 				{
-					// Kill the player in question (if in game)
-					if (XPlayer->Player && 
-						u16[0] < MAXPLAYERS && playeringame[u16[0]])
-					{
-						// Get player's object
-						Mo = players[u16[0]].mo;
-					
-						// Remove object binding
-						if (Mo)
-							Mo->player = NULL;
-						players[u16[0]].mo = NULL;
-					
-						// Set the player as not in game
-						playeringame[u16[0]] = false;
+					// Get player's object
+					Mo = players[u16[0]].mo;
 				
-						// Kill object, if it exists
-							// Don't remove it, corpse cleanup will get to it eventually
-						if (Mo)
-							P_KillMobj(Mo, Mo, Mo);
-					}
+					// Remove object binding
+					if (Mo)
+						Mo->player = NULL;
+					players[u16[0]].mo = NULL;
+				
+					// Set the player as not in game
+					playeringame[u16[0]] = false;
+			
+					// Kill object, if it exists
+						// Don't remove it, corpse cleanup will get to it eventually
+					if (Mo)
+						P_KillMobj(Mo, Mo, Mo);
 				}
 				
 				// Kick player from game (network wise)
-				D_XNetKickPlayer(XPlayer, AltBuf);
+				if (XPlayer)
+				{
+					D_XNetKickPlayer(XPlayer, AltBuf);
+					P_UpdateScores();
+				}
 				break;
 				
 				// Map Changes

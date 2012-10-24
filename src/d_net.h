@@ -366,6 +366,7 @@ uint32_t D_XNetGetHostID(void);
 
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
+D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str);
 
 void D_XNetDelSocket(D_XSocket_t* const a_Socket);
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);

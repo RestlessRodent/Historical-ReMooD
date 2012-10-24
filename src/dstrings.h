@@ -471,6 +471,7 @@ typedef enum UnicodeStringID_e
 	
 	DSTR_WFJW_TITLE,
 	DSTR_NET_SERVERDISCON,
+	DSTR_NET_KICKED,
 	
 	/* Deprecated Strings */
 	DSTR_DEP_D_DEVSTR,
