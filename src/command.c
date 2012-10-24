@@ -904,7 +904,7 @@ fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal)
 /* CONL_VarSlideValue() -- Slide variable */
 bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
 {
-	int32_t i, Hit, ixMi, ixMa;
+	int32_t i, DirMov, Hit, ixMi, ixMa, NextVal;
 	
 	/* Check */
 	if (!a_Var || !a_Right)
@@ -923,14 +923,21 @@ bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
 	{
 		// Integer
 		if (a_Var->Type == CLVT_INTEGER)
-			CONL_VarSetInt(a_Var, a_Var->Value->Int + (1 * a_Right));
+		{
+			NextVal = a_Var->Value->Int + (1 * a_Right);
+			return (CONL_VarSetInt(a_Var, NextVal) == NextVal);
+		}
 		
 		// Fixed point
 		else if (a_Var->Type == CLVT_FIXED)
-			CONL_VarSetFixed(a_Var, a_Var->Value->Fixed + ((fixed_t)8192 * (fixed_t)a_Right));
+		{
+			NextVal = a_Var->Value->Fixed + ((fixed_t)4096 * (fixed_t)a_Right);
+			return (CONL_VarSetFixed(a_Var, NextVal) == NextVal);
+		}
 		
-		// Was changed, hopefully
-		return true;
+		// Oops!
+		else
+			return false;
 	}
 	
 	/* Change value based on direction */
@@ -946,18 +953,101 @@ bool_t CONL_VarSlideValue(CONL_StaticVar_t* const a_Var, const int32_t a_Right)
 				Hit = i;
 		
 		// Min?
-		if (strcasecmp(a_Var->Possible[i].StrAlias, "MINVALUE") == 0)
+		if (strcasecmp(a_Var->Possible[i].StrAlias, "MINVAL") == 0)
 			ixMi = i;
 		
 		// Max?
-		if (strcasecmp(a_Var->Possible[i].StrAlias, "MAXVALUE") == 0)
+		if (strcasecmp(a_Var->Possible[i].StrAlias, "MAXVAL") == 0)
 			ixMa = i;
 	}
 	
-	// TODO FIXME
+	// If found match and MIN/MAX are not the first values
+	if (Hit != -1 && !(ixMi == 0 || ixMi == 1) && !(ixMa == 0 || ixMa == 1))
+	{
+		// Get moving direction
+		if (a_Right > 0)
+			DirMov = 1;
+		else
+			DirMov = -1;
+		
+		// Next value to check
+		NextVal = Hit + DirMov;
+		
+		// Off the negative end?
+		if (NextVal < 0)
+			return false;
+		
+		// Off the top end?
+		if (!a_Var->Possible[NextVal].StrAlias)
+			return false;
+		
+		// Find the first non-match in direction
+		for (; NextVal >= 0 && a_Var->Possible[NextVal].StrAlias; NextVal += DirMov)
+		{
+			// The min/max are usually placed at the end, so if they are bumped
+			// do not set (this would prevent right direction looping while the left
+			// does not loop).
+			if ((ixMi != -1 && NextVal == ixMi) || (ixMa != -1 && NextVal == ixMa))
+				return false;
+			
+			// Compare Integer Values
+			if (a_Var->Possible[NextVal].IntVal != a_Var->Possible[Hit].IntVal)
+			{
+				NextVal = a_Var->Possible[NextVal].IntVal;
+				return (CONL_VarSetInt(a_Var, NextVal) == NextVal);
+			}
+		}
+	}
 	
-	/* Success! */
-	return true;
+	// No sliding match found, or no value was even hit, slide it
+		// Integer
+	if (a_Var->Type == CLVT_INTEGER)
+	{
+		// Get next value
+		if (a_Right < 0)
+			NextVal = a_Var->Value->Int - 1;
+		else if (a_Right > 0)
+			NextVal = a_Var->Value->Int + 1;
+		
+		// Cap to minimum
+		if (ixMi != -1)
+			if (NextVal < a_Var->Possible[ixMi].IntVal)
+				NextVal = a_Var->Possible[ixMi].IntVal;
+			
+		// Cap to maximum
+		if (ixMa != -1)
+			if (NextVal > a_Var->Possible[ixMa].IntVal)
+				NextVal = a_Var->Possible[ixMa].IntVal;
+		
+		// Set integer value
+		return (CONL_VarSetInt(a_Var, NextVal) == NextVal);
+	}
+	
+		// Fixed
+	else if (a_Var->Type == CLVT_FIXED)
+	{
+		// Get next value
+		if (a_Right < 0)
+			NextVal = a_Var->Value->Fixed - (fixed_t)4096;
+		else if (a_Right > 0)
+			NextVal = a_Var->Value->Fixed + (fixed_t)4096;
+		
+		// Cap to minimum
+		if (ixMi != -1)
+			if (NextVal < a_Var->Possible[ixMi].IntVal << (fixed_t)FRACBITS)
+				NextVal = a_Var->Possible[ixMi].IntVal << (fixed_t)FRACBITS;
+			
+		// Cap to maximum
+		if (ixMa != -1)
+			if (NextVal > a_Var->Possible[ixMa].IntVal << (fixed_t)FRACBITS)
+				NextVal = a_Var->Possible[ixMa].IntVal << (fixed_t)FRACBITS;
+				
+		// Set fixed value
+		return (CONL_VarSetFixed(a_Var, NextVal) == NextVal);
+	}
+	
+	/* No value changed? */
+	return false;
 }
 
 /***********************

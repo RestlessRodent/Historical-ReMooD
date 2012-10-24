@@ -996,7 +996,7 @@ int32_t P_XGSGetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right)
 		
 		// Move value by single unit
 		if (Var->Type == PEXGST_FLOAT)
-			ReqVal += 8192 * (a_Right ? 1 : -1);	// Move by .125
+			ReqVal += 4096 * (a_Right ? 1 : -1);	// Move by .0625
 		else
 			ReqVal += (a_Right ? 1 : -1);			// Move by 1
 		

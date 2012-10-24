@@ -3842,6 +3842,8 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 tic_t D_XNetTicsToRun(void)
 {
 	tic_t Diff, ThisTic;
+	bool_t Lagging;
+	int32_t i;
 	
 	/* Get current tic */
 	ThisTic = I_GetTime();
@@ -3883,9 +3885,10 @@ tic_t D_XNetTicsToRun(void)
 		
 		// See if everyone is not lagging behind
 			// If not, freeze the game until everyone catches up some
+		Lagging = false;
 		
 		// Clients need to catchup
-		if (false)
+		if (Lagging)
 		{
 			l_XNLastPTic = ThisTic;
 			return 0;
