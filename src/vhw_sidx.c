@@ -89,3 +89,8 @@ void VHW_SIDX_HUDDrawBox(const uint32_t a_Flags, const uint8_t a_R, const uint8_
 }
 
 
+/* VHW_SIDX_ClearScreen() -- Clears the screen */
+void VHW_SIDX_ClearScreen(const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
+{
+}
+

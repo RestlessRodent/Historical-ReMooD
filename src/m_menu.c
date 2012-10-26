@@ -1097,7 +1097,7 @@ void M_ExUIDrawer(void)
 				DisableDraw = true;
 			
 			// Draw Faded Message Background
-			V_DrawFadeConsBackEx(
+			VHW_HUDBlurBack(
 					VEX_COLORMAP((DisableDraw ? VEX_MAP_BLACK : VEX_MAP_GRAY)),
 					Box->x, Box->y, Box->x + Box->w, Box->y + Box->h
 				);

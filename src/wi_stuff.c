@@ -46,6 +46,7 @@
 #include "p_info.h"
 #include "dstrings.h"
 #include "p_demcmp.h"
+#include "vhw_wrap.h"
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -1418,10 +1419,10 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			
 			// Draw player band (their skin color)
 			if (l_DrawPlayers[dp].Player)
-				V_DrawColorBoxEx(
-						VEX_TRANS(VEX_TRANS50)/* | VEX_COLORMAP(VEX_MAP_GREEN)*/ |
+				VHW_HUDDrawBox(
+						VEX_TRANS(VEX_TRANS50) |
 							VEX_PCOLOR(l_DrawPlayers[dp].Player->skincolor),
-						120, 0, yBase + y, 320, yBase + y + yAdd);
+						0, 255, 0, 0, yBase + y, 320, yBase + y + yAdd);
 			
 			// Draw Rank
 			snprintf(Buf, BUFSIZE - 1, "%i.", l_DrawPlayers[dp].Rank + 1);

@@ -41,26 +41,3 @@
 *** FUNCTIONS ***
 ****************/
 
-/* RX_DrawSky() -- Draws the sky */
-void RX_DrawSky(RX_RenderSpec_t* const a_Spec)
-{
-	int32_t x, o;
-	uint8_t* SkyCol;
-	
-	/* Get Sky Texture */
-	
-	/* Draw Sky */
-	for (o = 0, x = a_Spec->ScrX; x < a_Spec->ScrEndX; x++, o++)
-	{
-		// Get sky column
-		//SkyCol = R_GetColumn(skytexture, a_Spec->SkyBend[o]);
-		
-		// Draw column to screen
-	}
-	
-	//uint8_t* R_GetColumn(skytexture, size_t col)
-	
-	//int32_t ScrX, ScrY, ScrW, ScrH;				// Screen Bounds
-	//int32_t ScrEndX, ScrEndY;					// End of screen
-}
-

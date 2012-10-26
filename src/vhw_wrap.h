@@ -90,6 +90,8 @@ extern void (*VHW_HUDBlurBack)(const uint32_t a_Flags, int32_t a_X1, int32_t a_Y
 
 extern void (*VHW_HUDDrawBox)(const uint32_t a_Flags, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B, int32_t a_X1, int32_t a_Y1, int32_t a_X2, int32_t a_Y2);
 
+extern void (*VHW_ClearScreen)(const uint8_t a_R, const uint8_t a_G, const uint8_t a_B);
+
 #endif /* __VHW_WRAP_H__ */
 
 

@@ -35,6 +35,7 @@
 #include "doomdef.h"
 #include "d_player.h"
 #include "rx_main.h"
+#include "vhw_wrap.h"
 
 /*****************
 *** STRUCTURES ***
@@ -120,16 +121,6 @@ void R_ExecuteSetViewSize_REMOOD(void)
 			l_RXFrames[n].x = l_RXFrames[n].w * (n & 1);
 			l_RXFrames[n].y = l_RXFrames[n].h * ((n >> 1) & 1);
 		}
-		
-		// Allocate?
-		if (l_RXFrames[n].SkyBend)
-			Z_Free(l_RXFrames[n].SkyBend);
-		l_RXFrames[n].SkyBend = Z_Malloc(sizeof(*l_RXFrames[n].SkyBend) * l_RXFrames[n].w, PU_STATIC, NULL);
-		
-		// Bending of the sky (texture offsets)
-		SkyFOV = FixedMul(l_RXFrames[n].w, 186413);	// (256 / 90)
-		for (i = 0; i < l_RXFrames[n].w; i++)
-			l_RXFrames[n].SkyBend[i] = i + i;
 	}
 }
 
@@ -154,25 +145,24 @@ void R_RenderPlayerView_REMOOD(player_t* player, const size_t a_Screen)
 	Spec.ScrEndX = Spec.ScrX + Spec.ScrW;
 	Spec.ScrEndY = Spec.ScrY + Spec.ScrH;
 	
-	// Allocate Depth Buffer
-	Spec.DepthBuffer = Z_Malloc(sizeof(*Spec.DepthBuffer) * (Spec.ScrW * Spec.ScrH), PU_STATIC, NULL);
-	
-	// Sky Info
-	Spec.SkyBend = l_RXFrames[a_Screen].SkyBend;
-	
 	/* Setup Frame */
 	RX_SetupFrame(&Spec);
 	
+	// Set viewport
+	VHW_SetViewport(Spec.ScrX, Spec.ScrY, Spec.ScrW, Spec.ScrH);
+	
 	/* Draw Everything */
-	// Sky is the background
-	RX_DrawSky(&Spec);
+	// Clear view
+	VHW_ClearScreen(0, 0, 0);
+	
+	// Sky
 	
 	// Draw the level
 	
 	// Draw sprites
 	
 	/* Finalize */
-	// Destroy the depth buffer
-	Z_Free(Spec.DepthBuffer);
+	// Revert viewport change
+	VHW_SetViewport(0, 0, vid.width, vid.height);
 }
 

@@ -154,14 +154,14 @@ typedef enum VEX_ColorList_s
 	NUMVEXCOLORS
 } VEX_ColorList_t;
 
-#define VEX_COLORMAPMASK		0x000F0000	// Mask of the colormap
-#define VEX_COLORMAPSHIFT		16	// Color shift
-#define VEX_COLORMAP(x)			(((x) << VEX_COLORMAPSHIFT) & VEX_COLORMAPMASK)
+#define VEX_COLORMAPMASK		UINT32_C(0x000F0000)	// Mask of the colormap
+#define VEX_COLORMAPSHIFT		UINT32_C(16)	// Color shift
+#define VEX_COLORMAP(x)			(((uint32_t)(x) << VEX_COLORMAPSHIFT) & VEX_COLORMAPMASK)
 
 /* Color masking (Matches skin colors) */
-#define VEX_COLORMASK			0x00F00000	// Mask of the colors
-#define VEX_COLORSHIFT			20	// Shift
-#define VEX_PCOLOR(x)			((((x) << VEX_COLORSHIFT) & VEX_COLORMASK) | VEX_COLORSET)
+#define VEX_COLORMASK			UINT32_C(0x00F00000)	// Mask of the colors
+#define VEX_COLORSHIFT			UINT32_C(20)	// Shift
+#define VEX_PCOLOR(x)			((((uint32_t)(x) << VEX_COLORSHIFT) & VEX_COLORMASK) | VEX_COLORSET)
 
 /* Transparency */
 // MAX OF 16
@@ -336,6 +336,7 @@ typedef enum V_ImageType_e
 	VIT_PATCH,									// Image is a patch
 	VIT_PIC,									// Image is a pic_t
 	VIT_RAW,									// A raw image (flat)
+	VIT_RGBA,									// RGBA Texture
 	
 	NUMVIMAGETYPES
 } V_ImageType_t;
@@ -387,6 +388,9 @@ typedef struct V_Image_s
 	
 	/* Size */
 	void* dPatchEnd;							// End of patch data
+	uint32_t POTSize[2];						// Power of two size
+	uint32_t GLRef[32];							// OpenGL Reference
+	uint32_t GLSpotCount[32];					// Current Spot
 } V_Image_t;
 
 // Load and Destroy
@@ -401,7 +405,7 @@ uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_
 // Get data for a specific format
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_ByteSize);
 const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_ByteSize);
-uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize);
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize, const uint8_t a_Mask);
 
 // Common Drawers
 void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap, uint8_t* const a_DestBuffer, const uint32_t a_DestPitch, const uint32_t a_DestWidth, const uint32_t a_DestHeight, const fixed_t a_VidXScaleX, const fixed_t a_VidXScaleY, const double a_VidFScaleX, const double a_VidFScaleY);

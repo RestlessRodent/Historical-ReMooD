@@ -54,6 +54,7 @@ void (*VHW_HUDDrawImageComplex)(const uint32_t a_Flags, V_Image_t* const a_Image
 void (*VHW_SetViewport)(const int32_t a_X, const int32_t a_Y, const uint32_t a_W, const uint32_t a_H) = NULL;
 void (*VHW_HUDBlurBack)(const uint32_t a_Flags, int32_t a_X1, int32_t a_Y1, int32_t a_X2, int32_t a_Y2) = NULL;
 void (*VHW_HUDDrawBox)(const uint32_t a_Flags, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B, int32_t a_X1, int32_t a_Y1, int32_t a_X2, int32_t a_Y2) = NULL;
+void (*VHW_ClearScreen)(const uint8_t a_R, const uint8_t a_G, const uint8_t a_B) = NULL;
 
 /* VHW_UseGLMode() -- Use openGL Mode */
 bool_t VHW_UseGLMode(void)
@@ -83,6 +84,7 @@ bool_t VHW_Init(const VHW_Mode_t a_Mode)
 		VHW_SetViewport = VHW_GL_SetViewport;
 		VHW_HUDBlurBack = VHW_GL_HUDBlurBack;
 		VHW_HUDDrawBox = VHW_GL_HUDDrawBox;
+		VHW_ClearScreen = VHW_GL_ClearScreen;
 	}
 	
 	/* Software Mode Calls */
@@ -93,6 +95,7 @@ bool_t VHW_Init(const VHW_Mode_t a_Mode)
 		VHW_SetViewport = VHW_SIDX_SetViewport;
 		VHW_HUDBlurBack = VHW_SIDX_HUDBlurBack;
 		VHW_HUDDrawBox = VHW_SIDX_HUDDrawBox;
+		VHW_ClearScreen = VHW_SIDX_ClearScreen;
 	}	
 	
 	/* Success! */

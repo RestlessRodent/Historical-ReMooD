@@ -3450,6 +3450,20 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a
 		New->PixelCount = New->Width * New->Height;
 	}
 	
+	// Obtain power of two
+	New->POTSize[0] = New->Width;
+	New->POTSize[1] = New->Height;
+	for (i = 0; i < 2; i++)
+	{
+		New->POTSize[i] = New->POTSize[i] - 1;
+		New->POTSize[i] |= (New->POTSize[i] >> 1);
+		New->POTSize[i] |= (New->POTSize[i] >> 2);
+		New->POTSize[i] |= (New->POTSize[i] >> 4);
+		New->POTSize[i] |= (New->POTSize[i] >> 8);
+		New->POTSize[i] |= (New->POTSize[i] >> 16);
+		New->POTSize[i] += 1;
+	}
+	
 	// Link into chain for this WAD
 	HI = WL_GetPrivateData(a_Entry->Owner, WLDK_VIMAGES, NULL);
 	
@@ -3797,7 +3811,7 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 	else
 	{
 		// Obtain the raw image, then postize it simply
-		RawImage = V_ImageGetRaw(a_Image, a_ByteSize);
+		RawImage = V_ImageGetRaw(a_Image, a_ByteSize, 0);
 		
 		// Failed?
 		if (!RawImage)
@@ -3857,7 +3871,7 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 		PalMap = VS_GetPalMap(a_Image);
 		
 		// Raw easily translate to a pic_t, so use that
-		RawImage = V_ImageGetRaw(a_Image, a_ByteSize);
+		RawImage = V_ImageGetRaw(a_Image, a_ByteSize, 0);
 		
 		// Failed?
 		if (!RawImage)
@@ -3893,7 +3907,7 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 
 /* V_ImageGetRaw() -- Loads a raw image */
 // Raw is the lowest common denominator
-uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize, const uint8_t a_Mask)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
@@ -3941,6 +3955,9 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 		if (a_ByteSize)
 			*a_ByteSize = TotalSize;
 		
+		// Place Mask
+		memset(a_Image->dRaw, a_Mask, TotalSize);
+		
 		// Load WAD data straight into buffer
 		WL_ReadData(a_Image->wData, 0, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
 		
@@ -3962,6 +3979,9 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 			// Return size
 			if (a_ByteSize)
 				*a_ByteSize = TotalSize;
+				
+			// Place Mask
+			memset(a_Image->dRaw, a_Mask, TotalSize);
 		
 			// Load WAD data straight into buffer with offset
 			WL_ReadData(a_Image->wData, 8, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
@@ -3988,6 +4008,9 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 			// Return size
 			if (a_ByteSize)
 				*a_ByteSize = TotalSize;
+				
+			// Place Mask
+			memset(a_Image->dRaw, a_Mask, TotalSize);
 			
 			// Draw into the raw buffer
 			for (x = 0; x < a_Image->Width; x++)
@@ -4281,7 +4304,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 #endif
 	{
 		// Load data
-		RawData = V_ImageGetRaw(a_Image, NULL);
+		RawData = V_ImageGetRaw(a_Image, NULL, 0);
 		
 		// Check
 		if (!RawData)
