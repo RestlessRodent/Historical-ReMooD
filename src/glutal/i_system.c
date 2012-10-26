@@ -137,22 +137,7 @@ void I_Tactile(int on, int off, int total)
 	on = off = total = 0;
 }
 
-/* I_GetTimeMS() -- Returns time since the game started (in MS) */
-uint32_t I_GetTimeMS(void)
-{
-	static clock_t FirstClock;
-	clock_t ThisClock = 0;
-	
-	/* Get current clock */
-	ThisClock = clock();
-	
-	// FirstClock not set?
-	if (!FirstClock)
-		FirstClock = ThisClock;
-		
-	/* Return time passed */
-	return ((ThisClock - FirstClock) * 1000) / CLOCKS_PER_SEC;
-}
+#include "../intrbase/gettime.h"
 
 //
 // I_Init
@@ -211,4 +196,6 @@ void I_SystemPreExit(void)
 /* I_SystemPostExit() -- Called after functions are exited */
 void I_SystemPostExit(void)
 {
+	glutLeaveMainLoop();
 }
+

@@ -107,19 +107,7 @@ void I_Tactile(int on, int off, int total)
 	on = off = total = 0;
 }
 
-/* I_GetTimeMS() -- Returns time since the game started (in MS) */
-uint32_t I_GetTimeMS(void)
-{
-	static DWORD basetime = 0;
-	DWORD ticks = 0;
-	
-	ticks = GetTickCount();
-
-	if (!basetime)
-		basetime = ticks;
-
-	return (uint32_t)(ticks - basetime);
-}
+#include "../intrbase/gettime.h"
 
 //
 // I_Init

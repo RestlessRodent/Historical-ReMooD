@@ -62,6 +62,7 @@ typedef enum I_GLUploadMode_e
 	IGLUM_PUTPIXEL,								// Put pixel
 	IGLUM_DRAWPIXELS,							// Draw Pixels
 	IGLUM_TEXTURE,								// Textures
+	IGLUM_NVPDR,								// GL_NV_pixel_data_range
 	IGLUM_EXTPBO,								// GL_EXT_pixel_buffer_object
 	IGLUM_ARBPBO,								// GL_ARB_pixel_buffer_object
 } I_GLUploadMode_t;
@@ -196,6 +197,64 @@ static void IS_HandleCAS(void)
 	LastMods = NowMods;
 }
 
+/* IS_GLUTMouseMotion() -- Mouse motion */
+static void IS_GLUTMouseMotion(int x, int y)
+{
+	static int OldX, OldY;
+	I_EventEx_t New;
+	
+	/* Setup event */
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_MOUSE;
+	New.Data.Mouse.Down = false;
+	New.Data.Mouse.Pos[0] = x;
+	New.Data.Mouse.Pos[1] = y;
+	New.Data.Mouse.Move[0] = x - OldX;
+	New.Data.Mouse.Move[1] = OldY - y;
+	
+	/* Send event away */
+	I_EventExPush(&New);
+	
+	/* Remember old location */
+	OldX = x;
+	OldY = y;
+}
+
+/* IS_GLUTMouseButtons() -- Buttons change */
+static void IS_GLUTMouseButtons(int button, int state, int x, int y)
+{
+	I_EventEx_t New;
+	
+	/* Setup event */
+	memset(&New, 0, sizeof(New));
+	
+	// Fill
+	New.Type = IET_MOUSE;
+	New.Data.Mouse.Down = !!(state == GLUT_DOWN);
+	
+	if (button == GLUT_LEFT_BUTTON)
+		New.Data.Mouse.Button = 1;
+	else if (button == GLUT_RIGHT_BUTTON)
+		New.Data.Mouse.Button = 2;
+	else if (button == GLUT_MIDDLE_BUTTON)
+		New.Data.Mouse.Button = 3;
+	
+	New.Data.Mouse.Pos[0] = x;
+	New.Data.Mouse.Pos[1] = y;
+	
+	/* Send event away */
+	if (New.Data.Mouse.Button)
+		I_EventExPush(&New);
+	
+	/* Handle Ctrl/Alt/Shift */
+	IS_HandleCAS();
+	
+	/* Handle Mouse */
+	IS_GLUTMouseMotion(x, y);
+}
+
 /* IS_GLUTTimer() -- GLUT Timer */
 static void IS_GLUTTimer(int value)
 {
@@ -221,6 +280,9 @@ static void IS_GLUTKeyDown(unsigned char key, int x, int y)
 	
 	/* Handle Ctrl/Alt/Shift */
 	IS_HandleCAS();
+	
+	/* Handle Mouse */
+	IS_GLUTMouseMotion(x, y);
 }
 
 /* IS_GLUTKeyUp() -- Key released */
@@ -243,6 +305,9 @@ static void IS_GLUTKeyUp(unsigned char key, int x, int y)
 	
 	/* Handle Ctrl/Alt/Shift */
 	IS_HandleCAS();
+	
+	/* Handle Mouse */
+	IS_GLUTMouseMotion(x, y);
 }
 
 /* IS_GLUTSpecialDown() -- Special key is pressed */
@@ -265,6 +330,9 @@ static void IS_GLUTSpecialDown(int key, int x, int y)
 	
 	/* Handle Ctrl/Alt/Shift */
 	IS_HandleCAS();
+	
+	/* Handle Mouse */
+	IS_GLUTMouseMotion(x, y);
 }
 
 /* IS_GLUTSpecialUp() -- Special released */
@@ -287,6 +355,9 @@ static void IS_GLUTSpecialUp(int key, int x, int y)
 	
 	/* Handle Ctrl/Alt/Shift */
 	IS_HandleCAS();
+	
+	/* Handle Mouse */
+	IS_GLUTMouseMotion(x, y);
 }
 
 /* IS_GLUTDisplay() -- GLUT Window displayed */
@@ -520,6 +591,11 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	glutSpecialFunc(IS_GLUTSpecialDown);
 	glutSpecialUpFunc(IS_GLUTSpecialUp);
 	glutTimerFunc(200, IS_GLUTTimer, 1);
+	glutMotionFunc(IS_GLUTMouseMotion);
+	glutPassiveMotionFunc(IS_GLUTMouseMotion);
+	glutMouseFunc(IS_GLUTMouseButtons);
+	
+	/* Clear Extenstions */
 	
 	/* Determine image uploading mode */
 		// ARB PBO
@@ -533,7 +609,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		// Textures
 	else
 		l_GLUpMode = IGLUM_TEXTURE;
-		
+			
 	l_GLUpMode = IGLUM_TEXTURE;
 		
 	/* Power of two width and height */
