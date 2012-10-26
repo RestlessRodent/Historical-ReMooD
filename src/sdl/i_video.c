@@ -918,23 +918,27 @@ void I_FinishUpdate(void)
 	// Failed?
 	if (!Buffer)
 		return;
-		
-	/* Lock surface */
-	SDL_LockSurface(l_SDLSurface);
 	
-	/* Copy row by row */
-	for (y = 0; y < h; y++)
+	/* No Double Buffering? */
+	if ((l_SDLSurface->flags & SDL_DOUBLEBUF) == 0)
 	{
-		// Get pixels to copy and overwrite
-		Src = &Buffer[(y * w)];
-		Dest = &((uint8_t*)l_SDLSurface->pixels)[(y * l_SDLSurface->pitch)];
-		
-		// Mem copy!
-		memcpy(Dest, Src, w);
-	}
+		// Lock surface
+		SDL_LockSurface(l_SDLSurface);
 	
-	/* Unlock Surface */
-	SDL_UnlockSurface(l_SDLSurface);
+		// Copy row by row
+		for (y = 0; y < h; y++)
+		{
+			// Get pixels to copy and overwrite
+			Src = &Buffer[(y * w)];
+			Dest = &((uint8_t*)l_SDLSurface->pixels)[(y * l_SDLSurface->pitch)];
+		
+			// Mem copy!
+			memcpy(Dest, Src, w);
+		}
+	
+		// Unlock Surface
+		SDL_UnlockSurface(l_SDLSurface);
+	}
 	
 	/* Update Rectangle */
 	SDL_Flip(l_SDLSurface);
@@ -1094,7 +1098,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, l_SDLSurface->pixels, !!(l_SDLSurface->flags & SDL_DOUBLEBUF));
 	
 	/* Success */
 	return true;
@@ -1409,3 +1413,9 @@ void I_MouseGrab(const bool_t a_Grab)
 	/* Set new grabbing */
 	l_DoGrab = a_Grab;
 }
+
+/* I_VideoLockBuffer() -- Locks the video buffer */
+void I_VideoLockBuffer(const bool_t a_DoLock)
+{
+}
+

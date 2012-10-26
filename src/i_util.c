@@ -1021,7 +1021,7 @@ bool_t I_VideoPostInit(void)
 
 /* I_VideoSetBuffer() -- Sets the video buffer */
 // This is here so I do not constantly repeat code in I_SetVideoMode()
-void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct)
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf)
 {
 	int w, h;
 	
@@ -1035,6 +1035,7 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	vid.width = a_Width;
 	vid.height = a_Height;
 	vid.modenum = VID_ClosestMode(&w, &h, true);
+	vid.HWDblBuf = a_HWDblBuf;
 	
 	/* Allocate buffer for mode */
 	vid.buffer = I_SysAlloc(a_Width * a_Height * NUMSCREENS);
@@ -1075,7 +1076,7 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 		*a_HeightP = vid.height;
 		
 	/* Return soft buffer */
-	return vid.buffer;
+	return I_GetVideoBuffer(IVS_BACKBUFFER, a_WidthP);
 }
 
 /* I_BeginRead() -- Before a file is read */
@@ -2034,5 +2035,61 @@ void I_Error(char* error, ...)
 #endif
 	
 	exit(EXIT_FAILURE);
+}
+
+/* I_GetVideoBuffer() -- Gets the video buffer to draw to */
+void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
+{
+	/* Which? */
+	switch (a_Type)
+	{
+			// Back buffer (to draw to)
+		case IVS_BACKBUFFER:
+			// If hardware double buffer is enabled, use the direct screen (if any)
+			if (vid.HWDblBuf && vid.direct)
+			{
+				if (a_Pitch)
+					*a_Pitch = vid.rowbytes;
+				I_VideoLockBuffer(true);
+				return vid.direct;
+			}
+			
+			// Otherwise, return the first screen
+			else
+			{
+				if (a_Pitch)
+					*a_Pitch = vid.width;
+				return screens[0];
+			}
+			break;
+		
+			// Fore buffer, what is on the screen now
+		case IVS_FOREBUFFER:
+			// Direct access to the screen
+			if (vid.direct)
+			{
+				if (a_Pitch)
+					*a_Pitch = vid.rowbytes;
+				I_VideoLockBuffer(true);
+				return vid.direct;
+			}
+			
+			// If no direct screen, return the raw buffer
+			else
+			{
+				if (a_Pitch)
+					*a_Pitch = vid.width;
+				return screens[0];
+			}
+			break;
+		
+			// Done with buffer
+		case IVS_DONEWITHBUFFER:
+			I_VideoLockBuffer(false);
+			break;
+		
+		default:
+			return NULL;
+	}
 }
 

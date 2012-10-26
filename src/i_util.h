@@ -238,6 +238,14 @@ typedef enum I_SoundType_e
 
 extern const char* const c_KeyNames[NUMIKEYBOARDKEYS][2];
 
+/* I_VideoScreen_t -- Video screen */
+typedef enum I_VideoScreen_s
+{
+	IVS_BACKBUFFER,								// Back Buffer
+	IVS_FOREBUFFER,								// Foreground Window
+	IVS_DONEWITHBUFFER,							// Done with buffer
+} I_VideoScreen_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -462,7 +470,7 @@ bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char** *const a_argv, const char
 bool_t I_VideoPreInit(void);
 bool_t I_VideoBefore320200Init(void);
 bool_t I_VideoPostInit(void);
-void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct);
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf);
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
 void I_BeginRead(void);
@@ -533,6 +541,8 @@ void I_InitCD(void);
 void I_UpdateCD(void);
 void I_PlayCD(int track, bool_t looping);
 int I_SetVolumeCD(int volume);
+
+void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch);
 
 #endif							/* __I_UTIL_H__ */
 

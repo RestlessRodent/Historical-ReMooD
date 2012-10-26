@@ -54,6 +54,14 @@
 *** CONSTANTS ***
 ****************/
 
+#ifndef PIXEL_PACK_BUFFER_EXT
+	#define PIXEL_PACK_BUFFER_EXT 0x88EB
+#endif
+
+#ifndef PIXEL_UNPACK_BUFFER_EXT
+	#define PIXEL_UNPACK_BUFFER_EXT 0x88EC
+#endif
+
 /* I_GLUploadMode_t -- Image upload mode */
 typedef enum I_GLUploadMode_e
 {
@@ -78,10 +86,12 @@ static union
 } l_GLPalette[256];								// OpenGL Palette
 
 static I_GLUploadMode_t l_GLUpMode;				// Image upload mode
-static l_GLUTWinRef = 0;						// GLUT Window reference
+static int l_GLUTWinRef = 0;					// GLUT Window reference
 
 static uint8_t* l_GLImgBuffer;					// Image Buffer
 static uint32_t l_GLImgSize[4];					// Size of image
+static GLuint l_GLPBOBuffer;					// PBO Buffer
+static uint8_t* l_GLPBOMem;						// PBO Memory Area
 
 /****************
 *** FUNCTIONS ***
@@ -446,20 +456,12 @@ void I_FinishUpdate(void)
 			// Upload textures
 		case IGLUM_TEXTURE:
 			// Draw into texture space
-			memset(l_GLImgBuffer, I_GetTimeMS() & 0xFF, sizeof(uint32_t) * (wPOT * hPOT));
-#if 0
-			s = Buffer;
-			o = l_GLImgBuffer;
-			for (x = 0; x < (w * h); x++)
-				*(o++) = l_GLPalette[*(s++)].u;
-#else
 			for (y = 0; y < h; y++)
 				for (x = 0; x < w; x++)
 				{
 					Bit = Buffer[(y * w) + x];
 					((uint32_t*)l_GLImgBuffer)[(y * wPOT) + x] = l_GLPalette[Bit].u;
 				}
-#endif
 				
 			// Create OpenGL Texture
 			glEnable(GL_TEXTURE_2D);
@@ -489,6 +491,28 @@ void I_FinishUpdate(void)
 			
 			// EXT PBO
 		case IGLUM_EXTPBO:
+			// Obtain Buffer
+			l_GLPBOMem = glMapBuffer(PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
+			
+			for (y = 0; y < h; y++)
+				for (x = 0; x < w; x++)
+				{
+					Bit = Buffer[(y * w) + x];
+					((uint32_t*)l_GLPBOMem)[(y * wPOT) + x] = l_GLPalette[Bit].u;
+				}
+			
+			glUnmapBuffer(PIXEL_UNPACK_BUFFER_EXT);
+			
+			glBegin(GL_QUADS);
+				glTexCoord2d(0, 0);
+				glVertex2i(0, 0);
+				glTexCoord2d(1, 0);
+				glVertex2i(wPOT, 0);
+				glTexCoord2d(1, 1);
+				glVertex2i(wPOT, hPOT);
+				glTexCoord2d(0, 1);
+				glVertex2i(0, hPOT);
+			glEnd();
 			break;
 			
 			// ARB PBO
@@ -610,7 +634,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	else
 		l_GLUpMode = IGLUM_TEXTURE;
 			
-	l_GLUpMode = IGLUM_TEXTURE;
+	l_GLUpMode = IGLUM_TEXTURE;//IGLUM_EXTPBO;
 		
 	/* Power of two width and height */
 	// Width
@@ -632,16 +656,29 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	hPOT += 1;
 	
 	/* Need new texture allocation? */
-	if (wPOT != l_GLImgSize[0] || hPOT != l_GLImgSize[1])
+	if (l_GLUpMode != IGLUM_EXTPBO && l_GLUpMode != IGLUM_ARBPBO)
 	{
-		// Free
-		if (l_GLImgBuffer)
-			Z_Free(l_GLImgBuffer);
+		if (wPOT != l_GLImgSize[0] || hPOT != l_GLImgSize[1])
+		{
+			// Free
+			if (l_GLImgBuffer)
+				Z_Free(l_GLImgBuffer);
 		
-		// Allocate
-		l_GLImgBuffer = Z_Malloc(sizeof(uint32_t) * (wPOT * hPOT), PU_STATIC, NULL);
-		l_GLImgSize[0] = wPOT;
-		l_GLImgSize[1] = hPOT;
+			// Allocate
+			l_GLImgBuffer = Z_Malloc(sizeof(uint32_t) * (wPOT * hPOT), PU_STATIC, NULL);
+			l_GLImgSize[0] = wPOT;
+			l_GLImgSize[1] = hPOT;
+		}
+	}
+	
+	/* Setup PBO Object */
+	else
+	{
+		l_GLPBOBuffer = 14;
+		glBindBuffer(PIXEL_UNPACK_BUFFER_EXT, l_GLPBOBuffer);
+		glBufferData(PIXEL_UNPACK_BUFFER_EXT, wPOT * hPOT, NULL, GL_STREAM_DRAW);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, wPOT, hPOT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	}
 	
 	/* Set image size */
@@ -649,7 +686,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	l_GLImgSize[3] = a_Height;
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false);
 	
 	/* Success */
 	return true;
@@ -739,4 +776,10 @@ bool_t I_RemoveMouse(const size_t a_ID)
 void I_MouseGrab(const bool_t a_Grab)
 {
 }
+
+/* I_VideoLockBuffer() -- Locks the video buffer */
+void I_VideoLockBuffer(const bool_t a_DoLock)
+{
+}
+
 

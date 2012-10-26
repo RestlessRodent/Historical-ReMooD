@@ -98,7 +98,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false);
 	
 	/* Success */
 	return true;
@@ -184,3 +184,9 @@ bool_t I_RemoveMouse(const size_t a_ID)
 void I_MouseGrab(const bool_t a_Grab)
 {
 }
+
+/* I_VideoLockBuffer() -- Locks the video buffer */
+void I_VideoLockBuffer(const bool_t a_DoLock)
+{
+}
+

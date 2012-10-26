@@ -46,6 +46,7 @@
 #include "dstrings.h"
 #include "i_system.h"
 #include "r_defs.h"
+#include "i_util.h"
 
 // Each screen is [vid.width*vid.height];
 uint8_t* screens[5];
@@ -527,139 +528,6 @@ static int QuickRound(float x)
 		return x;
 }
 
-//
-// V_CopyRect
-//
-void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn)
-{
-	uint8_t* src;
-	uint8_t* dest;
-	
-	if (!graphics_started)
-		return;
-		
-	// WARNING don't mix
-	if ((srcscrn & V_SCALESTART) || (destscrn & V_SCALESTART))
-	{
-		if ((srcscrn & V_NOFLOATSCALE) || (destscrn & V_NOFLOATSCALE))
-		{
-			srcx *= vid.dupx;
-			srcy *= vid.dupy;
-			width *= vid.dupx;
-			height *= vid.dupy;
-			destx *= vid.dupx;
-			desty *= vid.dupy;
-		}
-		else
-		{
-			srcx = QuickRound(srcx * vid.fdupx);
-			srcy = QuickRound(srcy * vid.fdupy);
-			width = QuickRound(width * vid.fdupx);
-			height = QuickRound(height * vid.fdupy);
-			destx = QuickRound(destx * vid.fdupx);
-			desty = QuickRound(desty * vid.fdupy);
-		}
-	}
-	srcscrn &= 0xffff;
-	destscrn &= 0xffff;
-	
-#ifdef RANGECHECK
-	if (srcx < 0 || srcx + width > vid.width || srcy < 0 ||
-	        srcy + height > vid.height || destx < 0 || destx + width > vid.width ||
-	        desty < 0 || desty + height > vid.height || (unsigned)srcscrn > 4 || (unsigned)destscrn > 4)
-	{
-		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn, width, height, destx, desty, destscrn);
-	}
-#endif
-	
-#ifdef DEBUG
-	CONL_PrintF("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
-	CONL_PrintF("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
-#endif
-	
-	src = screens[srcscrn] + vid.rowbytes * srcy + srcx;
-	dest = screens[destscrn] + vid.rowbytes * desty + destx;
-	
-	for (; height > 0; height--)
-	{
-		memcpy(dest, src, width);
-		src += vid.rowbytes;
-		dest += vid.rowbytes;
-	}
-}
-
-//
-// V_CopyRectTrans (GhostlyDeath --transparent copy)
-//
-void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn, int trans)
-{
-	uint8_t* src;
-	uint8_t* dest;
-	int i;
-	
-	if (!graphics_started)
-		return;
-		
-	// WARNING don't mix
-	if ((srcscrn & V_SCALESTART) || (destscrn & V_SCALESTART))
-	{
-		if ((srcscrn & V_NOFLOATSCALE) || (destscrn & V_NOFLOATSCALE))
-		{
-			srcx *= vid.dupx;
-			srcy *= vid.dupy;
-			width *= vid.dupx;
-			height *= vid.dupy;
-			destx *= vid.dupx;
-			desty *= vid.dupy;
-		}
-		else
-		{
-			srcx *= QuickRound(vid.fdupx);
-			srcy *= QuickRound(vid.fdupy);
-			width *= QuickRound(vid.fdupx);
-			height *= QuickRound(vid.fdupy);
-			destx *= QuickRound(vid.fdupx);
-			desty *= QuickRound(vid.fdupy);
-		}
-	}
-	srcscrn &= 0xffff;
-	destscrn &= 0xffff;
-	
-#ifdef RANGECHECK
-	if (srcx < 0 || srcx + width > vid.width || srcy < 0 ||
-	        srcy + height > vid.height || destx < 0 || destx + width > vid.width ||
-	        desty < 0 || desty + height > vid.height || (unsigned)srcscrn > 4 || (unsigned)destscrn > 4)
-	{
-		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn, width, height, destx, desty, destscrn);
-	}
-#endif
-	
-#ifdef DEBUG
-	CONL_PrintF("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
-	CONL_PrintF("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
-#endif
-	
-	src = screens[srcscrn] + vid.width * srcy + srcx;
-	dest = screens[destscrn] + vid.width * desty + destx;
-	
-	for (; height > 0; height--)
-	{
-		for (i = 0; i < width; i++)
-		{
-			*dest = *((transtables + (trans * 0x10000)) + ((src[srcx >> FRACBITS] << 8) & 0xFF00) + (*dest & 0xFF));
-			dest++;
-			src++;
-		}
-		
-		src += vid.width - width;
-		dest += vid.width - width;
-		
-		//memcpy(dest, src, width);
-		//src += vid.width;
-		//dest += vid.width;
-	}
-}
-
 // --------------------------------------------------------------------------
 // Copy a rectangular area from one bitmap to another (8bpp)
 // srcPitch, destPitch : width of source and destination bitmaps
@@ -1109,6 +977,9 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	uint32_t c;
 	uint8_t* Map;
 	
+	uint8_t* vBase;
+	uint32_t Pitch;
+	
 	/* Flags */
 	// Unscaled
 	if (Flags & VEX_NOSCALESTART)
@@ -1162,6 +1033,10 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	else
 		Map = l_ColorMaps[0];
 		
+		
+	/* Obtain screen */
+	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
+	
 	/* Actual Drawing */
 	// Speed
 	w = (X2 >> 2);
@@ -1170,7 +1045,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	for (y = Y1; y < Y2; y += 8)
 	{
 		// Set buf
-		buf = (int*)(screens[0] + (vid.width * y) + X1);
+		buf = vBase + ((Pitch * y) + X1);
 		
 		// Loop
 		c = Map[buf[X1] & 0xFF];
@@ -1191,10 +1066,12 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 		// Inner second loop
 		for (i = 1; i < 8 && (y + i) < Y2; i++)
 		{
-			buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
+			buf2 = ((uint8_t*)vBase) + ((Pitch * (y + i)) + X1);
 			memcpy(buf2, buf, X2 - X1);
 		}
 	}
+	
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 }
 
 /* V_DrawColorBoxEx() -- Draws a colorbox */
@@ -1206,6 +1083,9 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 	uint8_t* buf, *buf2;
 	uint32_t c, Mask;
 	uint8_t* Map, *ExtraMap, *TransMap;
+	
+	uint8_t* vBase;
+	uint32_t Pitch;
 	
 	/* Flags */
 	// Unscaled
@@ -1253,6 +1133,9 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 	// Not visible?
 	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
 		return;
+		
+	/* Obtain screen */
+	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
 		
 	/* Mapping */
 	if (((a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT) < NUMVEXCOLORS)
@@ -1306,18 +1189,18 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 	if (a_Flags & VEX_HOLLOW)
 	{
 		// Top Line
-		buf = (int*)(screens[0] + (vid.width * (Y1)) + X1);
+		buf = (int*)(vBase + (Pitch * (Y1)) + X1);
 		memset(buf, c, X2 - X1);
 		
 		// Bottom Line
-		buf = (int*)(screens[0] + (vid.width * (Y2)) + X1);
+		buf = (int*)(vBase + (Pitch * (Y2)) + X1);
 		memset(buf, c, X2 - X1);
 		
 		// Side Lines
 		for (y = Y1; y < Y2; y++)
 		{
 			// Set buf
-			buf = (screens[0] + (vid.width * y) + X1);
+			buf = (vBase + (Pitch * y) + X1);
 			
 			// Set single pixel values
 			buf[0] = c & 0xFFU;
@@ -1334,7 +1217,7 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 			for (y = Y1; y < Y2; y ++)
 			{
 				// Set buf
-				buf = (int*)(screens[0] + (vid.width * y) + X1);
+				buf = (int*)(vBase + (Pitch * y) + X1);
 				i = (((intptr_t)buf) & (intptr_t)7);
 				
 				// Loop entire row
@@ -1347,7 +1230,7 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 			for (y = Y1; y < Y2; y += 8)
 			{
 				// Set buf
-				buf = (int*)(screens[0] + (vid.width * y) + X1);
+				buf = (int*)(vBase + (Pitch * y) + X1);
 				i = (((intptr_t)buf) & (intptr_t)7);
 			
 				// Pre-8 loop (prevents signaling buses)
@@ -1368,11 +1251,13 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 				// Inner second loop
 				for (i = 1; i < 8 && (y + i) < Y2; i++)
 				{
-					buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
+					buf2 = (int*)(vBase + (Pitch * (y + i)) + X1);
 					memcpy(buf2, buf, X2 - X1);
 				}
 			}
 	}
+	
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 }
 
 /* V_DrawColorMapEx() -- Applies colormap to screen */
@@ -1382,6 +1267,9 @@ void V_DrawColorMapEx(const uint32_t a_Flags, const uint8_t* const a_ColorMap, c
 	int x, y, i, w;
 	uint8_t* buf, *buf2;
 	uint32_t c, Mask;
+	
+	uint8_t* vBase;
+	uint32_t Pitch;
 	
 	/* Check */
 	if (!a_ColorMap)
@@ -1433,185 +1321,23 @@ void V_DrawColorMapEx(const uint32_t a_Flags, const uint8_t* const a_ColorMap, c
 	// Not visible?
 	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
 		return;
+		
+	/* Obtain screen */
+	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
 	
 	// Loop
 	for (y = Y1; y < Y2; y ++)
 	{
 		// Set buf
-		buf = (int*)(screens[0] + (vid.width * y) + X1);
+		buf = (int*)(vBase + (Pitch * y) + X1);
 		i = (((intptr_t)buf) & (intptr_t)7);
 		
 		// Loop entire row
 		for (x = 0; x < (X2 - X1); x++)
 			((uint8_t*)buf)[x] = a_ColorMap[((uint8_t*)buf)[x]];
 	}
-}
-
-/* V_DrawPatchEx() -- Extended patch drawing function */
-// GhostlyDeath <March 3, 2011> -- Take V_DrawPatchEx() from NewReMooD (improved version)
-void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap)
-{
-	int X, Y, Count, ColNum, ColLimit, vW, Off;
-	fixed_t RowFrac, ColFrac, Col, Width, Offset, DupX, DupY;
-	column_t* Column;
-	uint8_t* Dest;
-	uint8_t* DestTop;
-	uint8_t* Source;
 	
-	const uint8_t* TransMap;	// TODO!
-	const uint8_t* ColorMap;
-	const uint8_t* ColorMap2;
-	int8_t Color, Screen;
-	fixed_t LostFrac;
-	
-	/* Check */
-	if (!Patch)
-		return;
-		
-	/* Init */
-	X = x - Patch->leftoffset;
-	Y = y - Patch->topoffset;
-	RowFrac = 1 << FRACBITS;
-	ColFrac = 1 << FRACBITS;
-	Width = Patch->width << FRACBITS;
-	DupX = DupY = 1 << FRACBITS;
-	
-	/* Handle Flags */
-	// Transparency
-	vW = ((Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT);
-	if (vW >= NUMVEXTRANSPARENCIES)
-		vW = 0;
-	TransMap = transtables + (0x10000 * vW);
-	
-	/*switch
-	   {
-	   case VEX_BASETRANSMED:
-	   case VEX_BASETRANSHIGH:
-	   case VEX_BASETRANSMORE:
-	   case VEX_BASETRANSFIRE:
-	   case VEX_BASETRANSFX1:
-	   case VEX_BASETRANSFULL:
-	   default:
-	   break;
-	   }    // TODO!
-	 */
-	
-	// Mapping
-	Color = (Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT;
-	
-	if (Color < 0 || Color >= NUMVEXCOLORS)
-		Color = 0;
-		
-	ColorMap = V_ReturnColormapPtr(Color);
-	
-	// Extra mapping
-	if (ExtraMap)
-		ColorMap2 = ExtraMap;
-		
-	// No extra mapping
-	else
-		ColorMap2 = V_ReturnColormapPtr(VEX_MAP_NONE);
-		
-	// Scaled picture
-	if (!(Flags & VEX_NOSCALESCREEN))
-	{
-		// New scale
-		DupX = vid.fxdupx;
-		DupY = vid.fxdupy;
-		
-		// Scale all
-		RowFrac = FixedDiv(RowFrac, DupY);
-		ColFrac = FixedDiv(ColFrac, DupX);
-		Width = FixedMul(Width, DupX);
-	}
-	// Scaled Start
-	if (!(Flags & VEX_NOSCALESTART))
-	{
-		X = FixedMul(X << FRACBITS, DupX) >> FRACBITS;
-		Y = FixedMul(Y << FRACBITS, DupY) >> FRACBITS;
-	}
-	// Alternate screen
-	if (Flags & VEX_SECONDBUFFER)
-		Screen = 1;
-	else
-		Screen = 0;
-		
-	/* Offscreen? */
-	if (X < 0 || Y < 0 || X >= vid.width || Y >= vid.height)
-		return;
-		
-	/* Setup column limit */
-	// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
-	if ((X + (Width >> FRACBITS)) >= vid.width)
-		Width -= ((Width >> FRACBITS) - (vid.width)) << FRACBITS;
-		
-	// GhostlyDeath <December 10, 2010> -- Column limit is the Width / ColFrac
-	ColLimit = FixedDiv(Width, ColFrac) >> FRACBITS;	// lose the decimal also
-	
-	/* Flipped? */
-	// GhostlyDeath <December 10, 2010> -- Support flipping patch
-	// With horizontal flipping
-	if (Flags & VEX_HORIZFLIPPED)
-	{
-		Col = Width - FRACUNIT;	// Start at end
-		ColFrac = -ColFrac;		// Reverse column frac
-	}
-	// Without horizontal flipping
-	else
-	{
-		Col = 0;				// Start at beginning
-	}
-	
-	// With vertical flipping
-	if (Flags & VEX_VERTFLIPPED)
-	{
-		DestTop = screens[Screen] + (Y + (FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS) * vid.width) + X;
-		vW = -((int32_t)vid.width);	// Move back by width size (go up)
-	}
-	// Without vertical flipping
-	else
-	{
-		DestTop = screens[Screen] + (Y * vid.width) + X;
-		vW = (int32_t)vid.width;	// Move by width size (go down)
-	}
-	
-	/* Start Drawing Patch */
-	for (ColNum = 0, LostFrac = 0; ColNum < ColLimit; Col += ColFrac, DestTop++, ColNum++)
-	{
-		// GhostlyDeath <December 10, 2010> -- Check column bounds
-		if ((Col >> FRACBITS) < 0 || (Col >> FRACBITS) >= Patch->width)
-			break;
-			
-		// Get source column
-		Column = (column_t*) ((uint8_t*)Patch + Patch->columnofs[Col >> FRACBITS]);
-		
-		// Draw column
-		while (Column->topdelta != 0xFF)
-		{
-			// Get Drawing parms
-			Source = (uint8_t*)Column + 3;
-			
-			// Get offset from top
-			Off = (FixedMul(Column->topdelta, DupY) * vid.width);
-			
-			if (Flags & VEX_VERTFLIPPED)
-				Dest = DestTop - Off;
-			else
-				Dest = DestTop + Off;
-				
-			// Draw column
-			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1); Count >= 0; Count--, Dest += vW, Offset += RowFrac)
-			{
-				if (transtables)
-					*Dest = TransMap[(ColorMap[ColorMap2[Source[Offset >> FRACBITS]]] * 256) + (*Dest)];
-				else
-					*Dest = ColorMap[ColorMap2[Source[Offset >> FRACBITS]]];
-			}
-			
-			// Go to next column
-			Column = (column_t*) ((uint8_t*)Column + Column->length + 4);
-		}
-	}
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 }
 
 /********************
@@ -1622,64 +1348,6 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
 {
 	V_DrawFadeConsBackEx((VEX_MAP_GREEN << VEX_COLORMAPSHIFT) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, x1, y1, x2, y2);
-}
-
-/* V_DrawPatch() -- Draws patch unscaled */
-void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch)
-{
-	uint32_t Flags = 0;
-	
-	/* Handle */
-	if (scrn & 0xFFFF)
-		Flags |= VEX_SECONDBUFFER;
-		
-	V_DrawPatchEx(Flags, x, y, patch, NULL);
-}
-
-/* V_DrawMappedPatch() -- Draws colormapped patch scaled */
-void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const uint8_t* const colormap)
-{
-	uint32_t Flags = 0;
-	
-	/* Handle */
-	if (scrn & 0xFFFF)
-		Flags |= VEX_SECONDBUFFER;
-	if (scrn & V_NOSCALEPATCH)
-		Flags |= VEX_NOSCALESCREEN;
-	if (scrn & V_NOSCALESTART)
-		Flags |= VEX_NOSCALESTART;
-	
-	/* Now Draw */
-	V_DrawPatchEx(Flags, x, y, patch, colormap);
-}
-
-/* V_DrawScaledPatch() -- Draws patch scaled */
-void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* const patch)
-{
-	uint32_t Flags = 0;
-	
-	/* Handle */
-	if (scrn & 0xFFFF)
-		Flags |= VEX_SECONDBUFFER;
-	if (scrn & V_NOSCALEPATCH)
-		Flags |= VEX_NOSCALESCREEN;
-	if (scrn & V_NOSCALESTART)
-		Flags |= VEX_NOSCALESTART;
-		
-	/* Now Draw */
-	V_DrawPatchEx(Flags, x, y, patch, NULL);
-}
-
-/* V_DrawTranslucentPatch() -- Draw scaled translucent patch */
-void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch)
-{
-	uint32_t Flags = VEX_FILLTRANS(VEX_TRANSMED);
-	
-	/* Handle */
-	if (scrn & 0xFFFF)
-		Flags |= VEX_SECONDBUFFER;
-		
-	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
 // #############################################################################
@@ -4682,13 +4350,20 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	
 	/*** STANDARD CLIENT ***/
 #else
+	uint8_t* vBase;
+	uint32_t Pitch;
 	
 	/* Check */
 	if (!a_Image)
 		return;
 	
+	/* Obtain screen */
+	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
+	
 	/* Draw it into the screen buffer */
-	V_ImageDrawScaledIntoBuffer(a_Flags, a_Image, a_X, a_Y, a_Image->Width, a_Image->Height, a_XScale, a_YScale, a_ExtraMap, screens[0], vid.rowbytes, vid.width, vid.height, vid.fxdupx, vid.fxdupy, vid.fdupx, vid.fdupy);
+	V_ImageDrawScaledIntoBuffer(a_Flags, a_Image, a_X, a_Y, a_Image->Width, a_Image->Height, a_XScale, a_YScale, a_ExtraMap, vBase, Pitch, vid.width, vid.height, vid.fxdupx, vid.fxdupy, vid.fdupx, vid.fdupy);
+	
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 #endif /* __REMOOD_DEDICATED */
 }
 

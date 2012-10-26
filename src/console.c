@@ -1821,8 +1821,17 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	uint32_t ThisTime;
 	static uint32_t LastTime;
 	
+	uint8_t* vBase;
+	uint32_t Pitch;
+	
 	/* Not in early boot console? */
 	if (!g_EarlyBootConsole)
+		return;
+		
+	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
+	
+	// Failure?
+	if (!vBase)
 		return;
 	
 	/* Get the time */
@@ -1852,8 +1861,8 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 			// Draw to screen
 			while (BMPc--)
 			{
-				screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0x0F)) + 1;
-				screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0xF0) >> 4) + 1;
+				vBase[(Pitch * y) + (x++)] = ((c_BootLogo[i] & 0x0F)) + 1;
+				vBase[(Pitch * y) + (x++)] = ((c_BootLogo[i] & 0xF0) >> 4) + 1;
 			
 				if (x >= 198 + 62)
 				{

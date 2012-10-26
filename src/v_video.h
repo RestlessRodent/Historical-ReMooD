@@ -75,9 +75,6 @@ extern uint8_t g_ThreePal[256][3];
 // Retrieve the ARGB value from a palette color index
 #define V_GetColor(color)  (pLocalPalette[color&0xFF])
 
-void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn);
-void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn, int trans);
-
 // flags hacked in scrn (not supported by all functions (see src))
 #define V_NOSCALESTART       0x010000	// dont scale x,y, start coords
 #define V_SCALESTART         0x020000	// scale x,y, start coords
@@ -216,13 +213,7 @@ const uint8_t* V_ReturnColormapPtr(const VEX_ColorList_t Color);
 void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, const int x2, const int y2);
 void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2);
 void V_DrawColorMapEx(const uint32_t a_Flags, const uint8_t* const a_ColorMap, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2);
-void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap);
 
-/* Compatability */
-void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch);
-void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const uint8_t* const colormap);
-void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* const patch);
-void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawFadeScreen(void);
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 

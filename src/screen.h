@@ -76,6 +76,7 @@ typedef struct viddef_s
 	int bpp;					// BYTES per pixel: 1=256color
 	
 	int baseratio;				// SoM: Used to get the correct value for lighting walls
+	bool_t HWDblBuf;			// Hardware Double Buffering
 } viddef_t;
 
 #define VIDWIDTH    vid.width

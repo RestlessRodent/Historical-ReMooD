@@ -655,7 +655,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	}
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false);
 	
 	/* Set title and icon */
 	// Set Title
@@ -937,3 +937,9 @@ void I_MouseGrab(const bool_t a_Grab)
 		disable_hardware_cursor();
 	}
 }
+
+/* I_VideoLockBuffer() -- Locks the video buffer */
+void I_VideoLockBuffer(const bool_t a_DoLock)
+{
+}
+

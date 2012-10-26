@@ -340,7 +340,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	ReleaseDC(cePrimaryWindow, hDc);
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, l_ceScreenBuffer);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, l_ceScreenBuffer, false);
 	
 	/* Success */
 	return true;
@@ -443,4 +443,10 @@ bool_t I_RemoveMouse(const size_t a_ID)
 void I_MouseGrab(const bool_t a_Grab)
 {
 }
+
+/* I_VideoLockBuffer() -- Locks the video buffer */
+void I_VideoLockBuffer(const bool_t a_DoLock)
+{
+}
+
 

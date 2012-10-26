@@ -55,6 +55,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 void I_StartupGraphics(void);
 void I_ShutdownGraphics(void);
 bool_t I_TextMode(const bool_t a_OnOff);
+void I_VideoLockBuffer(const bool_t a_DoLock);
 
 size_t I_ProbeJoysticks(void);
 void I_RemoveJoysticks(void);
