@@ -230,8 +230,8 @@ ifeq (sdl,$(strip $(__XX_DEFINTRF)))
 	# Basic Settings
 	__XX_IFACEDIR = sdl
 	__XX_FPREFIX = s
-	__XX_FCFLAGS = -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS)
-	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS)
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS) $(__INT_OPENGLCFLAGS)
+	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS) $(__INT_OPENGLLDFLAGS)
 else
 	# Allegro Interface
 	ifeq (allegro,$(strip $(__XX_DEFINTRF)))

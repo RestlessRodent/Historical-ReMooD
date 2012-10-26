@@ -46,6 +46,7 @@
 #include "i_video.h"
 #include "i_util.h"
 #include "z_zone.h"
+#include "vhw_wrap.h"
 
 #define __G_INPUT_H__
 #include "console.h"
@@ -631,6 +632,8 @@ static bool_t l_DoGrab = false;	// Grab mouse?
 static IS_JoystickInfo_t* l_Joys = NULL;	// Joystick Info
 static size_t l_NumJoys = 0;	// Joystick Count
 
+static bool_t l_SDLGL = false;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -912,6 +915,13 @@ void I_FinishUpdate(void)
 	uint8_t* Buffer;
 	void* Dest, *Src;
 	
+	/* OpenGL? */
+	if (l_SDLGL)
+	{
+		SDL_GL_SwapBuffers();
+		return;
+	}
+	
 	/* Obtain pointer to buffer */
 	Buffer = I_VideoSoftBuffer(&w, &h);
 	
@@ -1072,7 +1082,8 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Destroy old buffer */
-	I_VideoUnsetBuffer();		// Remove old buffer if any
+	if (!l_SDLGL)
+		I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Destroy old surface */
 	if (l_SDLSurface)
@@ -1086,6 +1097,13 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	else
 		SDLFlags |= SDL_SWSURFACE;
 		
+	/* OpenGL? */
+	l_SDLGL = VHW_UseGLMode();
+	
+	// Set OpenGL Flags
+	if (l_SDLGL)
+		SDLFlags |= SDL_OPENGL;
+		
 	/* Set Title */
 	SDL_WM_SetIcon(l_Icon, NULL);
 	SDL_WM_SetCaption("ReMooD " REMOOD_FULLVERSIONSTRING, "ReMooD");
@@ -1098,7 +1116,10 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, l_SDLSurface->pixels, !!(l_SDLSurface->flags & SDL_DOUBLEBUF));
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), !!(l_SDLSurface->flags & SDL_DOUBLEBUF), l_SDLGL);
+	
+	/* Initialize Mode */
+	VHW_Init((l_SDLGL ? VHWMODE_OPENGL : VHWMODE_IDXSOFT));
 	
 	/* Success */
 	return true;

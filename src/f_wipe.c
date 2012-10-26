@@ -312,6 +312,7 @@ int wipe_EndScreen(int x, int y, int width, int height)
 int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 {
 	int rc;
+	uint32_t Pitch;
 	static int (*wipes[]) (int, int, int) =
 	{
 		wipe_initColorXForm, wipe_doColorXForm, wipe_exitColorXForm,

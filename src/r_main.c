@@ -53,6 +53,7 @@
 
 #include "rx_main.h"
 #include "rh_main.h"
+#include "vhw_wrap.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048
@@ -1175,11 +1176,18 @@ static const CONL_VarPossibleValue_t c_CVPVRRenderer[] =
 /* RS_RRendererChange() -- Renderer Value Changed */
 static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar)
 {
+	bool_t ForceReMooD;
+	
+	/* Force ReMooD Renderer? */
+	ForceReMooD = false;
+	if (VHW_GetMode() != VHWMODE_IDXSOFT)
+		ForceReMooD = true;
+	
 	/* Notice */
 	CONL_PrintF("Selecting Renderer ");
 	
 	/* Legacy? */
-	if (a_StaticVar->Value[0].Int == 0)
+	if (!ForceReMooD && a_StaticVar->Value[0].Int == 0)
 	{
 		CONL_PrintF("Legacy");
 		
@@ -1188,7 +1196,7 @@ static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar
 	}
 	
 	/* ReMooD? */
-	else if (a_StaticVar->Value[0].Int == 1)
+	else if (ForceReMooD || a_StaticVar->Value[0].Int == 1)
 	{
 		CONL_PrintF("ReMooD");
 		
@@ -1197,7 +1205,7 @@ static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar
 	}
 	
 	/* Heretic? */
-	else if (a_StaticVar->Value[0].Int == 2)
+	else if (!ForceReMooD && a_StaticVar->Value[0].Int == 2)
 	{
 		CONL_PrintF("Heretic");
 		

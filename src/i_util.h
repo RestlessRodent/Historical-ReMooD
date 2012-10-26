@@ -470,7 +470,7 @@ bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char** *const a_argv, const char
 bool_t I_VideoPreInit(void);
 bool_t I_VideoBefore320200Init(void);
 bool_t I_VideoPostInit(void);
-void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf);
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf, const bool_t a_GL);
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
 void I_BeginRead(void);

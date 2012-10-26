@@ -108,6 +108,7 @@ typedef enum CONL_MessageType_e
 	CT_REMOODAT,								// ReMooD Data
 	CT_NETWORK,									// Network
 	CT_CONSOLE,									// Console Message
+	CT_VIDHARDWARE,								// Video Hardware
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;

@@ -69,6 +69,7 @@
 #include "p_demcmp.h"
 
 #include "r_data.h"
+#include "vhw_wrap.h"
 
 /*******************************************************************************
 ********************************************************************************
@@ -554,7 +555,7 @@ void M_ExMenuDrawer(void)
 			continue;
 			
 		// Draw Faded Background
-		V_DrawFadeConsBackEx(
+		VHW_HUDBlurBack(
 				VEX_COLORMAP(VEX_MAP_BLACK),
 				ScrX, ScrY, ScrX + ScrW, ScrY + ScrH
 			);

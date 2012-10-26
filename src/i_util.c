@@ -1021,7 +1021,7 @@ bool_t I_VideoPostInit(void)
 
 /* I_VideoSetBuffer() -- Sets the video buffer */
 // This is here so I do not constantly repeat code in I_SetVideoMode()
-void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf)
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf, const bool_t a_GL)
 {
 	int w, h;
 	
@@ -1037,15 +1037,27 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	vid.modenum = VID_ClosestMode(&w, &h, true);
 	vid.HWDblBuf = a_HWDblBuf;
 	
-	/* Allocate buffer for mode */
-	vid.buffer = I_SysAlloc(a_Width * a_Height * NUMSCREENS);
-	
-	// Oops!
-	if (!vid.buffer)
+	/* Nothing after this is done in GL mode */
+	if (a_GL)
 		return;
+	
+	/* Allocate buffer for mode */
+	// If hardware double buffer is enabled, use direct buffer
+	if (vid.HWDblBuf && vid.direct)
+		vid.buffer = vid.direct;
+	
+	// Otherwise create a buffer
+	else
+	{
+		vid.buffer = I_SysAlloc(a_Width * a_Height * NUMSCREENS);
+	
+		// Oops!
+		if (!vid.buffer)
+			return;
 		
-	// Clear buffer
-	memset(vid.buffer, 0, a_Width * a_Height * NUMSCREENS);
+		// Clear buffer
+		memset(vid.buffer, 0, a_Width * a_Height * NUMSCREENS);
+	}
 	
 	/* Initialize video stuff (ouch) */
 	V_Init();
@@ -2040,13 +2052,32 @@ void I_Error(char* error, ...)
 /* I_GetVideoBuffer() -- Gets the video buffer to draw to */
 void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
 {
+	static bool_t Checked;
+	static bool_t VBuf;
+	
+	/* Check */
+	if (!Checked)
+	{
+		if (M_CheckParm("-virtualbuffer"))
+			VBuf  = true;
+		Checked = true;
+	}
+	
 	/* Which? */
 	switch (a_Type)
 	{
 			// Back buffer (to draw to)
 		case IVS_BACKBUFFER:
+			if (VBuf)
+			{
+				if (a_Pitch)
+					*a_Pitch = vid.rowbytes;
+				vid.buffer = screens[1];
+				return screens[1];
+			}
+			
 			// If hardware double buffer is enabled, use the direct screen (if any)
-			if (vid.HWDblBuf && vid.direct)
+			else if (vid.HWDblBuf && vid.direct)
 			{
 				if (a_Pitch)
 					*a_Pitch = vid.rowbytes;
@@ -2059,7 +2090,7 @@ void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
 			{
 				if (a_Pitch)
 					*a_Pitch = vid.width;
-				return screens[0];
+				return vid.buffer;
 			}
 			break;
 		
@@ -2079,7 +2110,7 @@ void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
 			{
 				if (a_Pitch)
 					*a_Pitch = vid.width;
-				return screens[0];
+				return vid.buffer;
 			}
 			break;
 		

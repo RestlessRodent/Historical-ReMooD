@@ -68,6 +68,7 @@
 #include "m_argv.h"
 #include "p_setup.h"
 #include "m_menu.h"
+#include "vhw_wrap.h"
 
 /****************
 *** CONSTANTS ***
@@ -1537,6 +1538,7 @@ size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_
 		"RMOD",									// CT_REMOODAT
 		"NETW",									// CT_NETWORK
 		"CONL",									// CT_CONSOLE
+		"VDHW",									// CT_VIDHARDWARE
 	};
 	
 #define BUFSIZE 512
@@ -2412,7 +2414,7 @@ bool_t CONL_DrawConsole(void)
 			}
 			
 			// Draw box
-			V_DrawFadeConsBackEx(BackFlags, 0, 0, vid.width, conH);
+			VHW_HUDBlurBack(BackFlags, 0, 0, vid.width, conH);
 		}
 		
 		// Determine line count
@@ -2601,13 +2603,13 @@ bool_t CONL_DrawConsole(void)
 				Options |= VEX_NOSCALESTART | VEX_NOSCALESCREEN;
 			
 			// Draw skipped lines (from bottom)
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | Options, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
+			VHW_HUDDrawBox(VEX_COLORMAP(VEX_MAP_BLACK) | Options, 63, 0, 0, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw lines being seen (in current view)
 			bw = bh;
 			bh = bw - (by * (DrawCount < NumLines ? DrawCount : NumLines));
 			
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_WHITE) | Options, CONLSCROLLFORE, 1, bw, CONLPADDING - 1, bh);
+			VHW_HUDDrawBox(VEX_COLORMAP(VEX_MAP_WHITE) | Options, 255, 0, 0, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw lines you should see but you cant
 			bw = bh;
@@ -2617,13 +2619,13 @@ bool_t CONL_DrawConsole(void)
 			if (bh < 1)
 				bh = 1;
 				
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_GRAY) | Options, CONLSCROLLMISS, 1, bw, CONLPADDING - 1, bh);
+			VHW_HUDDrawBox(VEX_COLORMAP(VEX_MAP_GRAY) | Options, 0, 0, 255, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw remaining black
 			bw = bh;
 			bh = 1;
 			
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | Options, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
+			VHW_HUDDrawBox(VEX_COLORMAP(VEX_MAP_BLACK) | Options, 63, 0, 0, 1, bw, CONLPADDING - 1, bh);
 		}
 		
 		// Draw OSK

@@ -485,7 +485,7 @@ void R_VideoErase(unsigned ofs, int count)
 	//  is not optiomal, e.g. uint8_t by uint8_t on
 	//  a 32bit CPU, as GNU GCC/Linux libc did
 	//  at one point.
-	memcpy(screens[0] + ofs, screens[1] + ofs, count);
+	//memcpy(screens[0] + ofs, screens[1] + ofs, count);
 }
 
 //
@@ -539,7 +539,7 @@ void R_DrawViewBorder(void)
 	side <<= 1;
 	
 	//added:05-02-98:simpler using our new VID_Blit routine
-	VID_BlitLinearScreen(screens[1] + ofs, screens[0] + ofs, side, viewheight - 1, vid.width, vid.width);
+	//VID_BlitLinearScreen(screens[1] + ofs, screens[0] + ofs, side, viewheight - 1, vid.width, vid.width);
 }
 
 // ==========================================================================

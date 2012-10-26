@@ -89,6 +89,8 @@
 #include "p_demcmp.h"
 #include "sounds.h"
 
+#include "vhw_wrap.h"
+
 #if defined(__REMOOD_DEDICATED)
 bool_t g_DedicatedServer = true;				// Dedicated Server
 #else
@@ -2398,6 +2400,7 @@ void D_DoomMain(void)
 	CONL_Init(4096, 1024);
 	
 	/* Start Graphics REALLY early! */
+	VHW_Init(VHWMODE_IDXSOFT);			// Just in case!
 	SCR_SetDefaultMode();				// Screen Size
 	CONL_PrintF("I_StartupGraphics...\n");
 	I_StartupGraphics();

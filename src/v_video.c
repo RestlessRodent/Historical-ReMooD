@@ -47,6 +47,7 @@
 #include "i_system.h"
 #include "r_defs.h"
 #include "i_util.h"
+#include "vhw_wrap.h"
 
 // Each screen is [vid.width*vid.height];
 uint8_t* screens[5];
@@ -4350,20 +4351,13 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	
 	/*** STANDARD CLIENT ***/
 #else
-	uint8_t* vBase;
-	uint32_t Pitch;
 	
 	/* Check */
 	if (!a_Image)
 		return;
 	
-	/* Obtain screen */
-	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
-	
-	/* Draw it into the screen buffer */
-	V_ImageDrawScaledIntoBuffer(a_Flags, a_Image, a_X, a_Y, a_Image->Width, a_Image->Height, a_XScale, a_YScale, a_ExtraMap, vBase, Pitch, vid.width, vid.height, vid.fxdupx, vid.fxdupy, vid.fdupx, vid.fdupy);
-	
-	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
+	/* Complex Image Draw */
+	VHW_HUDDrawImageComplex(a_Flags, a_Image, a_X, a_Y, a_Image->Width, a_Image->Height, a_XScale, a_YScale, a_ExtraMap);
 #endif /* __REMOOD_DEDICATED */
 }
 
