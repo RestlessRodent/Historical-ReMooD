@@ -424,7 +424,7 @@ typedef struct WI_PlayerInfo_s
 *************/
 
 static V_Image_t* l_PicINTER = NULL;
-static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS + 1];
+static WI_PlayerInfo_t l_DrawPlayers[(MAXPLAYERS * 2) + 1];
 static size_t l_NumDrawPlayers;
 static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets, l_TotalFrags, l_TotalDeaths;
 

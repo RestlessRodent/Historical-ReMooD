@@ -3773,6 +3773,10 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 			// While not at end
 			while (*id != 0xFF)
 			{
+				// Overflow?
+				if (id >= EndD)
+					break;
+				
 				// Obtain pointers to stuff
 				COff = id++;	// Offset
 				CSize = id++;	// Length
