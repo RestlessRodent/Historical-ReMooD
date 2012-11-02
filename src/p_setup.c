@@ -71,6 +71,7 @@
 #include "p_demcmp.h"
 #include "b_bot.h"
 #include "t_dsvm.h"
+#include "t_vm.h"
 
 //#define COOLFLIPLEVELS
 
@@ -340,7 +341,7 @@ bool_t P_ExClearLevel(void)
 	g_CheatFlags = 0;
 	
 	/* Scripting */
-	T_DSVM_Cleanup();
+	TVM_Clear();
 	
 	/* Scores */
 	P_UpdateScores();
@@ -1288,6 +1289,7 @@ bool_t P_ExFinalizeLevel(void)
 {
 	size_t i;
 	WL_ES_t* ScriptStream;
+	const WL_WADFile_t* WAD;
 	
 	/* Set gamestate to level */
 	// So that we can play it now
@@ -1333,6 +1335,11 @@ bool_t P_ExFinalizeLevel(void)
 	//	G_InitPlayer(&players[i]);
 	
 	/* Compile Level Scripts */
+	// Top Level Scripts, from each WAD
+	for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
+		TVM_CompileEntry(WL_FindEntry(WAD, 0, "TLSCRIPT"));
+	
+	// Header script
 	if (g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1] -
 		g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0] >= 0)
 	{
@@ -1349,12 +1356,15 @@ bool_t P_ExFinalizeLevel(void)
 			WL_StreamSeek(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0], false);
 			
 			// Compile it
-			T_DSVM_CompileStream(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
+			TVM_CompileWLES(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
 			
 			// Close it
 			WL_StreamClose(ScriptStream);
 		}
 	}
+	
+	// Dedicated Level Script
+	TVM_CompileEntry(g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
 	
 	/* Initialize Fake Player */
 	D_XFakePlayerInit();

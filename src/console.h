@@ -109,6 +109,7 @@ typedef enum CONL_MessageType_e
 	CT_NETWORK,									// Network
 	CT_CONSOLE,									// Console Message
 	CT_VIDHARDWARE,								// Video Hardware
+	CT_SCRIPTING,								// Scripts
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;
