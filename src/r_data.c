@@ -96,59 +96,6 @@ CONL_StaticVar_t l_RCutWallDetail =
 //  will have new column_ts generated.
 //
 
-//
-// R_DrawColumnInCache
-// Clip and draw a column
-//  from a patch into a cached post.
-//
-
-void R_DrawColumnInCache(column_t* patch, uint8_t* cache, int originy, int cacheheight)
-{
-	int count;
-	int position;
-	uint8_t* source;
-	uint8_t* dest;
-	int i;
-	
-	dest = (uint8_t*)cache;	// + 3;
-	
-	while (patch->topdelta != 0xff)
-	{
-		source = (uint8_t*)patch + 3;
-		count = patch->length;
-		position = originy + patch->topdelta;
-		
-		if (position < 0)
-		{
-			count += position;
-			position = 0;
-		}
-		
-		if (position + count > cacheheight)
-			count = cacheheight - position;
-			
-		if (count > 0)
-			memcpy(cache + position, source, count);
-			
-		patch = (column_t*) ((uint8_t*)patch + patch->length + 4);
-	}
-}
-
-//
-// Empty the texture cache (used for load wad at runtime)
-//
-void R_FlushTextureCache(void)
-{
-	int i;
-	
-	if (numtextures > 0)
-		for (i = 0; i < numtextures; i++)
-		{
-			//if (texturecache[i])
-			//	Z_Free(texturecache[i]);
-		}
-}
-
 /* R_PatchInfo_t -- Information on a patch */
 typedef struct R_PatchInfo_s
 {

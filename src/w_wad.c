@@ -44,7 +44,6 @@
 // WAD DATA
 #include "m_argv.h"
 #include "hu_stuff.h"
-#include "d_info.h"
 
 /************************
 *** LITE WAD HANDLING ***
