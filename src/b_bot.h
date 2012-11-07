@@ -98,6 +98,8 @@ typedef struct B_BotTemplate_s
 	B_GhostAtkPosture_t Posture;				// Posture
 	B_GhostCoopMode_t CoopMode;					// Coop Mode
 	char HexenClass[MAXPLAYERNAME];				// Favorite Hexen Class
+	
+	uint32_t Count;								// Usage Count
 } B_BotTemplate_t;
 
 /* B_GhostBot_t -- GhostlyBots information */
@@ -115,6 +117,7 @@ struct B_GhostBot_s
 	bool_t IsDead;								// Bot is dead?
 	tic_t DeathTime;							// Time Died
 	int32_t RoamX, RoamY;						// Roaming X/Y
+	tic_t RespawnDelay;							// Respawn Delay
 	
 	struct
 	{
@@ -157,8 +160,8 @@ extern bool_t g_GotBots;						// Got a bot?
 
 /*** B_BOT.C ***/
 B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template);
-const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
-const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData);
+B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
+B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData);
 void B_InitNodes(void);
 void B_ClearNodes(void);
 
@@ -172,9 +175,8 @@ void B_InitNodes(void);
 void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a_BotData, ticcmd_t* const a_TicCmd);
 void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd);
 
-const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
-const B_BotTemplate_t* B_GHOST_RandomTemplate(void);
-const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID);
+B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
+B_BotTemplate_t* B_GHOST_RandomTemplate(void);
 
 void B_XDestroyBot(B_GhostBot_t* const a_BotData);
 

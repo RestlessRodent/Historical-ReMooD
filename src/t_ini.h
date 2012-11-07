@@ -62,6 +62,8 @@ typedef struct TINI_Section_s
 	struct TINI_Section_s* Next;				// Next Link
 } TINI_Section_t;
 
+typedef struct TINI_ConfigLine_s TINI_ConfigLine_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -69,9 +71,9 @@ typedef struct TINI_Section_s
 TINI_Section_t* TINI_FindNextSection(TINI_Section_t* const a_Last, WL_ES_t* const a_Stream);
 void TINI_ClearSections(TINI_Section_t* const a_Iter);
 
-//void TVM_Clear(void);
-//void TVM_CompileWLES(WL_ES_t* const a_Stream, const size_t a_End);
-//void TVM_CompileEntry(const WL_WADEntry_t* const a_Entry);
+TINI_ConfigLine_t* TINI_BeginRead(TINI_Section_t* const a_Section);
+void TINI_EndRead(TINI_ConfigLine_t* const a_Parms);
+bool_t TINI_ReadLine(TINI_ConfigLine_t* const a_Parms, const char** a_Option, const char** a_Value);
 
 #endif /* __T_INI_H__ */
 

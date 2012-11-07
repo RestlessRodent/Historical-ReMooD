@@ -1,5 +1,4 @@
-[bot]
-accountname = "GhostlyBot"
+[ghostlybot]
 displayname = "{2Ghostly{x7cBot"
 skincolor = 0xC
 skinred = 0xFF
@@ -11,8 +10,7 @@ soloplaystyle = uvmax
 hexenclass = "Mage"
 ais = default
 
-[bot]
-accountname = "FreeBOT"
+[freebot]
 displayname = "FreeBOT"
 skincolor = 0xF
 skinred = 0xFF
@@ -24,8 +22,7 @@ soloplaystyle = uvallmax
 hexenclass = "Cleric"
 ais = default
 
-[bot]
-accountname = "MP2Bot"
+[mptwobot]
 displayname = "{9MP{62{BBot"
 skincolor = 0x8
 skinred = 0x00
@@ -37,8 +34,7 @@ soloplaystyle = exitrun
 hexenclass = "Mage"
 ais = default
 
-[bot]
-accountname = "zearBot"
+[zearbot]
 displayname = "{4zearBot"
 skincolor = 0x0
 skinred = 0x00
@@ -50,8 +46,7 @@ soloplaystyle = maxkillsitems
 hexenclass = "Fighter"
 ais = default
 
-[bot]
-accountname = "CatoBot"
+[catobot]
 displayname = "{9CatoBot"
 skincolor = 0xb
 skinred = 0xFF
@@ -63,8 +58,7 @@ soloplaystyle = random
 hexenclass = "Fighter"
 ais = default
 
-[bot]
-accountname = "bot512"
+[botfivetwelve]
 displayname = "{abot{x71512"
 skincolor = 0x0
 skinred = 0x01
@@ -76,8 +70,7 @@ soloplaystyle = random
 hexenclass = "Random"
 ais = default
 
-[bot]
-accountname = "redzbot"
+[redzbot]
 displayname = "{1Red{bZ{x76Bot"
 skincolor = 0x6
 skinred = 0xFF

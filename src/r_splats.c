@@ -111,12 +111,14 @@ static wallsplat_t* R_AllocWallSplat(void)
 		else
 		{
 			// GhostlyDeath <November 3, 2010> -- PARANOIA removal
+#if 0
 			if (!li->splats)
 			{
 				if (devparm)
 					CONL_PrintF("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
 				return NULL;
 			}
+#endif
 			
 			// GhostlyDeath <November 3, 2010> -- Remove NULL dereference
 			for (p_splat = li->splats; p_splat && p_splat->next; p_splat = p_splat->next)

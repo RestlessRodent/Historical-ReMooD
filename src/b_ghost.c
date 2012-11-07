@@ -41,6 +41,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "b_bot.h"
+#include "t_ini.h"
 
 /****************
 *** CONSTANTS ***
@@ -111,102 +112,6 @@ typedef struct B_LineSet_s
 *** CONSTANTS ***
 ****************/
 
-#define MAXBOTTEMPLATES 16
-
-/* c_BotTemplates -- Bot template */
-static const B_BotTemplate_t c_BotTemplates[MAXBOTTEMPLATES] =
-{
-	{
-		0,										// ID
-		"GhostlyBot",							// Account Name
-		"{2Ghostly{x7cBot",						// Display Name
-		0xC,									// Color: Orange
-		{0xff, 0x50, 0x00},						// Hex Color
-		"",
-		BGAP_DEFENSE,							// Posture
-		BGCM_UVMAX,								// Coop Mode
-		"Mage",									// Hexen Class
-	},
-	
-	{
-		1,										// ID
-		"FreeBOT",								// Account Name
-		"FreeBOT",								// Display Name
-		0xF,									// Color: Pink
-		{0xff, 0x70, 0x70},						// Hex Color
-		"SuperShotgun BFGNineK RocketLauncher PlasmaRifle Chaingun Shotgun Pistol Chainsaw Fist",
-		BGAP_MIDDLE,							// Posture
-		BGCM_UVALLMAX,							// Coop Mode
-		"Cleric",								// Hexen Class
-	},
-	
-	{
-		2,										// ID
-		"MP2Bot",								// Account Name
-		"{9MP{62{BBot",							// Display Name
-		0x8,									// Color: Dark Blue
-		{0x00, 0x00, 0x80},						// Hex Color
-		"BFGNineK Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist",
-		BGAP_OFFENSE,							// Posture
-		BGCM_EXITRUN,							// Coop Mode
-		"Mage",									// Hexen Class
-	},
-	
-	{
-		3,										// ID
-		"zearBot",								// Account Name
-		"{4zearBot",							// Display Name
-		0x0,									// Color: Green
-		{0x00, 0xff, 0x00},						// Hex Color
-		"SuperShotgun BFGNineK PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
-		BGAP_DEFENSE,							// Posture
-		BGCM_MAXKILLSITEMS,						// Coop Mode
-		"Fighter",								// Hexen Class
-	},
-	
-	{
-		4,										// ID
-		"CatoBot",								// Account Name
-		"{9CatoBot",							// Display Name
-		0xb,									// Color: White
-		{0xff, 0xff, 0xff},						// Hex Color
-		"",
-		BGAP_DONTCARE,							// Posture
-		BGCM_DONTCARE,						// Coop Mode
-		"Fighter",								// Hexen Class
-	},
-	
-	
-	{
-		5,										// ID
-		"bot512",								// Account Name
-		"{abot{x71512",								// Display Name
-		0x0,									// Color: Green
-		{0x01, 0x54, 0x22},						// Hex Color
-		"BFGNineK SuperShotgun PlasmaRifle Shotgun RocketLauncher Chaingun Pistol Chainsaw Fist",										// Weapons
-		BGAP_DONTCARE,							// Posture
-		BGCM_DONTCARE,						// Coop Mode
-		"Random",								// Hexen Class
-	},
-	
-	{
-		6,										// ID
-		"redzbot",								// Account Name
-		"{1Red{bZ{x76Bot",					// Display Name
-		0x6,									// Color: BrightRed
-		{0xFF, 0x00, 0x00},						// Hex Color
-		"",										// Weapons
-		BGAP_DONTCARE,							// Posture
-		BGCM_DONTCARE,							// Coop Mode
-		"Random",								// Hexen Class
-	},
-	
-	{
-		UINT_MAX,
-		NULL,
-	}
-};
-
 /**************
 *** GLOBALS ***
 **************/
@@ -236,97 +141,75 @@ static bool_t l_SSMCreated = false;				// Mesh created?
 static fixed_t l_GFloorZ, l_GCeilingZ;			// Scanned floor and ceiling position
 static int32_t l_SSBuildChain = 0;				// Final Stage Chaining
 
+static B_BotTemplate_t** l_BotTemplates = NULL;	// Templates
+static size_t l_NumBotTemplates = 0;			// Number of them
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
 /* B_GHOST_FindTemplate() -- Find template by name */
-const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name)
+B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name)
 {
 	size_t i;
 	
 	/* Check */
 	if (!a_Name)
-		return 0;
+		return NULL;
 	
 	/* Search */
-	for (i = 0; c_BotTemplates[i].AccountName[0]; i++)
-		if (strcasecmp(a_Name, c_BotTemplates[i].AccountName) == 0)
-			return &c_BotTemplates[i];
+	for (i = 0; i < l_NumBotTemplates; i++)
+		if (l_BotTemplates[i])
+			if (strcasecmp(a_Name, l_BotTemplates[i]->AccountName) == 0)
+				return l_BotTemplates[i];
 	
 	/* None found */
-	return 0;
+	return NULL;
 }
 
 /* B_GHOST_RandomTemplate() -- Loads a random template */
-const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
+B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 {
-	size_t i, j, r;
-	const B_BotTemplate_t* Rand;
-	int8_t MinCount, MaxCount, Failures, MinAt;
-	const B_BotTemplate_t* Temp;
+	size_t i, Count;
+	uint32_t LowCount, Hit;
 	
-	static Counts[MAXBOTTEMPLATES];
+	/* Find the lowest bot counts */
+	LowCount = UINT32_MAX;
+	for (i = 0; i < l_NumBotTemplates; i++)
+		if (l_BotTemplates[i])
+			if (l_BotTemplates[i]->Count < LowCount)
+				LowCount = l_BotTemplates[i]->Count;
 	
-	/* Count */
-	// Determine Minimum Count
-	MinCount = 125;
-	MaxCount = -125;
-	MinAt = 0;
-	for (i = 0; i < MAXBOTTEMPLATES && c_BotTemplates[i].AccountName[0]; i++)
-	{
-		// Minimum
-		if (Counts[i] < MinCount)
-		{
-			MinCount = Counts[i];
-			MinAt = i;
-		}
-		
-		// Maximum
-		if (Counts[i] > MaxCount)
-			MaxCount = Counts[i];
-	}
+	/* Count the number of bots matching the low count */
+	Count = 0;
+	for (i = 0; i < l_NumBotTemplates; i++)
+		if (l_BotTemplates[i])
+			if (l_BotTemplates[i]->Count == LowCount)
+				Count++;
 	
-	/* Choose random number */
-	Failures = 0;
-	do
-	{
-		// Obtain Random Bot
-		r = abs(M_Random()) % i;
-		Rand = B_GHOST_TemplateByID(r);
-		
-		// Bot Statifies Minimum Quantity
-		if (Counts[Rand - c_BotTemplates] == MinCount)
-		{
-			Counts[r]++;
-			break;
-		}
-	} while (++Failures < 32);	// Only try so much (anti-infinite loop)
+	// No bots?
+	if (!Count)
+		return NULL;
 	
-	/* No bot? One final try */
-	if (!Rand)
-	{
-		Rand = B_GHOST_TemplateByID(c_BotTemplates[MinAt].BotIDNum);
-		Counts[c_BotTemplates[MinAt].BotIDNum]++;
-	}
+	/* Determine random number */
+	Hit = M_Random();
+	Hit %= Count;
 	
-	/* Return if found */
-	if (Rand)
-		return Rand;
-	return &c_BotTemplates[0];
-}
-
-/* B_GHOST_TemplateByID() -- Finds template by ID number */
-const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID)
-{
-	size_t i;
+	/* Return the associated template */
+	for (i = 0; i < l_NumBotTemplates; i++)
+		if (l_BotTemplates[i])
+			if (l_BotTemplates[i]->Count == LowCount)
+				if (Hit == 0)
+					return l_BotTemplates[i];
+				else
+					Hit--;
 	
-	/* Look in directory */
-	for (i = 0; c_BotTemplates[i].AccountName[0]; i++)
-		if (c_BotTemplates[i].BotIDNum == a_ID)
-			return &c_BotTemplates[i];
+	/* Failure? */
+	for (i = 0; i < l_NumBotTemplates; i++)
+		if (l_BotTemplates[i])
+			return l_BotTemplates[i];
 	
-	/* Not Found */
+	/* Woops! */
 	return NULL;
 }
 
@@ -1673,14 +1556,16 @@ B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template)
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Set Data */
-	memmove(&New->BotTemplate, a_Template, sizeof(New->BotTemplate));
+	// From Template
+	if (a_Template)
+		memmove(&New->BotTemplate, a_Template, sizeof(New->BotTemplate));
 	
 	/* Set and return */
 	return New;
 }
 
 /* B_BotGetTemplate() -- Returns player bot template */
-const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
+B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
 {
 	/* Check */
 	if (a_Player < 0 || a_Player >= MAXPLAYERS)
@@ -1707,7 +1592,7 @@ const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
 }
 
 /* B_BotGetTemplateDataPtr() -- Get template by pointer */
-const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
+B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
 {
 	/* Check */
 	if (!a_BotData)
@@ -1771,10 +1656,11 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 			{
 				a_BotData->IsDead = true;
 				a_BotData->DeathTime = gametic;
+				a_BotData->RespawnDelay = ((((tic_t)BS_Random(a_BotData)) % 10) + 1) * TICRATE;
 			}
 			
-			// Is still dead, wait 2 seconds to respawn
-			else if (gametic > (a_BotData->DeathTime + (TICRATE * 2)))
+			// Is still dead, wait some seconds to respawn
+			else if (gametic > (a_BotData->DeathTime + a_BotData->RespawnDelay))
 			{
 				// Press use
 				a_TicCmd->Std.buttons |= BT_USE;
@@ -1806,11 +1692,99 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 /* B_BotCodeOCCB() -- Handles bot coding */
 static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	const WL_WADFile_t* WAD;
+	const WL_WADEntry_t* Entry;
+	WL_ES_t* Stream;
+	TINI_Section_t* Sections, *Rover;
+	TINI_ConfigLine_t* Config;
+	const char* Opt;
+	const char* Val;
+	B_BotTemplate_t* Template;
+	size_t i;
+	
 	/* Free old stuff */
+	if (l_BotTemplates)
+	{
+		for (i = 0; i < l_NumBotTemplates; i++)
+			if (l_BotTemplates[i])
+				Z_Free(l_BotTemplates[i]);
+		Z_Free(l_BotTemplates);
+	}
+	
+	l_BotTemplates = NULL;
+	l_NumBotTemplates = 0;
 	
 	/* Find all the bot datas in every WAD */
 	// These are named RMD_BOTS
+	for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
+	{
+		// Attempt location of entry
+		Entry = WL_FindEntry(WAD, 0, "RMD_BOTS");
+		
+		// Not found?
+		if (!Entry)
+			continue;
+		
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Failed?
+		if (!Stream)
+			continue;
+		
+		// Check Unicode nature of stream
+		WL_StreamCheckUnicode(Stream);
+		
+		// Find all sections
+		Sections = NULL;
+		
+		// Loop
+		do
+		{
+			Rover = TINI_FindNextSection(Sections, Stream);
+			if (!Sections)
+				Sections = Rover;
+		} while (Rover);
+		
+		// Go through sections
+		for (Rover = Sections; Rover; Rover = Rover->Next)
+		{
+			CONL_PrintF(">>>>>>>> @@@%s\n", Rover->Name);
+			
+			// Find existing template?
+			Template = B_GHOST_FindTemplate(Rover->Name);
+			
+			// Not found?
+			if (!Template)
+			{
+				// Allocate
+				Z_ResizeArray((void**)&l_BotTemplates, sizeof(*l_BotTemplates),
+						l_NumBotTemplates, l_NumBotTemplates + 1);
+				Template = l_BotTemplates[l_NumBotTemplates++] =
+					Z_Malloc(sizeof(*Template), PU_STATIC, NULL);
+				
+				// Set Account Name
+				strncpy(Template->AccountName, Rover->Name, MAXPLAYERNAME);
+			}
+			
+			// Begin reading
+			Config = TINI_BeginRead(Rover);
+			
+			// Read config values
+			while (TINI_ReadLine(Config, &Opt, &Val))
+			{
+				CONL_PrintF(">>> $%s #%s\n", Opt, Val);
+			}
+		}
+		
+		// Free found sections
+		TINI_ClearSections(Sections);
+		
+		// Close Stream
+		WL_StreamClose(Stream);
+	}
 	
+	/* Finished */
 	return true;
 }
 

@@ -3785,7 +3785,11 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	Player->XPlayer = XPlay;
 	Player->skincolor = a_JoinData->Color;
-	D_NetSetPlayerName(k, a_JoinData->DisplayName);
+	
+	if (a_JoinData->DisplayName[0])
+		D_NetSetPlayerName(k, a_JoinData->DisplayName);
+	else
+		D_NetSetPlayerName(k, XPlay->AccountName);
 	
 	/* Setup Screen */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
@@ -3799,7 +3803,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Print Message */
 	CONL_OutputUT(CT_NETWORK, DSTR_NET_PLAYERJOINED, "%s\n",
-			player_names[k]
+			D_NCSGetPlayerName(k)
 		);
 	
 	/* Update Scores */
@@ -4030,8 +4034,21 @@ static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 	BotTemp = a_Data;
 	a_Player->BotData = B_InitBot(BotTemp);
 	
-	strncpy(a_Player->AccountName, BotTemp->AccountName, MAXPLAYERNAME);
-	strncpy(a_Player->DisplayName, BotTemp->DisplayName, MAXPLAYERNAME);
+	// If template exists
+	if (BotTemp)
+	{
+		strncpy(a_Player->AccountName, BotTemp->AccountName, MAXPLAYERNAME);
+		strncpy(a_Player->DisplayName, BotTemp->DisplayName, MAXPLAYERNAME);
+	}
+	
+	// Missing Stuff?
+		// Account Name
+	if (!strlen(a_Player->AccountName))
+		strncpy(a_Player->AccountName, "bot", MAXPLAYERNAME);
+		
+		// Display Name
+	if (!strlen(a_Player->DisplayName))
+		strncpy(a_Player->DisplayName, a_Player->AccountName, MAXPLAYERNAME);
 }
 
 /* DS_XNetCon() -- Command */

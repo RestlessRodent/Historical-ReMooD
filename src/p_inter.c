@@ -1106,7 +1106,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 				
 			// Return the player's name
 			if (!a_IsInflictor)
-				return player_names[a_Mobj->player - players];
+				return D_NCSGetPlayerName(a_Mobj->player - players);
 			
 			// Return the name of the gun
 			else
