@@ -2815,7 +2815,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		}
 		
 		// Transparency Change?
-		else if (WChar >= 16 && WChar < 32)
+		else if (WChar >= 16 && WChar < (16 + NUMVEXTRANSPARENCIES))
 		{
 			*a_OptionsMod &= ~VFO_TRANSMASK;
 			*a_OptionsMod |= VFO_TRANS((WChar - 16) & 0xF);

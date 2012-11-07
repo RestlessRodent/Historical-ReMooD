@@ -73,7 +73,7 @@ void TINI_ClearSections(TINI_Section_t* const a_Iter);
 
 TINI_ConfigLine_t* TINI_BeginRead(TINI_Section_t* const a_Section);
 void TINI_EndRead(TINI_ConfigLine_t* const a_Parms);
-bool_t TINI_ReadLine(TINI_ConfigLine_t* const a_Parms, const char** a_Option, const char** a_Value);
+bool_t TINI_ReadLine(TINI_ConfigLine_t* const a_Parms, char** a_Option, char** a_Value);
 
 #endif /* __T_INI_H__ */
 

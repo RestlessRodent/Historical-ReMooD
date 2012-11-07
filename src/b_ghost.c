@@ -200,14 +200,20 @@ B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 		if (l_BotTemplates[i])
 			if (l_BotTemplates[i]->Count == LowCount)
 				if (Hit == 0)
+				{
+					l_BotTemplates[i]->Count++;
 					return l_BotTemplates[i];
+				}
 				else
 					Hit--;
 	
 	/* Failure? */
 	for (i = 0; i < l_NumBotTemplates; i++)
 		if (l_BotTemplates[i])
+		{
+			l_BotTemplates[i]->Count++;
 			return l_BotTemplates[i];
+		}
 	
 	/* Woops! */
 	return NULL;
@@ -1697,8 +1703,8 @@ static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 	WL_ES_t* Stream;
 	TINI_Section_t* Sections, *Rover;
 	TINI_ConfigLine_t* Config;
-	const char* Opt;
-	const char* Val;
+	char* Opt;
+	char* Val;
 	B_BotTemplate_t* Template;
 	size_t i;
 	
@@ -1749,8 +1755,6 @@ static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 		// Go through sections
 		for (Rover = Sections; Rover; Rover = Rover->Next)
 		{
-			CONL_PrintF(">>>>>>>> @@@%s\n", Rover->Name);
-			
 			// Find existing template?
 			Template = B_GHOST_FindTemplate(Rover->Name);
 			
@@ -1773,7 +1777,37 @@ static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 			// Read config values
 			while (TINI_ReadLine(Config, &Opt, &Val))
 			{
-				CONL_PrintF(">>> $%s #%s\n", Opt, Val);
+				// Remove quotes from value
+				if (Val[0] == '\"')
+					Val++;
+				i = strlen(Val);
+				if (i > 0 && Val[i - 1] == '\"')
+					Val[i - 1] = 0;
+				
+				// Display Name
+				if (strcasecmp(Opt, "displayname") == 0)
+					strncpy(Template->DisplayName, Val, MAXPLAYERNAME);
+				
+				// Skin Color
+				else if (strcasecmp(Opt, "skincolor") == 0)
+					Template->SkinColor = C_strtou32(Val, NULL, 0) % MAXSKINCOLORS;
+					
+				// GRB Color
+				else if (strcasecmp(Opt, "skinred") == 0)
+					Template->RGBSkinColor[0] = C_strtou32(Val, NULL, 0);
+				else if (strcasecmp(Opt, "skingreen") == 0)
+					Template->RGBSkinColor[1] = C_strtou32(Val, NULL, 0);
+				else if (strcasecmp(Opt, "skinblue") == 0)
+					Template->RGBSkinColor[2] = C_strtou32(Val, NULL, 0);
+				
+				// Hexen Class
+				else if (strcasecmp(Opt, "hexenclass") == 0)
+					strncpy(Template->HexenClass, Val, MAXPLAYERNAME);
+					
+				// TODO FIXME -- Implement reading these
+//const char* WeaponOrder;					// Weapon Order
+//B_GhostAtkPosture_t Posture;				// Posture
+//B_GhostCoopMode_t CoopMode;					// Coop Mode
 			}
 		}
 		
