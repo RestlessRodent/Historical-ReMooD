@@ -1,0 +1,91 @@
+[bot]
+accountname = "GhostlyBot"
+displayname = "{2Ghostly{x7cBot"
+skincolor = 0xC
+skinred = 0xFF
+skingreen = 0x50
+skinblue = 0x00
+weaponorder = supershotgun
+posture = defense
+soloplaystyle = uvmax
+hexenclass = "Mage"
+ais = default
+
+[bot]
+accountname = "FreeBOT"
+displayname = "FreeBOT"
+skincolor = 0xF
+skinred = 0xFF
+skingreen = 0x70
+skinblue = 0x70
+weaponorder = SuperShotgun BFGNineK RocketLauncher PlasmaRifle Chaingun Shotgun Pistol Chainsaw Fist
+posture = middle
+soloplaystyle = uvallmax
+hexenclass = "Cleric"
+ais = default
+
+[bot]
+accountname = "MP2Bot"
+displayname = "{9MP{62{BBot"
+skincolor = 0x8
+skinred = 0x00
+skingreen = 0x00
+skinblue = 0x80
+weaponorder = BFGNineK Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist
+posture = offsense
+soloplaystyle = exitrun
+hexenclass = "Mage"
+ais = default
+
+[bot]
+accountname = "zearBot"
+displayname = "{4zearBot"
+skincolor = 0x0
+skinred = 0x00
+skingreen = 0xFF
+skinblue = 0x80
+weaponorder = SuperShotgun BFGNineK PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist
+posture = defense
+soloplaystyle = maxkillsitems
+hexenclass = "Fighter"
+ais = default
+
+[bot]
+accountname = "CatoBot"
+displayname = "{9CatoBot"
+skincolor = 0xb
+skinred = 0xFF
+skingreen = 0xFF
+skinblue = 0xFF
+weaponorder = SuperShotgun
+posture = random
+soloplaystyle = random
+hexenclass = "Fighter"
+ais = default
+
+[bot]
+accountname = "bot512"
+displayname = "{abot{x71512"
+skincolor = 0x0
+skinred = 0x01
+skingreen = 0x54
+skinblue = 0x22
+weaponorder = BFGNineK SuperShotgun PlasmaRifle Shotgun RocketLauncher Chaingun Pistol Chainsaw Fist
+posture = random
+soloplaystyle = random
+hexenclass = "Random"
+ais = default
+
+[bot]
+accountname = "redzbot"
+displayname = "{1Red{bZ{x76Bot"
+skincolor = 0x6
+skinred = 0xFF
+skingreen = 0x54
+skinblue = 0x22
+weaponorder = SuperShotgun
+posture = random
+soloplaystyle = random
+hexenclass = "Random"
+ais = default
+

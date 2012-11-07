@@ -1054,6 +1054,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** T_VM.C **/
 	{				 "TVMC_COMPILING", "Compiling \"$1\"..."},
+	
+	/*** B_GHOST.C ***/
+	{			   "BGHOSTC_BASEINIT", "Registering bot registration..."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

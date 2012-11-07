@@ -1540,6 +1540,7 @@ size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_
 		"CONL",									// CT_CONSOLE
 		"VDHW",									// CT_VIDHARDWARE
 		"SCRI",									// CT_SCRIPTING
+		"BOTS",									// CT_BOTS
 	};
 	
 #define BUFSIZE 512

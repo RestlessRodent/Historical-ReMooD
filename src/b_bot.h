@@ -85,7 +85,20 @@ typedef enum B_GhostAtkPosture_e
 *****************/
 
 typedef struct B_GhostBot_s B_GhostBot_t;
-struct B_BotTemplate_s;
+
+/* B_BotTemplate_t -- Bot Template */
+typedef struct B_BotTemplate_s
+{
+	uint32_t BotIDNum;							// Bot ID Number
+	char AccountName[MAXPLAYERNAME];			// Account Name
+	char DisplayName[MAXPLAYERNAME];			// Display Name
+	uint8_t SkinColor;							// Skin Color
+	uint8_t RGBSkinColor[3];					// Skin Color in RGB
+	const char* WeaponOrder;					// Weapon Order
+	B_GhostAtkPosture_t Posture;				// Posture
+	B_GhostCoopMode_t CoopMode;					// Coop Mode
+	char HexenClass[MAXPLAYERNAME];				// Favorite Hexen Class
+} B_BotTemplate_t;
 
 /* B_GhostBot_t -- GhostlyBots information */
 struct B_GhostBot_s
@@ -97,7 +110,7 @@ struct B_GhostBot_s
 	void* OldNode;								// Old node
 	player_t* Player;							// Player
 	mobj_t* Mo;									// Mo
-	struct B_BotTemplate_s* BotTemplate;		// Template
+	B_BotTemplate_t BotTemplate;				// Template Copy
 	struct D_XPlayer_s* XPlayer;				// Bot's XPlayer
 	bool_t IsDead;								// Bot is dead?
 	tic_t DeathTime;							// Time Died
@@ -128,20 +141,6 @@ struct B_GhostBot_s
 	} AISpec;									// AI Specification
 };
 
-/* B_BotTemplate_t -- Bot Template */
-typedef struct B_BotTemplate_s
-{
-	uint32_t BotIDNum;							// Bot ID Number
-	char AccountName[MAXPLAYERNAME];			// Account Name
-	char DisplayName[MAXPLAYERNAME];			// Display Name
-	uint8_t SkinColor;							// Skin Color
-	uint8_t RGBSkinColor[3];					// Skin Color in RGB
-	const char* WeaponOrder;					// Weapon Order
-	B_GhostAtkPosture_t Posture;				// Posture
-	B_GhostCoopMode_t CoopMode;					// Coop Mode
-	char HexenClass[MAXPLAYERNAME];				// Favorite Hexen Class
-} B_BotTemplate_t;
-
 /**************
 *** GLOBALS ***
 **************/
@@ -164,6 +163,8 @@ void B_InitNodes(void);
 void B_ClearNodes(void);
 
 /*** B_GHOST.C ***/
+void B_InitBotCodes(void);
+
 void B_GHOST_Ticker(void);
 void B_ClearNodes(void);
 void B_InitNodes(void);

@@ -2428,6 +2428,7 @@ void D_DoomMain(void)
 	M_MenuExInit();						// Initialize Menu
 	G_PrepareDemoStuff();				// Demos
 	M_DoMappedVars();					// Mapped Vars
+	B_InitBotCodes();					// Initialize bot coding
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

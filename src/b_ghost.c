@@ -1673,7 +1673,7 @@ B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template)
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Set Data */
-	New->BotTemplate = a_Template;
+	memmove(&New->BotTemplate, a_Template, sizeof(New->BotTemplate));
 	
 	/* Set and return */
 	return New;
@@ -1703,7 +1703,7 @@ const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
 		return NULL;
 	
 	/* Return the template */
-	return players[a_Player].NetPlayer->BotData->BotTemplate;
+	return &players[a_Player].NetPlayer->BotData->BotTemplate;
 }
 
 /* B_BotGetTemplateDataPtr() -- Get template by pointer */
@@ -1714,7 +1714,7 @@ const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
 		return NULL;
 	
 	/* Return the template used */
-	return a_BotData->BotTemplate;
+	return &a_BotData->BotTemplate;
 }
 
 /* B_BuildBotTicCmd() -- Builds tic command for bot */
@@ -1797,5 +1797,31 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 		default:
 			break;
 	}
+}
+
+/**********************************
+*** USER DYNAMIC BOT GENERATION ***
+**********************************/
+
+/* B_BotCodeOCCB() -- Handles bot coding */
+static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	/* Free old stuff */
+	
+	/* Find all the bot datas in every WAD */
+	// These are named RMD_BOTS
+	
+	return true;
+}
+
+/* B_InitBotCodes() -- Initializes the bot coding */
+void B_InitBotCodes(void)
+{
+	/* Message */
+	CONL_OutputUT(CT_BOTS, DSTR_BGHOSTC_BASEINIT, "\n");
+	
+	/* Bot OCCB */
+	if (!WL_RegisterOCCB(B_BotCodeOCCB, WLDCO_BOTSTUFF))
+		I_Error("Failed to register Bot OCCB.");
 }
 
