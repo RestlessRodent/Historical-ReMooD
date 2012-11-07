@@ -92,7 +92,7 @@ TINI_Section_t* TINI_FindNextSection(TINI_Section_t* const a_Last, WL_ES_t* cons
 		p = Buf;
 		
 		// Skip whitespace at start
-		if (*p == ' ' || *p == '\t')
+		while (*p == ' ' || *p == '\t')
 			p++;
 		
 		// Is a [?
@@ -103,6 +103,10 @@ TINI_Section_t* TINI_FindNextSection(TINI_Section_t* const a_Last, WL_ES_t* cons
 			
 			// Move pointers around
 			p++;
+			
+			// Skip any whitespace
+			while (*p == ' ' || *p == '\t')
+				p++;
 			
 			// Create new section, from between brackets
 			if (Ep && Ep - p > 0)

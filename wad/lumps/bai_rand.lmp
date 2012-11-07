@@ -1,0 +1,27 @@
+[aidef]
+name = randomnav
+title = Random Navigation
+author = GhostlyDeath
+description = Random Bot Navigation
+
+[assembly]
+; Set randomized direction, if non set
+100		compare $i1, 0, $i20
+101		compare $i2, 0, $i21
+102		and $i20, $i21, $i20
+103		gotonz 200, 300, $i20
+104		goto 200
+
+; No direction was set (potentially loop)
+200		copy $urand, $i1
+201		copy $urand, $i2
+202		mod $i1, 3, $i1
+203		mod $i2, 3, $i2
+204		sub $i1, 1, $i1
+205		sub $i2, 1, $i2
+210		goto 100
+
+; Direction set, grab adjacent node
+300		grabadjnode $i1, $n1
+301		grabadjnode $i2, $n2
+

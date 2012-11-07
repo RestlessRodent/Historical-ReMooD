@@ -43,7 +43,7 @@
 ****************/
 
 void TVM_Clear(void);
-void TVM_CompileWLES(WL_ES_t* const a_Stream, const size_t a_End);
+void TVM_CompileWLES(WL_ES_t* const a_Stream, const uint32_t a_End);
 void TVM_CompileEntry(const WL_WADEntry_t* const a_Entry);
 
 #endif /* __T_VM_H__ */
