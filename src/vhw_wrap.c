@@ -59,8 +59,10 @@ void (*VHW_ClearScreen)(const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
 /* VHW_UseGLMode() -- Use openGL Mode */
 bool_t VHW_UseGLMode(void)
 {
+#if defined(__REMOOD_OPENGL_SUPPORTED) && !defined(__REMOOD_OPENGL_CANCEL)
 	if (M_CheckParm("-gl"))
 		return true;
+#endif
 	return false;
 }
 
@@ -77,6 +79,7 @@ bool_t VHW_Init(const VHW_Mode_t a_Mode)
 	l_VHWMode = a_Mode;
 	
 	/* Use OpenGL Calls */
+#if defined(__REMOOD_OPENGL_SUPPORTED) && !defined(__REMOOD_OPENGL_CANCEL)
 	if (a_Mode == VHWMODE_OPENGL)
 	{
 		VHW_HUDDrawLine = VHW_GL_HUDDrawLine;
@@ -89,6 +92,7 @@ bool_t VHW_Init(const VHW_Mode_t a_Mode)
 	
 	/* Software Mode Calls */
 	else
+#endif
 	{
 		VHW_HUDDrawLine = VHW_SIDX_HUDDrawLine;
 		VHW_HUDDrawImageComplex = VHW_SIDX_HUDDrawImageComplex;

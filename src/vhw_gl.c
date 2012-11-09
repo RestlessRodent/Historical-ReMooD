@@ -30,6 +30,8 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Hardware Video Drawer
 
+#if defined(__REMOOD_OPENGL_SUPPORTED) && !defined(__REMOOD_OPENGL_CANCEL)
+
 /***************
 *** INCLUDES ***
 ***************/
@@ -57,8 +59,6 @@ typedef struct VHW_GLTextureSpot_s
 /*************
 *** LOCALS ***
 *************/
-
-static vhw_t __vhw_junk;
 
 /****************
 *** CONSTANTS ***
@@ -349,4 +349,6 @@ void VHW_GL_ClearScreen(const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
 	glClearColor(GLUBYTETOCLAMP(a_R), GLUBYTETOCLAMP(a_G), GLUBYTETOCLAMP(a_B), 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
+
+#endif
 
