@@ -1230,7 +1230,7 @@ void WI_Drawer(void)
 	// Get title
 	if (g_CurrentLevelInfo)
 	{
-		Title = g_CurrentLevelInfo->Title;
+		Title = P_LevelNameEx();//g_CurrentLevelInfo->Title;
 		Author = g_CurrentLevelInfo->Author;
 	}
 	

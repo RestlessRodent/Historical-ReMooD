@@ -273,6 +273,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		SETKEY(FLYDOWN, KDELETE);
 		SETKEY(TOPSCORES, F);
 		SETKEY(COOPSPY, F12);
+		SETKEY(AUTOMAP, TAB);
 	
 		// Joystick Buttons
 		SETJOY(ATTACK, 1);

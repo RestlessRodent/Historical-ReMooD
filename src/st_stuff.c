@@ -58,6 +58,7 @@
 #include "d_main.h"
 
 #include "p_demcmp.h"
+#include "vhw_wrap.h"
 
 //protos
 void ST_createWidgets(void);
@@ -521,7 +522,19 @@ static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, in
 	return FixedMul(c << FRACBITS, FixedMul(327, a_H << FRACBITS)) >> FRACBITS;
 }
 
-/* STS_DrawPlayerBarEx() -- Draws a player's status bar */
+/* STS_DrawPlayerMap() -- Draws player automap */
+static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
+{
+	D_ProfileEx_t* Profile;
+	
+	/* Get profile of player */
+	Profile = a_ConsoleP->ProfileEx;
+	
+	/* Current Level Name */
+	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), STS_SBX(Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
+}
+
+/* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
 static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
 {
 #define BUFSIZE 32
@@ -568,13 +581,6 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;
 	
-	/* We are looking at another player */
-	if (ConsoleP != DisplayP)
-	{
-		// Put warning if the player is under attack
-			// TODO
-	}
-	
 	/* Obtain some info */
 	if (!IsFake)
 	{
@@ -589,6 +595,17 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	if (!IsFake)
 		if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || !(DisplayP->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
 			IsMonster = true;
+	
+	/* Draw the automap */
+	if (g_Splits[a_PID].AutomapActive)
+	{
+		// Draw black box?
+		if (!g_Splits[a_PID].OverlayMap)
+			VHW_HUDDrawBox(0, 0, 0, 0, a_X, a_Y, a_X + a_W, a_X + a_H);
+		
+		// Used subroutine
+		STS_DrawPlayerMap(a_PID, a_X, a_Y, a_W, a_H, a_ConsoleP, a_DisplayP);
+	}
 	
 	/* Which status bar type to draw? */
 	// Overlay
@@ -701,6 +718,13 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	
 	/* Draw Object Overlays */
 	
+	/* We are looking at another player */
+	if (ConsoleP != DisplayP)
+	{
+		// Put warning if the player is under attack
+			// TODO
+	}
+	
 	/* Scoreboard */
 	if (XPlay && XPlay->Scores)
 	{
@@ -718,10 +742,6 @@ void ST_DrawPlayerBarsEx(void)
 	int p, x, y, w, h;
 	bool_t BigLetters;
 	static uint32_t LastPal;	// Lowers palette change (faster drawing)
-	
-	/* Ignore if playing titlescreen demo */
-	if (g_TitleScreenDemo)
-		return;
 	
 	/* Screen division? */
 	// Initial
@@ -896,5 +916,25 @@ bool_t ST_ExSoloViewScaledSBar(void)
 /* ST_ExViewBarHeight() -- Status Bar Height */
 int32_t ST_ExViewBarHeight(void)
 {
+	return 0;
+}
+
+/* ST_CheckDrawGameView() -- Checks if game view can be drawn */
+bool_t ST_CheckDrawGameView(const int32_t a_Screen)
+{
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return false;	
+	
+	/* Automap disables view */
+	if (g_Splits[a_Screen].AutomapActive)
+		// Overlay automap draws the view
+		if (g_Splits[a_Screen].OverlayMap)
+			return true;
+		else
+			return false;
+	
+	/* Otherwise, draw it */
+	return true;
 }
 

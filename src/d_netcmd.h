@@ -144,6 +144,9 @@ typedef struct D_SplitInfo_s
 	
 	bool_t RequestSent;							// Sent join request
 	tic_t GiveUpAt;								// Give up joining at this time
+	bool_t AutomapActive;						// Activated Automap
+	bool_t OverlayMap;							// Overlay automap
+	bool_t MapKeyStillDown;						// Automap key still down
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/

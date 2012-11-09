@@ -140,5 +140,7 @@ int32_t ST_ExViewBarHeight(void);
 bool_t ST_ExSoloViewTransSBar(void);
 bool_t ST_ExSoloViewScaledSBar(void);
 
+bool_t ST_CheckDrawGameView(const int32_t a_Screen);
+
 #endif
 

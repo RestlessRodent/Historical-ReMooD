@@ -4927,6 +4927,38 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	else
 		a_NPp->Scores = 0;
 	
+	// Automap
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_AUTOMAP))
+	{
+		// Don't flash the automap like crazy
+		if (!g_Splits[SID].MapKeyStillDown)
+		{
+			// Map not active, activate
+			if (!g_Splits[SID].AutomapActive)
+			{
+				g_Splits[SID].AutomapActive = true;
+				g_Splits[SID].OverlayMap = false;
+			}
+			
+			// Is active
+			else
+			{
+				// Overlay now active, activate
+				if (!g_Splits[SID].OverlayMap)
+					g_Splits[SID].OverlayMap = true;
+				
+				// Otherwise, stop the map
+				else
+					g_Splits[SID].AutomapActive = false;
+			}
+			
+			// Place key down to prevent massive flashing
+			g_Splits[SID].MapKeyStillDown = true;
+		}
+	}
+	else
+		g_Splits[SID].MapKeyStillDown = false;
+	
 	// Coop Spy
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_COOPSPY))
 	{
