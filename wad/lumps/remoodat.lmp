@@ -16707,6 +16707,10 @@ MapObject "HealthPotion"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	FloatBobbing "true";
@@ -16758,6 +16762,10 @@ MapObject "SmallShield"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	FloatBobbing "true";
@@ -16789,6 +16797,10 @@ MapObject "LargeShield"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	FloatBobbing "true";
@@ -16820,6 +16832,10 @@ MapObject "BagOfHolding"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -16852,6 +16868,10 @@ MapObject "SuperMap"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -16884,6 +16904,10 @@ MapObject "ArtifactInvis"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsFuzzyShadow "true";
@@ -16919,6 +16943,10 @@ MapObject "ArtifactHealing"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -16971,6 +16999,10 @@ MapObject "ArtifactFly"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17033,6 +17065,10 @@ MapObject "ArtifactInvuln"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17095,6 +17131,10 @@ MapObject "ArtifactTomb"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17127,6 +17167,10 @@ MapObject "ArtifactMorph"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17190,6 +17234,11 @@ MapObject "EffectMorph"
 	PainChance "0";
 	Height "8";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	8.0	8.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -17311,6 +17360,10 @@ MapObject "ArtifactHealth"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17343,6 +17396,10 @@ MapObject "ArtifactTorch"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17398,6 +17455,10 @@ MapObject "ArtifactFireBomb"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17430,6 +17491,10 @@ MapObject "FireBomb"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "phohit";
+	ActiveSound "None";
 	
 	NoGravity "true";
 	IsFuzzyShadow "true";
@@ -17570,6 +17635,10 @@ MapObject "ArtifactTeleport"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	IsItemCountable "true";
@@ -17632,6 +17701,10 @@ MapObject "Pod"
 	PainChance "1";
 	Height "54";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "podexp";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	NoBleeding "true";
@@ -17734,6 +17807,10 @@ MapObject "PodGoo"
 	PainChance "0";
 	Height "4";
 	Radius "2";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -17792,6 +17869,10 @@ MapObject "PodGenerator"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoSectorLinks "true";
@@ -17824,6 +17905,10 @@ MapObject "EffectSplashBubble"
 	PainChance "0";
 	Height "4";
 	Radius "2";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -17902,6 +17987,10 @@ MapObject "EffectSplashBash"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -17992,6 +18081,10 @@ MapObject "LavaSplash"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -18078,6 +18171,10 @@ MapObject "LavaSmoke"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -18156,6 +18253,10 @@ MapObject "SludgeChunk"
 	PainChance "0";
 	Height "4";
 	Radius "2";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -18234,6 +18335,10 @@ MapObject "SludgeSplash"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -18294,6 +18399,10 @@ MapObject "HangingSkull1"
 	PainChance "0";
 	Height "70";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18325,6 +18434,10 @@ MapObject "HangingSkull2"
 	PainChance "0";
 	Height "60";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18356,6 +18469,10 @@ MapObject "HangingSkull3"
 	PainChance "0";
 	Height "45";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18387,6 +18504,10 @@ MapObject "HangingSkull4"
 	PainChance "0";
 	Height "35";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18418,6 +18539,10 @@ MapObject "Chandelier"
 	PainChance "0";
 	Height "60";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18469,6 +18594,10 @@ MapObject "SerpentTorch"
 	PainChance "0";
 	Height "54";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18519,6 +18648,10 @@ MapObject "SmallPillar"
 	PainChance "0";
 	Height "34";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18549,6 +18682,10 @@ MapObject "SmallStalagmite"
 	PainChance "0";
 	Height "32";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18579,6 +18716,10 @@ MapObject "LargeStalagmite"
 	PainChance "0";
 	Height "64";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18609,6 +18750,10 @@ MapObject "SmallStalactite"
 	PainChance "0";
 	Height "36";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	SpawnsOnCeiling "true";
@@ -18641,6 +18786,10 @@ MapObject "LargeStalactite"
 	PainChance "0";
 	Height "68";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	SpawnsOnCeiling "true";
@@ -18673,6 +18822,10 @@ MapObject "FireBrazier"
 	PainChance "0";
 	Height "44";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18781,6 +18934,10 @@ MapObject "Barrel"
 	PainChance "0";
 	Height "32";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18811,6 +18968,10 @@ MapObject "BrownPillar"
 	PainChance "0";
 	Height "128";
 	Radius "14";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -18841,6 +19002,10 @@ MapObject "Moss1"
 	PainChance "0";
 	Height "23";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18872,6 +19037,10 @@ MapObject "Moss2"
 	PainChance "0";
 	Height "27";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	SpawnsOnCeiling "true";
 	NoGravity "true";
@@ -18903,6 +19072,10 @@ MapObject "WallTorch"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoGravity "true";
 	
@@ -18956,6 +19129,10 @@ MapObject "HangingCorpse"
 	PainChance "0";
 	Height "104";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	SpawnsOnCeiling "true";
@@ -18988,6 +19165,10 @@ MapObject "BlueKeyGizmo"
 	PainChance "0";
 	Height "50";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -19039,6 +19220,10 @@ MapObject "GreenKeyGizmo"
 	PainChance "0";
 	Height "50";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -19090,6 +19275,10 @@ MapObject "YellowKeyGizmo"
 	PainChance "0";
 	Height "50";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -19141,6 +19330,10 @@ MapObject "FloatingKeyGizmo"
 	PainChance "0";
 	Height "16";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	NoGravity "true";
@@ -19172,6 +19365,10 @@ MapObject "Volcano"
 	PainChance "0";
 	Height "20";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	
@@ -19285,6 +19482,10 @@ MapObject "VolcanoBlast1"
 	PainChance "0";
 	Height "8";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "volhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -19397,6 +19598,10 @@ MapObject "VolcanoBlast2"
 	PainChance "0";
 	Height "6";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -19515,6 +19720,10 @@ MapObject "GlitterGenerator1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -19548,6 +19757,10 @@ MapObject "GlitterGenerator2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -19581,6 +19794,10 @@ MapObject "Glitter1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -19660,6 +19877,10 @@ MapObject "Glitter2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -19739,6 +19960,10 @@ MapObject "HereticTeleportFog"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -19903,6 +20128,10 @@ MapObject "HereticTeleportMan"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoSectorLinks "true";
@@ -19921,6 +20150,10 @@ MapObject "StaffPuff1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "stfhit";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -19983,6 +20216,10 @@ MapObject "StaffPuff2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "stfpow";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20070,6 +20307,10 @@ MapObject "BeakPuff"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "chicatk";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20132,6 +20373,10 @@ MapObject "Gauntlets"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -20162,6 +20407,10 @@ MapObject "GauntletPuff1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20229,6 +20478,10 @@ MapObject "GauntletPuff2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20296,6 +20549,10 @@ MapObject "DragonClaw"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -20327,6 +20584,10 @@ MapObject "DragonClawEffect"
 	PainChance "0";
 	Height "8";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "blshit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -20442,6 +20703,10 @@ MapObject "DragonClawSmoke"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20518,6 +20783,10 @@ MapObject "Ripper"
 	PainChance "0";
 	Height "6";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -20621,6 +20890,10 @@ MapObject "DragonClawPuff1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20697,6 +20970,10 @@ MapObject "DragonClawPuff2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -20795,6 +21072,10 @@ MapObject "Mace"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -20826,6 +21107,11 @@ MapObject "MaceEffect1"
 	PainChance "0";
 	Height "6";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	8.0	6.0	100	2	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_FLOORBOUNCE|MF2_THRUGHOST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -20934,6 +21220,11 @@ MapObject "MaceEffect2"
 	PainChance "0";
 	Height "6";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	8.0	6.0	100	6	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF	S_NULL	MF2_LOGRAV|MF2_FLOORBOUNCE|MF2_THRUGHOST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21040,6 +21331,11 @@ MapObject "MaceEffect3"
 	PainChance "0";
 	Height "6";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "0	8.0	6.0	100	4	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF	S_NULL	MF2_LOGRAV|MF2_FLOORBOUNCE|MF2_THRUGHOST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21146,6 +21442,11 @@ MapObject "MaceEffect4"
 	PainChance "0";
 	Height "6";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "0	8.0	6.0	100	18	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF	S_NULL	MF2_LOGRAV|MF2_FLOORBOUNCE|MF2_THRUGHOST|MF2_TELESTOMP		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21241,6 +21542,10 @@ MapObject "SkullRod"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -21272,6 +21577,10 @@ MapObject "SkullRodEffect1"
 	PainChance "0";
 	Height "8";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21389,6 +21698,10 @@ MapObject "SkullRodEffect2"
 	PainChance "0";
 	Height "8";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "ramphit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21552,6 +21865,11 @@ MapObject "SkullRodRain1"
 	PainChance "0";
 	Height "12";
 	Radius "5";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	5.0	12.0	100	5	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21647,6 +21965,11 @@ MapObject "SkullRodRain2"
 	PainChance "0";
 	Height "12";
 	Radius "5";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	5.0	12.0	100	5	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21742,6 +22065,11 @@ MapObject "SkullRodRain3"
 	PainChance "0";
 	Height "12";
 	Radius "5";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	5.0	12.0	100	5	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21837,6 +22165,11 @@ MapObject "SkullRodRain4"
 	PainChance "0";
 	Height "12";
 	Radius "5";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	5.0	12.0	100	5	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -21932,6 +22265,10 @@ MapObject "WandEffect1"
 	PainChance "0";
 	Height "6";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "gldhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22026,6 +22363,11 @@ MapObject "WandEffect2"
 	PainChance "0";
 	Height "6";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	10.0	6.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22119,6 +22461,10 @@ MapObject "WandPuff1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -22195,6 +22541,10 @@ MapObject "WandPuff2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -22260,6 +22610,10 @@ MapObject "PhoenixRod"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -22291,6 +22645,10 @@ MapObject "PhoenixRodEffect1"
 	PainChance "0";
 	Height "8";
 	Radius "11";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "phohit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22420,6 +22778,10 @@ MapObject "PhoenixRodPuff"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -22496,6 +22858,11 @@ MapObject "PhoenixRodEffect2"
 	PainChance "0";
 	Height "8";
 	Radius "6";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	6.0	8.0	100	2	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT|MF2_FIREDAMAGE		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22691,6 +23058,10 @@ MapObject "Crossbow"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -22722,6 +23093,10 @@ MapObject "CrossbowEffect1"
 	PainChance "0";
 	Height "8";
 	Radius "11";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22794,6 +23169,10 @@ MapObject "CrossbowEffect2"
 	PainChance "0";
 	Height "8";
 	Radius "11";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22867,6 +23246,10 @@ MapObject "CrossbowEffect3"
 	PainChance "0";
 	Height "8";
 	Radius "11";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -22940,6 +23323,10 @@ MapObject "CrossbowEffect4"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsLowGravity "true";
@@ -22983,6 +23370,10 @@ MapObject "HereticBlood"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -23033,6 +23424,10 @@ MapObject "BloodSplatter"
 	PainChance "0";
 	Height "4";
 	Radius "2";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -23100,6 +23495,10 @@ MapObject "HereticPlayer"
 	PainChance "1";
 	Height "56";
 	Radius "16";
+	AttackSound "None";
+	PainSound "plrpai";
+	DeathSound "plrdth";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -23412,6 +23811,10 @@ MapObject "PlayerSkull"
 	PainChance "0";
 	Height "4";
 	Radius "4";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsDropOff "true";
@@ -23490,6 +23893,10 @@ MapObject "PlayerChicken"
 	PainChance "1";
 	Height "24";
 	Radius "16";
+	AttackSound "None";
+	PainSound "chicpai";
+	DeathSound "chicdth";
+	ActiveSound "None";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -23696,6 +24103,10 @@ MapObject "Chicken"
 	PainChance "0.784314";
 	Height "22";
 	Radius "9";
+	AttackSound "chicatk";
+	PainSound "chicpai";
+	DeathSound "chicdth";
+	ActiveSound "chicact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -23905,6 +24316,10 @@ MapObject "Feather"
 	PainChance "0";
 	Height "4";
 	Radius "2";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -24024,6 +24439,10 @@ MapObject "Mummy"
 	PainChance "0.501961";
 	Height "62";
 	Radius "22";
+	AttackSound "mumat1";
+	PainSound "mumpai";
+	DeathSound "mumdth";
+	ActiveSound "mumact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -24263,6 +24682,10 @@ MapObject "MummyLeader"
 	PainChance "0.25098";
 	Height "62";
 	Radius "22";
+	AttackSound "mumat1";
+	PainSound "mumpai";
+	DeathSound "mumdth";
+	ActiveSound "mumact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -24574,6 +24997,10 @@ MapObject "MummyGhost"
 	PainChance "0.501961";
 	Height "62";
 	Radius "22";
+	AttackSound "mumat1";
+	PainSound "mumpai";
+	DeathSound "mumdth";
+	ActiveSound "mumact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -24815,6 +25242,10 @@ MapObject "MummyLeaderGhost"
 	PainChance "0.25098";
 	Height "62";
 	Radius "22";
+	AttackSound "mumat1";
+	PainSound "mumpai";
+	DeathSound "mumdth";
+	ActiveSound "mumact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -25128,6 +25559,10 @@ MapObject "MummySoul"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -25220,6 +25655,11 @@ MapObject "MummyEffect"
 	PainChance "0";
 	Height "14";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "0	8.0	14.0	100	4	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -25338,6 +25778,10 @@ MapObject "Weredragon"
 	PainChance "0.392157";
 	Height "74";
 	Radius "32";
+	AttackSound "bstatk";
+	PainSound "bstpai";
+	DeathSound "bstdth";
+	ActiveSound "bstact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -25683,6 +26127,11 @@ MapObject "WeredragonShot"
 	PainChance "0";
 	Height "8";
 	Radius "9";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	9.0	8.0	100	4	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_WINDTHRUST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -25828,6 +26277,11 @@ MapObject "BurnBall1"
 	PainChance "0";
 	Height "8";
 	Radius "6";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	6.0	8.0	100	2	sfx_None	MF_NOBLOCKMAP|MF_NOGRAVITY|MF_MISSILE	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -25985,6 +26439,11 @@ MapObject "BurnBall2"
 	PainChance "0";
 	Height "8";
 	Radius "6";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	6.0	8.0	100	2	sfx_None	MF_NOBLOCKMAP|MF_NOGRAVITY|MF_MISSILE	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -26150,6 +26609,11 @@ MapObject "Puffy"
 	PainChance "0";
 	Height "8";
 	Radius "6";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	6.0	8.0	100	2	sfx_None	MF_NOBLOCKMAP|MF_NOGRAVITY|MF_MISSILE	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -26236,6 +26700,10 @@ MapObject "Ophidian"
 	PainChance "0.188235";
 	Height "70";
 	Radius "22";
+	AttackSound "snkatk";
+	PainSound "snkpai";
+	DeathSound "snkdth";
+	ActiveSound "snkact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -26561,6 +27029,11 @@ MapObject "OphidianShot1"
 	PainChance "0";
 	Height "8";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	12.0	8.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_WINDTHRUST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -26689,6 +27162,11 @@ MapObject "OphidianShot2"
 	PainChance "0";
 	Height "8";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	12.0	8.0	100	3	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -26782,6 +27260,10 @@ MapObject "IronLich"
 	PainChance "0.12549";
 	Height "72";
 	Radius "40";
+	AttackSound "hedat1";
+	PainSound "hedpai";
+	DeathSound "heddth";
+	ActiveSound "hedact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -26804,6 +27286,11 @@ MapObject "IronLichEffect1"
 	PainChance "0";
 	Height "6";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	12.0	6.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT|MF2_THRUGHOST		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -26827,6 +27314,11 @@ MapObject "IronLichEffect2"
 	PainChance "0";
 	Height "6";
 	Radius "12";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "0	12.0	6.0	100	3	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -26849,6 +27341,11 @@ MapObject "IronLichEffect3"
 	PainChance "0";
 	Height "12";
 	Radius "14";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	14.0	12.0	100	5	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_WINDTHRUST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -26872,6 +27369,11 @@ MapObject "Whirlwind"
 	PainChance "0";
 	Height "74";
 	Radius "16";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	16.0	74.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY|MF_SHADOW	S_NULL	MF2_NOTELEPORT|MF2_FORCETRANSPARENCY		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -26895,6 +27397,10 @@ MapObject "SaberClaw"
 	PainChance "0.12549";
 	Height "64";
 	Radius "20";
+	AttackSound "clkatk";
+	PainSound "clkpai";
+	DeathSound "clkdth";
+	ActiveSound "clkact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -27124,6 +27630,10 @@ MapObject "Wizard"
 	PainChance "0.25098";
 	Height "68";
 	Radius "16";
+	AttackSound "wizatk";
+	PainSound "wizpai";
+	DeathSound "wizdth";
+	ActiveSound "wizact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -27476,6 +27986,11 @@ MapObject "WizardEffet"
 	PainChance "0";
 	Height "6";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	10.0	6.0	100	3	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -27580,6 +28095,10 @@ MapObject "Gargoyle"
 	PainChance "0.784314";
 	Height "36";
 	Radius "16";
+	AttackSound "impat1";
+	PainSound "imppai";
+	DeathSound "impdth";
+	ActiveSound "impact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -27990,6 +28509,10 @@ MapObject "FireGargoyle"
 	PainChance "0.784314";
 	Height "36";
 	Radius "16";
+	AttackSound "impat2";
+	PainSound "imppai";
+	DeathSound "impdth";
+	ActiveSound "impact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -28335,6 +28858,10 @@ MapObject "GargoyleChunk1"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -28385,6 +28912,10 @@ MapObject "GargoyleChunk2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -28436,6 +28967,11 @@ MapObject "GargoyalShot"
 	PainChance "0";
 	Height "8";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	8.0	8.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_WINDTHRUST|MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -28541,6 +29077,10 @@ MapObject "Knight"
 	PainChance "0.392157";
 	Height "78";
 	Radius "24";
+	AttackSound "kgtatk";
+	PainSound "kgtpai";
+	DeathSound "kgtdth";
+	ActiveSound "kgtact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -28816,6 +29356,10 @@ MapObject "GhostKnight"
 	PainChance "0.392157";
 	Height "78";
 	Radius "24";
+	AttackSound "kgtatk";
+	PainSound "kgtpai";
+	DeathSound "kgtdth";
+	ActiveSound "kgtact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -29094,6 +29638,10 @@ MapObject "KnightShot1"
 	PainChance "0";
 	Height "8";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -29191,6 +29739,10 @@ MapObject "KnightShot2"
 	PainChance "0";
 	Height "8";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "hrnhit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -29276,6 +29828,10 @@ MapObject "MountedDSparil"
 	PainChance "0.219608";
 	Height "100";
 	Radius "28";
+	AttackSound "sbtatk";
+	PainSound "sbtpai";
+	DeathSound "sbtdth";
+	ActiveSound "sbtact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -29598,6 +30154,11 @@ MapObject "MountedDSparilEffect"
 	PainChance "0";
 	Height "10";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	10.0	10.0	100	10	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT|MF2_FIREDAMAGE		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -29714,6 +30275,11 @@ MapObject "DSparil"
 	PainChance "0.12549";
 	Height "70";
 	Radius "16";
+	AttackSound "soratk";
+	PainSound "sorpai";
+	DeathSound "	16.0	70.0	300	0	sfx_soract	MF_SOLID|MF_SHOOTABLE|MF_COUNTKILL|MF_DROPOFF	S_NULL	MF2_FOOTCLIP|MF2_PASSMOBJ|MF2_BOSS		
+";
+	ActiveSound "soract";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -30030,6 +30596,11 @@ MapObject "DSparilEffect1"
 	PainChance "0";
 	Height "6";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	10.0	6.0	100	1	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -30160,6 +30731,10 @@ MapObject "DSparilEffect2"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoGravity "true";
@@ -30217,6 +30792,11 @@ MapObject "DSparilEffect3"
 	PainChance "0";
 	Height "6";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "0	10.0	6.0	100	10	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -30333,6 +30913,10 @@ MapObject "DSparilEffect4"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	
@@ -30414,6 +30998,10 @@ MapObject "Minotaur"
 	PainChance "0.0980392";
 	Height "100";
 	Radius "28";
+	AttackSound "minat1";
+	PainSound "minpai";
+	DeathSound "mindth";
+	ActiveSound "minact";
 	
 	IsSolid "true";
 	IsShootable "true";
@@ -30762,6 +31350,11 @@ MapObject "MinotaurEffect1"
 	PainChance "0";
 	Height "6";
 	Radius "10";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound ".0	10.0	6.0	100	3	sfx_None	MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY	S_NULL	MF2_NOTELEPORT|MF2_FIREDAMAGE		
+";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -30879,6 +31472,10 @@ MapObject "MinotaurEffect2"
 	PainChance "0";
 	Height "12";
 	Radius "5";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "phohit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -30975,6 +31572,10 @@ MapObject "MinotaurEffect3"
 	PainChance "0";
 	Height "16";
 	Radius "8";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "phohit";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	IsMissile "true";
@@ -31158,6 +31759,10 @@ MapObject "GreenKey"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	NotInDeathmatch "true";
@@ -31289,6 +31894,10 @@ MapObject "YellowKey"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	NotInDeathmatch "true";
@@ -31420,6 +32029,10 @@ MapObject "BlueKey"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	NotInDeathmatch "true";
@@ -31540,6 +32153,10 @@ MapObject "SmallWandAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31570,6 +32187,10 @@ MapObject "LargeWandAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31620,6 +32241,10 @@ MapObject "SmallMaceAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31650,6 +32275,10 @@ MapObject "LargeMaceAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31680,6 +32309,10 @@ MapObject "SmallCrossbowAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31710,6 +32343,10 @@ MapObject "LargeCrossbowAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31760,6 +32397,10 @@ MapObject "SmallSkullRodAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31800,6 +32441,10 @@ MapObject "LargeSkullRodAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31840,6 +32485,10 @@ MapObject "SmallPhoenixRodAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31890,6 +32539,10 @@ MapObject "LargePhoenixRodAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31940,6 +32593,10 @@ MapObject "SmallClawAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -31990,6 +32647,10 @@ MapObject "LargeClawAmmo"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	IsSpecial "true";
 	
@@ -32040,6 +32701,10 @@ MapObject "WindSound"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoSectorLinks "true";
@@ -32072,6 +32737,10 @@ MapObject "WaterfallSound"
 	PainChance "0";
 	Height "16";
 	Radius "20";
+	AttackSound "None";
+	PainSound "None";
+	DeathSound "None";
+	ActiveSound "None";
 	
 	NoBlockMap "true";
 	NoSectorLinks "true";

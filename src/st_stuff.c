@@ -810,7 +810,10 @@ void ST_DrawPlayerBarsEx(void)
 		if (D_ScrSplitVisible(p))
 		{
 			// Get players to draw for
-			ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
+			if (!g_Splits[p].XPlayer)
+				ConsoleP = &players[g_Splits[p].Console];
+			else
+				ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
 			DisplayP = D_XFakePlayerGetPOV(p);//&players[g_Splits[p].Display];
 			
 			// Missing player?

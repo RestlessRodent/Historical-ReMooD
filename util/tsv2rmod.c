@@ -528,6 +528,15 @@ int main(int argc, char** argv)
 		fprintf(stdout, "\tHeight \"%g\";\n", (double)CurInfo->Height);
 		fprintf(stdout, "\tRadius \"%g\";\n", (double)CurInfo->Radius);
 		
+		if (CurInfo->AttackSound)
+			fprintf(stdout,"\tAttackSound \"%s\";\n", CurInfo->AttackSound);
+		if (CurInfo->PainSound)
+			fprintf(stdout,"\tPainSound \"%s\";\n", CurInfo->PainSound);
+		if (CurInfo->DeathSound)
+			fprintf(stdout,"\tDeathSound \"%s\";\n", CurInfo->DeathSound);
+		if (CurInfo->ActiveSound)
+			fprintf(stdout,"\tActiveSound \"%s\";\n", CurInfo->ActiveSound);
+		
 		// Flags
 		NewLined = false;
 		for (j = 0; j < 2; j++)
@@ -715,11 +724,9 @@ RaiseStateID
 #endif
 		
 	int32_t ReactionTime;
-	char* AttackSound;
 	char* PainState;
 	uint32_t PainStateID;
 	int32_t PainChance;
-	char* PainSound;
 	char* MeleeState;
 	uint32_t MeleeStateID;
 	char* MissileState;
@@ -730,13 +737,11 @@ RaiseStateID
 	uint32_t DeathStateID;
 	char* XDeathState;
 	uint32_t XDeathStateID;
-	char* DeathSound;
 	int32_t Speed;
 	int32_t Radius;
 	int32_t Height;
 	int32_t Mass;
 	int32_t Damage;
-	char* ActiveSound;
 	char* Flags;
 	char* RaiseState;
 	uint32_t RaiseStateID;
