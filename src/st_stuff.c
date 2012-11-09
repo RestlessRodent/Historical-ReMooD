@@ -531,7 +531,7 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	Profile = a_ConsoleP->ProfileEx;
 	
 	/* Current Level Name */
-	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), STS_SBX(Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
+	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
 }
 
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
@@ -548,6 +548,9 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	bool_t BigLetters, IsMonster;
 	D_XPlayer_t* XPlay;
 	bool_t IsFake;
+	uint32_t i, j;
+	P_RMODKey_t* DrawKey;
+	int32_t Right;
 	
 	/* Init */
 	// Font to use
@@ -709,6 +712,41 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 					a_Y + STS_SBY(Profile, 8, a_W, a_H) - (BigLetters ? 4 : 0)
 				);
 		}
+		
+		//// KEYS
+		Right = 8;
+		for (i = 0; i < 2; i++)
+			for (j = 0; j < 32; j++)
+				if (DisplayP->KeyCards[i] & (UINT32_C(1) << j))
+				{
+					// Too many keys in view?
+					if (Right > 300)
+						break;
+					
+					// Try to find the key
+					DrawKey = INFO_KeyByGroupBit(i, j);
+					
+					// No key exists here?
+					if (!DrawKey)
+						continue;
+					
+					// No image supplied?
+					if (!DrawKey->ImageName)
+						vi = V_ImageFindA("RMD_UKEY", VCP_DOOM);
+					
+					// Otherwise, use the key image possibly
+					else
+						vi = V_ImageFindA(DrawKey->ImageName, VCP_NONE);
+					
+					// Draw the key
+					if (vi)
+					{
+						V_ImageDraw(0, vi, a_X + STS_SBX(Profile, Right, a_W, a_H), a_Y + STS_SBY(Profile, 165, a_W, a_H), NULL);
+					
+						// Shift
+						Right += vi->Width + 1;
+					}
+				}
 	}
 	
 	/* Classic Doom */

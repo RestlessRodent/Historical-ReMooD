@@ -393,6 +393,7 @@ typedef struct P_RMODKey_s
 	char* ImageName;
 	
 	uint32_t Bit;
+	uint32_t BitNum;
 	uint8_t Group;
 } P_RMODKey_t;
 
@@ -471,6 +472,7 @@ P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
 weapontype_t INFO_GetWeaponByName(const char* const a_Name);
 ammotype_t INFO_GetAmmoByName(const char* const a_Name);
 P_KeyNum_t INFO_GetKeyByName(const char* const a_Name);
+P_RMODKey_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
