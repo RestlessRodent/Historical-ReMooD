@@ -2,20 +2,33 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 #define TOKSYMS " \t\r\n"
+
+typedef enum
+{
+	false,
+	true
+} bool_t;
 
 /* StateInfo_t -- Single State */
 typedef struct StateInfo_s
 {
+	int32_t GroupID;							// State Group ID
+	int32_t PassID;								// For Repetition Pass
+	
 	uint32_t DEHId;
 	char* DEHName;
 	char* Sprite;
 	char* NextState;
 	uint32_t NextID;
 	char* Func;
-	uint32_t Frame;
-	uint32_t Tics;
+	int32_t Frame;
+	int32_t Tics;
+	bool_t FullBright;
+	
+	struct StateInfo_s* Next;
 } StateInfo_t;
 
 /* MobjInfo_t -- Object info */
@@ -60,11 +73,98 @@ typedef struct MobjInfo_s
 	char* FlagsTwo;
 } MobjInfo_t;
 
+static const struct
+{
+	int32_t ID;									// ID of group
+	const char* Name;							// Name of group
+	size_t StrOff;								// String offset
+	size_t IntOff;								// Integer Offset
+} c_StateReaders[] =
+{
+	{0, "SpawnState", offsetof(MobjInfo_t, SpawnState), offsetof(MobjInfo_t, SpawnStateID)},
+	{1, "ActiveState", offsetof(MobjInfo_t, WakeState), offsetof(MobjInfo_t, WakeStateID)},
+	{2, "PainState", offsetof(MobjInfo_t, PainState), offsetof(MobjInfo_t, PainStateID)},
+	{3, "MeleeAttackState", offsetof(MobjInfo_t, MeleeState), offsetof(MobjInfo_t, MeleeStateID)},
+	{4, "RangedAttackState", offsetof(MobjInfo_t, MissileState), offsetof(MobjInfo_t, MissileStateID)},
+	{5, "CrashState", offsetof(MobjInfo_t, CrashState), offsetof(MobjInfo_t, CrashStateID)},
+	{6, "DeathState", offsetof(MobjInfo_t, DeathState), offsetof(MobjInfo_t, DeathStateID)},
+	{7, "GibState", offsetof(MobjInfo_t, XDeathState), offsetof(MobjInfo_t, XDeathStateID)},
+	{8, "RaiseState", offsetof(MobjInfo_t, RaiseState), offsetof(MobjInfo_t, RaiseStateID)},
+	
+	{-1, NULL, 0, 0}
+};
+
 static StateInfo_t* l_States;					// State List
 static size_t l_NumStates;
 
 static MobjInfo_t* l_Infos;						// Objects
 static size_t l_NumInfos;
+
+
+/* INFO_FlagInfo_t -- Flag Information */
+typedef struct INFO_FlagInfo_s
+{
+	const char* const Old;
+	const char* const New;
+} INFO_FlagInfo_t;
+
+// c_xFlags -- "flags"
+static const INFO_FlagInfo_t c_FlagNames[] =
+{
+	{"MF_SPECIAL", "IsSpecial"},
+	{"MF_SOLID", "IsSolid"},
+	{"MF_SHOOTABLE", "IsShootable"},
+	{"MF_NOSECTOR", "NoSectorLinks"},
+	{"MF_NOBLOCKMAP", "NoBlockMap"},
+	{"MF_AMBUSH", "IsDeaf"},
+	{"MF_JUSTHIT", "JustGotHit"},
+	{"MF_JUSTATTACKED", "JustAttacked"},
+	{"MF_SPAWNCEILING", "SpawnsOnCeiling"},
+	{"MF_NOGRAVITY", "NoGravity"},
+	{"MF_DROPOFF", "IsDropOff"},
+	{"MF_PICKUP", "CanPickupItems"},
+	{"MF_NOCLIP", "NoClipping"},
+	{"MF_SLIDE", "CanSlideAlongWalls"},
+	{"MF_FLOAT", "IsFloating"},
+	{"MF_TELEPORT", "NoLineCrossing"},
+	{"MF_MISSILE", "IsMissile"},
+	{"MF_DROPPED", "IsDropped"},
+	{"MF_SHADOW", "IsFuzzyShadow"},
+	{"MF_NOBLOOD", "NoBleeding"},
+	{"MF_CORPSE", "IsCorpse"},
+	{"MF_INFLOAT", "NoFloatAdjust"},
+	{"MF_COUNTKILL", "IsKillCountable"},
+	{"MF_COUNTITEM", "IsItemCountable"},
+	{"MF_SKULLFLY", "IsFlyingSkull"},
+	{"MF_NOTDMATCH", "NotInDeathmatch"},
+	{"MF_NOCLIPTHING", "NoThingClipping"},
+	{"MF2_LOGRAV", "IsLowGravity"},
+	{"MF2_WINDTHRUST", "IsWindThrustable"},
+	{"MF2_FLOORBOUNCE", "IsFloorBouncer"},
+	{"MF2_THRUGHOST", "PassThruGhosts"},
+	{"MF2_FLY", "IsFlying"},
+	{"MF2_FOOTCLIP", "CanFeetClip"},
+	{"MF2_SPAWNFLOAT", "SpawnAtRandomZ"},
+	{"MF2_NOTELEPORT", "CannotTeleport"},
+	{"MF2_RIP", "MissilesThruSolids"},
+	{"MF2_PUSHABLE", "IsPushable"},
+	{"MF2_SLIDE", "WallSliding"},
+	{"MF2_ONMOBJ", "IsOnObject"},
+	{"MF2_PASSMOBJ", "MoveOverUnderObject"},
+	{"MF2_CANNOTPUSH", "CannotPushPushables"},
+	{"MF2_FEETARECLIPPED", "AreFeetClipped"},
+	{"MF2_BOSS", "IsBoss"},
+	{"MF2_FIREDAMAGE", "DealsFireDamage"},
+	{"MF2_NODMGTHRUST", "NoDamageThrust"},
+	{"MF2_TELESTOMP", "CanTeleStomp"},
+	{"MF2_FLOATBOB", "FloatBobbing"},
+	{"MF2_DONTDRAW", "DoNotDraw"},
+	{"MF2_BOUNCES", "CanBounce"},
+	{"MF2_FRIENDLY", "IsFriendly"},
+	{"MF2_FORCETRANSPARENCY", "ForceTransparency"},
+	{"MF2_FLOORHUGGER", "IsFloorHugger"},
+	{NULL, NULL},
+};
 
 /* StateForName() -- Locates state for name */
 uint32_t StateForName(const char* const a_Name)
@@ -94,11 +194,17 @@ int main(int argc, char** argv)
 	FILE* inMI, *inST, *inNM;
 	
 	StateInfo_t* CurState;
-	size_t i, j;
+	size_t i, j, k;
 	size_t CurStateNum, ReadNum;
 	
 	MobjInfo_t* CurInfo;
 	size_t CurInfoNum;
+	
+	char** pStateStr;
+	uint32_t* pStateID, FrameID;
+	bool_t NewLined;
+	
+	StateInfo_t* SRover;
 	
 	/* Load State Tables */
 	inST = fopen("her_stt.tsv", "rt");
@@ -148,6 +254,13 @@ int main(int argc, char** argv)
 						// Frame
 					case 2:
 						CurState->Frame = strtol(Tok, NULL, 0);
+						
+						// Full bright?
+						if (CurState->Frame >= 32767)
+						{
+							CurState->FullBright = true;
+							CurState->Frame -= 32767;
+						}
 						break;
 						
 						// Tics
@@ -158,6 +271,11 @@ int main(int argc, char** argv)
 						// Function
 					case 4:
 						CurState->Func = strdup(Tok);
+						
+						// Skip A_
+						if (CurState->Func)
+							if (strncasecmp(CurState->Func, "A_", 2) == 0)
+								CurState->Func += 2;
 						break;
 						
 						// Next State
@@ -178,6 +296,7 @@ int main(int argc, char** argv)
 	{
 		fprintf(stderr, ".");
 		l_States[i].NextID = StateForName(l_States[i].NextState);
+		l_States[i].Next = &l_States[l_States[i].NextID];
 	}
 	fprintf(stderr, "done!\n");
 	
@@ -368,8 +487,233 @@ int main(int argc, char** argv)
 					default:
 						break;
 				}
+		}
+	}
+	
+	/* Cleanup */
+	fprintf(stderr, "done!\n");
+	
+	/* Dump REMOODAT */
+	// Objects
+	for (i = 0; i < l_NumInfos; i++)
+	{
+		// Clear thing passes
+		for (j = 0; j < l_NumStates; j++)
+		{
+			l_States[j].GroupID = -1;
+			l_States[j].PassID = -1;
+		}
+		
+		// Get Current
+		CurInfo = &l_Infos[i];
+		
+		// Header
+		fprintf(stdout, "// Object -- %s\n", CurInfo->ClassName);
+		fprintf(stdout, "MapObject \"%s\"\n", CurInfo->ClassName);
+		fprintf(stdout, "{\n");
+		
+		// Fields
+		fprintf(stdout, "\tNiceName \"%s\";\n", CurInfo->ClassName);
+		fprintf(stdout, "\tHereticEdNum \"%i\";\n", CurInfo->DoomEdNum);
+		fprintf(stdout, "\tHereHackEdNum \"%i\";\n", CurInfo->DEHId);
+		fprintf(stdout, "\tMTName \"%s\";\n", CurInfo->MTName);
+		fprintf(stdout, "\tSpawnHealth \"%i\";\n", CurInfo->SpawnHealth);
+		
+		if (CurInfo->Damage)
+			fprintf(stdout, "\tDamage \"%i\";\n", CurInfo->Damage);
+		
+		fprintf(stdout, "\tMass \"%i\";\n", CurInfo->Mass);
+		fprintf(stdout, "\tSpeed \"%i\";\n", CurInfo->Speed);
+		fprintf(stdout, "\tPainChance \"%g\";\n", (double)CurInfo->PainChance / 255.0);
+		fprintf(stdout, "\tHeight \"%g\";\n", (double)CurInfo->Height);
+		fprintf(stdout, "\tRadius \"%g\";\n", (double)CurInfo->Radius);
+		
+		// Flags
+		NewLined = false;
+		for (j = 0; j < 2; j++)
+			// Tokenize current set
+			for (Tok = strtok((!j ? CurInfo->Flags : CurInfo->FlagsTwo), "| \r\t");
+					Tok; Tok = strtok(NULL, "| \r\t"))
+				for (k = 0; c_FlagNames[k].Old; k++)
+					if (strcasecmp(Tok, c_FlagNames[k].Old) == 0)
+					{
+						if (!NewLined)
+						{
+							fprintf(stdout, "\t\n");
+							NewLined = true;
+						}
+						
+						fprintf(stdout, "\t%s \"true\";\n", c_FlagNames[k].New);
+					}
+		
+		// State Building Loop
+		for (j = 0; j < 9; j++)
+		{
+			// Obtain state string and ID
+			pStateStr = (void*)((uintptr_t)CurInfo + c_StateReaders[j].StrOff);
+			pStateID = (void*)((uintptr_t)CurInfo + c_StateReaders[j].IntOff);
+			
+			// Missing?
+			if (!*pStateID)
+				continue;
 				
+			// Spacing Line
+			fprintf(stdout, "\t\n");
+			
+			// Create marker for it
+			fprintf(stdout, "\tState \"%s\"\n", c_StateReaders[j].Name);
+			fprintf(stdout, "\t{\n");
+			
+			// State Roving Loop
+			for (FrameID = 1, SRover = &l_States[*pStateID]; SRover; FrameID++)
+			{
+				// Clear newlinded ness
+				NewLined = false;
 				
+				// If current frame has no pass ID or group, set it now
+				if (SRover->PassID == -1)
+				{
+					SRover->GroupID = j;
+					SRover->PassID = FrameID;
+				}
+				
+				// Print current state landed on
+				fprintf(stdout, "\t\tFrame \"%u\"\n", FrameID);
+				fprintf(stdout, "\t\t{\n");
+				
+				// Print details
+				fprintf(stdout, "\t\t\tHereHackEdNum \"%u\";\n", SRover->DEHId);
+				fprintf(stdout, "\t\t\tOldName \"%s\";\n", SRover->DEHName);
+				fprintf(stdout, "\t\t\tSprite \"%s\";\n", SRover->Sprite);
+				fprintf(stdout, "\t\t\tFrame \"%u\";\n", SRover->Frame);
+				fprintf(stdout, "\t\t\tTics \"%i\";\n", SRover->Tics);
+				
+				// Fullbright?
+				if (SRover->FullBright)
+					fprintf(stdout, "\t\t\tFullBright \"true\";\n");
+				
+				// Not null func
+				if (SRover->Func)
+					if (strcasecmp(SRover->Func, "NULL"))
+						fprintf(stdout, "\t\t\tFunction \"%s\";\n", SRover->Func);
+				
+				// Next is zero, S_NULL
+				if (SRover->NextID == 0)
+				{
+					fprintf(stdout, "\t\t\tNext \"0\";\n");
+					SRover = NULL;	// Bye!
+				}
+				
+				// Otherwise, determine if it is a next or a goto
+				else
+				{
+					// Next has no ID set, claim it as the next frame
+					if (SRover->Next->PassID == -1)
+					{
+						fprintf(stdout, "\t\t\tNext \"%i\";\n", FrameID + 1);
+						SRover = SRover->Next;
+						NewLined = true;	// For pretty output
+					}
+					
+					// It has an ID set, which means it was claimed
+					else
+					{
+						// If no group (ouch), or same group, use next and break
+						if (SRover->Next->GroupID == -1 ||
+								SRover->Next->GroupID == j)
+						{
+							fprintf(stdout, "\t\t\tNext \"%i\";\n", SRover->Next->PassID);
+							SRover = NULL;
+						}
+						
+						// If a group was set, then use a goto and break
+						else
+						{
+							// Target frame is not one, use an offset frame
+							if (SRover->Next->PassID != 1)
+								fprintf(stdout, "\t\t\tGoto \"%s:%i\";\n", c_StateReaders[SRover->Next->GroupID].Name, SRover->Next->PassID);
+							
+							// Otherwise mean frame 1
+							else
+								fprintf(stdout, "\t\t\tGoto \"%s\";\n", c_StateReaders[SRover->Next->GroupID].Name);
+							SRover = NULL;
+						}
+					}
+				}
+				
+				// End
+				fprintf(stdout, "\t\t}\n");
+				
+				// Newline?
+				if (NewLined)
+					fprintf(stdout, "\t\t\n");
+				
+				// Dead?
+				if (!SRover)
+					break;
+			}
+			
+			// Done
+			fprintf(stdout, "\t}\n");
+#if 0
+/* StateInfo_t -- Single State */
+typedef struct StateInfo_s
+{
+	int32_t GroupID;							// State Group ID
+	int32_t PassID;								// For Repetition Pass
+	
+	uint32_t DEHId;
+	char* DEHName;
+	char* Sprite;
+	char* NextState;
+	uint32_t NextID;
+	char* Func;
+	uint32_t Frame;
+	uint32_t Tics;
+	FullBright
+	
+	struct StateInfo_s* Next;
+} StateInfo_t;
+
+static const struct
+{
+	int32_t ID;									// ID of group
+	const char* Name;							// Name of group
+	size_t StrOff;								// String offset
+	size_t IntOff;								// Integer Offset
+} c_StateReaders[] =
+#endif
+		}
+		
+		// Reference states
+#if 0/* StateInfo_t -- Single State */
+typedef struct StateInfo_s
+{
+	int32_t GroupID;							// State Group ID
+	int32_t PassID;								// For Repetition Pass
+	
+	uint32_t DEHId;
+	char* DEHName;
+	char* Sprite;
+	char* NextState;
+	uint32_t NextID;
+	char* Func;
+	uint32_t Frame;
+	uint32_t Tics;
+	
+	struct StateInfo_s* Next;
+} StateInfo_t;
+SpawnStateID
+WakeStateID
+PainStateID
+MeleeStateID
+MissileStateID
+CrashStateID
+DeathStateID
+XDeathStateID
+RaiseStateID
+#endif
+		
 	int32_t ReactionTime;
 	char* AttackSound;
 	char* PainState;
@@ -397,39 +741,6 @@ int main(int argc, char** argv)
 	char* RaiseState;
 	uint32_t RaiseStateID;
 	char* FlagsTwo;
-		}
-	}
-	
-	/* Cleanup */
-	fprintf(stderr, "done!\n");
-	
-	/* Dump REMOODAT */
-	// Objects
-	for (i = 0; i < l_NumInfos; i++)
-	{
-		// Get Current
-		CurInfo = &l_Infos[i];
-		
-		// Header
-		fprintf(stdout, "// Object -- %s\n", CurInfo->ClassName);
-		fprintf(stdout, "MapObject \"%s\"\n", CurInfo->ClassName);
-		fprintf(stdout, "{\n");
-		
-		// Fields
-		fprintf(stdout, "\tNiceName \"%s\";\n", CurInfo->ClassName);
-		fprintf(stdout, "\tHereticEdNum \"%i\";\n", CurInfo->DoomEdNum);
-		fprintf(stdout, "\tDeHackEdNum \"%i\";\n", CurInfo->DEHId);
-		fprintf(stdout, "\tMTName \"%s\";\n", CurInfo->MTName);
-		fprintf(stdout, "\tSpawnHealth \"%i\";\n", CurInfo->SpawnHealth);
-		
-		if (CurInfo->Damage)
-			fprintf(stdout, "\tDamage \"%i\";\n", CurInfo->Damage);
-		
-		fprintf(stdout, "\tMass \"%i\";\n", CurInfo->Mass);
-		fprintf(stdout, "\tSpeed \"%i\";\n", CurInfo->Speed);
-		fprintf(stdout, "\tPainChance \"%g\";\n", (double)CurInfo->PainChance / 255.0);
-		fprintf(stdout, "\tHeight \"%g\";\n", (double)CurInfo->Height);
-		fprintf(stdout, "\tRadius \"%g\";\n", (double)CurInfo->Radius);
 		
 		// Footer
 		fprintf(stdout, "}\n\n");
