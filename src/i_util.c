@@ -1928,11 +1928,19 @@ uint16_t I_GetCurrentPID(void)
 	/* UNIX */
 #elif defined(__unix__)
 	return getpid();
+	
+	/* Unknown */
+#else
+	return 0;
 #endif
 }
 
 #if defined(__unix__)
-	DIR* l_UNIXDir = NULL;
+	static DIR* l_UNIXDir = NULL;
+#elif defined(_WIN32)
+	static WIN32_FIND_DATA l_WinDir;
+	static HANDLE l_WinDirH;
+	static bool_t l_WinDirOK;
 #else
 #endif
 
@@ -1957,6 +1965,41 @@ bool_t I_OpenDir(const char* const a_Path)
 	
 	/* Failure */
 	return false;
+
+#elif defined(_WIN32)
+	size_t i;
+	TCHAR PathBuf[MAX_PATH];
+	
+	/* Check */
+	if (!a_Path)
+		return false;
+	
+	/* Already open? */
+	if (l_WinDirH)
+		return false;
+	
+	/* Convert to TCHAR */ 
+	for (i = 0; a_Path[i] && i < MAX_PATH - 2; i++)
+		PathBuf[i] = a_Path[i];
+	PathBuf[i] = 0;
+	PathBuf[MAX_PATH - 1] = 0;
+	
+	/* Find first file */
+	memset(&l_WinDir, 0, sizeof(l_WinDir));
+	l_WinDirH = FindFirstFile(PathBuf, &l_WinDir);
+	
+	// Failed?
+	if (l_WinDirH == INVALID_HANDLE_VALUE)
+	{
+		l_WinDirH = NULL;
+		return false;
+	}
+	
+	/* Mark file there */
+	l_WinDirOK = true;
+	
+	/* Success! */
+	return true;
 #else
 	/* Unknown */
 	return false;
@@ -1987,6 +2030,36 @@ bool_t I_ReadDir(char* const a_Dest, const size_t a_BufSize)
 	/* Copy name, return */
 	strncpy(a_Dest, DEnt->d_name, a_BufSize);
 	return true;
+
+#elif defined(_WIN32)
+	size_t i;
+	
+	/* Check */
+	if (!a_Dest || !a_BufSize)
+		return false;
+	
+	/* No Directory Open */
+	if (!l_WinDirH)
+		return false;
+	
+	/* No file? */
+	if (!l_WinDirOK)
+		return false;
+	
+	/* Copy current file data */
+	for (i = 0; i < a_BufSize - 1 && i < MAX_PATH - 1; i++)
+		a_Dest[i] = l_WinDir.cFileName[i];
+	a_Dest[i] = 0;
+	
+	/* Setup for next incursion */
+	l_WinDirOK = false;
+	
+	// Find the next file
+	if (FindNextFile(l_WinDirH, &l_WinDir))
+		l_WinDirOK = true;
+	
+	/* Successful */
+	return true;
 #else
 	/* Unknown */
 	return false;
@@ -2006,6 +2079,18 @@ void I_CloseDir(void)
 	
 	/* Wipe it */
 	l_UNIXDir = NULL;
+
+#elif defined(_WIN32)
+	/* Not Open? */
+	if (!l_WinDirH)
+		return;
+	
+	/* Close */
+	FindClose(l_WinDirH);
+	
+	/* Wipe it */
+	l_WinDirH = NULL;
+	
 #else
 	/* Unknown */
 #endif

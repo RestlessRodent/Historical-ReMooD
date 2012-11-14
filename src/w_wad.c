@@ -901,10 +901,11 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 {
 	char CheckBuffer[PATH_MAX];
 	char BaseWAD[PATH_MAX];
-	const char* p;
+	const char* p, *bn;
 	size_t i, j;
 	char* DirArg;
 	char* End;
+	bool_t Found;
 	
 	/* Initialize the search list */
 	if (!l_SearchCount)
@@ -995,9 +996,10 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			memset(BaseWAD, 0, sizeof(BaseWAD));
 			strncpy(BaseWAD, WLP_BaseName(a_Name), PATH_MAX);
 			p = BaseWAD;
+			bn = BaseWAD;
 		}
 		
-		// Now search
+		// Now search (explicit names)
 		for (i = 0; i < l_SearchCount; i++)
 		{
 			// Clear the check buffer
@@ -1009,7 +1011,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			strncat(CheckBuffer, p, PATH_MAX);
 			
 			// Check whether we can read it
-			if (!access(CheckBuffer, R_OK))
+			if (I_CheckFileAccess(CheckBuffer, false))
 			{
 				// TODO: Check MD5
 				
@@ -1021,6 +1023,42 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 				return true;
 			}
 		}
+		
+		// Search list again, using caseless names
+		if (j)
+			for (i = 1; i < l_SearchCount; i++)
+				if (I_OpenDir(l_SearchList[i]))
+				{
+					// Clear found
+					Found = false;
+					
+					// While reading a file
+					while (I_ReadDir(CheckBuffer, PATH_MAX))
+						// Compare name
+						if (strcasecmp(bn, CheckBuffer) == 0)
+						{
+							// Found it
+							Found = true;
+							
+							// Copy name
+							if (a_OutPath)
+							{
+								strncpy(a_OutPath, l_SearchList[i], a_OutSize);
+								strncat(a_OutPath, "/", a_OutSize);
+								strncat(a_OutPath, CheckBuffer, a_OutSize);
+							}
+							
+							// Done
+							break;
+						}
+					
+					// Close
+					I_CloseDir();
+					
+					// If found, return
+					if (Found)
+						return true;
+				}
 	}
 	
 	/* Failed */
