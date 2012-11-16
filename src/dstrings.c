@@ -1054,7 +1054,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** T_VM.C **/
 	{				 "TVMC_COMPILING", "Compiling \"$1\"..."},
-	{					 "TVMC_ERROR", "Compile error on line $1."},
+	{					 "TVMC_ERROR", "Compile error on line $1 ($2)."},
+	{				   "TVMC_SUCCESS", "Successfuly compiled \"$1\"."},
 	
 	/*** B_GHOST.C ***/
 	{			   "BGHOSTC_BASEINIT", "Registering bot registration..."},

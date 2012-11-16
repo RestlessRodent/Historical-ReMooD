@@ -47,10 +47,20 @@
 *** STRUCTURES ***
 *****************/
 
+typedef bool_t (*TVM_ParseMode_t)(struct TVM_State_s* const a_State, char* const a_Buf, const size_t a_Len);
+
 /* TVM_State_t -- State */
 typedef struct TVM_State_s
 {
 	TVM_Namespace_t NameSpace;					// Namespace
+	char* ErrorStr;								// Error string
+	int32_t ScopeDepth;							// Depth of Scope
+	TVM_ParseMode_t ParseMode;					// Current Parse Mode
+	TVM_ParseMode_t Confused;					// Confused mode
+	int8_t ReadInclude;							// Include read count
+	const WL_WADEntry_t* IncludeThis;			// Includes this file
+	const WL_WADEntry_t** Incs;					// Stack of includes
+	size_t NumIncs;								// Number of them
 } TVM_State_t;
 
 /*************
@@ -102,11 +112,129 @@ static void TVMS_PutBuffer(char** const a_BufRef, size_t* const a_SizeRef, size_
 #undef GROWSIZE
 }
 
+bool_t TVMS_CompileWLESIntExt(TVM_State_t* const a_State, WL_ES_t* const a_Stream, const uint32_t a_End);
+
+/* TVMS_PM_Include() -- Include directive */
+static bool_t TVMS_PM_Include(struct TVM_State_s* const a_State, char* const a_Buf, const size_t a_Len)
+{
+	WL_ES_t* IncStr;
+	bool_t RetVal;
+	size_t i;
+	
+	/* Based on inclusion state... */
+	switch (a_State->ReadInclude)
+	{
+			// Expect '('
+		case 0:
+			if (strcmp(a_Buf, "("))
+			{
+				a_State->ErrorStr = "Expected \'(\' after include.";
+				return false;
+			}
+			
+			a_State->ReadInclude++;
+			return true;
+			
+			// Expect string, containing said include
+		case 1:
+			// Check for ", which deems an include
+			if (a_Buf[0] != '\"')
+			{
+				a_State->ErrorStr = "Expected quoted string in include.";
+				return false;
+			}
+			
+			// Cheat Buffer (remove quotes)
+			memmove(&a_Buf[0], &a_Buf[1], a_Len);
+			a_Buf[a_Len - 2] = 0;
+			
+			// Locate Include
+			a_State->IncludeThis = WL_FindEntry(NULL, 0, a_Buf);
+			
+			// Check if it exists
+			if (!a_State->IncludeThis)
+			{
+				a_State->ErrorStr = "Include lump not found.";
+				return false;
+			}
+			
+			// Move on
+			a_State->ReadInclude++;
+			return true;
+			
+			// Expect ')'
+		case 2:
+			if (strcmp(a_Buf, ")"))
+			{
+				a_State->ErrorStr = "Expected \')\' after include.";
+				return false;
+			}
+			
+			a_State->ReadInclude++;
+			return true;
+			
+			// Expect ';'
+		case 3:
+			if (strcmp(a_Buf, ";"))
+			{
+				a_State->ErrorStr = "Expected \';\' at end of include statement.";
+				return false;
+			}
+			
+			// Make sure it is not on the stack
+			for (i = 0; i < a_State->NumIncs; i++)
+				if (a_State->Incs[i] == a_State->IncludeThis)
+				{
+					a_State->ErrorStr = "Recursive include detected.";
+					return false;
+				}
+			
+			// Push to stack
+			Z_ResizeArray((void**)&a_State->Incs, sizeof(*a_State->Incs),
+				a_State->NumIncs, a_State->NumIncs + 1);
+			a_State->Incs[a_State->NumIncs++] = a_State->IncludeThis;
+			
+			// Return state to normal
+			a_State->ParseMode = a_State->Confused;
+			
+			// Parse said include now, using whatever it returns
+			IncStr = WL_StreamOpen(a_State->IncludeThis);
+			RetVal = TVMS_CompileWLESIntExt(a_State, IncStr, a_State->IncludeThis->Size);
+			WL_StreamClose(IncStr);
+			
+			// Remove from stack
+			a_State->Incs[a_State->NumIncs - 1] = NULL;
+			Z_ResizeArray((void**)&a_State->Incs, sizeof(*a_State->Incs),
+				a_State->NumIncs, a_State->NumIncs - 1);
+			a_State->NumIncs--;
+			return RetVal;
+	}
+	
+	/* Oops? */
+	return false;
+}
+
+/* TVMS_PM_Confused() -- Confused state (default) */
+static bool_t TVMS_PM_Confused(struct TVM_State_s* const a_State, char* const a_Buf, const size_t a_Len)
+{
+	/* Special keywords */
+		// Include
+	if (!strcmp("include", a_Buf))
+	{
+		// Start parsing include
+		a_State->ReadInclude = 0;
+		a_State->ParseMode = TVMS_PM_Include;
+		return true;
+	}
+	
+	return true;
+}
+
 /* TVMS_ParseToken() -- Parses token into the state */
 static bool_t TVMS_ParseToken(TVM_State_t* const a_State, char* const a_Buf, const size_t a_Len)
 {
-	CONL_PrintF("## [%02i] `%s`\n", (int)a_Len, a_Buf);
-	return true;
+	CONL_PrintF("(%i)`%s`, ", (int)a_Len, a_Buf);
+	return a_State->ParseMode(a_State, a_Buf, a_Len);
 }
 
 /* TVMS_CompileLine() -- Compiles a line (tokenizes it) */
@@ -258,7 +386,7 @@ void TVM_Clear(const TVM_Namespace_t a_NameSpace)
 //  * Trigraphs
 //  * Multi-line Comments
 //  * Escaped Newlines
-static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Stream, const uint32_t a_End)
+static bool_t TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Stream, const uint32_t a_End)
 {
 #define EATCHAR {ReadLeft--; memmove(&ReadBuf[0], &ReadBuf[1], sizeof(*ReadBuf) * (READSIZE - 1));}
 #define READSIZE 32
@@ -272,7 +400,7 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 	
 	/* Check */
 	if (!a_Stream || !a_End)
-		return;
+		return false;
 	
 	/* Message */
 	CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_COMPILING, "%s\n", WL_StreamGetEntry(a_Stream)->Name);
@@ -345,8 +473,12 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 			if (Token && TokAt > 0)
 				if (!TVMS_CompileLine(a_State, Token, TokAt))
 				{
-					CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_ERROR, "%u\n", LineNum);
-					return;
+					CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_ERROR, "%u%s\n", LineNum, a_State->ErrorStr);
+					
+					// Free token before death
+					if (Token)
+						Z_Free(Token);
+					return false;
 				}
 			
 			// Clear Token
@@ -384,6 +516,15 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 	
 #undef READSIZE
 #undef EATCHAR
+	
+	/* Success! */
+	return true;
+}
+
+/* TVMS_CompileWLESIntExt() -- Externalized internal call */
+bool_t TVMS_CompileWLESIntExt(TVM_State_t* const a_State, WL_ES_t* const a_Stream, const uint32_t a_End)
+{
+	return TVMS_CompileWLESInt(a_State, a_Stream, a_End);
 }
 
 /* TVM_CompileWLES() -- Wraps internal */
@@ -393,7 +534,18 @@ void TVM_CompileWLES(const TVM_Namespace_t a_NameSpace, WL_ES_t* const a_Stream,
 		return;
 	
 	l_VMState[a_NameSpace].NameSpace = a_NameSpace;
-	TVMS_CompileWLESInt(&l_VMState[a_NameSpace], a_Stream, a_End);
+	l_VMState[a_NameSpace].ParseMode = TVMS_PM_Confused;
+	l_VMState[a_NameSpace].Confused = TVMS_PM_Confused;
+	if (TVMS_CompileWLESInt(&l_VMState[a_NameSpace], a_Stream, a_End))
+		CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_SUCCESS, "%s\n", WL_StreamGetEntry(a_Stream)->Name);
+	
+	// Left over includes?
+	if (l_VMState[a_NameSpace].Incs)
+	{
+		Z_Free(l_VMState[a_NameSpace].Incs);
+		l_VMState[a_NameSpace].Incs = NULL;
+		l_VMState[a_NameSpace].NumIncs = 0;
+	}
 }
 
 /* TVM_CompileEntry() -- Compiles entry */

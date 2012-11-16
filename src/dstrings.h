@@ -1054,6 +1054,7 @@ typedef enum UnicodeStringID_e
 	/* t_vm.c */
 	DSTR_TVMC_COMPILING,
 	DSTR_TVMC_ERROR,
+	DSTR_TVMC_SUCCESS,
 	
 	/* b_ghost.c */
 	DSTR_BGHOSTC_BASEINIT,
