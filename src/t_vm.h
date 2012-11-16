@@ -39,12 +39,25 @@
 #include "w_wad.h"
 
 /****************
+*** CONSTANTS ***
+****************/
+
+/* TVM_Namespace_t -- VM namespace */
+typedef enum TVM_Namespace_e
+{
+	TVMNS_GLOBAL,								// Global
+	TVMNS_LEVEL,								// Level
+	
+	NUMTVMNAMESPACES
+} TVM_Namespace_t;
+
+/****************
 *** FUNCTIONS ***
 ****************/
 
-void TVM_Clear(void);
-void TVM_CompileWLES(WL_ES_t* const a_Stream, const uint32_t a_End);
-void TVM_CompileEntry(const WL_WADEntry_t* const a_Entry);
+void TVM_Clear(const TVM_Namespace_t a_NameSpace);
+void TVM_CompileWLES(const TVM_Namespace_t a_NameSpace, WL_ES_t* const a_Stream, const uint32_t a_End);
+void TVM_CompileEntry(const TVM_Namespace_t a_NameSpace, const WL_WADEntry_t* const a_Entry);
 
 #endif /* __T_VM_H__ */
 

@@ -50,14 +50,14 @@
 /* TVM_State_t -- State */
 typedef struct TVM_State_s
 {
-	uint8_t Junk;								// Cannot have empty struct
+	TVM_Namespace_t NameSpace;					// Namespace
 } TVM_State_t;
 
 /*************
 *** LOCALS ***
 *************/
 
-static TVM_State_t l_MapState;					// Current Map State
+static TVM_State_t l_VMState[NUMTVMNAMESPACES];	// Current Map State
 
 /****************
 *** FUNCTIONS ***
@@ -78,15 +78,174 @@ static bool_t TVMS_IsSpace(const char a_Char)
 	}
 }
 
-/* TVMS_CompileLine() -- Compiles a line (tokenizes it) */
-static bool_t TVMS_CompileLine(TVM_State_t* const a_State, char* const a_Buf, const size_t a_Len)
+/* TVMS_PutBuffer() -- Puts text into buffer */
+static void TVMS_PutBuffer(char** const a_BufRef, size_t* const a_SizeRef, size_t* const a_MaxRef, const char a_Char)
 {
-	CONL_PrintF("%i %s\n", a_Len, a_Buf);
+#define GROWSIZE 32
+	/* No buffer? */
+	if (!*a_BufRef)
+	{
+		*a_BufRef = Z_Malloc(sizeof(**a_BufRef) * GROWSIZE, PU_STATIC, NULL);
+		*a_MaxRef = GROWSIZE;
+	}
+	
+	/* Too small? */
+	else if (*a_SizeRef >= *a_MaxRef - 2)
+	{
+		Z_ResizeArray((void**)a_BufRef, sizeof(**a_BufRef),
+			*a_MaxRef, *a_MaxRef + GROWSIZE);
+		*a_MaxRef += GROWSIZE;
+	}
+	
+	/* Place */
+	(*a_BufRef)[(*a_SizeRef)++] = a_Char;
+#undef GROWSIZE
+}
+
+/* TVMS_ParseToken() -- Parses token into the state */
+static bool_t TVMS_ParseToken(TVM_State_t* const a_State, char* const a_Buf, const size_t a_Len)
+{
+	CONL_PrintF("## [%02i] `%s`\n", (int)a_Len, a_Buf);
 	return true;
 }
 
+/* TVMS_CompileLine() -- Compiles a line (tokenizes it) */
+// In Legacy Script, tokens are either identifiers, strings, numbers, or symbols.
+static bool_t TVMS_CompileLine(TVM_State_t* const a_State, char* const a_Buf, const size_t a_Len)
+{
+	char* Token, *p, *ep;
+	size_t TokAt, TokSz;
+	int8_t Type;
+	bool_t SendAway, Escape;
+	bool_t RetVal;
+	
+	/* Init */
+	Token = NULL;
+	TokAt = TokSz = 0;
+	Type = -1;
+	SendAway = false;
+	Escape = false;
+	RetVal = true;
+	
+	/* Read characters */
+	for (p = a_Buf, ep = a_Buf + a_Len; p < ep;)
+	{
+		// Initialize Token State
+		if (!Token)
+		{
+			// Ignore whitespace
+			if (TVMS_IsSpace(*p))
+			{
+				p++;
+				continue;
+			}
+			
+			// Number
+			if ((*p >= '0' && *p <= '9') || *p == '.')
+				Type = 1;
+			
+			// Identifier
+			else if ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || *p == '_')
+				Type = 2;
+			
+			// String
+			else if (*p == '\"')
+				Type = 3;
+			
+			// Symbol
+			else
+				Type = 4;
+			
+			// Add to token
+			TVMS_PutBuffer(&Token, &TokAt, &TokSz, *(p++));
+			continue;
+		}
+		
+		// Determne if token ends
+			// Number
+		if (Type == 1)
+		{
+			if (!((*p >= '0' && *p <= '9') || *p == '.'))
+				SendAway = true;
+		}
+		
+			// Identifier
+		else if (Type == 2)
+		{
+			if (!((*p >= 'a' && *p <= 'z') ||
+				(*p >= 'A' && *p <= 'Z') ||
+				(*p >= '0' && *p <= '9') || *p == '_'))
+				SendAway = true;
+		}
+		
+			// String
+		else if (Type == 3)
+		{
+			// Not escaped and quoted?
+			if (!Escape && *p == '\"')
+			{
+				TVMS_PutBuffer(&Token, &TokAt, &TokSz, *(p++));
+				SendAway = true;
+			}
+			
+			// Escape?
+			Escape = false;
+			if (*p == '\\')
+				Escape = true;
+		}
+		
+			// Symbol
+		else
+		{
+			// Double symbol?
+			if (*p != '(' && *p != ')')
+				if (*p == '=' || *p == Token[TokAt - 1])
+					TVMS_PutBuffer(&Token, &TokAt, &TokSz, *(p++));
+			
+			// Always send away
+			SendAway = true;
+		}
+		
+		// Send away?
+		if (SendAway)
+		{
+			// Call token handler thing
+			if (!TVMS_ParseToken(a_State, Token, TokAt))
+				RetVal = false;
+			
+			// Re-initialize token bits
+			Z_Free(Token);
+			Token = NULL;
+			TokAt = TokSz = 0;
+			Type = -1;
+			SendAway = false;
+			
+			// Failed?
+			if (!RetVal)
+				break;
+		}
+		
+		// Otherwise add to token
+		else
+			TVMS_PutBuffer(&Token, &TokAt, &TokSz, *(p++));
+	}
+	
+	/* A token remains */
+	if (Token)
+	{
+		if (!TVMS_ParseToken(a_State, Token, TokAt))
+			RetVal = false;
+		
+		// Free it
+		Z_Free(Token);
+	}
+	
+	/* It worked? */
+	return RetVal;
+}
+
 /* TVM_Clear() -- Clears the VM */
-void TVM_Clear(void)
+void TVM_Clear(const TVM_Namespace_t a_NameSpace)
 {
 }
 
@@ -103,12 +262,13 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 {
 #define EATCHAR {ReadLeft--; memmove(&ReadBuf[0], &ReadBuf[1], sizeof(*ReadBuf) * (READSIZE - 1));}
 #define READSIZE 32
-#define TOKENSIZE 256
 	char ReadBuf[READSIZE];
-	char Token[TOKENSIZE];
-	uint32_t ReadLeft, TokAt;
+	uint32_t ReadLeft;
 	uint16_t Mode;
 	uint32_t LineNum;
+	
+	char* Token;
+	size_t TokAt, TokSz;
 	
 	/* Check */
 	if (!a_Stream || !a_End)
@@ -120,7 +280,7 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 	/* Initialize */
 	ReadLeft = Mode = TokAt = 0;
 	memset(ReadBuf, 0, sizeof(ReadBuf));
-	memset(Token, 0, sizeof(Token));
+	Token = NULL;
 	LineNum = 1;
 	
 	/* Tokenization Loop */
@@ -182,7 +342,7 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 			Mode &= ~(TVMPP_COMMENT | TVMPP_ESCAPE);
 			
 			// Send to tokenizer
-			if (Token[0])
+			if (Token && TokAt > 0)
 				if (!TVMS_CompileLine(a_State, Token, TokAt))
 				{
 					CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_ERROR, "%u\n", LineNum);
@@ -190,8 +350,10 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 				}
 			
 			// Clear Token
-			memset(Token, 0, sizeof(Token));
-			TokAt = 0;
+			if (Token)
+				Z_Free(Token);
+			Token = NULL;
+			TokAt = TokSz = 0;
 			
 			// Continue on
 			continue;
@@ -210,24 +372,32 @@ static void TVMS_CompileWLESInt(TVM_State_t* const a_State, WL_ES_t* const a_Str
 		}
 		
 		// Otherwise append to token buffer
-		if (TokAt < TOKENSIZE - 1)
-			Token[TokAt++] = ReadBuf[0];
+		TVMS_PutBuffer(&Token, &TokAt, &TokSz, ReadBuf[0]);
 		
 		// Eat character
 		EATCHAR;
 	}
+	
+	/* Clear Token */
+	if (Token)
+		Z_Free(Token);
+	
 #undef READSIZE
 #undef EATCHAR
 }
 
 /* TVM_CompileWLES() -- Wraps internal */
-void TVM_CompileWLES(WL_ES_t* const a_Stream, const uint32_t a_End)
+void TVM_CompileWLES(const TVM_Namespace_t a_NameSpace, WL_ES_t* const a_Stream, const uint32_t a_End)
 {
-	TVMS_CompileWLESInt(&l_MapState, a_Stream, a_End);
+	if (a_NameSpace < 0 || a_NameSpace >= NUMTVMNAMESPACES)
+		return;
+	
+	l_VMState[a_NameSpace].NameSpace = a_NameSpace;
+	TVMS_CompileWLESInt(&l_VMState[a_NameSpace], a_Stream, a_End);
 }
 
 /* TVM_CompileEntry() -- Compiles entry */
-void TVM_CompileEntry(const WL_WADEntry_t* const a_Entry)
+void TVM_CompileEntry(const TVM_Namespace_t a_NameSpace, const WL_WADEntry_t* const a_Entry)
 {
 	WL_ES_t* ScriptStream;
 	
@@ -241,7 +411,7 @@ void TVM_CompileEntry(const WL_WADEntry_t* const a_Entry)
 		WL_StreamCheckUnicode(ScriptStream);
 		
 		// Compile it
-		TVM_CompileWLES(ScriptStream, a_Entry->Size);
+		TVM_CompileWLES(a_NameSpace, ScriptStream, a_Entry->Size);
 		
 		// Close it
 		WL_StreamClose(ScriptStream);

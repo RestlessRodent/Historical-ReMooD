@@ -2086,7 +2086,7 @@ bool_t I_StartupSound(void)
 	I_AddExitFunc(I_ShutdownSound);
 	
 	/* Return only if sound drivers were loaded */
-	return ! !l_NumSoundDrivers;
+	return !!l_NumSoundDrivers;
 }
 
 /* I_ShutdownSound() -- Shuts down the sound system */

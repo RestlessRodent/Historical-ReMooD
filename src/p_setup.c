@@ -341,7 +341,7 @@ bool_t P_ExClearLevel(void)
 	g_CheatFlags = 0;
 	
 	/* Scripting */
-	TVM_Clear();
+	TVM_Clear(TVMNS_LEVEL);
 	
 	/* Scores */
 	P_UpdateScores();
@@ -1337,7 +1337,7 @@ bool_t P_ExFinalizeLevel(void)
 	/* Compile Level Scripts */
 	// Top Level Scripts, from each WAD
 	for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
-		TVM_CompileEntry(WL_FindEntry(WAD, 0, "TLSCRIPT"));
+		TVM_CompileEntry(TVMNS_LEVEL, WL_FindEntry(WAD, 0, "TLSCRIPT"));
 	
 	// Header script
 	if (g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1] -
@@ -1356,7 +1356,7 @@ bool_t P_ExFinalizeLevel(void)
 			WL_StreamSeek(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0], false);
 			
 			// Compile it
-			TVM_CompileWLES(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
+			TVM_CompileWLES(TVMNS_LEVEL, ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
 			
 			// Close it
 			WL_StreamClose(ScriptStream);
@@ -1364,7 +1364,7 @@ bool_t P_ExFinalizeLevel(void)
 	}
 	
 	// Dedicated Level Script
-	TVM_CompileEntry(g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
+	TVM_CompileEntry(TVMNS_LEVEL, g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
 	
 	/* Initialize Fake Player */
 	D_XFakePlayerInit();
