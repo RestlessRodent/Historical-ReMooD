@@ -590,7 +590,8 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 {
 	int xl, xh, yl, yh, bx, by;
-	subsector_t* newsubsec;
+	fixed_t nfz, ncz;
+	subsector_t* newsubsec, *SS;
 	P_PITCTSettings_t Settings;
 	
 	// Clear settings
@@ -616,6 +617,19 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 	// will adjust them.
 	tmfloorz = tmsectorfloorz = tmdropoffz = newsubsec->sector->floorheight;
 	tmceilingz = tmsectorceilingz = newsubsec->sector->ceilingheight;
+	
+	// GhostlyDeath <November 21, 2012> -- Sloped floors/ceilings?
+	if (P_XGSVal(PGS_COENABLESLOPES))
+	{
+		SS = R_PointInSubsector(x, y);
+		nfz = P_ZAtPointSS(SS, false, x, y, thing->z);
+		ncz = P_ZAtPointSS(SS, true, x, y, thing->z);
+	
+		if (nfz > tmfloorz)
+			tmfloorz = nfz;
+		if (ncz < tmceilingz)
+			tmceilingz = ncz;
+	}
 	
 	//SoM: 3/23/2000: Check list of fake floors and see if
 	//tmfloorz/tmceilingz need to be altered.
@@ -1024,6 +1038,7 @@ typedef enum P_SubTryMoveFlags_s
 static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, const uint32_t a_Flags)
 {
 	fixed_t oldx;
+	subsector_t* SS;
 	fixed_t oldy;
 	int side;
 	int oldside;
@@ -1730,8 +1745,9 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 {
 	fixed_t x;
 	fixed_t y;
-	fixed_t z;
+	fixed_t z, tfz, tcz;
 	fixed_t frac;
+	subsector_t* SS;
 	
 	line_t* li;
 	sector_t* sector = NULL;
@@ -1904,8 +1920,26 @@ hitline:
 			if (li->sidenum[sectorside] != -1)	// can happen in nocliping mode
 			{
 				sector = sides[li->sidenum[sectorside]].sector;
+				
 				floorz = sector->floorheight;
 				ceilingz = sector->ceilingheight;
+				
+				// GhostlyDeath <November 21, 2012> -- Sloped Floor/Ceiling
+				if (P_XGSVal(PGS_COENABLESLOPES))
+				{
+					x = trace.x + FixedMul(trace.dx, frac);
+					y = trace.y + FixedMul(trace.dy, frac);
+				
+					SS = R_PointInSubsector(x, y);
+					tcz = P_ZAtPointSS(SS, true, x, y, z);
+					tfz = P_ZAtPointSS(SS, false, x, y, z);
+					
+					if (tfz > floorz)
+						floorz = tfz;
+					if (tcz < ceilingz)
+						ceilingz = tcz;
+				}
+				
 				if (sector->ffloors)
 				{
 					ffloor_t* rover;
@@ -1934,7 +1968,8 @@ hitline:
 					frac = -FixedDiv(FixedMul(frac, clipz), distz);
 					hitplane = true;
 				}
-				if (sector->ffloors)
+				
+				if (sector->ffloors || P_XGSVal(PGS_COENABLESLOPES))
 				{
 					if (dir == 1 && z > ceilingz)
 						z = ceilingz;
@@ -3180,5 +3215,23 @@ bool_t P_TestMobjLocation(mobj_t* mobj)
 	return (false);
 }
 
+/*****************************************************************************/
+
+/* P_ZAtPointSS() -- Z for point, in subsector */
+fixed_t P_ZAtPointSS(subsector_t* const a_SubS, const bool_t a_Ceil, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+{
+	/* Normal Sector */
+	if (a_Ceil)
+		return 128 << FRACBITS;//a_SubS->sector->ceilingz;
+	else
+		return 0;//a_SubS->sector->floorz;
+}
+
+/* P_ZAtPoint() -- Z at specified point */
+fixed_t P_ZAtPoint(const bool_t a_Ceil, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+{
+	/* Call subsector variant at point */
+	return P_ZAtPointSS(R_PointInSubsector(a_X, a_Y), a_Ceil, a_X, a_Y, a_Z);
+}
 
 

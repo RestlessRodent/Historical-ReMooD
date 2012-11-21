@@ -277,6 +277,7 @@ typedef enum P_XGSBitID_e
 	PGS_PLSUICIDEDELAY,							// Suicide Delay
 	PGS_PLSPAWNWITHMELEEONLY,					// Spawn With Melee Only
 	PGS_PLSPAWNWITHRANDOMGUN,					// Spawn With Random Gun
+	PGS_COENABLESLOPES,							// Enables Slope Support
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

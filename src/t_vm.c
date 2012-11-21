@@ -227,6 +227,16 @@ static bool_t TVMS_PM_Confused(struct TVM_State_s* const a_State, char* const a_
 		return true;
 	}
 	
+		// Script
+	else if (!strcmp("script", a_Buf))
+	{
+		// Define a new code point
+		return true;
+	}
+	
+	/* Parse statements into code */
+	
+	/* Success! */
 	return true;
 }
 

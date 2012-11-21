@@ -274,6 +274,7 @@ bool_t P_ExClearLevel(void)
 	R_ClearLevelSplats();
 	P_ClearRecursiveSound();
 	B_ClearNodes();
+	EV_ClearACSTags();
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
@@ -493,7 +494,7 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 	/* Calculate the real line special (generalized) */
 	// Hexen
 	if (a_LineDef->HexenSpecial)
-		a_LineDef->special = EV_HexenToGenTrigger(false, a_LineDef->flags, a_LineDef->HexenSpecial, a_LineDef->ACSArgs);
+		a_LineDef->special = HEXENSPECIALLINE;
 	// Doom
 	else
 		a_LineDef->special = EV_DoomToGenTrigger(false, a_LineDef->special);

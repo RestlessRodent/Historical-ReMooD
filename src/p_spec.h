@@ -911,6 +911,10 @@ int EV_DoGenCrusher(line_t* line, mobj_t* const a_Object);
 int EV_DoGenDoor(line_t* line, mobj_t* const a_Object);
 int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object);
 
+void EV_ClearACSTags(void);
+void EV_TagACSLine(line_t* const a_Line, const int32_t a_ID);
+line_t* EV_SearchACSTags(const int32_t a_ID, int32_t* const a_SearchPoint);
+
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
 void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool_t a_InstaDamage);
 
@@ -1334,6 +1338,8 @@ typedef enum P_EXSLineTrigger_s
 /*** FUNCTIONS ***/
 
 void P_ExtraSpecialStuff(void);
+
+/*****************************************************************************/
 
 #endif
 

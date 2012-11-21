@@ -261,6 +261,9 @@ fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance, P_AimLineAt
 void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, int damage, P_LineAtkArgs_t* const a_Args);
 void P_RadiusAttack(mobj_t* spot, mobj_t* source, int damage);
 
+fixed_t P_ZAtPointSS(subsector_t* const a_SubS, const bool_t a_Ceil, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
+fixed_t P_ZAtPoint(const bool_t a_Ceil, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
+
 //
 // P_SETUP
 //

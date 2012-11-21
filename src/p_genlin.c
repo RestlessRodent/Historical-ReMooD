@@ -1576,6 +1576,51 @@ void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
 void Add_Friction(int friction, int movefactor, int affectee);
 void Add_Pusher(int type, int x_mag, int y_mag, mobj_t* source, int affectee);
 
+/* EV_DoHexenLine() -- Triggers hexen line */
+static bool_t EV_DoHexenLine(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
+{
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("HexT %p by %p (side %+1i): Via %c, %3u [%02x, %02x, %02x, %02x, %02x]\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->HexenSpecial, a_Line->ACSArgs[0], a_Line->ACSArgs[1], a_Line->ACSArgs[2], a_Line->ACSArgs[3], a_Line->ACSArgs[4]);
+	
+	/* Only on Level Start */
+	if (a_Type == EVTGT_MAPSTART)
+		switch (a_Line->HexenSpecial)
+		{
+				// Line_SetIdentification
+			case 121:
+				// Setting ID
+				if (a_Line->ACSArgs[0])
+					EV_TagACSLine(a_Line, a_Line->ACSArgs[0]);
+				
+				// Clear
+				a_Line->special = 0;
+				a_Line->HexenSpecial = 0;
+				return true;
+				
+				// Unknown
+			default:
+				break;
+		}
+	
+	/* Normal Gameplay */
+	else
+	{
+		// Check for trigger compatibility
+		
+		// Perform the action
+		switch (a_Line->HexenSpecial)
+		{
+				// Unknown
+			default:
+				break;
+		}
+	}
+	
+	/* Fall-through */
+	return false;
+}
+
 /* EV_TryGenTrigger() -- Tries to trigger a line */
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
 {
@@ -1605,9 +1650,13 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	if (devparm)
 		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->special);
 	
+	/* Hexen Types */
+	if (a_Line->special == HEXENSPECIALLINE)
+		return EV_DoHexenLine(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain);
+		
 	/* Standard Boom Types */
 	// These are available in Boom
-	if (a_Line->special >= 0x2F80 && a_Line->special <= 0x7FFF)
+	else if (a_Line->special >= 0x2F80 && a_Line->special <= 0x7FFF)
 	{
 		// Determine the current trigger type
 		TrigMode = (a_Line->special & TriggerType) >> TriggerTypeShift;
@@ -2176,6 +2225,64 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 
 /****************************************************************************/
 
+/* EV_TagLine_t -- Tagged line */
+typedef struct EV_TagLine_s
+{
+	line_t* Line;								// Associated Line
+	int32_t ID;									// Tag ID Number
+} EV_TagLine_t;
+
+static EV_TagLine_t* l_Tags;					// Tagged Lines
+static size_t l_NumTags;						// Number of tagged lines
+
+/* EV_ClearACSTags() -- Clears ACS Tags */
+void EV_ClearACSTags(void)
+{
+	/* Clear */
+	if (l_Tags)
+		Z_Free(l_Tags);
+	l_Tags = NULL;
+	l_NumTags = 0;
+}
+
+/* EV_TagACSLine() -- Tags ACS Line */
+void EV_TagACSLine(line_t* const a_Line, const int32_t a_ID)
+{
+	EV_TagLine_t* New;
+	
+	/* Resize array */
+	Z_ResizeArray((void**)&l_Tags, sizeof(*l_Tags), l_NumTags, l_NumTags++);
+	New = &l_Tags[l_NumTags++];
+	
+	/* Set Infos */
+	New->Line = a_Line;
+	New->ID = a_ID;
+}
+
+/* EV_SearchACSTags() -- Searches tagged lines */
+line_t* EV_SearchACSTags(const int32_t a_ID, int32_t* const a_SearchPoint)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_SearchPoint)
+		return NULL;
+	
+	/* Locate in array */
+	for (i = *a_SearchPoint + 1; i < l_NumTags; i++)
+		if (l_Tags[i].ID == a_ID)
+		{
+			*a_SearchPoint = i;
+			return l_Tags[i].Line;
+		}
+	
+	/* Failed */
+	*a_SearchPoint = -1;
+	return NULL;
+}
+
+/****************************************************************************/
+
 /* EV_DoomToGenTrigger() -- Translate old Doom Lines to generalized ones */
 uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input)
 {
@@ -2195,43 +2302,4 @@ uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input)
 	return a_Input;
 }
 
-/* EV_HexenToGenTrigger() -- Hexen to general trigger */
-uint32_t EV_HexenToGenTrigger(const bool_t a_Sector, const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args)
-{
-	EV_GenHEActivator_t Trig;
-	
-	/* Zero is nothing */
-	if (!a_Input || !a_Args)
-		return 0;
-	
-	/* Determine Trigger */
-	Trig = 0;
-	
-	// Repeatable?
-	if (a_Flags & ML_REPEAT_SPECIAL)
-		Trig |= 1;
-	
-	// Determine the stuff
-		// Player Cross
-	if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 0)
-		Trig |= ((WalkOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_PLAYERSHIFT) & EVGENGE_PLAYERMASK);
-		// Player Push
-	else if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 1)
-		Trig |= ((SwitchOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_PLAYERSHIFT) & EVGENGE_PLAYERMASK);
-		// Monster Cross
-	else if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 0)
-		Trig |= ((WalkOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_MONSTERSHIFT) & EVGENGE_MONSTERMASK);
-		// Player/Monster Push
-	else if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 1)
-		Trig |= ((SwitchOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_PLAYERSHIFT) & EVGENGE_PLAYERMASK) | ((1 << EVGENGE_MONSTERSHIFT) & EVGENGE_MONSTERMASK);
-	
-	/* Which Special? */
-	// Damage Object
-	if (a_Input == 73)
-		return Trig |= EVGENHE_TYPEBASE(EVGHET_XDAMAGE) |
-				(((!a_Args[0] ? 10000 : a_Args[0]) << EVGENHE_XDAMGSHIFT) & EVGENHE_XDAMGMASK);
-	
-	/* Currently Unhandled */
-	return 0;
-}
 

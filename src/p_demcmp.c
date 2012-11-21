@@ -861,7 +861,11 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_PLSPAWNWITHRANDOMGUN, "pl_spawnwithrandom", "Spawn With A Random Weapon",
 		"When a player is spawned, they are spawned with a random weapon. Spawn with non-super/super/melee affects this option.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		PGS_PLSPAWNWITHRANDOMGUN
+	
+	// GhostlyDeath <November 21, 2012> -- Slopes!
+	{PEXGST_INTEGER, PGS_COENABLESLOPES, "co_enableslopes", "Enables Slopes",
+		"Enables the usage of sloped floors and ceilings. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

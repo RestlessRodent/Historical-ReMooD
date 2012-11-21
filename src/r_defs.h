@@ -372,6 +372,8 @@ typedef enum
 	ST_NEGATIVE
 } slopetype_t;
 
+#define HEXENSPECIALLINE UINT32_C(0xFFFFFFFF)
+
 typedef struct line_s
 {
 	// Vertices, from v1 to v2.
