@@ -92,8 +92,8 @@ static WL_OCCB_t* l_OCCBHead = NULL;			// Head of registrars
 static bool_t l_LockOCCB = false;				// OCCB is locked
 static bool_t l_PendingOCCB = false;			// an OCCB is pending
 
-static char l_SearchList[MAXSEARCHBUFFER][PATH_MAX];	// Places to look for WADs
-static size_t l_SearchCount = 0;	// Number of places to look
+static char* l_SearchList[MAXSEARCHBUFFER];		// Places to look for WADs
+static size_t l_SearchCount = 0;				// Number of places to look
 
 /*** FUNCTIONS ***/
 
@@ -896,16 +896,31 @@ static const char* WLP_BaseName(const char* const a_File)
 	return TempX;
 }
 
+/* WLS_AppendToList() -- Appends to search list */
+static void WLS_AppendToList(const char* const a_Path, const size_t a_Limit)
+{
+	/* Check */
+	if (!a_Path)
+		return;
+	
+	/* Only if there is enough room */
+	if (l_SearchCount < MAXSEARCHBUFFER - 1)
+	{
+		// Allocate
+		l_SearchList[l_SearchCount] = Z_Malloc(sizeof(*l_SearchList[l_SearchCount]) * PATH_MAX, PU_STATIC, NULL);
+		
+		// Copy and increment
+		strncpy(l_SearchList[l_SearchCount++], a_Path, (a_Limit < PATH_MAX - 1 ? a_Limit : PATH_MAX - 1));
+	}
+}
+
 /* WL_LocateWAD() -- Finds WAD on the disk */
 bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize)
 {
-	char CheckBuffer[PATH_MAX];
-	char BaseWAD[PATH_MAX];
-	const char* p, *bn;
 	size_t i, j;
 	char* DirArg;
 	char* End;
-	bool_t Found;
+	bool_t RetVal;
 	
 	/* Initialize the search list */
 	if (!l_SearchCount)
@@ -914,10 +929,18 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		memset(l_SearchList, 0, sizeof(l_SearchList));
 		
 		// Add implicit nothing, current dir, bin/
-		strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
-		strncpy(l_SearchList[l_SearchCount++], ".", PATH_MAX);
-		strncpy(l_SearchList[l_SearchCount++], "bin", PATH_MAX);
-		I_GetStorageDir(l_SearchList[l_SearchCount++], PATH_MAX - 1, DST_DATA);
+		WLS_AppendToList("", PATH_MAX);
+		WLS_AppendToList(".", PATH_MAX);
+		WLS_AppendToList("bin", PATH_MAX);
+		
+		// Hacky storage directories
+			// Data Directory
+		WLS_AppendToList("", PATH_MAX);
+		I_GetStorageDir(l_SearchList[l_SearchCount - 1], PATH_MAX - 1, DST_DATA);\
+			
+			// Location of executable
+		WLS_AppendToList("", PATH_MAX);
+		I_GetStorageDir(l_SearchList[l_SearchCount - 1], PATH_MAX - 1, DST_EXE);
 		
 		// -waddir argument
 		if (M_CheckParm("-waddir"))
@@ -929,7 +952,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 				// Add to Search
 				if (l_SearchCount < MAXSEARCHBUFFER)
 					// Copy
-					strncpy(l_SearchList[l_SearchCount++], DirArg, PATH_MAX);
+					WLS_AppendToList(DirArg, PATH_MAX);
 			}
 		
 		// $DOOMWADDIR
@@ -938,7 +961,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			// Add to search
 			if (l_SearchCount < MAXSEARCHBUFFER)
 				// Copy
-				strncpy(l_SearchList[l_SearchCount++], DirArg, PATH_MAX);
+				WLS_AppendToList(DirArg, PATH_MAX);
 		}
 		
 		// $DOOMWADPATH
@@ -958,7 +981,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 				// Add to search
 				if (l_SearchCount < MAXSEARCHBUFFER)
 					// Copy only up to j characters (excludes : or ;)
-					strncpy(l_SearchList[l_SearchCount++], DirArg, (j < PATH_MAX ? j : PATH_MAX));
+					WLS_AppendToList(DirArg, (j < PATH_MAX ? j : PATH_MAX));
 					
 				// Go to end
 				if (End)
@@ -982,87 +1005,17 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 	/* Name is required and a size must be given if a_OutPath is set */
 	if (!a_Name || (a_OutPath && !a_OutSize))
 		return false;
-		
-	/* Look in the search buffer for said WADs */
-	for (j = 0; j < 2; j++)
+	
+	/* Use standard locate */
+	RetVal = I_LocateFile(a_Name, ILFF_TRYBASE | ILFF_DIRSEARCH, l_SearchList, l_SearchCount, a_OutPath, a_OutSize);
+	
+	// Check MD5 (TODO)
+	if (RetVal && a_MD5)
 	{
-		// Search the exact given name
-		if (!j)
-			p = a_Name;
-		
-		// If this point is reached, then try the basename (always try to succeed)
-		else
-		{
-			memset(BaseWAD, 0, sizeof(BaseWAD));
-			strncpy(BaseWAD, WLP_BaseName(a_Name), PATH_MAX);
-			p = BaseWAD;
-			bn = BaseWAD;
-		}
-		
-		// Now search (explicit names)
-		for (i = 0; i < l_SearchCount; i++)
-		{
-			// Clear the check buffer
-			memset(CheckBuffer, 0, sizeof(CheckBuffer));
-			
-			// Append the current search path along with the name of the WAD
-			// Do not add trailing slash here since we already do it as needed in WX_Init()
-			strncpy(CheckBuffer, l_SearchList[i], PATH_MAX);
-			strncat(CheckBuffer, p, PATH_MAX);
-			
-			// Check whether we can read it
-			if (I_CheckFileAccess(CheckBuffer, false))
-			{
-				// TODO: Check MD5
-				
-				// Send to output buffer (if it was passed)
-				if (a_OutPath)
-					strncpy(a_OutPath, CheckBuffer, a_OutSize);
-					
-				// Success
-				return true;
-			}
-		}
-		
-		// Search list again, using caseless names
-		if (j)
-			for (i = 1; i < l_SearchCount; i++)
-				if (I_OpenDir(l_SearchList[i]))
-				{
-					// Clear found
-					Found = false;
-					
-					// While reading a file
-					while (I_ReadDir(CheckBuffer, PATH_MAX))
-						// Compare name
-						if (strcasecmp(bn, CheckBuffer) == 0)
-						{
-							// Found it
-							Found = true;
-							
-							// Copy name
-							if (a_OutPath)
-							{
-								strncpy(a_OutPath, l_SearchList[i], a_OutSize);
-								strncat(a_OutPath, "/", a_OutSize);
-								strncat(a_OutPath, CheckBuffer, a_OutSize);
-							}
-							
-							// Done
-							break;
-						}
-					
-					// Close
-					I_CloseDir();
-					
-					// If found, return
-					if (Found)
-						return true;
-				}
 	}
 	
-	/* Failed */
-	return false;
+	/* Return the specified value */
+	return RetVal;
 }
 
 /* WL_LockOCCB() -- Prevents OCCB from running */

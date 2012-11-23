@@ -26,7 +26,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: DOOM graphics stuff for Allegro
+// DESCRIPTION: DOOM graphics stuff for SDL
 
 /***************
 *** INCLUDES ***
@@ -926,7 +926,7 @@ void I_FinishUpdate(void)
 	Buffer = I_VideoSoftBuffer(&w, &h);
 	
 	// Failed?
-	if (!Buffer)
+	if (!Buffer || !l_SDLSurface)
 		return;
 	
 	/* No Double Buffering? */
@@ -1259,7 +1259,7 @@ size_t I_ProbeJoysticks(void)
 		l_Joys[i].ShortName[j++] = 0;
 		
 		// Copy Code work -- SDL lacks unique IDs, so try name
-		l_Joys[i].CodeID = Z_Hash(NameID) ^ i + i;
+		l_Joys[i].CodeID = Z_Hash(NameID) ^ (i + i);
 		
 		// Prepare for major mapping
 		a = b = 0;

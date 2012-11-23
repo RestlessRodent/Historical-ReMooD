@@ -47,6 +47,7 @@ typedef enum I_DataStorageType_e
 {
 	DST_CONFIG,									// Config Dir (remoodex.cfg)
 	DST_DATA,									// Data Dir (Demos, saves, etc.)
+	DST_EXE,									// Executable Directory
 	
 	NUMDATASTORAGETYPES
 } I_DataStorageType_t;
@@ -426,6 +427,13 @@ typedef struct I_HostAddress_s
 	} Host;										// IP Data
 } I_HostAddress_t;
 
+/* I_LocateFileFlags_t -- Flags for I_LocateFile() */
+typedef enum I_LocateFileFlags_e
+{
+	ILFF_TRYBASE		= UINT32_C(0x00000001),	// Tries basename
+	ILFF_DIRSEARCH		= UINT32_C(0x00000002),	// Directory searching (caseless)
+} I_LocateFileFlags_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -499,6 +507,8 @@ void I_Error(char* error, ...);
 bool_t I_OpenDir(const char* const a_Path);
 bool_t I_ReadDir(char* const a_Dest, const size_t a_BufSize);
 void I_CloseDir(void);
+
+bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize);
 
 /*** i_utlnet.c ***/
 bool_t I_InitNetwork(void);

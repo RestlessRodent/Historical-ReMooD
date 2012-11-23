@@ -1558,6 +1558,22 @@ const char* I_GetUserName(void)
 size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStorageType_t a_Type)
 {
 	char* Env;
+	size_t i;
+	
+#if defined(_WIN32)
+	HMODULE hMod;
+	char* BaseN;
+	
+#if defined(_UNICODE)
+	TCHAR Path[MAX_PATH];
+#endif
+
+#elif defined(__unix__)
+	char CheckPath[PATH_MAX];
+	char* Clone, *DirName;
+	char* PathEnv, *End;
+	size_t j;
+#endif
 	
 	/* Check */
 	if (!a_Out || !a_Size || a_Type < 0 || a_Type >= NUMDATASTORAGETYPES)
@@ -1568,6 +1584,36 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	
 	/* Windows Systems */
 #if defined(_WIN32)
+	// Directory of executable?
+	if (a_Type == DST_EXE)
+	{
+		// Obtain current module
+		hMod = GetModuleHandle(NULL);
+		
+#if !defined(_UNICODE)
+		// Direct ASCII?
+		GetModuleFileName(hMod, a_Out, a_Size - 1);
+#else
+		// Unicode
+		memset(Path, 0, sizeof(Path));
+		GetModuleFileName(hMod, Path, MAX_PATH - 1);
+		
+		// Slowly Copy
+		for (i = 0; i < MAX_PATH && Path[i] && i < a_Size; i++)
+			a_Out[i] = Path[i];
+		a_Out[a_Size - 1] = 0;
+#endif
+		
+		// Obtain pointer to base name
+		BaseN = WL_BaseNameEx(a_Out);
+		
+		// Got it? If so, end it there
+		if (BaseN)
+			*BaseN = 0;
+		
+		// Return with size
+		return strlen(a_Out);
+	}
 	
 	/* DOS */
 #elif defined(__MSDOS__)
@@ -1577,8 +1623,78 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	
 	/* UNIX Systems */
 #elif defined(__unix__)
+	// Directory of executable?
+	if (a_Type == DST_EXE)
+	{
+		// Based on the first argument passed
+		switch (*myargv[0])
+		{
+				// Relative/Absolute Path
+			case '.':
+			case '/':
+				// Clone first argument
+				Clone = Z_StrDup(myargv[0], PU_STATIC, NULL);
+				
+				// Obtain directory name
+				DirName = dirname(Clone);
+				
+				// Copy that
+				strncpy(a_Out, DirName, a_Size);
+				
+				// Free clone
+				Z_Free(Clone);
+				break;
+				
+				// PATH
+			default:
+				// Obtain basename of executable
+				DirName = WL_BaseNameEx(myargv[0]);
+				
+				// Retrieve executable path
+				PathEnv = I_GetEnvironment("PATH");
+				
+				// Parse PATH bits
+				if (PathEnv)
+					do
+					{
+						// Find target (the next :)
+						End = strchr(PathEnv, ':');
+				
+						// Get size, from End to DirArg or just strlen if this is the end
+						if (End)
+							j = End - PathEnv;
+						else
+							j = strlen(PathEnv);
+						
+						// See if basename file exists here
+						memset(CheckPath, 0, sizeof(CheckPath));
+						strncpy(CheckPath, PathEnv, (j < PATH_MAX ? j : PATH_MAX));
+						strncat(CheckPath, "/", PATH_MAX);
+						strncat(CheckPath, DirName, PATH_MAX);
+						
+						// See if it exists here
+						if (I_CheckFileAccess(CheckPath, false))
+						{
+							// Copy base directory path
+							strncpy(a_Out, PathEnv, (j < a_Size ? j : a_Size));
+							
+							// Stop looping
+							break;
+						}
+					
+						// Go to end
+						if (End)
+							PathEnv = End + 1;
+						else
+							PathEnv = NULL;
+					}
+					while (PathEnv);
+				break;
+		}
+	}
+	
 	// Get XDG Config directory
-	if ((Env = I_GetEnvironment((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
+	else if ((Env = I_GetEnvironment((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
 	{
 		// Use the following then
 		strncat(a_Out, Env, a_Size);
@@ -2207,5 +2323,108 @@ void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
 		default:
 			return NULL;
 	}
+	
+	/* Oops! */
+	return NULL;
+}
+
+/* I_LocateFile() -- Locates file in list */
+// Was formerly WL_LocateWAD(), now generalized! yipee
+bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize)
+{
+	size_t i, j;
+	char CheckBuffer[PATH_MAX];
+	char BaseWAD[PATH_MAX];
+	const char* p, *bn;
+	bool_t Found;
+	
+	/* Name is required and a size must be given if a_OutPath is set */
+	// List and count must be available also
+	if (!a_Name || (a_OutPath && !a_OutSize) || !a_List || !a_Count)
+		return false;
+		
+	/* Look in the search buffer for said WADs */
+	for (j = 0; j < 2; j++)
+	{
+		// Search the exact given name
+		if (!j)
+			p = a_Name;
+		
+		// If this point is reached, then try the basename (always try to succeed)
+		else
+		{
+			// If not searching base name, die
+			if (!(a_Flags & ILFF_TRYBASE))
+				return false;
+			
+			// Otherwise...
+			memset(BaseWAD, 0, sizeof(BaseWAD));
+			strncpy(BaseWAD, WL_BaseNameEx(a_Name), PATH_MAX);
+			p = BaseWAD;
+			bn = BaseWAD;
+		}
+		
+		// Now search (explicit names)
+		for (i = 0; i < a_Count; i++)
+		{
+			// Clear the check buffer
+			memset(CheckBuffer, 0, sizeof(CheckBuffer));
+			
+			// Append the current search path along with the name of the WAD
+			// Do not add trailing slash here since we already do it as needed in WX_Init()
+			strncpy(CheckBuffer, a_List[i], PATH_MAX);
+			strncat(CheckBuffer, p, PATH_MAX);
+			
+			// Check whether we can read it
+			if (I_CheckFileAccess(CheckBuffer, false))
+			{
+				// Send to output buffer (if it was passed)
+				if (a_OutPath)
+					strncpy(a_OutPath, CheckBuffer, a_OutSize);
+					
+				// Success
+				return true;
+			}
+		}
+		
+		// Search list again, using caseless names
+		if (j && (a_Flags & ILFF_DIRSEARCH))
+			for (i = 1; i < a_Count; i++)
+				if (I_OpenDir(a_List[i]))
+				{
+					// Clear found
+					Found = false;
+					
+					// While reading a file
+					while (I_ReadDir(CheckBuffer, PATH_MAX))
+						// Compare name
+						if (strcasecmp(bn, CheckBuffer) == 0)
+						{
+							// Found it
+							Found = true;
+							
+							// Copy name
+							if (a_OutPath)
+							{
+								strncpy(a_OutPath, a_List[i], a_OutSize);
+								strncat(a_OutPath, "/", a_OutSize);
+								strncat(a_OutPath, CheckBuffer, a_OutSize);
+							}
+							
+							// Done
+							break;
+						}
+					
+					// Close
+					I_CloseDir();
+					
+					// If found, return
+					if (Found)
+						return true;
+				}
+	}
+	
+	/* Not found */
+	return false;
 }
 
