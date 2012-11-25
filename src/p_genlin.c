@@ -1572,54 +1572,12 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 
 /****************************************************************************/
 
+
+/****************************************************************************/
+
 void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
 void Add_Friction(int friction, int movefactor, int affectee);
 void Add_Pusher(int type, int x_mag, int y_mag, mobj_t* source, int affectee);
-
-/* EV_DoHexenLine() -- Triggers hexen line */
-static bool_t EV_DoHexenLine(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
-{
-	/* Debug */
-	if (devparm)
-		CONL_PrintF("HexT %p by %p (side %+1i): Via %c, %3u [%02x, %02x, %02x, %02x, %02x]\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->HexenSpecial, a_Line->ACSArgs[0], a_Line->ACSArgs[1], a_Line->ACSArgs[2], a_Line->ACSArgs[3], a_Line->ACSArgs[4]);
-	
-	/* Only on Level Start */
-	if (a_Type == EVTGT_MAPSTART)
-		switch (a_Line->HexenSpecial)
-		{
-				// Line_SetIdentification
-			case 121:
-				// Setting ID
-				if (a_Line->ACSArgs[0])
-					EV_TagACSLine(a_Line, a_Line->ACSArgs[0]);
-				
-				// Clear
-				a_Line->special = 0;
-				a_Line->HexenSpecial = 0;
-				return true;
-				
-				// Unknown
-			default:
-				break;
-		}
-	
-	/* Normal Gameplay */
-	else
-	{
-		// Check for trigger compatibility
-		
-		// Perform the action
-		switch (a_Line->HexenSpecial)
-		{
-				// Unknown
-			default:
-				break;
-		}
-	}
-	
-	/* Fall-through */
-	return false;
-}
 
 /* EV_TryGenTrigger() -- Tries to trigger a line */
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)

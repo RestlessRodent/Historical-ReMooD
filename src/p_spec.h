@@ -915,7 +915,12 @@ void EV_ClearACSTags(void);
 void EV_TagACSLine(line_t* const a_Line, const int32_t a_ID);
 line_t* EV_SearchACSTags(const int32_t a_ID, int32_t* const a_SearchPoint);
 
+
+typedef bool_t (*EV_Action_t)(line_t* const, const int, mobj_t* const, const EV_TryGenType_t, const uint32_t, bool_t* const);
+
+bool_t EV_DoHexenLine(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
+
 void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool_t a_InstaDamage);
 
 uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input);
