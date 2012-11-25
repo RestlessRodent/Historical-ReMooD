@@ -381,6 +381,10 @@ static bool_t TVMS_PM_Script(struct TVM_State_s* const a_State, char* const a_Bu
 		return false;
 	}
 	
+	/* Emit warnings in global namespace */
+	if (a_State->NameSpace == TVMNS_GLOBAL)
+		CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_GLOBALSCRIPTNUM, "%u\n", (uint8_t)IntVal);
+	
 	/* Increase the scope and set this as a script */
 	// Setup script name
 	memset(Buf, 0, sizeof(Buf));

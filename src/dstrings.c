@@ -1056,6 +1056,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "TVMC_COMPILING", "Compiling \"$1\"..."},
 	{					 "TVMC_ERROR", "Compile error on line $1 ($2)."},
 	{				   "TVMC_SUCCESS", "Successfuly compiled \"$1\"."},
+	{		   "TVMC_GLOBALSCRIPTNUM", "WARNING: Script with ID $1 in global namespace, this is not recommended."},
 	
 	/*** B_GHOST.C ***/
 	{			   "BGHOSTC_BASEINIT", "Registering bot registration..."},
