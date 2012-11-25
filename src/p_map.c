@@ -3222,9 +3222,9 @@ fixed_t P_ZAtPointSS(subsector_t* const a_SubS, const bool_t a_Ceil, const fixed
 {
 	/* Normal Sector */
 	if (a_Ceil)
-		return 128 << FRACBITS;//a_SubS->sector->ceilingz;
+		return a_SubS->sector->ceilingheight;
 	else
-		return 0;//a_SubS->sector->floorz;
+		return a_SubS->sector->floorheight;
 }
 
 /* P_ZAtPoint() -- Z at specified point */
