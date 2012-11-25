@@ -1617,6 +1617,11 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	
 	/* DOS */
 #elif defined(__MSDOS__)
+	// Directory of executable?
+	if (a_Type == DST_EXE)
+	{
+	}
+	
 	// Use C:\DOOMDATA and make sure it exists
 	strncat(a_Out, "c:/doomdata", a_Size);	
 	I_mkdir(a_Out, 0);
