@@ -202,7 +202,7 @@ const CONL_VarPossibleValue_t c_CVPVVidScreenLink[] =
 	
 	// End
 	{0, "MINVAL"},
-	{1, "MAXVAL"},
+	{3, "MAXVAL"},
 	{0, NULL},
 };
 
@@ -1962,6 +1962,7 @@ extern bool_t g_PaintBallMode;
 #define MAXPORTJOYS				MAXJOYSTICKS	// Max joys supported here (auto)
 
 static int16_t l_JoyLastAxis[MAXPORTJOYS][3];
+static uint8_t l_JoyTime[MAXPORTJOYS];
 static int8_t l_JoyMagicAt;
 static int32_t l_JoyMagicTime;
 static I_EventEx_t l_JoyKeepEvent[MAXSPLITSCREEN];
@@ -2018,9 +2019,20 @@ uint8_t D_JoyToPort(const uint32_t a_PortID)
 void D_JoySpecialTicker(void)
 {
 	bool_t LastOK;
-	int i;
+	int i, dx, dy, PWanted;
 	static tic_t MultiEventTic[MAXSPLITSCREEN][2];
+	uint32_t NumJoys;
+	uint8_t WantForJoy[MAXSPLITSCREEN];
+	bool_t Wanted;
+		
+	/* Obtain joy count */
+	NumJoys = I_NumJoysticks();
 	
+	// Cap
+	if (NumJoys >= MAXPORTJOYS)
+		NumJoys = MAXPORTJOYS;
+	
+#if 0
 	/* Profile */
 	l_JoyMagicAt = MAXSPLITSCREEN;
 	for (i = 0; i < MAXSPLITSCREEN; i++)
@@ -2028,9 +2040,10 @@ void D_JoySpecialTicker(void)
 		if (!D_ScrSplitHasPlayer(i))
 			if (l_JoyMagicAt == MAXSPLITSCREEN)
 				l_JoyMagicAt = i;
+#endif
 	
 	/* No joysticks? Don't bother */
-	if (!I_NumJoysticks())
+	if (!NumJoys)
 		return;
 			
 	/* Send OSK Events multiple times */
@@ -2083,12 +2096,103 @@ void D_JoySpecialTicker(void)
 		else
 			MultiEventTic[i][1] = MultiEventTic[i][0] = 0;
 	
+#if 1
+	/* Alternative Joystick grabbing */
+	Wanted = false;
+	for (i = 0; i < NumJoys; i++)
+	{
+		// Ignore grabbed joys
+		if (D_JoyToPort(i + 1))
+			continue;
+		
+		// Clear direction
+		dx = dy = 0;
+		
+		// X direction is set when a certain range is statified
+		if (l_JoyLastAxis[i][0] >= 16384)
+			dx = 1;
+		else if (l_JoyLastAxis[i][0] <= -16384)
+			dx = -1;
+		
+		// Same goes for Y
+		if (l_JoyLastAxis[i][1] >= 16384)
+			dy = 1;
+		else if (l_JoyLastAxis[i][1] <= -16384)
+			dy = -1;
+		
+		// Joystick near center or near corner
+		if ((!dx && !dy) || (dx && dy))
+		{
+			// Ran out of time
+			if (l_JoyTime[i] > 0)
+				l_JoyTime[i]--;
+		}
+		
+		// Joystick in cardinal direction
+		else
+		{
+			// Reached 3 seconds?
+			if (l_JoyTime[i] >= TICRATE * 3)
+			{
+				// Determine player wanted
+				if (dx == 0 && dy < 0)
+					PWanted = 0;
+				else if (dx > 0 && dy == 0)
+					PWanted = 1;
+				else if (dx == 0 && dy > 0)
+					PWanted = 2;
+				else
+					PWanted = 3;
+				
+				// Only bind if not bound by anyone
+				if (!g_Splits[PWanted].JoyBound)
+					// And if not already unwanted
+					if (!WantForJoy[PWanted])
+					{
+						// Previously not wanted?
+						if (!Wanted)
+						{
+							// Clear
+							memset(WantForJoy, 0, sizeof(WantForJoy));
+							
+							// Set as wanted
+							Wanted = true;
+						}	
+						
+						WantForJoy[PWanted] = i + 1;
+					}
+			}
+			
+			// Otherwise, count up
+			else
+				l_JoyTime[i]++;
+		}
+	}
+	
+	// If a player is wanted, process in player order so that players
+	// get the screen they want. Otherwise lower number joys would get lower
+	// player numbers. However for this to work, they'll need to do it all at
+	// the same time for this to ever happen. So if they are a tic off, then
+	// they are out of order.
+	if (Wanted)
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (WantForJoy[i])
+			{
+				// Add local player (super handled)
+				D_NCLocalPlayerAdd(NULL, false, WantForJoy[i], i, true);
+		
+				// Clear time
+				l_JoyTime[WantForJoy[i] - 1] = 0;
+			}
+	
+#else
 	/* Decay Time */
 	l_JoyMagicTime--;
 	
 	// End?
 	if (l_JoyMagicTime < -((int32_t)(TICRATE * 2)))
 		l_JoyMagicTime = TICRATE * 3;
+#endif
 }
 
 /* D_JoySpecialDrawer() -- Draws joy specials */
@@ -2103,7 +2207,7 @@ void D_JoySpecialDrawer(void)
 	uint32_t NumJoys;
 	
 	uint8_t r, g, b;
-	int32_t x, y;
+	int32_t x, y, fb, nb;
 	
 	/* Obtain joy count */
 	NumJoys = I_NumJoysticks();
@@ -2138,9 +2242,11 @@ void D_JoySpecialDrawer(void)
 	r = 255;
 	g = b = 0;
 	LastOK = false;
+	fb = BOXXPOS + BOXSIZE + 4;
 	for (i = 0; i < NumJoys; i++)
 	{
-		// Already bound?
+		// Not bound?
+			// If bound:
 			// Just don't draw it, but shift colors to avoid confusion
 			// "Why did my yellow dot turn red?"
 		if (!(D_JoyToPort(i + 1)))
@@ -2162,13 +2268,13 @@ void D_JoySpecialDrawer(void)
 				if (!g_Splits[0].JoyBound)
 					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER1), BOXCENTERX - 4, BOXCENTERY - (BOXSIZE >> 1) - 10);
 					// P2
-				if (!g_Splits[0].JoyBound)
+				if (!g_Splits[1].JoyBound)
 					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER2), BOXCENTERX + (BOXSIZE >> 1) + 2, BOXCENTERY - 4);
 					// P3
-				if (!g_Splits[0].JoyBound)
+				if (!g_Splits[2].JoyBound)
 					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER3), BOXCENTERX - 4, BOXCENTERY + (BOXSIZE >> 1) + 2);
 					// P4
-				if (!g_Splits[0].JoyBound)
+				if (!g_Splits[3].JoyBound)
 					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER4), BOXCENTERX - (BOXSIZE >> 1) - 18, BOXCENTERY - 4);
 			
 				// Set as drawn
@@ -2181,6 +2287,21 @@ void D_JoySpecialDrawer(void)
 		
 			// Draw position box thing
 			VHW_HUDDrawBox(0, r, g, b, x - 2, y - 2, x + 2, y + 2);
+			
+			// Draw Fill bar
+			if (l_JoyTime[i] > 0)
+			{
+				// Destination
+				nb = fb + (l_JoyTime[i] / 5);
+				
+				// Draw box
+				VHW_HUDDrawBox(0, r, g, b,
+						fb, (BOXYPOS + BOXSIZE) - 8, nb, (BOXYPOS + BOXSIZE)
+					);
+				
+				// Increase bar
+				fb = nb;;
+			}
 		}
 		
 		// New Color
@@ -2277,13 +2398,26 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	uint8_t ForPlayer, RealPlayer, JoyID;
 	int8_t TrueVal;
 	bool_t Changed;
+	uint32_t NumJoys;
+	int32_t i;
 	
 	/* Not a joystick event? */
 	if (a_Event->Type != IET_JOYSTICK)
 		return false;
+		
+	/* Obtain joy count */
+	NumJoys = I_NumJoysticks();
+	
+	// Cap
+	if (NumJoys >= MAXPORTJOYS)
+		NumJoys = MAXPORTJOYS;
 	
 	/* Get ID */
 	JoyID = a_Event->Data.Joystick.JoyID;
+	
+	// Out of bounds?
+	if (JoyID >= NumJoys)
+		return false;
 	
 	/* Determine Player to Handle */
 	if (D_JoyPortsEmpty())
@@ -2309,6 +2443,30 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	else
 		RealPlayer = ForPlayer;
 	
+#if 1
+	/* Alternative Chooser Thing */
+	// Go through all joys
+	for (i = 0; i < NumJoys; i++)
+	{
+		// Ignore Bound Sticks
+		if (D_JoyToPort(i + 1))
+			continue;
+		
+		// Place axis info into last info
+		if (a_Event->Data.Joystick.Axis > 0)
+			if (a_Event->Data.Joystick.Axis < 3)
+				l_JoyLastAxis[JoyID][a_Event->Data.Joystick.Axis - 1] = a_Event->Data.Joystick.Value;
+
+		// Place buttons also
+		if (a_Event->Data.Joystick.Button > 0)
+			if (a_Event->Data.Joystick.Button < 3)
+				if (!a_Event->Data.Joystick.Down)
+					l_JoyLastAxis[JoyID][2] = 0;
+				else
+					l_JoyLastAxis[JoyID][2] |= 1 << (a_Event->Data.Joystick.Button - 1);
+	}
+	
+#else
 	/* Magic Joystick Combination */
 	// Only the first 8 joysticks support magic combos
 	if (l_JoyMagicAt != MAXSPLITSCREEN && !D_JoyToPort(JoyID + 1))
@@ -2348,6 +2506,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 						return true;
 					}
 				}
+#endif
 	
 	/* Synthetic OSK Events */
 	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)

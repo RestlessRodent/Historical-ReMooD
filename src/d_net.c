@@ -1270,11 +1270,12 @@ void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal)
 /* D_NCLocalPlayerAdd() -- Adds a local player */
 void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
-	uint32_t ProcessID, PlaceAt;
+	uint32_t ProcessID, PlaceAt, LastScreen;
 	D_ProfileEx_t* Profile;
 	const B_BotTemplate_t* BotTemplate;
 	D_NetClient_t* Server;
 	D_BS_t* Stream;
+	bool_t BumpSplits;
 		
 	/* Only servers are allowed to add bots */
 	if (!D_SyncNetIsArbiter() && a_Bot)
@@ -1283,6 +1284,21 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	/* Find first free slot */
 	if (!a_Bot)
 	{
+#if 1
+		// Find the last screened player
+		for (LastScreen = 0; LastScreen < MAXSPLITSCREEN; LastScreen++)
+			if (!D_ScrSplitHasPlayer(PlaceAt))
+				break;
+		
+		// Place at the first wanted spot, unless already bound
+		PlaceAt = a_ScreenID;
+		
+		// If placement is after the last, cap to last
+			// So there is no gap in the screens
+		if (PlaceAt > LastScreen)
+			PlaceAt = LastScreen;
+#else
+		// Find spot nobody is inside of
 		for (PlaceAt = 0; PlaceAt < MAXSPLITSCREEN; PlaceAt++)
 			// If nobody is waiting here (also ignore active in demos)
 			if (!D_ScrSplitHasPlayer(PlaceAt))
@@ -1291,6 +1307,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		// No Room?
 		if (PlaceAt >= MAXSPLITSCREEN)
 			return;
+#endif
 	}
 	
 	/* Create Process ID */
@@ -1302,6 +1319,11 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	/* If not a bot, bind to a local screen */
 	if (!a_Bot)
 	{
+		// Bump splits? Not if a screen has a player (controlling keyboarder)
+		BumpSplits = true;
+		if (D_ScrSplitHasPlayer(PlaceAt))
+			BumpSplits = false;
+		
 		// Find Profile
 		Profile = D_FindProfileEx(a_Name);
 		
@@ -1326,14 +1348,15 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		g_Splits[PlaceAt].ProcessID = ProcessID;
 		
 		// Resize Splits
-		if (!demoplayback)
-		{
-			g_SplitScreen++;
-			R_ExecuteSetViewSize();
-		}
+		if (BumpSplits)
+			if (!demoplayback)
+			{
+				g_SplitScreen++;
+				R_ExecuteSetViewSize();
+			}
 	}
 	
-	/* Otherwise it "is not bound to a slot */
+	/* Otherwise it is not bound to a slot */
 	else
 	{
 		// Find template
