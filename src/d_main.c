@@ -2141,45 +2141,47 @@ void D_JoySpecialDrawer(void)
 	for (i = 0; i < NumJoys; i++)
 	{
 		// Already bound?
-		if (D_JoyToPort(i + 1))
-			continue;
-		
-		// Was never drawn
-		if (!LastOK)
+			// Just don't draw it, but shift colors to avoid confusion
+			// "Why did my yellow dot turn red?"
+		if (!(D_JoyToPort(i + 1)))
 		{
-			// Draw box underneath (where all the pretty stuff goes)
-			VHW_HUDDrawBox(0, 255, 255, 255,
-					BOXXPOS - 2, BOXYPOS - 2,
-					BOXXPOS + BOXSIZE + 2, BOXYPOS + BOXSIZE + 2
-				);
+			// Was never drawn
+			if (!LastOK)
+			{
+				// Draw box underneath (where all the pretty stuff goes)
+				VHW_HUDDrawBox(0, 255, 255, 255,
+						BOXXPOS - 2, BOXYPOS - 2,
+						BOXXPOS + BOXSIZE + 2, BOXYPOS + BOXSIZE + 2
+					);
 	
-			// Draw directions
-			V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_JOYINSTRUCT), BOXXPOS + BOXSIZE + 24, BOXYPOS);
+				// Draw directions
+				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_JOYINSTRUCT), BOXXPOS + BOXSIZE + 24, BOXYPOS);
 			
-			// Draw P1, P2, P3, P4...
-				// P1
-			if (!g_Splits[0].JoyBound)
-				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER1), BOXCENTERX - 4, BOXCENTERY - (BOXSIZE >> 1) - 10);
-				// P2
-			if (!g_Splits[0].JoyBound)
-				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER2), BOXCENTERX + (BOXSIZE >> 1) + 2, BOXCENTERY - 4);
-				// P3
-			if (!g_Splits[0].JoyBound)
-				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER3), BOXCENTERX - 4, BOXCENTERY + (BOXSIZE >> 1) + 2);
-				// P4
-			if (!g_Splits[0].JoyBound)
-				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER4), BOXCENTERX - (BOXSIZE >> 1) - 18, BOXCENTERY - 4);
+				// Draw P1, P2, P3, P4...
+					// P1
+				if (!g_Splits[0].JoyBound)
+					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER1), BOXCENTERX - 4, BOXCENTERY - (BOXSIZE >> 1) - 10);
+					// P2
+				if (!g_Splits[0].JoyBound)
+					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER2), BOXCENTERX + (BOXSIZE >> 1) + 2, BOXCENTERY - 4);
+					// P3
+				if (!g_Splits[0].JoyBound)
+					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER3), BOXCENTERX - 4, BOXCENTERY + (BOXSIZE >> 1) + 2);
+					// P4
+				if (!g_Splits[0].JoyBound)
+					V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER4), BOXCENTERX - (BOXSIZE >> 1) - 18, BOXCENTERY - 4);
 			
-			// Set as drawn
-			LastOK = true;
+				// Set as drawn
+				LastOK = true;
+			}
+		
+			// Location to draw box
+			x = BOXCENTERX + (l_JoyLastAxis[i][0] >> BOXSHIFT);
+			y = BOXCENTERY + (l_JoyLastAxis[i][1] >> BOXSHIFT);
+		
+			// Draw position box thing
+			VHW_HUDDrawBox(0, r, g, b, x - 2, y - 2, x + 2, y + 2);
 		}
-		
-		// Location to draw box
-		x = BOXCENTERX + (l_JoyLastAxis[i][0] >> BOXSHIFT);
-		y = BOXCENTERY + (l_JoyLastAxis[i][1] >> BOXSHIFT);
-		
-		// Draw position box thing
-		VHW_HUDDrawBox(0, r, g, b, x - 2, y - 2, x + 2, y + 2);
 		
 		// New Color
 		if (r && !g && !b)
