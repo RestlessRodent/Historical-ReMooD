@@ -1995,19 +1995,19 @@ uint32_t D_PortToJoy(const uint8_t a_PortID)
 	return 0;
 }
 
-/* D_JoyToPort() -- Converts port to joystick */
-uint8_t D_JoyToPort(const uint32_t a_JoyID)
+/* D_JoyToPort() -- Converts joystick to port */
+uint8_t D_JoyToPort(const uint32_t a_PortID)
 {
 	size_t i;
 	
 	/* Check */
-	if (a_JoyID == 0)
+	if (a_PortID == 0)
 		return 0;
 	
 	/* Look in list */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (g_Splits[i].JoyBound)
-			if (g_Splits[i].JoyID == a_JoyID)
+			if (g_Splits[i].JoyID == a_PortID)
 				return i + 1;
 	
 	/* Not found */
@@ -2100,9 +2100,20 @@ void D_JoySpecialDrawer(void)
 	int32_t tX, tY;
 	char* TextString;
 	char Buf[BUFSIZE];
+	uint32_t NumJoys;
+	
+	uint8_t r, g, b;
+	int32_t x, y;
+	
+	/* Obtain joy count */
+	NumJoys = I_NumJoysticks();
+	
+	// Cap
+	if (NumJoys >= MAXPORTJOYS)
+		NumJoys = MAXPORTJOYS;
 	
 	/* No joysticks? Don't bother */
-	if (!I_NumJoysticks())
+	if (!NumJoys)
 		return;
 	
 	/* Do not draw if no menu of sort is active */
@@ -2110,6 +2121,87 @@ void D_JoySpecialDrawer(void)
 		(gamestate == GS_LEVEL && (CONL_IsActive() || M_ExUIActive() || g_SplitScreen < 0))))
 		return;
 	
+#if 1
+#define BOXSHIFT 11
+#define BOXSIZE (32768 >> (BOXSHIFT - 1))
+#define BOXXPOS (80 - (BOXSIZE >> 1))
+#define BOXYPOS (200 - BOXSIZE - 8)
+#define BOXCENTERX (BOXXPOS + (BOXSIZE >> 1))
+#define BOXCENTERY (BOXYPOS + (BOXSIZE >> 1))
+
+	/* Alternative Chooser Thing */
+	// GhostlyDeath <November 26, 2012> -- Much better than my previous
+	// JOY MOVE + 1 + 2. You just move the stick in said direction twords which
+	// game you want to control and there you have it.
+	
+	// Draw for each joystick
+	r = 255;
+	g = b = 0;
+	LastOK = false;
+	for (i = 0; i < NumJoys; i++)
+	{
+		// Already bound?
+		if (D_JoyToPort(i + 1))
+			continue;
+		
+		// Was never drawn
+		if (!LastOK)
+		{
+			// Draw box underneath (where all the pretty stuff goes)
+			VHW_HUDDrawBox(0, 255, 255, 255,
+					BOXXPOS - 2, BOXYPOS - 2,
+					BOXXPOS + BOXSIZE + 2, BOXYPOS + BOXSIZE + 2
+				);
+	
+			// Draw directions
+			V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_JOYINSTRUCT), BOXXPOS + BOXSIZE + 24, BOXYPOS);
+			
+			// Draw P1, P2, P3, P4...
+				// P1
+			if (!g_Splits[0].JoyBound)
+				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER1), BOXCENTERX - 4, BOXCENTERY - (BOXSIZE >> 1) - 10);
+				// P2
+			if (!g_Splits[0].JoyBound)
+				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER2), BOXCENTERX + (BOXSIZE >> 1) + 2, BOXCENTERY - 4);
+				// P3
+			if (!g_Splits[0].JoyBound)
+				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER3), BOXCENTERX - 4, BOXCENTERY + (BOXSIZE >> 1) + 2);
+				// P4
+			if (!g_Splits[0].JoyBound)
+				V_DrawStringA(VFONT_OEM, 0, DS_GetString(DSTR_DMAINC_PLAYER4), BOXCENTERX - (BOXSIZE >> 1) - 18, BOXCENTERY - 4);
+			
+			// Set as drawn
+			LastOK = true;
+		}
+		
+		// Location to draw box
+		x = BOXCENTERX + (l_JoyLastAxis[i][0] >> BOXSHIFT);
+		y = BOXCENTERY + (l_JoyLastAxis[i][1] >> BOXSHIFT);
+		
+		// Draw position box thing
+		VHW_HUDDrawBox(0, r, g, b, x - 2, y - 2, x + 2, y + 2);
+		
+		// New Color
+		if (r && !g && !b)
+			g = 255;
+		else if (r && g && !b)
+			r = 0;
+		else if (!r && g && !b)
+			b = 255;
+		else if (!r && g && b)
+			g = 0;
+		else if (!r && !g && b)
+			r = 255;
+		else if (r && !g && b)
+			b = 0;
+	}
+#undef BOXSHIFT
+#undef BOXSIZE
+#undef BOXXPOS
+#undef BOXYPOS
+#undef BOXCENTERX
+#undef BOXCENTERY
+#else
 	/* Draw Fade Bar */
 	//V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE), 0, 180, 320, 200);
 	
@@ -2173,7 +2265,7 @@ void D_JoySpecialDrawer(void)
 		if (!LastOK)
 			break;
 	}
-	//V_DrawStringA(VFONT_LARGE, 0, "Hi", 10, 175);
+#endif
 #undef BUFSIZE
 }
 

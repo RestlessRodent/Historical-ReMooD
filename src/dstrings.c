@@ -102,7 +102,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{"MENU_GRAPHICS_SCALESTATUSBAR", "Scale Status Bar"},
 	{"MENU_GRAPHICS_TRANSPARENTSTATUSBAR", "Transparent Status Bar"},
 	{"MENU_GRAPHICS_STATUSBARTRANSPARENCYAMOUNT", "Status Bar Transparency Level"},
-	{"MENU_GRAPHICS_CROSSHAIR", "Crosshair"},
+	{"MENU_GRAPHICS_CROSSHAIR", "Cross-hair"},
 	{"MENU_KEYBINDS_TITLE", "Setup Controls"},
 	{"MENU_KEYBINDS_MOVEMENTSUBTITLE", "*** MOVEMENT ***"},
 	{"MENU_KEYBINDS_FIRE", "Fire"},
@@ -1060,6 +1060,13 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** B_GHOST.C ***/
 	{			   "BGHOSTC_BASEINIT", "Registering bot registration..."},
+	
+	/*** D_MAIN.C ***/
+	{			 "DMAINC_JOYINSTRUCT", "Hold joystick towards\ndirection to control."},
+	{				 "DMAINC_PLAYER1", "P1"},
+	{				 "DMAINC_PLAYER2", "P2"},
+	{				 "DMAINC_PLAYER3", "P3"},
+	{				 "DMAINC_PLAYER4", "P4"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

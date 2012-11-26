@@ -272,11 +272,6 @@ typedef enum
 
 void V_MapGraphicalCharacters(void);
 
-void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD);
-void V_WXClearGraphicCharsWAD(WX_WADFile_t* const a_WAD);
-void V_WXMapGraphicCharsComposite(WX_WADFile_t* const a_VWAD);
-void V_WXClearGraphicCharsComposite(void);
-
 /* Misc */
 uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip);
 size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB);
