@@ -343,6 +343,22 @@ CONL_StaticVar_t l_SVMaxDemoCatchup =
 	NULL
 };
 
+// cl_maxptries -- Maximum tries to obtain an XPlayer before failing
+CONL_StaticVar_t l_CLMaxPTries =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"cl_maxptries", DSTR_CVHINT_CLMAXPTRIES, CLVVT_INTEGER, "5",
+	NULL
+};
+
+// cl_maxptrytime -- Delay in seconds to retry
+CONL_StaticVar_t l_CLMaxPTryTime =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"cl_maxptrytime", DSTR_CVHINT_CLMAXPTRYTIME, CLVVT_INTEGER, "3",
+	NULL
+};
+
 /*** FUNCTIONS ***/
 
 /* D_SyncNetAllReady() -- Indicates that all parties are ready to move to the next tic */
@@ -821,6 +837,7 @@ bool_t D_CheckNetGame(void)
 	CONL_AddCommand("listclients", DS_NetMultiComm);
 	
 	/* Register variables */
+	// Server
 	CONL_VarRegister(&l_SVName);
 	CONL_VarRegister(&l_SVEMail);
 	CONL_VarRegister(&l_SVURL);
@@ -833,6 +850,10 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVReadyBy);
 	CONL_VarRegister(&l_SVMaxCatchup);
 	CONL_VarRegister(&l_SVMaxDemoCatchup);
+	
+	// Client
+	CONL_VarRegister(&l_CLMaxPTries);
+	CONL_VarRegister(&l_CLMaxPTryTime);
 	
 	/* Initial Disconnect */
 	D_XNetInit();
@@ -1295,8 +1316,8 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		
 		// If placement is after the last, cap to last
 			// So there is no gap in the screens
-		if (PlaceAt > LastScreen)
-			PlaceAt = LastScreen;
+		//if (PlaceAt > LastScreen)
+		//	PlaceAt = LastScreen;
 #else
 		// Find spot nobody is inside of
 		for (PlaceAt = 0; PlaceAt < MAXSPLITSCREEN; PlaceAt++)
@@ -1330,12 +1351,14 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		if (!Profile)
 			Profile = D_FindProfileEx("guest");
 		
+		// Never redisplay
+			// Also if a player is not active, then reset the display status
 		if (!demoplayback)
-		{
-			g_Splits[PlaceAt].Active = false;
-			g_Splits[PlaceAt].Console = 0;
-			g_Splits[PlaceAt].Display = -1;
-		}
+			if (!g_Splits[PlaceAt].Active)
+			{
+				g_Splits[PlaceAt].Console = 0;
+				g_Splits[PlaceAt].Display = -1;
+			}
 		
 		g_Splits[PlaceAt].RequestSent = false;
 		g_Splits[PlaceAt].GiveUpAt = 0;
@@ -1351,7 +1374,8 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		if (BumpSplits)
 			if (!demoplayback)
 			{
-				g_SplitScreen++;
+				if (PlaceAt >= g_SplitScreen)
+					g_SplitScreen = ((int)PlaceAt);// - 1;
 				R_ExecuteSetViewSize();
 			}
 	}
@@ -1374,7 +1398,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		// Not found?
 		if (!Server)
 			return;
-	
+		
 		/* Tell server to add player */
 		// Use server stream
 		Stream = Server->Streams[DNCSP_PERFECTWRITE];
@@ -3168,10 +3192,14 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 }
 
 /* DS_XNetMakeServPB() -- Callback for make player */
-static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player)
+static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player, void* const a_Data)
 {
 	/* Set initial information */
 	a_Player->Flags |= DXPF_SERVER | DXPF_LOCAL;
+	
+	/* Process ID from local player? */
+	if (a_Data)
+		a_Player->ClProcessID = *((uint32_t*)a_Data);
 }
 
 /* D_XNetMakeServer() -- Creates a server, possibly networked */
@@ -3412,8 +3440,14 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	if (New->HostID == OurHID)
 		for (i = 0; i < MAXSPLITSCREEN; i++)
 			if (D_ScrSplitHasPlayer(i))
-				if (g_Splits[i].ProcessID = New->ClProcessID)
+				if (g_Splits[i].ProcessID == New->ClProcessID)
+				{
 					g_Splits[i].XPlayer = New;
+					g_Splits[i].Console = 0;
+					g_Splits[i].Display = -1;
+					New->ScreenID = i;
+					break;
+				}
 	
 	/* Send player creation packet (if server) */
 	if (D_XNetIsServer())
@@ -3505,7 +3539,8 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	/* Remote Player */
 	else
 	{
-		// Send disconnection packet to them, if we are the server
+		// Send disconnection packet to them, if we are the server, and they
+		// have no more clients attached.
 		if (D_XNetIsServer())
 		{
 			// See if the player is not shared by any more hosts (all gone)
@@ -3571,13 +3606,44 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 /* D_XNetSendQuit() -- Informs the server we are quitting */
 void D_XNetSendQuit(void)
 {
+	int i;
+	
 	/* If we are not the server, tell the server */
 	if (!D_XNetIsServer())
 	{
+		// Tell all of our local screens to leave */
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			D_XNetPartLocal(g_Splits[i].XPlayer);
+		
+		// Send final disconnect to server
 	}
 	
 	/* Disconnect from the server */
 	D_XNetDisconnect(false);
+}
+
+/* D_XNetPartLocal() -- Local player wants disconnecting from server */
+void D_XNetPartLocal(D_XPlayer_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Not local? */
+	if (!(a_Player->Flags & DXPF_LOCAL))
+		return;
+	
+	/* If we are the server, kick em */
+	if (D_XNetIsServer())
+	{
+		// Standard kick takes care of everything
+		D_XNetKickPlayer(a_Player, "Left the game.");
+	}
+	
+	/* Otherwise, inform the server */
+	else
+	{
+	}
 }
 
 /* D_XNetChangeVar() -- Change Variable */
@@ -3822,6 +3888,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 				g_Splits[i].Active = true;
 				g_Splits[i].Waiting = false;
 				g_Splits[i].Console = g_Splits[i].Display = k;
+				break;
 			}
 	
 	/* Print Message */
@@ -5135,6 +5202,44 @@ void D_XNetUpdate(void)
 	/* Enable Mouse Input */
 	l_PermitMouse = true;
 	
+	/* Request Screens to Join */
+	// They need XPlayers too
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		// Screen not active and waiting, and there is no net player
+		if (!g_Splits[i].XPlayer && !g_Splits[i].Active && g_Splits[i].Waiting)
+			// If we are the local server, we can just add players for fun
+			if (D_XNetIsServer())
+			{
+				// Send with process ID
+				g_Splits[i].XPlayer = D_XNetAddPlayer(DS_XNetMakeServPB, &g_Splits[i].ProcessID);
+				
+				// Set screen
+				g_Splits[i].XPlayer->ScreenID = i;
+			}
+			
+			// Otherwise, we need to tell them we want to join
+			else
+			{
+				// No requests sent or ran out of time
+				if (!g_Splits[i].RequestSent || g_ProgramTic > g_Splits[i].GiveUpAt)
+					// Reached request limit
+					if (g_Splits[i].RequestSent > l_CLMaxPTries.Value->Int)
+					{
+						// Remove the split
+						D_NCRemoveSplit(i, false);
+					}
+				
+					// Limit not yet reached
+					else
+					{
+						// Send Message
+						
+						// Set timeout
+						g_Splits[i].RequestSent++;
+						g_Splits[i].GiveUpAt = g_ProgramTic + (l_CLMaxPTryTime.Value->Int * TICRATE);
+					}
+			}
+	
 	/* Build Local Tic Commands (possibly) */
 	for (i = 0; i < g_NumXPlays; i++)
 	{
@@ -5187,6 +5292,8 @@ void D_XNetUpdate(void)
 					M_ExPushMenu(ScrID, ProfMenu);
 					g_ResumeMenu++;
 				}
+				
+				// Continue on
 				continue;
 			}
 		
@@ -5218,7 +5325,7 @@ void D_XNetUpdate(void)
 		if (!XPlay->Player)
 		{
 			// Use is down? Attempt joining
-			if (g_ProgramTic >= XPlay->LastJoinAttempt&& (TicCmdP->Std.buttons & BT_USE))
+			if (g_ProgramTic >= XPlay->LastJoinAttempt && (TicCmdP->Std.buttons & BT_USE))
 			{
 				XPlay->LastJoinAttempt = g_ProgramTic + TICRATE;
 				D_XNetTryJoin(XPlay);

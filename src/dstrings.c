@@ -417,6 +417,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			   "CVHINT_SVMAXCATCHUP", "Maximum amount of time to catchup when playing as the server, after this threshold catchup stops."},
 	{		   "CVHINT_SVMAXDEMOCATCHUP", "Maximum amount of time to catchup when playing a demo, after this threshold catchup stops."},
 	
+	{				"CVHINT_CLMAXPTRIES", "Maximum amount of client attempts to obtain a client from the server."},
+	{			  "CVHINT_CLMAXPTRYTIME", "Time to wait between client requests."},
+	
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{				 "CVHINT_RFAKESSPAL", "Fake the palette changing when using split-screen."},

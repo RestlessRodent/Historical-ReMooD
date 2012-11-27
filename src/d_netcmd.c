@@ -801,11 +801,18 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 	/* Not in demo */
 	if (!a_Demo)
 	{
+		// Tell the server that the player is no longer going to be around
+		if (g_Splits[a_Split].XPlayer)
+			D_XNetPartLocal(g_Splits[a_Split].XPlayer);
+		
 		// Move splits down, to replace this split
 		for (i = a_Split; i < MAXSPLITSCREEN; i++)
 			// Last spot?
 			if (i == MAXSPLITSCREEN - 1)
+			{
 				memset(&g_Splits[i], 0, sizeof(g_Splits[i]));
+				g_Splits[i].Display = -1;
+			}
 			
 			// Move the stuff from the next spot over this one
 			else

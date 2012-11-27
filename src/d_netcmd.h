@@ -142,7 +142,7 @@ typedef struct D_SplitInfo_s
 	bool_t JoyBound;							// Joystick Bound
 	uint32_t JoyID;								// Joystick ID
 	
-	bool_t RequestSent;							// Sent join request
+	uint8_t RequestSent;						// Sent join request
 	tic_t GiveUpAt;								// Give up joining at this time
 	bool_t AutomapActive;						// Activated Automap
 	bool_t OverlayMap;							// Overlay automap
