@@ -399,7 +399,7 @@ void D_IPPTHandleTransports(void);
 
 /*** FAKE PLAYER ***/
 
-void D_XFakePlayerInit(void);
+void D_XFakePlayerInit(const int32_t a_PlayerNum);
 struct player_s;
 struct player_s* D_XFakePlayerGet(const int32_t a_Screen);
 void D_XFakePlayerTicker(void);

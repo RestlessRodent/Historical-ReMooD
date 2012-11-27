@@ -3388,6 +3388,7 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	void* Wp;
 	ticcmd_t* Placement;
 	int32_t i;
+	player_t* FP;
 	
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
@@ -3442,10 +3443,20 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 			if (D_ScrSplitHasPlayer(i))
 				if (g_Splits[i].ProcessID == New->ClProcessID)
 				{
+					// Setup XPlayer and split
 					g_Splits[i].XPlayer = New;
 					g_Splits[i].Console = 0;
 					g_Splits[i].Display = -1;
 					New->ScreenID = i;
+					
+					// Initialize fake player (spectator)
+					D_XFakePlayerInit(i);
+					
+					// Set local angle, so it matches
+					FP = D_XFakePlayerGetPOV(i);
+					
+					if (FP && FP->mo)
+						localangle[i] = FP->mo->angle;
 					break;
 				}
 	
@@ -5368,8 +5379,8 @@ void D_IPPTHandleTransports(void)
 static player_t l_XFakePlayer[MAXSPLITSCREEN];	// Fake Player
 static mobj_t l_XFakeMobj[MAXSPLITSCREEN];		// Fake Mobj
 
-/* D_XFakePlayerInit() -- Initializes the fake player */
-void D_XFakePlayerInit(void)
+/* DS_XFakePlayerInitSolo() -- Initializes single player */
+static void DS_XFakePlayerInitSolo(const int32_t a_PlayerNum)
 {
 	int i;
 	mapthing_t* MapThing;
@@ -5377,9 +5388,17 @@ void D_XFakePlayerInit(void)
 	subsector_t* SubS;
 	D_XPlayer_t* XPlay;
 	
+	/* Check */
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+		return;
+	
+	/* Only During Levels */
+	if (gamestate != GS_LEVEL)
+		return;
+	
 	/* Reset */
-	memset(l_XFakePlayer, 0, sizeof(l_XFakePlayer));
-	memset(l_XFakeMobj, 0, sizeof(l_XFakeMobj));
+	memset(&l_XFakePlayer[a_PlayerNum], 0, sizeof(l_XFakePlayer[a_PlayerNum]));
+	memset(&l_XFakeMobj[a_PlayerNum], 0, sizeof(l_XFakeMobj[a_PlayerNum]));
 	
 	/* Find a map thing to initialize the view from */
 	MapThing = NULL;
@@ -5402,35 +5421,39 @@ void D_XFakePlayerInit(void)
 			MapThing = deathmatchstarts[i];
 	
 	/* Initialize each player */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	// Quick
+	i = a_PlayerNum;
+	
+	// Bind objects
+	l_XFakePlayer[i].mo = &l_XFakeMobj[i];
+	l_XFakeMobj[i].player = &l_XFakePlayer[i];
+	
+	// Player has object
+	if (AnotherMo)
 	{
-		// Bind objects
-		l_XFakePlayer[i].mo = &l_XFakeMobj[i];
-		l_XFakeMobj[i].player = &l_XFakePlayer[i];
-		
-		// Player has object
-		if (AnotherMo)
-		{
-			l_XFakeMobj[i].x = AnotherMo->x;
-			l_XFakeMobj[i].y = AnotherMo->y;
-			l_XFakeMobj[i].z = AnotherMo->z + (AnotherMo->height >> 1);
-		}
-		
-		// Only if MapThing is set
-		else if (MapThing)
-		{
-			// Set Initial Position
-			l_XFakeMobj[i].x = MapThing->x;
-			l_XFakeMobj[i].y = MapThing->y;
-		
-			// Calculate Z position
-			l_XFakeMobj[i].subsector = SubS = R_PointInSubsector(l_XFakeMobj[i].x, l_XFakeMobj[i].y);
-			l_XFakeMobj[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight + SubS->sector->floorheight) >> 1);
-		}
-		
-		// Correct View Hieght
-		l_XFakePlayer[i].viewz = l_XFakeMobj[i].z;
+		l_XFakeMobj[i].x = AnotherMo->x;
+		l_XFakeMobj[i].y = AnotherMo->y;
+		l_XFakeMobj[i].z = AnotherMo->z + (AnotherMo->height >> 1);
+		l_XFakeMobj[i].angle = AnotherMo->angle;
 	}
+	
+	// Only if MapThing is set
+	else if (MapThing)
+	{
+		// Set Initial Position
+		l_XFakeMobj[i].x = MapThing->x;
+		l_XFakeMobj[i].y = MapThing->y;
+	
+		// Calculate Z position
+		l_XFakeMobj[i].subsector = SubS = R_PointInSubsector(l_XFakeMobj[i].x, l_XFakeMobj[i].y);
+		l_XFakeMobj[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight + SubS->sector->floorheight) >> 1);
+		
+		// Angle
+		l_XFakeMobj[i].angle = MapThing->angle * ANGLE_1;
+	}
+	
+	// Correct View Hieght
+	l_XFakePlayer[i].viewz = l_XFakeMobj[i].z;
 	
 	/* Map fake screens to XPlayers */
 	for (i = 0; i < g_NumXPlays; i++)
@@ -5447,6 +5470,22 @@ void D_XFakePlayerInit(void)
 			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
 				l_XFakePlayer[XPlay->ScreenID].XPlayer = XPlay;
 	}
+}
+
+
+/* D_XFakePlayerInit() -- Initializes the fake player */
+void D_XFakePlayerInit(const int32_t a_PlayerNum)
+{
+	int i;
+	
+	/* All */
+	if (a_PlayerNum == -1)
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			DS_XFakePlayerInitSolo(i);
+	
+	/* Or one */
+	else
+		DS_XFakePlayerInitSolo(a_PlayerNum);
 }
 
 /* D_XFakePlayerGet() -- Returns the fake player */
