@@ -330,9 +330,9 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	/* Read basic stuff */
 	p = Data;
-	Header = ReadUInt16(&p);
-	Freq = ReadUInt16(&p);
-	Length = ReadUInt16(&p);
+	Header = LittleReadUInt16(&p);
+	Freq = LittleReadUInt16(&p);
+	Length = LittleReadUInt16(&p);
 	
 	if (!Freq || !Length || Header != 3)
 		return NULL;
