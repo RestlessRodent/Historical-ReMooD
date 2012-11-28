@@ -212,8 +212,6 @@ D_SplitInfo_t g_Splits[MAXSPLITSCREEN];			// Split Information
 
 /*** LOCALS ***/
 
-static D_NetPlayer_t* l_FirstNetPlayer = NULL;	// First Net Player
-
 /*** FUNCTIONS ***/
 
 /* D_ScrSplitHasPlayer() -- Split-screen has player */
@@ -248,115 +246,6 @@ bool_t D_ScrSplitVisible(const int8_t a_Player)
 	
 	/* Not visible */
 	return false;
-}
-
-/* D_NCSNetTicTransmit() -- Transmit tic command to server */
-void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
-{
-	size_t i, SID;
-	ticcmd_t* DestTic;
-	ticcmd_t Merge;
-	I_EventEx_t OSKEvent;
-	D_NetClient_t* Server;
-	D_BS_t* Stream;
-	int32_t PNum;
-	bool_t DidAngle;
-	
-	/* Check */
-	if (!a_NPp || !a_TicCmd)
-		return;
-	
-	/* Only transmit local commands */
-	if (a_NPp->Type == DNPT_NETWORK)
-		return;
-	
-	/* Determine Local Screen */
-	PNum = (a_NPp->Player - players);
-	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
-		if (g_Splits[SID].Active && (a_NPp->Player - players) == g_Splits[SID].Console)
-			break;
-		
-	/* Create Synthetic OSK Events */
-	// Moved high up in the event chain since this really does not belong here.
-	// And this was a cheap hack to begin with anyway.
-	// But never do it for bots, and only for those without joys
-	if (a_NPp->Type == DNPT_LOCAL && !g_Splits[SID].JoyBound)
-		if (CONL_OSKIsActive(SID) || M_ExPlayerUIActive(SID))
-		{
-			// These are player movement based
-			// Right/Left Movement
-			memset(&OSKEvent, 0, sizeof(OSKEvent));
-	
-			// Set type
-			OSKEvent.Type = IET_SYNTHOSK;
-			OSKEvent.Data.SynthOSK.PNum = SID;
-	
-			// Right/Left
-			if ((a_TicCmd->Std.sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) <= -(c_angleturn[2] >> 1))
-				OSKEvent.Data.SynthOSK.Right = 1;
-			else if ((a_TicCmd->Std.sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) >= (c_angleturn[2] >> 1))
-				OSKEvent.Data.SynthOSK.Right = -1;
-	
-			// Up/Down
-			if ((a_TicCmd->Std.forwardmove) <= -(c_forwardmove[0] >> 1))
-				OSKEvent.Data.SynthOSK.Down = 1;
-			else if ((a_TicCmd->Std.forwardmove) >= (c_forwardmove[0] >> 1))
-				OSKEvent.Data.SynthOSK.Down = -1;
-	
-			// Press
-			if (a_TicCmd->Std.buttons & BT_ATTACK)
-				OSKEvent.Data.SynthOSK.Press = 1;
-			
-			// Cancel
-			if (a_TicCmd->Std.buttons & BT_JUMP)
-				OSKEvent.Data.SynthOSK.Cancel = 1;
-	
-			// Push Event
-			if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press || OSKEvent.Data.SynthOSK.Cancel)	
-				I_EventExPush(&OSKEvent);
-			
-			// OSK is active, so don't continue any further
-			return;
-		}
-	
-	// Add local command to end
-	a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;
-	
-	// Merge it All
-	memset(&Merge, 0, sizeof(Merge));
-	D_NCSNetMergeTics(&Merge, a_NPp->TicCmd, a_NPp->TicTotal);
-	
-	// Set local view angle
-	if (SID < MAXSPLITSCREEN)
-		if (!a_NPp->Player || (a_NPp->Player && a_NPp->Player->mo && !a_NPp->Player->mo->reactiontime))
-		{
-			// Absolute Angles
-			if (P_XGSVal(PGS_COABSOLUTEANGLE))
-			{
-				localangle[SID] += Merge.Std.BaseAngleTurn << 16;
-				Merge.Std.angleturn = localangle[SID] >> 16;
-			}
-			
-			// Doom Angles
-			else
-				Merge.Std.angleturn = Merge.Std.BaseAngleTurn;
-		}
-	
-	// Set local aiming angle
-	if (SID < MAXSPLITSCREEN)
-	{
-		if (Merge.Std.ResetAim)
-			localaiming[SID] = 0;
-		else
-			localaiming[SID] += Merge.Std.BaseAiming << 16;
-		Merge.Std.aiming = G_ClipAimingPitch(&localaiming[SID]);
-		//Merge.aiming = localaiming[SID] >> 16;
-	}
-	
-	// Only use this tic (single player game)
-	a_NPp->TicCmd[0] = Merge;
-	a_NPp->TicTotal = 1;
-	a_NPp->XMitCount++;
 }
 
 /* D_NCSNetMergeTics() -- Merges all tic commands */
@@ -447,104 +336,6 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 #endif
 }
 
-/* D_NCSAllocNetPlayer() -- Allocates a network player */
-D_NetPlayer_t* D_NCSAllocNetPlayer(void)
-{
-	size_t i;
-	uint8_t Char;
-	D_NetPlayer_t* New;
-	
-	/* Allocate */
-	New = Z_Malloc(sizeof(D_NetPlayer_t), PU_STATIC, NULL);
-	
-	/* Link */
-	if (!l_FirstNetPlayer)
-		l_FirstNetPlayer = New;
-	else
-	{
-		l_FirstNetPlayer->ChainPrev = l_FirstNetPlayer;
-		New->ChainNext = l_FirstNetPlayer;
-		l_FirstNetPlayer = New;
-	}
-	
-	/* Set properties */
-	D_CMakeUUID(New->UUID);
-	
-	/* Return New */
-	return New;
-}
-
-/* D_NCSFreeNetPlayer() -- Frees a net player */
-void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer)
-{
-	/* Check */
-	if (!a_NetPlayer)
-		return;
-}
-
-/* D_NCSFindNetPlayer() -- Finds a net player */
-D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name)
-{
-	D_NetPlayer_t* Rover;
-	
-	/* Check */
-	if (!a_Name)
-		return NULL;
-	
-	/* Rove */
-	for (Rover = l_FirstNetPlayer; Rover; Rover = Rover->ChainPrev)
-	{
-		// Match?
-		if (strcmp(a_Name, Rover->UUID) == 0)
-			return Rover;
-			
-		// Match?
-		if (strcmp(a_Name, Rover->AccountName) == 0)
-			return Rover;
-	}
-	
-	/* Not Found */
-	return NULL;
-}
-
-/* D_NCSFindNetPlayerByProcess() -- Find net player by process ID */
-D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID)
-{
-	D_NetPlayer_t* Rover;
-	
-	/* Rove */
-	for (Rover = l_FirstNetPlayer; Rover; Rover = Rover->ChainPrev)
-	{
-		// Match?
-		if (Rover->ProcessID == a_ID)
-			return Rover;
-	}
-	
-	/* Not Found */
-	return NULL;
-}
-
-/* D_NCSFindNetPlayerByUnique() -- Finds unique net player */
-D_NetPlayer_t* D_NCSFindNetPlayerByUnique(const uint32_t a_ID)
-{
-	D_NetPlayer_t* Rover;
-	
-	/* Check */
-	if (!a_ID)
-		return NULL;
-	
-	/* Rove */
-	for (Rover = l_FirstNetPlayer; Rover; Rover = Rover->ChainPrev)
-	{
-		// Match?
-		if (Rover->UniqueID == a_ID)
-			return Rover;
-	}
-	
-	/* Not Found */
-	return NULL;
-}
-
 /* D_NCSFindSplitByProcess() -- Finds split screen by process */
 int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 {
@@ -562,23 +353,6 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Not found */
 	return -1;
-}
-
-/* D_NCSIterSpec() -- Iterate spectators */
-D_NetPlayer_t* D_NCSIterSpec(D_NetPlayer_t* const a_At)
-{
-	D_NetPlayer_t* Rover;
-	
-	/* Rove */
-	for (Rover = (!a_At ? l_FirstNetPlayer : a_At->ChainPrev); Rover; Rover = Rover->ChainPrev)
-	{
-		// Is a spectator?
-		if (Rover->Type == DNPT_SPECTATOR)
-			return Rover;
-	}
-	
-	/* Not Found */
-	return NULL;
 }
 
 /* D_NCRemoveSplit() -- Removes Split */
@@ -673,11 +447,6 @@ const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 	/* Player is in game */
 	if (playeringame[a_PlayerID])
 	{
-		// Network Player
-		if (players[a_PlayerID].NetPlayer)
-			if (players[a_PlayerID].NetPlayer->DisplayName[0])
-				return players[a_PlayerID].NetPlayer->DisplayName;
-		
 		// Try from profiles
 		if (players[a_PlayerID].ProfileEx)
 			if (players[a_PlayerID].ProfileEx->DisplayName[0])

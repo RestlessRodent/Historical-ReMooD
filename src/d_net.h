@@ -46,7 +46,6 @@
 *** STRUCTURES ***
 *****************/
 
-struct D_NetPlayer_s;
 struct D_BS_s;
 struct D_ProfileEx_s;
 struct B_BotTemplate_s;
@@ -55,34 +54,20 @@ struct B_BotTemplate_s;
 *** PROTOTYPES ***
 *****************/
 
-void D_SyncNetDebugMessage(const char* const a_Format, ...);
-bool_t D_SyncNetIsArbiter(void);
-
-void D_SyncNetSetMapTime(const tic_t a_Time);
-tic_t D_SyncNetMapTime(void);
-tic_t D_SyncNetRealTime(void);
-tic_t D_SyncNetAllReady(void);
-void D_SyncNetAppealTime(void);
-
-bool_t D_SyncNetIsPaused(void);
-bool_t D_SyncNetUpdate(void);
-bool_t D_SyncNetIsSolo(void);
-
 bool_t D_CheckNetGame(void);
 
 bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
 bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 
-/*****************************************************************************/
+/******************************
+*** NEW EXTENDED NETWORKING ***
+******************************/
 
-#define __REMOOD_NCSNET
+/*** CONSTANTS ***/
 
-#define NETCLIENTRHLEN					256		// Reverse host length
-#define MAXCONNKEYSIZE					8		// Connection Key Size
-
-/*** STRUCTURES ***/
-
-struct player_s;
+#define MAXXSOCKTEXTSIZE				64		// Max size of text fields
+#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)		// Length of UUIDs
+#define MAXLBTSIZE						16		// Max tics in local buffer
 
 /* D_NCStreamPath_t -- Communication Paths */
 typedef enum D_NCStreamPath_e
@@ -94,142 +79,6 @@ typedef enum D_NCStreamPath_e
 	
 	NUMDNCSTREAMS
 } D_NCStreamPath_t;
-
-/* D_LastConsistData_t -- Last Consistency Data of last tic */
-typedef struct D_LastConsistData_s
-{
-	tic_t GameTic;								// Tic Ran
-	uint8_t PrIndex;							// P_Random() Index
-	uint32_t PosMask;							// Position Mask
-} D_LastConsistData_t;
-
-/* D_NetClient_t -- Network Client */
-typedef struct D_NetClient_s
-{
-	/* Player Ownership */
-	struct D_NetPlayer_s** Arbs;				// Arbitrating net players
-	size_t NumArbs;								// Number of arbs
-	
-	/* Location and Pathing */
-	I_HostAddress_t Address;					// Address to client
-	I_NetSocket_t* NetSock;						// Network socket
-	struct D_BS_s* CoreStream;		// Core stream
-	struct D_BS_s* PerfectStream;		// Core stream
-	struct D_BS_s* Streams[NUMDNCSTREAMS];	// Client Streams
-	
-	/* Flags */
-	bool_t IsLocal;								// Local client
-	bool_t IsServer;							// Is a server
-	
-	/* Other Info */
-	char ReverseDNS[NETCLIENTRHLEN];			// Hostname of player
-	bool_t ReadyToPlay;							// Client is ready to play
-	bool_t SaveGameSent;						// Save game was sent
-	uint32_t HostID;							// Host Identity (Unique, hopefully)
-	uint32_t Key[MAXCONNKEYSIZE];				// Connection Key
-	uint32_t GenKey[MAXCONNKEYSIZE];			// Generated Server-Side Key
-	uint32_t ReadyTimeout;						// Time until must be ready
-	
-	D_LastConsistData_t Consist;				// Consistency
-	uint64_t ProgramTic;						// Last recieved program tic
-	tic_t GameTic;								// Client Gametic
-	bool_t Protected;							// Protected (anti-spoof)
-} D_NetClient_t;
-
-typedef void (*D_NCQCFunc_t)(void* const a_Data);
-
-/*** GLOBALS ***/
-
-extern uint32_t g_NetStat[4];					// Network stats
-extern tic_t g_LastServerTic;					// Last Server Tic
-extern D_LastConsistData_t g_LastConsist;		// Last consistency
-
-/*** FUNCTIONS ***/
-
-D_NetClient_t* D_NCAllocClient(void);
-D_NetClient_t* D_NCFindClientIsServer(void);
-D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer);
-D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
-D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);
-D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID);
-uint32_t D_NCGetMyHostID(void);
-
-void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason);
-void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason);
-
-void D_NCUpdate(void);
-void D_NCDrawer(void);
-
-void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
-void D_NCRunCommands(void);
-
-void D_NCQueueDisconnect(void);
-
-void D_NCDisconnect(const bool_t a_FromDemo);
-void D_NCServize(void);
-void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
-
-bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
-
-void D_NCReqPrefChange(struct D_ProfileEx_s* a_Profile, struct B_BotTemplate_s* a_Bot, const uint32_t a_Player);
-void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal);
-void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
-void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
-
-void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
-
-/*** NSZZ Funcs ***/
-void D_NSZZ_SendINFO(struct D_BS_s* a_Stream, const uint32_t a_LocalTime);
-bool_t D_NSZZ_SendINFX(struct D_BS_s* a_Stream, size_t* const a_It);
-void D_NSZZ_SendMOTD(struct D_BS_s* a_Stream);
-void D_NSZZ_SendFullWADS(struct D_BS_s* a_Stream, I_HostAddress_t* const a_Host);
-
-/*** NCSR Funcs ***/
-void D_NCSR_RequestMap(const char* const a_Map);
-void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile);
-void D_NCSR_RequestWAD(const char* const a_WADSum);
-void D_NCSR_RequestServerWADs(void);
-void D_NCSR_SendServerReady(void);
-void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, const int32_t a_MinIs, const int32_t a_MinOf);
-
-/**** NCHE Funcs ***/
-struct D_NetPlayer_s;
-struct D_ProfileEx_s;
-
-void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const a_NetPlayer, struct D_ProfileEx_s* const a_Profile, D_NetClient_t* const a_NetClient);
-void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client);
-
-/*** NCQC Funcs ***/
-void D_NCQC_MapChange(void* const a_Data);
-
-
-
-
-
-
-
-
-
-void D_LoadNetTic(void);
-bool_t D_TicReady(const tic_t a_WhichTic);
-void D_ClearNetTics(void);
-void D_NetXMitCmds(void);
-
-void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd);
-void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd);
-
-void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
-void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
-
-/******************************
-*** NEW EXTENDED NETWORKING ***
-******************************/
-
-/*** CONSTANTS ***/
-
-#define MAXXSOCKTEXTSIZE				64		// Max size of text fields
-#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)		// Length of UUIDs
-#define MAXLBTSIZE						16		// Max tics in local buffer
 
 /* D_XPlayerFlags_t -- Player Flags */
 typedef enum D_XPlayerFlags_e

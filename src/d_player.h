@@ -243,7 +243,6 @@ typedef struct player_s
 	
 	/*** EXTENDED STUFF ***/
 	D_ProfileEx_t* ProfileEx;					// Extended Profiles
-	D_NetPlayer_t* NetPlayer;					// Network Player
 	D_XPlayer_t* XPlayer;						// Extended Player
 	
 	// Health

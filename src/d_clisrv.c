@@ -147,8 +147,6 @@ void TryRunTics(tic_t realtics)
 		
 	if (singletics)
 		realtics = 1;
-		
-	//D_SyncNetUpdate();
 	
 	D_XNetUpdate();
 	
@@ -179,7 +177,6 @@ void TryRunTics(tic_t realtics)
 		
 		// Tic the title screen
 		D_PageTicker();
-		D_SyncNetUpdate();
 		
 		// Set last time
 		LastTic = LocalTic;
@@ -197,9 +194,6 @@ void TryRunTics(tic_t realtics)
 			I_WaitVBL(20);
 			return;
 		}
-		
-		// Update Network
-		D_SyncNetUpdate();
 		
 		// Set last time
 		LastTic = LocalTic;
@@ -245,9 +239,6 @@ void TryRunTics(tic_t realtics)
 	else
 		XXSNAR = D_XNetTicsToRun();
 	
-	// Update Network
-	D_SyncNetUpdate();
-	
 	if (XXSNAR > 0)
 	{
 		// Run tick loops
@@ -283,69 +274,3 @@ void TryRunTics(tic_t realtics)
 	}
 }
 
-/* D_GetTics() -- Returns wrap capable time in tics */
-static tic_t D_GetTics(void)
-{
-	register uint32_t ThisTime;
-	static uint32_t FirstTime;
-	static tic_t ShiftTime;
-	
-	/* Get the current time */
-	ThisTime = I_GetTime();
-	
-	/* Last time not set? */
-	if (!FirstTime)
-		FirstTime = ThisTime;
-		
-	/* This time less than last time? */
-	// An overflow occured, so we shift
-	if (ThisTime < FirstTime)
-	{
-		// Add to shift time the lost time
-		ShiftTime += FirstTime;
-		
-		// Reset last (since it will be the new base)
-		FirstTime = ThisTime;
-	}
-	
-	/* Return shift + (this - first) */
-	return ShiftTime + (ThisTime - FirstTime);
-}
-
-void NetUpdate(void)
-{
-	static tic_t gametime = 0;
-	tic_t nowtime;
-	int i;
-	int realtics;
-	
-	nowtime = D_GetTics();		//I_GetTime();
-	realtics = nowtime - gametime;
-	
-	if (singletics)
-		g_ProgramTic = gametic;
-	else
-		g_ProgramTic = I_GetTimeMS() / TICRATE;	//nowtime;
-	
-	if (singletics)
-		realtics = 1;
-	
-	if (realtics <= 0)			// nothing new to update
-		return;
-	if (realtics > 5)
-	{
-		realtics = 5;
-	}
-	
-	gametime = nowtime;
-	
-	I_OsPolling();				// i_getevent
-	D_ProcessEvents();			// menu responder ???!!!
-	
-	if (!demoplayback)
-		neededtic = maketic;
-		
-	CONL_Ticker();
-	D_JoySpecialTicker();
-	//CON_Ticker();
-}

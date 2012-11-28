@@ -53,80 +53,7 @@ void Command_ExitGame_f(void);
 
 #define MAXDNETTICCMDCOUNT					64	// Max allowed buffered tics
 
-/* D_NetPlayerType_t -- Profile Type */
-typedef enum D_NetPlayerType_e
-{
-	DNPT_LOCAL,									// Local player
-	DNPT_NETWORK,								// Network player
-	DNPT_BOT,									// Bot player
-	DNPT_SPECTATOR,								// Watching Player
-	
-	NUMDNETPLAYERTYPES
-} D_NetPlayerType_t;
-
-/* D_NetState_t -- Network State */
-typedef enum D_NetState_e
-{
-	DNS_NULL,									// NULL State
-	DNS_CONNECTING,								// Player is connecting
-	DNS_DOWNLOADING,							// Downloading something
-	DNS_LOADING,								// Loading the game
-	DNS_PLAYING,								// Playing the game
-	DNS_DROPPLAYER,								// Player should be dropped
-	
-	NUMDNETSTATES
-} D_NetState_t;
-
 /*** STRUCTURES ***/
-
-struct D_ProfileEx_s;
-struct player_s;
-struct B_GhostBot_s;
-
-/* D_NetPlayer_t -- Network Player */
-typedef struct D_NetPlayer_s
-{
-	/* Generic */
-	D_NetPlayerType_t Type;						// Type of network player
-	struct D_ProfileEx_s* Profile;				// Linked Profile
-	struct player_s* Player;					// Attached Player
-	char UUID[MAXPLAYERNAME * 2];				// Network Player Unique ID
-	char AccountName[MAXPLAYERNAME];			// Networked player account
-	uint32_t ProcessID;							// Processing ID
-	uint32_t UniqueID;							// Player Unique ID
-	
-	/* Player Control */
-	// Sync
-	int TicTotal;								// Total number of tic commands
-	ticcmd_t TicCmd[MAXDNETTICCMDCOUNT];		// Tic Command to execute
-	tic_t TicGameTime;							// Last tic in game time (client)
-	int LocalTicTotal;							// Number of local tics
-	ticcmd_t LastGoodTic;						// Last good player tics
-	ticcmd_t LocalTicCmd[MAXDNETTICCMDCOUNT];	// Local Tic Commands
-	tic_t LastLocalTic;							// Last local tic time
-	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
-	D_NetState_t NetState;						// Current network state
-	D_NetClient_t* NetClient;					// Network Client
-	D_LastConsistData_t Consist;				// Consistency
-	uint32_t ProgramTic;						// Last recieved program tic
-	int32_t XMitCount;							// Transmit Count
-	
-	// Desync
-	
-	/* Specifics */
-	int NetColor;								// Network Color
-	tic_t CoopSpyTime;							// Time to wait to respy
-	tic_t TurnHeld;								// Time turning is held
-	int32_t Scores;								// Scoreboard showing
-	
-	/* Bot Related */
-	struct B_GhostBot_s* BotData;				// Bot Data
-	
-	struct D_NetPlayer_s* ChainPrev;			// Previous
-	struct D_NetPlayer_s* ChainNext;			// Next
-} D_NetPlayer_t;
-
-struct D_XPlayer_s;
 
 /* D_SplitInfo_t -- Split Screen Info */
 typedef struct D_SplitInfo_s
@@ -160,27 +87,6 @@ extern bool_t g_NetDev;
 
 bool_t D_ScrSplitHasPlayer(const int8_t a_Player);
 bool_t D_ScrSplitVisible(const int8_t a_Player);
-
-void D_NCSInit(void);
-void D_NCSNetUpdateSingle(struct player_s* a_Player);
-void D_NCSNetUpdateAll(void);
-void D_NCSNetUpdateSingleTic(void);
-
-void D_NCSNetSetState(const D_NetState_t a_State);
-void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd);
-void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc);
-
-bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
-
-D_NetPlayer_t* D_NCSAllocNetPlayer(void);
-void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer);
-
-D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name);
-D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID);
-D_NetPlayer_t* D_NCSFindNetPlayerByUnique(const uint32_t a_ID);
-int8_t D_NCSFindSplitByProcess(const uint32_t a_ID);
-
-D_NetPlayer_t* D_NCSIterSpec(D_NetPlayer_t* const a_At);
 
 void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo);
 void D_NCResetSplits(const bool_t a_Demo);

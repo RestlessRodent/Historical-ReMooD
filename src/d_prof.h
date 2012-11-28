@@ -193,9 +193,6 @@ typedef struct D_ProfileEx_s
 	int32_t LookUpDownSpeed;					// Looking Up/Down Speed
 	int32_t AutoGrabJoy;						// Auto-Grab Joystick
 	
-	/* Network Related */
-	D_NetPlayer_t* NetPlayer;					// Network Player
-	
 	/* Profile Chains */
 	struct D_ProfileEx_s* Prev;					// Previous link
 	struct D_ProfileEx_s* Next;					// Next link

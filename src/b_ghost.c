@@ -1570,33 +1570,6 @@ B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template)
 	return New;
 }
 
-/* B_BotGetTemplate() -- Returns player bot template */
-B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
-{
-	/* Check */
-	if (a_Player < 0 || a_Player >= MAXPLAYERS)
-		return NULL;
-	
-	/* Not playing? */
-	if (!playeringame[a_Player])
-		return NULL;
-	
-	/* No Net Player? */
-	if (!players[a_Player].NetPlayer)
-		return NULL;
-	
-	/* Not a bot? */
-	if (players[a_Player].NetPlayer->Type != DNPT_BOT)
-		return NULL;
-	
-	/* No Data? */
-	if (!players[a_Player].NetPlayer->BotData)
-		return NULL;
-	
-	/* Return the template */
-	return &players[a_Player].NetPlayer->BotData->BotTemplate;
-}
-
 /* B_BotGetTemplateDataPtr() -- Get template by pointer */
 B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
 {
@@ -1625,8 +1598,8 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 			// then do not press use! It would be very rude!
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i])
-				if (players[i].NetPlayer)
-					if (players[i].NetPlayer->Type != DNPT_BOT)
+				if (players[i].XPlayer)
+					if (!(players[i].XPlayer->Flags & DXPF_BOT))
 						return;
 		
 		// Otherwise press use

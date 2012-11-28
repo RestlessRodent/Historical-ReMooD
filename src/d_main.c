@@ -442,10 +442,6 @@ void D_Display(void)
 	
 	//CON_Drawer();
 	
-	
-	// GhostlyDeath <August 29, 2012> -- Network Stuff
-	D_NCDrawer();
-	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
 	
@@ -454,9 +450,6 @@ void D_Display(void)
 	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
-		
-	// GhostlyDeath <May 6, 2012> -- Network Update
-	D_SyncNetUpdate();
 	
 	// GhostlyDeath <May 5, 2012> -- Update Music
 	I_UpdateMusic();
@@ -542,7 +535,6 @@ void D_Display(void)
 		
 		// Appeal to the local timing code
 			// So that the game does not catch up during wipes!
-		D_SyncNetAppealTime();
 		g_IgnoreWipeTics++;
 	}
 	while (!done && I_GetTime() < (unsigned)y);
@@ -751,8 +743,6 @@ void D_WaitingPlayersDrawer(void)
 	static V_Image_t* BGImage;
 	int32_t i, y, ya, sw, Stage, Col[2];
 	uint32_t DrawFlags, DrawColor;
-	D_NetClient_t* NC;
-	D_NetPlayer_t* Spec;
 	
 	D_XPlayer_t* Player;
 	

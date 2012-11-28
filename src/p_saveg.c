@@ -2494,8 +2494,6 @@ void P_SGBS_Players(D_BS_t* const a_Stream)
 		// Write Links
 		D_BSwp(a_Stream, Player->ProfileEx);
 		D_BSws(a_Stream, (Player->ProfileEx ? Player->ProfileEx->UUID : ""));
-		D_BSwp(a_Stream, Player->NetPlayer);
-		D_BSws(a_Stream, (Player->NetPlayer ? Player->NetPlayer->UUID : ""));
 		
 		// Print Map Objects Connected To
 		D_BSwp(a_Stream, Player->mo);
@@ -3356,8 +3354,8 @@ void P_SGBS_State(D_BS_t* const a_Stream)
 	
 	// Write Times
 	D_BSwu32(a_Stream, gametic);
-	D_BSwu32(a_Stream, D_SyncNetMapTime());
-	D_BSwu32(a_Stream, D_SyncNetRealTime());
+	//D_BSwu32(a_Stream, D_SyncNetMapTime());
+	//D_BSwu32(a_Stream, D_SyncNetRealTime());
 	
 	// Write Game state
 	D_BSwu8(a_Stream, gamestate);

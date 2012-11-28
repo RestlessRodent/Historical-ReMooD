@@ -229,7 +229,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		P_XGSSetValue(true, PGS_COMULTIPLAYER, 0);
 	
 	/* Reset Indexes */
-	D_SyncNetSetMapTime(0);
+	gametic = 0;
 	P_SetRandIndex(0);
 	
 	/* Setup Players */
@@ -698,7 +698,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	memset(Names, 0, sizeof(Names));
 	
 	/* Reset Indexes */
-	D_SyncNetSetMapTime(0);
+	gametic = 0;
 	P_SetRandIndex(0);
 	
 	/* Read Demo Info */
@@ -1832,7 +1832,7 @@ bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 	D_BSBaseBlock(a_Current->BSs, "REDM");
 	
 	// The recorder's host ID
-	D_BSwu32(a_Current->BSs, D_NCGetMyHostID());
+	//D_BSwu32(a_Current->BSs, D_NCGetMyHostID());
 	D_BSwu8(a_Current->BSs, P_GetRandIndex());
 	
 	// ...
@@ -2611,7 +2611,7 @@ void G_StopDemoPlay(void)
 	/* If not a server playing demos (demoplayback server) */
 	// Disconnect from "ourself"
 	if (!l_DemoServer)
-		D_NCDisconnect(true);
+		D_XNetDisconnect(true);
 	
 	/* Stop recording if advancing/quitting */
 	if ((QuitDoom || Advance) && demorecording)
@@ -2741,7 +2741,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	// We need to switch to a server state before demos can be played.
 	if (!l_DemoServer)
 	{
-		D_NCDisconnect(true);
+		D_XNetDisconnect(true);
 	}
 	
 	/* Play demo in any factory */

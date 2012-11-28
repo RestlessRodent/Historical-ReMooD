@@ -380,8 +380,6 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	int i, j, k, l;
 	
 	D_ProfileEx_t* Profile;
-	D_NetClient_t* NC;
-	D_NetPlayer_t* NetPlayer;
 	player_t* Player;
 	mobj_t* Mo;
 	D_XJoinPlayerData_t JoinDat;
@@ -607,9 +605,6 @@ void G_Ticker(void)
 	//for (i = 0; i == 0 && (gametic == g_WatchTic);)
 		;
 	
-	// GhostlyDeath <May 13, 2012> -- Run Commands
-	D_NCRunCommands();
-	
 	// do player reborns if needed
 	if (gamestate == GS_LEVEL)
 	{
@@ -657,10 +652,7 @@ void G_Ticker(void)
 	//buf = D_SyncNetMapTime() % BACKUPTICS;
 	
 	// read/write demo and check turbo cheat
-	ThisTime = D_SyncNetMapTime();
-	
-	/* Load network tic */
-	D_LoadNetTic();
+	ThisTime = gametic;//D_SyncNetMapTime();
 	
 	/* Global Commands */
 	// Clear
@@ -697,9 +689,6 @@ void G_Ticker(void)
 				G_WriteDemoTiccmd(cmd, i);
 			D_XNetMultiTics(cmd, true, i);
 		}
-	
-	/* Transmit Network Commands */
-	D_NetXMitCmds();
 	
 	/* Handle Commands */
 	// Process Global Commands
@@ -818,7 +807,6 @@ void G_PlayerReborn(int player)
 	bool_t* RandGuns;
 	
 	D_ProfileEx_t* PEp;
-	D_NetPlayer_t* NPp;
 	D_XPlayer_t* XPl;
 	
 	//from Boris
@@ -831,7 +819,6 @@ void G_PlayerReborn(int player)
 	bool_t Given;
 	
 	PEp = players[player].ProfileEx;
-	NPp = players[player].NetPlayer;
 	XPl = players[player].XPlayer;
 	
 	memcpy(frags, players[player].frags, sizeof(frags));
@@ -927,7 +914,6 @@ void G_PlayerReborn(int player)
 		p->ammo[i] = ammoinfo[i]->StartingAmmo;
 	
 	players[player].ProfileEx = PEp;
-	players[player].NetPlayer = NPp;
 	players[player].XPlayer = XPl;
 	
 	for (i = 0; i < NUMAMMO; i++)
