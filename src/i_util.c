@@ -2335,7 +2335,7 @@ void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
 
 /* I_LocateFile() -- Locates file in list */
 // Was formerly WL_LocateWAD(), now generalized! yipee
-bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize)
+bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize, I_LFData_t* const a_Continue)
 {
 	size_t i, j;
 	char CheckBuffer[PATH_MAX];
@@ -2394,8 +2394,8 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 		
 		// Search list again, using caseless names
 		if (j && (a_Flags & ILFF_DIRSEARCH))
-			for (i = 1; i < a_Count; i++)
-				if (I_OpenDir(a_List[i]))
+			for (i = 0; i < a_Count; i++)
+				if (*a_List[i] && I_OpenDir(a_List[i]))
 				{
 					// Clear found
 					Found = false;

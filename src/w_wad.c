@@ -1007,7 +1007,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		return false;
 	
 	/* Use standard locate */
-	RetVal = I_LocateFile(a_Name, ILFF_TRYBASE | ILFF_DIRSEARCH, l_SearchList, l_SearchCount, a_OutPath, a_OutSize);
+	RetVal = I_LocateFile(a_Name, ILFF_TRYBASE | ILFF_DIRSEARCH, l_SearchList, l_SearchCount, a_OutPath, a_OutSize, NULL);
 	
 	// Check MD5 (TODO)
 	if (RetVal && a_MD5)

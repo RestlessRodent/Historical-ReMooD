@@ -434,6 +434,12 @@ typedef enum I_LocateFileFlags_e
 	ILFF_DIRSEARCH		= UINT32_C(0x00000002),	// Directory searching (caseless)
 } I_LocateFileFlags_t;
 
+/* I_LFData_t() -- Allows continuation of location of files */
+typedef struct I_LFData_s
+{
+	size_t Private[3];							// Private stuff you don't touch
+} I_LFData_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -508,7 +514,7 @@ bool_t I_OpenDir(const char* const a_Path);
 bool_t I_ReadDir(char* const a_Dest, const size_t a_BufSize);
 void I_CloseDir(void);
 
-bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize);
+bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize, I_LFData_t* const a_Continue);
 
 /*** i_utlnet.c ***/
 bool_t I_InitNetwork(void);

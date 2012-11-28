@@ -53,6 +53,7 @@ typedef enum TVM_TokenType_e
 	TVMTT_STRING,								// String
 	TVMTT_INTEGER,								// Integer
 	TVMTT_FIXED,								// Fixed
+	TVMTT_DECLARE,								// Declare Word
 	
 	NUMTVMTOKENTYPES
 } TVM_TokenType_t;
@@ -72,8 +73,13 @@ typedef bool_t (*TVM_ParseMode_t)(struct TVM_State_s* const a_State, char* const
 /* TVM_TokenChain_t -- Chains of tokens */
 typedef struct TVM_TokenChain_s
 {
+	TVM_TokenType_t Type;						// Type of token
+	char* Text;									// Token text
+	
 	struct TVM_TokenChain_s* Prev;				// Previous Link
 	struct TVM_TokenChain_s* Next;				// Next Link
+	
+	struct TVM_TokenChain_s* First;				// First link
 } TVM_TokenChain_t;
 
 /* TVM_State_t -- State */
@@ -93,13 +99,49 @@ typedef struct TVM_State_s
 	TVM_TokenChain_t* TokChain;					// Token Chain
 	char CondType;								// Type of condition
 	uint32_t ScopeIdent;						// Scope Identity
+	int32_t ReadScript;							// Script Reading
+	uint8_t ScriptID;							// ID of script
 } TVM_State_t;
+
+/****************
+*** CONSTANTS ***
+****************/
+
+static const struct
+{
+	const char* Token;							// Token for operator
+	bool_t Backwards;							// Backwards expression
+} c_VMOps[] =
+{
+	{"=", true},
+	{"||", false},
+	{"&&", false},
+	{"|", false},
+	{"&", false},
+	{"==", false},
+	{"!=", false},
+	{"<", false},
+	{">", false},
+	{"<=", false},
+	{">=", false},
+	{"+", false},
+	{"-", false},
+	{"*", false},
+	{"/", false},
+	{"%", false},
+	{"!", false},
+	{"++", false},
+	{"--", false},
+	{".", false},
+	
+	{NULL}
+};
 
 /*************
 *** LOCALS ***
 *************/
 
-static TVM_State_t l_VMState[NUMTVMNAMESPACES];	// Current Map State
+//static TVM_State_t l_VMState[NUMTVMNAMESPACES];	// Current Map State
 
 /****************
 *** FUNCTIONS ***
@@ -123,7 +165,8 @@ static bool_t TVMS_IsSpace(const char a_Char)
 /* TVMS_GetTokenType() -- Returns the type of the token passed */
 static TVM_TokenType_t TVMS_GetTokenType(const char* const a_Buf)
 {
-	char*p;
+	char* p;
+	int32_t i;
 	
 	/* Setup */
 	p = a_Buf;
@@ -133,37 +176,121 @@ static TVM_TokenType_t TVMS_GetTokenType(const char* const a_Buf)
 		return TVMTT_INVALID;
 	
 	/* Perform checks */
+	// Special
+	if (!strcmp(a_Buf, "hub") || !strcmp(a_Buf, "const") ||
+		!strcmp(a_Buf, "string") || !strcmp(a_Buf, "int") ||
+		!strcmp(a_Buf, "mobj") || !strcmp(a_Buf, "float") ||
+		!strcmp(a_Buf, "fixed"))
+		return TVMTT_DECLARE;
+	
 	// Some kind of integer
-	if (*p >= '0' && *p <= '9')
+	else if (*p >= '0' && *p <= '9')
 	{
-		// If any decimal points, is a fixed
-		for (; *p; p++)
+		// Count number of decimal points
+		for (i = 0, p += 1; *p; p++)
 			if (*p == '.')
-				return TVMTT_FIXED;
+				i++;
+			
+			// Contains non-numbers
+			else if (*p < '0' || *p > '9')
+				return TVMTT_INVALID;
+		
+		// If 1, return fixed
+		if (i == 1)
+			return TVMTT_FIXED;
+		
+		// More than 1, is illegal
+		else if (i > 1)
+			return TVMTT_INVALID;
 		
 		// Otherwise, is an integer
 		return TVMTT_INTEGER;
 	}
 	
+	// Identifier
+	else if (*p == '_' || (*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z'))
+	{
+		// Make sure the rest is valid
+		for (p += 1; *p; p++)
+			if (!(*p == '_' || (*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9')))
+				return TVMTT_INVALID;
+		
+		// Return as identifier
+		return TVMTT_IDENTIFIER;
+	}
+	
+	// String
+	else if (*p == '\"')
+		return TVMTT_STRING;
+	
+	// Symbol
+	else
+		return TVMTT_SYMBOL;
+	
 	/* Failure */
 	return TVMTT_INVALID;
 }
 
-#if 0
-/* TVM_TokenType_t -- Type of token thing is */
-typedef enum TVM_TokenType_e
+/* TVMS_AppendToken() -- Appends token to chain */
+static TVM_TokenChain_t* TVMS_AppendToken(TVM_TokenChain_t* const a_Chain, const char* const a_Token)
 {
-	TVMTT_INVALID,									// Invalid
-	TVMTT_SYMBOL,								// Symbol
-	TVMTT_IDENTIFIER,							// Identifier
-	TVMTT_STRING,								// String
-	TVMTT_INTEGER,								// Integer
-	TVMTT_FIXED,								// Fixed
+	TVM_TokenChain_t* New, *Last;
 	
-	NUMTVMTOKENTYPES
-} TVM_TokenType_t;
-#endif
+	/* No chain */
+	if (!a_Chain)
+		Last = NULL;
+	else
+		// Go to last bit
+		for (Last = a_Chain; Last->Next; Last = Last->Next)
+			;
+	
+	/* Allocate New */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Setup based on last */
+	// It is around
+	if (Last)
+	{
+		Last->Next = New;
+		New->Prev = Last;
+		New->First = Last->First;
+	}
+	
+	// Not around
+	else
+	{
+		New->First = New;
+	}
+	
+	/* Setup Word */
+	New->Text = Z_StrDup(a_Token, PU_STATIC, NULL);
+	New->Type = TVMS_GetTokenType(New->Text);
+	
+	/* Always return the first chain */
+	return New->First;
+}
 
+/* TVMS_ClearChain() -- Clears token chain */
+static void TVMS_ClearChain(TVM_TokenChain_t* const a_Chain)
+{
+	TVM_TokenChain_t* Rover, *Next;
+	
+	/* Check */
+	if (!a_Chain)
+		return;
+	
+	/* Clear everything */
+	Next = NULL;
+	for (Rover = a_Chain->First; Rover; Rover = Next)
+	{
+		// Remember Next
+		Next = Rover->Next;
+		
+		// Delete
+		Z_Free(Rover->Text);
+		Z_Free(Rover);
+	}
+}
 
 /* TVMS_PutBuffer() -- Puts text into buffer */
 static void TVMS_PutBuffer(char** const a_BufRef, size_t* const a_SizeRef, size_t* const a_MaxRef, const char a_Char)
@@ -203,6 +330,96 @@ static bool_t TVMS_PopScope(struct TVM_State_s* const a_State, char* const a_Des
 	CONL_PrintF("<< POP\n");
 	a_State->ScopeDepth--;
 	return true;
+}
+
+/* TVMS_CreateVar() -- Creates a variable */
+static bool_t TVMS_CreateVar(struct TVM_State_s* const a_State, char* const a_Type, const char* const a_Name)
+{
+	CONL_PrintF("?? Declare `%s` as type `%s`\n", a_Name, a_Type);
+	return true;
+}
+
+/* TVMS_LSEval() -- Evaluation of LegacyScript expression */
+static bool_t TVMS_LSEval(struct TVM_State_s* const a_State, TVM_TokenChain_t** a_List, int32_t a_Count, int32_t a_Start, int32_t a_End)
+{
+	return false;
+}
+
+/* TVMS_SolveExpr() -- Solves an expression */
+// This is a mostly direct port of t_parse.c evaluate_expression() and friends.
+// This is just for script compatibility (since we do not want all the Legacy mods
+// to break into pieces).
+static bool_t TVMS_SolveExpr(struct TVM_State_s* const a_State, TVM_TokenChain_t* const a_Chain)
+{
+	TVM_TokenChain_t* Rover;
+	TVM_TokenChain_t** List;
+	TVM_TokenChain_t* DeclareAs;
+	int32_t Count;
+	bool_t RetVal;
+	
+	/* Convert expression to list */
+	// Init
+	List = NULL;
+	Count = 0;
+	DeclareAs = NULL;
+	
+	// Rove and append to list
+	for (Rover = a_Chain; Rover; Rover = Rover->Next)
+	{
+		// Current Token is a reserved variable word
+		if (Rover->Type == TVMTT_DECLARE)
+		{
+			// Doubly declared?
+			if (DeclareAs)
+			{
+				if (List)
+					Z_Free(List);
+				
+				a_State->ErrorStr = "It is illegal to declare a variable named after a reserved word.";
+				return false;
+			}	
+			
+			DeclareAs = Rover;
+		}
+		
+		// Grab declare
+		else
+		{
+			// Declaring?
+			if (DeclareAs)
+			{
+				// Not an indentifier
+				if (Rover->Type != TVMTT_IDENTIFIER)
+				{
+					if (List)
+						Z_Free(List);
+				
+					a_State->ErrorStr = "Variable name is not a valid identifier.";
+					return false;
+				}
+				
+				// Create new variable
+				TVMS_CreateVar(a_State, DeclareAs->Text, Rover->Text);
+				
+				// Not declaring anymore
+				DeclareAs = NULL;
+			}
+			
+			// Reallocate List
+			Z_ResizeArray((void**)&List, sizeof(*List), Count, Count + 1);
+		
+			// Set current
+			List[Count++] = Rover;
+		}
+	}
+	
+	/* Call sub handler */
+	RetVal = TVMS_LSEval(a_State, List, Count, 0, Count - 1);
+	
+	/* Cleanup */
+	if (List)
+		Z_Free(List);
+	return RetVal;
 }
 
 bool_t TVMS_CompileWLESIntExt(TVM_State_t* const a_State, WL_ES_t* const a_Stream, const uint32_t a_End);
@@ -300,6 +517,10 @@ static bool_t TVMS_PM_Include(struct TVM_State_s* const a_State, char* const a_B
 			Z_ResizeArray((void**)&a_State->Incs, sizeof(*a_State->Incs),
 				a_State->NumIncs, a_State->NumIncs - 1);
 			a_State->NumIncs--;
+			
+			// Change message?
+			if (!RetVal)
+				a_State->ErrorStr = "Error in include file.";
 			return RetVal;
 	}
 	
@@ -361,43 +582,65 @@ static bool_t TVMS_PM_Script(struct TVM_State_s* const a_State, char* const a_Bu
 	TVM_TokenType_t TokType;
 	int32_t IntVal;
 	
-	/* Obtain type of token */
-	TokType = TVMS_GetTokenType(a_Buf);
-	
-	/* Not an integer? */
-	if (TokType != TVMTT_INTEGER)
+	/* Reading first, integer */
+	if (a_State->ReadScript == 0)
 	{
-		a_State->ErrorStr = "Script IDs are integers only.";
-		return false;
+		// Obtain type of token
+		TokType = TVMS_GetTokenType(a_Buf);
+	
+		// Not an integer?
+		if (TokType != TVMTT_INTEGER)
+		{
+			a_State->ErrorStr = "Script IDs are integers only.";
+			return false;
+		}
+	
+		// Obtain integer value
+		IntVal = C_strtoi32(a_Buf, NULL, 10);
+	
+		// Out of range?
+		if (IntVal < 0 || IntVal >= 255)
+		{
+			a_State->ErrorStr = "Script IDs may only be within 0 - 255 inclusive.";
+			return false;
+		}
+		
+		// Set ID, and wait for next token
+		a_State->ScriptID = IntVal;
+		a_State->ReadScript++;
+		return true;
 	}
 	
-	/* Obtain integer value */
-	IntVal = C_strtoi32(a_Buf, NULL, 10);
-	
-	// Out of range?
-	if (IntVal < 0 || IntVal >= 255)
+	/* Read curly brace */
+	else if (a_State->ReadScript == 1)
 	{
-		a_State->ErrorStr = "Script IDs may only be within 0 - 255 inclusive.";
-		return false;
+		// Expect '{'
+		if (strcmp("{", a_Buf))
+		{
+			a_State->ErrorStr = "Expected '{' after script ID.";
+			return false;
+		}
+		
+		// Emit warnings in global namespace
+		if (a_State->NameSpace == TVMNS_GLOBAL)
+			CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_GLOBALSCRIPTNUM, "%u\n", (uint8_t)a_State->ScriptID);
+	
+		// Setup script name
+		memset(Buf, 0, sizeof(Buf));
+		snprintf(Buf, BUFSIZE, "@___script_%02x", (uint8_t)a_State->ScriptID);
+	
+		// Push it
+		TVMS_PushScope(a_State, Buf, TVMSF_EXTERN);
+	
+		// Return to confused state
+		a_State->ParseMode = a_State->Confused;
+	
+		// Success!
+		return true;
 	}
 	
-	/* Emit warnings in global namespace */
-	if (a_State->NameSpace == TVMNS_GLOBAL)
-		CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_GLOBALSCRIPTNUM, "%u\n", (uint8_t)IntVal);
-	
-	/* Increase the scope and set this as a script */
-	// Setup script name
-	memset(Buf, 0, sizeof(Buf));
-	snprintf(Buf, BUFSIZE, "@___script_%02x", (uint8_t)IntVal);
-	
-	// Push it
-	TVMS_PushScope(a_State, Buf, TVMSF_EXTERN);
-	
-	/* Return to confused state */
-	a_State->ParseMode = a_State->Confused;
-	
-	/* Success! */
-	return true;
+	/* Failure */
+	return false;
 #undef BUFSIZE
 }
 
@@ -406,6 +649,7 @@ static bool_t TVMS_PM_Confused(struct TVM_State_s* const a_State, char* const a_
 {
 #define BUFSIZE 32
 	char Buf[BUFSIZE];	
+	bool_t SolveOK;
 	
 	/* Special keywords */
 		// Include
@@ -435,6 +679,7 @@ static bool_t TVMS_PM_Confused(struct TVM_State_s* const a_State, char* const a_
 		}
 		
 		// Start parsing script
+		a_State->ReadScript = 0;
 		a_State->ParseMode = TVMS_PM_Script;
 		
 		// Define a new code point
@@ -504,13 +749,33 @@ static bool_t TVMS_PM_Confused(struct TVM_State_s* const a_State, char* const a_
 	// If ; was read, this is an end of a statement
 	else if (!strcmp(";", a_Buf))
 	{
-		CONL_PrintF("//\n", a_Buf);
+		// Solve expression if tokens waiting
+		if (a_State->TokChain)
+		{
+			// Attempt it
+			a_State->ErrorStr = NULL;
+			SolveOK = TVMS_SolveExpr(a_State, a_State->TokChain);
+			
+			// Clear chain
+			TVMS_ClearChain(a_State->TokChain);
+			a_State->TokChain = NULL;
+			
+			// Failed?
+			if (!SolveOK)
+			{
+				// Change string if not any
+				if (!a_State->ErrorStr)
+					a_State->ErrorStr = "Invalid expression.";
+				return false;
+			}
+		}
 	}
 	
 	// Otherwise, append to the chain
 	else
 	{
-		CONL_PrintF("`%s` ", a_Buf);
+		// Append
+		a_State->TokChain = TVMS_AppendToken(a_State->TokChain, a_Buf);
 	}
 	
 	/* Success! */
@@ -823,35 +1088,39 @@ static void TVMS_Cleanup(TVM_State_t* const a_State)
 	
 	// Left over tokens?
 	if (a_State->TokChain)
-	{
-		// TODO FIXME
-	}
+		TVMS_ClearChain(a_State->TokChain);
 }
 
 /* TVM_CompileWLES() -- Wraps internal */
 void TVM_CompileWLES(const TVM_Namespace_t a_NameSpace, WL_ES_t* const a_Stream, const uint32_t a_End)
 {
+	TVM_State_t State;
+	
 	/* Check valid namespace */
 	if (a_NameSpace < 0 || a_NameSpace >= NUMTVMNAMESPACES)
 		return;
 	
+	/* Clear */
+	memset(&State, 0, sizeof(State));
+	
 	/* Init for new compile stage */
-	l_VMState[a_NameSpace].NameSpace = a_NameSpace;
-	l_VMState[a_NameSpace].ParseMode = TVMS_PM_Confused;
-	l_VMState[a_NameSpace].Confused = TVMS_PM_Confused;
-	l_VMState[a_NameSpace].ScopeDepth = 0;
+	State.NameSpace = a_NameSpace;
+	State.ParseMode = TVMS_PM_Confused;
+	State.Confused = TVMS_PM_Confused;
+	State.ScopeDepth = 0;
 	
 	/* Start compilation */
-	if (TVMS_CompileWLESInt(&l_VMState[a_NameSpace], a_Stream, a_End))
+	if (TVMS_CompileWLESInt(&State, a_Stream, a_End))
 		CONL_OutputUT(CT_SCRIPTING, DSTR_TVMC_SUCCESS, "%s\n", WL_StreamGetEntry(a_Stream)->Name);
 	
 	/* Cleanup */
-	TVMS_Cleanup(&l_VMState[a_NameSpace]);
+	TVMS_Cleanup(&State);
 }
 
 /* TVM_Clear() -- Clears the VM */
 void TVM_Clear(const TVM_Namespace_t a_NameSpace)
 {
+#if 0
 	/* Check namespace */
 	if (a_NameSpace < 0 || a_NameSpace >= NUMTVMNAMESPACES)
 		return;
@@ -861,6 +1130,7 @@ void TVM_Clear(const TVM_Namespace_t a_NameSpace)
 	
 	/* Cleanup */
 	TVMS_Cleanup(&l_VMState[a_NameSpace]);
+#endif
 }
 
 /* TVM_CompileEntry() -- Compiles entry */
