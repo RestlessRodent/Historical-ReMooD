@@ -338,6 +338,11 @@ void I_EventExPush(const I_EventEx_t* const a_Event)
 	// and whatnot, so it should just be ignored here.
 	if ((a_Event->Type == IET_MOUSE && !l_MouseOK) || (a_Event->Type == IET_JOYSTICK && !l_JoyOK))
 		return;
+	
+	/* Keyboard key, but no key code */
+	if (a_Event->Type == IET_KEYBOARD)
+		if (a_Event->Data.Keyboard.KeyCode == IKBK_NULL)
+			return;
 		
 	/* Write at current write pos */
 	l_EventQ[l_EQWrite++] = *a_Event;
