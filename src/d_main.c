@@ -43,7 +43,6 @@
 #include "am_map.h"
 #include "d_net.h"
 #include "d_netcmd.h"
-#include "dehacked.h"
 #include "dstrings.h"
 
 #include "f_wipe.h"
@@ -2678,13 +2677,13 @@ void D_DoomMain(void)
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	P_XGSRegisterStuff();				// Extended Game Settings stuff
 	M_CheatInit();						// Initialize Cheats
-	D_NCSInit();						// Initialize Network Code
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
 	G_PrepareDemoStuff();				// Demos
 	M_DoMappedVars();					// Mapped Vars
 	B_InitBotCodes();					// Initialize bot coding
+	D_CheckNetGame();					// initialize net game
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
@@ -2909,10 +2908,6 @@ void D_DoomMain(void)
 	// SoM: Init FraggleScript
 	////////////////////////////////
 	T_Init();
-	
-	// init all NETWORK
-	if (D_CheckNetGame())
-		autostart = true;
 	
 	// Recording Demo?
 	if (M_CheckParm("-record"))

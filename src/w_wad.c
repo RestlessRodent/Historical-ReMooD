@@ -34,7 +34,6 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_video.h"
-#include "dehacked.h"
 #include "r_defs.h"
 #include "i_system.h"
 #include "md5.h"

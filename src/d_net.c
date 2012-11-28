@@ -162,11 +162,7 @@ bool_t D_SyncNetUpdate(void)
 	/* Old Update Code */
 	NetUpdate();
 	
-	/* Update all networked players */
-	D_NCSNetUpdateAll();
-	
 	/* Update network code */
-	D_NCUpdate();
 	D_XNetUpdate();
 	
 	/* Success */
@@ -854,6 +850,10 @@ bool_t D_CheckNetGame(void)
 	// Client
 	CONL_VarRegister(&l_CLMaxPTries);
 	CONL_VarRegister(&l_CLMaxPTryTime);
+	
+	/* Debug? */
+	if (M_CheckParm("-netdev"))
+		g_NetDev = true;
 	
 	/* Initial Disconnect */
 	D_XNetInit();

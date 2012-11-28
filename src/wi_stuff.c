@@ -1158,9 +1158,6 @@ static void WI_checkForAccelerate(void)
 // Updates stuff each tick
 void WI_Ticker(void)
 {
-	// GhostlyDeath <May 6, 2012> -- Player tic update
-	D_NCSNetUpdateSingleTic();	
-	
 	// Update music
 	I_UpdateMusic();
 	

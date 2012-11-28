@@ -1159,7 +1159,12 @@ void R_RenderPlayerView_DOOM(player_t* player, const size_t a_Screen)
 //                    ENGINE COMMANDS & VARS
 // =========================================================================
 
-void (*R_ExecuteSetViewSize)(void) = NULL;
+/* R_ExecuteSetViewSize_Nill() -- Does nothing to avoid crash */
+static void R_ExecuteSetViewSize_Nill(void)
+{
+}
+
+void (*R_ExecuteSetViewSize)(void) = R_ExecuteSetViewSize_Nill;
 void (*R_RenderPlayerView)(player_t* player, const size_t a_Screen) = NULL;
 
 // c_CVPVRRenderer -- Renderer to use
