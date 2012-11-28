@@ -248,8 +248,8 @@ bool_t D_ScrSplitVisible(const int8_t a_Player)
 	return false;
 }
 
-/* D_NCSNetMergeTics() -- Merges all tic commands */
-void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc)
+/* D_XNetMergeTics() -- Merges all tic commands */
+void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc)
 {
 //#define __REMOOD_SWIRVYANGLE
 	size_t i, j;

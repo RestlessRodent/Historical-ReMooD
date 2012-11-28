@@ -1338,7 +1338,7 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 				// Merge local tic commands
 				else
 				{
-					D_NCSNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
+					D_XNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
 					XPlay->LocalAt = 0;
 					memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
 				
@@ -2229,6 +2229,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			a_TicCmd->Std.buttons |= BT_CHANGE;
 			D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, 1));
 		}
+		
 		// Prev
 		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVWEAPON))
 		{
@@ -2236,6 +2237,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			a_TicCmd->Std.buttons |= BT_CHANGE;
 			D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, -1));
 		}
+		
 		// Best Gun
 		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BESTWEAPON))
 		{
@@ -2247,6 +2249,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				D_TicCmdFillWeapon(a_TicCmd, newweapon);
 			}
 		}
+		
 		// Worst Gun
 		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_WORSTWEAPON))
 		{
@@ -2258,6 +2261,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				D_TicCmdFillWeapon(a_TicCmd, newweapon);
 			}
 		}
+		
 		// Slots
 		else
 		{
@@ -2372,7 +2376,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				else
 					// Set it to the highest valued gun
 					newweapon = SlotList[j - 1];
-		
+				
 				// Did it work?
 				if (newweapon != Player->readyweapon)
 				{
@@ -2733,7 +2737,7 @@ void D_XNetUpdate(void)
 				{
 					// Merge tics
 					memset(&MergeTrunk, 0, sizeof(MergeTrunk));
-					D_NCSNetMergeTics(&MergeTrunk, XPlay->LocalBuf, XPlay->LocalAt);
+					D_XNetMergeTics(&MergeTrunk, XPlay->LocalBuf, XPlay->LocalAt);
 					XPlay->LocalAt = 0;
 					
 					// Execute Command

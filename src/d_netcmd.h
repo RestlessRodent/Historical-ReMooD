@@ -91,6 +91,8 @@ bool_t D_ScrSplitVisible(const int8_t a_Player);
 void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo);
 void D_NCResetSplits(const bool_t a_Demo);
 
+void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc);
+
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 
 uint32_t D_CMakePureRandom(void);

@@ -349,7 +349,7 @@ typedef struct
 	char* NiceName;								// Name of weapon (obit)
 	char* ClassName;							// Weapon class Name
 	int32_t SwitchOrder;						// Weapon switch order
-	int8_t SlotNum;								// Weapon slot number
+	int32_t SlotNum;								// Weapon slot number
 	uint32_t WeaponFlags;						// Flags for weapon
 	int32_t GetAmmo;							// Amount of ammo to pick up for this weapon
 	int32_t NoAmmoOrder;						// No Ammo Order
