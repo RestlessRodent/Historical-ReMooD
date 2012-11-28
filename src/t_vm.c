@@ -342,6 +342,18 @@ static bool_t TVMS_CreateVar(struct TVM_State_s* const a_State, char* const a_Ty
 /* TVMS_LSEval() -- Evaluation of LegacyScript expression */
 static bool_t TVMS_LSEval(struct TVM_State_s* const a_State, TVM_TokenChain_t** a_List, int32_t a_Count, int32_t a_Start, int32_t a_End)
 {
+	int32_t i;
+	
+	/* Debug */
+	for (i = a_Start; i <= a_End; i++)
+		CONL_PrintF("~%s ", a_List[i]->Text);
+	CONL_PrintF("\n");
+	
+	/* Possible Parenthesis that are not needed */
+	// TODO FIXME
+	
+	
+	
 	return false;
 }
 
