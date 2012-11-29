@@ -708,7 +708,7 @@ void G_Ticker(void)
 	{
 		case GS_LEVEL:
 			// Title Screen Demo Fun
-			D_XFakePlayerTicker();
+			P_SpecTicker();
 	
 			B_GHOST_Ticker();
 			P_Ticker();			// tic the game

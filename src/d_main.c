@@ -374,7 +374,7 @@ void D_Display(void)
 							viewwindowy = 0;
 						
 						if (ST_CheckDrawGameView(i))	
-							R_RenderPlayerView(D_XFakePlayerGetPOV(i), i);
+							R_RenderPlayerView(P_SpecGetPOV(i), i);
 						
 #if 0
 							V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0,
@@ -397,7 +397,7 @@ void D_Display(void)
 					memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 					
 					if (ST_CheckDrawGameView(1))
-						R_RenderPlayerView(D_XFakePlayerGetPOV(1), 1);
+						R_RenderPlayerView(P_SpecGetPOV(1), 1);
 					
 					//V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
 						
@@ -410,7 +410,7 @@ void D_Display(void)
 					
 					// Real Player
 					if (ST_CheckDrawGameView(0))
-						R_RenderPlayerView(D_XFakePlayerGetPOV(0), 0);
+						R_RenderPlayerView(P_SpecGetPOV(0), 0);
 					break;
 			}
 		}

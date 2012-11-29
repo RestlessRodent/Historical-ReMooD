@@ -1281,3 +1281,466 @@ void P_UpdateScores(void)
 	WI_BuildScoreBoard(NULL, false);
 }
 
+
+/*** SPECTATOR PLAYER ***/
+
+static player_t l_SpecPlayers[MAXSPLITSCREEN];	// Fake Player
+static mobj_t l_SpecMobjs[MAXSPLITSCREEN];		// Fake Mobj
+
+/* P_SpecInitOne() -- Initializes single player */
+static void P_SpecInitOne(const int32_t a_PlayerNum)
+{
+	int i;
+	mapthing_t* MapThing;
+	mobj_t* AnotherMo;
+	subsector_t* SubS;
+	D_XPlayer_t* XPlay;
+	
+	/* Check */
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+		return;
+	
+	/* Only During Levels */
+	if (gamestate != GS_LEVEL)
+		return;
+	
+	/* Reset */
+	memset(&l_SpecPlayers[a_PlayerNum], 0, sizeof(l_SpecPlayers[a_PlayerNum]));
+	memset(&l_SpecMobjs[a_PlayerNum], 0, sizeof(l_SpecMobjs[a_PlayerNum]));
+	
+	/* Find a map thing to initialize the view from */
+	MapThing = NULL;
+	AnotherMo = NULL;
+	
+	// Try existing players
+	for (i = 0; i < MAXPLAYERS && !AnotherMo; i++)
+		if (playeringame[i])
+			if (players[i].mo)
+				AnotherMo = players[i].mo;
+	
+	// Try player starts first
+	if (!MapThing)
+		for (i = 0; i < MAXPLAYERS && !MapThing; i++)
+			MapThing = playerstarts[i];
+	
+	// Then deathmatch starts
+	if (!MapThing)
+		for (i = 0; i < MAX_DM_STARTS && !MapThing; i++)
+			MapThing = deathmatchstarts[i];
+	
+	/* Initialize each player */
+	// Quick
+	i = a_PlayerNum;
+	
+	// Bind objects
+	l_SpecPlayers[i].mo = &l_SpecMobjs[i];
+	l_SpecMobjs[i].player = &l_SpecPlayers[i];
+	
+	// Player has object
+	if (AnotherMo)
+	{
+		l_SpecMobjs[i].x = AnotherMo->x;
+		l_SpecMobjs[i].y = AnotherMo->y;
+		l_SpecMobjs[i].z = AnotherMo->z + (AnotherMo->height >> 1);
+		l_SpecMobjs[i].angle = AnotherMo->angle;
+	}
+	
+	// Only if MapThing is set
+	else if (MapThing)
+	{
+		// Set Initial Position
+		l_SpecMobjs[i].x = MapThing->x;
+		l_SpecMobjs[i].y = MapThing->y;
+	
+		// Calculate Z position
+		l_SpecMobjs[i].subsector = SubS = R_PointInSubsector(l_SpecMobjs[i].x, l_SpecMobjs[i].y);
+		l_SpecMobjs[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight + SubS->sector->floorheight) >> 1);
+		
+		// Angle
+		l_SpecMobjs[i].angle = MapThing->angle * ANGLE_1;
+	}
+	
+	// Correct View Hieght
+	l_SpecPlayers[i].viewz = l_SpecMobjs[i].z;
+	
+	/* Map fake screens to XPlayers */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		// Get
+		XPlay = g_XPlays[i];
+		
+		// Missing?
+		if (!XPlay)
+			continue;
+		
+		// Local?
+		if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
+			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+				l_SpecPlayers[XPlay->ScreenID].XPlayer = XPlay;
+	}
+}
+
+
+/* P_SpecInit() -- Initializes the fake player */
+void P_SpecInit(const int32_t a_PlayerNum)
+{
+	int i;
+	
+	/* All */
+	if (a_PlayerNum == -1)
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			P_SpecInitOne(i);
+	
+	/* Or one */
+	else
+		P_SpecInitOne(a_PlayerNum);
+}
+
+/* P_SpecGet() -- Returns the fake player */
+struct player_s* P_SpecGet(const int32_t a_Screen)
+{
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* Return associated screen */
+	return &l_SpecPlayers[a_Screen];
+}
+
+/* P_SpecTicker() -- Ticks fake players */
+void P_SpecTicker(void)
+{
+#define TSCAMDIST FIXEDT_C(128)
+#define BUDGEDIST FIXEDT_C(32)
+#define TSMOVEUNIT FIXEDT_C(16)
+	int32_t i;
+	player_t* Mod, *VPlay;
+	mobj_t* ChaseThis, *PeerThis, *CamMo, *AttackSpec;
+	fixed_t Dist, DistX, DistY, ToMove, MyAng, TargAng;
+	fixed_t VeerX, VeerY;
+	angle_t Angle, PeerAngle;
+	bool_t DeadView;
+	
+	fixed_t ToDist, ToPos[0], BCPos[2], CDist, BCDist;
+	
+	/* Title Screen Demo */
+	if (g_TitleScreenDemo)
+	{
+		// For each player split
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (g_Splits[i].Active)
+			{
+				// Player to modify
+				Mod = &l_SpecPlayers[i];
+				VPlay = &players[g_Splits[i].Console];
+				
+				// Camera Object
+				CamMo = Mod->mo;
+				
+				// Get subsector
+				CamMo->subsector = R_PointInSubsector(CamMo->x, CamMo->y);
+				
+				// Chase the player's object
+				ChaseThis = VPlay->mo;
+				
+				// Player is alive and has a BFG ball
+				if (VPlay->LastBFGBall && VPlay->health > 0)
+				{
+					// Chase and look after the ball
+					PeerThis = ChaseThis = VPlay->LastBFGBall;
+				}
+				
+				// Player is alive
+				else if (VPlay->health > 0)
+				{
+					DeadView = false;
+					
+					// If player is under attack or attacking
+					PeerThis = NULL;
+					
+					// First check attacker
+					AttackSpec = VPlay->attacker;
+					
+					if (!(AttackSpec && AttackSpec->health > 0 &&
+						P_CheckSight(VPlay->mo, AttackSpec)))
+						AttackSpec = NULL;
+					
+					// Now check attackee
+					AttackSpec = VPlay->Attackee;
+					
+					if (!(AttackSpec && AttackSpec->health > 0 &&
+						P_CheckSight(VPlay->mo, AttackSpec)))
+						AttackSpec = NULL;
+					
+					// It is OK
+					if (AttackSpec)
+					{
+						// Get attacker distance
+						Dist = P_AproxDistance(AttackSpec->x - ChaseThis->x,
+								AttackSpec->y - ChaseThis->y);
+					
+						// Object close by
+						if (Dist < FIXEDT_C(2048))
+							PeerThis = AttackSpec;
+					}
+				
+					// Otherwise stare at player object
+					if (!PeerThis)
+						PeerThis = VPlay->mo;
+				}
+				
+				// Player is dead
+				else
+				{
+					DeadView = true;
+					
+					// Chase killer
+					ChaseThis = VPlay->attacker;
+					
+					if (!ChaseThis)
+						ChaseThis = VPlay->mo;
+					
+					// Stare at player object
+					PeerThis = VPlay->mo;
+				}
+
+#if 1
+				// Get 128 units behind chase target
+				BCPos[0] = ChaseThis->x + FixedMul(
+						finecosine[ChaseThis->angle >> ANGLETOFINESHIFT],
+						-TSCAMDIST
+					);
+				BCPos[1] = ChaseThis->y + FixedMul(
+						finesine[ChaseThis->angle >> ANGLETOFINESHIFT],
+						-TSCAMDIST
+					);
+				
+				// Get Distance to chase target
+				CDist = P_AproxDistance(
+							CamMo->x - ChaseThis->x,
+							CamMo->y - ChaseThis->y
+						);
+				
+				// Get Distance to behind target
+				BCDist = P_AproxDistance(
+							CamMo->x - BCPos[0],
+							CamMo->y - BCPos[1]
+						);
+				
+				// If too far away from target, move to it
+					// Or it cannot be seen by the camera
+				if (!P_CheckSight(CamMo, ChaseThis) || (CDist > TSCAMDIST + BUDGEDIST) && !VPlay->attackdown)
+				{
+					ToPos[0] = ChaseThis->x;
+					ToPos[1] = ChaseThis->y;
+					ToDist = CDist / 16;
+				}
+				
+				// If really close, back off
+#if 0
+				else if (CDist < BUDGEDIST)
+				{
+					ToPos[0] = ChaseThis->x;
+					ToPos[1] = ChaseThis->y;
+					ToDist = -(CDist / 4);
+				}
+#endif
+				
+				// If close enough, move to behind target then
+				else
+				{
+					ToPos[0] = BCPos[0];
+					ToPos[1] = BCPos[1];
+					
+					if (VPlay->attackdown)
+						ToDist = BCDist / 8;
+					else
+						ToDist = BCDist / 32;
+				}
+				
+				// Move to location
+				Angle = R_PointToAngle2(CamMo->x, CamMo->y,
+					ToPos[0], ToPos[1]);
+				CamMo->x += FixedMul(finecosine[Angle >> ANGLETOFINESHIFT], ToDist);
+				CamMo->y += FixedMul(finesine[Angle >> ANGLETOFINESHIFT], ToDist);
+#else
+				// Get distance and angle to chase target
+				Dist = P_AproxDistance(
+						CamMo->x - ChaseThis->x,
+						CamMo->y - ChaseThis->y
+					);
+				
+				
+				// Move Camera closer to object chasing
+				if (DeadView || Dist > TSCAMDIST)
+				{
+					Dist /= 16;
+					
+					CamMo->x += FixedMul(finecosine[Angle >> ANGLETOFINESHIFT], Dist);
+					CamMo->y += FixedMul(finesine[Angle >> ANGLETOFINESHIFT], Dist);
+				}
+				
+				// Slowly drift camera behind chase object
+					// Location we want to drift to
+				VeerX = ChaseThis->x + FixedMul(finecosine[
+							ChaseThis->angle >> ANGLETOFINESHIFT], -TSCAMDIST);
+				VeerY = ChaseThis->y + FixedMul(finesine[
+							ChaseThis->angle >> ANGLETOFINESHIFT], -TSCAMDIST);
+					// Get distance to point
+				Dist = P_AproxDistance(
+						CamMo->x - VeerX,
+						CamMo->y - VeerY
+					);
+					// Reduce it alot!
+				Dist /= 32;
+					// Move
+				CamMo->x += FixedMul(finecosine[ChaseThis->angle >> ANGLETOFINESHIFT], Dist);
+				CamMo->y += FixedMul(finecosine[ChaseThis->angle >> ANGLETOFINESHIFT], Dist);
+#endif
+				Angle = R_PointToAngle2(CamMo->x, CamMo->y,
+					ChaseThis->x, ChaseThis->y);
+				PeerAngle = R_PointToAngle2(CamMo->x, CamMo->y,
+					PeerThis->x, PeerThis->y);
+
+				// Pan Camera to peer
+				MyAng = TBL_BAMToDeg(CamMo->angle);
+				TargAng = TBL_BAMToDeg(PeerAngle);
+				
+				// Get dual angles
+				DistX = abs(MyAng - TargAng);
+				DistY = abs((MyAng + 360) - TargAng);
+				
+				// Move in the smaller direction
+				if (DistY < DistX)
+					CamMo->angle += (ANGLE_1 * ((DistY / 4) >> FRACBITS));
+				else
+					CamMo->angle -= (ANGLE_1 * ((DistX / 4) >> FRACBITS));
+				
+				// Normalize Height
+				Dist = (CamMo->z - (ChaseThis->z + (ChaseThis->height >> 1))) >> 2;
+				CamMo->z -= Dist;
+				
+				// Raise above the floor
+				CamMo->subsector = R_PointInSubsector(CamMo->x, CamMo->y);
+				
+#if 0
+				if (CamMo->z < CamMo->subsector->sector->floorheight)
+					CamMo->z = CamMo->subsector->sector->floorheight;
+				else if (CamMo->z > CamMo->subsector->sector->ceilingheight)
+					CamMo->z = CamMo->subsector->sector->ceilingheight;
+#endif
+				
+				// Correct height
+				Mod->viewz = CamMo->z;
+			}
+	}
+	
+	/* Normal fake */
+	else
+	{
+		// Apply momentum
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+		{
+			// Get Objects
+			Mod = &l_SpecPlayers[i];
+			CamMo = Mod->mo;
+			
+			// No object?
+			if (!CamMo)
+				continue;
+			
+			// Apply momentum to object
+			CamMo->x += CamMo->momx;
+			CamMo->y += CamMo->momy;
+			CamMo->z += CamMo->momz;
+			
+			// Reduce momentum (for friction)
+			CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
+			CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
+			CamMo->momz = FixedMul(CamMo->momz, ORIG_FRICTION);
+			
+			// Set sound thinker
+			CamMo->NoiseThinker.x = CamMo->x;
+			CamMo->NoiseThinker.y = CamMo->y;
+			CamMo->NoiseThinker.z = CamMo->z;
+			CamMo->NoiseThinker.momx = CamMo->momx;
+			CamMo->NoiseThinker.momy = CamMo->momy;
+			CamMo->NoiseThinker.momz = CamMo->momz;
+			CamMo->NoiseThinker.Angle = CamMo->angle;
+			CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
+			CamMo->NoiseThinker.Volume = FIXEDT_C(1);
+		}
+	}
+#undef TSCAMDIST
+#undef TSMOVEUNIT
+}
+
+void P_Thrust(player_t* player, angle_t angle, fixed_t move);
+
+/* P_SpecRunTics() -- Tic commands on screen */
+void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
+{
+	player_t* Play;
+	mobj_t* Mo;
+	
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN || !a_TicCmd)
+		return;
+	
+	/* Player to modify */
+	Play = &l_SpecPlayers[a_Screen];
+	Mo = Play->mo;
+	
+	// Oops!
+	if (!Mo)
+		return;
+	
+	/* Modify local angles from tic command */
+	//localangle[a_Screen] += a_TicCmd->Std.BaseAngleTurn << 16;
+	localangle[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAngleTurn << UINT32_C(16);
+	localaiming[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
+	
+	/* Set object looking angles to local */
+	Mo->angle = localangle[a_Screen];
+	Play->aiming = localaiming[a_Screen];
+	
+	/* Set Momentums */
+	Mo->subsector = &subsectors[0];
+	P_Thrust(Play, Mo->angle, a_TicCmd->Std.forwardmove * 2048);
+	P_Thrust(Play, Mo->angle - ANG90, a_TicCmd->Std.sidemove * 2048);
+}
+
+/* P_SpecGetPOV() -- Get player point of view */
+struct player_s* P_SpecGetPOV(const int32_t a_Screen)
+{
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* No XPlayer? */
+	if (!g_Splits[a_Screen].XPlayer)
+		return &players[g_Splits[a_Screen].Display];
+	
+	/* There is one */
+	else
+		// Not playing? Return spectator
+		if ((demoplayback && g_TitleScreenDemo) || !g_Splits[a_Screen].XPlayer->Player)
+			if (g_Splits[a_Screen].Display < 0 ||
+				g_Splits[a_Screen].Display >= MAXPLAYERS ||
+				!playeringame[g_Splits[a_Screen].Display] || (demoplayback && g_TitleScreenDemo))
+				return P_SpecGet(a_Screen);
+			else
+				return &players[g_Splits[a_Screen].Display];
+		
+		// Playing, return display
+		else if (playeringame[g_Splits[a_Screen].Display])
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Return standard player
+		else
+		{
+			g_Splits[a_Screen].Display = players - g_Splits[a_Screen].XPlayer->Player;
+			return g_Splits[a_Screen].XPlayer->Player;
+		}
+}
+

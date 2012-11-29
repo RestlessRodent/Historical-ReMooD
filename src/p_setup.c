@@ -1362,7 +1362,7 @@ bool_t P_ExFinalizeLevel(void)
 	TVM_CompileEntry(TVMNS_LEVEL, g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
 	
 	/* Initialize Fake Player */
-	D_XFakePlayerInit(-1);
+	P_SpecInit(-1);
 	
 	/* Success! */
 	return true;

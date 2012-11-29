@@ -349,5 +349,15 @@ bool_t P_ChickenMorphPlayer(player_t* player);
 bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon);
 bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
 
+/*** SPECTATOR PLAYER ***/
+
+void P_SpecInit(const int32_t a_PlayerNum);
+struct player_s;
+struct player_s* P_SpecGet(const int32_t a_Screen);
+void P_SpecTicker(void);
+void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd);
+
+struct player_s* P_SpecGetPOV(const int32_t a_Screen);
+
 #endif							// __P_LOCAL__
 

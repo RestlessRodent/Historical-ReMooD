@@ -575,7 +575,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	
 	// Fake player?
 	IsFake = false;
-	if (DisplayP == D_XFakePlayerGet(a_PID))
+	if (DisplayP == P_SpecGet(a_PID))
 		IsFake = true;
 	
 	// Net player
@@ -814,11 +814,11 @@ void ST_DrawPlayerBarsEx(void)
 				ConsoleP = &players[g_Splits[p].Console];
 			else
 				ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
-			DisplayP = D_XFakePlayerGetPOV(p);//&players[g_Splits[p].Display];
+			DisplayP = P_SpecGetPOV(p);//&players[g_Splits[p].Display];
 			
 			// Missing player?
 			if (!ConsoleP)
-				ConsoleP = D_XFakePlayerGet(p);
+				ConsoleP = P_SpecGet(p);
 			
 			// Modify palette?
 			if (g_SplitScreen <= 0)	// Only 1 player inside

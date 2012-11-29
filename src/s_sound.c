@@ -270,7 +270,7 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 	for (i = 0; i <= (g_SplitScreen < 0 ? 0 : g_SplitScreen); i++)
 	{
 		// Try to find listening player
-		ListenPlayer = D_XFakePlayerGetPOV(i);
+		ListenPlayer = P_SpecGetPOV(i);
 		
 		// There is none?
 		if (!ListenPlayer)
