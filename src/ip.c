@@ -63,6 +63,8 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		
 		IP_RMD_VerifyF,
 		IP_RMD_CreateF,
+		IP_RMD_RunConnF,
+		IP_RMD_DeleteConnF,
 	},
 	
 	// Odamex
@@ -71,8 +73,13 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		
 		IP_ODA_VerifyF,
 		IP_ODA_CreateF,
+		IP_ODA_RunConnF,
+		IP_ODA_DeleteConnF,
 	},
 };
+
+static struct IP_Conn_s** l_IPConns = NULL;		// IP Connections
+static size_t l_NumIPConns = 0;					// Number of connections
 
 /****************
 *** FUNCTIONS ***
@@ -100,6 +107,49 @@ const struct IP_Proto_s* IP_ProtoByName(const char* const a_Name)
 	
 	/* Not found */
 	return NULL;
+}
+
+/* IP_AllocConn() -- Allocate Connection */
+struct IP_Conn_s* IP_AllocConn(const struct IP_Proto_s* a_Proto, const uint32_t a_Flags, struct IP_Addr_s* const a_RemAddr)
+{
+	struct IP_Conn_s* New;
+	uint32_t UU;
+	
+	/* Create ID */
+	do
+	{
+		UU = D_CMakePureRandom();
+	} while (!UU || IP_ConnById(UU));
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Setup */
+	New->Handler = a_Proto;
+	New->UUID = UU;
+	New->Flags = a_Flags;
+	
+	if (a_RemAddr)
+		memmove(&New->RemAddr, a_RemAddr, sizeof(*a_RemAddr));
+	
+	/* Add to connections */
+	for (UU = 0; UU < l_NumIPConns; UU++)
+		if (!l_IPConns[UU])
+		{
+			l_IPConns[UU] = New;
+			break;
+		}
+	
+	// No space?
+	if (UU >= l_NumIPConns)
+	{
+		Z_ResizeArray((void**)&l_IPConns, sizeof(*l_IPConns),
+			l_NumIPConns, l_NumIPConns + 1);
+		l_IPConns[l_NumIPConns++] = New;
+	}
+	
+	/* Return it */
+	return New;
 }
 
 /* IP_Create() -- Creates a new protocol connectable */
@@ -233,9 +283,22 @@ struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags)
 /* IP_Destroy() -- Destroys protocol connection */
 void IP_Destroy(struct IP_Conn_s* const a_Conn)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_Conn)
 		return;
+	
+	/* Look in active connections */
+	for (i = 0; i < l_NumIPConns; i++)
+		if (l_IPConns[i] == a_Conn)
+			l_IPConns[i] = NULL;
+	
+	/* Call deletion handler */
+	a_Conn->Handler->DeleteConnF(a_Conn->Handler, a_Conn);
+	
+	/* Delete this */
+	Z_Free(a_Conn);
 }
 
 /* IP_ConnById() -- Returns connection by ID */
@@ -246,6 +309,15 @@ struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID)
 	/* Check */
 	if (!a_UUID)
 		return NULL;
+	
+	/* Look in active connections */
+	for (i = 0; i < l_NumIPConns; i++)
+		if (l_IPConns[i])
+			if (l_IPConns[i]->UUID == a_UUID)
+				return l_IPConns[i];
+	
+	/* Failure */
+	return NULL;
 }
 
 /* IP_ConnRun() -- Runs connection handling */
@@ -254,5 +326,8 @@ void IP_ConnRun(struct IP_Conn_s* const a_Conn)
 	/* Check */
 	if (!a_Conn)
 		return;
+	
+	/* Run it */
+	a_Conn->Handler->RunConnF(a_Conn->Handler, a_Conn);
 }
 

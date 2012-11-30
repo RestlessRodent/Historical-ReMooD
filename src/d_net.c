@@ -652,7 +652,7 @@ void D_XNetConnect(const char* const a_URI)
 	// Failed?
 	if (!Conn)
 	{
-		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BADURI, "%s", a_URI);
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BADURI, "%s\n", a_URI);
 		return;
 	}
 	
@@ -1324,6 +1324,17 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Update Scores */
 	P_UpdateScores();
+}
+
+/* D_XNetSetServerName() -- Server changes name */
+void D_XNetSetServerName(const char* const a_NewName)
+{
+	/* Check */
+	if (!a_NewName)
+		return;
+	
+	/* Print */
+	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_SERVERCHANGENAME, "%s\n", a_NewName);
 }
 
 /* D_XNetBindConn() -- Binds Connection */

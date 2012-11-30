@@ -1166,7 +1166,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			continue;
 		
 		// If this is an IPv4 Address and host has none, use it!
-		if (((a_Socket && !(a_Socket->Flags & INSF_V6)) || a_Host->IPvX == INIPVN_IPV4) && Rover->ai_family == AF_INET)
+		if (((a_Socket && !(a_Socket->Flags & INSF_V6)) || a_Host->IPvX == INIPVN_IPV4 || (!a_Socket && !a_Host->IPvX)) && Rover->ai_family == AF_INET)
 		{
 			// Fill flag
 			a_Host->IPvX = INIPVN_IPV4;
@@ -1188,7 +1188,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 		}
 		
 		// Same as above, but for IPv6
-		else if (((a_Socket && !(a_Socket->Flags & INSF_V6)) || a_Host->IPvX == INIPVN_IPV6) && Rover->ai_family == AF_INET6)
+		else if (((a_Socket && !(a_Socket->Flags & INSF_V6)) || a_Host->IPvX == INIPVN_IPV6 || (!a_Socket && !a_Host->IPvX)) && Rover->ai_family == AF_INET6)
 		{
 			// Fill flag
 			a_Host->IPvX = INIPVN_IPV6;

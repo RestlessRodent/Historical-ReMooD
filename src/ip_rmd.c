@@ -37,10 +37,19 @@
 #include "i_util.h"
 #include "ip.h"
 #include "ip_prv.h"
+#include "console.h"
+#include "dstrings.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* IP_RmdData_t -- Connection Data */
+typedef struct IP_RmdData_s
+{
+	struct IP_Conn_s* Conn;						// Connection
+	I_NetSocket_t* Socket;						// Socket to server
+} IP_RmdData_t;
 
 /****************
 *** FUNCTIONS ***
@@ -69,7 +78,82 @@ bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host
 /* IP_RMD_CreateF() -- Create connection */
 struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
 {
-	return NULL;
+	struct IP_Addr_s Addr;
+	struct IP_Conn_s* New;
+	uint16_t Port;
+	I_NetSocket_t* Socket;
+	IP_RmdData_t* Data;
+	int32_t i;
+	
+	/* Valid Port */
+	Port = a_Port;
+	if (!Port)
+		Port = 29500;
+	
+	/* Attempt Host Resolution */
+	if (!IP_UDPResolveHost(a_Proto, &Addr, a_Host, Port))
+	{
+		// If making a server, warn that binding to said address is not possible
+		if (a_Flags & IPF_INPUT)
+			CONL_OutputUT(CT_NETWORK, DSTR_IPC_NOHOSTCANNOTBIND, "%s%u\n", a_Host, Port);
+		
+		// If connecting as a client, die
+		if (!(a_Flags & IPF_INPUT))
+			return NULL;
+	}
+	
+	/* Setup Socket */
+	// Try making sockets
+	for (i = 0; i < IPMAXSOCKTRIES; i++)
+	{
+		// Create socket to server
+		Socket = I_NetOpenSocket(0, ((a_Flags & IPF_INPUT) ? &Addr.Private : NULL), Port + i);
+	
+		// Worked?
+		if (Socket)
+			break;
+	}
+	
+	// No socket created
+	if (!Socket)
+		return NULL;
+	
+	// Failed?
+	if (!Socket)
+		return NULL;
+	
+	/* Return new connection allocation */
+	New = IP_AllocConn(a_Proto, a_Flags, &Addr);
+	
+	/* Initialize Mode */
+	// Create Data
+	New->Size = sizeof(*Data);
+	Data = New->Data = Z_Malloc(New->Size, PU_STATIC, NULL);
+	
+	// Set Data
+	Data->Socket = Socket;
+	Data->Conn = New;
+	
+	/* Return it */
+	return New;
 }
+
+/* IP_RMD_RunConnF() -- Runs connection */
+void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+{
+	/* Check */
+	if (!a_Proto || !a_Conn)
+		return;
+}
+
+/* IP_RMD_DeleteConnF() -- Deletes connection */
+void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+{
+	/* Check */
+	if (!a_Proto || !a_Conn)
+		return;
+}
+
+
 
 

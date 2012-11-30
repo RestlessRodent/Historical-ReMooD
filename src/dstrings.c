@@ -1045,6 +1045,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			"DNETC_PLAYERLISTENT", "$1 $2 $3{z"},
 	{				   "DNETC_BADURI", "The URI \"$1\" is not valid."},
 	{				 "DNETC_BINDFAIL", "Failed to bind to \"$1\"."},
+	{		 "DNETC_SERVERCHANGENAME", "Server changed name to \"$1\"."},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
@@ -1075,6 +1076,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** ip_*.c ***/
 	{				 "IPC_CREATECONN", "Creating connection \"$1\" ($2)"},
+	{		   "IPC_NOHOSTCANNOTBIND", "Host \"$1:$2\" not found, binding will not be possible."},
+	{			  "IPC_SVREQUESTINFO", "Requesting server information..."},
+	{					 "IPC_UNKODA", "Unknown message type $1."},
+	{				  "IPC_SVGOTINFO", "Obtained server information."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */
@@ -1170,7 +1175,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 	strncat(SmallBuf, a_Format, SMALLBUF);
 	
 	// Go through format
-	NewLine = false;
+	NewLine = !!(*a_Format == '\n');
 	HackLeft = HACKBUF - 1;
 	h = HackBuf;
 	sn = 0;

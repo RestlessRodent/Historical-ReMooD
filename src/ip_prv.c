@@ -15,6 +15,7 @@
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
+// Portions Copyright (C) Odamex <http://odamex.net/>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,36 +27,64 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: Private IP Stuff
-
-#ifndef __IP_PRV_H__
-#define __IP_PRV_H__
+// DESCRIPTION: Standard Wrapping
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "ip.h"
+#include "doomtype.h"
+#include "doomdef.h"
+#include "i_util.h"
+#include "d_netcmd.h"
+#include "d_net.h"
+#include "console.h"
+#include "ip_prv.h"
+
+/****************
+*** CONSTANTS ***
+****************/
 
 /*****************
-*** PROTOTYPES ***
+*** STRUCTURES ***
 *****************/
 
-/* ReMooD Protocol */
-bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
-struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
-void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
-void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
+/*************
+*** LOCALS ***
+*************/
 
-/* Odamex Protocol */
-bool_t IP_ODA_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
-struct IP_Conn_s* IP_ODA_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
-void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
-void IP_ODA_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
+/****************
+*** FUNCTIONS ***
+****************/
 
-/* UDP Baseline */
-bool_t IP_UDPResolveHost(const struct IP_Proto_s* a_Proto, IP_Addr_t* const a_Dest, const char* const a_Name, const uint32_t a_Port);
-
-#endif /* __IP_PRV_H__ */
-
+/* IP_UDPResolveHost() -- Resolves UDP Host */
+bool_t IP_UDPResolveHost(const struct IP_Proto_s* a_Proto, IP_Addr_t* const a_Dest, const char* const a_Name, const uint32_t a_Port)
+{
+	I_HostAddress_t* AddrData;
+	
+	/* Check */
+	if (!a_Proto || !a_Dest || !a_Name || !a_Port)
+		return false;
+	
+	/* Clear Address */
+	memset(a_Dest, 0, sizeof(*a_Dest));
+	
+	/* Set address data */
+	AddrData = (I_HostAddress_t*)(&a_Dest->Private);
+	
+	/* Resolve */
+	if (!I_NetNameToHost(NULL, AddrData, a_Name))
+		return false;
+	
+	/* Set Port */
+	AddrData->Port = a_Port;
+	a_Dest->IsValid = true;
+	a_Dest->Handler = a_Proto;
+	
+	a_Dest->Port = a_Port;
+	snprintf(a_Dest->HostName, IPADDRHOSTLEN - 1, "%s:%u", a_Name, AddrData->Port);
+	
+	/* Success */
+	return true;
+}
 

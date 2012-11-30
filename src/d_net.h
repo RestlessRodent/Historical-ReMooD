@@ -235,6 +235,8 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 void D_XNetSendColors(D_XPlayer_t* const a_Player);
 void D_XNetTryJoin(D_XPlayer_t* const a_Player);
 void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
+void D_XNetSetServerName(const char* const a_NewName);
+
 bool_t D_XNetBindConn(struct IP_Conn_s* a_Conn);
 void D_XNetDelConn(struct IP_Conn_s* a_Conn);
 
