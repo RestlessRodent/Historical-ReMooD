@@ -478,6 +478,9 @@ static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
 static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
 static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
 
+static IP_Conn_t** l_XNetConns;					// Protocol connections
+static size_t l_NumXNetConns;					// Number of connections
+
 /*** FUNCTIONS ***/
 
 /* D_XNetDisconnect() -- Disconnect from server/self server */
@@ -555,6 +558,11 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	
 	/* Destroy the level */
 	P_ExClearLevel();
+	
+	/* Remove any connections */
+	for (i = 0; i < l_NumXNetConns; i++)
+		if (l_XNetConns[i])
+			D_XNetDelConn(l_XNetConns[i]);
 	
 	/* Go back to the title screen */
 	gamestate = GS_DEMOSCREEN;
@@ -1283,6 +1291,63 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	P_UpdateScores();
 }
 
+/* D_XNetBindConn() -- Binds Connection */
+bool_t D_XNetBindConn(struct IP_Conn_s* a_Conn)
+{
+	size_t i, FreeSpot;
+	
+	/* Check */
+	if (!a_Conn)
+		return false;
+	
+	/* See if it is already set */
+	FreeSpot = l_NumXNetConns;
+	for (i = 0; i < l_NumXNetConns; i++)
+	{
+		// Free?
+		if (!l_XNetConns[i])
+			if (FreeSpot == l_NumXNetConns)
+				FreeSpot = i;
+		
+		// If matches, return true
+		if (l_XNetConns[i] == a_Conn)
+			return true;
+	}
+	
+	/* It is not, so use free spot */
+	// Resize needed?
+	if (FreeSpot >= l_NumXNetConns)
+	{
+		Z_ResizeArray((void**)&l_XNetConns, sizeof(*l_XNetConns),
+			l_NumXNetConns, l_NumXNetConns + 1);
+		l_NumXNetConns++;
+	}
+	
+	// Place here
+	l_XNetConns[FreeSpot] = a_Conn;
+	
+	/* Done */
+	return true;
+}
+
+/* D_XNetDelConn() -- Deletes connection */
+void D_XNetDelConn(struct IP_Conn_s* a_Conn)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Conn)
+		return false;
+	
+	/* Find in list, and remove */
+	for (i = 0; i < l_NumXNetConns; i++)
+		if (l_XNetConns[i] == a_Conn)
+		{
+			IP_Destroy(l_XNetConns[i]);
+			l_XNetConns[i] = NULL;
+		}
+}
+
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
@@ -1532,12 +1597,12 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	B_BotTemplate_t* BotTemp;
 	D_XPlayer_t* XPlay;
 	int32_t i;
+	bool_t Flag;
+	struct IP_Conn_s* Conn;
 	
 	/* Not enough args? */
 	if (a_ArgC < 2)
-	{
 		return 1;
-	}
 	
 	/* Listing Players */
 	if (strcasecmp(a_ArgV[1], "list") == 0)
@@ -1628,6 +1693,27 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Success?
 		return 0;
+	}
+	
+	/* Bind Connection */
+	else if (strcasecmp(a_ArgV[1], "bind") == 0)
+	{
+		// Requires two arguments
+		if (a_ArgC < 4)
+			return 1;
+		
+		// First argument is a true/false word
+		Flag = INFO_BoolFromString(a_ArgV[2]);
+		
+		// Possibly create a socket to bind
+		Conn = IP_Create(a_ArgV[3], (Flag ? IPF_INPUT : 0));
+		
+		// Failed to create
+		if (!Conn)
+			return 0;
+		
+		// Bind it
+		return !D_XNetBindConn(Conn);
 	}
 	
 	/* Failure */
@@ -2750,8 +2836,8 @@ void D_XNetUpdate(void)
 	/* Modify spectators */
 	LastSpecTic = gametic;
 	
-	/* Handle transport layer */
-	D_IPPTHandleTransports();
+	/* Handle transport layers */
+	// TODO FIXME
 }
 
 

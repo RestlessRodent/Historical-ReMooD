@@ -42,23 +42,43 @@
 #include "doomdef.h"
 #include "i_util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* IP_Flags_t -- IP Flags */
+typedef enum IP_Flags_e
+{
+	IPF_INPUT 			= UINT32_C(0x00000001),	// Can be connected to
+} IP_Flags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
 
 struct IP_Conn_s;
+struct IP_Addr_s;
+
+/* IP_Addr_t -- Standard Address */
+typedef struct IP_Addr_s
+{
+} IP_Addr_t;
 
 /* IP_Conn_t -- Protocol Connection */
 typedef struct IP_Conn_s
 {
+	uint32_t Flags;								// Connection Flags
+	uint32_t UUID;								// Connection ID
 } IP_Conn_t;
 
 /*****************
 *** PROTOTYPES ***
 *****************/
 
-struct IP_Conn_s* IP_Create(const char* const a_URI);
+struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags);
 void IP_Destroy(struct IP_Conn_s* const a_Conn);
+
+struct IP_Conn_s IP_ConnById(const uint32_t a_UUID);
 
 #endif /* __IP_H__ */
 

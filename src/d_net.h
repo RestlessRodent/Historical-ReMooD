@@ -41,6 +41,7 @@
 
 #include "i_net.h"
 #include "i_util.h"
+#include "ip.h"
 
 /*****************
 *** STRUCTURES ***
@@ -178,6 +179,11 @@ typedef struct D_XPlayer_s
 	tic_t TurnHeld;								// Time turning is held
 	int32_t Scores;								// Scoreboard showing
 	ticcmd_t BackupTicCmd;						// Backup Tic Command
+	
+	// Connection Socket
+	IP_Conn_t* IPTo;							// Connection To Player
+	IP_Conn_t* IPFrom;							// Connection From Player (Secure)
+	IP_Addr_t* IPAddr;							// Address of Player
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -228,6 +234,8 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 void D_XNetSendColors(D_XPlayer_t* const a_Player);
 void D_XNetTryJoin(D_XPlayer_t* const a_Player);
 void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
+bool_t D_XNetBindConn(struct IP_Conn_s* a_Conn);
+void D_XNetDelConn(struct IP_Conn_s* a_Conn);
 
 void D_XNetInit(void);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);

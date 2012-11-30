@@ -36,6 +36,9 @@
 #include "doomtype.h"
 #include "doomdef.h"
 #include "i_util.h"
+#include "d_netcmd.h"
+#include "d_net.h"
+#include "console.h"
 
 /*****************
 *** STRUCTURES ***
@@ -46,8 +49,17 @@
 ****************/
 
 /* IP_Create() -- Creates a new protocol connectable */
-struct IP_Conn_s* IP_Create(const char* const a_URI)
+struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags)
 {
+	/* Check */
+	if (!a_URI)
+		return NULL;
+	
+	/* Debug */
+	if (g_NetDev)
+		CONL_OutputUT(CT_NETWORK, DSTR_IPC_CREATECONN, "%s%08x\n", a_URI, a_Flags); 
+	
+	return NULL;
 }
 
 /* IP_Destroy() -- Destroys protocol connection */

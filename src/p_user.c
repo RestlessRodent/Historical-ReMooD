@@ -43,6 +43,7 @@
 #include "p_inter.h"
 #include "m_random.h"
 #include "p_demcmp.h"
+#include "d_main.h"
 
 // Index of the special effects (INVUL inverse) map.
 #define INVERSECOLORMAP         32
@@ -1742,5 +1743,9 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 			g_Splits[a_Screen].Display = players - g_Splits[a_Screen].XPlayer->Player;
 			return g_Splits[a_Screen].XPlayer->Player;
 		}
+	
+	/* Failed */
+	// This is never reached, but for GCC
+	return NULL;
 }
 

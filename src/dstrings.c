@@ -1070,6 +1070,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "DMAINC_PLAYER2", "P2"},
 	{				 "DMAINC_PLAYER3", "P3"},
 	{				 "DMAINC_PLAYER4", "P4"},
+	
+	/*** ip_*.c ***/
+	{				 "IPC_CREATECONN", "Creating connection \"$1\" ($2)"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

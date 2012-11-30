@@ -1070,6 +1070,9 @@ typedef enum UnicodeStringID_e
 	DSTR_DMAINC_PLAYER3,
 	DSTR_DMAINC_PLAYER4,
 	
+	/* ip_*.c */
+	DSTR_IPC_CREATECONN,
+	
 	NUMUNICODESTRINGS
 } UnicodeStringID_t;
 
