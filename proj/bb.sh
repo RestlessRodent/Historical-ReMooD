@@ -285,7 +285,8 @@ do
 			# Win32 Compiler
 		win32_findcc)
 			# Which prefix works?
-			for PREFIX in i686-w64-mingw32 i686-pc-mingw32 i686-mingw32 i586-mingw32msvc i586-pc-mingw32msvc
+				# Win64 name last (Win64 does not work on 98)
+			for PREFIX in i686-pc-mingw32 i686-mingw32 i586-mingw32msvc i586-pc-mingw32msvc i686-w64-mingw32
 			do
 				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
 				then
@@ -408,7 +409,7 @@ do
 			fi
 			
 			# Build
-			if ! make USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
+			if ! make USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
 			then
 				echo "$COOLPREFIX Build failed" 1>&2
 				exit 1
