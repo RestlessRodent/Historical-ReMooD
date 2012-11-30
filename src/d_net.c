@@ -634,6 +634,41 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	R_ExecuteSetViewSize();
 }
 
+/* D_XNetConnect() -- Connects to server */
+void D_XNetConnect(const char* const a_URI)
+{
+	struct IP_Conn_s* Conn;
+	
+	/* Check */
+	if (!a_URI)
+		return;
+	
+	/* Disconnect first */
+	D_XNetDisconnect(false);
+	
+	/* Create connection to server */
+	Conn = IP_Create(a_URI, 0);
+	
+	// Failed?
+	if (!Conn)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BADURI, "%s", a_URI);
+		return;
+	}
+	
+	/* Change state to connecting */
+	gamestate = GS_WAITFORJOINWINDOW;
+	
+	/* Bind connection to server */
+	if (!D_XNetBindConn(Conn))
+	{
+		// Oops
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BINDFAIL, "%s", a_URI);
+		D_XNetDisconnect(false);
+		return;
+	}
+}
+
 /* D_XNetIsServer() -- Returns true if we are the server */
 bool_t D_XNetIsServer(void)
 {
@@ -1714,6 +1749,26 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Bind it
 		return !D_XNetBindConn(Conn);
+	}
+	
+	/* Connect */
+	else if (strcasecmp(a_ArgV[1], "connect") == 0)
+	{
+		// Requires one argument
+		if (a_ArgC < 3)
+			return 1;
+		
+		// Start connecting
+		D_XNetConnect(a_ArgV[2]);
+		return 0;
+	}
+	
+	/* Start Server */
+	else if (strcasecmp(a_ArgV[1], "create") == 0)
+	{
+		// This is easy
+		D_XNetMakeServer(false, 0);
+		return 0;
 	}
 	
 	/* Failure */
@@ -2837,7 +2892,9 @@ void D_XNetUpdate(void)
 	LastSpecTic = gametic;
 	
 	/* Handle transport layers */
-	// TODO FIXME
+	for (i = 0; i < l_NumXNetConns; i++)
+		if (l_XNetConns[i])
+			IP_ConnRun(l_XNetConns[i]);
 }
 
 

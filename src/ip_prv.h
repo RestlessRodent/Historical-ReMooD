@@ -26,50 +26,27 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: ReMooD Protocol Implementation
+// DESCRIPTION: Private IP Stuff
+
+#ifndef __IP_PRV_H__
+#define __IP_PRV_H__
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "doomdef.h"
-#include "i_util.h"
 #include "ip.h"
-#include "ip_prv.h"
 
 /*****************
-*** STRUCTURES ***
+*** PROTOTYPES ***
 *****************/
 
-/****************
-*** FUNCTIONS ***
-****************/
+bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
+struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
 
-/* IP_RMD_VerifyF() -- Verify Protocol */
-bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
-{
-	uint32_t RealPort;
-	
-	/* Check Port */
-	// Get the real port
-	if (!a_Port)
-		RealPort = 29500;
-	else
-		RealPort = a_Port;
-	
-	// Range
-	if (RealPort <= 0 || RealPort >= 65536)
-		return false;
-	
-	/* Success */
-	return true;
-}
+bool_t IP_ODA_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
+struct IP_Conn_s* IP_ODA_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
 
-/* IP_RMD_CreateF() -- Create connection */
-struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
-{
-	return NULL;
-}
+#endif /* __IP_PRV_H__ */
 
 

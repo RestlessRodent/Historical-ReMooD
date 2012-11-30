@@ -90,6 +90,8 @@
 
 #include "vhw_wrap.h"
 
+#include "ip.h"
+
 #if defined(__REMOOD_DEDICATED)
 bool_t g_DedicatedServer = true;				// Dedicated Server
 #else
@@ -2673,6 +2675,7 @@ void D_DoomMain(void)
 	G_PrepareDemoStuff();				// Demos
 	M_DoMappedVars();					// Mapped Vars
 	B_InitBotCodes();					// Initialize bot coding
+	IP_Init();							// Initialize net protocols
 	D_CheckNetGame();					// initialize net game
 	/**************************/
 	

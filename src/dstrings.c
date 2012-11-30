@@ -1043,6 +1043,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "DNETC_PLEASERECON", "Please Reconnect"},
 	{			"DNETC_JOININGPLAYER", "Joining player \"$1{z\"."},
 	{			"DNETC_PLAYERLISTENT", "$1 $2 $3{z"},
+	{				   "DNETC_BADURI", "The URI \"$1\" is not valid."},
+	{				 "DNETC_BINDFAIL", "Failed to bind to \"$1\"."},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},

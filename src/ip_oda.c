@@ -36,6 +36,8 @@
 #include "doomtype.h"
 #include "doomdef.h"
 #include "i_util.h"
+#include "ip.h"
+#include "ip_prv.h"
 
 /*****************
 *** STRUCTURES ***
@@ -45,4 +47,33 @@
 *** FUNCTIONS ***
 ****************/
 
+/* IP_ODA_VerifyF() -- Verify Protocol */
+bool_t IP_ODA_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
+{
+	uint32_t RealPort;
+	
+	/* Cannot host servers */
+	if (a_Flags & IPF_INPUT)
+		return false;
+	
+	/* Check Port */
+	// Get the real port
+	if (!a_Port)
+		RealPort = 29500;
+	else
+		RealPort = a_Port;
+	
+	// Range
+	if (RealPort <= 0 || RealPort >= 65536)
+		return false;
+	
+	/* Success */
+	return true;
+}
+
+/* IP_ODA_CreateF() -- Create connection */
+struct IP_Conn_s* IP_ODA_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
+{
+	return NULL;
+}
 

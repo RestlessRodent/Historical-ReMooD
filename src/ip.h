@@ -56,17 +56,32 @@ typedef enum IP_Flags_e
 *** STRUCTURES ***
 *****************/
 
+struct IP_Proto_s;
 struct IP_Conn_s;
 struct IP_Addr_s;
+
+typedef bool_t (*IP_VerifyF_t)(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
+typedef struct IP_Conn_s* (*IP_CreateF_t)(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
+
+/* IP_Proto_t -- Protocol Handler */
+typedef struct IP_Proto_s
+{
+	const char* Name;							// Name of protocol
+	
+	IP_VerifyF_t VerifyF;						// Verify Flags
+	IP_CreateF_t CreateF;						// Create Connection
+} IP_Proto_t;
 
 /* IP_Addr_t -- Standard Address */
 typedef struct IP_Addr_s
 {
+	const struct IP_Proto_s* Handler;			// Handler Used
 } IP_Addr_t;
 
 /* IP_Conn_t -- Protocol Connection */
 typedef struct IP_Conn_s
 {
+	const struct IP_Proto_s* Handler;			// Handler Used
 	uint32_t Flags;								// Connection Flags
 	uint32_t UUID;								// Connection ID
 } IP_Conn_t;
@@ -75,10 +90,16 @@ typedef struct IP_Conn_s
 *** PROTOTYPES ***
 *****************/
 
+void IP_Init(void);
+
+const struct IP_Proto_s* IP_ProtoByName(const char* const a_Name);
+
 struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags);
 void IP_Destroy(struct IP_Conn_s* const a_Conn);
 
-struct IP_Conn_s IP_ConnById(const uint32_t a_UUID);
+struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID);
+
+void IP_ConnRun(struct IP_Conn_s* const a_Conn);
 
 #endif /* __IP_H__ */
 

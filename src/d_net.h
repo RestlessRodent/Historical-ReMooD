@@ -215,6 +215,7 @@ extern tic_t g_DemoFreezeTics;					// Tics to freeze demo for
 
 void D_XNetDisconnect(const bool_t a_FromDemo);
 void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort);
+void D_XNetConnect(const char* const a_URI);
 
 bool_t D_XNetIsServer(void);
 uint32_t D_XNetGetHostID(void);
