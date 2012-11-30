@@ -384,6 +384,12 @@ do
 			"$BBROOT/bb.sh" win32_allegro
 			;;
 			
+			# GCW Zero
+		gcw)
+			echo "$COOLPREFIX Building GCW Package" 1>&2
+			
+			;;
+			
 			# Palm OS
 		palmos)
 			echo "$COOLPREFIX Building Palm OS PRC" 1>&2
