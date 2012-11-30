@@ -427,6 +427,9 @@ do
 			cp ../doc/LICENSE LICENSE
 			cp ../doc/manual.pdf manual.pdf
 			
+			# version
+			echo "Version=REMOODVERSION" >> default.gcw0.desktop
+			
 			# Make sure everything is readable
 			chmod uog+r *
 			
