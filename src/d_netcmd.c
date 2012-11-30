@@ -37,7 +37,7 @@
 #include "doomstat.h"
 
 #include "console.h"
-#include "command.h"
+
 
 #include "d_netcmd.h"
 #include "i_system.h"

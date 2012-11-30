@@ -45,7 +45,7 @@
 // the interface between FraggleScript and the rest of the game
 
 #include "doomstat.h"
-#include "command.h"
+
 //#include "c_net.h"
 //#include "c_runcmd.h"
 #include "g_game.h"

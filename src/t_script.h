@@ -47,7 +47,7 @@ typedef struct runningscript_s runningscript_t;
 
 #include "p_mobj.h"
 #include "t_parse.h"
-#include "command.h"
+
 #include "console.h"
 
 struct runningscript_s

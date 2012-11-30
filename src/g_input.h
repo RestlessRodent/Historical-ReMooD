@@ -36,7 +36,7 @@
 #include "doomstat.h"
 #include "d_event.h"
 #include "keys.h"
-#include "command.h"
+
 
 #define MAXMOUSESENSITIVITY   160	// sensitivity steps
 

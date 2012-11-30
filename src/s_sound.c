@@ -34,7 +34,7 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
-#include "command.h"
+
 #include "s_sound.h"
 #include "z_zone.h"
 #include "console.h"

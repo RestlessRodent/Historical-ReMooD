@@ -31,7 +31,7 @@
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
 
-#include "command.h"
+
 
 #include "w_wad.h"
 

@@ -31,7 +31,7 @@
 // DESCRIPTION:
 
 #include "doomdef.h"
-#include "command.h"
+
 #include "console.h"
 
 int myargc;

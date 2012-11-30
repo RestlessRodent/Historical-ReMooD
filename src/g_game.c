@@ -33,7 +33,7 @@
 
 /* Includes */
 #include "doomdef.h"
-#include "command.h"
+
 #include "console.h"
 #include "dstrings.h"
 #include "d_main.h"

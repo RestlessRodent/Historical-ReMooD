@@ -39,7 +39,7 @@
 ***************/
 
 #include "d_event.h"
-#include "command.h"
+
 #include "g_input.h"
 #include "dstrings.h"
 #include "i_util.h"

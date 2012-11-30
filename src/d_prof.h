@@ -33,7 +33,7 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
-#include "command.h"
+
 #include "d_netcmd.h"
 
 /************************

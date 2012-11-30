@@ -55,7 +55,7 @@
 
 /* includes ************************/
 
-#include "command.h"
+
 #include "doomstat.h"
 #include "w_wad.h"
 #include "z_zone.h"

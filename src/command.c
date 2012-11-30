@@ -41,7 +41,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
-#include "command.h"
+
 #include "console.h"
 #include "z_zone.h"
 #include "d_clisrv.h"

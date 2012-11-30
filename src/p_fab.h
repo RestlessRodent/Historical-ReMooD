@@ -33,7 +33,7 @@
 #define __P_FAB__
 
 #include "doomtype.h"
-#include "command.h"
+
 
 // spawn smoke trails behind rockets and skull head attacks
 void A_SmokeTrailer(mobj_t* actor);

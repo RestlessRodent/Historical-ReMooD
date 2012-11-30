@@ -32,7 +32,7 @@
 #ifndef __SCREEN_H__
 #define __SCREEN_H__
 
-#include "command.h"
+
 #include "m_fixed.h"
 
 //added:26-01-98: quickhack for V_Init()... to be cleaned up

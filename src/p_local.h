@@ -33,7 +33,7 @@
 #ifndef __P_LOCAL__
 #define __P_LOCAL__
 
-#include "command.h"
+
 #include "d_player.h"
 #include "d_think.h"
 #include "m_fixed.h"

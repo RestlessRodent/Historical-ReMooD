@@ -35,7 +35,7 @@
 
 #include "doomdef.h"
 
-#include "command.h"
+
 #include "console.h"
 
 #include "doomstat.h"

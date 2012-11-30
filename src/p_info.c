@@ -33,7 +33,7 @@
 
 #include "doomstat.h"
 #include "doomdef.h"
-#include "command.h"
+
 #include "dstrings.h"
 #include "p_setup.h"
 #include "p_info.h"

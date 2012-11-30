@@ -61,7 +61,7 @@
 #include "i_util.h"
 #include "i_system.h"
 #include "i_video.h"
-#include "command.h"
+
 #include "console.h"
 #include "screen.h"
 #include "g_input.h"

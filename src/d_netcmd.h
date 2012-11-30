@@ -35,7 +35,7 @@
 #define __D_NETCMD_H__
 
 #include "doomdef.h"
-#include "command.h"
+
 #include "d_ticcmd.h"
 #include "i_util.h"
 #include "d_net.h"

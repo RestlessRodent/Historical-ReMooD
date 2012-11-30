@@ -32,7 +32,7 @@
 
 #include "d_clisrv.h"
 #include "doomdef.h"
-#include "command.h"
+
 #include "doomstat.h"
 #include "console.h"
 #include "m_menu.h"

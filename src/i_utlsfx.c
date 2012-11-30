@@ -53,7 +53,7 @@
 /* Local */
 #include "i_util.h"
 #include "i_system.h"
-#include "command.h"
+
 #include "w_wad.h"
 #include "doomstat.h"
 #include "i_sound.h"

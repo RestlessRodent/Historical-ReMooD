@@ -35,7 +35,7 @@
 
 #include "doomdef.h"
 #include "sounds.h"
-#include "command.h"
+
 
 #include "p_mobj.h"
 #include "g_game.h"
