@@ -77,13 +77,13 @@ ifdef DEBUG
 	__INT_MLDFLAGS := -g3 -O0
 	__INT_RCFLAGS := -D_DEBUG
 	export __INT_OBJPREFIX := d
-	export __INT_EXESUFFIX := -dbg
+	export __INT_EXESUFFIX := -dbg$(EXESUFFIX)
 else
 	__INT_MCFLAGS := -g0 -O2 -DNDEBUG
 	__INT_MLDFLAGS := -g0 -O2
 	__INT_RCFLAGS := -DNDEBUG
 	export __INT_OBJPREFIX := r
-	export __INT_EXESUFFIX :=
+	export __INT_EXESUFFIX := $(EXESUFFIX)
 endif
 
 # CC Flags
@@ -159,9 +159,9 @@ endif
 
 # Use sdl-config if SDL_LIB and SDL_INCLUDE are not set
 ifeq (,$(strip $(SDL_LIB))$(strip $(SDL_INCLUDE)))
-	ifneq (,$(findstring 1.2,$(strip $(shell $(call __INT_RUNCOMMAND,sdl-config --version)))))
-		export __INT_SDLCFLAGS  := $(shell $(call __INT_RUNCOMMAND,sdl-config --cflags))
-		export __INT_SDLLDFLAGS := $(shell $(call __INT_RUNCOMMAND,sdl-config --libs))
+	ifneq (,$(findstring 1.2,$(strip $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)sdl-config --version)))))
+		export __INT_SDLCFLAGS  := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)sdl-config --cflags))
+		export __INT_SDLLDFLAGS := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)sdl-config --libs))
 	endif
 endif
 
@@ -186,9 +186,9 @@ endif
 
 # Use allegro-config if ALLEGRO_LIB and ALLEGRO_INCLUDE are not set
 ifeq (,$(strip $(ALLEGRO_LIB))$(strip $(ALLEGRO_INCLUDE)))
-	ifneq (,$(findstring 4.2,$(strip $(shell $(call __INT_RUNCOMMAND,allegro-config --version)))))
-		export __INT_ALLEGROCFLAGS  := $(shell $(call __INT_RUNCOMMAND,allegro-config --cflags))
-		export __INT_ALLEGROLDFLAGS := $(shell $(call __INT_RUNCOMMAND,allegro-config --libs))
+	ifneq (,$(findstring 4.2,$(strip $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)allegro-config --version)))))
+		export __INT_ALLEGROCFLAGS  := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)allegro-config --cflags))
+		export __INT_ALLEGROLDFLAGS := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)allegro-config --libs))
 	endif
 endif
 
@@ -214,7 +214,11 @@ endif
 #$(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
 #$(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
 
-export __INT_OPENGLLDFLAGS := -lGL
+ifneq (,$(strip $(OPENGL_LDFLAGS)))
+	export __INT_OPENGLLDFLAGS := $(OPENGL_LDFLAGS)
+else
+	export __INT_OPENGLLDFLAGS := -lGL
+endif
 
 ### GLUT ###
 

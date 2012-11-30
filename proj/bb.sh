@@ -386,8 +386,57 @@ do
 			
 			# GCW Zero
 		gcw)
+			# Message
 			echo "$COOLPREFIX Building GCW Package" 1>&2
 			
+			# Basic Root
+			${GCWTCROOT:="/opt/gcw0-toolchain/"}
+			
+			# Sanity Checks
+				# SquashFS
+			if ! which mksquashfs 2> /dev/null > /dev/null
+			then
+				echo "$COOLPREFIX You need mksquashfs" 1>&2
+				exit 1
+			fi
+				
+				# GCW Root
+			if [ ! -d "$GCWTCROOT" ]
+			then
+				echo "$COOLPREFIX You need the GCW chain, set GCWTCROOT to where it exists (default /opt/gcw0-toolchain/)" 1>&2
+				exit 1
+			fi
+			
+			# Build
+			if ! make USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
+			then
+				echo "$COOLPREFIX Build failed" 1>&2
+				exit 1
+			fi
+			
+			# Setup OPK
+			mkdir -p $$/
+			cd $$/
+			
+			# Copy Files we want
+			cp ../sys/gcw.dsk default.gcw0.desktop
+			cp ../sys/gcw.png remood.png
+			cp ../bin/remood.elf remood.elf
+			cp ../bin/remood.wad remood.wad
+			cp ../doc/LICENSE LICENSE
+			cp ../doc/manual.pdf manual.pdf
+			
+			# Make sure everything is readable
+			chmod uog+r *
+			
+			cd ..
+			
+			# Squash It
+			rm -f remood_${REMOODVERSIONSTRIP}_gcw.opk
+			mksquashfs $$ remood_${REMOODVERSIONSTRIP}_gcw.opk -force-uid 1000 -force-gid 1000
+			
+			# Done
+			rm -rf "$$"
 			;;
 			
 			# Palm OS
