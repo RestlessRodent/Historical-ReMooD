@@ -2332,6 +2332,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			IsTurning = true;
 		}
 	}
+	
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNRIGHT))
 	{
 		// Strafe
@@ -2344,6 +2345,13 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			BaseAT -= c_angleturn[TurnSpeed];
 			IsTurning = true;
 		}
+	}
+	
+	// 180 Degree Turn
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNSEMICIRCLE))
+	{
+		BaseAT = 0x7FFF;
+		IsTurning = true;
 	}
 	
 	// Keyboard Moving

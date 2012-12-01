@@ -139,6 +139,7 @@ typedef enum D_ProfileExInputCtrl_e
 	DPEXIC_CHATMODE,							// Chat Mode
 	DPEXIC_POPUPMENU,							// Popup the menu
 	DPEXIC_MORESTUFF,							// Access to more stuff
+	DPEXIC_QUICKMENU,							// Perfect Dark-like Quick Menu
 	
 	NUMDPROFILEEXINPUTCTRLS
 } D_ProfileExInputCtrl_t;

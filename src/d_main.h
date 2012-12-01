@@ -87,5 +87,17 @@ void D_JoySpecialTicker(void);
 void D_JoySpecialDrawer(void);
 bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event);
 
+/*** MODEL SPECIFICS ***/
+
+typedef enum D_ModelMode_s
+{
+	DMM_DEFAULT,								// Default PC
+	DMM_GCW,									// GCW Zero
+} D_ModelMode_t;
+
+extern D_ModelMode_t g_ModelMode;				// Model to use
+
+void D_InitModelMode(void);
+
 #endif							//__D_MAIN__
 

@@ -2639,6 +2639,9 @@ void D_DoomMain(void)
 	CONL_PrintF("Initializing the memory manager...\n");
 	Z_Init();
 	
+	// Game Model to use
+	D_InitModelMode();
+	
 	// Profiles are considered somewhat core
 	GuestProf = D_CreateProfileEx("guest");	// Create guest account
 	GuestProf->Flags |= DPEXF_DONTSAVE;	// Never save guest account
@@ -2978,3 +2981,36 @@ void D_DoomMain(void)
 #endif
 }
 
+/*****************
+*** MODEL MODE ***
+*****************/
+
+// GhostlyDeath <December 1, 2012> -- Default System Model
+#if !defined(__REMOOD_MODEL)
+	#define __REMOOD_MODEL "default"
+#endif
+
+D_ModelMode_t g_ModelMode = 0;					// Model to use
+
+void D_InitModelMode(void)
+{
+	const char* Input;
+	
+	/* Determine input */
+	// Clear
+	Input = NULL;
+	
+	// Command line override?
+	if (M_CheckParm("-model"))
+		if (M_IsNextParm())
+			Input = M_GetNextParm();
+	
+	// Use specified default
+	Input = __REMOOD_MODEL;
+	
+	/* Which Model is used? */
+	if (!strcasecmp(Input, "gcw"))
+		g_ModelMode = DMM_GCW;
+	else
+		g_ModelMode = DMM_DEFAULT;
+}
