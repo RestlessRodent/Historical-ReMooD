@@ -179,6 +179,7 @@ typedef struct D_XPlayer_s
 	tic_t TurnHeld;								// Time turning is held
 	int32_t Scores;								// Scoreboard showing
 	ticcmd_t BackupTicCmd;						// Backup Tic Command
+	bool_t Turned180;							// Did 180 degre turn
 	
 	// Connection Socket
 	IP_Conn_t* IPTo;							// Connection To Player

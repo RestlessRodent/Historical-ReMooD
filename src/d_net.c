@@ -2347,12 +2347,17 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		}
 	}
 	
-	// 180 Degree Turn
-	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNSEMICIRCLE))
+	// 180 Degree Turn (don't allow repeat on it, otherwise it is useless)
+	slot = GAMEKEYDOWN(Profile, SID, DPEXIC_TURNSEMICIRCLE);
+	
+	if (!a_NPp->Turned180 && slot)
 	{
 		BaseAT = 0x7FFF;
 		IsTurning = true;
+		a_NPp->Turned180 = true;
 	}
+	else if (a_NPp->Turned180 && !slot)
+		a_NPp->Turned180 = false;
 	
 	// Keyboard Moving
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_STRAFELEFT))
