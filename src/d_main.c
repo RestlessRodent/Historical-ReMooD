@@ -2987,7 +2987,9 @@ void D_DoomMain(void)
 
 // GhostlyDeath <December 1, 2012> -- Default System Model
 #if !defined(__REMOOD_MODEL)
-	#define __REMOOD_MODEL "default"
+	#define __REMOOD_MODEL_S "default"
+#elif (__REMOOD_MODEL == 1)
+	#define __REMOOD_MODEL_S "gcw"
 #endif
 
 D_ModelMode_t g_ModelMode = 0;					// Model to use
@@ -3006,7 +3008,7 @@ void D_InitModelMode(void)
 			Input = M_GetNextParm();
 	
 	// Use specified default
-	Input = __REMOOD_MODEL;
+	Input = __REMOOD_MODEL_S;
 	
 	/* Which Model is used? */
 	if (!strcasecmp(Input, "gcw"))
