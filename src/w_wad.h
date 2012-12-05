@@ -183,7 +183,7 @@ typedef struct WL_WADFile_s
 	uint32_t CheckSum[4];		// MD5 Sum
 	char CheckSumChars[33];		// MD5 Sum (As hex characters)
 	uint32_t SimpleSum[4];		// Simple Sum
-	char SimpleSumChars[33];		// Simple Sum (As hex characters)
+	char SimpleSumChars[33];	// Simple Sum (As hex characters)
 	
 	// Entries
 	WL_WADEntry_t* Entries;		// Entries in the WAD
@@ -211,6 +211,7 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 
 void WL_PushWAD(const WL_WADFile_t* const a_WAD);
 const WL_WADFile_t* WL_PopWAD(void);
+void WL_CloseNotStacked(void);
 
 bool_t WL_LockOCCB(const bool_t a_DoLock);
 bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order);

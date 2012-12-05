@@ -55,6 +55,7 @@
 #include "b_bot.h"
 #include "p_local.h"
 #include "p_spec.h"
+#include "ip.h"
 
 /*************
 *** LOCALS ***
@@ -645,6 +646,9 @@ void D_XNetConnect(const char* const a_URI)
 	
 	/* Disconnect first */
 	D_XNetDisconnect(false);
+	
+	/* Message */
+	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_CONNECTTO, "%s\n", a_URI);
 	
 	/* Create connection to server */
 	Conn = IP_Create(a_URI, 0);

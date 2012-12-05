@@ -305,7 +305,10 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	WL_WADFile_t* WAD;
 	uint8_t ShortBuf[16];
 	static uint8_t* l_SumBuf;
+	uint8_t RawSum[16];
 	void* p;
+	
+	MD5_CTX MD5Sum;
 	
 	/* Check */
 	if (!a_PathName)
@@ -430,13 +433,20 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	if (!l_SumBuf)
 		l_SumBuf = Z_Malloc(SUMBUF, PU_STATIC, NULL);
 	
-	// Simple Sum
+	// Init MD5
+	memset(&MD5Sum, 0, sizeof(MD5Sum));
+	MD5_Init(&MD5Sum);
+	
+	// Simple Sum + MD5
 	for (i = 0, j = 0, k = 0; i < NewWAD->__Private.__Size; i += SUMBUF)
 	{
 		// Read bytes
 		n = fread(l_SumBuf, 1, SUMBUF, CFile);
 		
-		// Process
+		// MD5
+		MD5_Update(&MD5Sum, l_SumBuf, n);
+		
+		// Simple Sum
 		for (u32 = 0; u32 < n && u32 < SUMBUF; u32++)
 		{
 			// If even, do XOR
@@ -458,7 +468,12 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		}
 	}
 	
-	// MD5
+	// Finalize MD5
+	memset(RawSum, 0, sizeof(RawSum));
+	MD5_Final(RawSum, &MD5Sum);
+	
+	for (i = 0; i < 16; i++)
+		NewWAD->CheckSum[i >> 2] |= ((uint32_t)RawSum[i]) << (((3 - i) & 3) << 3);
 	
 	/* Top hash ID */
 	BaseTop += (8 << 16);
@@ -603,14 +618,15 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	/* Success */
 	NewWAD->__Private.__IsValid = true;
 	
-	// Print simple sum
+	// Print sums to characters
 	snprintf(NewWAD->SimpleSumChars, 33, "%08x%08x%08x%08x", NewWAD->SimpleSum[0], NewWAD->SimpleSum[1], NewWAD->SimpleSum[2], NewWAD->SimpleSum[3]);
+	snprintf(NewWAD->CheckSumChars, 33, "%08x%08x%08x%08x", NewWAD->CheckSum[0], NewWAD->CheckSum[1], NewWAD->CheckSum[2], NewWAD->CheckSum[3]);
 	
 	// Debug
 	if (devparm)
 	{
 		u32 = NewWAD->NumEntries;
-		CONL_PrintF("WL_OpenWAD: Added \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSumChars);
+		CONL_PrintF("WL_OpenWAD: Added \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->CheckSumChars/*SimpleSumChars*/);
 	}
 	
 	/* Run Data Registration */
@@ -709,6 +725,51 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 /* WL_CloseWAD() -- Closes a WAD File */
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 {
+	int32_t i;
+	
+	/* Check */
+	if (!a_WAD)
+		return;	
+	
+	/* Cannot close linked WADs */
+	if (a_WAD->PrevVWAD || a_WAD->NextVWAD)
+	{
+		CONL_OutputUT(CT_WDATA, DSTR_WWADC_WADSTILLLINKED, "%s\n", WL_GetWADName(a_WAD, false));
+		return;
+	}
+	
+	/* Unlink from master chain */
+	// Previous to our next
+	if (a_WAD->__Private.__PrevWAD)
+		a_WAD->__Private.__PrevWAD->__Private.__NextWAD = a_WAD->__Private.__NextWAD;
+	
+	// Next to our previous
+	if (a_WAD->__Private.__NextWAD)
+		a_WAD->__Private.__NextWAD->__Private.__PrevWAD = a_WAD->__Private.__PrevWAD;
+	
+	/* Call PDC Removers */
+	for (i = 0; i < WLMAXPRIVATEWADSTUFF; i++)
+	{
+		// Call removal func, if any
+		if (a_WAD->__Private.__PublicData.__Stuff[i].__RemoveFunc)
+			a_WAD->__Private.__PublicData.__Stuff[i].__RemoveFunc(a_WAD);
+		
+		// Delete any still remaining data
+		if (a_WAD->__Private.__PublicData.__Stuff[i].__DataPtr)
+			Z_Free(a_WAD->__Private.__PublicData.__Stuff[i].__DataPtr);
+	}
+	
+	/* Close source file */
+	// C FILE?
+	if (a_WAD->__Private.__CFile)
+		fclose(a_WAD->__Private.__CFile);
+	
+	/* De-allocate the remaining WAD junk */
+	// Hash table
+	Z_HashDeleteTable(a_WAD->__Private.__EntryHashes);
+	
+	// Final
+	Z_Free(a_WAD);
 }
 
 /* WL_PushWAD() -- Pushes a WAD to the end of the virtual stack */
@@ -849,6 +910,23 @@ const WL_WADFile_t* WL_PopWAD(void)
 	return Rover;
 }
 
+/* WL_CloseNotStacked() -- Close non-stacked WADs */
+void WL_CloseNotStacked(void)
+{
+	static WL_WADFile_t* Rover, *Next;
+	
+	/* Close any unneeded */
+	for (Rover = l_LFirstWAD; Rover; Rover = Next)
+	{
+		// Get next (because it will be illegal soon possibly)
+		Next = Rover->__Private.__NextWAD;
+		
+		// Unlinked? Close it
+		if (!Rover->PrevVWAD && !Rover->NextVWAD && Rover != l_LFirstVWAD)
+			WL_CloseWAD(Rover);
+	}
+}
+
 /* WLP_BaseName() -- Returns the base name of the WAD */
 static const char* WLP_BaseName(const char* const a_File)
 {
@@ -911,6 +989,25 @@ static void WLS_AppendToList(const char* const a_Path, const size_t a_Limit)
 		// Copy and increment
 		strncpy(l_SearchList[l_SearchCount++], a_Path, (a_Limit < PATH_MAX - 1 ? a_Limit : PATH_MAX - 1));
 	}
+}
+
+/* WLS_CheckWADSum() -- WAD MD5 Check */
+static bool_t WLS_CheckWADSum(char* const a_OutPath, const size_t a_OutSize, void* const a_Data)
+{
+	const char* CheckSum;
+	
+	/* Get sums */
+	// To compare against
+	CheckSum = a_Data;
+	
+	// No sum?
+	if (!CheckSum)
+		return true;
+	
+	/* Message */
+	CONL_OutputUT(CT_WDATA, DSTR_WWADC_CHECKINGTHESUM, "%s\n", a_OutPath);
+	
+	return false;
 }
 
 /* WL_LocateWAD() -- Finds WAD on the disk */
@@ -1006,12 +1103,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		return false;
 	
 	/* Use standard locate */
-	RetVal = I_LocateFile(a_Name, ILFF_TRYBASE | ILFF_DIRSEARCH, l_SearchList, l_SearchCount, a_OutPath, a_OutSize, NULL);
-	
-	// Check MD5 (TODO)
-	if (RetVal && a_MD5)
-	{
-	}
+	RetVal = I_LocateFile(a_Name, ILFF_TRYBASE | ILFF_DIRSEARCH, l_SearchList, l_SearchCount, a_OutPath, a_OutSize, WLS_CheckWADSum, a_MD5);
 	
 	/* Return the specified value */
 	return RetVal;

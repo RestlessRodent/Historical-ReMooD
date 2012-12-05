@@ -2230,7 +2230,7 @@ void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch)
 
 /* I_LocateFile() -- Locates file in list */
 // Was formerly WL_LocateWAD(), now generalized! yipee
-bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize, I_LFData_t* const a_Continue)
+bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize, const I_LFCheckFunc_t a_CheckFunc, void* const a_CheckData)
 {
 	size_t i, j;
 	char CheckBuffer[PATH_MAX];
@@ -2282,8 +2282,14 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 				if (a_OutPath)
 					strncpy(a_OutPath, CheckBuffer, a_OutSize);
 					
-				// Success
-				return true;
+				// Success? No function, then return
+				if (!a_CheckFunc)
+					return true;
+				
+				// Otherwise call the checker
+				else
+					if (a_CheckFunc(a_OutPath, a_OutSize, a_CheckData))
+						return true;
 			}
 		}
 		
@@ -2311,16 +2317,20 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 								strncat(a_OutPath, CheckBuffer, a_OutSize);
 							}
 							
-							// Done
-							break;
+							// use checker?
+							if (a_CheckFunc)
+								Found = a_CheckFunc(a_OutPath, a_OutSize, a_CheckData);
+							
+							// Close
+							if (Found)
+							{
+								I_CloseDir();
+								return true;
+							}
 						}
 					
-					// Close
+					// Nothing found here, so close directory search
 					I_CloseDir();
-					
-					// If found, return
-					if (Found)
-						return true;
 				}
 	}
 	

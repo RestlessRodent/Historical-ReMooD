@@ -972,6 +972,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				   "DNETC_BADURI", "The URI \"$1\" is not valid."},
 	{				 "DNETC_BINDFAIL", "Failed to bind to \"$1\"."},
 	{		 "DNETC_SERVERCHANGENAME", "Server changed name to \"$1\"."},
+	{				"DNETC_CONNECTTO", "Connecting to \"$1\"."},
+	{				"DNETC_SERVERWAD", "Selecting WAD \"$1\"."},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
@@ -1006,6 +1008,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "IPC_SVREQUESTINFO", "Requesting server information..."},
 	{					 "IPC_UNKODA", "Unknown message type $1."},
 	{				  "IPC_SVGOTINFO", "Obtained server information."},
+	
+	/*** W_WAD.C ***/
+	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},
+	{		   "WWADC_CHECKINGTHESUM", "Found \"$1\", confirming checksum."},
 	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},

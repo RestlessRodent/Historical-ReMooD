@@ -1393,7 +1393,8 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 				
 				// Free
 				Z_Free(l_PreMenus);
-				l_NumPreMenus = NULL;
+				l_PreMenus = NULL;
+				l_NumPreMenus = 0;
 			}
 			
 			// Free Tags

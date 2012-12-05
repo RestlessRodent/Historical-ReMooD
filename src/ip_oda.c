@@ -260,8 +260,9 @@ static size_t IPS_Rs(IP_OdaData_t* const a_Data, char* const a_Dest, const size_
 		Char = IPS_Ru8(a_Data);
 		
 		// Place in buffer?
-		if (i < a_Len - 1)
-			a_Dest[i++] = Char;
+		if (a_Dest && a_Len > 0)
+			if (i < a_Len - 1)
+				a_Dest[i++] = Char;
 		
 		// Done?
 		if (!Char)
@@ -269,7 +270,8 @@ static size_t IPS_Rs(IP_OdaData_t* const a_Data, char* const a_Dest, const size_
 	}
 	
 	/* Always place NUL at end */
-	a_Dest[a_Len - 1] = 0;
+	if (a_Dest && a_Len > 0)
+		a_Dest[a_Len - 1] = 0;
 	
 	/* Return read length */
 	return i;
@@ -403,12 +405,96 @@ struct IP_Conn_s* IP_ODA_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	return New;
 }
 
+/* IPS_ODA_ReadChal() -- Read challenge */
+static bool_t IPS_ODA_ReadChal(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, IP_OdaData_t* const a_Data)
+{
+#define BUFSIZE 128
+#define MAXWADS 32
+	char Buf[BUFSIZE];
+	int32_t WADp, i;
+	uint8_t NumPlayers, NumWADs;
+	const WL_WADFile_t* WADs[MAXWADS];
+	const WL_WADFile_t* FoundWAD;
+	
+	/* Inform client */
+	CONL_OutputUT(CT_NETWORK, DSTR_IPC_SVGOTINFO, "\n");
+	
+	/* Parse Base Header */
+	a_Data->SVToken = IPS_Ri32(a_Data);
+	IPS_Rs(a_Data, a_Data->SVHost, MAXODASTRING);
+	
+	D_XNetSetServerName(a_Data->SVHost);
+	
+	NumPlayers = IPS_Ru8(a_Data);
+	IPS_Ru8(a_Data);	// Max Players
+	
+	// Ignore Map
+	IPS_Rs(a_Data, NULL, 0);
+	
+	/* Handle WADs */
+	// Clean before WADs
+	WADp = 0;
+	memset(WADs, 0, sizeof(WADs));
+	
+	// Load
+	NumWADs = IPS_Ru8(a_Data);
+	for (i = 0; i < NumWADs; i++)
+	{
+		// Read from stream
+		IPS_Rs(a_Data, Buf, BUFSIZE);
+		
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_SERVERWAD, "%s\n", Buf);
+		
+		// Attempt opening of WAD
+		FoundWAD = WL_OpenWAD(Buf);
+		
+		// Not found? Will need to download
+		if (!FoundWAD)
+		{
+			// TODO FIXME
+			return false;
+		}
+		
+		// Append to list
+		if (WADp < MAXWADS - 1)
+			WADs[WADp++] = FoundWAD;
+	}
+	
+	// TODO FIXME: Rest of packet
+	
+	/* Switch to WADs */
+	// Lock OCCB
+	WL_LockOCCB(true);
+	
+	// Pop all WADs
+	while (WL_PopWAD())
+		;
+	
+	// Load new WADs
+	for (i = 0; i < WADp; i++)
+	{
+		WL_PushWAD(WADs[i]);
+		
+		// Push remood.wad
+		if (i == 0)
+			WL_PushWAD(WL_OpenWAD("remood.wad"));
+	}
+	
+	// Close unneeded WADs
+	WL_CloseNotStacked();
+	
+	// Unlock OCCB
+	WL_LockOCCB(false);
+	
+	return true;
+#undef BUFSIZE
+}
+
 /* IP_ODA_RunConnF() -- Runs connection */
 void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
 {
 	IP_OdaData_t* Data;
-	int32_t MsgID;
-	uint8_t NumPlayers;
+	int32_t MsgID, i;
 	
 	/* Check */
 	if (!a_Proto || !a_Conn)
@@ -428,18 +514,13 @@ void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 			
 			// Got launcher challenge
 			if (MsgID == 5560020)
-			{
-				// Information
-				CONL_OutputUT(CT_NETWORK, DSTR_IPC_SVGOTINFO, "\n");
-				
-				// Parse Packet
-				Data->SVToken = IPS_Ri32(Data);
-				IPS_Rs(Data, Data->SVHost, MAXODASTRING);
-				
-				D_XNetSetServerName(Data->SVHost);
-				
-				NumPlayers = IPS_Ru8(Data);
-			}
+				if (!IPS_ODA_ReadChal(a_Proto, a_Conn, Data))
+				{
+					// Disconnect from server
+					D_XNetDisconnect(false);
+				}
+				else
+					Data->NetMode = IPOCS_CONNECTED;
 		}
 		
 		// Connected

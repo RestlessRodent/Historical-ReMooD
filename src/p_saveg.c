@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -91,6 +89,63 @@ void P_InitSGConsole(void)
 	CONL_AddCommand("save", CLC_SaveGame);
 	CONL_AddCommand("load", CLC_SaveGame);
 }
+
+/* P_SaveGameEx() -- Extended savegame */
+bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
+{
+	return false;
+}
+
+/* P_LoadGameEx() -- Load an extended save game */
+bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
+{
+	return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
 
 #define VERSIONSIZE 16
 uint8_t* save_p = NULL;			// Pointer to the data
@@ -6420,6 +6475,8 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 	return true;
 #undef BUFSIZE
 }
+
+#endif
 
 /*****************************************************************************/
 /*****************************************************************************/
