@@ -655,7 +655,7 @@ static void AddMarker(const char* const Name)
 }
 
 /* ReadPPMToken() -- Reads a PPM Token */
-static void ReadPPMTokem(FILE* const File, uint8_t* const OutBuf, const size_t OutSize)
+static void ReadPPMToken(FILE* const File, uint8_t* const OutBuf, const size_t OutSize)
 {
 	size_t i;
 	fpos_t Pos;
@@ -717,7 +717,7 @@ static Image_t* LoadPPM(FILE* const File, const V_ColorEntry_t* const a_Cols)
 	
 	/* Read header */
 	// Check for P6
-	ReadPPMTokem(File, Buf, BUFSIZE);
+	ReadPPMToken(File, Buf, BUFSIZE);
 	
 	if (strcmp(Buf, "P6") != 0)
 	{
@@ -730,7 +730,7 @@ static Image_t* LoadPPM(FILE* const File, const V_ColorEntry_t* const a_Cols)
 	while (Tokey < 3)
 	{
 		// Read another token
-		ReadPPMTokem(File, Buf, BUFSIZE);
+		ReadPPMToken(File, Buf, BUFSIZE);
 		
 		// If it starts with #, skip it (a comment)
 		if (Buf[0] == '#')
@@ -780,6 +780,11 @@ static Image_t* LoadPPM(FILE* const File, const V_ColorEntry_t* const a_Cols)
 			fread(&Color.RGB.R, 1, 1, File);
 			fread(&Color.RGB.G, 1, 1, File);
 			fread(&Color.RGB.B, 1, 1, File);
+			
+			// Low depth?
+			Color.RGB.R = (uint8_t)(((double)Color.RGB.R / (double)Depth) * 255.0);
+			Color.RGB.G = (uint8_t)(((double)Color.RGB.G / (double)Depth) * 255.0);
+			Color.RGB.B = (uint8_t)(((double)Color.RGB.B / (double)Depth) * 255.0);
 			
 			// Find closest color
 			Color = V_RGBtoHSV(Color);

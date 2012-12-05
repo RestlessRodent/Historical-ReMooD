@@ -204,10 +204,11 @@ const CONL_VarPossibleValue_t c_CVPVFont[] =
 	{11, "HereticSmall"},						// VFONT_SMALL_HERETIC
 	{12, "HereticLarge"},						// VFONT_LARGE_HERETIC
 	{13, "StatusBarLarge"},						// VFONT_STATUSBARLARGE
+	{14, "NewUI"},								// VFONT_NEWUI
 	
 	// End
 	{0, "MINVAL"},
-	{13, "MAXVAL"},
+	{14, "MAXVAL"},
 	{0, NULL},
 };
 

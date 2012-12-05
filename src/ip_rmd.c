@@ -154,6 +154,3 @@ void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* cons
 		return;
 }
 
-
-
-

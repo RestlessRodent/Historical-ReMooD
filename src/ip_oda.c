@@ -40,23 +40,35 @@
 #include "ip_prv.h"
 #include "console.h"
 #include "dstrings.h"
+#include "z_mlzo.h"
+#include "p_demcmp.h"
 
 /****************
 *** CONSTANTS ***
 ****************/
 
 #define MAXPACKET		1768					// Max packet size
+#define MAXLZOLEN		2048					// Max LZO Length
 
 /* IP_OdamexConnState_t -- Server connection state */
 typedef enum IP_OdamexConnState_e
 {
 	IPOCS_REQUESTINFO,							// Request server info
 	IPOCS_WAITINFO,								// Wait for info
+	IPOCS_STARTSYNC,							// Synchronize
+	IPOCS_WAITSYNC,								// Wait for sync
 	IPOCS_CONNECTED,							// Connected
 } IP_OdamexConnState_t;
 
 #define ODA_CHAL						5560020	// Challenge from join
 #define ODA_LAUNCHCHAL					777123	// Launcher Challenge ID
+
+#define ODA_VERSION							65	// 0.4+ Version
+#define ODA_GAMEVER					(0*256+61)	// Game Version
+#define ODA_NUMTEAMS						2	// Supported Teams
+#define ODA_NUMWEAPONS					9		// Standard Doom Guns
+
+#define ODA_RATE						1000	// Game Rate
 
 /* svc_t -- Server originated message (Odamex) */
 typedef enum svc_e
@@ -205,6 +217,7 @@ typedef struct IP_OdaData_s
 	I_NetSocket_t* Socket;						// Socket to server
 	IP_OdamexConnState_t NetMode;				// Network Mode
 	tic_t TimeOut;								// Time out time
+	uint8_t SyncTries;							// Synchronization Retries
 	
 	uint8_t Pack[MAXPACKET];					// Packet Data
 	uint8_t* PackAt;							// Current read position
@@ -214,8 +227,12 @@ typedef struct IP_OdaData_s
 	uint8_t* OutAt;								// Current read position
 	uint8_t* OutEnd;							// End of packet
 	
+	uint8_t LZOBuf[MAXLZOLEN];					// LZO Buffer
+	
 	int32_t SVToken;							// Server Token
 	char SVHost[MAXODASTRING];					// Server Host
+	uint8_t SVVersion;							// Server Version
+	uint32_t SVPacketNum;						// Packet Number from server
 } IP_OdaData_t;
 
 /****************
@@ -236,6 +253,7 @@ static t __REMOOD_MACROMERGE(IPS_R,n)(IP_OdaData_t* const a_Data)\
 {\
 	if (a_Data->PackAt + sizeof(t) < a_Data->PackEnd)\
 		return f((t**)&a_Data->PackAt);\
+	return 0;\
 }
 
 __REMOOD_ODAREAD(u8,uint8_t,ReadUInt8);
@@ -245,6 +263,16 @@ __REMOOD_ODAREAD(i32,int32_t,LittleReadInt32);
 __REMOOD_ODAWRITE(u8,uint8_t,WriteUInt8);
 __REMOOD_ODAWRITE(i16,int16_t,LittleWriteInt16);
 __REMOOD_ODAWRITE(i32,int32_t,LittleWriteInt32);
+
+// Markers
+#define IPS_Rm IPS_Ru8
+#define IPS_Wm IPS_Wu8
+
+// Bool
+#define IPS_Rb IPS_Ru8
+#define IPS_Wb IPS_Wu8
+
+#define IPS_Pu8(d) ((uint8_t)(*d->PackAt))
 
 /* IPS_Rs() -- Reads string */
 static size_t IPS_Rs(IP_OdaData_t* const a_Data, char* const a_Dest, const size_t a_Len)
@@ -277,11 +305,22 @@ static size_t IPS_Rs(IP_OdaData_t* const a_Data, char* const a_Dest, const size_
 	return i;
 }
 
+/* IPS_Ws() -- Writes string */
+static void IPS_Ws(IP_OdaData_t* const a_Data, char* const a_Src)
+{
+	char* p;
+	
+	/* Send String */
+	for (p = a_Src; *p; p++)
+		IPS_Wu8(a_Data, *p);	
+	IPS_Wu8(a_Data, 0);
+}
+
 #undef __REMOOD_ODAWRITE
 #undef __REMOOD_MACROMERGE
 
-/* IPS_OdaWritePacket() -- Writes a single packet */
-static bool_t IPS_OdaWritePacket(IP_OdaData_t* const a_Data)
+/* IPS_ODA_WritePacket() -- Writes a single packet */
+static bool_t IPS_ODA_WritePacket(IP_OdaData_t* const a_Data)
 {
 	/* Check */
 	if (!a_Data)
@@ -299,8 +338,8 @@ static bool_t IPS_OdaWritePacket(IP_OdaData_t* const a_Data)
 	return true;
 }
 
-/* IPS_OdaReadPacket() -- Reads a single packet */
-static bool_t IPS_OdaReadPacket(IP_OdaData_t* const a_Data)
+/* IPS_ODA_ReadPacket() -- Reads a single packet */
+static bool_t IPS_ODA_ReadPacket(IP_OdaData_t* const a_Data)
 {
 	size_t ReadSize;
 	I_HostAddress_t FromAddr;
@@ -405,8 +444,59 @@ struct IP_Conn_s* IP_ODA_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	return New;
 }
 
+/* IPS_ODA_ColorRtoO() -- Converts ReMooD color to Odamex Color */
+static int32_t IPS_ODA_ColorRtoO(const uint8_t a_Color)
+{
+	// TODO FIXME: RGBize
+	return 0;
+}
+
+/* IPS_ODA_SendProfile() -- Send player profile */
+static void IPS_ODA_SendProfile(IP_OdaData_t* const a_Data)
+{
+	size_t i;
+	D_ProfileEx_t* Prof;
+	
+	/* Locate Profile */
+	// Odamex only supports 1 client per connection, so use said client
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Flags & DXPF_LOCAL)
+				if (g_XPlays[i]->Profile)
+				{
+					Prof = g_XPlays[i]->Profile;
+					break;
+				}
+	
+	// Try first screen then?
+	if (D_ScrSplitHasPlayer(0))
+		if (g_Splits[0].Profile)
+			Prof = g_Splits[0].Profile;
+	
+	// If no profile, then use guest or whatever default there is
+	Prof = g_KeyDefaultProfile;
+	
+	/* Write packet */
+	IPS_Wm(a_Data, clc_userinfo);
+	
+	IPS_Ws(a_Data, Prof->DisplayName);
+	IPS_Wu8(a_Data, Prof->Color);	// TODO FIXME: CTF Team
+	IPS_Wi32(a_Data, 0);	// TODO FIXME: Gender
+	IPS_Wi32(a_Data, IPS_ODA_ColorRtoO(Prof->Color));
+	IPS_Ws(a_Data, "");	// TODO FIXME: Skin
+	IPS_Wi32(a_Data, 16384);	// TODO FIXME: Autoaim Distance
+	IPS_Wb(a_Data, false);	// Do not unlag
+	IPS_Wb(a_Data, false);	// Do not predict weapons
+	IPS_Wu8(a_Data, 3);	// TODO FIXME: Update Rate (Default 3)
+	IPS_Wu8(a_Data, 2);	// TODO FIXME: Switch Weapon? 2 == Always
+	
+	// TODO FIXME: Weapon Order
+	for (i = 0; i < ODA_NUMWEAPONS; i++)
+		IPS_Wu8(a_Data, i);
+}
+
 /* IPS_ODA_ReadChal() -- Read challenge */
-static bool_t IPS_ODA_ReadChal(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, IP_OdaData_t* const a_Data)
+static bool_t IPS_ODA_ReadChal(IP_OdaData_t* const a_Data)
 {
 #define BUFSIZE 128
 #define MAXWADS 32
@@ -415,9 +505,13 @@ static bool_t IPS_ODA_ReadChal(const struct IP_Proto_s* a_Proto, struct IP_Conn_
 	uint8_t NumPlayers, NumWADs;
 	const WL_WADFile_t* WADs[MAXWADS];
 	const WL_WADFile_t* FoundWAD;
+	bool_t TeamPlayOn;
 	
 	/* Inform client */
 	CONL_OutputUT(CT_NETWORK, DSTR_IPC_SVGOTINFO, "\n");
+	
+	/* Init */
+	TeamPlayOn = false;
 	
 	/* Parse Base Header */
 	a_Data->SVToken = IPS_Ri32(a_Data);
@@ -460,6 +554,47 @@ static bool_t IPS_ODA_ReadChal(const struct IP_Proto_s* a_Proto, struct IP_Conn_
 			WADs[WADp++] = FoundWAD;
 	}
 	
+	IPS_Ru8(a_Data);	// DM
+	IPS_Ru8(a_Data);	// Skill
+	
+	// Teamplay/CTF
+	if (IPS_Ru8(a_Data))
+		TeamPlayOn = true;
+	if (IPS_Ru8(a_Data))
+		TeamPlayOn = true;
+	
+	// Player Info
+	for (i = 0; i < NumPlayers; i++)
+	{
+		IPS_Rs(a_Data, NULL, 0);	// Name
+		IPS_Ri16(a_Data);
+		IPS_Ri32(a_Data);
+		IPS_Ru8(a_Data);
+	}
+	
+	// WAD Hashes (ignore for now)
+	for (i = 0; i < NumWADs; i++)
+		IPS_Rs(a_Data, NULL, 0);
+	
+	IPS_Rs(a_Data, NULL, 0);	// ???
+	
+	// Teamplay
+	if (TeamPlayOn)
+	{
+		IPS_Ri32(a_Data);
+		
+		for (i = 0; i < ODA_NUMTEAMS; i++)
+			if (IPS_Ru8(a_Data) != 0)
+				IPS_Ri32(a_Data);
+	}
+	
+	// Version
+	a_Data->SVVersion = IPS_Ru8(a_Data);
+	
+	// Cap version
+	if (a_Data->SVVersion > ODA_VERSION)
+		a_Data->SVVersion = ODA_VERSION;
+	
 	// TODO FIXME: Rest of packet
 	
 	/* Switch to WADs */
@@ -490,6 +625,116 @@ static bool_t IPS_ODA_ReadChal(const struct IP_Proto_s* a_Proto, struct IP_Conn_
 #undef BUFSIZE
 }
 
+/* IPS_ODA_GetUserInfo() -- Loads player info */
+static void IPS_ODA_GetUserInfo(IP_OdaData_t* const a_Data)
+{
+	uint8_t PID;
+	uint32_t UUID;
+	D_XPlayer_t* XPlayer;
+	
+	/* Obtain player ID */
+	PID = IPS_Ru8(a_Data);
+	
+	// Based on unique ID
+	UUID = PID + 1;
+	
+	// TODO FIXME
+}
+
+/* IPS_ODA_MagicCVAR() -- Maps Odamex CVAR to ReMooD Variable */
+static void IPS_ODA_MagicCVAR(IP_OdaData_t* const a_Data, const char* const a_Name, const char* const a_Value)
+{
+	CONL_OutputUT(CT_NETWORK, DSTR_IPC_ODAVIRTCVAR, "%s%s\n", a_Name, a_Value);
+}
+
+/* IPS_ODA_ParseSVSettings() -- Parses server settings */
+static void IPS_ODA_ParseSVSettings(IP_OdaData_t* const a_Data)
+{
+#define BUFSIZE 128
+	uint8_t Code;
+	char Name[BUFSIZE];
+	char Value[BUFSIZE];
+	
+	/* CVAR Read Loop */
+	for (;;)
+	{
+		// Read Code
+		Code = IPS_Ru8(a_Data);
+		
+		// End?
+		if (Code == 2)
+			break;
+		
+		// Read Name, read value
+		IPS_Rs(a_Data, Name, BUFSIZE);
+		IPS_Rs(a_Data, Value, BUFSIZE);
+		
+		// No string?
+		if (!Name[0])
+			break;
+		
+		// Map to ReMooD
+		IPS_ODA_MagicCVAR(a_Data, Name, Value);
+	}
+#undef BUFSIZE
+}
+
+/* IPS_ODA_PrintMessage() -- Server sends message */
+static void IPS_ODA_PrintMessage(IP_OdaData_t* const a_Data)
+{
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	uint8_t Level;
+	
+	/* Read Message Data */
+	Level = IPS_Ru8(a_Data);
+	IPS_Rs(a_Data, Buf, BUFSIZE);
+	
+	/* Print to screen */
+	CONL_PrintF("%s\n", Buf);
+#undef BUFSIZE
+}
+
+/* IPS_ODA_Decompress() -- Decompress packet */
+static void IPS_ODA_Decompress(IP_OdaData_t* const a_Data)
+{
+	uint8_t Method;
+	lzo_uint Len;
+	
+	/* Read Compression Method */
+	Method = IPS_Ru8(a_Data);
+	
+	/* MiniLZO Compressed? */
+	if (Method & 0x8)
+	{
+		// Remove from mask
+		Method &= ~0x8;
+		
+		// Setup buffer
+		memset(a_Data->LZOBuf, 0, sizeof(a_Data->LZOBuf));
+		Len = MAXLZOLEN;
+		
+		// Decompress
+		lzo1x_decompress_safe(
+			a_Data->PackAt,
+			a_Data->PackEnd - a_Data->PackAt,
+			a_Data->LZOBuf, &Len, NULL);
+		
+		// Well this is cool
+		a_Data->PackAt = a_Data->LZOBuf;
+		a_Data->PackEnd = &a_Data->LZOBuf[Len];
+	}
+	
+	/* Remaining compression masks? */
+	if (Method)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_IPC_SVUNKENCODING, "\n");
+		
+		// Error Out!
+		a_Data->PackAt = a_Data->PackEnd;
+	}
+}
+
 /* IP_ODA_RunConnF() -- Runs connection */
 void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
 {
@@ -504,45 +749,114 @@ void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 	Data = a_Conn->Data;
 	
 	/* Handle network packets */
-	while (IPS_OdaReadPacket(Data))
+	while (IPS_ODA_ReadPacket(Data))
 		// Not Connected
 		if (Data->NetMode == IPOCS_REQUESTINFO ||
-			Data->NetMode == IPOCS_WAITINFO)
+			Data->NetMode == IPOCS_WAITINFO ||
+			Data->NetMode == IPOCS_STARTSYNC ||
+			Data->NetMode == IPOCS_WAITSYNC)
 		{
 			// Read Message Type
 			MsgID = IPS_Ri32(Data);
 			
 			// Got launcher challenge
-			if (MsgID == 5560020)
-				if (!IPS_ODA_ReadChal(a_Proto, a_Conn, Data))
+			if (MsgID == ODA_CHAL && (Data->NetMode == IPOCS_REQUESTINFO || Data->NetMode == IPOCS_WAITINFO))
+				if (!IPS_ODA_ReadChal(Data))
 				{
 					// Disconnect from server
 					D_XNetDisconnect(false);
 				}
 				else
-					Data->NetMode = IPOCS_CONNECTED;
+				{
+					// Start sync to game
+					Data->NetMode = IPOCS_STARTSYNC;
+					Data->TimeOut = 0;
+				}
+			
+			// Connected to game
+			else if (MsgID == 0)
+			{
+				// Acknowledge server
+				IPS_Wm(Data, clc_ack);
+				IPS_Wi32(Data, 0);
+				IPS_ODA_WritePacket(Data);
+				
+				// Init
+				Data->SVPacketNum = 0;
+				
+				// Set to connected mode
+				Data->NetMode = IPOCS_CONNECTED;
+			}
 		}
 		
 		// Connected
 		else
+		{
+			// Acknowledge
+			i = IPS_Ri32(Data);
+			IPS_Wm(Data, clc_ack);
+			IPS_Wi32(Data, i);
+			Data->SVPacketNum++;
+			
+			// Decompress
+			if (IPS_Pu8(Data) == svc_compressed)
+			{
+				// Eat the byte
+				IPS_Ru8(Data);
+				
+				// Decompress it
+				IPS_ODA_Decompress(Data);
+			}
+			
+			// Handle Commands
 			while (Data->PackAt < Data->PackEnd)
 			{
 				// Read Message Type
-				MsgID = IPS_Ru8(Data);
+				MsgID = IPS_Rm(Data);
+				
+				// End?
+				if (MsgID == 0xFF)
+					break;
 			
 				// Which message?
 				switch (MsgID)
 				{
+						// Ignore
+					case svc_connectclient:
+						break;
+						
+						// Server Settings
+					case svc_serversettings:
+						IPS_ODA_ParseSVSettings(Data);
+						break;
+						
+						// Print Message
+					case svc_print:
+						IPS_ODA_PrintMessage(Data);
+						break;
+						
+						// Set a player's info
+					case svc_userinfo:
+						IPS_ODA_GetUserInfo(Data);
+						break;
+						
 						// Unknown
 					default:
 						// Warning
-						CONL_OutputUT(CT_NETWORK, DSTR_IPC_UNKODA, "%02x\n", MsgID);
+						CONL_OutputUT(CT_NETWORK, DSTR_IPC_UNKODA, "%hhi\n", MsgID);
+						
+						// Oh well
+						Data->PackAt = Data->PackEnd;
 					
 						// Disconnect from server
-						D_XNetDisconnect(false);
+						//D_XNetDisconnect(false);
 						return;
 				}
 			}
+			
+			// Send Packet
+			IPS_ODA_WritePacket(Data);
+		}
 		
 	/* Which Mode? */
 	switch (Data->NetMode)
@@ -554,22 +868,54 @@ void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 			
 			// Send Message
 			IPS_Wi32(Data, ODA_LAUNCHCHAL);
-			IPS_OdaWritePacket(Data);
+			IPS_ODA_WritePacket(Data);
 			
 			// Change to wait on info
 			Data->NetMode = IPOCS_WAITINFO;
 			Data->TimeOut = g_ProgramTic + TICRATE;
 			break;
 		
-			// Waiting for server info
+			// Start game synchronization
+		case IPOCS_STARTSYNC:
+			// Information
+			CONL_OutputUT(CT_NETWORK, DSTR_IPC_SVSERVERSYNC, "\n");
+			
+			// Send Message
+			IPS_Wi32(Data, ODA_CHAL);
+			IPS_Wi32(Data, Data->SVToken);
+			IPS_Wi16(Data, Data->SVVersion);
+			IPS_Wu8(Data, 0);	// We want to play
+			IPS_Wi32(Data, ODA_GAMEVER);
+			
+			// Send current profile info
+			IPS_ODA_SendProfile(Data);
+			
+			IPS_Wi32(Data, ODA_RATE);	// TODO FIXME: cvar
+			
+			IPS_Ws(Data, "");	// TODO FIXME: Password
+			
+			IPS_ODA_WritePacket(Data);
+			
+			// Change to wait on sync
+			Data->NetMode = IPOCS_WAITSYNC;
+			Data->TimeOut = g_ProgramTic + TICRATE;
+			break;
+		
+			// Waiting for server info/sync
 		case IPOCS_WAITINFO:
+		case IPOCS_WAITSYNC:
 			// Timed out?
 			if (g_ProgramTic > Data->TimeOut)
 			{
-				Data->NetMode = IPOCS_REQUESTINFO;
+				if (Data->NetMode == IPOCS_WAITSYNC)
+				{
+					Data->NetMode = IPOCS_STARTSYNC;
+					Data->SyncTries++;
+				}
+				else
+					Data->NetMode = IPOCS_REQUESTINFO;
 				Data->TimeOut = 0;
 			}
-			break;
 			
 			// Unknown
 		default:

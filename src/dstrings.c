@@ -1008,6 +1008,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "IPC_SVREQUESTINFO", "Requesting server information..."},
 	{					 "IPC_UNKODA", "Unknown message type $1."},
 	{				  "IPC_SVGOTINFO", "Obtained server information."},
+	{			   "IPC_SVSERVERSYNC", "Synchronizing with server."},
+	{			  "IPC_SVUNKENCODING", "Unknown message encoding."},
+	{				"IPC_ODAVIRTCVAR", "Odamex CVAR change: \"$1\" to \"$2\"."},
 	
 	/*** W_WAD.C ***/
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},
