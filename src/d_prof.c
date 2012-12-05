@@ -37,7 +37,6 @@
 #include "r_draw.h"
 #include "doomstat.h"
 #include "v_video.h"
-#include "keys.h"
 #include "g_game.h"
 #include "dstrings.h"
 #include "s_sound.h"

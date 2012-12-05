@@ -53,7 +53,6 @@
 #include "v_video.h"
 #include "i_video.h"
 
-#include "keys.h"
 #include "z_zone.h"
 #include "w_wad.h"
 #include "p_local.h"

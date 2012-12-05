@@ -161,9 +161,6 @@ static void R_DrawSplatColumn(column_t* column)
 	dc_texturemid = basetexturemid;
 }
 
-extern bool_t g_PaintBallMode;
-extern uint8_t g_PBColor;
-
 static void R_DrawWallSplats()
 {
 	wallsplat_t* splat;
@@ -270,14 +267,7 @@ static void R_DrawWallSplats()
 				
 				break;
 			case SPLATDRAWMODE_SHADE:
-				if (g_PaintBallMode)
-				{
-					uint8_t DoomColor[11] = { 112, 160, 176, 200, 215, 231, 251, 83, 168, 172, 194 };
-					g_PBColor = DoomColor[((uintptr_t) splat) % 11];
-					colfunc = paintballcolfunc;
-				}
-				else
-					colfunc = shadecolfunc;
+				colfunc = shadecolfunc;
 				break;
 		}
 		if (fixedcolormap)

@@ -38,7 +38,7 @@
 #include "console.h"
 #include "g_game.h"
 #include "g_input.h"
-#include "keys.h"
+
 #include "sounds.h"
 #include "s_sound.h"
 #include "i_video.h"
@@ -49,7 +49,7 @@
 #include "console.h"
 #include "g_game.h"
 #include "g_input.h"
-#include "keys.h"
+
 #include "sounds.h"
 #include "s_sound.h"
 #include "i_video.h"

@@ -64,7 +64,6 @@ void (*fuzzcolfunc) (void);		// standard fuzzy effect column drawer (Actually it
 void (*oldfuzzcolfunc) (void);	// Oldschool fuzzy
 void (*transcolfunc) (void);	// translucent column drawer
 void (*shadecolfunc) (void);	// smokie test..
-void (*paintballcolfunc) (void);	// GhostlyDeath <July 6, 2011> -- Paintball mode!
 void (*spanfunc) (void);		// span drawer, use a 64x64 tile
 void (*basespanfunc) (void);	// default span func for color mode
 
@@ -159,7 +158,6 @@ void SCR_SetMode(void)
 		transcolfunc = R_DrawTranslatedColumn_8;
 		shadecolfunc = R_DrawShadeColumn_8;	//R_DrawColumn_8;
 		spanfunc = basespanfunc = R_DrawSpan_8;
-		paintballcolfunc = R_DrawPaintballColumn_8;
 		
 		// SSNTails 11-11-2002
 		transtransfunc = R_DrawTranslatedTranslucentColumn_8;

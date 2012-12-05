@@ -63,7 +63,7 @@
 #include "m_argv.h"
 #include "hu_stuff.h"
 #include "st_stuff.h"
-#include "keys.h"
+
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_video.h"

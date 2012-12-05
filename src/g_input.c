@@ -34,9 +34,9 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_input.h"
-#include "keys.h"
+
 #include "hu_stuff.h"			//need HUFONT start & end
-#include "keys.h"
+
 #include "d_net.h"
 #include "console.h"
 

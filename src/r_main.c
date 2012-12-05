@@ -41,7 +41,7 @@
 #include "r_sky.h"
 #include "st_stuff.h"
 #include "p_local.h"
-#include "keys.h"
+
 #include "i_video.h"
 #include "i_system.h"
 #include "m_menu.h"

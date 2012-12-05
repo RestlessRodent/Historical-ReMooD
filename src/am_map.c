@@ -47,7 +47,7 @@
 #include "i_video.h"
 #include "r_state.h"
 #include "dstrings.h"
-#include "keys.h"
+
 #include "w_wad.h"
 #include "z_zone.h"
 #include "r_draw.h"
@@ -95,14 +95,14 @@ static uint8_t DWHITE = (256 - 47);
 // drawing stuff
 #define FB              0
 
-#define AM_PANDOWNKEY   KEY_DOWNARROW
-#define AM_PANUPKEY     KEY_UPARROW
-#define AM_PANRIGHTKEY  KEY_RIGHTARROW
-#define AM_PANLEFTKEY   KEY_LEFTARROW
+#define AM_PANDOWNKEY   0//KEY_DOWNARROW
+#define AM_PANUPKEY     1//KEY_UPARROW
+#define AM_PANRIGHTKEY  2//KEY_RIGHTARROW
+#define AM_PANLEFTKEY   3//KEY_LEFTARROW
 #define AM_ZOOMINKEY    '='
 #define AM_ZOOMOUTKEY   '-'
-#define AM_STARTKEY     KEY_TAB
-#define AM_ENDKEY       KEY_TAB
+#define AM_STARTKEY     4//KEY_TAB
+#define AM_ENDKEY       5//KEY_TAB
 #define AM_GOBIGKEY     '0'
 #define AM_FOLLOWKEY    'f'
 #define AM_GRIDKEY      'g'

@@ -51,8 +51,6 @@
 #include "i_video.h"
 #include "v_video.h"
 
-#include "keys.h"
-
 #include "z_zone.h"
 #include "hu_stuff.h"
 #include "d_main.h"

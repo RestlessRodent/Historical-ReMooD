@@ -1948,14 +1948,10 @@ void D_MakeTitleString(char* s)
 	strcpy(s, temp);
 }
 
-extern bool_t g_PaintBallMode;
-
 #define MAXPORTJOYS				MAXJOYSTICKS	// Max joys supported here (auto)
 
 static int16_t l_JoyLastAxis[MAXPORTJOYS][3];
 static uint8_t l_JoyTime[MAXPORTJOYS];
-static int8_t l_JoyMagicAt;
-static int32_t l_JoyMagicTime;
 static I_EventEx_t l_JoyKeepEvent[MAXSPLITSCREEN];
 
 /* D_JoyPortsEmpty() -- Returns true if all ports are empty */
@@ -2597,7 +2593,6 @@ void D_DoomMain(void)
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
 	g_QuietConsole = M_CheckParm("-quiet");
-	g_PaintBallMode = M_CheckParm("-paintballmode");
 	
 	// GhostlyDeath <January 15, 2012> -- Check for dedicated server
 #if !defined(__REMOOD_DEDICATED)
