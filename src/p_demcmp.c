@@ -247,624 +247,608 @@ void P_XGSChangeFunc_GAMEFRAGLIMIT(struct P_XGSVariable_s* const a_Bit)
 	// never really released and if it ever was, it was lost.
 static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 {
-	{PEXGST_INTEGER, PGS_NOTHINGHERE, "nothinghere", "Nothing",
-		"Nothing is here", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+	{PEXGST_INTEGER, PGS_NOTHINGHERE, "nothinghere", DSTR_M_PGS_NOTHINGHERE,
+		DSTR_D_PGS_NOTHINGHERE, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
 		PEXGSMC_NONE, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COENABLEBLOODSPLATS, "co_enablebloodsplats", "Enable Blood Splats",
-		"Enables blood spats on walls. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CORANDOMLASTLOOK, "co_randomlastlook", "Randomize Monster Last Look",
-		"Randomize monster's last look (player to target). [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COUNSHIFTVILERAISE, "co_unshiftvileraise", "Unshift Arch-Vile Resurrection",
-		"Multiply the corpse height by 4 on resurrects. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COMODIFYCORPSE, "co_modifycorpse", "Modify Corpse (Solid Corpses)",
-		"Enables correct corpse modification for solid corpses. [Legacy >= 1.31]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 131, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	// Smoke trails appear in v1.11, but only for rockets
-	{PEXGST_INTEGER, PGS_CONOSMOKETRAILS, "co_nosmoketrails", "No Smoke Trails",
-		"Disable smoke trails on rockets and lost souls [Legacy < 1.11]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 111, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// 1.25 and up, a new smoke sprite is used, rather than tracer smoke.	
-	{PEXGST_INTEGER, PGS_COUSEREALSMOKE, "co_userealsmoke", "Use Real Smoke For Trails",
-		"Use actual smoke rather than tracers for trails. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COOLDCUTCORPSERADIUS, "co_oldcutcorpseradius", "Cut Corpse Radius (Solid Corpse)",
-		"Reduce corpse radius, when co_modifycorpse is off. [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_GREATERTHAN, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COSPAWNDROPSONMOFLOORZ, "co_spawndropsonmofloorz", "Spawn Drops on Fake-Floor",
-		"Item drops on the fake floor not on the sector floor. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CODISABLETEAMPLAY, "co_disableteamplay", "Disable Team Play",
-		"Disable support for team play. [Legacy < 1.25]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COSLOWINWATER, "co_moveslowinwater", "Move Slower In Water",
-		"Move slower when underwater (in 3D Water). [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COSLIDEOFFMOFLOOR, "co_slideoffmofloor", "Dead Things Slide Off Fake Floors",
-		"Slide off the near floor not the real one (3D floors). [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COOLDFRICTIONMOVE, "co_oldfrictionmove", "Old Friction Movement",
-		"Use old friction when moving. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COOUCHONCEILING, "co_ouchonceiling", "Go Ouch When Hitting Ceiling",
-		"Go ouch when hitting the ceiling. [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COENABLESPLASHES, "co_enablesplashes", "Enable Water Splashes",
-		"Enable splashes on the water. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COENABLEFLOORSMOKE, "co_enablefloorsmoke", "Enable Floor Damage Smoke",
-		"Enable smoke when on a damaging floor. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COENABLESMOKE, "co_enablesmoke", "Enable Smoke",
-		"Enable smoke. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CODAMAGEONLAND, "co_damageonland", "Instant-Damage On Special Floors",
-		"Damage when landing on a damaging floor. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COABSOLUTEANGLE, "co_absoluteangle", "Use Absolute Angles",
-		"Use absolute angle rather than relative angle. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COOLDJUMPOVER, "co_oldjumpover", "Old Jump Over",
-		"Use old jump over code. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COENABLESPLATS, "co_enablesplats", "Enable Splats",
-		"Enable splats. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COOLDFLATPUSHERCODE, "co_oldflatpushercode", "Old Pusher/Puller Code",
-		"Use pusher/puller code that cannot handle 3D Floors. [Legacy <= 1.40]", PEXGSGM_ANY, PEXGSDR_ATMOST, 140, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COSPAWNPLAYERSEARLY, "co_spawnplayersearly", "Spawn Players Earlier",
-		"Spawn players while the map is loading. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COENABLEUPDOWNSHOOT, "co_enableupdownshoot", "Enable Up/Down Aim",
-		"Enable shooting up/down when not aiming at something. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONOUNDERWATERCHECK, "co_nounderwatercheck", "No Underwater Check",
-		"Do not check for an object being underwater. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COSPLASHTRANSWATER, "co_transwatersplash", "Water Transition Splash",
-		"Causes splashes when transitioning from/to water [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COUSEOLDZCHECK, "co_useoldzcheck", "Old Z Check",
-		"Use old Z checking code rather than Heretic's. [Legacy < 1.31]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 131, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COCHECKXYMOVE, "co_checkxymove", "Check X/Y Movement",
-		"Check X/Y Movement (When co_useoldzcheck is enabled). [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COWATERZFRICTION, "co_waterzfriction", "Water Z Friction",
-		"Apply Z friction movement when underwater. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CORANOMLASTLOOKSPAWN, "co_randomlastlookspawn", "Randomize Last Look (Spawn)",
-		"Choose random player when object spawns. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COALWAYSRETURNDEADSPMISSILE, "co_alwaysretdeadspmissile", "Return Dead Missiles",
-		"Always return the missile spawned even if it dies. [Legacy < 1.31]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 131, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COUSEMOUSEAIMING, "co_usemouseaiming", "Allow Mouse To Aim",
-		"Use mouse aiming when not aimed at another object. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COFIXPLAYERMISSILEANGLE, "co_fixplayermissileangle", "Fix Player Missiles",
-		"Fix player missiles being fired and make them more accurate. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COREMOVEMOINSKYZ, "co_removemissileinskyz", "Remove Missiles In Sky",
-		"When Z movement is performed in a sky, do not explode. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COFORCEAUTOAIM, "co_forceautoaim", "Force Auto-Aim",
-		"Always force auto-aim. [Legacy <= 1.11]", PEXGSGM_ANY, PEXGSDR_ATMOST, 111, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COFORCEBERSERKSWITCH, "co_forceberserkswitch", "Force Berserk Switch",
-		"Force switching to berserk-enabled weapons in slots. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CODOUBLEPICKUPCHECK, "co_doublepickupcheck", "Double-Check Pickup",
-		"Double check for pickups rather than just once. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CODISABLEMISSILEIMPACTCHECK, "co_disablemissileimpactcheck", "No Missile Impact Check",
-		"Disable the checking of missile impacts. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COMISSILESPLATONWALL, "co_missilesplatsonwalls", "Enable Missile Splats on Walls",
-		"When missiles hit walls, they splat it. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONEWBLOODHITSCANCODE, "co_newbloodhitscancode", "Blood Splat Tracers",
-		"Use newer blood spawning code when tracing hitscans. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONEWAIMINGCODE, "co_newaimingcode", "New Aiming Code",
-		"Use newer aiming code in P_AimLineAttack(). [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COMISSILESPECHIT, "co_missilespechit", "Missiles Trigger Special Line Hits",
-		"Missiles can trigger special line hits. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COHITSCANSSLIDEONFLATS, "co_hitscanslidesonflats", "Hitscans Slide On Floor",
-		"Hitscans slide on flats. [Legacy < 1.12]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONONSOLIDPASSTHRUOLD, "co_nonsolidpassthruold", "No Solid Pass-Thru A",
-		"Non-solid objects pass through others (Old trigger). [Legacy < 1.12]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONONSOLIDPASSTHRUNEW, "co_nonsolidpassthrunew", "No Solid Pass-Thru B",
-		"Non-solid objects pass through others (New trigger). [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COJUMPCHECK, "co_checkjumpover", "Check For Jump Over",
-		"Allow jump over to take effect. [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COLINEARMAPTRAVERSE, "co_linearmaptraverse", "Linear Map Traverse",
-		"Loads a new map rather than starting from fresh. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COONLYTWENTYDMSPOTS, "co_onlytwentydmspots", "Limit to 20 DM Starts",
-		"Support only 20 DM starts rather than 64. [Legacy < 1.23]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 123, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COALLOWSTUCKSPAWNS, "co_allowstuckspawns", "Allow stuck DM spawns",
-		"Allow players getting stuck in others in DM spots. [Legacy < 1.13]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 113, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COUSEOLDBLOOD, "co_useoldblood", "Use Old Doom Blood",
-		"Uses standard Doom blood rather than Legacy blood. [Legacy < 130]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_FUNMONSTERFFA, "fun_monsterffa", "Monster Free For All",
-		"Monsters enter a Free For All and attack anything in sight.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_FUNINFIGHTING, "fun_monsterinfight", "Monsters Infight",
-		"Monsters attack monsters of the same race.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COCORRECTVILETARGET, "co_correctviletarget", "Correct Position Of Vile Vire",
-		"Correct the position of the Arch-Vile target fire. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_FUNMONSTERSMISSMORE, "fun_monstersmissmore", "Monsters Miss More",
-		"Monsters miss their target more.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COMORECRUSHERBLOOD, "co_morecrusherblood", "More Crusher Blood",
-		"Make crushers spew more blood. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CORANDOMBLOODDIR, "co_randomblooddir", "Random Blood Direction",
-		"Spew blood in a random direction. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COINFINITEROCKETZ, "co_infiniterocketz", "Infinite Rocket Z Range",
-		"Rocket damage distance on Z is infinite. [Legacy < 1.12]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COALLOWROCKETJUMPING, "co_allowrocketjump", "Allow Rocket Jumping",
-		"Allow support for rocket jumping. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COROCKETZTHRUST, "co_rocketzthrust", "Rocket Z Thrust",
-		"Allow thrusting on the Z plane from rockets. [Legacy >= 1.24]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 124, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COLIMITMONSTERZMATTACK, "co_limitmonsterzmattack", "Limit Monster Z Melee Range",
-		"Limits Z Melee Attack range (stops melee from cliffs). [Legacy > 1.11]", PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_HEREMONSTERTHRESH, "here_monsterthresh", "Heretic Monster Threshold",
-		"Use Heretic Threshold Logic. [Heretic]", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COVOODOODOLLS, "co_voodoodolls", "Enable Voodoo Dolls",
-		"Enable spawning of Voodoo Dolls. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// Extra Puff in A_SmokeTrailer() before v1.25
-	{PEXGST_INTEGER, PGS_COEXTRATRAILPUFF, "co_extratrailpuff", "Extra Smoke Trails",
-		"Add extra puff for smoke. [Legacy < 1.25]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// - Soul trails existed since 1.25, so that is the first ver?
-	{PEXGST_INTEGER, PGS_COLOSTSOULTRAILS, "co_lostsoultrails", "Lost Soul Trails",
-		"Lost souls emit smoke. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// In Legacy 1.11, two sided walls were transparent!
-	{PEXGST_INTEGER, PGS_COTRANSTWOSIDED, "co_transtwosided", "Transparent 2D Walls",
-		"Transparent two sided walls. [Legacy = 1.11]", PEXGSGM_ANY, PEXGSDR_EQUALS, 111, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	// - Exists in v1.25
-	// - Mentioned that it changed in v1.24
-	// - Does not exist in v1.11
-	// - Possibly appeared in v1.23?
-	{PEXGST_INTEGER, PGS_COENABLEBLOODTIME, "co_enablebloodtime", "Enable Blood Time",
-		"Enables setting blood time. [Legacy >= 1.23]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 123, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// Since v1.12, there was jumping
-	{PEXGST_INTEGER, PGS_PLENABLEJUMPING, "pl_enablejumping", "Enable Jumping",
-		"Enables Jumping Support [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// After v1.11, Enable mouse aiming
-	{PEXGST_INTEGER, PGS_COMOUSEAIM, "co_mouseaim", "Enable Mouse Aiming",
-		"Enable mouse aiming [Legacy > 1.11]", PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONRESPAWNMONSTERS, "mon_respawnmonsters", "Respawn Monsters",
-		"Monsters come back to life after a short delay.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_FUNNOTARGETPLAYER, "fun_noplayertarget", "No Player Targetting",
-		"Monsters are incapable of targetting players.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONARCHVILEANYRESPAWN, "mon_archvileanyrespawn", "Arch-Viles Respawn Anything",
-		"Arch-Viles can ressurect anything regardless if it can be or not.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COOLDCHECKPOSITION, "co_oldcheckposition", "Old Position Checking",
-		"Use old P_CheckPosition() Code. [Legacy < 1.42]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 142, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COLESSSPAWNSTICKING, "co_lessspawnsticking", "Less Spawn Spot Sticking",
-		"Make players getting stuck inside other players less likely to occur. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLSPAWNTELEFRAG, "pl_spawntelefrag", "Tele-Frag When Spawning",
-		"Tele-frag when a player respawns (to empty the spot). [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMEONEHITKILLS, "game_onehitkills", "One Hit Kills",
-		"Any recieved damage kills.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COBETTERPLCORPSEREMOVAL, "co_betterplbodyqueue", "Better Body Management",
-		"Better management of player bodies so they do not litter everywhere. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLSPAWNCLUSTERING, "pl_spawnclustering", "Spawn Spot Clustering",
-		"Adds extra spawn spots near other spawn spots for more players. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COIMPROVEDMOBJONMOBJ, "co_improvedmobjonmobj", "Improved Object on Object",
-		"Improves handling of objects on top of other objects. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COIMPROVEPATHTRAVERSE, "co_improvepathtraverse", "Improve Traversing Move",
-		"Smooth out position moving. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_FLOAT, PGS_PLJUMPGRAVITY, "pl_jumpgravity", "Jump Gravity",
-		"This is the amount of pushing force used when jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
-		PEXGSMC_PLAYERS, 0, c_PEXGSPVFixed, NULL},
-		
-	{PEXGST_INTEGER, PGS_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Doors",
-		"All doors are unlocked and do not need keys.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_FLOAT, PGS_GAMEAIRFRICTION, "game_airfriction", "Friction In Air",
-		"This modifies the amount of friction in the air, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 8192}, 8192,
-		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
-	
-	{PEXGST_FLOAT, PGS_GAMEWATERFRICTION, "game_waterfriction", "Friction In Water",
-		"This modifies the amount of friction in water, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 49152}, 49152,
-		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
-		
-	{PEXGST_FLOAT, PGS_GAMEMIDWATERFRICTION, "game_midwaterfriction", "Friction In Mid-Water",
-		"This modifies the amount of friction in water when not touching the ground, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 32768}, 32768,
-		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMEALLOWLEVELEXIT, "game_allowlevelexit", "Allow Level Exiting",
-		"Allows players or monsters to exit the level.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMEALLOWROCKETJUMP, "game_allowrocketjump", "Allow Rocket Jumping",
-		"Enables the use of rocket jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_PLALLOWAUTOAIM, "pl_allowautoaim", "Allow Auto-Aiming",
-		"Allows players to aim vertically automatically.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLFORCEWEAPONSWITCH, "pl_forceweaponswitch", "Force Weapon Switch",
-		"Forces weapon switches on pickup. [Doom <= 1.09]", PEXGSGM_ANY, PEXGSDR_ATMOST, 109, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLDROPWEAPONS, "pl_dropweapons", "Drop Weapons on Death",
-		"Drops the player's weapon when they are killed.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLINFINITEAMMO, "pl_infiniteammo", "Infinite Ammo",
-		"Ammo is never depleted and lasts forever.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMEHERETICGIBBING, "game_hereticgibbing", "Heretic Gibbing",
-		"Objects that can be gibbed are much easier to gib.", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONPREDICTMISSILES, "mon_predictmissile", "Predict Missiles",
-		"Monsters predict missile targets and aim accordingly.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_MONRESPAWNMONSTERSTIME, "mon_respawnmonsterstime", "Monster Respawn Delay",
-		"Time in seconds before monsters are respawned.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 12}, 12,
-		PEXGSMC_MONSTERS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
-		
-	
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHMAXGUNS, "pl_spawnwithmaxguns", "Spawn With Non-Super Weapons",
-		"When a player is spawned, they have all non-super weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHSUPERGUNS, "pl_spawnwithsuperguns", "Spawn With Super Weapons",
-		"When a player is spawned, they have all super weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHMAXSTATS, "pl_spawnwithmaxstats", "Spawn With Max Stats",
-		"When a player is spawned, they have max health and armor.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_ITEMSSPAWNPICKUPS, "item_spawnpickups", "Spawn Pickups",
-		"Spawn pickups on map load.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COHERETICFRICTION, "co_hereticfriction", "Heretic Friction",
-		"Use Heretic Friction", PEXGSGM_HERETIC, PEXGSDR_ATLEAST, 0, {0, 1}, 0,
-		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMEDEATHMATCH, "game_deathmatch", "Deathmatch",
-		"Enables Deathmatch Mode (Player vs Player)", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHALLKEYS, "pl_spawnwithallkeys", "Spawn With All Keys",
-		"When a player is spawned, they have every key.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_ITEMSKEEPWEAPONS, "item_keepweapons", "Keep Weapons On Floor",
-		"Keep weapons on the ground when picked up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, P_XGSChangeFunc_ITEMSKEEPWEAPONS},
-		
-	{PEXGST_INTEGER, PGS_GAMETEAMPLAY, "game_teamplay", "Enable Team Play",
-		"Enable team mode, teams of different colors vs others.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVTeamPlay, NULL},
-		
-	{PEXGST_INTEGER, PGS_GAMETEAMDAMAGE, "game_teamdamage", "Allow Team Damage",
-		"Allow players on the same team to hurt each other.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_GAMEFRAGLIMIT, "game_fraglimit", "Frag Limit",
-		"How many frags a player or team must obtain before they achieve victory,", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_GAME, PEXGSDA_INTEGER, c_PEXGSPVPositive, P_XGSChangeFunc_GAMEFRAGLIMIT},
-		
-	{PEXGST_INTEGER, PGS_GAMETIMELIMIT, "game_timelimit", "Time Limit",
-		"Time in minutes before the game automatically ends.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_GAME, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONSTATICRESPAWNTIME, "mon_staticrespawntime", "Static Monster Respawn Time",
-		"Monsters always come back after respawn delay rather than randomly afterwards.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_PLFASTERWEAPONS, "pl_fasterweapons", "Weapons Are Faster",
-		"Weapons fire and move a bit faster (all speeds are set to 1).", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONSPAWNMONSTERS, "mon_spawnmonsters", "Spawn Monsters",
-		"Monsters are spawned when the level loads.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMESPAWNMULTIPLAYER, "game_spawnmultiplayer", "Spawn Multi-Player Objects",
-		"Spawn any items that are marked multiplayer (extra weapons, monsters, etc.)", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_ITEMRESPAWNITEMS, "item_respawnitems", "Respawn Items",
-		"Items are respawned after they are picked up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_ITEMRESPAWNITEMSTIME, "item_respawnitemstime", "Item Respawn Delay",
-		"Time in seconds before items are respawned.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 30}, 30,
-		PEXGSMC_ITEMS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONFASTMONSTERS, "mon_spawnmonsters", "Fast Monsters",
-		"Monster move faster and their attacks are also faster.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_GAMESOLIDCORPSES, "game_solidcorpses", "Solid Corpses",
-		"Corpses on the ground are solidified and could be killed again.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_GAMEBLOODTIME, "game_bloodtime", "Blood Time",
-		"Time in seconds blood will last on the gound.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 20}, 20,
-		PEXGSMC_GAME, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
-		
-	{PEXGST_FLOAT, PGS_GAMEGRAVITY, "game_gravity", "Gravity",
-		"The multiplier to the amount of downward force to apply to players that are in the air.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (1 * FRACUNIT)}, (1 * FRACUNIT),
-		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
-		
-	{PEXGST_INTEGER, PGS_MONENABLECLEANUP, "mon_enablecleanup", "Enable Corpse Cleanup",
-		"Enable clean up of dead monsters. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_MONCLEANUPRESPTIME, "mon_cleanupresptime", "Respawnable Cleanup Time",
-		"Time in minutes before dead respawnable monsters are cleaned up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 120}, 120,
-		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
-		
-	{PEXGST_INTEGER, PGS_MONCLEANUPNONRTIME, "mon_cleanupnonresptime", "Non-Respawnable Cleanup Time",
-		"Time in minutes before dead respawnable monsters are cleaned up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 60}, 60,
-		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
-	
-	{PEXGST_INTEGER, PGS_GAMESKILL, "game_skill", "Skill Level",
-		"The current difficulty of the level, the higher the more monsters that appear.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 2}, 2,
-		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVSkill, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLHALFDAMAGE, "pl_halfdamage", "Take Half Damage",
-		"Players recieve only half of normal damage they recieve.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_PLDOUBLEAMMO, "pl_doubleammo", "Get Double Ammo",
-		"Players recieve double the amount of ammo they pickup.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONKILLCOUNTMODE, "mon_killcountmode", "Kill Count Mode",
-		"Specifies the mode at which kill totals are calculated.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_STRING, c_PEXGSPVKillCountMode, NULL},
-		
-	{PEXGST_INTEGER, PGS_COOLDBFGSPRAY, "co_oldbfgspray", "Old BFG Spray",
-		"Use BFG Ball owner as inflictor rather than the ball itself. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COEXPLODEHITFLOOR, "co_explodehitfloor", "Hit Floor When A_Explode",
-		"When a state calls A_Explode() the floor is hit. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COBOMBTHRUFLOOR, "co_bombthrufloor", "Bomb Through Floor",
-		"Explosions bleed through floors. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+
+	{PEXGST_INTEGER, PGS_COENABLEBLOODSPLATS, "co_enablebloodsplats", DSTR_M_PGS_COENABLEBLOODSPLATS,
+		DSTR_D_PGS_COENABLEBLOODSPLATS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 
-	{PEXGST_INTEGER, PGS_COOLDEXPLOSIONS, "co_oldexplosions", "Use Old Explosions",
-		"Use older explosion code which cannot handle certain aspects. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+	{PEXGST_INTEGER, PGS_CORANDOMLASTLOOK, "co_randomlastlook", DSTR_M_PGS_CORANDOMLASTLOOK,
+		DSTR_D_PGS_CORANDOMLASTLOOK, PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COAIMCHECKFAKEFLOOR, "co_aimcheckfakefloor", "Check 3D Floor When Aiming",
-		"Checks local 3D floors to determine if it is possible to aim through them. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COUNSHIFTVILERAISE, "co_unshiftvileraise", DSTR_M_PGS_COUNSHIFTVILERAISE,
+		DSTR_D_PGS_COUNSHIFTVILERAISE, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONEWGUNSHOTCODE, "co_newgunshotcode", "Use New Gunshot Code",
-		"Use logically incorrect gunshot code. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COMODIFYCORPSE, "co_modifycorpse", DSTR_M_PGS_COMODIFYCORPSE,
+		DSTR_D_PGS_COMODIFYCORPSE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 131, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COSHOOTCHECKFAKEFLOOR, "co_shootcheckfakefloor", "Check 3D Floor When Shooting",
-		"Checks local 3D floors to determine if it is possible to shoot through them. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_CONOSMOKETRAILS, "co_nosmoketrails", DSTR_M_PGS_CONOSMOKETRAILS,
+		DSTR_D_PGS_CONOSMOKETRAILS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 111, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COSHOOTFLOORCLIPPING, "co_shootfloorclipping", "Clip Tracers To Surface",
-		"When tracing clip against the floor rather than going through it. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COUSEREALSMOKE, "co_userealsmoke", DSTR_M_PGS_COUSEREALSMOKE,
+		DSTR_D_PGS_COUSEREALSMOKE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_CONEWSSGSPREAD, "co_newssgspread", "Use New SSG Spread",
-		"Use a subtle change in the SSG spread code. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COOLDCUTCORPSERADIUS, "co_oldcutcorpseradius", DSTR_M_PGS_COOLDCUTCORPSERADIUS,
+		DSTR_D_PGS_COOLDCUTCORPSERADIUS, PEXGSGM_ANY, PEXGSDR_GREATERTHAN, 112, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COMONSTERLOOKFORMONSTER, "co_monsterlookmonster", "Monsters Look For Other Monsters",
-		"This enables monsters to look for other monsters. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COSPAWNDROPSONMOFLOORZ, "co_spawndropsonmofloorz", DSTR_M_PGS_COSPAWNDROPSONMOFLOORZ,
+		DSTR_D_PGS_COSPAWNDROPSONMOFLOORZ, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COOLDTHINGHEIGHTS, "co_oldthingheights", "Use Old Thing Heights",
-		"Use the older heights of objects that were changed in Legacy. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+
+	{PEXGST_INTEGER, PGS_CODISABLETEAMPLAY, "co_disableteamplay", DSTR_M_PGS_CODISABLETEAMPLAY,
+		DSTR_D_PGS_CODISABLETEAMPLAY, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COLASTLOOKMAXPLAYERS, "co_lastlookmaxplayers", "Last Look MAXPLAYERS",
-		"This is the modulo value when calculating the randomized last look for spawns.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {32, 32}, 32,
-		PEXGSMC_COMPAT, PEXGSDA_INTEGER, c_PEXGSPVLastLookMP, NULL},
-	
-	{PEXGST_INTEGER, PGS_COMOVECHECKFAKEFLOOR, "co_movecheckfakefloor", "Check 3D Floor When Moving",
-		"Checks 3D floors during movement. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COSLOWINWATER, "co_moveslowinwater", DSTR_M_PGS_COSLOWINWATER,
+		DSTR_D_PGS_COSLOWINWATER, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COMULTIPLAYER, "co_multiplayer", "Multi-Player Mode",
-		"Enables multiplayer mode checks.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+
+	{PEXGST_INTEGER, PGS_COSLIDEOFFMOFLOOR, "co_slideoffmofloor", DSTR_M_PGS_COSLIDEOFFMOFLOOR,
+		DSTR_D_PGS_COSLIDEOFFMOFLOOR, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COBOOMSUPPORT, "co_boomsupport", "Boom Support",
-		"Allows changes used from Boom in certain areas. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COOLDFRICTIONMOVE, "co_oldfrictionmove", DSTR_M_PGS_COOLDFRICTIONMOVE,
+		DSTR_D_PGS_COOLDFRICTIONMOVE, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHFAVGUN, "pl_spawnwithfavgun", "Spawn With Favorite Gun",
-		"Allows players to start with their favorite gun when they respawn. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COOUCHONCEILING, "co_ouchonceiling", DSTR_M_PGS_COOUCHONCEILING,
+		DSTR_D_PGS_COOUCHONCEILING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COENABLESPLASHES, "co_enablesplashes", DSTR_M_PGS_COENABLESPLASHES,
+		DSTR_D_PGS_COENABLESPLASHES, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COENABLEFLOORSMOKE, "co_enablefloorsmoke", DSTR_M_PGS_COENABLEFLOORSMOKE,
+		DSTR_D_PGS_COENABLEFLOORSMOKE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COENABLESMOKE, "co_enablesmoke", DSTR_M_PGS_COENABLESMOKE,
+		DSTR_D_PGS_COENABLESMOKE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CODAMAGEONLAND, "co_damageonland", DSTR_M_PGS_CODAMAGEONLAND,
+		DSTR_D_PGS_CODAMAGEONLAND, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COABSOLUTEANGLE, "co_absoluteangle", DSTR_M_PGS_COABSOLUTEANGLE,
+		DSTR_D_PGS_COABSOLUTEANGLE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDJUMPOVER, "co_oldjumpover", DSTR_M_PGS_COOLDJUMPOVER,
+		DSTR_D_PGS_COOLDJUMPOVER, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COENABLESPLATS, "co_enablesplats", DSTR_M_PGS_COENABLESPLATS,
+		DSTR_D_PGS_COENABLESPLATS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDFLATPUSHERCODE, "co_oldflatpushercode", DSTR_M_PGS_COOLDFLATPUSHERCODE,
+		DSTR_D_PGS_COOLDFLATPUSHERCODE, PEXGSGM_ANY, PEXGSDR_ATMOST, 140, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COSPAWNPLAYERSEARLY, "co_spawnplayersearly", DSTR_M_PGS_COSPAWNPLAYERSEARLY,
+		DSTR_D_PGS_COSPAWNPLAYERSEARLY, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COENABLEUPDOWNSHOOT, "co_enableupdownshoot", DSTR_M_PGS_COENABLEUPDOWNSHOOT,
+		DSTR_D_PGS_COENABLEUPDOWNSHOOT, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONOUNDERWATERCHECK, "co_nounderwatercheck", DSTR_M_PGS_CONOUNDERWATERCHECK,
+		DSTR_D_PGS_CONOUNDERWATERCHECK, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COSPLASHTRANSWATER, "co_transwatersplash", DSTR_M_PGS_COSPLASHTRANSWATER,
+		DSTR_D_PGS_COSPLASHTRANSWATER, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COUSEOLDZCHECK, "co_useoldzcheck", DSTR_M_PGS_COUSEOLDZCHECK,
+		DSTR_D_PGS_COUSEOLDZCHECK, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 131, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COCHECKXYMOVE, "co_checkxymove", DSTR_M_PGS_COCHECKXYMOVE,
+		DSTR_D_PGS_COCHECKXYMOVE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COWATERZFRICTION, "co_waterzfriction", DSTR_M_PGS_COWATERZFRICTION,
+		DSTR_D_PGS_COWATERZFRICTION, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CORANOMLASTLOOKSPAWN, "co_randomlastlookspawn", DSTR_M_PGS_CORANOMLASTLOOKSPAWN,
+		DSTR_D_PGS_CORANOMLASTLOOKSPAWN, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COALWAYSRETURNDEADSPMISSILE, "co_alwaysretdeadspmissile", DSTR_M_PGS_COALWAYSRETURNDEADSPMISSILE,
+		DSTR_D_PGS_COALWAYSRETURNDEADSPMISSILE, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 131, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COUSEMOUSEAIMING, "co_usemouseaiming", DSTR_M_PGS_COUSEMOUSEAIMING,
+		DSTR_D_PGS_COUSEMOUSEAIMING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COFIXPLAYERMISSILEANGLE, "co_fixplayermissileangle", DSTR_M_PGS_COFIXPLAYERMISSILEANGLE,
+		DSTR_D_PGS_COFIXPLAYERMISSILEANGLE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COREMOVEMOINSKYZ, "co_removemissileinskyz", DSTR_M_PGS_COREMOVEMOINSKYZ,
+		DSTR_D_PGS_COREMOVEMOINSKYZ, PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COFORCEAUTOAIM, "co_forceautoaim", DSTR_M_PGS_COFORCEAUTOAIM,
+		DSTR_D_PGS_COFORCEAUTOAIM, PEXGSGM_ANY, PEXGSDR_ATMOST, 111, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COFORCEBERSERKSWITCH, "co_forceberserkswitch", DSTR_M_PGS_COFORCEBERSERKSWITCH,
+		DSTR_D_PGS_COFORCEBERSERKSWITCH, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CODOUBLEPICKUPCHECK, "co_doublepickupcheck", DSTR_M_PGS_CODOUBLEPICKUPCHECK,
+		DSTR_D_PGS_CODOUBLEPICKUPCHECK, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CODISABLEMISSILEIMPACTCHECK, "co_disablemissileimpactcheck", DSTR_M_PGS_CODISABLEMISSILEIMPACTCHECK,
+		DSTR_D_PGS_CODISABLEMISSILEIMPACTCHECK, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COMISSILESPLATONWALL, "co_missilesplatsonwalls", DSTR_M_PGS_COMISSILESPLATONWALL,
+		DSTR_D_PGS_COMISSILESPLATONWALL, PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONEWBLOODHITSCANCODE, "co_newbloodhitscancode", DSTR_M_PGS_CONEWBLOODHITSCANCODE,
+		DSTR_D_PGS_CONEWBLOODHITSCANCODE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONEWAIMINGCODE, "co_newaimingcode", DSTR_M_PGS_CONEWAIMINGCODE,
+		DSTR_D_PGS_CONEWAIMINGCODE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COMISSILESPECHIT, "co_missilespechit", DSTR_M_PGS_COMISSILESPECHIT,
+		DSTR_D_PGS_COMISSILESPECHIT, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COHITSCANSSLIDEONFLATS, "co_hitscanslidesonflats", DSTR_M_PGS_COHITSCANSSLIDEONFLATS,
+		DSTR_D_PGS_COHITSCANSSLIDEONFLATS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONONSOLIDPASSTHRUOLD, "co_nonsolidpassthruold", DSTR_M_PGS_CONONSOLIDPASSTHRUOLD,
+		DSTR_D_PGS_CONONSOLIDPASSTHRUOLD, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONONSOLIDPASSTHRUNEW, "co_nonsolidpassthrunew", DSTR_M_PGS_CONONSOLIDPASSTHRUNEW,
+		DSTR_D_PGS_CONONSOLIDPASSTHRUNEW, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COJUMPCHECK, "co_checkjumpover", DSTR_M_PGS_COJUMPCHECK,
+		DSTR_D_PGS_COJUMPCHECK, PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COLINEARMAPTRAVERSE, "co_linearmaptraverse", DSTR_M_PGS_COLINEARMAPTRAVERSE,
+		DSTR_D_PGS_COLINEARMAPTRAVERSE, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COONLYTWENTYDMSPOTS, "co_onlytwentydmspots", DSTR_M_PGS_COONLYTWENTYDMSPOTS,
+		DSTR_D_PGS_COONLYTWENTYDMSPOTS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 123, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COALLOWSTUCKSPAWNS, "co_allowstuckspawns", DSTR_M_PGS_COALLOWSTUCKSPAWNS,
+		DSTR_D_PGS_COALLOWSTUCKSPAWNS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 113, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COUSEOLDBLOOD, "co_useoldblood", DSTR_M_PGS_COUSEOLDBLOOD,
+		DSTR_D_PGS_COUSEOLDBLOOD, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_FUNMONSTERFFA, "fun_monsterffa", DSTR_M_PGS_FUNMONSTERFFA,
+		DSTR_D_PGS_FUNMONSTERFFA, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_FUNINFIGHTING, "fun_monsterinfight", DSTR_M_PGS_FUNINFIGHTING,
+		DSTR_D_PGS_FUNINFIGHTING, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COCORRECTVILETARGET, "co_correctviletarget", DSTR_M_PGS_COCORRECTVILETARGET,
+		DSTR_D_PGS_COCORRECTVILETARGET, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_FUNMONSTERSMISSMORE, "fun_monstersmissmore", DSTR_M_PGS_FUNMONSTERSMISSMORE,
+		DSTR_D_PGS_FUNMONSTERSMISSMORE, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COMORECRUSHERBLOOD, "co_morecrusherblood", DSTR_M_PGS_COMORECRUSHERBLOOD,
+		DSTR_D_PGS_COMORECRUSHERBLOOD, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CORANDOMBLOODDIR, "co_randomblooddir", DSTR_M_PGS_CORANDOMBLOODDIR,
+		DSTR_D_PGS_CORANDOMBLOODDIR, PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COINFINITEROCKETZ, "co_infiniterocketz", DSTR_M_PGS_COINFINITEROCKETZ,
+		DSTR_D_PGS_COINFINITEROCKETZ, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COALLOWROCKETJUMPING, "co_allowrocketjump", DSTR_M_PGS_COALLOWROCKETJUMPING,
+		DSTR_D_PGS_COALLOWROCKETJUMPING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COROCKETZTHRUST, "co_rocketzthrust", DSTR_M_PGS_COROCKETZTHRUST,
+		DSTR_D_PGS_COROCKETZTHRUST, PEXGSGM_ANY, PEXGSDR_ATLEAST, 124, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COLIMITMONSTERZMATTACK, "co_limitmonsterzmattack", DSTR_M_PGS_COLIMITMONSTERZMATTACK,
+		DSTR_D_PGS_COLIMITMONSTERZMATTACK, PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_HEREMONSTERTHRESH, "here_monsterthresh", DSTR_M_PGS_HEREMONSTERTHRESH,
+		DSTR_D_PGS_HEREMONSTERTHRESH, PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COVOODOODOLLS, "co_voodoodolls", DSTR_M_PGS_COVOODOODOLLS,
+		DSTR_D_PGS_COVOODOODOLLS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COEXTRATRAILPUFF, "co_extratrailpuff", DSTR_M_PGS_COEXTRATRAILPUFF,
+		DSTR_D_PGS_COEXTRATRAILPUFF, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COLOSTSOULTRAILS, "co_lostsoultrails", DSTR_M_PGS_COLOSTSOULTRAILS,
+		DSTR_D_PGS_COLOSTSOULTRAILS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COTRANSTWOSIDED, "co_transtwosided", DSTR_M_PGS_COTRANSTWOSIDED,
+		DSTR_D_PGS_COTRANSTWOSIDED, PEXGSGM_ANY, PEXGSDR_EQUALS, 111, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COENABLEBLOODTIME, "co_enablebloodtime", DSTR_M_PGS_COENABLEBLOODTIME,
+		DSTR_D_PGS_COENABLEBLOODTIME, PEXGSGM_ANY, PEXGSDR_ATLEAST, 123, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLENABLEJUMPING, "pl_enablejumping", DSTR_M_PGS_PLENABLEJUMPING,
+		DSTR_D_PGS_PLENABLEJUMPING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_CONOSAWFACING, "co_nosawfacing", "No Chainsaw Facing",
-		"When chainsawing enemies you face their direction to continue harming them.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
-	
-	{PEXGST_INTEGER, PGS_COENABLETEAMMONSTERS, "co_enableteammonsters", "Enable Team Monsters",
-		"Allows monsters to be placed on a team along with players. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COMOUSEAIM, "co_mouseaim", DSTR_M_PGS_COMOUSEAIM,
+		DSTR_D_PGS_COMOUSEAIM, PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COMONSTERDEADTARGET, "co_monsterdeadtarget", "Monsters Untarget Dead",
-		"When the monster's target dies it no longer targets them. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	{PEXGST_INTEGER, PGS_COJUMPREGARDLESS, "co_jumpregardless", "Ignore Jump Disable",
-		"This allows jumping regardless if it is enabled or not, this is for old demos. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COOLDLASTLOOKLOGIC, "co_oldlastlooklogic", "Use Old Lastlook Logic",
-		"Use older method of computing an object's last look target. [Legacy < 1.30]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
-		
-	{PEXGST_INTEGER, PGS_CORADIALSPAWNCHECK, "co_radialspawncheck", "Radial Spawn Check",
-		"Enable radial spawn checking to help prevent stuck spawns. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_MONENABLEPLAYASMONSTER, "mon_enableplayasmonster", "Enable Playing as Monsters",
-		"Allows players to take control over monsters.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 200, {0, 1}, 0,
+
+	{PEXGST_INTEGER, PGS_MONRESPAWNMONSTERS, "mon_respawnmonsters", DSTR_M_PGS_MONRESPAWNMONSTERS,
+		DSTR_D_PGS_MONRESPAWNMONSTERS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	{PEXGST_INTEGER, PGS_COKILLSTOPLAYERONE, "co_killstoplayerone", "Give Kills to Player 1",
-		"Gives kills performed by non-players to player 1. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_FUNNOTARGETPLAYER, "fun_noplayertarget", DSTR_M_PGS_FUNNOTARGETPLAYER,
+		DSTR_D_PGS_FUNNOTARGETPLAYER, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONARCHVILEANYRESPAWN, "mon_archvileanyrespawn", DSTR_M_PGS_MONARCHVILEANYRESPAWN,
+		DSTR_D_PGS_MONARCHVILEANYRESPAWN, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDCHECKPOSITION, "co_oldcheckposition", DSTR_M_PGS_COOLDCHECKPOSITION,
+		DSTR_D_PGS_COOLDCHECKPOSITION, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 142, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// GhostlyDeath <September 19, 2012> -- Suicides
-	{PEXGST_INTEGER, PGS_PLALLOWSUICIDE, "pl_allowsuicide", "Allow Suicide Pill",
-		"Allows player to use the suicide pill key to instantly commit suicide [ReMooD >= 1.0a].", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COLESSSPAWNSTICKING, "co_lessspawnsticking", DSTR_M_PGS_COLESSSPAWNSTICKING,
+		DSTR_D_PGS_COLESSSPAWNSTICKING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNTELEFRAG, "pl_spawntelefrag", DSTR_M_PGS_PLSPAWNTELEFRAG,
+		DSTR_D_PGS_PLSPAWNTELEFRAG, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	{PEXGST_INTEGER, PGS_PLSUICIDEDELAY, "pl_suicidedelay", "Suicide Pill Delay",
-		"Time in seconds after allowing another suicide pill after consuming an existing suicide pill [ReMooD >= 1.0a].", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 3}, 3,
+
+	{PEXGST_INTEGER, PGS_GAMEONEHITKILLS, "game_onehitkills", DSTR_M_PGS_GAMEONEHITKILLS,
+		DSTR_D_PGS_GAMEONEHITKILLS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COBETTERPLCORPSEREMOVAL, "co_betterplbodyqueue", DSTR_M_PGS_COBETTERPLCORPSEREMOVAL,
+		DSTR_D_PGS_COBETTERPLCORPSEREMOVAL, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNCLUSTERING, "pl_spawnclustering", DSTR_M_PGS_PLSPAWNCLUSTERING,
+		DSTR_D_PGS_PLSPAWNCLUSTERING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COIMPROVEDMOBJONMOBJ, "co_improvedmobjonmobj", DSTR_M_PGS_COIMPROVEDMOBJONMOBJ,
+		DSTR_D_PGS_COIMPROVEDMOBJONMOBJ, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COIMPROVEPATHTRAVERSE, "co_improvepathtraverse", DSTR_M_PGS_COIMPROVEPATHTRAVERSE,
+		DSTR_D_PGS_COIMPROVEPATHTRAVERSE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_FLOAT, PGS_PLJUMPGRAVITY, "pl_jumpgravity", DSTR_M_PGS_PLJUMPGRAVITY,
+		DSTR_D_PGS_PLJUMPGRAVITY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
+		PEXGSMC_PLAYERS, 0, c_PEXGSPVFixed, NULL},
+
+	{PEXGST_INTEGER, PGS_FUNNOLOCKEDDOORS, "fun_nolockeddoors", DSTR_M_PGS_FUNNOLOCKEDDOORS,
+		DSTR_D_PGS_FUNNOLOCKEDDOORS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_FLOAT, PGS_GAMEAIRFRICTION, "game_airfriction", DSTR_M_PGS_GAMEAIRFRICTION,
+		DSTR_D_PGS_GAMEAIRFRICTION, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 8192}, 8192,
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
+
+	{PEXGST_FLOAT, PGS_GAMEWATERFRICTION, "game_waterfriction", DSTR_M_PGS_GAMEWATERFRICTION,
+		DSTR_D_PGS_GAMEWATERFRICTION, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 49152}, 49152,
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
+
+	{PEXGST_FLOAT, PGS_GAMEMIDWATERFRICTION, "game_midwaterfriction", DSTR_M_PGS_GAMEMIDWATERFRICTION,
+		DSTR_D_PGS_GAMEMIDWATERFRICTION, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 32768}, 32768,
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMEALLOWLEVELEXIT, "game_allowlevelexit", DSTR_M_PGS_GAMEALLOWLEVELEXIT,
+		DSTR_D_PGS_GAMEALLOWLEVELEXIT, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMEALLOWROCKETJUMP, "game_allowrocketjump", DSTR_M_PGS_GAMEALLOWROCKETJUMP,
+		DSTR_D_PGS_GAMEALLOWROCKETJUMP, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLALLOWAUTOAIM, "pl_allowautoaim", DSTR_M_PGS_PLALLOWAUTOAIM,
+		DSTR_D_PGS_PLALLOWAUTOAIM, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLFORCEWEAPONSWITCH, "pl_forceweaponswitch", DSTR_M_PGS_PLFORCEWEAPONSWITCH,
+		DSTR_D_PGS_PLFORCEWEAPONSWITCH, PEXGSGM_ANY, PEXGSDR_ATMOST, 109, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLDROPWEAPONS, "pl_dropweapons", DSTR_M_PGS_PLDROPWEAPONS,
+		DSTR_D_PGS_PLDROPWEAPONS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLINFINITEAMMO, "pl_infiniteammo", DSTR_M_PGS_PLINFINITEAMMO,
+		DSTR_D_PGS_PLINFINITEAMMO, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMEHERETICGIBBING, "game_hereticgibbing", DSTR_M_PGS_GAMEHERETICGIBBING,
+		DSTR_D_PGS_GAMEHERETICGIBBING, PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONPREDICTMISSILES, "mon_predictmissile", DSTR_M_PGS_MONPREDICTMISSILES,
+		DSTR_D_PGS_MONPREDICTMISSILES, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONRESPAWNMONSTERSTIME, "mon_respawnmonsterstime", DSTR_M_PGS_MONRESPAWNMONSTERSTIME,
+		DSTR_D_PGS_MONRESPAWNMONSTERSTIME, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 12}, 12,
+		PEXGSMC_MONSTERS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHMAXGUNS, "pl_spawnwithmaxguns", DSTR_M_PGS_PLSPAWNWITHMAXGUNS,
+		DSTR_D_PGS_PLSPAWNWITHMAXGUNS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHSUPERGUNS, "pl_spawnwithsuperguns", DSTR_M_PGS_PLSPAWNWITHSUPERGUNS,
+		DSTR_D_PGS_PLSPAWNWITHSUPERGUNS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHMAXSTATS, "pl_spawnwithmaxstats", DSTR_M_PGS_PLSPAWNWITHMAXSTATS,
+		DSTR_D_PGS_PLSPAWNWITHMAXSTATS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_ITEMSSPAWNPICKUPS, "item_spawnpickups", DSTR_M_PGS_ITEMSSPAWNPICKUPS,
+		DSTR_D_PGS_ITEMSSPAWNPICKUPS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COHERETICFRICTION, "co_hereticfriction", DSTR_M_PGS_COHERETICFRICTION,
+		DSTR_D_PGS_COHERETICFRICTION, PEXGSGM_HERETIC, PEXGSDR_ATLEAST, 0, {0, 1}, 0,
+		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMEDEATHMATCH, "game_deathmatch", DSTR_M_PGS_GAMEDEATHMATCH,
+		DSTR_D_PGS_GAMEDEATHMATCH, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHALLKEYS, "pl_spawnwithallkeys", DSTR_M_PGS_PLSPAWNWITHALLKEYS,
+		DSTR_D_PGS_PLSPAWNWITHALLKEYS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_ITEMSKEEPWEAPONS, "item_keepweapons", DSTR_M_PGS_ITEMSKEEPWEAPONS,
+		DSTR_D_PGS_ITEMSKEEPWEAPONS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, P_XGSChangeFunc_ITEMSKEEPWEAPONS},
+
+	{PEXGST_INTEGER, PGS_GAMETEAMPLAY, "game_teamplay", DSTR_M_PGS_GAMETEAMPLAY,
+		DSTR_D_PGS_GAMETEAMPLAY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVTeamPlay, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMETEAMDAMAGE, "game_teamdamage", DSTR_M_PGS_GAMETEAMDAMAGE,
+		DSTR_D_PGS_GAMETEAMDAMAGE, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMEFRAGLIMIT, "game_fraglimit", DSTR_M_PGS_GAMEFRAGLIMIT,
+		DSTR_D_PGS_GAMEFRAGLIMIT, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_GAME, PEXGSDA_INTEGER, c_PEXGSPVPositive, P_XGSChangeFunc_GAMEFRAGLIMIT},
+
+	{PEXGST_INTEGER, PGS_GAMETIMELIMIT, "game_timelimit", DSTR_M_PGS_GAMETIMELIMIT,
+		DSTR_D_PGS_GAMETIMELIMIT, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_GAME, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
+
+	{PEXGST_INTEGER, PGS_MONSTATICRESPAWNTIME, "mon_staticrespawntime", DSTR_M_PGS_MONSTATICRESPAWNTIME,
+		DSTR_D_PGS_MONSTATICRESPAWNTIME, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLFASTERWEAPONS, "pl_fasterweapons", DSTR_M_PGS_PLFASTERWEAPONS,
+		DSTR_D_PGS_PLFASTERWEAPONS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONSPAWNMONSTERS, "mon_spawnmonsters", DSTR_M_PGS_MONSPAWNMONSTERS,
+		DSTR_D_PGS_MONSPAWNMONSTERS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMESPAWNMULTIPLAYER, "game_spawnmultiplayer", DSTR_M_PGS_GAMESPAWNMULTIPLAYER,
+		DSTR_D_PGS_GAMESPAWNMULTIPLAYER, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_ITEMRESPAWNITEMS, "item_respawnitems", DSTR_M_PGS_ITEMRESPAWNITEMS,
+		DSTR_D_PGS_ITEMRESPAWNITEMS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_ITEMRESPAWNITEMSTIME, "item_respawnitemstime", DSTR_M_PGS_ITEMRESPAWNITEMSTIME,
+		DSTR_D_PGS_ITEMRESPAWNITEMSTIME, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 30}, 30,
+		PEXGSMC_ITEMS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
+
+	{PEXGST_INTEGER, PGS_MONFASTMONSTERS, "mon_spawnmonsters", DSTR_M_PGS_MONFASTMONSTERS,
+		DSTR_D_PGS_MONFASTMONSTERS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMESOLIDCORPSES, "game_solidcorpses", DSTR_M_PGS_GAMESOLIDCORPSES,
+		DSTR_D_PGS_GAMESOLIDCORPSES, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMEBLOODTIME, "game_bloodtime", DSTR_M_PGS_GAMEBLOODTIME,
+		DSTR_D_PGS_GAMEBLOODTIME, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 20}, 20,
+		PEXGSMC_GAME, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
+
+	{PEXGST_FLOAT, PGS_GAMEGRAVITY, "game_gravity", DSTR_M_PGS_GAMEGRAVITY,
+		DSTR_D_PGS_GAMEGRAVITY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (1 * FRACUNIT)}, (1 * FRACUNIT),
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
+
+	{PEXGST_INTEGER, PGS_MONENABLECLEANUP, "mon_enablecleanup", DSTR_M_PGS_MONENABLECLEANUP,
+		DSTR_D_PGS_MONENABLECLEANUP, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONCLEANUPRESPTIME, "mon_cleanupresptime", DSTR_M_PGS_MONCLEANUPRESPTIME,
+		DSTR_D_PGS_MONCLEANUPRESPTIME, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 120}, 120,
+		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
+
+	{PEXGST_INTEGER, PGS_MONCLEANUPNONRTIME, "mon_cleanupnonresptime", DSTR_M_PGS_MONCLEANUPNONRTIME,
+		DSTR_D_PGS_MONCLEANUPNONRTIME, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 60}, 60,
+		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
+
+	{PEXGST_INTEGER, PGS_GAMESKILL, "game_skill", DSTR_M_PGS_GAMESKILL,
+		DSTR_D_PGS_GAMESKILL, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 2}, 2,
+		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVSkill, NULL},
+
+	{PEXGST_INTEGER, PGS_PLHALFDAMAGE, "pl_halfdamage", DSTR_M_PGS_PLHALFDAMAGE,
+		DSTR_D_PGS_PLHALFDAMAGE, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLDOUBLEAMMO, "pl_doubleammo", DSTR_M_PGS_PLDOUBLEAMMO,
+		DSTR_D_PGS_PLDOUBLEAMMO, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONKILLCOUNTMODE, "mon_killcountmode", DSTR_M_PGS_MONKILLCOUNTMODE,
+		DSTR_D_PGS_MONKILLCOUNTMODE, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_STRING, c_PEXGSPVKillCountMode, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDBFGSPRAY, "co_oldbfgspray", DSTR_M_PGS_COOLDBFGSPRAY,
+		DSTR_D_PGS_COOLDBFGSPRAY, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COEXPLODEHITFLOOR, "co_explodehitfloor", DSTR_M_PGS_COEXPLODEHITFLOOR,
+		DSTR_D_PGS_COEXPLODEHITFLOOR, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COBOMBTHRUFLOOR, "co_bombthrufloor", DSTR_M_PGS_COBOMBTHRUFLOOR,
+		DSTR_D_PGS_COBOMBTHRUFLOOR, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDEXPLOSIONS, "co_oldexplosions", DSTR_M_PGS_COOLDEXPLOSIONS,
+		DSTR_D_PGS_COOLDEXPLOSIONS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COAIMCHECKFAKEFLOOR, "co_aimcheckfakefloor", DSTR_M_PGS_COAIMCHECKFAKEFLOOR,
+		DSTR_D_PGS_COAIMCHECKFAKEFLOOR, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONEWGUNSHOTCODE, "co_newgunshotcode", DSTR_M_PGS_CONEWGUNSHOTCODE,
+		DSTR_D_PGS_CONEWGUNSHOTCODE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COSHOOTCHECKFAKEFLOOR, "co_shootcheckfakefloor", DSTR_M_PGS_COSHOOTCHECKFAKEFLOOR,
+		DSTR_D_PGS_COSHOOTCHECKFAKEFLOOR, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COSHOOTFLOORCLIPPING, "co_shootfloorclipping", DSTR_M_PGS_COSHOOTFLOORCLIPPING,
+		DSTR_D_PGS_COSHOOTFLOORCLIPPING, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONEWSSGSPREAD, "co_newssgspread", DSTR_M_PGS_CONEWSSGSPREAD,
+		DSTR_D_PGS_CONEWSSGSPREAD, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COMONSTERLOOKFORMONSTER, "co_monsterlookmonster", DSTR_M_PGS_COMONSTERLOOKFORMONSTER,
+		DSTR_D_PGS_COMONSTERLOOKFORMONSTER, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDTHINGHEIGHTS, "co_oldthingheights", DSTR_M_PGS_COOLDTHINGHEIGHTS,
+		DSTR_D_PGS_COOLDTHINGHEIGHTS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COLASTLOOKMAXPLAYERS, "co_lastlookmaxplayers", DSTR_M_PGS_COLASTLOOKMAXPLAYERS,
+		DSTR_D_PGS_COLASTLOOKMAXPLAYERS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {32, 32}, 32,
+		PEXGSMC_COMPAT, PEXGSDA_INTEGER, c_PEXGSPVLastLookMP, NULL},
+
+	{PEXGST_INTEGER, PGS_COMOVECHECKFAKEFLOOR, "co_movecheckfakefloor", DSTR_M_PGS_COMOVECHECKFAKEFLOOR,
+		DSTR_D_PGS_COMOVECHECKFAKEFLOOR, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COMULTIPLAYER, "co_multiplayer", DSTR_M_PGS_COMULTIPLAYER,
+		DSTR_D_PGS_COMULTIPLAYER, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COBOOMSUPPORT, "co_boomsupport", DSTR_M_PGS_COBOOMSUPPORT,
+		DSTR_D_PGS_COBOOMSUPPORT, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHFAVGUN, "pl_spawnwithfavgun", DSTR_M_PGS_PLSPAWNWITHFAVGUN,
+		DSTR_D_PGS_PLSPAWNWITHFAVGUN, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_CONOSAWFACING, "co_nosawfacing", DSTR_M_PGS_CONOSAWFACING,
+		DSTR_D_PGS_CONOSAWFACING, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
+
+	{PEXGST_INTEGER, PGS_COENABLETEAMMONSTERS, "co_enableteammonsters", DSTR_M_PGS_COENABLETEAMMONSTERS,
+		DSTR_D_PGS_COENABLETEAMMONSTERS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COMONSTERDEADTARGET, "co_monsterdeadtarget", DSTR_M_PGS_COMONSTERDEADTARGET,
+		DSTR_D_PGS_COMONSTERDEADTARGET, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COJUMPREGARDLESS, "co_jumpregardless", DSTR_M_PGS_COJUMPREGARDLESS,
+		DSTR_D_PGS_COJUMPREGARDLESS, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COOLDLASTLOOKLOGIC, "co_oldlastlooklogic", DSTR_M_PGS_COOLDLASTLOOKLOGIC,
+		DSTR_D_PGS_COOLDLASTLOOKLOGIC, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
+
+	{PEXGST_INTEGER, PGS_CORADIALSPAWNCHECK, "co_radialspawncheck", DSTR_M_PGS_CORADIALSPAWNCHECK,
+		DSTR_D_PGS_CORADIALSPAWNCHECK, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_MONENABLEPLAYASMONSTER, "mon_enableplayasmonster", DSTR_M_PGS_MONENABLEPLAYASMONSTER,
+		DSTR_D_PGS_MONENABLEPLAYASMONSTER, PEXGSGM_ANY, PEXGSDR_NOCHECK, 200, {0, 1}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_COKILLSTOPLAYERONE, "co_killstoplayerone", DSTR_M_PGS_COKILLSTOPLAYERONE,
+		DSTR_D_PGS_COKILLSTOPLAYERONE, PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLALLOWSUICIDE, "pl_allowsuicide", DSTR_M_PGS_PLALLOWSUICIDE,
+		DSTR_D_PGS_PLALLOWSUICIDE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PGS_PLSUICIDEDELAY, "pl_suicidedelay", DSTR_M_PGS_PLSUICIDEDELAY,
+		DSTR_D_PGS_PLSUICIDEDELAY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 3}, 3,
 		PEXGSMC_PLAYERS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
-		
-		
-	// GhostlyDeath <September 21, 2012> -- Spawn with only melee weapons
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHMELEEONLY, "pl_spawnwithmeleeonly", "Spawn With Only Melee Weapons",
-		"When a player is spawned, they are only spawned with melee weapons. Spawn with non-super/super affects this option.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHMELEEONLY, "pl_spawnwithmeleeonly", DSTR_M_PGS_PLSPAWNWITHMELEEONLY,
+		DSTR_D_PGS_PLSPAWNWITHMELEEONLY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-		
-	// GhostlyDeath <October 20, 2012> -- Spawn with random weapon
-	{PEXGST_INTEGER, PGS_PLSPAWNWITHRANDOMGUN, "pl_spawnwithrandom", "Spawn With A Random Weapon",
-		"When a player is spawned, they are spawned with a random weapon. Spawn with non-super/super/melee affects this option.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHRANDOMGUN, "pl_spawnwithrandom", DSTR_M_PGS_PLSPAWNWITHRANDOMGUN,
+		DSTR_D_PGS_PLSPAWNWITHRANDOMGUN, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
-	
-	// GhostlyDeath <November 21, 2012> -- Slopes!
-	{PEXGST_INTEGER, PGS_COENABLESLOPES, "co_enableslopes", "Enables Slopes",
-		"Enables the usage of sloped floors and ceilings. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+
+	{PEXGST_INTEGER, PGS_COENABLESLOPES, "co_enableslopes", DSTR_M_PGS_COENABLESLOPES,
+		DSTR_D_PGS_COENABLESLOPES, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
@@ -1067,8 +1051,8 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 				return 1;
 			
 			// Return value and information
-			CONL_PrintF("{4%-30s{z \"{7%s{z\"\n", Var->Name, Var->MenuTitle);
-			CONL_PrintF("  Desc: %s\n", Var->Description);
+			CONL_PrintF("{4%-30s{z \"{7%s{z\"\n", Var->Name, DS_GetString(Var->MenuTitle));
+			CONL_PrintF("  Desc: %s\n", DS_GetString(Var->Description));
 			CONL_PrintF("  Valu: %i\n", P_XGSVal(Var->BitID));
 			
 			return 0;

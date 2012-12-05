@@ -296,7 +296,7 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 		
 				// Find next lowest
 				for (k = j + 1; k <= z; k++)
-					if (strcasecmp(SortedBits[k]->MenuTitle, SortedBits[b]->MenuTitle) < 0)
+					if (strcasecmp(DS_GetString(SortedBits[k]->MenuTitle), DS_GetString(SortedBits[b]->MenuTitle)) < 0)
 						b = k;
 		
 				// Swap
@@ -362,7 +362,7 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 		}
 		
 		// Set
-		New->Items[i].Text = Bit->MenuTitle;
+		New->Items[i].TextRef = DS_GetStringRef(Bit->MenuTitle);
 		New->Items[i].Value = Bit->StrVal;
 		New->Items[i].Flags &= ~MUIIF_NOPARK;	// Park here
 		New->Items[i].LRValChangeFunc = MS_GameVar_LRValChange;

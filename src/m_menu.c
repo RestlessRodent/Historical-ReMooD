@@ -554,10 +554,10 @@ void M_ExMenuDrawer(void)
 			continue;
 			
 		// Draw Faded Background
-		VHW_HUDBlurBack(
-				VEX_COLORMAP(VEX_MAP_BLACK),
-				ScrX, ScrY, ScrX + ScrW, ScrY + ScrH
-			);
+		//VHW_HUDBlurBack(
+		//		VEX_COLORMAP(VEX_MAP_BLACK),
+		//		ScrX, ScrY, ScrX + ScrW, ScrY + ScrH
+		//	);
 		
 		// Get UI
 		UI = TopMenu->UIMenu;

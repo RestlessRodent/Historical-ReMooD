@@ -288,18 +288,18 @@ typedef enum P_XGSBitID_e
 typedef struct P_XGSVariable_s
 {
 	// Base
-	const P_XGSType_t Type;					// Type of value to conform to
+	const P_XGSType_t Type;						// Type of value to conform to
 	const P_XGSBitID_t BitID;					// BitID of flag
 	const char* Name;							// Name of game setting
-	const char* MenuTitle;						// Title for menus
-	const char* Description;					// Description
+	uint32_t MenuTitle;							// Title for menus
+	uint32_t Description;						// Description
 	const uint8_t GameFlags;					// Game Flags
 	const P_XGSDemoRange_t DemoRange;			// Range for "demoversion"
 	const uint16_t DemoVersion;					// "demoversion" wrapper
 	const int32_t DemoVal[2];					// Demo values (false, true)
 	const int32_t DefaultVal;					// Default value wherever
 	P_XGSMenuCategory_t Category;				// Category for item
-	P_XGSDisplayAs_t DisplayAs;				// Display as this
+	P_XGSDisplayAs_t DisplayAs;					// Display as this
 	const CONL_VarPossibleValue_t* Possible;	// Possible values
 	void (*ChangeFunc)(struct P_XGSVariable_s* const a_Bit);
 	
