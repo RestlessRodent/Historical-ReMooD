@@ -56,7 +56,6 @@
 #include "z_zone.h"
 #include "w_wad.h"
 #include "p_local.h"
-#include "p_fab.h"
 #include "t_script.h"
 
 #include "d_net.h"

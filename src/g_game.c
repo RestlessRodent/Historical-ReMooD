@@ -56,7 +56,6 @@
 #include "g_game.h"
 #include "g_state.h"
 #include "g_input.h"
-#include "p_fab.h"
 #include "m_cheat.h"
 #include "m_misc.h"
 #include "m_menu.h"

@@ -62,7 +62,6 @@
 #include "m_misc.h"
 
 #include "p_setup.h"
-#include "p_fab.h"
 #include "p_info.h"
 
 #include "r_main.h"

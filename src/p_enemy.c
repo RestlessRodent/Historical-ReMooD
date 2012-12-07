@@ -2424,3 +2424,56 @@ void A_NextFrameIfMoving(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO
 	}
 }
 
+
+//
+// Action routine, for the ROCKET thing.
+// This one adds trails of smoke to the rocket.
+// The action pointer of the S_ROCKET state must point here to take effect.
+// This routine is based on the Revenant Fireball Tracer code A_Tracer()
+//
+void A_SmokeTrailer(mobj_t* actor)
+{
+	mobj_t* th;
+	
+	// GhostlyDeath <March 6, 2012> -- Check version (not before Legacy 1.11)
+	if (P_XGSVal(PGS_CONOSMOKETRAILS))
+		return;
+	
+	// Only every 4 gametics
+	if (gametic % (4))
+		return;
+		
+	// GhostlyDeath <April 12, 2012> -- Extra puffs before v1.25
+		// Before 1.25, bullet puffs appeared with smoke puffs for some reason.
+	if (P_XGSVal(PGS_COEXTRATRAILPUFF))
+	{
+		PuffType = INFO_GetTypeByName("BulletPuff");
+		P_SpawnPuff(actor->x, actor->y, actor->z);
+	}
+	
+	// add the smoke behind the rocket
+	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, (P_XGSVal(PGS_COUSEREALSMOKE) ? INFO_GetTypeByName("LegacySmoke") : INFO_GetTypeByName("TracerSmoke")));
+
+	th->momz = FRACUNIT;
+	th->tics -= P_Random() & 3;
+	if (th->tics < 1)
+		th->tics = 1;
+}
+
+/* A_SmokeTrailerRocket() -- Trails for rockets */
+void A_SmokeTrailerRocket(mobj_t* actor)
+{
+	A_SmokeTrailer(actor);
+}
+
+/* A_SmokeTrailerSkull() -- Trails for skulls */
+void A_SmokeTrailerSkull(mobj_t* actor)
+{
+	/* Check flag */
+	// Before v1.25? Lost souls did not emit smoke
+	if (!P_XGSVal(PGS_COLOSTSOULTRAILS))
+		return;
+	
+	A_SmokeTrailer(actor);
+}
+
