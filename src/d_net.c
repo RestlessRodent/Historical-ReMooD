@@ -1923,14 +1923,14 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 /* NextWeapon() -- Finds the next weapon in the chain */
 // This is for PrevWeapon and NextWeapon
 // Rewritten for RMOD Support!
-// This uses the fields in weaponinfo_t for ordering info
+// This uses the fields in PI_wep_t for ordering info
 static uint8_t DS_XNetNextWeapon(player_t* player, int step)
 {
 	size_t g, w, fw, BestNum;
 	int32_t s, StepsLeft, StepsAdd, BestDiff, ThisDiff;
 	size_t MostOrder, LeastOrder;
 	bool_t Neg;
-	weaponinfo_t** weapons;
+	PI_wep_t** weapons;
 	
 	/* No player? */
 	if (!player)

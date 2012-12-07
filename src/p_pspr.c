@@ -502,7 +502,7 @@ void A_GunFlash(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 /* PS_GetPuffType() -- Gets the replacement puff */
 mobjtype_t PS_GetPuffType(player_t* player)
 {
-	weaponinfo_t* Weapon;
+	PI_wep_t* Weapon;
 	
 	Weapon = player->weaponinfo[player->readyweapon];
 	

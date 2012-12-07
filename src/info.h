@@ -369,10 +369,10 @@ typedef struct
 	// State References
 	statenum_t* FlashStates;					// Weapon flash states
 	size_t NumFlashStates;						// Number of flash states
-} weaponinfo_t;
+} PI_wep_t;
 
-extern weaponinfo_t** wpnlev1info;
-extern weaponinfo_t** wpnlev2info;
+extern PI_wep_t** wpnlev1info;
+extern PI_wep_t** wpnlev2info;
 extern size_t NUMWEAPONS;
 
 /* KEYS */

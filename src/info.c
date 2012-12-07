@@ -133,8 +133,8 @@ void A_GenericMonsterMissile();
 
 /*****************************************************************************/
 
-weaponinfo_t** wpnlev1info = NULL;
-weaponinfo_t** wpnlev2info = NULL;
+PI_wep_t** wpnlev1info = NULL;
+PI_wep_t** wpnlev2info = NULL;
 size_t NUMWEAPONS = 0;
 
 ammoinfo_t** ammoinfo = NULL;
@@ -408,12 +408,12 @@ static const struct
 	{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
 	{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
 	
-	{1, PWSG_UP, "PrimaryBringUpState", offsetof(weaponinfo_t, upstate)},
-	{1, PWSG_DOWN, "PrimaryPutDownState", offsetof(weaponinfo_t, downstate)},
-	{1, PWSG_READY, "PrimaryReadyState", offsetof(weaponinfo_t, readystate)},
-	{1, PWSG_ATTACK, "PrimaryFireState", offsetof(weaponinfo_t, atkstate)},
-	{1, PWSG_HOLDATTACK, "PrimaryFireHeldState", offsetof(weaponinfo_t, holdatkstate)},
-	{1, PWSG_FLASH, "PrimaryFlashState", offsetof(weaponinfo_t, flashstate)},
+	{1, PWSG_UP, "PrimaryBringUpState", offsetof(PI_wep_t, upstate)},
+	{1, PWSG_DOWN, "PrimaryPutDownState", offsetof(PI_wep_t, downstate)},
+	{1, PWSG_READY, "PrimaryReadyState", offsetof(PI_wep_t, readystate)},
+	{1, PWSG_ATTACK, "PrimaryFireState", offsetof(PI_wep_t, atkstate)},
+	{1, PWSG_HOLDATTACK, "PrimaryFireHeldState", offsetof(PI_wep_t, holdatkstate)},
+	{1, PWSG_FLASH, "PrimaryFlashState", offsetof(PI_wep_t, flashstate)},
 };
 
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
@@ -487,25 +487,25 @@ void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 // c_INFOWeaponTables -- Weapon Tables
 static const INFO_REMOODATValEntry_t c_INFOWeaponTables[] =
 {
-	{"-", IRVT_STRING, offsetof(weaponinfo_t, ClassName)},
-	{"DroppedObject", IRVT_STRING, offsetof(weaponinfo_t, DropWeaponClass)},
-	{"NiceName", IRVT_STRING, offsetof(weaponinfo_t, NiceName)},
-	{"SBOGraphic", IRVT_STRING, offsetof(weaponinfo_t, SBOGraphic)},
-	{"BringUpSound", IRVT_STRING, offsetof(weaponinfo_t, BringUpSound)},
-	{"IdleNoise", IRVT_STRING, offsetof(weaponinfo_t, IdleNoise)},
-	{"Ammo", IRVT_STRING, offsetof(weaponinfo_t, AmmoClass)},
-	{"PuffClass", IRVT_STRING, offsetof(weaponinfo_t, ReplacePuffType)},
-	{"GenericProjectile", IRVT_STRING, offsetof(weaponinfo_t, GenericProjectile)},
-	{"TracerSplat", IRVT_STRING, offsetof(weaponinfo_t, TracerSplat)},
+	{"-", IRVT_STRING, offsetof(PI_wep_t, ClassName)},
+	{"DroppedObject", IRVT_STRING, offsetof(PI_wep_t, DropWeaponClass)},
+	{"NiceName", IRVT_STRING, offsetof(PI_wep_t, NiceName)},
+	{"SBOGraphic", IRVT_STRING, offsetof(PI_wep_t, SBOGraphic)},
+	{"BringUpSound", IRVT_STRING, offsetof(PI_wep_t, BringUpSound)},
+	{"IdleNoise", IRVT_STRING, offsetof(PI_wep_t, IdleNoise)},
+	{"Ammo", IRVT_STRING, offsetof(PI_wep_t, AmmoClass)},
+	{"PuffClass", IRVT_STRING, offsetof(PI_wep_t, ReplacePuffType)},
+	{"GenericProjectile", IRVT_STRING, offsetof(PI_wep_t, GenericProjectile)},
+	{"TracerSplat", IRVT_STRING, offsetof(PI_wep_t, TracerSplat)},
 	
-	{"AmmoPerShot", IRVT_INT32, offsetof(weaponinfo_t, ammopershoot)},
-	{"SwitchOrder", IRVT_INT32, offsetof(weaponinfo_t, SwitchOrder)},
-	{"PickupAmmo", IRVT_INT32, offsetof(weaponinfo_t, GetAmmo)},
-	{"SlotNum", IRVT_INT32, offsetof(weaponinfo_t, SlotNum)},
-	{"NoAmmoSwitchOrder", IRVT_INT32, offsetof(weaponinfo_t, NoAmmoOrder)},
-	{"DeHackEdID", IRVT_INT32, offsetof(weaponinfo_t, DEHId)},
+	{"AmmoPerShot", IRVT_INT32, offsetof(PI_wep_t, ammopershoot)},
+	{"SwitchOrder", IRVT_INT32, offsetof(PI_wep_t, SwitchOrder)},
+	{"PickupAmmo", IRVT_INT32, offsetof(PI_wep_t, GetAmmo)},
+	{"SlotNum", IRVT_INT32, offsetof(PI_wep_t, SlotNum)},
+	{"NoAmmoSwitchOrder", IRVT_INT32, offsetof(PI_wep_t, NoAmmoOrder)},
+	{"DeHackEdID", IRVT_INT32, offsetof(PI_wep_t, DEHId)},
 	
-	{"SpriteYOffset", IRVT_FIXED, offsetof(weaponinfo_t, PSpriteSY)},
+	{"SpriteYOffset", IRVT_FIXED, offsetof(PI_wep_t, PSpriteSY)},
 	
 	{"BotMetric", IRVT_FUNC, 0, INFO_MiscWeaponGF},
 	{"?", IRVT_FUNC, 0, INFO_MiscWeaponGF},
@@ -645,7 +645,7 @@ typedef struct INFO_DataStore_s
 		mobjinfo_t* InfoP;						// Info
 		statenum_t* StateRefP;					// State Reference
 		state_t* StateP;						// State
-		weaponinfo_t* WeaponP;					// Weapon
+		PI_wep_t* WeaponP;					// Weapon
 		ammoinfo_t* AmmoP;						// Ammo
 		P_RMODTouchSpecial_t* TouchP;			// Toucher
 		P_RMODKey_t* KeyP;						// Key
@@ -800,13 +800,13 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	return StateP;
 }
 
-/* INFO_WeaponGrabEntry() -- Grabs weaponinfo_t */
+/* INFO_WeaponGrabEntry() -- Grabs PI_wep_t */
 void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
 	weapontype_t Type;
-	weaponinfo_t* Ptr;
+	PI_wep_t* Ptr;
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
@@ -1080,7 +1080,7 @@ void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	weaponinfo_t* Wep;
+	PI_wep_t* Wep;
 	bool_t SetFlag;
 	int32_t i, r;
 	
@@ -1466,7 +1466,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 	INFO_DataStore_t* This;
 	INFO_REMOODATValEntry_t* ValEnt;
 	mobjinfo_t* ThisMT;
-	weaponinfo_t* ThisWep;
+	PI_wep_t* ThisWep;
 	P_RMODTouchSpecial_t* ThisTC;
 	void* DataP;
 	int32_t i, j, k, l;

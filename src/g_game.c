@@ -228,14 +228,14 @@ bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
 /* NextWeapon() -- Finds the next weapon in the chain */
 // This is for PrevWeapon and NextWeapon
 // Rewritten for RMOD Support!
-// This uses the fields in weaponinfo_t for ordering info
+// This uses the fields in PI_wep_t for ordering info
 uint8_t NextWeapon(player_t* player, int step)
 {
 	size_t g, w, fw, BestNum;
 	int32_t s, StepsLeft, StepsAdd, BestDiff, ThisDiff;
 	size_t MostOrder, LeastOrder;
 	bool_t Neg;
-	weaponinfo_t* weapons;
+	PI_wep_t* weapons;
 	
 	/* Get current weapon info */
 	weapons = player->weaponinfo;

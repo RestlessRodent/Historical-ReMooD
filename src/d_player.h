@@ -220,7 +220,7 @@ typedef struct player_s
 	int st_curpos;				// position of inventory scroll
 	int st_inventoryTics;		// when >0 show inventory in status bar
 	
-	weaponinfo_t** weaponinfo;	// can be changed when use level2 weapons (heretic)
+	PI_wep_t** weaponinfo;	// can be changed when use level2 weapons (heretic)
 	
 	// Sound Info
 	int flushdelay;
