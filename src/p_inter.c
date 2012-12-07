@@ -55,10 +55,10 @@
 int MAXHEALTH = 100;
 
 /* P_PlayerBestWeapon() -- Returns the best (or worst) weapon this player has */
-weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best)
+PI_wepid_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best)
 {
 	int i, j, BestSlot, CurrentSlot;
-	weapontype_t Best;
+	PI_wepid_t Best;
 	
 	/* Check */
 	if (!a_Player)
@@ -114,7 +114,7 @@ weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best)
 /* P_PlayerSwitchToFavorite() -- Switch to favorite weapon */
 void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawned)
 {
-	weapontype_t NewGun;
+	PI_wepid_t NewGun;
 	
 	/* Don't switch when not freshly reborn */
 	if (!(a_JustSpawned && P_XGSVal(PGS_PLSPAWNWITHFAVGUN)) && (a_Player->pendingweapon != wp_nochange))
@@ -164,12 +164,12 @@ void VerifFavoritWeapon(player_t* player)
 // Returns false if the ammo can't be picked up at all
 //
 
-bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
+bool_t P_GiveAmmo(player_t* player, PI_ammoid_t ammo, int count)
 {
 	int oldammo;
 	size_t i;
-	weapontype_t ChoseWeapon;
-	skill_t Skill;
+	PI_wepid_t ChoseWeapon;
+	G_Skill_t Skill;
 	
 	if (ammo == am_noammo)
 		return false;
@@ -258,13 +258,13 @@ static int has_ammo_dropped = 0;
 // P_GiveWeapon
 // The weapon name may have a MF_DROPPED flag ored in.
 //
-bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
+bool_t P_GiveWeapon(player_t* player, PI_wepid_t weapon, bool_t dropped)
 {
 	bool_t gaveammo;
 	bool_t gaveweapon;
 	int ammo_count;
 	int i;
-	ammotype_t AmmoType;
+	PI_ammoid_t AmmoType;
 	
 	/* Obtain Ammo Type */
 	AmmoType = player->weaponinfo[weapon]->ammo;
@@ -544,11 +544,11 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	int i, j, k, n;
 	fixed_t delta;
 	int sound;
-	P_RMODTouchSpecial_t* Current;
+	PI_touch_t* Current;
 	bool_t OKStat, NewWear, PickedUp, CancelRemove;
 	int32_t Target, Max, Amount;
 	char* SplitMessageRef;
-	P_RMODKey_t* RMODKey;
+	PI_key_t* RMODKey;
 	
 	delta = special->z - toucher->z;
 	
@@ -1335,7 +1335,7 @@ void P_CheckFragLimit(player_t* p)
  */
 static int P_AmmoInWeapon(player_t* player)
 {
-	ammotype_t ammo = player->weaponinfo[player->readyweapon]->ammo;
+	PI_ammoid_t ammo = player->weaponinfo[player->readyweapon]->ammo;
 	int ammo_count = player->ammo[ammo];
 	
 	return ammo == am_noammo ? 0 : ammo_count ? ammo_count : -1;
@@ -1348,8 +1348,8 @@ static int P_AmmoInWeapon(player_t* player)
 //                                          113
 void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 {
-	mobjtype_t GibsType = 0;
-	mobjtype_t item = 0;
+	PI_mobjid_t GibsType = 0;
+	PI_mobjid_t item = 0;
 	mobj_t* mo;
 	int drop_ammo_count = 0;
 	int i, GibTarget;

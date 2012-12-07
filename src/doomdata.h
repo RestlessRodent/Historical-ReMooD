@@ -240,7 +240,7 @@ typedef struct
 	uint8_t Args[5];							// Hexen arguments
 	
 	// Other Stuff
-	mobjtype_t MoType;							// Type of spawned object
+	PI_mobjid_t MoType;							// Type of spawned object
 	bool_t MarkedWeapon;						// Marked as a weapon to respawn
 } mapthing_t;
 

@@ -1143,7 +1143,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 	G_LegacyDemoData_t* Data;
 	P_LevelInfoEx_t* Level;
 	player_t* Player;
-	weapontype_t FavGuns[9];
+	PI_wepid_t FavGuns[9];
 	
 	int32_t i, j, k, l;
 	

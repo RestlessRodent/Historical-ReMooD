@@ -964,7 +964,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		}
 	}
 	
-	// Map to sprites[numsprites] (which requires spritenum_t compat)
+	// Map to sprites[numsprites] (which requires PI_spriteid_t compat)
 	// Once info.[ch] is shed away, this can be removed.
 	// The states in info.[ch] uses sprites along with sprnames to determine
 	// the sprite to draw.

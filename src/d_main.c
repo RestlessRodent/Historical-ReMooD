@@ -190,7 +190,7 @@ void I_DoStartupMouse(void);    //win_sys.c
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 // added comment : there is a wipe eatch change of the gamestate
-gamestate_t wipegamestate = GS_DEMOSCREEN;
+G_State_t wipegamestate = GS_DEMOSCREEN;
 
 // g_CVPVVidScreenLink -- Screen Link
 const CONL_VarPossibleValue_t c_CVPVVidScreenLink[] =
@@ -230,7 +230,7 @@ void D_Display(void)
 #define BUFSIZE 96
 	char Buf[BUFSIZE];
 	static bool_t menuactivestate = false;
-	static gamestate_t oldgamestate = -1;
+	static G_State_t oldgamestate = -1;
 	static int borderdrawcount;
 	tic_t nowtime;
 	tic_t tics;

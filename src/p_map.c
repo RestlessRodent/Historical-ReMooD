@@ -2570,7 +2570,7 @@ sector_t* sectorchecked;
 bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 {
 	mobj_t* mo;
-	mobjtype_t GibsType;
+	PI_mobjid_t GibsType;
 	
 	if (P_ThingHeightClip(thing))
 	{

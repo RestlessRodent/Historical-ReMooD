@@ -143,10 +143,10 @@ extern int iquetail;
 void P_RespawnSpecials(void);
 void P_RespawnWeapons(void);
 
-mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
+mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, PI_mobjid_t type);
 
 void P_RemoveMobj(mobj_t* th);
-bool_t P_SetMobjState(mobj_t* mobj, statenum_t state);
+bool_t P_SetMobjState(mobj_t* mobj, PI_stateid_t state);
 void P_MobjThinker(mobj_t* mobj);
 
 //spawn splash at surface of water in sector where the mobj resides
@@ -158,9 +158,9 @@ void P_SpawnSmoke(fixed_t x, fixed_t y, fixed_t z);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
 void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t* const a_BleedThing);
 void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t momx, fixed_t momy, mobj_t* const a_BleedThing);
-mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type);
+mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, PI_mobjid_t type);
 
-mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle);
+mobj_t* P_SPMAngle(mobj_t* source, PI_mobjid_t type, angle_t angle);
 
 #define P_SpawnPlayerMissile(s,t) P_SPMAngle(s,t,s->angle)
 
@@ -172,7 +172,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle);
 typedef struct P_BossSpitEntry_s
 {
 	int32_t Chance;								// < P_Random() chance to spawn
-	mobjtype_t Type;							// Type to spawn
+	PI_mobjid_t Type;							// Type to spawn
 } P_BossSpitEntry_t;
 
 extern P_BossSpitEntry_t* g_BossSpitList;
@@ -309,7 +309,7 @@ extern int ceilmovesound;
 extern int doorclosesound;
 
 #define TELEFOGHEIGHT  (32*FRACUNIT)
-extern mobjtype_t PuffType;
+extern PI_mobjid_t PuffType;
 
 #define FOOTCLIPSIZE   (10*FRACUNIT)
 #define HITDICE(a) ((1+(P_Random()&7))*a)
@@ -335,8 +335,8 @@ bool_t P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 void P_HerePlayerInSpecialSector(player_t* player);
 void P_UpdateBeak(player_t* player, pspdef_t* psp);
 bool_t P_TestMobjLocation(mobj_t* mobj);
-void P_PostChickenWeapon(player_t* player, weapontype_t weapon);
-void P_SetPsprite(player_t* player, int position, statenum_t stnum);
+void P_PostChickenWeapon(player_t* player, PI_wepid_t weapon);
+void P_SetPsprite(player_t* player, int position, PI_stateid_t stnum);
 bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle);
 bool_t P_CheckMissileSpawn(mobj_t* th);
 void P_ThrustMobj(mobj_t* mo, angle_t angle, fixed_t move);
@@ -346,8 +346,8 @@ void P_Massacre(void);
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle);
 bool_t P_ChickenMorphPlayer(player_t* player);
 
-bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon);
-bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
+bool_t P_WeaponIsUnlocked(const PI_wepid_t a_Weapon);
+bool_t P_CanUseWeapon(player_t* const a_Player, const PI_wepid_t a_Weapon);
 
 /*** SPECTATOR PLAYER ***/
 

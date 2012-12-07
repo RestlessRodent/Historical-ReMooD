@@ -541,13 +541,13 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	D_ProfileEx_t* Profile;
 	V_Image_t* vi;
 	VideoFont_t Font;
-	weapontype_t ReadyWeapon;
-	ammotype_t AmmoType;
+	PI_wepid_t ReadyWeapon;
+	PI_ammoid_t AmmoType;
 	bool_t BigLetters, IsMonster;
 	D_XPlayer_t* XPlay;
 	bool_t IsFake;
 	uint32_t i, j;
-	P_RMODKey_t* DrawKey;
+	PI_key_t* DrawKey;
 	int32_t Right;
 	
 	/* Init */

@@ -769,7 +769,7 @@ void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Sta
 void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int delta;
-	skill_t Skill;
+	G_Skill_t Skill;
 	bool_t Controlled;
 	
 	// GhostlyDeath <June 23, 2012> -- Controlled monster?
@@ -1388,7 +1388,7 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 	
 	int KCMode;
 	
-	mobjinfo_t* info;
+	PI_mobj_t* info;
 	mobj_t* temp;
 	
 	if (actor->movedir != DI_NODIR)
@@ -1796,7 +1796,7 @@ void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* 
 	fixed_t y;
 	fixed_t z;
 	
-	mobjtype_t TargetType;
+	PI_mobjid_t TargetType;
 	mobj_t* newmobj;
 	angle_t an;
 	int prestep;
@@ -1968,7 +1968,7 @@ void A_Explode(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateA
 		P_HitFloor(actor);
 }
 
-static state_t* P_FinalState(statenum_t state)
+static PI_state_t* P_FinalState(PI_stateid_t state)
 {
 	static char* final_state;
 	static size_t OldStateCount;
@@ -2252,7 +2252,7 @@ void A_BrainScream(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_State
 	int y;
 	int z;
 	mobj_t* th;
-	mobjtype_t SpawnThing;
+	PI_mobjid_t SpawnThing;
 	
 	// GhostlyDeath <March 6, 2012> -- Custom thing spawning
 	if (mo->info->RBrainExplodeThing)
@@ -2356,7 +2356,7 @@ void A_SpawnFly(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 	mobj_t* fog;
 	mobj_t* targ;
 	int r;
-	mobjtype_t type;
+	PI_mobjid_t type;
 	size_t i;
 	
 	if (--mo->reactiontime)

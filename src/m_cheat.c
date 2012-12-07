@@ -879,8 +879,8 @@ void MS_CHEAT_FreezeTime(player_t* const a_Player, const uint32_t a_ArgC, const 
 /* MS_CHEAT_Give() -- Give something */
 void MS_CHEAT_Give(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
 {
-	weapontype_t Weapon;
-	ammotype_t Ammo;
+	PI_wepid_t Weapon;
+	PI_ammoid_t Ammo;
 	size_t CompLen, i;
 	char* AstPtr;
 	bool_t Wild;
@@ -921,7 +921,7 @@ void MS_CHEAT_Give(player_t* const a_Player, const uint32_t a_ArgC, const char**
 void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	fixed_t Distance, BaseDist;
-	mobjtype_t Obj;
+	PI_mobjid_t Obj;
 	mobj_t* Mo;
 	size_t Count, i;
 	bool_t Friend;
@@ -981,7 +981,7 @@ void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char
 void MS_CHEAT_SummonFriend(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	fixed_t Distance, BaseDist;
-	mobjtype_t Obj;
+	PI_mobjid_t Obj;
 	mobj_t* Mo;
 	size_t Count, i;
 	bool_t Friend;
@@ -1045,7 +1045,7 @@ void MS_CHEAT_SummonFriend(player_t* const a_Player, const uint32_t a_ArgC, cons
 void MS_CHEAT_SummonTeam(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	fixed_t Distance, BaseDist;
-	mobjtype_t Obj;
+	PI_mobjid_t Obj;
 	mobj_t* Mo;
 	int32_t Count, i;
 	int32_t TeamNum;

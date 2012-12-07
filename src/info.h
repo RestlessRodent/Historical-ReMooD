@@ -49,8 +49,8 @@
 	#define __REMOOD_REFSTATE(x) ((x))
 #endif
 
-typedef int32_t spritenum_t;
-typedef int32_t statenum_t;
+typedef int32_t PI_spriteid_t;
+typedef int32_t PI_stateid_t;
 
 /* StatePriorities_t -- Viewing priority for state */
 typedef enum StatePriorities_e
@@ -82,14 +82,14 @@ typedef struct INFO_StateArgsParm_s
 
 typedef struct
 {
-	statenum_t StateNum;						// State number
-	spritenum_t sprite;
+	PI_stateid_t StateNum;						// State number
+	PI_spriteid_t sprite;
 	int32_t frame;				//faB: we use the upper 16bits for translucency
 	//     and other shade effects
 	int32_t tics;
 	// void       (*action) ();
 	actionf_t action;
-	statenum_t nextstate;
+	PI_stateid_t nextstate;
 	
 	uint8_t Priority;			// View priority of the state
 	
@@ -109,7 +109,7 @@ typedef struct
 	
 	INFO_StateArgsNum_t ArgC;					// Argument Count
 	INFO_StateArgsParm_t* ArgV;					// Function Arguments
-} state_t;
+} PI_state_t;
 
 #define S_NULL 0
 
@@ -117,11 +117,11 @@ extern size_t NUMSPRITES;
 extern char** sprnames;
 extern void** g_SprTouchSpecials;				// Sprite touch special markers
 
-extern state_t** states;
+extern PI_state_t** states;
 extern size_t NUMSTATES;
 
-typedef int32_t mobjtype_t;
-extern mobjtype_t NUMMOBJTYPES;
+typedef int32_t PI_mobjid_t;
+extern PI_mobjid_t NUMMOBJTYPES;
 
 #define NUMINFORXFIELDS 4		// Prevents unwanted magic
 
@@ -195,20 +195,20 @@ typedef INFO_ObjectStateGroup_t P_WeaponStateGroup_t;
 typedef struct
 {
 	int32_t EdNum[6];
-	statenum_t spawnstate;
+	PI_stateid_t spawnstate;
 	int32_t spawnhealth;
-	statenum_t seestate;
+	PI_stateid_t seestate;
 	//int32_t seesound;
 	int32_t reactiontime;
 	//int32_t attacksound;
-	statenum_t painstate;
+	PI_stateid_t painstate;
 	int32_t painchance;
 	//int32_t painsound;
-	statenum_t meleestate;
-	statenum_t missilestate;
-	statenum_t crashstate;				// from heretic/hexen
-	statenum_t deathstate;
-	statenum_t xdeathstate;
+	PI_stateid_t meleestate;
+	PI_stateid_t missilestate;
+	PI_stateid_t crashstate;				// from heretic/hexen
+	PI_stateid_t deathstate;
+	PI_stateid_t xdeathstate;
 	//int32_t deathsound;
 	fixed_t speed;
 	fixed_t radius;
@@ -218,24 +218,24 @@ typedef struct
 	int32_t damage;
 	//int32_t activesound;
 	uint32_t flags;
-	statenum_t raisestate;
+	PI_stateid_t raisestate;
 	uint32_t flags2;					// from heretic/hexen
 	
 	// RMOD Extended Support
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
 	fixed_t RFastSpeed;							// Speed when -fast
-	statenum_t RPlayerRunState;					// State for moving player
-	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
-	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
-	statenum_t RVileHealState;					// Heal state for Arch-Vile
+	PI_stateid_t RPlayerRunState;					// State for moving player
+	PI_stateid_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
+	PI_stateid_t RPlayerRangedAttackState;		// S_PLAY_ATK1
+	PI_stateid_t RVileHealState;					// Heal state for Arch-Vile
 	fixed_t RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
 	fixed_t RCapMissileDist;						// Distance cap [P_CheckMissileRange]
-	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
+	PI_stateid_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
 	char* RDropClass;							// Class to "drop" when dead
-	mobjtype_t RBaseFamily;						// Base object family [PIT_CheckThing]
-	statenum_t RBrainExplodeState;				// State for exploding rockets [A_BrainScream]
+	PI_mobjid_t RBaseFamily;						// Base object family [PIT_CheckThing]
+	PI_stateid_t RBrainExplodeState;				// State for exploding rockets [A_BrainScream]
 	char* RBrainExplodeThing;					// Thing to explode on a dying brain [A_BrainScream]
-	statenum_t RMeleePuffState;					// State for meleerange puff [P_SpawnPuff]
+	PI_stateid_t RMeleePuffState;					// State for meleerange puff [P_SpawnPuff]
 	
 	// Class Names
 	char* RClassName;							// Class Name
@@ -267,14 +267,14 @@ typedef struct
 	INFO_BotObjMetric_t BotMetric;				// Metric for bot
 	char* RSNiceName;							// Short Nice Name
 	uint32_t RQuickHash[2];						// Hash
-} mobjinfo_t;
+} PI_mobj_t;
 
-extern mobjinfo_t** mobjinfo;
+extern PI_mobj_t** mobjinfo;
 
 
 /* AMMO */
 
-typedef int32_t ammotype_t;
+typedef int32_t PI_ammoid_t;
 
 #define wp_nochange				-1
 #define am_noammo				-1
@@ -286,7 +286,7 @@ typedef enum AmmoFlags_e
 	AF_INFINITE						= 0x0001,	// Infinite Ammo
 } AmmoFlags_t;
 
-/* ammoinfo_t -- Hold ammo information */
+/* PI_ammo_t -- Hold ammo information */
 typedef struct ammoinfo_s
 {
 	char* ClassName;							// Class name
@@ -294,14 +294,14 @@ typedef struct ammoinfo_s
 	int32_t MaxAmmo;							// Max ammo held
 	uint32_t Flags;								// Ammo Flags
 	int32_t StartingAmmo;						// Starting Ammo
-} ammoinfo_t;
+} PI_ammo_t;
 
-extern ammoinfo_t** ammoinfo;
+extern PI_ammo_t** ammoinfo;
 extern size_t NUMAMMO;
 
 /* WEAPON */
 
-typedef int32_t weapontype_t;
+typedef int32_t PI_wepid_t;
 
 /* WeaponFlags_t -- Flags for weapons */
 typedef enum WeaponFlags_e
@@ -334,14 +334,14 @@ typedef enum WeaponFlags_e
 // Weapon info: sprite frames, ammunition use.
 typedef struct
 {
-	ammotype_t ammo;
+	PI_ammoid_t ammo;
 	int32_t ammopershoot;
-	statenum_t upstate;
-	statenum_t downstate;
-	statenum_t readystate;
-	statenum_t atkstate;
-	statenum_t holdatkstate;
-	statenum_t flashstate;
+	PI_stateid_t upstate;
+	PI_stateid_t downstate;
+	PI_stateid_t readystate;
+	PI_stateid_t atkstate;
+	PI_stateid_t holdatkstate;
+	PI_stateid_t flashstate;
 	
 	// ReMooD Extended
 	int32_t DEHId;								// DeHackEd ID
@@ -367,7 +367,7 @@ typedef struct
 	INFO_BotObjMetric_t BotMetric;				// Bot Metric
 	
 	// State References
-	statenum_t* FlashStates;					// Weapon flash states
+	PI_stateid_t* FlashStates;					// Weapon flash states
 	size_t NumFlashStates;						// Number of flash states
 } PI_wep_t;
 
@@ -383,9 +383,9 @@ extern size_t NUMWEAPONS;
 
 #define INFO_ALLKEYCOMPAT (INFO_BLUEKEYCOMPAT | INFO_YELLOWKEYCOMPAT | INFO_REDKEYCOMPAT)
 
-typedef int32_t P_KeyNum_t;
+typedef int32_t PI_keyid_t;
 
-/* P_RMODKey_t -- Key definition */
+/* PI_key_t -- Key definition */
 typedef struct P_RMODKey_s
 {
 	char* ClassName;
@@ -395,14 +395,14 @@ typedef struct P_RMODKey_s
 	uint32_t Bit;
 	uint32_t BitNum;
 	uint8_t Group;
-} P_RMODKey_t;
+} PI_key_t;
 
 extern size_t g_RMODNumKeys;
-extern P_RMODKey_t** g_RMODKeys;
+extern PI_key_t** g_RMODKeys;
 
 /* TOUCHERS */
 
-typedef int32_t P_TouchNum_t;
+typedef int32_t PI_touchid_t;
 
 /* P_RMODTouchSpecialFlags_t -- Touch specials for flags */
 typedef enum P_RMODTouchSpecialFlags_e
@@ -418,7 +418,7 @@ typedef enum P_RMODTouchSpecialFlags_e
 	PMTSF_KEEPINMULTI		= UINT32_C(0x0100),	// Keep in multiplayer mode
 } P_RMODTouchSpecialFlags_t;
 
-/* P_RMODTouchSpecial_t -- Special toucher for RMOD */
+/* PI_touch_t -- Special toucher for RMOD */
 typedef struct P_RMODTouchSpecial_s
 {
 	/* General */
@@ -434,11 +434,11 @@ typedef struct P_RMODTouchSpecial_s
 	
 	/* Actual */
 	uint32_t Flags;								// Flags
-	spritenum_t ActSpriteNum;					// Sprite number to match
-	weapontype_t ActGiveWeapon;					// Actual weapon to give
-	ammotype_t ActGiveAmmo;						// Actual ammo to give
+	PI_spriteid_t ActSpriteNum;					// Sprite number to match
+	PI_wepid_t ActGiveWeapon;					// Actual weapon to give
+	PI_ammoid_t ActGiveAmmo;						// Actual ammo to give
 	uint32_t ActSpriteID;						// Actual Sprite ID
-	P_KeyNum_t ActGiveKey;
+	PI_keyid_t ActGiveKey;
 	
 	/* Health */
 	int8_t ArmorClass;							// Armor Class
@@ -448,10 +448,10 @@ typedef struct P_RMODTouchSpecial_s
 	/* Weapons and Ammo */
 	int32_t AmmoMul;							// Ammo multiplier
 	int32_t MaxAmmoMul;							// Max ammo multiplier
-} P_RMODTouchSpecial_t;
+} PI_touch_t;
 
-extern P_TouchNum_t g_RMODNumTouchSpecials;
-extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
+extern PI_touchid_t g_RMODNumTouchSpecials;
+extern PI_touch_t** g_RMODTouchSpecials;
 
 /*** RMOD ***/
 
@@ -460,19 +460,19 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount);
 /*** HELPFUL FUNCTIONS ***/
 
 bool_t INFO_BoolFromString(const char* const a_String);
-mobjtype_t INFO_GetTypeByName(const char* const a_Name);
-spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
+PI_mobjid_t INFO_GetTypeByName(const char* const a_Name);
+PI_spriteid_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);
 int INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);
 INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
-P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String);
-P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
-P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
-weapontype_t INFO_GetWeaponByName(const char* const a_Name);
-ammotype_t INFO_GetAmmoByName(const char* const a_Name);
-P_KeyNum_t INFO_GetKeyByName(const char* const a_Name);
-P_RMODKey_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit);
+PI_touchid_t P_RMODTouchSpecialByString(const char* const a_String);
+PI_touch_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
+PI_touch_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
+PI_wepid_t INFO_GetWeaponByName(const char* const a_Name);
+PI_ammoid_t INFO_GetAmmoByName(const char* const a_Name);
+PI_keyid_t INFO_GetKeyByName(const char* const a_Name);
+PI_key_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions

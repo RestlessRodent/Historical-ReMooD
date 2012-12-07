@@ -34,7 +34,7 @@
 #define __P_INTER__
 
 void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawned);
-weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best);
+PI_wepid_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best);
 
 bool_t P_GivePower(player_t*, int);
 void P_CheckFragLimit(player_t* p);

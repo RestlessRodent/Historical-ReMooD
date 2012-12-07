@@ -137,22 +137,22 @@ PI_wep_t** wpnlev1info = NULL;
 PI_wep_t** wpnlev2info = NULL;
 size_t NUMWEAPONS = 0;
 
-ammoinfo_t** ammoinfo = NULL;
+PI_ammo_t** ammoinfo = NULL;
 size_t NUMAMMO = 0;
 char** sprnames = NULL;
 void** g_SprTouchSpecials = NULL;				// Sprite touch special markers
 size_t NUMSPRITES = 0;
-state_t** states = 0;
+PI_state_t** states = 0;
 size_t NUMSTATES = 0;
-mobjinfo_t** mobjinfo = NULL;
-mobjtype_t NUMMOBJTYPES = 0;
-P_TouchNum_t g_RMODNumTouchSpecials = 0;
-P_RMODTouchSpecial_t** g_RMODTouchSpecials = NULL;
+PI_mobj_t** mobjinfo = NULL;
+PI_mobjid_t NUMMOBJTYPES = 0;
+PI_touchid_t g_RMODNumTouchSpecials = 0;
+PI_touch_t** g_RMODTouchSpecials = NULL;
 size_t g_RMODNumKeys = 0;
-P_RMODKey_t** g_RMODKeys = NULL;
+PI_key_t** g_RMODKeys = NULL;
 
 bool_t l_KeysMapped = false;					// Keys Mapped
-P_RMODKey_t* l_KeyMap[2][32];					// Quick Key Mapping
+PI_key_t* l_KeyMap[2][32];					// Quick Key Mapping
 
 #define LOCALSTATEJUMPS						64	// Local State Jumping
 
@@ -289,7 +289,7 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{0, NULL},
 };
 
-static state_t StaticSNull;
+static PI_state_t StaticSNull;
 
 /* INFO_StateNormalize() -- Normalizes State References */
 void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
@@ -390,23 +390,23 @@ static const struct
 	size_t Offset;							// Offset
 } c_StateGroups[NUMSTATEGROUPS] =
 {
-	{0, IOSG_SPAWN, "SpawnState", offsetof(mobjinfo_t,spawnstate)},
-	{0, IOSG_ACTIVE, "ActiveState", offsetof(mobjinfo_t,seestate)},
-	{0, IOSG_PAIN, "PainState", offsetof(mobjinfo_t,painstate)},
-	{0, IOSG_MELEEATTACK, "MeleeAttackState", offsetof(mobjinfo_t,meleestate)},
-	{0, IOSG_RANGEDATTACK, "RangedAttackState", offsetof(mobjinfo_t,missilestate)},
-	{0, IOSG_CRASH, "CrashState", offsetof(mobjinfo_t,crashstate)},
-	{0, IOSG_DEATH, "DeathState", offsetof(mobjinfo_t,deathstate)},
-	{0, IOSG_GIB, "GibState", offsetof(mobjinfo_t,xdeathstate)},
-	{0, IOSG_RAISE, "RaiseState", offsetof(mobjinfo_t,raisestate)},
-	{0, IOSG_PLAYERRUN, "PlayerRunState", offsetof(mobjinfo_t,RPlayerRunState)},
-	{0, IOSG_PLAYERMELEE, "PlayerMeleeAttackState", offsetof(mobjinfo_t,RPlayerMeleeAttackState)},
-	{0, IOSG_PLAYERRANGED, "PlayerRangedAttackState", offsetof(mobjinfo_t,RPlayerRangedAttackState)},
-	{0, IOSG_VILEHEAL, "VileHealState", offsetof(mobjinfo_t,RVileHealState)},
-	{0, IOSG_LESSBLOODA, "LessLessBloodState", offsetof(mobjinfo_t,RLessBlood[0])},
-	{0, IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(mobjinfo_t,RLessBlood[1])},
-	{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
-	{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
+	{0, IOSG_SPAWN, "SpawnState", offsetof(PI_mobj_t,spawnstate)},
+	{0, IOSG_ACTIVE, "ActiveState", offsetof(PI_mobj_t,seestate)},
+	{0, IOSG_PAIN, "PainState", offsetof(PI_mobj_t,painstate)},
+	{0, IOSG_MELEEATTACK, "MeleeAttackState", offsetof(PI_mobj_t,meleestate)},
+	{0, IOSG_RANGEDATTACK, "RangedAttackState", offsetof(PI_mobj_t,missilestate)},
+	{0, IOSG_CRASH, "CrashState", offsetof(PI_mobj_t,crashstate)},
+	{0, IOSG_DEATH, "DeathState", offsetof(PI_mobj_t,deathstate)},
+	{0, IOSG_GIB, "GibState", offsetof(PI_mobj_t,xdeathstate)},
+	{0, IOSG_RAISE, "RaiseState", offsetof(PI_mobj_t,raisestate)},
+	{0, IOSG_PLAYERRUN, "PlayerRunState", offsetof(PI_mobj_t,RPlayerRunState)},
+	{0, IOSG_PLAYERMELEE, "PlayerMeleeAttackState", offsetof(PI_mobj_t,RPlayerMeleeAttackState)},
+	{0, IOSG_PLAYERRANGED, "PlayerRangedAttackState", offsetof(PI_mobj_t,RPlayerRangedAttackState)},
+	{0, IOSG_VILEHEAL, "VileHealState", offsetof(PI_mobj_t,RVileHealState)},
+	{0, IOSG_LESSBLOODA, "LessLessBloodState", offsetof(PI_mobj_t,RLessBlood[0])},
+	{0, IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(PI_mobj_t,RLessBlood[1])},
+	{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(PI_mobj_t,RBrainExplodeState)},
+	{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(PI_mobj_t,RMeleePuffState)},
 	
 	{1, PWSG_UP, "PrimaryBringUpState", offsetof(PI_wep_t, upstate)},
 	{1, PWSG_DOWN, "PrimaryPutDownState", offsetof(PI_wep_t, downstate)},
@@ -429,45 +429,45 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 // c_INFOMobjTables -- Object Tables
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 {
-	{"-", IRVT_STRING, offsetof(mobjinfo_t, RClassName)},
-	{"DoomEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_DOOM])},
-	{"HereticEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_HERETIC])},
-	{"HexenEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_HEXEN])},
-	{"StrifeEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_STRIFE])},
-	{"DeHackEdNum", IRVT_UINT32, offsetof(mobjinfo_t, RDehackEdID)},
+	{"-", IRVT_STRING, offsetof(PI_mobj_t, RClassName)},
+	{"DoomEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_DOOM])},
+	{"HereticEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HERETIC])},
+	{"HexenEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HEXEN])},
+	{"StrifeEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_STRIFE])},
+	{"DeHackEdNum", IRVT_UINT32, offsetof(PI_mobj_t, RDehackEdID)},
 	
-	{"DropsClass", IRVT_STRING, offsetof(mobjinfo_t, RDropClass)},
-	{"BrainExplodeClass", IRVT_STRING, offsetof(mobjinfo_t, RBrainExplodeThing)},
-	{"MTName", IRVT_STRING, offsetof(mobjinfo_t, RMTName)},
-	{"NiceName", IRVT_STRING, offsetof(mobjinfo_t, RNiceName)},
-	{"BaseFamily", IRVT_STRING, offsetof(mobjinfo_t, RFamilyClass)},
-	{"WakeSound", IRVT_STRING, offsetof(mobjinfo_t, RSeeSound)},
-	{"AttackSound", IRVT_STRING, offsetof(mobjinfo_t, RAttackSound)},
-	{"PainSound", IRVT_STRING, offsetof(mobjinfo_t, RPainSound)},
-	{"DeathSound", IRVT_STRING, offsetof(mobjinfo_t, RDeathSound)},
-	{"ActiveSound", IRVT_STRING, offsetof(mobjinfo_t, RActiveSound)},
-	{"MissileSplat", IRVT_STRING, offsetof(mobjinfo_t, RMissileSplat)},
-	{"BloodSplat", IRVT_STRING, offsetof(mobjinfo_t, RBloodSplat)},
-	{"BloodSpewClass", IRVT_STRING, offsetof(mobjinfo_t, RBloodSpewClass)},
-	{"GenericMissile", IRVT_STRING, offsetof(mobjinfo_t, RGenericMissile)},
-	{"ShortNiceName", IRVT_STRING, offsetof(mobjinfo_t, RSNiceName)},
+	{"DropsClass", IRVT_STRING, offsetof(PI_mobj_t, RDropClass)},
+	{"BrainExplodeClass", IRVT_STRING, offsetof(PI_mobj_t, RBrainExplodeThing)},
+	{"MTName", IRVT_STRING, offsetof(PI_mobj_t, RMTName)},
+	{"NiceName", IRVT_STRING, offsetof(PI_mobj_t, RNiceName)},
+	{"BaseFamily", IRVT_STRING, offsetof(PI_mobj_t, RFamilyClass)},
+	{"WakeSound", IRVT_STRING, offsetof(PI_mobj_t, RSeeSound)},
+	{"AttackSound", IRVT_STRING, offsetof(PI_mobj_t, RAttackSound)},
+	{"PainSound", IRVT_STRING, offsetof(PI_mobj_t, RPainSound)},
+	{"DeathSound", IRVT_STRING, offsetof(PI_mobj_t, RDeathSound)},
+	{"ActiveSound", IRVT_STRING, offsetof(PI_mobj_t, RActiveSound)},
+	{"MissileSplat", IRVT_STRING, offsetof(PI_mobj_t, RMissileSplat)},
+	{"BloodSplat", IRVT_STRING, offsetof(PI_mobj_t, RBloodSplat)},
+	{"BloodSpewClass", IRVT_STRING, offsetof(PI_mobj_t, RBloodSpewClass)},
+	{"GenericMissile", IRVT_STRING, offsetof(PI_mobj_t, RGenericMissile)},
+	{"ShortNiceName", IRVT_STRING, offsetof(PI_mobj_t, RSNiceName)},
 	
-	{"SpawnHealth", IRVT_INT32, offsetof(mobjinfo_t, spawnhealth)},
-	{"Mass", IRVT_INT32, offsetof(mobjinfo_t, mass)},
-	{"Damage", IRVT_INT32, offsetof(mobjinfo_t, damage)},
-	{"ReactionTime", IRVT_INT32, offsetof(mobjinfo_t, reactiontime)},
+	{"SpawnHealth", IRVT_INT32, offsetof(PI_mobj_t, spawnhealth)},
+	{"Mass", IRVT_INT32, offsetof(PI_mobj_t, mass)},
+	{"Damage", IRVT_INT32, offsetof(PI_mobj_t, damage)},
+	{"ReactionTime", IRVT_INT32, offsetof(PI_mobj_t, reactiontime)},
 	
-	{"Speed", IRVT_FIXED, offsetof(mobjinfo_t, speed)},
-	{"Radius", IRVT_FIXED, offsetof(mobjinfo_t, radius)},
-	{"Height", IRVT_FIXED, offsetof(mobjinfo_t, Height)},
-	{"OldHeight", IRVT_FIXED, offsetof(mobjinfo_t, OldHeight)},
-	{"MinMissileDist", IRVT_FIXED, offsetof(mobjinfo_t, RMissileDist[0])},
-	{"MaxMissileDist", IRVT_FIXED, offsetof(mobjinfo_t, RMissileDist[1])},
-	{"CapMissileDist", IRVT_FIXED, offsetof(mobjinfo_t, RCapMissileDist)},
-	{"FastSpeed", IRVT_FIXED, offsetof(mobjinfo_t, RFastSpeed)},
-	{"BounceFactor", IRVT_FIXED, offsetof(mobjinfo_t, RBounceFactor)},
-	{"AirGravity", IRVT_FIXED, offsetof(mobjinfo_t, RAirGravity)},
-	{"WaterGravity", IRVT_FIXED, offsetof(mobjinfo_t, RWaterGravity)},
+	{"Speed", IRVT_FIXED, offsetof(PI_mobj_t, speed)},
+	{"Radius", IRVT_FIXED, offsetof(PI_mobj_t, radius)},
+	{"Height", IRVT_FIXED, offsetof(PI_mobj_t, Height)},
+	{"OldHeight", IRVT_FIXED, offsetof(PI_mobj_t, OldHeight)},
+	{"MinMissileDist", IRVT_FIXED, offsetof(PI_mobj_t, RMissileDist[0])},
+	{"MaxMissileDist", IRVT_FIXED, offsetof(PI_mobj_t, RMissileDist[1])},
+	{"CapMissileDist", IRVT_FIXED, offsetof(PI_mobj_t, RCapMissileDist)},
+	{"FastSpeed", IRVT_FIXED, offsetof(PI_mobj_t, RFastSpeed)},
+	{"BounceFactor", IRVT_FIXED, offsetof(PI_mobj_t, RBounceFactor)},
+	{"AirGravity", IRVT_FIXED, offsetof(PI_mobj_t, RAirGravity)},
+	{"WaterGravity", IRVT_FIXED, offsetof(PI_mobj_t, RWaterGravity)},
 	
 	{"BotMetric", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	{"PainChance", IRVT_FUNC, 0, INFO_MiscObjectGF},
@@ -518,11 +518,11 @@ void INFO_MiscAmmoGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValE
 // c_INFOAmmoTables -- Ammo Tables
 static const INFO_REMOODATValEntry_t c_INFOAmmoTables[] =
 {
-	{"-", IRVT_STRING, offsetof(ammoinfo_t, ClassName)},
+	{"-", IRVT_STRING, offsetof(PI_ammo_t, ClassName)},
 	
-	{"ClipAmmo", IRVT_INT32, offsetof(ammoinfo_t, ClipAmmo)},
-	{"MaxAmmo", IRVT_INT32, offsetof(ammoinfo_t, MaxAmmo)},
-	{"StartingAmmo", IRVT_INT32, offsetof(ammoinfo_t, StartingAmmo)},
+	{"ClipAmmo", IRVT_INT32, offsetof(PI_ammo_t, ClipAmmo)},
+	{"MaxAmmo", IRVT_INT32, offsetof(PI_ammo_t, MaxAmmo)},
+	{"StartingAmmo", IRVT_INT32, offsetof(PI_ammo_t, StartingAmmo)},
 	
 	{"?", IRVT_FUNC, 0, INFO_MiscAmmoGF},
 	
@@ -535,13 +535,13 @@ void INFO_MiscKeyGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 // c_INFOKeyTables -- Key Cards Table
 static const INFO_REMOODATValEntry_t c_INFOKeyTables[] =
 {
-	{"-", IRVT_STRING, offsetof(P_RMODKey_t, ClassName)},
+	{"-", IRVT_STRING, offsetof(PI_key_t, ClassName)},
 	
 	{"Bit", IRVT_FUNC, 0, INFO_MiscKeyGF},
 	{"Group", IRVT_FUNC, 0, INFO_MiscKeyGF},
 	
-	{"Icon", IRVT_STRING, offsetof(P_RMODKey_t, ImageName)},
-	{"Color", IRVT_STRING, offsetof(P_RMODKey_t, ColorName)},
+	{"Icon", IRVT_STRING, offsetof(PI_key_t, ImageName)},
+	{"Color", IRVT_STRING, offsetof(PI_key_t, ColorName)},
 	
 	{NULL},
 };
@@ -555,16 +555,16 @@ static const INFO_REMOODATValEntry_t c_INFOTouchTables[] =
 	
 	{"Message", IRVT_FUNC, 0, INFO_MiscTouchGF},
 	
-	{"PickupSound", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, PickupSnd)},
-	{"GiveWeapon", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveWeapon)},
-	{"GiveAmmo", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveAmmo)},
-	{"GiveKey", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveKey)},
+	{"PickupSound", IRVT_STRING, offsetof(PI_touch_t, PickupSnd)},
+	{"GiveWeapon", IRVT_STRING, offsetof(PI_touch_t, GiveWeapon)},
+	{"GiveAmmo", IRVT_STRING, offsetof(PI_touch_t, GiveAmmo)},
+	{"GiveKey", IRVT_STRING, offsetof(PI_touch_t, GiveKey)},
 	
-	{"ArmorClass", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, ArmorClass)},
-	{"ArmorAmount", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, ArmorAmount)},
-	{"HealthAmount", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, HealthAmount)},
-	{"AmmoMul", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, AmmoMul)},
-	{"MaxAmmoMul", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, MaxAmmoMul)},
+	{"ArmorClass", IRVT_INT32, offsetof(PI_touch_t, ArmorClass)},
+	{"ArmorAmount", IRVT_INT32, offsetof(PI_touch_t, ArmorAmount)},
+	{"HealthAmount", IRVT_INT32, offsetof(PI_touch_t, HealthAmount)},
+	{"AmmoMul", IRVT_INT32, offsetof(PI_touch_t, AmmoMul)},
+	{"MaxAmmoMul", IRVT_INT32, offsetof(PI_touch_t, MaxAmmoMul)},
 	
 	{"?", IRVT_FUNC, 0, INFO_MiscTouchGF},
 	
@@ -577,19 +577,19 @@ void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 {
-	{"DeHackEdNum", IRVT_UINT32, offsetof(state_t, DehackEdID)},
-	{"Tics", IRVT_INT32, offsetof(state_t, tics)},
-	{"FastTics", IRVT_INT32, offsetof(state_t, RMODFastTics)},
-	{"Function", IRVT_STRING, offsetof(state_t, Function)},
+	{"DeHackEdNum", IRVT_UINT32, offsetof(PI_state_t, DehackEdID)},
+	{"Tics", IRVT_INT32, offsetof(PI_state_t, tics)},
+	{"FastTics", IRVT_INT32, offsetof(PI_state_t, RMODFastTics)},
+	{"Function", IRVT_STRING, offsetof(PI_state_t, Function)},
 	
-	{"Next", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
-	{"Goto", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
+	{"Next", IRVT_FUNC, offsetof(PI_state_t, SimNext), INFO_FrameNextGoto},
+	{"Goto", IRVT_FUNC, offsetof(PI_state_t, SimNext), INFO_FrameNextGoto},
 	
-	{"Frame", IRVT_FUNC, offsetof(state_t, frame), INFO_FrameMisc},
-	{"Sprite", IRVT_FUNC, offsetof(state_t, HoldSprite), INFO_FrameMisc},
-	{"Transparency", IRVT_FUNC, offsetof(state_t, frame), INFO_FrameMisc},
-	{"FullBright", IRVT_FUNC, offsetof(state_t, frame), INFO_FrameMisc},
-	{"Priority", IRVT_FUNC, offsetof(state_t, Priority), INFO_FrameMisc},
+	{"Frame", IRVT_FUNC, offsetof(PI_state_t, frame), INFO_FrameMisc},
+	{"Sprite", IRVT_FUNC, offsetof(PI_state_t, HoldSprite), INFO_FrameMisc},
+	{"Transparency", IRVT_FUNC, offsetof(PI_state_t, frame), INFO_FrameMisc},
+	{"FullBright", IRVT_FUNC, offsetof(PI_state_t, frame), INFO_FrameMisc},
+	{"Priority", IRVT_FUNC, offsetof(PI_state_t, Priority), INFO_FrameMisc},
 	
 	{NULL},
 };
@@ -637,28 +637,28 @@ typedef struct INFO_DataStore_s
 	struct INFO_DataStore_s* Parent;			// Parent Store
 	INFO_REMOODATKeyChain_t* CurrentKey;		// Current Key used
 	INFO_ObjectStateGroup_t StateGroup;			// State group operating on
-	mobjtype_t MoType;							// Object Type
+	PI_mobjid_t MoType;							// Object Type
 	uint32_t FrameFor;							// Frame fors
 	union
 	{
 		void* vP;								// Void pointer
-		mobjinfo_t* InfoP;						// Info
-		statenum_t* StateRefP;					// State Reference
-		state_t* StateP;						// State
+		PI_mobj_t* InfoP;						// Info
+		PI_stateid_t* StateRefP;					// State Reference
+		PI_state_t* StateP;						// State
 		PI_wep_t* WeaponP;					// Weapon
-		ammoinfo_t* AmmoP;						// Ammo
-		P_RMODTouchSpecial_t* TouchP;			// Toucher
-		P_RMODKey_t* KeyP;						// Key
+		PI_ammo_t* AmmoP;						// Ammo
+		PI_touch_t* TouchP;			// Toucher
+		PI_key_t* KeyP;						// Key
 	} Cur;										// Current pointer sets
 } INFO_DataStore_t;
 
-/* INFO_MobjInfoGrabEntry() -- Grabs mobjinfo_t */
+/* INFO_MobjInfoGrabEntry() -- Grabs PI_mobj_t */
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	mobjtype_t Type;
-	mobjinfo_t* Ptr;
+	PI_mobjid_t Type;
+	PI_mobj_t* Ptr;
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
@@ -741,7 +741,7 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	uint8_t IOSG;
 	uint32_t FrameID, ObjectID;
 	int32_t i;
-	state_t* StateP;
+	PI_state_t* StateP;
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
@@ -805,7 +805,7 @@ void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	weapontype_t Type;
+	PI_wepid_t Type;
 	PI_wep_t* Ptr;
 	
 	/* Storage Pointer */
@@ -848,8 +848,8 @@ void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	ammotype_t Type;
-	ammoinfo_t* Ptr;
+	PI_ammoid_t Type;
+	PI_ammo_t* Ptr;
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
@@ -888,8 +888,8 @@ void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	P_TouchNum_t Type;
-	P_RMODTouchSpecial_t* Ptr;
+	PI_touchid_t Type;
+	PI_touch_t* Ptr;
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
@@ -937,8 +937,8 @@ void* INFO_KeyGrabEntry(void** const a_Data, const char* const a_Name)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	P_KeyNum_t Type;
-	P_RMODKey_t* Ptr;
+	PI_keyid_t Type;
+	PI_key_t* Ptr;
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
@@ -980,7 +980,7 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	mobjinfo_t* Obj;
+	PI_mobj_t* Obj;
 	bool_t SetFlag;
 	int32_t i, r;
 	const INFO_FlagInfo_t* BaseArr;
@@ -1156,7 +1156,7 @@ void INFO_MiscAmmoGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValE
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	ammoinfo_t* Amm;
+	PI_ammo_t* Amm;
 	bool_t SetFlag;
 	int32_t i, r;
 	
@@ -1208,7 +1208,7 @@ void INFO_MiscKeyGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	P_RMODKey_t* Key;
+	PI_key_t* Key;
 	uint32_t Val;
 	
 	/* Storage Pointer */
@@ -1261,7 +1261,7 @@ void INFO_MiscTouchGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Val
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
-	P_RMODTouchSpecial_t* Touch;
+	PI_touch_t* Touch;
 	bool_t SetFlag;
 	int32_t i, r;
 	
@@ -1465,9 +1465,9 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
 	INFO_REMOODATValEntry_t* ValEnt;
-	mobjinfo_t* ThisMT;
+	PI_mobj_t* ThisMT;
 	PI_wep_t* ThisWep;
-	P_RMODTouchSpecial_t* ThisTC;
+	PI_touch_t* ThisTC;
 	void* DataP;
 	int32_t i, j, k, l;
 	uint32_t RefToFind;
@@ -1792,7 +1792,7 @@ bool_t INFO_BoolFromString(const char* const a_String)
 }
 
 /* INFO_GetTypeByName() -- Returns a map object by it's name */
-mobjtype_t INFO_GetTypeByName(const char* const a_Name)
+PI_mobjid_t INFO_GetTypeByName(const char* const a_Name)
 {
 	size_t i = 0;
 	uint32_t Hash;
@@ -1824,7 +1824,7 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name)
 }
 
 /* INFO_SpriteNumByName() -- Determine sprite ID by name */
-spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create)
+PI_spriteid_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create)
 {
 	size_t i;
 	
@@ -2062,9 +2062,9 @@ INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name)
 
 
 /* P_RMODTouchSpecialByString() -- Find touch special by string */
-P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String)
+PI_touchid_t P_RMODTouchSpecialByString(const char* const a_String)
 {
-	P_TouchNum_t i;
+	PI_touchid_t i;
 	
 	/* Check */
 	if (!a_String)
@@ -2080,7 +2080,7 @@ P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String)
 }
 
 /* P_RMODTouchSpecialForSprite() -- Find touch special via sprite */
-P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum)
+PI_touch_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum)
 {
 	/* Check */
 	if (a_SprNum < 0 || a_SprNum >= NUMSPRITES)
@@ -2091,10 +2091,10 @@ P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum)
 }
 
 /* P_RMODTouchSpecialForCode() -- Find touch special via code */
-P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code)
+PI_touch_t* P_RMODTouchSpecialForCode(const uint32_t a_Code)
 {
 	size_t i;
-	P_RMODTouchSpecial_t* Current;
+	PI_touch_t* Current;
 	
 	/* Look through list */
 	for (i = 0; i < g_RMODNumTouchSpecials; i++)
@@ -2112,9 +2112,9 @@ P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code)
 }
 
 /* INFO_GetKeyByName() -- Returns key by class name */
-P_KeyNum_t INFO_GetKeyByName(const char* const a_Name)
+PI_keyid_t INFO_GetKeyByName(const char* const a_Name)
 {
-	P_KeyNum_t i;
+	PI_keyid_t i;
 	
 	/* Check */
 	if (!a_Name)
@@ -2131,10 +2131,10 @@ P_KeyNum_t INFO_GetKeyByName(const char* const a_Name)
 }
 
 /* INFO_KeyByGroupBit() -- Returns the associated key by group and bit */
-P_RMODKey_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit)
+PI_key_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit)
 {
 	size_t i;
-	P_RMODKey_t* Key;
+	PI_key_t* Key;
 	
 	/* If not mapped, generate mappings */
 	if (!l_KeysMapped)
@@ -2166,6 +2166,6 @@ P_RMODKey_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit)
 	/* Return the mapped keys */
 	return l_KeyMap[a_Group][a_Bit];
 bool_t l_KeysMapped = false;					// Keys Mapped
-P_RMODKey_t* l_KeyMap[2][32];					// Quick Key Mapping
+PI_key_t* l_KeyMap[2][32];					// Quick Key Mapping
 }
 

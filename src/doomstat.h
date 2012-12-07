@@ -106,7 +106,7 @@ extern language_t language;
 // =============================
 
 // Selected by user.
-extern skill_t gameskill;
+extern G_Skill_t gameskill;
 extern uint8_t gameepisode;
 extern uint8_t gamemap;
 
@@ -204,7 +204,7 @@ extern bool_t precache;
 
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
-extern gamestate_t wipegamestate;
+extern G_State_t wipegamestate;
 
 //?
 // debug flag to cancel adaptiveness

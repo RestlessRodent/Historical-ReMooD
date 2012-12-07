@@ -2126,8 +2126,8 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	int32_t SideMove, ForwardMove, BaseAT, BaseAM, NegMod;
 	bool_t IsTurning, GunInSlot, ResetAim;
 	int slot, j, l, k;
-	weapontype_t newweapon;
-	weapontype_t SlotList[MAXWEAPONSLOTS];
+	PI_wepid_t newweapon;
+	PI_wepid_t SlotList[MAXWEAPONSLOTS];
 	
 	/* Check */
 	if (!a_NPp || !a_TicCmd)

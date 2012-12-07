@@ -266,7 +266,7 @@ void F_TextWrite(void)
 typedef struct
 {
 	char* name;
-	mobjtype_t type;
+	PI_mobjid_t type;
 } castinfo_t;
 
 castinfo_t castorder[] =
@@ -295,7 +295,7 @@ castinfo_t castorder[] =
 
 int castnum;
 int casttics;
-state_t* caststate;
+PI_state_t* caststate;
 bool_t castdeath;
 int castframes;
 int castonmelee;

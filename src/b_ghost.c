@@ -1253,8 +1253,8 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 	int32_t i, b;
 	int32_t SwitchChance[MAXGUNSWITCHERS];
 	fixed_t AmmoCount;
-	ammotype_t AmmoType;
-	weapontype_t FavoriteGun;
+	PI_ammoid_t AmmoType;
+	PI_wepid_t FavoriteGun;
 	
 	/* Sleep Job */
 	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 10);

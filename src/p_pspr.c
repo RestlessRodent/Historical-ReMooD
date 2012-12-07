@@ -58,15 +58,15 @@
 #define MAX_MACE_SPOTS          8
 
 
-mobjtype_t PuffType;
+PI_mobjid_t PuffType;
 
 //
 // P_SetPsprite
 //
-void P_SetPsprite(player_t* player, int position, statenum_t stnum)
+void P_SetPsprite(player_t* player, int position, PI_stateid_t stnum)
 {
 	pspdef_t* psp;
-	state_t* state;
+	PI_state_t* state;
 	
 	psp = &player->psprites[position];
 	
@@ -155,7 +155,7 @@ void P_CalcSwing (player_t*     player)
 //
 void P_BringUpWeapon(player_t* player)
 {
-	statenum_t newstate;
+	PI_stateid_t newstate;
 	
 	/* Check */
 	if (!player)
@@ -189,10 +189,10 @@ void P_BringUpWeapon(player_t* player)
 /* P_CheckAmmo() -- Returns true if there is enough ammo to shoot. If not, selects the next weapon to use. */
 bool_t P_CheckAmmo(player_t* player)
 {
-	ammotype_t ammo;
+	PI_ammoid_t ammo;
 	int count;
 	size_t i;
-	weapontype_t BestWeapon;
+	PI_wepid_t BestWeapon;
 	
 	/* get ammo type */
 	ammo = player->weaponinfo[player->readyweapon]->ammo;
@@ -268,7 +268,7 @@ bool_t P_CheckAmmo(player_t* player)
 //
 void P_FireWeapon(player_t* player)
 {
-	statenum_t newstate;
+	PI_stateid_t newstate;
 	
 	// GhostlyDeath <April 29, 2012> -- Object cannot use weapons?
 	if (player->mo && !(player->mo->RXFlags[1] & MFREXB_CANUSEWEAPONS))
@@ -375,7 +375,7 @@ void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 void P_ReduceAmmo(player_t* player)
 {
 	bool_t AmTypeInfinite;
-	ammotype_t Ammo;
+	PI_ammoid_t Ammo;
 	int32_t i;
 	
 	/* Check if the ammo type is infinite */
@@ -500,7 +500,7 @@ void A_GunFlash(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 //
 
 /* PS_GetPuffType() -- Gets the replacement puff */
-mobjtype_t PS_GetPuffType(player_t* player)
+PI_mobjid_t PS_GetPuffType(player_t* player)
 {
 	PI_wep_t* Weapon;
 	
@@ -878,7 +878,7 @@ void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 	angle_t an;
 	mobj_t* extrabfg;
 	mobj_t* BallOwner;
-	weapontype_t OldWeapon;
+	PI_wepid_t OldWeapon;
 	
 	// Remember stuff about object
 	BallOwner = mo->target;
@@ -1033,7 +1033,7 @@ void P_MovePsprites(player_t* player)
 {
 	int i;
 	pspdef_t* psp;
-	state_t* state;
+	PI_state_t* state;
 	
 	// GhostlyDeath <May 8, 2012> -- If playing as monster, do not move sprites
 	if (player->mo && !(player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
@@ -1078,7 +1078,7 @@ static struct
 fixed_t bulletslope;
 
 /* INFO_GetWeaponByName() -- Return weapon by name */
-weapontype_t INFO_GetWeaponByName(const char* const a_Name)
+PI_wepid_t INFO_GetWeaponByName(const char* const a_Name)
 {
 	size_t i;
 	
@@ -1096,7 +1096,7 @@ weapontype_t INFO_GetWeaponByName(const char* const a_Name)
 }
 
 /* INFO_GetAmmoByName() -- Return ammo by name */
-ammotype_t INFO_GetAmmoByName(const char* const a_Name)
+PI_ammoid_t INFO_GetAmmoByName(const char* const a_Name)
 {
 	size_t i;
 	

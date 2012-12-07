@@ -64,7 +64,7 @@
 // The sprite, frame, and angle elements determine which patch_t
 // is used to draw the sprite if it is visible.
 // The sprite and frame values are allmost allways set
-// from state_t structures.
+// from PI_state_t structures.
 // The statescr.exe utility generates the states.h and states.c
 // files that contain the sprite/frame numbers from the
 // statescr.txt source file.
@@ -418,7 +418,7 @@ typedef struct mobj_s
 	
 	//More drawing info: to determine current sprite.
 	angle_t angle;				// orientation
-	spritenum_t sprite;			// used to find patch_t and flip value
+	PI_spriteid_t sprite;			// used to find patch_t and flip value
 	int frame;					// frame number, plus bits see p_pspr.h
 	
 	//Fab:02-08-98
@@ -455,11 +455,11 @@ typedef struct mobj_s
 	// If == validcount, already checked.
 	//int                 validcount;
 	
-	mobjtype_t type;
-	mobjinfo_t* info;			// &mobjinfo[mobj->type]
+	PI_mobjid_t type;
+	PI_mobj_t* info;			// &mobjinfo[mobj->type]
 	
 	int tics;					// state tic counter
-	state_t* state;
+	PI_state_t* state;
 	
 	/*** DEPRECATED ***/
 	int flags;
@@ -526,7 +526,7 @@ typedef struct mobj_s
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
 	
 	// Obituary helpers
-	weapontype_t RXShotWithWeapon;				// Weapon that fired this
+	PI_wepid_t RXShotWithWeapon;				// Weapon that fired this
 	P_RXAttackType_t RXAttackAttackType;		// Attack type
 	
 	// Reference Counts
@@ -540,7 +540,7 @@ typedef struct mobj_s
 #endif
 
 	bool_t RemoveMo;							// Remove Map Object
-	mobjtype_t RemType;							// Type removed
+	PI_mobjid_t RemType;							// Type removed
 	
 	// Properties
 	fixed_t MaxZObtained;						// Max Z Obtained while in air
@@ -605,7 +605,7 @@ void P_ClearMobjRefs(mobj_t* const a_Mo);
 void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn);
 
 void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
-void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass);
+void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass);
 
 bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);

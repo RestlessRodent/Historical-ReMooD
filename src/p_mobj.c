@@ -94,34 +94,34 @@ void P_AdjMobjStateTics(mobj_t* const a_Object)
 // Returns true if the mobj is still present.
 //
 //SoM: 4/7/2000: Boom code...
-bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
+bool_t P_SetMobjState(mobj_t* mobj, PI_stateid_t state)
 {
-	state_t* st;
+	PI_state_t* st;
 	
 	//remember states seen, to detect cycles:
 	
-	static statenum_t* seenstate_tab;	// fast transition table
+	static PI_stateid_t* seenPI_state_tab;	// fast transition table
 	static size_t OldNumStates;
 	
-	statenum_t* seenstate = seenstate_tab;	// pointer to table
+	PI_stateid_t* seenstate = seenPI_state_tab;	// pointer to table
 	static int recursion;		// detects recursion
-	statenum_t i = state;		// initial state
+	PI_stateid_t i = state;		// initial state
 	bool_t ret = true;			// return value
-	statenum_t* tempstate;	// for use with recursion
+	PI_stateid_t* tempstate;	// for use with recursion
 
 	// GhostlyDeath <May 21, 2012> -- Allocate locally for VC6
 	tempstate = Z_Malloc(sizeof(*tempstate) * NUMSTATES, PU_STATIC, NULL);
 	
 	// GhostlyDeath <April 23, 2012> -- Seen cycles
-	if (!seenstate_tab || OldNumStates != NUMSTATES)
+	if (!seenPI_state_tab || OldNumStates != NUMSTATES)
 	{
-		if (seenstate_tab)
-			Z_Free(seenstate_tab);
-		seenstate_tab = Z_Malloc(sizeof(*seenstate_tab) * NUMSTATES, PU_STATIC, NULL);
+		if (seenPI_state_tab)
+			Z_Free(seenPI_state_tab);
+		seenPI_state_tab = Z_Malloc(sizeof(*seenPI_state_tab) * NUMSTATES, PU_STATIC, NULL);
 		OldNumStates = NUMSTATES;
 	}
 	
-	seenstate = seenstate_tab;
+	seenstate = seenPI_state_tab;
 	
 	if (recursion++)			// if recursion detected,
 		memset(seenstate = tempstate, 0, sizeof(*tempstate) * NUMSTATES);	// clear state table
@@ -130,7 +130,7 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	{
 		if (state == S_NULL)
 		{
-			mobj->state = (state_t*) S_NULL;
+			mobj->state = (PI_state_t*) S_NULL;
 			P_RemoveMobj(mobj);
 			ret = false;
 			break;				// killough 4/9/98
@@ -1261,11 +1261,11 @@ void P_MobjNullThinker(mobj_t* mobj)
 //
 // P_SpawnMobj
 //
-mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
+mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, PI_mobjid_t type)
 {
 	mobj_t* mobj;
-	state_t* st;
-	mobjinfo_t* info;
+	PI_state_t* st;
+	PI_mobj_t* info;
 	int i;
 	static uint32_t LastOrder;
 	
@@ -1857,7 +1857,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	fixed_t x;
 	fixed_t y;
 	fixed_t z;
-	skill_t Skill;
+	G_Skill_t Skill;
 	
 	// GhostlyDeath <March 6, 2012> -- Clear thing ID
 	mthing->MoType = NUMMOBJTYPES;
@@ -2309,7 +2309,7 @@ bool_t P_CheckMissileSpawn(mobj_t* th)
 //
 // P_SpawnMissile
 //
-mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
+mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, PI_mobjid_t type)
 {
 	mobj_t* th;
 	angle_t an;
@@ -2431,7 +2431,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 // P_SpawnPlayerMissile
 // Tries to aim at a nearby monster
 //
-mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
+mobj_t* P_SPMAngle(mobj_t* source, PI_mobjid_t type, angle_t angle)
 {
 	mobj_t* th;
 	angle_t an;
@@ -2740,12 +2740,12 @@ void P_SetMobjToCrash(mobj_t* const a_Mo)
 }
 
 /* P_MorphObjectClass() -- Morphs an object to another class */
-void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
+void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass)
 {
-	mobjinfo_t* OldI, *NewI;
+	PI_mobj_t* OldI, *NewI;
 	fixed_t HealthP, RadiusP, HeightP;
 	INFO_ObjectStateGroup_t OldGroup, NewGroup;
-	statenum_t NewState;
+	PI_stateid_t NewState;
 	size_t i;
 	
 	/* Check */

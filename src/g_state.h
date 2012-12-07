@@ -42,7 +42,7 @@ typedef enum
 	sk_medium,
 	sk_hard,
 	sk_nightmare
-} skill_t;
+} G_Skill_t;
 
 // the current state of the game
 typedef enum
@@ -58,7 +58,7 @@ typedef enum
 	
 	// GhostlyDeath <May 17, 2012> -- Waiting for join window
 	GS_WAITFORJOINWINDOW,						// Player must wait to join
-} gamestate_t;
+} G_State_t;
 
 typedef enum
 {
@@ -75,11 +75,11 @@ typedef enum
 	   ga_leavemap,
 	   ga_singlereborn
 	 */
-} gameaction_t;
+} G_Action_t;
 
-extern gamestate_t gamestate;
-extern gameaction_t gameaction;
-extern skill_t gameskill;
+extern G_State_t gamestate;
+extern G_Action_t gameaction;
+extern G_Skill_t gameskill;
 
 extern bool_t demoplayback;
 

@@ -3234,7 +3234,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	char Buf[BUFSIZE];
 	char* p, *TokStr;
 	int32_t Val;
-	mobjtype_t MoType;
+	PI_mobjid_t MoType;
 	uint32_t Source, Target, Type, Temp;
 	bool_t IgnoreTarg;
 	const char* EGxM;

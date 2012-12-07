@@ -71,7 +71,7 @@ extern int nummapthings;
 extern mapthing_t* mapthings;
 
 // NOT called by W_Ticker. Fixme.
-bool_t P_SetupLevel(int episode, int map, skill_t skill, char* mapname);
+bool_t P_SetupLevel(int episode, int map, G_Skill_t skill, char* mapname);
 
 subsector_t* R_PointInSubsector(fixed_t x, fixed_t y);
 

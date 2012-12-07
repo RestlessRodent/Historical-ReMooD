@@ -32,6 +32,6 @@
 
 #include "g_state.h"
 
-gameaction_t gameaction;
-gamestate_t gamestate = GS_NULL;
-skill_t gameskill;
+G_Action_t gameaction;
+G_State_t gamestate = GS_NULL;
+G_Skill_t gameskill;

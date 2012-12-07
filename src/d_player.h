@@ -63,7 +63,7 @@ typedef enum
 	PST_DEAD,
 	// Ready to restart/respawn???
 	PST_REBORN
-} playerstate_t;
+} P_PlayerState_t;
 
 //
 // Player internal flags, for cheats and debug.
@@ -109,7 +109,7 @@ typedef struct player_s
 {
 	mobj_t* mo;
 	// added 1-6-98: for movement prediction
-	playerstate_t playerstate;
+	P_PlayerState_t playerstate;
 	ticcmd_t cmd;
 	
 	// Determine POV,
@@ -142,12 +142,12 @@ typedef struct player_s
 	// Frags, kills of other players.
 	uint16_t addfrags;			// player have killed a player but is gone
 	uint16_t frags[MAXPLAYERS];
-	weapontype_t readyweapon;
+	PI_wepid_t readyweapon;
 	
 	// Is wp_nochange if not changing.
-	weapontype_t pendingweapon;
-	weapontype_t DeadWeapon;					// Weapon held when dead
-	weapontype_t* FavoriteWeapons;				// Favorite Weapons
+	PI_wepid_t pendingweapon;
+	PI_wepid_t DeadWeapon;					// Weapon held when dead
+	PI_wepid_t* FavoriteWeapons;				// Favorite Weapons
 	
 	bool_t* weaponowned;
 	int* ammo;

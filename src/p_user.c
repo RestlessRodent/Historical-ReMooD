@@ -762,7 +762,7 @@ void P_MoveChaseCamera(player_t* player)
 bool_t playerdeadview;			//Fab:25-04-98:show dm rankings while in death view
 
 /* P_WeaponIsUnlocked() -- Checks if a weapon is unlocked */
-bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon)
+bool_t P_WeaponIsUnlocked(const PI_wepid_t a_Weapon)
 {
 	/* Check */
 	if (a_Weapon < 0 || a_Weapon >= NUMWEAPONS)
@@ -807,7 +807,7 @@ bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon)
 }
 
 /* P_CanUseWeapon() -- Can use (switch to) this weapon */
-bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon)
+bool_t P_CanUseWeapon(player_t* const a_Player, const PI_wepid_t a_Weapon)
 {
 	/* Check */
 	if (!a_Player || a_Weapon < 0 || a_Weapon >= NUMWEAPONS)
@@ -831,7 +831,7 @@ void P_PlayerThink(player_t* player)
 {
 #define MAXWEAPONSLOTS 12
 	ticcmd_t* cmd;
-	weapontype_t newweapon;
+	PI_wepid_t newweapon;
 	int slot;
 	int validguns;
 	int waterz;
@@ -839,7 +839,7 @@ void P_PlayerThink(player_t* player)
 	angle_t delta;
 	
 	bool_t GunInSlot;
-	weapontype_t SlotList[MAXWEAPONSLOTS];
+	PI_wepid_t SlotList[MAXWEAPONSLOTS];
 
 	// GhostlyDeath <May 17, 2012> -- Instead of crashing, spawn a player
 	if (!player->mo)

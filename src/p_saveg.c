@@ -5108,7 +5108,7 @@ void P_UnArchiveThinkers(void)
 				mobj->thinker.function.acp1 = (actionf_p1) P_MobjThinker;
 				P_AddThinker(&mobj->thinker);
 				
-				mobj->info = (mobjinfo_t*) next;	// temporarely, set when leave this function
+				mobj->info = (PI_mobj_t*) next;	// temporarely, set when leave this function
 				break;
 				
 			case tc_ceiling:

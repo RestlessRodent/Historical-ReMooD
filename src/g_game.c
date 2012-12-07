@@ -223,7 +223,7 @@ static fixed_t forwardmove[2] = { 25, 50 };
 static fixed_t sidemove[2] = { 24, 40 };
 static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
-bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
+bool_t P_CanUseWeapon(player_t* const a_Player, const PI_wepid_t a_Weapon);
 
 /* NextWeapon() -- Finds the next weapon in the chain */
 // This is for PrevWeapon and NextWeapon
@@ -798,7 +798,7 @@ void G_PlayerReborn(int player)
 	int secretcount;
 	uint16_t addfrags;
 	bool_t* weaponowned;
-	weapontype_t* FavoriteWeapons;
+	PI_wepid_t* FavoriteWeapons;
 	int* ammo;
 	int* maxammo;
 	uint32_t FraggerID;
@@ -1976,7 +1976,7 @@ bool_t G_Downgrade(int version)
 /* G_DoPlayDemo() -- Plays A demo */
 void G_DoPlayDemo(char* defdemoname)
 {
-	skill_t skill;
+	G_Skill_t skill;
 	int i, j, episode, map;
 	
 	WL_WADEntry_t* Entry;
