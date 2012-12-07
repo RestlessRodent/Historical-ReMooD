@@ -1856,98 +1856,110 @@ spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create)
 /* INFO_FunctionPtrByName() -- Get action pointer by name */
 actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 {
-	actionf_t RetVal;
+	size_t i;	
 	
-	memset(&RetVal, 0, sizeof(RetVal));
+	static const struct
+	{
+		const char* Name;						// Name of function
+		actionf_t Action;						// Defined Action
+	} c_FuncPs[] =
+	{
+		{NULL, {NULL}},
+		{"Light0", {A_Light0}},
+		{"WeaponReady", {A_WeaponReady}},
+		{"Lower", {A_Lower}},
+		{"Raise", {A_Raise}},
+		{"Punch", {A_Punch}},
+		{"ReFire", {A_ReFire}},
+		{"FirePistol", {A_FirePistol}},
+		{"Light1", {A_Light1}},
+		{"FireShotgun", {A_FireShotgun}},
+		{"Light2", {A_Light2}},
+		{"FireShotgun2", {A_FireShotgun2}},
+		{"CheckReload", {A_CheckReload}},
+		{"OpenShotgun2", {A_OpenShotgun2}},
+		{"LoadShotgun2", {A_LoadShotgun2}},
+		{"CloseShotgun2", {A_CloseShotgun2}},
+		{"FireCGun", {A_FireCGun}},
+		{"GunFlash", {A_GunFlash}},
+		{"FireMissile", {A_FireMissile}},
+		{"Saw", {A_Saw}},
+		{"FirePlasma", {A_FirePlasma}},
+		{"BFGsound", {A_BFGsound}},
+		{"FireBFG", {A_FireBFG}},
+		{"BFGSpray", {A_BFGSpray}},
+		{"Explode", {A_Explode}},
+		{"Pain", {A_Pain}},
+		{"PlayerScream", {A_PlayerScream}},
+		{"Fall", {A_Fall}},
+		{"XScream", {A_XScream}},
+		{"Look", {A_Look}},
+		{"Chase", {A_Chase}},
+		{"FaceTarget", {A_FaceTarget}},
+		{"PosAttack", {A_PosAttack}},
+		{"Scream", {A_Scream}},
+		{"SPosAttack", {A_SPosAttack}},
+		{"VileChase", {A_VileChase}},
+		{"VileStart", {A_VileStart}},
+		{"VileTarget", {A_VileTarget}},
+		{"VileAttack", {A_VileAttack}},
+		{"StartFire", {A_StartFire}},
+		{"Fire", {A_Fire}},
+		{"FireCrackle", {A_FireCrackle}},
+		{"Tracer", {A_Tracer}},
+		{"SkelWhoosh", {A_SkelWhoosh}},
+		{"SkelFist", {A_SkelFist}},
+		{"SkelMissile", {A_SkelMissile}},
+		{"FatRaise", {A_FatRaise}},
+		{"FatAttack1", {A_FatAttack1}},
+		{"FatAttack2", {A_FatAttack2}},
+		{"FatAttack3", {A_FatAttack3}},
+		{"BossDeath", {A_BossDeath}},
+		{"CPosAttack", {A_CPosAttack}},
+		{"CPosRefire", {A_CPosRefire}},
+		{"TroopAttack", {A_TroopAttack}},
+		{"SargAttack", {A_SargAttack}},
+		{"HeadAttack", {A_HeadAttack}},
+		{"BruisAttack", {A_BruisAttack}},
+		{"SkullAttack", {A_SkullAttack}},
+		{"Metal", {A_Metal}},
+		{"SpidRefire", {A_SpidRefire}},
+		{"BabyMetal", {A_BabyMetal}},
+		{"BspiAttack", {A_BspiAttack}},
+		{"Hoof", {A_Hoof}},
+		{"CyberAttack", {A_CyberAttack}},
+		{"PainAttack", {A_PainAttack}},
+		{"PainDie", {A_PainDie}},
+		{"KeenDie", {A_KeenDie}},
+		{"BrainPain", {A_BrainPain}},
+		{"BrainScream", {A_BrainScream}},
+		{"BrainDie", {A_BrainDie}},
+		{"BrainAwake", {A_BrainAwake}},
+		{"BrainSpit", {A_BrainSpit}},
+		{"SpawnSound", {A_SpawnSound}},
+		{"SpawnFly", {A_SpawnFly}},
+		{"BrainExplode", {A_BrainExplode}},
+		{"SmokeTrailer", {A_SmokeTrailer}},
+		{"SmokeTrailerRocket", {A_SmokeTrailerRocket}},
+		{"SmokeTrailerSkull", {A_SmokeTrailerSkull}},
+		{"FireOldBFG", {A_FireOldBFG}},
+		{"FireGenericProjectile", {A_FireGenericProjectile}},
+		{"NextFrameIfMoving", {A_NextFrameIfMoving}},
+		{"GenericMonsterMissile", {A_GenericMonsterMissile}},
+		{NULL, {NULL}},
+	};
 	
 	/* Check */
 	if (!a_Name)
-		return RetVal;
+		return c_FuncPs[0].Action;
 	
-	if (strcasecmp("Light0", a_Name) == 0) RetVal.acv = A_Light0;
-	else if (strcasecmp("WeaponReady", a_Name) == 0) RetVal.acv = A_WeaponReady;
-	else if (strcasecmp("Lower", a_Name) == 0) RetVal.acv = A_Lower;
-	else if (strcasecmp("Raise", a_Name) == 0) RetVal.acv = A_Raise;
-	else if (strcasecmp("Punch", a_Name) == 0) RetVal.acv = A_Punch;
-	else if (strcasecmp("ReFire", a_Name) == 0) RetVal.acv = A_ReFire;
-	else if (strcasecmp("FirePistol", a_Name) == 0) RetVal.acv = A_FirePistol;
-	else if (strcasecmp("Light1", a_Name) == 0) RetVal.acv = A_Light1;
-	else if (strcasecmp("FireShotgun", a_Name) == 0) RetVal.acv = A_FireShotgun;
-	else if (strcasecmp("Light2", a_Name) == 0) RetVal.acv = A_Light2;
-	else if (strcasecmp("FireShotgun2", a_Name) == 0) RetVal.acv = A_FireShotgun2;
-	else if (strcasecmp("CheckReload", a_Name) == 0) RetVal.acv = A_CheckReload;
-	else if (strcasecmp("OpenShotgun2", a_Name) == 0) RetVal.acv = A_OpenShotgun2;
-	else if (strcasecmp("LoadShotgun2", a_Name) == 0) RetVal.acv = A_LoadShotgun2;
-	else if (strcasecmp("CloseShotgun2", a_Name) == 0) RetVal.acv = A_CloseShotgun2;
-	else if (strcasecmp("FireCGun", a_Name) == 0) RetVal.acv = A_FireCGun;
-	else if (strcasecmp("GunFlash", a_Name) == 0) RetVal.acv = A_GunFlash;
-	else if (strcasecmp("FireMissile", a_Name) == 0) RetVal.acv = A_FireMissile;
-	else if (strcasecmp("Saw", a_Name) == 0) RetVal.acv = A_Saw;
-	else if (strcasecmp("FirePlasma", a_Name) == 0) RetVal.acv = A_FirePlasma;
-	else if (strcasecmp("BFGsound", a_Name) == 0) RetVal.acv = A_BFGsound;
-	else if (strcasecmp("FireBFG", a_Name) == 0) RetVal.acv = A_FireBFG;
-	else if (strcasecmp("BFGSpray", a_Name) == 0) RetVal.acv = A_BFGSpray;
-	else if (strcasecmp("Explode", a_Name) == 0) RetVal.acv = A_Explode;
-	else if (strcasecmp("Pain", a_Name) == 0) RetVal.acv = A_Pain;
-	else if (strcasecmp("PlayerScream", a_Name) == 0) RetVal.acv = A_PlayerScream;
-	else if (strcasecmp("Fall", a_Name) == 0) RetVal.acv = A_Fall;
-	else if (strcasecmp("XScream", a_Name) == 0) RetVal.acv = A_XScream;
-	else if (strcasecmp("Look", a_Name) == 0) RetVal.acv = A_Look;
-	else if (strcasecmp("Chase", a_Name) == 0) RetVal.acv = A_Chase;
-	else if (strcasecmp("FaceTarget", a_Name) == 0) RetVal.acv = A_FaceTarget;
-	else if (strcasecmp("PosAttack", a_Name) == 0) RetVal.acv = A_PosAttack;
-	else if (strcasecmp("Scream", a_Name) == 0) RetVal.acv = A_Scream;
-	else if (strcasecmp("SPosAttack", a_Name) == 0) RetVal.acv = A_SPosAttack;
-	else if (strcasecmp("VileChase", a_Name) == 0) RetVal.acv = A_VileChase;
-	else if (strcasecmp("VileStart", a_Name) == 0) RetVal.acv = A_VileStart;
-	else if (strcasecmp("VileTarget", a_Name) == 0) RetVal.acv = A_VileTarget;
-	else if (strcasecmp("VileAttack", a_Name) == 0) RetVal.acv = A_VileAttack;
-	else if (strcasecmp("StartFire", a_Name) == 0) RetVal.acv = A_StartFire;
-	else if (strcasecmp("Fire", a_Name) == 0) RetVal.acv = A_Fire;
-	else if (strcasecmp("FireCrackle", a_Name) == 0) RetVal.acv = A_FireCrackle;
-	else if (strcasecmp("Tracer", a_Name) == 0) RetVal.acv = A_Tracer;
-	else if (strcasecmp("SkelWhoosh", a_Name) == 0) RetVal.acv = A_SkelWhoosh;
-	else if (strcasecmp("SkelFist", a_Name) == 0) RetVal.acv = A_SkelFist;
-	else if (strcasecmp("SkelMissile", a_Name) == 0) RetVal.acv = A_SkelMissile;
-	else if (strcasecmp("FatRaise", a_Name) == 0) RetVal.acv = A_FatRaise;
-	else if (strcasecmp("FatAttack1", a_Name) == 0) RetVal.acv = A_FatAttack1;
-	else if (strcasecmp("FatAttack2", a_Name) == 0) RetVal.acv = A_FatAttack2;
-	else if (strcasecmp("FatAttack3", a_Name) == 0) RetVal.acv = A_FatAttack3;
-	else if (strcasecmp("BossDeath", a_Name) == 0) RetVal.acv = A_BossDeath;
-	else if (strcasecmp("CPosAttack", a_Name) == 0) RetVal.acv = A_CPosAttack;
-	else if (strcasecmp("CPosRefire", a_Name) == 0) RetVal.acv = A_CPosRefire;
-	else if (strcasecmp("TroopAttack", a_Name) == 0) RetVal.acv = A_TroopAttack;
-	else if (strcasecmp("SargAttack", a_Name) == 0) RetVal.acv = A_SargAttack;
-	else if (strcasecmp("HeadAttack", a_Name) == 0) RetVal.acv = A_HeadAttack;
-	else if (strcasecmp("BruisAttack", a_Name) == 0) RetVal.acv = A_BruisAttack;
-	else if (strcasecmp("SkullAttack", a_Name) == 0) RetVal.acv = A_SkullAttack;
-	else if (strcasecmp("Metal", a_Name) == 0) RetVal.acv = A_Metal;
-	else if (strcasecmp("SpidRefire", a_Name) == 0) RetVal.acv = A_SpidRefire;
-	else if (strcasecmp("BabyMetal", a_Name) == 0) RetVal.acv = A_BabyMetal;
-	else if (strcasecmp("BspiAttack", a_Name) == 0) RetVal.acv = A_BspiAttack;
-	else if (strcasecmp("Hoof", a_Name) == 0) RetVal.acv = A_Hoof;
-	else if (strcasecmp("CyberAttack", a_Name) == 0) RetVal.acv = A_CyberAttack;
-	else if (strcasecmp("PainAttack", a_Name) == 0) RetVal.acv = A_PainAttack;
-	else if (strcasecmp("PainDie", a_Name) == 0) RetVal.acv = A_PainDie;
-	else if (strcasecmp("KeenDie", a_Name) == 0) RetVal.acv = A_KeenDie;
-	else if (strcasecmp("BrainPain", a_Name) == 0) RetVal.acv = A_BrainPain;
-	else if (strcasecmp("BrainScream", a_Name) == 0) RetVal.acv = A_BrainScream;
-	else if (strcasecmp("BrainDie", a_Name) == 0) RetVal.acv = A_BrainDie;
-	else if (strcasecmp("BrainAwake", a_Name) == 0) RetVal.acv = A_BrainAwake;
-	else if (strcasecmp("BrainSpit", a_Name) == 0) RetVal.acv = A_BrainSpit;
-	else if (strcasecmp("SpawnSound", a_Name) == 0) RetVal.acv = A_SpawnSound;
-	else if (strcasecmp("SpawnFly", a_Name) == 0) RetVal.acv = A_SpawnFly;
-	else if (strcasecmp("BrainExplode", a_Name) == 0) RetVal.acv = A_BrainExplode;
-	else if (strcasecmp("SmokeTrailer", a_Name) == 0) RetVal.acv = A_SmokeTrailer;
-	else if (strcasecmp("SmokeTrailerRocket", a_Name) == 0) RetVal.acv = A_SmokeTrailerRocket;
-	else if (strcasecmp("SmokeTrailerSkull", a_Name) == 0) RetVal.acv = A_SmokeTrailerSkull;
-	else if (strcasecmp("FireOldBFG", a_Name) == 0) RetVal.acv = A_FireOldBFG;
-	else if (strcasecmp("FireGenericProjectile", a_Name) == 0) RetVal.acv = A_FireGenericProjectile;
-	else if (strcasecmp("NextFrameIfMoving", a_Name) == 0) RetVal.acv = A_NextFrameIfMoving;
-	else if (strcasecmp("GenericMonsterMissile", a_Name) == 0) RetVal.acv = A_GenericMonsterMissile;
+	/* Go through list */
+	for (i = 1; c_FuncPs[i].Name; i++)
+		if (!strcasecmp(c_FuncPs[i].Name, a_Name))
+			return c_FuncPs[i].Action;
 	
-	/* Not found? */
-	return RetVal;
+	/* Not found */
+	return c_FuncPs[i].Action;
 }
 
 /* INFO_PriorityByName() -- Priority by name */
