@@ -16,7 +16,7 @@
 // ----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
