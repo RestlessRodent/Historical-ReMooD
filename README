@@ -15,7 +15,7 @@ C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
  ReMooD is a source port of Doom Legacy 1.42. It aims to provide the classic
  Legacy Experience with new features and more stability.
  
- Copyright (C) 2006-2012 GhostlyDeath <ghostlydeath@remood.org>
+ Copyright (C) 2006-2013 GhostlyDeath <ghostlydeath@remood.org>
  
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -26,78 +26,4 @@ C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
--------------------------------------------------------------------------------
-
-===============================================================================
-========[ FAQ ]================================================================
-===============================================================================
-
- Q: I am playing on DOS and ReMooD crashed, now my screen is messed up.
- A: If the game crashes the screen mode cannot be restored, therefor you must
-    type in "MODE CO80" which will set a color 80x25 mode.
-   
- Q: The framerate suffers in certain areas.
- A: Try turning off decals, disabling transparency effects (including the
-    transparent status bar), and possibly decrease the screen size. You can
-    also try switching to a lower resolution. 320x200 will render the fastest
-    at the cost of view quality.
- 
- Q: The sound skips when playing the game normally.
- A: Try increasing the sound buffer size to a higher number, this will require
-    less sound updates. However, it may delay sound a bit depending on how high
-    the value is.
-   
- Q: Sounds are delayed
- A: The sound buffer size is too large, try lowering the value to a reasonable
-    amount.
-    
- Q: I want the game to be aspect ratio correct, how do I do that?
- A: ReMooD always assumes a 4:3 aspect ratio. That is, the game will be aspect
-    correct provided you choose a resolution that fits your entire screen for
-    the correct ratio that you want. If you have a 1:1 screen (such as a LCD
-    panel) then choose 320x240 or 640x480. Otherwise if you have a 4:3 screen
-    (such as most CRTs) then choose 320x200 or 640x400. This of course presumes
-    you are playing the game fullscreen.
- 
- Q: I'm playing on my laptop and sometimes the Doom Guy randomly moves his
-    position, but he only does it when I move my laptop.
- A: Your laptop may have an accelerometer which may be exposed to the system
-    as a joystick. An example would be the "ST LIS3LV02DL Accelerometer" on my
-    laptop for example. It usually is best to not use an accelerometer as a
-    joystick unless you want to play by tossing your laptop across a room.
-
-===============================================================================
-========[ ALLEGRO SPECIFICS ]==================================================
-===============================================================================
-
-When using the Allegro interface, there a few things you need to know. If you
-are on a UNIX based system you should have a .allegrorc file in your home
-directory which is for settings the game will use when things are autodetected.
-This is mostly the case for music and sound, if Allegro incorrectly chooses the
-wrong sound card you want to use (ALSA, OSS, etc.).
-
-If on Linux and you notice you have no music at all, you may try adding the
-following to your .allegrorc:
-
- > [sound]
- > midi_card = DIGI
- > patches = /home/steven/digmid.dat
-
-This is is the DIGMIDI driver, which essentialy loads instruments from the dat
-file printed there. DIGMIDI is like Timidity++ and FluidSynth. You can find
-some Allegro patches available at http://alleg.sourceforge.net/digmid.html at
-the bottom of the page.  Note that the patches field will vary from system to
-system (if you are using Linux you should be knowledgable enough to know what
-to put here).
-
-========[ SOURCE CODE STYLE ]==================================================
-
-If you want to submit patches (which I will take a look at and determine their
-coolness factor), you must match my coding style. If you didn't then your patch
-will be applied ran through GNU indent:
-
- * indent -kr -bad -bap -c60 -bl -bli0 -nce -cdw -cli4 -cbi0 -nss -npcs -ncs\
-          -nprs -saf -sai -nsaw -di1 -nbc -nbfda -nbfde -bls -blf -i4 -lp\
-          -l160 -nbbo -ts4 -sob
 

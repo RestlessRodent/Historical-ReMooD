@@ -1,5 +1,5 @@
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
 //     .cCO8OOOOOOOOO8Oo:
 //   .oOO8OOOOOOOOOOOOOOOCc
@@ -13,7 +13,7 @@
 //    cO@@@@@@@@@@@@@@@@@Oc0
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 3
@@ -23,7 +23,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Legacy Script compiler
 
 #ifndef __T_COMP_H__

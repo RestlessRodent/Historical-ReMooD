@@ -3,7 +3,6 @@
 # Data lumps
 [lumps]
 REMOOD
-WADIDENT
 VERSION
 LICENSE
 LICENSEC
