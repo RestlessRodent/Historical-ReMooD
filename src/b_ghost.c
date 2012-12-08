@@ -966,10 +966,11 @@ void B_InitNodes(void)
 	
 	/* Determine if bots are already inside */
 	g_GotBots = false;
-	for (i = 0; i < g_NumXPlays; i++)
-		if (g_XPlays[i])
-			if (g_XPlays[i]->Flags & (DXPF_LOCAL | DXPF_BOT) == (DXPF_LOCAL | DXPF_BOT))
-			g_GotBots = true;
+	if (D_XNetIsServer())
+		for (i = 0; i < g_NumXPlays; i++)
+			if (g_XPlays[i])
+				if ((g_XPlays[i]->Flags & (DXPF_LOCAL | DXPF_BOT)) == (DXPF_LOCAL | DXPF_BOT))
+					g_GotBots = true;
 }
 
 /* BS_GHOST_JOB_RandomNav() -- Random navigation */

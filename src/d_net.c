@@ -539,6 +539,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	l_XNLastPTic = g_ProgramTic;
 	g_DemoFreezeTics = 0;
 	
+	// There are no bots
+	g_GotBots = false;
+	
 	/* Clear all player information */
 	// Reset all vars
 	P_XGSSetAllDefaults();
@@ -1638,6 +1641,9 @@ static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 		// Display Name
 	if (!strlen(a_Player->DisplayName))
 		strncpy(a_Player->DisplayName, a_Player->AccountName, MAXPLAYERNAME);
+	
+	/* Cheat and say we got bots now */
+	g_GotBots = true;
 }
 
 /* DS_XNetCon() -- Command */
