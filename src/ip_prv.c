@@ -14,7 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2012-2013 GhostlyDeath <ghostlydeath@remood.org>
 // Portions Copyright (C) Odamex <http://odamex.net/>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or

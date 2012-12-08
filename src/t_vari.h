@@ -15,7 +15,7 @@
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright(C) 2000 Simon Howard
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2013 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License

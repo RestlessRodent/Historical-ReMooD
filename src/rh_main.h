@@ -15,7 +15,7 @@
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright (C) 1996-1998 Activision and Raven Software
-// Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2012-2013 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
