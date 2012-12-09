@@ -283,7 +283,7 @@ wad/wadinfo.txt:
 # Preprocessor for environment
 .PHONY: ____cdef.___
 ____cdef.___:	version
-				@$(__INT_CC) -E -x c -dM $< -o $@
+				@$(__INT_CC) $(CDEFFLAGS) -E -x c -dM $< -o $@
 
 # Program that builds the makefile (always rebuild)
 # It is suffixed with exe for DOS, UNIX could care less

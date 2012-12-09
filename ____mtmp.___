@@ -179,7 +179,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
-	
+		
 	# Generic UNIX
 `el
 		__XX_EXESUFFIX = 
@@ -209,6 +209,15 @@ endif
 	__XX_ILDFLAGS = arm-palmos-gcc-pace_gen.o armfloats.ar -mfloat-abi=softfp -nostartfiles -nodefaultlibs -nostdlib -mshort-load-bytes -ffixed-r9
 	__XX_DEFINTRF ?= palmos
 	__XX_EXTRAOBJ = 
+
+# Nintendo Wii
+`ei ?__REMOOD_WII
+	__XX_EXESUFFIX = elf
+	__XX_OBJPREFIX = p
+	__XX_ICFLAGS  = -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -D__REMOOD_MODEL=2
+	__XX_ILDFLAGS = 
+	__XX_DEFINTRF ?= libogc
+	__XX_EXTRAOBJ = 
 	
 # Unknown
 `el
@@ -233,45 +242,60 @@ ifeq (sdl,$(strip $(__XX_DEFINTRF)))
 	__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS) $(__INT_OPENGLCFLAGS)
 	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS) $(__INT_OPENGLLDFLAGS)
 else
-	# Allegro Interface
-	ifeq (allegro,$(strip $(__XX_DEFINTRF)))
-		__XX_IFACEDIR = allegro
-		__XX_FPREFIX = a
-		__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO $(__INT_ALLEGROCFLAGS)
-		__XX_FLDFLAGS = $(__INT_ALLEGROLDFLAGS)
-	else
-		# Raw Windows Interface
-		ifeq (win36c,$(strip $(__XX_DEFINTRF)))
-			__XX_IFACEDIR = win36c
-			__XX_FPREFIX = w
-			__XX_FCFLAGS = -D__REMOOD_INTERFACE_WIN36C
-			__XX_FLDFLAGS = 
-		else
-			# Headless interface
-			ifeq (headless,$(strip $(__XX_DEFINTRF)))
-				__XX_IFACEDIR = headless
-				__XX_FPREFIX = h
-				__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS
-				__XX_FLDFLAGS = 
-			else
-				# PalmOS interface
-				ifeq (palmos,$(strip $(__XX_DEFINTRF)))
-					__XX_IFACEDIR = palmos
-					__XX_FPREFIX = p
-					__XX_FCFLAGS = -D__REMOOD_INTERFACE_PALMOS
-					__XX_FLDFLAGS = 
-				else
-					# OpenGL+GLUT+OpenAL interface
-					ifeq (glutal,$(strip $(__XX_DEFINTRF)))
-						__XX_IFACEDIR = glutal
-						__XX_FPREFIX = g
-						__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_GLUTAL $(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
-						__XX_FLDFLAGS = $(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
-					endif
-				endif
-			endif
-		endif
-	endif
+
+# Allegro Interface
+ifeq (allegro,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = allegro
+	__XX_FPREFIX = a
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO $(__INT_ALLEGROCFLAGS)
+	__XX_FLDFLAGS = $(__INT_ALLEGROLDFLAGS)
+else
+
+# Raw Windows Interface
+ifeq (win36c,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = win36c
+	__XX_FPREFIX = w
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_WIN36C
+	__XX_FLDFLAGS = 
+else
+
+# Headless interface
+ifeq (headless,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = headless
+	__XX_FPREFIX = h
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS
+	__XX_FLDFLAGS = 
+else
+
+# PalmOS interface
+ifeq (palmos,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = palmos
+	__XX_FPREFIX = p
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_PALMOS
+	__XX_FLDFLAGS = 
+else
+
+# OpenGL+GLUT+OpenAL interface
+ifeq (glutal,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = glutal
+	__XX_FPREFIX = g
+	__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_GLUTAL $(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
+	__XX_FLDFLAGS = $(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
+else
+
+# Nintendo GC/Wii interface
+ifeq (libogc,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = glutal
+	__XX_FPREFIX = c
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_LIBOGC
+	__XX_FLDFLAGS =
+
+endif
+endif
+endif
+endif
+endif
+endif
 endif
 
 ##############

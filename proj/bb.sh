@@ -56,11 +56,15 @@ do
 	# Which package is being built?
 	case $target
 	in
-			# Standard release (tar.gz)
+###############################################################################
+### Standard release (tar.gz)
+###############################################################################
 		release)
 			;;
 			
-			# Update sys/tarfiles.txt
+###############################################################################
+### Update sys/tarfiles.txt
+###############################################################################
 		system_tarfiles)
 			# Print message
 			echo "$COOLPREFIX Updating sys/tarfiles.txt" 1>&2
@@ -92,7 +96,9 @@ do
 			echo "$COOLPREFIX Done" 1>&2
 			;;
 			
-			# tar source to stdout
+###############################################################################
+### tar source to stdout
+###############################################################################
 		source_tar_stdout)
 			echo "$COOLPREFIX tar to stdout" 1>&2
 			
@@ -114,7 +120,9 @@ do
 			rm -rf "tsrc$$" > /dev/null 2> /dev/null
 			;;
 			
-			# tar source
+###############################################################################
+### tar source
+###############################################################################
 		source_tar)
 			TARGETNAME="$REMOODBASESOURCE.tar"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
@@ -131,7 +139,9 @@ do
 			fi
 			;;
 			
-			# tar.gz source code
+###############################################################################
+### tar.gz source code
+###############################################################################
 		source_tgz)
 			TARGETNAME="$REMOODBASESOURCE.tgz"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
@@ -148,7 +158,9 @@ do
 			fi
 			;;
 			
-			# tar.bz2 source code
+###############################################################################
+### tar.bz2 source code
+###############################################################################
 		source_tbz)
 			TARGETNAME="$REMOODBASESOURCE.tbz"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
@@ -165,7 +177,9 @@ do
 			fi
 			;;
 			
-			# tar.xz source code
+###############################################################################
+### tar.xz source code
+###############################################################################
 		source_txz)
 			TARGETNAME="$REMOODBASESOURCE.txz"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
@@ -186,7 +200,9 @@ do
 			fi
 			;;
 		
-			# zip source code
+###############################################################################
+### zip source code
+###############################################################################
 		source_zip)
 			TARGETNAME="$REMOODBASESOURCE.zip"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
@@ -203,7 +219,9 @@ do
 			fi
 			;;
 			
-			# Debian source package
+###############################################################################
+### Debian source package
+###############################################################################
 		debian_src)
 			echo "$COOLPREFIX Build Debian Source Package" 1>&2
 			"$BBROOT/bb.sh" source_tgz
@@ -212,8 +230,11 @@ do
 			mv -v "$REMOODBASESOURCE.tgz" "$REMOODDEBIANSHORT.orig.tar.gz"
 			;;
 			
-			# Debian package (UGLY method)
+###############################################################################
+### Debian package (UGLY method)
+###############################################################################
 		debian_ugly)
+
 			TARGETNAME="$REMOODDEBIANNAME.deb"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
@@ -275,14 +296,18 @@ do
 			dpkg-deb -b debian "$REMOODDEBIANNAME.deb"
 			;;
 			
-			# Debian package
+###############################################################################
+### Debian package
+###############################################################################
 		debian)
 			TARGETNAME="$REMOODDEBIANNAME.deb"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			;;
 			
-			# Win32 Compiler
+###############################################################################
+### Win32 Compiler
+###############################################################################
 		win32_findcc)
 			# Which prefix works?
 				# Win64 name last (Win64 does not work on 98)
@@ -299,7 +324,9 @@ do
 			echo ""
 			;;
 			
-			# Win64 Compiler
+###############################################################################
+### Win64 Compiler
+###############################################################################
 		win64_findcc)
 			# Which prefix works?
 			# These are all the same CCs, second is comp, last is Debian screwy name
@@ -316,7 +343,9 @@ do
 			echo ""
 			;;
 			
-			# Win32/Allegro Binary
+###############################################################################
+### Win32/Allegro Binary
+###############################################################################
 		win32_allegro)
 			echo "$COOLPREFIX Building Win32 Allegro Binary" 1>&2
 			
@@ -374,18 +403,50 @@ do
 			
 			;;
 			
-			# Win32/SDL Binary
+###############################################################################
+### Win32/SDL Binary
+###############################################################################
 		win32_sdl)
 			echo "$COOLPREFIX Building Win32 SDL Binary" 1>&2
 			;;
 			
-			# Default Win32 Binary
+###############################################################################
+### Default Win32 Binary
+###############################################################################
 		win32)
 			echo "$COOLPREFIX Building Win32 Default Binary" 1>&2
 			"$BBROOT/bb.sh" win32_allegro
 			;;
 			
-			# GCW Zero
+###############################################################################
+### Nintendo Wii
+###############################################################################
+		wii)
+			# Message
+			echo "$COOLPREFIX Building Wii Package" 1>&2
+			
+			# Devkitpro Root
+			if [ "$DEVKITPPC" = "" ]
+			then
+				DEVKITPPC="/opt/devkitppc/devkitPPC"
+			fi
+			
+			# Compile
+			if ! make CDEFFLAGS="-D__REMOOD_WII" CC="$DEVKITPPC/bin/powerpc-eabi-gcc" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf"
+			then
+				echo "$COOLPREFIX Build failed" 1>&2
+				exit 1
+			fi
+			
+			# Convert ELF to DOL
+			
+			CC="$GCWTCROOT/usr/bin/mipsel-gcw0-linux-uclibc-gcc" USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL -D__REMOOD_MODEL=1" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
+			
+			;;
+			
+###############################################################################
+### GCW Zero
+###############################################################################
 		gcw)
 			# Message
 			echo "$COOLPREFIX Building GCW Package" 1>&2
@@ -443,7 +504,9 @@ do
 			rm -rf "$$"
 			;;
 			
-			# Palm OS
+###############################################################################
+### Palm OS
+###############################################################################
 		palmos)
 			echo "$COOLPREFIX Building Palm OS PRC" 1>&2
 			
@@ -550,7 +613,9 @@ do
 			
 			;;
 			
-			# Test Suite
+###############################################################################
+### Test Suite
+###############################################################################
 		test)
 			echo "$COOLPREFIX Prepare test with build" 1>&2
 			make clean USEINTERFACE=headless DEBUG=1 > /dev/null 2> /dev/null

@@ -2985,6 +2985,8 @@ void D_DoomMain(void)
 	#define __REMOOD_MODEL_S "default"
 #elif (__REMOOD_MODEL == 1)
 	#define __REMOOD_MODEL_S "gcw"
+#elif (__REMOOD_MODEL == 2)
+	#define __REMOOD_MODEL_S "wii"
 #endif
 
 D_ModelMode_t g_ModelMode = 0;					// Model to use
@@ -3006,7 +3008,9 @@ void D_InitModelMode(void)
 	Input = __REMOOD_MODEL_S;
 	
 	/* Which Model is used? */
-	if (!strcasecmp(Input, "gcw"))
+	if (!strcasecmp(Input, "wii"))
+		g_ModelMode = DMM_WII;
+	else if (!strcasecmp(Input, "gcw"))
 		g_ModelMode = DMM_GCW;
 	else
 		g_ModelMode = DMM_DEFAULT;

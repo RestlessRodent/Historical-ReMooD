@@ -94,6 +94,7 @@ typedef enum D_ModelMode_s
 {
 	DMM_DEFAULT,								// Default PC
 	DMM_GCW,									// GCW Zero
+	DMM_WII,									// Nintendo Wii
 } D_ModelMode_t;
 
 extern D_ModelMode_t g_ModelMode;				// Model to use
