@@ -408,6 +408,61 @@ do
 ###############################################################################
 		win32_sdl)
 			echo "$COOLPREFIX Building Win32 SDL Binary" 1>&2
+			
+			# Find GCC
+			WINGCC="`"$BBROOT/bb.sh" win32_findcc`"
+			echo "$COOLPREFIX Using $WINGCC" 1>&2
+			
+			
+			# Check if sdlw32 needs to be extracted
+			if  [ ! -d "SDL-1.2.15" ]
+			then
+				# Download from remood.org
+				if [ ! -f "SDL-devel-1.2.15-mingw32.tar.gz" ]
+				then
+					wget -c http://remood.org/downloads/SDL-devel-1.2.15-mingw32.tar.gz -O SDL-devel-1.2.15-mingw32.tar.gz
+				fi
+				
+				# Extract
+				if ! tar -xvvf "SDL-devel-1.2.15-mingw32.tar.gz"
+				then
+					echo "$COOLPREFIX Failed to extract SDL/Win32" 1>&2
+					exit 1
+				fi
+			fi
+			
+			# Compile
+			make clean USEINTERFACE=sdl TOOLPREFIX="$WINGCC"
+			if ! make USEINTERFACE=sdl TOOLPREFIX="$WINGCC" SDL_INCLUDE=SDL-1.2.15/include/SDL SDL_LIB=SDL-1.2.15/lib OPENGL_LDFLAGS="-lopengl32"
+			then
+				echo "$COOLPREFIX Failed" 1>&2
+				exit 1
+			fi
+			
+			# Zip
+			mkdir -p "$$/"
+			cp -v "bin/remood.exe" "$$/"
+			cp -v "$BBREMOOD/bin/remood.wad" "$$/"
+			cp -v "SDL-1.2.15/bin/SDL.dll" "$$/"
+			cp -v "$BBREMOOD/doc/manual.pdf" "$$/"
+			cp -v "$BBREMOOD/AUTHORS" "$$/"
+			cp -v "$BBREMOOD/LICENSE" "$$/"
+			cp -v "$BBREMOOD/version" "$$/"
+			
+			# Go into dir
+			cd "$$/"
+			
+			# Convert to DOS format
+			unix2dos -o AUTHORS LICENSE version
+			
+			# Zip files into an archive
+			rm -f "../remood_${REMOODVERSIONSTRIP}_win32.zip"
+			zip "../remood_${REMOODVERSIONSTRIP}_win32.zip" *
+			
+			# Get back out
+			cd "../"
+			rm -rf "$$"
+			
 			;;
 			
 ###############################################################################
@@ -439,8 +494,6 @@ do
 			fi
 			
 			# Convert ELF to DOL
-			
-			CC="$GCWTCROOT/usr/bin/mipsel-gcw0-linux-uclibc-gcc" USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL -D__REMOOD_MODEL=1" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
 			
 			;;
 			
@@ -485,6 +538,7 @@ do
 			cp ../sys/gcw.png remood.png
 			cp ../bin/remood.elf remood.elf
 			cp ../bin/remood.wad remood.wad
+			cp ../doc/AUTHORS AUTHORS
 			cp ../doc/LICENSE LICENSE
 			cp ../doc/manual.pdf manual.pdf
 			
@@ -493,6 +547,7 @@ do
 			
 			# Make sure everything is readable
 			chmod uog+r *
+			chmod uog+x remood.elf
 			
 			cd ..
 			

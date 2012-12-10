@@ -54,7 +54,6 @@ void VHW_SIDX_HUDDrawLine(const vhwrgb_t a_RGB, int32_t a_X1, int32_t a_Y1, int3
 {
 }
 
-
 /* VHW_SIDX_HUDDrawImageComplex() -- Draws complex image onto the screen */
 void VHW_SIDX_HUDDrawImageComplex(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
 {
@@ -88,7 +87,6 @@ void VHW_SIDX_HUDDrawBox(const uint32_t a_Flags, const uint8_t a_R, const uint8_
 {
 	V_DrawColorBoxEx(a_Flags, NearestColor(a_R, a_G, a_B), a_X1, a_Y1, a_X2, a_Y2);
 }
-
 
 /* VHW_SIDX_ClearScreen() -- Clears the screen */
 void VHW_SIDX_ClearScreen(const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
