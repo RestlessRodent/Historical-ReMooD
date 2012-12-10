@@ -118,6 +118,16 @@
 			#define __REMOOD_BIG_ENDIAN 1
 		#endif
 	#endif
+	
+	// Mac OS X has machine/endian.h
+	#if defined(__APPLE__) && defined(__MACH__)
+		#include <machine/endian.h>
+		
+		// Big endian? PowerPC system?
+		#if __DARWIN_BYTE_ORDER == __DARWIN_BIG_ENDIAN
+			#define __REMOOD_BIG_ENDIAN
+		#endif
+	#endif
 
 	// Known Big endian systems
 	#if !defined(__REMOOD_BIG_ENDIAN)
