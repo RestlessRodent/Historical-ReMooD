@@ -62,7 +62,6 @@
 #include "d_net.h"
 #include "p_inter.h"
 #include "d_prof.h"
-#include "v_widget.h"
 
 #include "i_util.h"
 #include "p_demcmp.h"
