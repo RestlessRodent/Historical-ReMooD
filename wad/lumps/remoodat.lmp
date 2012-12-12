@@ -34107,7 +34107,7 @@ MapWeapon "BFGNineK"
 		
 		Frame "3"
 		{
-			DeHackEdNum 1";
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";

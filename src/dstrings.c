@@ -979,7 +979,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
-	{			   "DRMOD_PARSEERROR", "Parse error in \"$3\" ($1), at $2:$9->$4:$5 ($6 [$8])."},
+	{			   "DRMOD_PARSEERROR", "Parse error in \"$3\" ($1), at $2:$9->$4:$5 ($7) ($6 [$8])."},
 	
 	/*** COMMAND.C ***/
 	{	  "COMMANDC_WOULDHASHCOLLIDE", "Variable \"$1\" hash collides with \"$2\"."},

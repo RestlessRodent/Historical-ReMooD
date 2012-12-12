@@ -290,8 +290,6 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{0, NULL},
 };
 
-static PI_state_t StaticSNull;
-
 /* INFO_StateNormalize() -- Normalizes State References */
 void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
 {
@@ -578,7 +576,7 @@ void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 {
-	{"DeHackEdNum", IRVT_UINT32, offsetof(PI_state_t, DehackEdID[COREGAME_DOOM])},
+	{"DeHackEdNum", IRVT_INT32, offsetof(PI_state_t, DehackEdID[COREGAME_DOOM])},
 	
 	{"Tics", IRVT_INT32, offsetof(PI_state_t, tics)},
 	{"FastTics", IRVT_INT32, offsetof(PI_state_t, RMODFastTics)},
@@ -1783,6 +1781,7 @@ typedef struct PI_DEHSprMap_s
 {
 	int32_t ID;									// ID
 	char Name[5];								// Name
+	int32_t RealID;								// Real ID
 } PI_DEHSprMap_t;
 
 /* PI_DEHChangeTable_t -- DeHackEd change table */
@@ -1795,6 +1794,7 @@ typedef struct PI_DEHChangeTable_s
 } PI_DEHChangeTable_t;
 
 /* PIS_SomeMoFrame() -- Some field frame */
+// Works on states too since the code is the same
 static void PIS_SomeMoFrame(char* const a_Field, char* const a_Value, void* const a_DataP, const int32_t a_IntVal, int32_t* const a_Cache)
 {
 	int32_t i;
@@ -1846,7 +1846,8 @@ static const PI_DEHChangeTable_t c_DEHCTThings[] =
 	{"Height", IRVT_INT32, offsetof(PI_mobj_t, OldHeight), NULL},
 	{"Pain chance", IRVT_INT32, offsetof(PI_mobj_t, painchance), NULL},
 	{"Reaction time", IRVT_INT32, offsetof(PI_mobj_t, reactiontime), NULL},
-	{"Missile damage frame", IRVT_FUNC, offsetof(PI_mobj_t, spawnstate), PIS_SomeMoFrame},
+	
+	{"Initial frame", IRVT_FUNC, offsetof(PI_mobj_t, spawnstate), PIS_SomeMoFrame},
 	{"First moving frame", IRVT_FUNC, offsetof(PI_mobj_t, seestate), PIS_SomeMoFrame},
 	{"Injury frame", IRVT_FUNC, offsetof(PI_mobj_t, painstate), PIS_SomeMoFrame},
 	{"Close attack frame", IRVT_FUNC, offsetof(PI_mobj_t, meleestate), PIS_SomeMoFrame},
@@ -1864,9 +1865,9 @@ static size_t l_NumDEHSprMaps;
 /* PIS_DEHSpriteLU() -- Lookup a sprite */
 static void PIS_DEHSpriteLU(char* const a_Field, char* const a_Value, void* const a_DataP, const int32_t a_IntVal, int32_t* const a_Cache)
 {
-	int32_t i;
+	int32_t i, j;
 	
-	/* Illegal State? */
+	/* Illegal Sprite? */
 	if (a_IntVal < 0)
 		return;
 	
@@ -1890,19 +1891,35 @@ static void PIS_DEHSpriteLU(char* const a_Field, char* const a_Value, void* cons
 			return;
 		}
 		
-		// Set cache based on REAL sprite ID
-			// Failed sprites will all go to TROO however
-		*a_Cache = INFO_SpriteNumByName(l_DEHSprMaps[i].Name, false);
+		// Set cache
+		*a_Cache = i;
 	}
 	
-	/* Set to cache */
-	*((PI_spriteid_t*)a_DataP) = *a_Cache;
+	
+	/* Setup sprite (all change) */
+	// Sprite name
+	((PI_state_t*)a_DataP)->sprite = l_DEHSprMaps[*a_Cache].RealID;
+	
+	// Copy help sprite
+	for (j = 0; j < 4; j++)
+		((PI_state_t*)a_DataP)->HoldSprite[j] = l_DEHSprMaps[*a_Cache].Name[j];
+	((PI_state_t*)a_DataP)->HoldSprite[j] = 0;
+		
+	// Calculate SpriteID
+	((PI_state_t*)a_DataP)->SpriteID = 0;
+	for (j = 0; j < 4 && ((PI_state_t*)a_DataP)->HoldSprite[j]; j++)
+		((PI_state_t*)a_DataP)->SpriteID |= ((uint32_t)toupper(((PI_state_t*)a_DataP)->HoldSprite[j])) << (j * UINT32_C(8));
+	
+	CONL_PrintF("%i >> %s\n", ((PI_state_t*)a_DataP)->StateNum, ((PI_state_t*)a_DataP)->HoldSprite);
 }
 
 /* c_DEHCTStates -- Change table for states */
 static const PI_DEHChangeTable_t c_DEHCTStates[] =
 {
-	{"Sprite number", IRVT_FUNC, offsetof(PI_state_t, sprite), PIS_DEHSpriteLU},
+	{"Sprite number", IRVT_FUNC, 0/*offsetof(PI_state_t, sprite)*/, PIS_DEHSpriteLU},
+	{"Sprite subnumber", IRVT_INT32, offsetof(PI_state_t, frame), NULL},
+	{"Duration", IRVT_INT32, offsetof(PI_state_t, tics), NULL},
+	{"Next frame", IRVT_FUNC, offsetof(PI_state_t, nextstate), PIS_SomeMoFrame},
 	
 	{NULL},
 };
@@ -2029,7 +2046,7 @@ void PI_ExecuteDEH(void)
 	CTable = NULL;
 	
 	/* Initialize Sprite mappings */
-	Entry = WL_FindEntry(WAD, 0, "RMD_DEHS");
+	Entry = WL_FindEntry(NULL, 0, "RMD_DEHS");
 	
 	// Entry is REQUIRED for DEHACKED to work
 	if (!Entry)
@@ -2066,11 +2083,14 @@ void PI_ExecuteDEH(void)
 				l_NumDEHSprMaps, l_NumDEHSprMaps + 1);
 			
 			// Append to table
-			l_DEHSprMaps[l_NumDEHSprMaps].ID = i;
+			l_DEHSprMaps[l_NumDEHSprMaps].ID = i++;
 			
 			for (j = 0; j < 4; j++)
 				l_DEHSprMaps[l_NumDEHSprMaps].Name[j] = Buf[j];
 			Buf[j] = 0;
+			
+			// Find real sprite
+			l_DEHSprMaps[l_NumDEHSprMaps].RealID = INFO_SpriteNumByName(l_DEHSprMaps[l_NumDEHSprMaps].Name, false);
 			
 			// Increment
 			l_NumDEHSprMaps++;
@@ -2148,6 +2168,8 @@ void PI_ExecuteDEH(void)
 				// Which kind of thing?
 				if (!strcasecmp(Field, "Thing"))
 					ParseType = 1;
+				else if (!strcasecmp(Field, "Frame"))
+					ParseType = 2;
 				else
 					ParseType = -1;
 				
@@ -2172,7 +2194,7 @@ void PI_ExecuteDEH(void)
 								PIS_BlankSpot(&Mods, &NumMods, mobjinfo[i]);
 						break;
 						
-						// Statses
+						// States
 					case 2:
 						// Switch change table
 						CTable = c_DEHCTStates;
@@ -2229,7 +2251,7 @@ void PI_ExecuteDEH(void)
 									// Integer
 								case IRVT_INT32:
 								case IRVT_UINT32:
-									*((uint32_t*)DataP) = IntVal;
+									*((int32_t*)DataP) = IntVal;
 									break;
 								
 								case IRVT_FUNC:

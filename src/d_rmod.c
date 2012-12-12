@@ -160,9 +160,15 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 			}
 			
 			// Already is a comment so ignore character until it is '\n'
-			for (wc = WL_Src(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_Src(a_Info->Stream))
+			do
+			{
+				// Read char
+				wc = WL_Src(a_Info->Stream);
+				
+				// Stop at newline
 				if (wc == '\n')
 					break;
+			} while (WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd);
 			
 			a_Info->CurCol = 0;
 			a_Info->CurRow++;
@@ -480,8 +486,8 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 							Info.ErrStr = "Unknown error";
 					
 					// Print
-					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_PARSEERROR, "%s%i%s%i%i%s%s%s%i\n",
-							WL_GetWADName(CurWAD, false), Info.BaseRow, Entry->Name, Info.CurRow, Info.CurCol, Info.ErrStr, "", Info.Token, Info.BaseCol
+					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_PARSEERROR, "%s%i%s%i%i%s%08x%s%i\n",
+							WL_GetWADName(CurWAD, false), Info.BaseRow, Entry->Name, Info.CurRow, Info.CurCol, Info.ErrStr, (int)WL_StreamTell(Info.Stream), Info.Token, Info.BaseCol
 						);
 				}
 			
