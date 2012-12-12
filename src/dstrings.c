@@ -979,7 +979,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
-	{			   "DRMOD_PARSEERROR", "Parse error in \"$3\" ($1), at row $4, column $5."},
+	{			   "DRMOD_PARSEERROR", "Parse error in \"$3\" ($1), at $2:$9->$4:$5 ($6 [$8])."},
 	
 	/*** COMMAND.C ***/
 	{	  "COMMANDC_WOULDHASHCOLLIDE", "Variable \"$1\" hash collides with \"$2\"."},
@@ -1021,6 +1021,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{					"INFOC_NODEH", "WAD \"$1\" contains no DEHACKED lump."},
 	{				  "INFOC_NOTADEH", "WAD \"$1\" contains illegal DEHACKED lump."},
 	{				"INFOC_BINARYDEH", "WAD \"$1\" contains unsupported binary DEHACKED lump."},
+	{				 "INFOC_OLDPFDEH", "WAD \"$1\" contains old DEHACKED lump, which may fail."},
+	{			  "INFOC_DEHNOSPRMAP", "No sprite mappings, DEHACKED not operational."},
 	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},
@@ -1385,7 +1387,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 {
 #define BUFSIZE 128
 #define SMALLBUF 32
-#define HACKBUF 72
+#define HACKBUF 128
 	char MiniBuf[BUFSIZE];
 	char SmallBuf[SMALLBUF];
 	char HackBuf[HACKBUF];
@@ -1452,51 +1454,55 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 		// Determine the sequence to print
 		f = oe - 1;
 		
-		switch (*f)
+		// Only if there is room in the albiet small buffer
+		if (HackLeft > 0)
 		{
-				// Integers
-			case 'i':
-			case 'o':
-			case 'u':
-			case 'x':
-			case 'X':
-			case 'c':
-				// Long
-				if (*(f - 1) == 'l')
-				{
-					LongType = va_arg(a_ArgPtr, long);
-					snprintf(h, HackLeft, Sym, LongType);
-				}
+			switch (*f)
+			{
+					// Integers
+				case 'i':
+				case 'o':
+				case 'u':
+				case 'x':
+				case 'X':
+				case 'c':
+					// Long
+					if (*(f - 1) == 'l')
+					{
+						LongType = va_arg(a_ArgPtr, long);
+						snprintf(h, HackLeft, Sym, LongType);
+					}
 				
-				// Standard
-				else
-				{
-					IntType = va_arg(a_ArgPtr, int);
-					snprintf(h, HackLeft, Sym, IntType);
-				}
-				break;
+					// Standard
+					else
+					{
+						IntType = va_arg(a_ArgPtr, int);
+						snprintf(h, HackLeft, Sym, IntType);
+					}
+					break;
 			
-				// Pointers
-			case 'p':
-			case 's':
-				PtrType = va_arg(a_ArgPtr, void*);
-				snprintf(h, HackLeft, Sym, PtrType);
-				break;
+					// Pointers
+				case 'p':
+				case 's':
+					PtrType = va_arg(a_ArgPtr, void*);
+					snprintf(h, HackLeft, Sym, PtrType);
+					break;
 				
-				// Unknown
-			default:
-				break;
-		}
+					// Unknown
+				default:
+					break;
+			}
 		
-		if (sn < 9)
-		{
-			// Place here
-			Points[sn++] = h;
+			if (sn < 9)
+			{
+				// Place here
+				Points[sn++] = h;
 			
-			// Move around
-			hl = strlen(h);
-			h += hl + 2;
-			HackLeft -= hl + 2;
+				// Move around
+				hl = strlen(h);
+				h += hl + 2;
+				HackLeft -= hl + 2;
+			}
 		}
 		
 		// Convert back to whatever, if anything exists
@@ -1506,6 +1512,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 	
 	/* Read Input and place in output buffer */
 	i = DS_GetString(a_StrID);
+	iold = NULL;
 	SpecialPoint = false;
 	for (o = a_OutBuf, oe = (o + a_OutSize) - 1; o < oe;)
 	{

@@ -69,6 +69,9 @@ typedef struct D_RMODTokenInfo_s
 	
 	int32_t CurRow;								// Current row being parsed
 	int32_t CurCol;								// Current column being parsed
+	int32_t BaseRow;							// Start row being parsed
+	int32_t BaseCol;							// Start column being parsed
+	const char* ErrStr;							// Error String
 } D_RMODTokenInfo_t;
 
 /*************
@@ -105,6 +108,10 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 	// Also clear problem
 	a_Info->TokenProblem = NULL;
 	
+	// Setup base row (where token starts)
+	a_Info->BaseRow = a_Info->CurRow;
+	a_Info->BaseCol = a_Info->CurCol;
+	
 	/* Read Loop */
 	for (Action = 0, Flipped = false, wc = WL_Src(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_Src(a_Info->Stream))
 	{
@@ -114,16 +121,16 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 		// White space -- Ignore
 		if (wc == ' ' || wc == '\t' || wc == '\r' || wc == '\n')
 		{
-			// A token has been read and this is now whitespace
-			if (Action != 0)
-				break;
-			
 			// If this is a new line, reset columns and add row
 			if (wc == '\n')
 			{
 				a_Info->CurCol = 0;
 				a_Info->CurRow++;
 			}
+			
+			// A token has been read and this is now whitespace
+			if (Action != 0)
+				break;
 			
 			// Continue to read whitespace
 			continue;
@@ -324,7 +331,10 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			ErrOut = false;
 			if (c_RMODNamespaces[ns].Keyer)
 				if (!c_RMODNamespaces[ns].Keyer(&DataRef, -1, DRC_INIT, WL_GetWADName(CurWAD, false), Entry->Name))
+				{
 					ErrOut = true;
+					Info.ErrStr = "No initialization function";
+				}
 	
 			// Determine text type
 			WL_StreamCheckUnicode(DataStream);
@@ -356,6 +366,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 								if (!c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL))
 								{
 									ErrOut = true;
+									Info.ErrStr = "Close handler failed";
 									break;
 								}
 							
@@ -366,6 +377,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 							if (Stack < 0)
 							{
 								ErrOut = true;
+								Info.ErrStr = "Too many closing braces";
 								break;
 							}
 														
@@ -386,6 +398,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 							if (k < n)
 							{
 								ErrOut = true;
+								Info.ErrStr = "Illegal field name";
 								break;
 							}
 						
@@ -406,6 +419,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 						if (!(*p == '\"' && p[n - 1] == '\"'))
 							{
 								ErrOut = true;
+								Info.ErrStr = "Misquoted String";
 								break;
 							}
 						
@@ -435,6 +449,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 						else
 						{
 							ErrOut = true;
+							Info.ErrStr = "Incorrect line terminator";
 							break;
 						}
 						
@@ -443,6 +458,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 							if (!c_RMODNamespaces[ns].Keyer(&DataRef, Stack, (Stack == OldStack ? DRC_DATA : DRC_OPEN), BufF, BufV))
 							{
 								ErrOut = true;
+								Info.ErrStr = "Open handler failed";
 								break;
 							}
 						
@@ -455,9 +471,19 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			// Problems?
 			if (ErrOut)
 				if (devparm)
-					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_PARSEERROR, "%s%s%s%i%i\n",
-							WL_GetWADName(CurWAD, false), c_RMODNamespaces[ns].NiceName, Entry->Name, Info.CurRow, Info.CurCol
+				{
+					// Unknown error?
+					if (!Info.ErrStr)
+						if (Info.TokenProblem)
+							Info.ErrStr = Info.TokenProblem;
+						else
+							Info.ErrStr = "Unknown error";
+					
+					// Print
+					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_PARSEERROR, "%s%i%s%i%i%s%s%s%i\n",
+							WL_GetWADName(CurWAD, false), Info.BaseRow, Entry->Name, Info.CurRow, Info.CurCol, Info.ErrStr, "", Info.Token, Info.BaseCol
 						);
+				}
 			
 			// If any stack remains send closure
 			ErrOut = false;

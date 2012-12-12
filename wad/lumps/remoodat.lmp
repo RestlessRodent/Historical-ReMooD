@@ -34077,7 +34077,6 @@ MapWeapon "BFGNineK"
 			Function "ReFire";
 			Goto "PrimaryReadyState";
 		}
-		
 	}
 	
 	State "PrimaryFlashState"
@@ -34505,7 +34504,8 @@ MapWeapon "BetaBFG"
 	State "PrimaryFireState"
 	{
 		Frame "1"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "0";
 			Tics "10";
 			ViewPriority "Weapons";
@@ -34514,7 +34514,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "2"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34523,7 +34524,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "3"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34532,7 +34534,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "4"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34541,7 +34544,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "5"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34550,7 +34554,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "6"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34559,7 +34564,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "7"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34568,7 +34574,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "8"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34577,7 +34584,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "9"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34586,7 +34594,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "10"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34595,7 +34604,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "11"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34604,7 +34614,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "12"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34613,7 +34624,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "13"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34622,7 +34634,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "14"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34631,7 +34644,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "15"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34640,7 +34654,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "16"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34649,7 +34664,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "17"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34658,7 +34674,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "18"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34667,7 +34684,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "19"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34676,7 +34694,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "20"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34685,7 +34704,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "21"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34694,7 +34714,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "22"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34703,7 +34724,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "23"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34712,7 +34734,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "24"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34721,7 +34744,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "25"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34730,7 +34754,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "26"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34739,7 +34764,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "27"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34748,7 +34774,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "28"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34757,7 +34784,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "29"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34766,7 +34794,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "30"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34775,7 +34804,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "31"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34784,7 +34814,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "32"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34793,7 +34824,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "33"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34802,7 +34834,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "34"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34811,7 +34844,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "35"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34820,7 +34854,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "36"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34829,7 +34864,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "37"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34838,7 +34874,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "38"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34847,7 +34884,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "39"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34856,7 +34894,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "40"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34865,7 +34904,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "41"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "1";
 			ViewPriority "Weapons";
@@ -34874,7 +34914,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "42"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "0";
 			ViewPriority "Weapons";
@@ -34883,7 +34924,8 @@ MapWeapon "BetaBFG"
 		}
 
 		Frame "43"
-		{	Sprite "BFGG";
+		{
+			Sprite "BFGG";
 			Frame "1";
 			Tics "20";
 			ViewPriority "Weapons";

@@ -105,7 +105,7 @@ typedef struct
 	char HoldSprite[5];							// Sprite to remember
 	char* Function;								// Function Name
 	uint32_t SpriteID;							// Frame Sprite ID
-	uint32_t DehackEdID;						// Dehacked ID
+	PI_stateid_t DehackEdID[6];					// Dehacked ID
 	uint8_t IOSG;								// State Group
 	
 	INFO_StateArgsNum_t ArgC;					// Argument Count
@@ -119,7 +119,7 @@ extern char** sprnames;
 extern void** g_SprTouchSpecials;				// Sprite touch special markers
 
 extern PI_state_t** states;
-extern size_t NUMSTATES;
+extern PI_stateid_t NUMSTATES;
 
 typedef int32_t PI_mobjid_t;
 extern PI_mobjid_t NUMMOBJTYPES;
@@ -242,7 +242,7 @@ typedef struct
 	char* RClassName;							// Class Name
 	char* RMTName;								// MT Name
 	char* RNiceName;							// Nice Name
-	uint32_t RDehackEdID;						// DeHackEd ID
+	PI_stateid_t RDehackEdID[6];					// DeHackEd ID
 	uint32_t RefStates[NUMINFOOBJECTSTATEGROUPS];	// State references
 	char* RFamilyClass;							// Family Class
 	
@@ -476,6 +476,8 @@ PI_wepid_t INFO_GetWeaponByName(const char* const a_Name);
 PI_ammoid_t INFO_GetAmmoByName(const char* const a_Name);
 PI_keyid_t INFO_GetKeyByName(const char* const a_Name);
 PI_key_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit);
+
+uint32_t PI_GetDEHSound(const uint32_t a_InID);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions

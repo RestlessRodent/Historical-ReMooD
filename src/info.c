@@ -144,7 +144,7 @@ char** sprnames = NULL;
 void** g_SprTouchSpecials = NULL;				// Sprite touch special markers
 size_t NUMSPRITES = 0;
 PI_state_t** states = 0;
-size_t NUMSTATES = 0;
+PI_stateid_t NUMSTATES = 0;
 PI_mobj_t** mobjinfo = NULL;
 PI_mobjid_t NUMMOBJTYPES = 0;
 PI_touchid_t g_RMODNumTouchSpecials = 0;
@@ -435,7 +435,7 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 	{"HereticEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HERETIC])},
 	{"HexenEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HEXEN])},
 	{"StrifeEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_STRIFE])},
-	{"DeHackEdNum", IRVT_UINT32, offsetof(PI_mobj_t, RDehackEdID)},
+	{"DeHackEdNum", IRVT_INT32, offsetof(PI_mobj_t, RDehackEdID[COREGAME_DOOM])},
 	
 	{"DropsClass", IRVT_STRING, offsetof(PI_mobj_t, RDropClass)},
 	{"BrainExplodeClass", IRVT_STRING, offsetof(PI_mobj_t, RBrainExplodeThing)},
@@ -578,7 +578,8 @@ void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 {
-	{"DeHackEdNum", IRVT_UINT32, offsetof(PI_state_t, DehackEdID)},
+	{"DeHackEdNum", IRVT_UINT32, offsetof(PI_state_t, DehackEdID[COREGAME_DOOM])},
+	
 	{"Tics", IRVT_INT32, offsetof(PI_state_t, tics)},
 	{"FastTics", IRVT_INT32, offsetof(PI_state_t, RMODFastTics)},
 	{"Function", IRVT_STRING, offsetof(PI_state_t, Function)},
@@ -684,6 +685,7 @@ void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
 		
 		// Initialize
 		memset(Ptr->EdNum, 0xFF, sizeof(Ptr->EdNum));
+		memset(Ptr->RDehackEdID, 0xFF, sizeof(Ptr->RDehackEdID));
 		Ptr->ObjectID = Type;
 	}
 	
@@ -790,6 +792,7 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 		StateP->FrameID = FrameID;
 		StateP->Marker = ((uint32_t)StateP->IOSG) << UINT32_C(16);
 		StateP->Marker |= ((uint32_t)StateP->FrameID) & UINT32_C(0xFFFF);
+		memset(StateP->DehackEdID, 0xFF, sizeof(StateP->DehackEdID));
 	}
 	
 	/* Frame is zero and reference not set? */
@@ -1775,6 +1778,230 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 
 /*****************************************************************************/
 
+/* PI_DEHSprMap_t -- Dehacked Sprite Mapping */
+typedef struct PI_DEHSprMap_s
+{
+	int32_t ID;									// ID
+	char Name[5];								// Name
+} PI_DEHSprMap_t;
+
+/* PI_DEHChangeTable_t -- DeHackEd change table */
+typedef struct PI_DEHChangeTable_s
+{
+	const char* Name;							// Name of field
+	INFO_REMOODATValType_t Type;				// Type of value
+	size_t Offset;								// Offset to data
+	void (*Func)(char* const, char* const, void* const, const int32_t, int32_t* const);
+} PI_DEHChangeTable_t;
+
+/* PIS_SomeMoFrame() -- Some field frame */
+static void PIS_SomeMoFrame(char* const a_Field, char* const a_Value, void* const a_DataP, const int32_t a_IntVal, int32_t* const a_Cache)
+{
+	int32_t i;
+	
+	/* Illegal State? */
+	if (a_IntVal < 0)
+		return;
+	
+	/* Find last occurence of value */
+	// Not found
+	if (*a_Cache == -2)
+		return;
+	
+	// Search for it
+	else if (*a_Cache == -1)
+	{
+		for (i = NUMSTATES - 1; i >= 0; i--)
+			if (states[i]->DehackEdID[g_CoreGame] == a_IntVal)
+				break;
+	
+		// Not found? don't bother
+		if (i < 0)
+		{
+			*a_Cache = -2;
+			return;
+		}
+		
+		// Set from cache
+		*a_Cache = i;
+	}
+	
+	/* Set to cache */
+	*((uint32_t*)a_DataP) = *a_Cache;
+}
+
+/* c_DEHCTThings -- Change table for things */
+static const PI_DEHChangeTable_t c_DEHCTThings[] =
+{
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_DOOM]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HERETIC]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HEXEN]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_STRIFE]), NULL},
+	{"Hit points", IRVT_INT32, offsetof(PI_mobj_t, spawnhealth), NULL},
+	{"Speed", IRVT_INT32, offsetof(PI_mobj_t, speed), NULL},
+	{"Mass", IRVT_INT32, offsetof(PI_mobj_t, mass), NULL},
+	{"Bits", IRVT_INT32, offsetof(PI_mobj_t, damage), NULL},
+	{"Width", IRVT_INT32, offsetof(PI_mobj_t, radius), NULL},
+	{"Height", IRVT_INT32, offsetof(PI_mobj_t, Height), NULL},
+	{"Height", IRVT_INT32, offsetof(PI_mobj_t, OldHeight), NULL},
+	{"Pain chance", IRVT_INT32, offsetof(PI_mobj_t, painchance), NULL},
+	{"Reaction time", IRVT_INT32, offsetof(PI_mobj_t, reactiontime), NULL},
+	{"Missile damage frame", IRVT_FUNC, offsetof(PI_mobj_t, spawnstate), PIS_SomeMoFrame},
+	{"First moving frame", IRVT_FUNC, offsetof(PI_mobj_t, seestate), PIS_SomeMoFrame},
+	{"Injury frame", IRVT_FUNC, offsetof(PI_mobj_t, painstate), PIS_SomeMoFrame},
+	{"Close attack frame", IRVT_FUNC, offsetof(PI_mobj_t, meleestate), PIS_SomeMoFrame},
+	{"Far attack frame", IRVT_FUNC, offsetof(PI_mobj_t, missilestate), PIS_SomeMoFrame},
+	{"Death frame", IRVT_FUNC, offsetof(PI_mobj_t, deathstate), PIS_SomeMoFrame},
+	{"Exploding frame", IRVT_FUNC, offsetof(PI_mobj_t, xdeathstate), PIS_SomeMoFrame},
+	
+	{NULL},
+};
+
+// Mappings for sprites (needed for REMOODAT<->DEHACKED bridge)
+static PI_DEHSprMap_t* l_DEHSprMaps;
+static size_t l_NumDEHSprMaps;
+
+/* PIS_DEHSpriteLU() -- Lookup a sprite */
+static void PIS_DEHSpriteLU(char* const a_Field, char* const a_Value, void* const a_DataP, const int32_t a_IntVal, int32_t* const a_Cache)
+{
+	int32_t i;
+	
+	/* Illegal State? */
+	if (a_IntVal < 0)
+		return;
+	
+	/* Find last occurence of value */
+	// Not found
+	if (*a_Cache == -2)
+		return;
+	
+	// Search for it
+	else if (*a_Cache == -1)
+	{
+		// Find it
+		for (i = 0; i < l_NumDEHSprMaps; i++)
+			if (l_DEHSprMaps[i].ID == a_IntVal)
+				break;
+		
+		// Not found?
+		if (i >= l_NumDEHSprMaps)
+		{
+			*a_Cache = -2;
+			return;
+		}
+		
+		// Set cache based on REAL sprite ID
+			// Failed sprites will all go to TROO however
+		*a_Cache = INFO_SpriteNumByName(l_DEHSprMaps[i].Name, false);
+	}
+	
+	/* Set to cache */
+	*((PI_spriteid_t*)a_DataP) = *a_Cache;
+}
+
+/* c_DEHCTStates -- Change table for states */
+static const PI_DEHChangeTable_t c_DEHCTStates[] =
+{
+	{"Sprite number", IRVT_FUNC, offsetof(PI_state_t, sprite), PIS_DEHSpriteLU},
+	
+	{NULL},
+};
+
+/* PIS_SplitDEHLine() -- Splits Dehacked Line */
+static bool_t PIS_SplitDEHLine(char* const a_In, char** const a_OutF, char** const a_OutV, bool_t* const a_Def)
+{
+	char* p, *e, *b;
+	
+	/* Skip beginning whitespace */
+	p = a_In;
+	
+	while (*p == ' ' || *p == '\t')
+		p++;
+	
+	/* Comment? */
+	if (*p == '#')
+		return false;
+	
+	/* Find equals sign */
+	e = strchr(p, '=');
+	
+	// Found it
+	if (e)
+	{
+		// Not a field def
+		*a_Def = false;
+		
+		// First char on line?
+		if (e == p)
+			return false;
+	}
+	
+	// Not found
+	else
+	{
+		// Find first space
+		e = strchr(p, ' ');
+		
+		// Not found or on first char?
+		if (!e || e == p)
+			return false;
+			
+		// Is field char
+		*a_Def = true;
+	}
+	
+	/* NUL out e */
+	b = e;
+	*(e++) = 0;
+	
+	// while e is on whitespace, do the same
+	while (*e == ' ' || *e == '\t')
+		*(e++) = 0;
+	
+	// If e ends on NUL, invalid
+	if (!*e)
+		return false;
+	
+	// Value is now e
+	*a_OutV = e;
+	
+	/* Remove whitespace before the initial e base */
+	b--;
+	while (b > p && (*b == ' ' || *b == '\t'))
+		*(b--) = 0;
+	
+	// Hit start? No field?
+	if (b <= p)
+		return false;
+	
+	// Field is always p
+	*a_OutF = p;
+	
+	/* Success! */
+	return true;
+}
+
+/* PIS_BlankSpot() -- Fills blank or such */
+static void PIS_BlankSpot(void*** const a_Mods, size_t* const a_NumMods, void* const a_Add)
+{
+	size_t i;
+	
+	/* Try to find blank */
+	for (i = 0; i < *a_NumMods; i++)
+		if (!(*a_Mods)[i])
+		{
+			(*a_Mods)[i] = a_Add;
+			return;
+		}
+	
+	/* No Room */
+	Z_ResizeArray((void**)a_Mods, sizeof(**a_Mods),
+		*a_NumMods, *a_NumMods + 1);
+	
+	// Fill
+	(*a_Mods)[(*a_NumMods)++] = a_Add;
+}
+
 /* PI_ExecuteDEH() -- Executes dehacked patches */
 void PI_ExecuteDEH(void)
 {
@@ -1783,7 +2010,75 @@ void PI_ExecuteDEH(void)
 	const WL_WADFile_t* WAD;
 	const WL_WADEntry_t* Entry;
 	WL_ES_t* Stream;
-	int32_t IntVal;
+	bool_t FieldDef;
+	uint8_t ParseType;
+	
+	void** Mods;
+	size_t NumMods;
+	int32_t i, j;
+	
+	char* Field, *Value;
+	void* DataP;
+	int32_t IntVal, Cache;
+	
+	PI_DEHChangeTable_t* CTable;
+	
+	/* Init */
+	Mods = NULL;
+	NumMods = 0;
+	CTable = NULL;
+	
+	/* Initialize Sprite mappings */
+	Entry = WL_FindEntry(WAD, 0, "RMD_DEHS");
+	
+	// Entry is REQUIRED for DEHACKED to work
+	if (!Entry)
+	{
+		CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_DEHNOSPRMAP, "\n");
+		return false;
+	}
+	
+	// Make stream
+	Stream = WL_StreamOpen(Entry);
+	
+	// Worked?
+	if (Stream)
+	{
+		// Check for Unicode
+		WL_StreamCheckUnicode(Stream);
+		
+		// Init
+		i = 0;
+		
+		// Constantly Read Lines
+		while (!WL_StreamEOF(Stream))
+		{
+			// Read Next Line
+			memset(Buf, 0, sizeof(Buf));
+			WL_Srl(Stream, Buf, BUFSIZE);
+			
+			// Blank?
+			if (!Buf[0])
+				continue;
+			
+			// Increase size
+			Z_ResizeArray((void**)&l_DEHSprMaps, sizeof(*l_DEHSprMaps),
+				l_NumDEHSprMaps, l_NumDEHSprMaps + 1);
+			
+			// Append to table
+			l_DEHSprMaps[l_NumDEHSprMaps].ID = i;
+			
+			for (j = 0; j < 4; j++)
+				l_DEHSprMaps[l_NumDEHSprMaps].Name[j] = Buf[j];
+			Buf[j] = 0;
+			
+			// Increment
+			l_NumDEHSprMaps++;
+		}
+		
+		// Close Stream
+		WL_StreamClose(Stream);
+	}
 	
 	/* Go through all VWADs */
 	for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
@@ -1828,9 +2123,142 @@ void PI_ExecuteDEH(void)
 			continue;
 		}
 		
+		// Pre-Init
+		ParseType = 0;
+		
+		// Constantly Read Lines
+		while (!WL_StreamEOF(Stream))
+		{
+			// Read Next Line
+			memset(Buf, 0, sizeof(Buf));
+			WL_Srl(Stream, Buf, BUFSIZE);
+			
+			// Split line
+			if (!PIS_SplitDEHLine(Buf, &Field, &Value, &FieldDef))
+				continue;	// Comment?
+			
+			//CONL_PrintF("@@@ %i `%s` `%s`\n", FieldDef, Field, Value);
+			
+			// Field is most usually always a number, so treat it as such
+			IntVal = C_strtoi32(Value, NULL, 10);
+			
+			// Define stuff to change?
+			if (FieldDef)
+			{
+				// Which kind of thing?
+				if (!strcasecmp(Field, "Thing"))
+					ParseType = 1;
+				else
+					ParseType = -1;
+				
+				// Clear Mods, if any
+				if (Mods)
+					Z_Free(Mods);
+				Mods = NULL;
+				NumMods = 0;
+				
+				// Stuff to modify
+				switch (ParseType)
+				{
+						// Things
+					case 1:
+						// Switch change table
+						CTable = c_DEHCTThings;
+						
+						// Attach all matching DEH IDs
+						for (i = 0; i < NUMMOBJTYPES; i++)
+							if (mobjinfo[i]->RDehackEdID[g_CoreGame] >= 0 &&
+								mobjinfo[i]->RDehackEdID[g_CoreGame] == IntVal)
+								PIS_BlankSpot(&Mods, &NumMods, mobjinfo[i]);
+						break;
+						
+						// Statses
+					case 2:
+						// Switch change table
+						CTable = c_DEHCTStates;
+						
+						// Attach all matching DEH IDs
+						for (i = 0; i < NUMSTATES; i++)
+							if (states[i]->DehackEdID[g_CoreGame] >= 0 &&
+								states[i]->DehackEdID[g_CoreGame] == IntVal)
+								PIS_BlankSpot(&Mods, &NumMods, states[i]);
+						break;	
+					
+						// Do nothing
+					default:
+						// Clear change table though
+						CTable = NULL;
+						break;
+				}
+			}
+			
+			// Changing actual values
+			else
+			{
+				// Header fields?
+				if (ParseType == 0)
+					// Warn if really old < 6 patch format
+					if (!strcasecmp(Field, "Patch format"))
+						if (IntVal < 6)
+							CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_OLDPFDEH, "%s\n", WL_GetWADName(WAD, false));
+				
+				// Clear cache
+				Cache = -1;
+				
+				// Change something in change table?
+				if (CTable)
+					for (j = 0; CTable[j].Name; j++)
+					{
+						// Name mismatch?
+						if (strcasecmp(Field, CTable[j].Name))
+							continue;
+						
+						// Name matches, change all values
+						for (i = 0; i < NumMods; i++)
+						{
+							// No mod here?
+							if (!Mods[i])
+								continue;
+							
+							// Get offset
+							DataP = (void*)(((uintptr_t)Mods[i]) + CTable[j].Offset);
+							
+							// Based on type
+							switch (CTable[j].Type)
+							{
+									// Integer
+								case IRVT_INT32:
+								case IRVT_UINT32:
+									*((uint32_t*)DataP) = IntVal;
+									break;
+								
+								case IRVT_FUNC:
+									CTable[j].Func(Field, Value, DataP, IntVal, &Cache);
+									break;
+								
+									// Unknown!?
+								default:
+									break;
+							}
+						}
+					}
+			}
+		}
+		
 		// Close stream, done with it
 		WL_StreamClose(Stream);
 	}
+	
+	/* Cleanup */
+	// Clear mods table
+	if (Mods)
+		Z_Free(Mods);
+	
+	// Purge sprite mappings
+	if (l_DEHSprMaps)
+		Z_Free(l_DEHSprMaps);
+	l_DEHSprMaps = NULL;
+	l_NumDEHSprMaps = 0;
 #undef BUFSIZE
 }
 
@@ -2231,4 +2659,12 @@ PI_key_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit)
 	/* Return the mapped keys */
 	return l_KeyMap[a_Group][a_Bit];
 }
+
+/* PI_GetDEHSound() -- Obtains Dehacked ID for sound */
+uint32_t PI_GetDEHSound(const uint32_t a_InID)
+{
+	/* Just return the same number for now */
+	return a_InID;
+}
+
 
