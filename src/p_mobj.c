@@ -1929,15 +1929,18 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		return;
 		
 	// find which type to spawn (woo hacky and I like it)
-	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (mthing->type == mobjinfo[i]->EdNum[g_CoreGame])
+	for (i = NUMMOBJTYPES; i > 0; i--)
+		if (mthing->type == mobjinfo[i - 1]->EdNum[g_CoreGame])
 			break;
 			
-	if (i >= NUMMOBJTYPES)
+	if (i == 0)
 	{
 		CONL_PrintF("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
 		return;
 	}
+	
+	// Subtract to get real ID
+	i -= 1;
 	
 	// GhostlyDeath <June 6, 2012> -- Spawn Pickups?
 	if (!P_XGSVal(PGS_ITEMSSPAWNPICKUPS) && (mobjinfo[i]->flags & MF_SPECIAL))

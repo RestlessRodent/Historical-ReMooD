@@ -1762,12 +1762,76 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 					ThisTC->ActSpriteID |= ((uint32_t)toupper(ThisTC->SpriteName[j])) << (j * 8);
 			}
 			
+			// Run DeHackEd Patches Now
+			PI_ExecuteDEH();
+			
 			// All-done!
 			return true;
 		
 		default:
 			return false;
 	}
+}
+
+/*****************************************************************************/
+
+/* PI_ExecuteDEH() -- Executes dehacked patches */
+void PI_ExecuteDEH(void)
+{
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	const WL_WADFile_t* WAD;
+	const WL_WADEntry_t* Entry;
+	WL_ES_t* Stream;
+	int32_t IntVal;
+	
+	/* Go through all VWADs */
+	for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
+	{
+		// Find DeHackEd lump in WAD
+		Entry = WL_FindEntry(WAD, 0, "DEHACKED");
+		
+		// Not found?
+		if (!Entry)
+		{
+			if (devparm)
+				CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_NODEH, "%s\n", WL_GetWADName(WAD, false));
+			continue;
+		}
+		
+		// Create stream for it
+		Stream = WL_StreamOpen(Entry);
+		
+		// Check for Unicode (UTF-16 DEHs!)
+		WL_StreamCheckUnicode(Stream);
+		
+		// Read Header info
+		memset(Buf, 0, sizeof(Buf));
+		WL_Srl(Stream, Buf, BUFSIZE);
+		
+		// Make sure it matches the DeHackEd Header
+		if (strncasecmp("Patch File for DeHackEd v", Buf, 24))
+		{
+			if (devparm)
+				CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_NOTADEH, "%s\n", WL_GetWADName(WAD, false));
+			continue;
+		}
+		
+		// Check Version Num
+		IntVal = (((uint32_t)(Buf[25] - '0')) << 8) | ((uint32_t)(Buf[27] - '0'));
+		
+		// Binary DEHs not supported
+		if (IntVal <= UINT32_C(0x0200))
+		{
+			if (devparm)
+				CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_BINARYDEH, "%s\n", WL_GetWADName(WAD, false));
+			continue;
+		}
+		
+		// Close stream, done with it
+		WL_StreamClose(Stream);
+	}
+#undef BUFSIZE
 }
 
 /*****************************************************************************/
@@ -2166,7 +2230,5 @@ PI_key_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit)
 	
 	/* Return the mapped keys */
 	return l_KeyMap[a_Group][a_Bit];
-bool_t l_KeysMapped = false;					// Keys Mapped
-PI_key_t* l_KeyMap[2][32];					// Quick Key Mapping
 }
 

@@ -458,6 +458,8 @@ extern PI_touch_t** g_RMODTouchSpecials;
 
 void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount);
 
+void PI_ExecuteDEH(void);
+
 /*** HELPFUL FUNCTIONS ***/
 
 bool_t INFO_BoolFromString(const char* const a_String);

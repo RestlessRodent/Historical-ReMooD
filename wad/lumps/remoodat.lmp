@@ -33112,7 +33112,6 @@ MapWeapon "Fist"
 	PickupAmmo "0";
 	SpriteYOffset "0";
 	IsDoom "true";
-	IsHeretic "true";
 	IsBerserkToggle "true";
 	IsSwitchFromNoAmmo "true";
 	IsStartingWeapon "true";
@@ -33124,6 +33123,7 @@ MapWeapon "Fist"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "4";
 			Sprite "PUNG";
 			Frame "0";
 			Tics "1";
@@ -33137,6 +33137,7 @@ MapWeapon "Fist"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "3";
 			Sprite "PUNG";
 			Frame "0";
 			Tics "1";
@@ -33150,6 +33151,7 @@ MapWeapon "Fist"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "2";
 			Sprite "PUNG";
 			Frame "0";
 			Tics "1";
@@ -33163,6 +33165,7 @@ MapWeapon "Fist"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "5";
 			Sprite "PUNG";
 			Frame "1";
 			Tics "4";
@@ -33172,6 +33175,7 @@ MapWeapon "Fist"
 		
 		Frame "2"
 		{
+			DeHackEdNum "6";
 			Sprite "PUNG";
 			Frame "2";
 			Tics "4";
@@ -33182,6 +33186,7 @@ MapWeapon "Fist"
 		
 		Frame "3"
 		{
+			DeHackEdNum "7";
 			Sprite "PUNG";
 			Frame "3";
 			Tics "5";
@@ -33191,6 +33196,7 @@ MapWeapon "Fist"
 		
 		Frame "4"
 		{
+			DeHackEdNum "8";
 			Sprite "PUNG";
 			Frame "2";
 			Tics "4";
@@ -33200,6 +33206,7 @@ MapWeapon "Fist"
 		
 		Frame "5"
 		{
+			DeHackEdNum "9";
 			Sprite "PUNG";
 			Frame "1";
 			Tics "5";
@@ -33234,6 +33241,7 @@ MapWeapon "Pistol"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "12";
 			Sprite "PISG";
 			Frame "0";
 			Tics "1";
@@ -33247,6 +33255,7 @@ MapWeapon "Pistol"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "11";
 			Sprite "PISG";
 			Frame "0";
 			Tics "1";
@@ -33260,6 +33269,7 @@ MapWeapon "Pistol"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "10";
 			Sprite "PISG";
 			Frame "0";
 			Tics "1";
@@ -33273,6 +33283,7 @@ MapWeapon "Pistol"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "13";
 			Sprite "PISG";
 			Frame "0";
 			Tics "4";
@@ -33282,6 +33293,7 @@ MapWeapon "Pistol"
 		
 		Frame "2"
 		{
+			DeHackEdNum "14";
 			Sprite "PISG";
 			Frame "1";
 			Tics "6";
@@ -33292,6 +33304,7 @@ MapWeapon "Pistol"
 		
 		Frame "3"
 		{
+			DeHackEdNum "15";
 			Sprite "PISG";
 			Frame "2";
 			Tics "4";
@@ -33301,6 +33314,7 @@ MapWeapon "Pistol"
 		
 		Frame "4"
 		{
+			DeHackEdNum "16";
 			Sprite "PISG";
 			Frame "1";
 			Tics "5";
@@ -33315,6 +33329,7 @@ MapWeapon "Pistol"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "17";
 			Sprite "PISF";
 			Frame "0";
 			Tics "7";
@@ -33326,6 +33341,7 @@ MapWeapon "Pistol"
 		
 		Frame "2"
 		{
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";
@@ -33358,6 +33374,7 @@ MapWeapon "Shotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "20";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "1";
@@ -33371,6 +33388,7 @@ MapWeapon "Shotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "19";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "1";
@@ -33384,6 +33402,7 @@ MapWeapon "Shotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "18";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "1";
@@ -33397,6 +33416,7 @@ MapWeapon "Shotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "21";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "3";
@@ -33406,6 +33426,7 @@ MapWeapon "Shotgun"
 		
 		Frame "2"
 		{
+			DeHackEdNum "22";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "7";
@@ -33416,6 +33437,7 @@ MapWeapon "Shotgun"
 		
 		Frame "3"
 		{
+			DeHackEdNum "23";
 			Sprite "SHTG";
 			Frame "1";
 			Tics "5";
@@ -33425,6 +33447,7 @@ MapWeapon "Shotgun"
 		
 		Frame "4"
 		{
+			DeHackEdNum "24";
 			Sprite "SHTG";
 			Frame "2";
 			Tics "5";
@@ -33434,6 +33457,7 @@ MapWeapon "Shotgun"
 		
 		Frame "5"
 		{
+			DeHackEdNum "25";
 			Sprite "SHTG";
 			Frame "3";
 			Tics "4";
@@ -33443,6 +33467,7 @@ MapWeapon "Shotgun"
 		
 		Frame "6"
 		{
+			DeHackEdNum "26";
 			Sprite "SHTG";
 			Frame "2";
 			Tics "5";
@@ -33452,6 +33477,7 @@ MapWeapon "Shotgun"
 		
 		Frame "7"
 		{
+			DeHackEdNum "27";
 			Sprite "SHTG";
 			Frame "1";
 			Tics "5";
@@ -33461,6 +33487,7 @@ MapWeapon "Shotgun"
 		
 		Frame "8"
 		{
+			DeHackEdNum "28";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "3";
@@ -33470,6 +33497,7 @@ MapWeapon "Shotgun"
 		
 		Frame "9"
 		{
+			DeHackEdNum "29";
 			Sprite "SHTG";
 			Frame "0";
 			Tics "7";
@@ -33484,6 +33512,7 @@ MapWeapon "Shotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "30";
 			Sprite "SHTF";
 			Frame "0";
 			Tics "4";
@@ -33495,6 +33524,7 @@ MapWeapon "Shotgun"
 		
 		Frame "2"
 		{
+			DeHackEdNum "31";
 			Sprite "SHTF";
 			Frame "1";
 			Tics "3";
@@ -33506,6 +33536,7 @@ MapWeapon "Shotgun"
 		
 		Frame "3"
 		{
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";
@@ -33538,6 +33569,7 @@ MapWeapon "Chaingun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "51";
 			Sprite "CHGG";
 			Frame "0";
 			Tics "1";
@@ -33551,6 +33583,7 @@ MapWeapon "Chaingun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "50";
 			Sprite "CHGG";
 			Frame "0";
 			Tics "1";
@@ -33564,6 +33597,7 @@ MapWeapon "Chaingun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "49";
 			Sprite "CHGG";
 			Frame "0";
 			Tics "1";
@@ -33577,6 +33611,7 @@ MapWeapon "Chaingun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "52";
 			Sprite "CHGG";
 			Frame "0";
 			Tics "4";
@@ -33587,6 +33622,7 @@ MapWeapon "Chaingun"
 		
 		Frame "2"
 		{
+			DeHackEdNum "53";
 			Sprite "CHGG";
 			Frame "1";
 			Tics "4";
@@ -33597,6 +33633,7 @@ MapWeapon "Chaingun"
 		
 		Frame "3"
 		{
+			DeHackEdNum "54";
 			Sprite "CHGG";
 			Frame "1";
 			Tics "0";
@@ -33611,6 +33648,7 @@ MapWeapon "Chaingun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "55";
 			Sprite "CHGF";
 			Frame "0";
 			Tics "5";
@@ -33622,6 +33660,7 @@ MapWeapon "Chaingun"
 		
 		Frame "2"
 		{
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";
@@ -33632,6 +33671,7 @@ MapWeapon "Chaingun"
 		
 		Frame "3"
 		{
+			DeHackEdNum "56";
 			Sprite "CHGF";
 			Frame "1";
 			Tics "5";
@@ -33666,6 +33706,7 @@ MapWeapon "RocketLauncher"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "59";
 			Sprite "MISG";
 			Frame "0";
 			Tics "1";
@@ -33679,6 +33720,7 @@ MapWeapon "RocketLauncher"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "58";
 			Sprite "MISG";
 			Frame "0";
 			Tics "1";
@@ -33692,6 +33734,7 @@ MapWeapon "RocketLauncher"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "57";
 			Sprite "MISG";
 			Frame "0";
 			Tics "1";
@@ -33705,6 +33748,7 @@ MapWeapon "RocketLauncher"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "60";
 			Sprite "MISG";
 			Frame "1";
 			Tics "8";
@@ -33715,6 +33759,7 @@ MapWeapon "RocketLauncher"
 		
 		Frame "2"
 		{
+			DeHackEdNum "61";
 			Sprite "MISG";
 			Frame "1";
 			Tics "12";
@@ -33725,6 +33770,7 @@ MapWeapon "RocketLauncher"
 		
 		Frame "3"
 		{
+			DeHackEdNum "62";
 			Sprite "MISG";
 			Frame "1";
 			Tics "0";
@@ -33739,6 +33785,7 @@ MapWeapon "RocketLauncher"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "63";
 			Sprite "MISF";
 			Frame "0";
 			Tics "3";
@@ -33750,6 +33797,7 @@ MapWeapon "RocketLauncher"
 		
 		Frame "2"
 		{
+			DeHackEdNum "64";
 			Sprite "MISF";
 			Frame "1";
 			Tics "4";
@@ -33760,6 +33808,7 @@ MapWeapon "RocketLauncher"
 		
 		Frame "3"
 		{
+			DeHackEdNum "65";
 			Sprite "MISF";
 			Frame "2";
 			Tics "4";
@@ -33771,6 +33820,7 @@ MapWeapon "RocketLauncher"
 		
 		Frame "4"
 		{
+			DeHackEdNum "66";
 			Sprite "MISF";
 			Frame "3";
 			Tics "4";
@@ -33782,6 +33832,7 @@ MapWeapon "RocketLauncher"
 		
 		Frame "5"
 		{
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";
@@ -33815,6 +33866,7 @@ MapWeapon "PlasmaRifle"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "76";
 			Sprite "PLSG";
 			Frame "0";
 			Tics "1";
@@ -33828,6 +33880,7 @@ MapWeapon "PlasmaRifle"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "75";
 			Sprite "PLSG";
 			Frame "0";
 			Tics "1";
@@ -33841,6 +33894,7 @@ MapWeapon "PlasmaRifle"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "74";
 			Sprite "PLSG";
 			Frame "0";
 			Tics "1";
@@ -33854,6 +33908,7 @@ MapWeapon "PlasmaRifle"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "77";
 			Sprite "PLSG";
 			Frame "0";
 			Tics "3";
@@ -33864,6 +33919,7 @@ MapWeapon "PlasmaRifle"
 		
 		Frame "2"
 		{
+			DeHackEdNum "78";
 			Sprite "PLSG";
 			Frame "1";
 			Tics "20";
@@ -33878,6 +33934,7 @@ MapWeapon "PlasmaRifle"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "79";
 			Sprite "PLSF";
 			Frame "0";
 			Tics "4";
@@ -33889,6 +33946,7 @@ MapWeapon "PlasmaRifle"
 		
 		Frame "2"
 		{
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";
@@ -33899,6 +33957,7 @@ MapWeapon "PlasmaRifle"
 		
 		Frame "3"
 		{
+			DeHackEdNum "80";
 			Sprite "PLSF";
 			Frame "1";
 			Tics "4";
@@ -33935,6 +33994,7 @@ MapWeapon "BFGNineK"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "83";
 			Sprite "BFGG";
 			Frame "0";
 			Tics "1";
@@ -33948,6 +34008,7 @@ MapWeapon "BFGNineK"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "82";
 			Sprite "BFGG";
 			Frame "0";
 			Tics "1";
@@ -33961,6 +34022,7 @@ MapWeapon "BFGNineK"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "81";
 			Sprite "BFGG";
 			Frame "0";
 			Tics "1";
@@ -33974,6 +34036,7 @@ MapWeapon "BFGNineK"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "84";
 			Sprite "BFGG";
 			Frame "0";
 			Tics "20";
@@ -33984,6 +34047,7 @@ MapWeapon "BFGNineK"
 		
 		Frame "2"
 		{
+			DeHackEdNum "85";
 			Sprite "BFGG";
 			Frame "1";
 			Tics "10";
@@ -33994,6 +34058,7 @@ MapWeapon "BFGNineK"
 		
 		Frame "3"
 		{
+			DeHackEdNum "86";
 			Sprite "BFGG";
 			Frame "1";
 			Tics "10";
@@ -34004,6 +34069,7 @@ MapWeapon "BFGNineK"
 		
 		Frame "4"
 		{
+			DeHackEdNum "87";
 			Sprite "BFGG";
 			Frame "1";
 			Tics "20";
@@ -34018,6 +34084,7 @@ MapWeapon "BFGNineK"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "88";
 			Sprite "BFGF";
 			Frame "0";
 			Tics "11";
@@ -34029,6 +34096,7 @@ MapWeapon "BFGNineK"
 		
 		Frame "2"
 		{
+			DeHackEdNum "89";
 			Sprite "BFGF";
 			Frame "1";
 			Tics "6";
@@ -34040,6 +34108,7 @@ MapWeapon "BFGNineK"
 		
 		Frame "3"
 		{
+			DeHackEdNum 1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";
@@ -34077,6 +34146,7 @@ MapWeapon "Chainsaw"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "70";
 			Sprite "SAWG";
 			Frame "2";
 			Tics "1";
@@ -34090,6 +34160,7 @@ MapWeapon "Chainsaw"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "69";
 			Sprite "SAWG";
 			Frame "2";
 			Tics "1";
@@ -34103,6 +34174,7 @@ MapWeapon "Chainsaw"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "67";
 			Sprite "SAWG";
 			Frame "2";
 			Tics "4";
@@ -34113,6 +34185,7 @@ MapWeapon "Chainsaw"
 		
 		Frame "2"
 		{
+			DeHackEdNum "68";
 			Sprite "SAWG";
 			Frame "3";
 			Tics "4";
@@ -34126,6 +34199,7 @@ MapWeapon "Chainsaw"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "71";
 			Sprite "SAWG";
 			Frame "0";
 			Tics "4";
@@ -34136,6 +34210,7 @@ MapWeapon "Chainsaw"
 		
 		Frame "2"
 		{
+			DeHackEdNum "72";
 			Sprite "SAWG";
 			Frame "1";
 			Tics "4";
@@ -34146,6 +34221,7 @@ MapWeapon "Chainsaw"
 		
 		Frame "3"
 		{
+			DeHackEdNum "73";
 			Sprite "SAWG";
 			Frame "1";
 			Tics "0";
@@ -34180,6 +34256,7 @@ MapWeapon "SuperShotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "34";
 			Sprite "SHT2";
 			Frame "0";
 			Tics "1";
@@ -34193,6 +34270,7 @@ MapWeapon "SuperShotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "33";
 			Sprite "SHT2";
 			Frame "0";
 			Tics "1";
@@ -34206,6 +34284,7 @@ MapWeapon "SuperShotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "32";
 			Sprite "SHT2";
 			Frame "0";
 			Tics "1";
@@ -34219,6 +34298,7 @@ MapWeapon "SuperShotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "35";
 			Sprite "SHT2";
 			Frame "0";
 			Tics "3";
@@ -34228,6 +34308,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "2"
 		{
+			DeHackEdNum "36";
 			Sprite "SHT2";
 			Frame "0";
 			Tics "7";
@@ -34238,6 +34319,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "3"
 		{
+			DeHackEdNum "37";
 			Sprite "SHT2";
 			Frame "1";
 			Tics "7";
@@ -34247,6 +34329,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "4"
 		{
+			DeHackEdNum "38";
 			Sprite "SHT2";
 			Frame "2";
 			Tics "7";
@@ -34257,6 +34340,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "5"
 		{
+			DeHackEdNum "39";
 			Sprite "SHT2";
 			Frame "3";
 			Tics "7";
@@ -34267,6 +34351,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "6"
 		{
+			DeHackEdNum "40";
 			Sprite "SHT2";
 			Frame "4";
 			Tics "7";
@@ -34276,6 +34361,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "7"
 		{
+			DeHackEdNum "41";
 			Sprite "SHT2";
 			Frame "5";
 			Tics "7";
@@ -34286,6 +34372,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "8"
 		{
+			DeHackEdNum "42";
 			Sprite "SHT2";
 			Frame "6";
 			Tics "6";
@@ -34295,6 +34382,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "9"
 		{
+			DeHackEdNum "43";
 			Sprite "SHT2";
 			Frame "7";
 			Tics "6";
@@ -34305,6 +34393,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "10"
 		{
+			DeHackEdNum "44";
 			Sprite "SHT2";
 			Frame "0";
 			Tics "5";
@@ -34319,6 +34408,7 @@ MapWeapon "SuperShotgun"
 	{
 		Frame "1"
 		{
+			DeHackEdNum "47";
 			Sprite "SHT2";
 			Frame "8";
 			Tics "5";
@@ -34330,6 +34420,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "2"
 		{
+			DeHackEdNum "48";
 			Sprite "SHT2";
 			Frame "9";
 			Tics "4";
@@ -34341,6 +34432,7 @@ MapWeapon "SuperShotgun"
 		
 		Frame "3"
 		{
+			DeHackEdNum "1";
 			Sprite "SHTG";
 			Frame "4";
 			Tics "0";

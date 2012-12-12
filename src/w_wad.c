@@ -294,9 +294,8 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	FILE* CFile;
 	WL_WADFile_t* NewWAD;
 	uint32_t Magic;
-	bool_t IsWAD;
+	bool_t IsWAD, IsDEH;
 	char* FileName;
-	char* Chunk;
 	size_t i, j, k, n;
 	char c;
 	bool_t Dot;
@@ -361,9 +360,14 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	Magic = LittleSwapUInt32(Magic);	// Swap for BE
 	
 	// Is it a WAD file? If not threat it as a lump instead
-	IsWAD = false;
-	if (Magic == 0x44415749U || Magic == 0x44415750U)
+	IsWAD = IsDEH = false;
+	if (Magic == UINT32_C(0x44415749) || Magic == UINT32_C(0x44415750))
 		IsWAD = true;
+	
+	// DeHackEd Patch? Just a simple cheapo "Patc" header match
+	if (!IsWAD)
+		if (Magic == UINT32_C(0x1016E390) || Magic == UINT32_C(0x90E31610) || Magic == UINT32_C(0x63746150))
+			IsDEH = true;
 		
 	/* Allocate Fresh WAD and pump it to the chain */
 	NewWAD = Z_Malloc(sizeof(*NewWAD), PU_STATIC, NULL);
@@ -592,13 +596,18 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		ThisEntry->__Private.__Offset = 0;
 		ThisEntry->Size = ThisEntry->__Private.__InternalSize = NewWAD->__Private.__Size;
 		
-		// Name is the DOS name
-		for (Dot = false, i = 0; i < WLMAXDOSNAME && i < WLMAXENTRYNAME; i++)
-			if (!Dot)
-				if (NewWAD->__Private.__DOSName[i] == '.')
-					Dot = true;
-				else
-					ThisEntry->Name[i] = NewWAD->__Private.__DOSName[i];
+		// If DeHackEd, then DEHACKED is the name
+		if (IsDEH)
+			strncpy(ThisEntry->Name, "DEHACKED", WLMAXENTRYNAME);
+		
+		// Otherwise, Name is the DOS name
+		else
+			for (Dot = false, i = 0; i < WLMAXDOSNAME && i < WLMAXENTRYNAME; i++)
+				if (!Dot)
+					if (NewWAD->__Private.__DOSName[i] == '.')
+						Dot = true;
+					else
+						ThisEntry->Name[i] = NewWAD->__Private.__DOSName[i];
 	}
 	
 	/* Hash everything */

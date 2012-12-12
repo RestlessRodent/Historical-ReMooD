@@ -1017,6 +1017,11 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},
 	{		   "WWADC_CHECKINGTHESUM", "Found \"$1\", confirming checksum."},
 	
+	/*** INFO.C ***/
+	{					"INFOC_NODEH", "WAD \"$1\" contains no DEHACKED lump."},
+	{				  "INFOC_NOTADEH", "WAD \"$1\" contains illegal DEHACKED lump."},
+	{				"INFOC_BINARYDEH", "WAD \"$1\" contains unsupported binary DEHACKED lump."},
+	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},
 	{               "D_PGS_NOTHINGHERE", "Nothing is here"},
