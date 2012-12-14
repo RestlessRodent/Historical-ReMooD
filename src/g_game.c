@@ -497,7 +497,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Setup clone
 				memset(&Clone, 0, sizeof(Clone));
 				
-				XPlayer->Flags |= u32[4];
+				XPlayer->Flags |= u32[4] | DXPF_DEMO;
 				XPlayer->ID = u32[0];
 				XPlayer->HostID = u32[1];
 				XPlayer->ClProcessID = u32[2];

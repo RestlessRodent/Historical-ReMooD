@@ -1351,12 +1351,12 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 	else if (MapThing)
 	{
 		// Set Initial Position
-		l_SpecMobjs[i].x = MapThing->x;
-		l_SpecMobjs[i].y = MapThing->y;
+		l_SpecMobjs[i].x = ((fixed_t)MapThing->x) << 16;
+		l_SpecMobjs[i].y = ((fixed_t)MapThing->y) << 16;
 	
 		// Calculate Z position
 		l_SpecMobjs[i].subsector = SubS = R_PointInSubsector(l_SpecMobjs[i].x, l_SpecMobjs[i].y);
-		l_SpecMobjs[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight + SubS->sector->floorheight) >> 1);
+		l_SpecMobjs[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight - SubS->sector->floorheight) >> 1);
 		
 		// Angle
 		l_SpecMobjs[i].angle = MapThing->angle * ANGLE_1;
@@ -1387,11 +1387,23 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 void P_SpecInit(const int32_t a_PlayerNum)
 {
 	int i;
+	static const P_LevelInfoEx_t* LastSpecLevel;
 	
 	/* All */
+	// This is called on a new level, possibly
 	if (a_PlayerNum == -1)
+	{
+		// If the map did not change, do not reset (so specs don't get jerked
+		// all the time)
+		if (LastSpecLevel == g_CurrentLevelInfo)
+			return;
+		
+		LastSpecLevel = g_CurrentLevelInfo;
+		
+		// Initialize each player
 		for (i = 0; i < MAXSPLITSCREEN; i++)
 			P_SpecInitOne(i);
+	}
 	
 	/* Or one */
 	else
@@ -1719,8 +1731,25 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
 		return NULL;
 	
+	/* Demo playing back? */
+	if (demoplayback)
+	{
+		// Always return first POV, or standard screen POV for other players
+		if (g_TitleScreenDemo || a_Screen > 0)
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Otherwise, return spec view
+		else
+		{
+			if (g_Splits[0].Display == -1 || !playeringame[g_Splits[0].Display])
+				return P_SpecGet(0);
+			else
+				return &players[g_Splits[a_Screen].Display];
+		}
+	}
+	
 	/* No XPlayer? */
-	if (!g_Splits[a_Screen].XPlayer)
+	else if (!g_Splits[a_Screen].XPlayer)
 		return &players[g_Splits[a_Screen].Display];
 	
 	/* There is one */

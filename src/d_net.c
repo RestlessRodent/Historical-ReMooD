@@ -467,6 +467,7 @@ D_XPlayer_t** g_XPlays = NULL;					// Extended Players
 size_t g_NumXPlays = 0;							// Number of them
 
 tic_t g_DemoFreezeTics = 0;						// Tics to freeze demo for
+bool_t g_NetBoardDown = false;					// Scoreboard down in netdemo
 
 /*** LOCALS ***/
 
@@ -1833,7 +1834,8 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 		return false;
 	
 	/* Clear events if not playing */
-	if (gamestate == GS_DEMOSCREEN || demoplayback)
+	// Only on a title screen (walk around in demos)
+	if (gamestate == GS_DEMOSCREEN || (demoplayback && g_TitleScreenDemo))
 	{
 		memset(l_MouseMove, 0, sizeof(l_MouseMove));
 		memset(l_KeyDown, 0, sizeof(l_KeyDown));
@@ -2177,7 +2179,15 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	
 	// Not found?
 	if (SID >= MAXSPLITSCREEN)
-		return;
+	{
+		// Force first screen in demo?
+		if (demoplayback)
+			SID = 0;
+		
+		// Otherwise don't make any commands
+		else
+			return;
+	}
 	
 	/* Reset Some Things */
 	SideMove = ForwardMove = BaseAT = BaseAM = 0;
@@ -2738,6 +2748,8 @@ void D_XNetUpdate(void)
 	static tic_t LastSpecTic;
 	ticcmd_t MergeTrunk;
 	
+	static D_XPlayer_t DemoXPlay;
+	
 	/* From NetUpdate() */
 	if (singletics)
 		g_ProgramTic = gametic;
@@ -2751,7 +2763,64 @@ void D_XNetUpdate(void)
 	
 	/* Not playing? */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
+	{
+		// If not on a title screen demo, handle local tic commands
+		if (!g_TitleScreenDemo)
+		{
+			// If the screen has an XPlayer set, use that instead
+			if (g_Splits[0].XPlayer)
+				XPlay = g_Splits[0].XPlayer;
+			
+			// Otherwise use a fake one with the default profile
+			else
+			{
+				// Needs init?
+				if (DemoXPlay.ID != 1)
+				{
+					// Set screen and such
+					DemoXPlay.Flags = DXPF_LOCAL;
+					DemoXPlay.ScreenID = 0;
+					DemoXPlay.Profile = g_KeyDefaultProfile;
+					
+					// Done
+					DemoXPlay.ID = 1;
+				}
+				
+				// Set
+				XPlay = &DemoXPlay;
+			}
+			
+			// Place tic command at last spot, when possible
+			TicCmdP = NULL;
+			if (XPlay->LocalAt < MAXLBTSIZE - 1)
+				TicCmdP = &XPlay->LocalBuf[XPlay->LocalAt++];
+			else
+				TicCmdP = &XPlay->LocalBuf[0];
+			
+			// Virtual tic command creation
+			D_XNetBuildTicCmd(XPlay, TicCmdP);
+			
+			// Move spec only if tic changed
+			if (LastSpecTic != gametic)
+			{
+				// Merge tics
+				memset(&MergeTrunk, 0, sizeof(MergeTrunk));
+				D_XNetMergeTics(&MergeTrunk, XPlay->LocalBuf, XPlay->LocalAt);
+				XPlay->LocalAt = 0;
+			
+				// Execute Command
+				P_SpecRunTics(0, &MergeTrunk);
+				
+				// Scores
+				g_NetBoardDown = XPlay->Scores;
+			}
+			
+			// Tics
+			LastSpecTic = gametic;
+		}
+		
 		return;
+	}
 	
 	/* Handle local players and splits */ 
 	if (!demoplayback && gamestate != GS_DEMOSCREEN)
