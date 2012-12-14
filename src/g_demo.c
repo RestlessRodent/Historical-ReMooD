@@ -1505,6 +1505,9 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	/* Old Demo Format */
 	if (Data->VerMarker < 112)
 	{
+		// Read button code!?
+		ButtonCodes = WL_Sru8(a_Current->WLStream);
+		
 		// Special Action?
 		if (ButtonCodes & 0x80)
 		{
@@ -2316,16 +2319,23 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 				if (!u8)
 					continue;
 		
-				// Write Control Data
-				CmdP->Ctrl.Type = D_BSru8(Data->CBs);
-				CmdP->Ctrl.ProgramTic = D_BSru64(Data->CBs);
-				CmdP->Ctrl.GameTic = D_BSru64(Data->CBs);
+				// Read Control Type
+				u8 = D_BSru8(Data->CBs);
+				
+				// Special Commands are always non-diffable
+					// So they always get written and cleared
+				if (u8 >= 1)
+				{
+					memset(LastP, 0, sizeof(*LastP));
+					memset(CmdP, 0, sizeof(*CmdP));
+				}
+				
+				// Read Timing Counts
+				CmdP->Ctrl.Type = u8;
+				CmdP->Ctrl.ProgramTic = D_BSrcu64(Data->CBs);
+				CmdP->Ctrl.GameTic = D_BSrcu64(Data->CBs);
 				CmdP->Ctrl.Ping = D_BSru16(Data->CBs);
 				
-				// Difference in type? Clear the old command, useless
-				if (LastP->Ctrl.Type != CmdP->Ctrl.Type)
-					memset(LastP, 0, sizeof(*LastP));
-		
 				// Command Only Buffer
 				if (CmdP->Ctrl.Type == 1)
 				{
@@ -2450,12 +2460,12 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 		
 		// Write Control Data
 		D_BSwu8(Data->CBs, CmdP->Ctrl.Type);
-		D_BSwu64(Data->CBs, CmdP->Ctrl.ProgramTic);
-		D_BSwu64(Data->CBs, CmdP->Ctrl.GameTic);
+		D_BSwcu64(Data->CBs, CmdP->Ctrl.ProgramTic);
+		D_BSwcu64(Data->CBs, CmdP->Ctrl.GameTic);
 		D_BSwu16(Data->CBs, CmdP->Ctrl.Ping);
 		
-		// Difference in type? Clear the old command, useless
-		if (LastP->Ctrl.Type != CmdP->Ctrl.Type)
+		// Clear last on specials
+		if (CmdP->Ctrl.Type >= 1)
 			memset(LastP, 0, sizeof(*LastP));
 		
 		// Command Only Buffer
@@ -2532,6 +2542,10 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 		else
 		{
 		}
+		
+		// Clear the new command on specials
+		if (CmdP->Ctrl.Type >= 1)
+			memset(CmdP, 0, sizeof(*CmdP));
 	}
 	
 	/* Write */

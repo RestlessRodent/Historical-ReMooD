@@ -556,6 +556,12 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				for (i = 0; i < 8; i++)
 					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
 				
+				// Resetting players?
+				if (u8[0])
+					for (i = 0; i < MAXPLAYERS; i++)
+						if (playeringame[i])
+							G_ResetPlayer(&players[i]);
+				
 				// Change the level
 				if (!P_ExLoadLevel(P_FindLevelByNameEx(NameBuf, NULL), 0))
 					CONL_PrintF("Level \"%s\" failed to load.\n", NameBuf);
@@ -1560,6 +1566,9 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Get Player Number */
 	pNum = a_Player - &players[0];
 	
+	/* Clear player junk */
+	G_ResetPlayer(a_Player);
+	
 	/* Allocate */
 	// Guns
 	a_Player->FavoriteWeapons = Z_Malloc(sizeof(*a_Player->FavoriteWeapons) * (NUMWEAPONS + 2), PU_STATIC, NULL);
@@ -1621,6 +1630,39 @@ void G_InitPlayer(player_t* const a_Player)
 		}
 	}
 #endif
+}
+
+/* G_ResetPlayer() -- Resets player making them lose all their junk */
+void G_ResetPlayer(player_t* const a_Player)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Reset things */
+	a_Player->playerstate = PST_REBORN;
+	a_Player->weaponinfo = wpnlev1info;
+	
+	// Guns?
+	if (a_Player->weaponowned)
+		memset(a_Player->weaponowned, 0, sizeof(*a_Player->weaponowned) * NUMWEAPONS);
+	
+	// Ammo?
+	if (a_Player->maxammo)
+		memset(a_Player->maxammo, 0, sizeof(*a_Player->maxammo) * NUMAMMO);
+		
+	if (a_Player->ammo)
+		memset(a_Player->ammo, 0, sizeof(*a_Player->ammo) * NUMAMMO);
+	
+	// Kills and Frags
+	a_Player->addfrags = 0;
+	a_Player->killcount = a_Player->itemcount = a_Player->secretcount = 0;
+	a_Player->TotalFrags = a_Player->TotalDeaths = 0;
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+		a_Player->frags[i] = 0;
 }
 
 //

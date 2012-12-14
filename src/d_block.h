@@ -157,6 +157,9 @@ uint16_t D_BSru16(D_BS_t* const a_Stream);
 uint32_t D_BSru32(D_BS_t* const a_Stream);
 uint64_t D_BSru64(D_BS_t* const a_Stream);
 
+uint64_t D_BSrcu64(D_BS_t* const a_Stream);
+void D_BSwcu64(D_BS_t* const a_Stream, const uint64_t a_Val);
+
 size_t D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 uint64_t D_BSrp(D_BS_t* const a_Stream);
 

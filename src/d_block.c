@@ -87,6 +87,7 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 	fwrite(&BlockLen, sizeof(BlockLen), 1, File);
 	
 	/* Determine Quicksum */
+#if 0
 	for (i = 0; i < a_Stream->BlkSize; i++)
 		if (i & 1)
 			QuickSum ^= (((uint8_t*)a_Stream->BlkData)[i]) << ((i & 2) ? 4 : 0);
@@ -94,9 +95,13 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 			QuickSum ^= (~(((uint8_t*)a_Stream->BlkData)[i])) << ((i & 2) ? 6 : 2);
 	QuickSum = LittleSwapUInt32(QuickSum);
 	fwrite(&QuickSum, sizeof(QuickSum), 1, File);
+#endif
 	
 	/* Write Data */
-	RetVal = fwrite(a_Stream->BlkData, a_Stream->BlkSize, 1, File);
+	if (a_Stream->BlkSize)
+		RetVal = fwrite(a_Stream->BlkData, a_Stream->BlkSize, 1, File);
+	else
+		RetVal = 0;
 	
 	/* Flush for write */
 	fflush(File);
@@ -135,12 +140,16 @@ bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 	if (fread(&Len, sizeof(Len), 1, File) < 1)
 		return false;
 	
+#if 0
 	if (fread(&Sum, sizeof(Sum), 1, File) < 1)
 		return false;
+#endif
 	
 	// Endian Correct Values
 	Len = LittleSwapUInt32(Len);
+#if 0
 	Sum = LittleSwapUInt32(Sum);
+#endif
 	
 	// Read data, if possible (Len could be zero (empty block?))
 	if (Len > 0)
@@ -215,7 +224,9 @@ bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 	
 	// Read Length and Sum
 	Len = WL_Srlu32(Stream);
+#if 0
 	Sum = WL_Srlu32(Stream);
+#endif
 	
 	// Read data, if possible (Len could be zero (empty block?))
 	if (Len > 0)
@@ -3262,4 +3273,52 @@ uint64_t D_BSrp(D_BS_t* const a_Stream)
 	/* Return the number */
 	return OP;
 }
+
+/* D_BSrcu64() -- Reads compressed uint64_t */
+uint64_t D_BSrcu64(D_BS_t* const a_Stream)
+{
+	uint64_t RetVal, Shift;
+	uint8_t Read;
+	
+	/* Constantly read */
+	RetVal = Shift = 0;
+	do
+	{
+		// Read single byte
+		Read = D_BSru8(a_Stream);
+		
+		// Shift it in
+		RetVal |= ((uint64_t)(Read & UINT8_C(0x7F))) << Shift;
+		Shift += 7;
+	} while (Read & UINT8_C(0x80));
+	
+	/* Return it */
+	return RetVal;
+}
+
+/* D_BSwcu64() -- Writes compressed uint64_t */
+void D_BSwcu64(D_BS_t* const a_Stream, const uint64_t a_Val)
+{
+	uint64_t Left;
+	uint8_t Write;
+	
+	/* Write Loop */
+	Left = a_Val;
+	
+	// While there is something left
+	while (Left)
+	{
+		// Chop off 7-bits
+		Write = Left & UINT64_C(0x7F);
+		Left >>= UINT64_C(7);
+		
+		// If something is left, set high bit
+		if (Left)
+			Write |= UINT8_C(0x80);
+		
+		// Write the current bit
+		D_BSwu8(a_Stream, Write);
+	}
+}
+
 

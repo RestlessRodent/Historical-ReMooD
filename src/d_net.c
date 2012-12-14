@@ -291,7 +291,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_CLMaxPTryTime);
 	
 	/* Debug? */
-	if (M_CheckParm("-netdev"))
+	if (M_CheckParm("-netdev") || M_CheckParm("-devnet"))
 		g_NetDev = true;
 	
 	/* Initial Disconnect */
@@ -912,7 +912,7 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 			for (i = 0; i < MAXPLAYERNAME; i++)
 			{
 				WriteUInt8((uint8_t**)&Wp, New->AccountName[i]);
-				WriteUInt8((uint8_t**)&Wp, New->AccountCookie);
+				WriteUInt8((uint8_t**)&Wp, New->AccountCookie[i]);
 			}
 		}
 	}
@@ -1115,7 +1115,7 @@ void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value)
 }
 
 /* D_XNetChangeMap() -- Changes the map */
-void D_XNetChangeMap(const char* const a_Map)
+void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset)
 {
 	P_LevelInfoEx_t* Info;
 	size_t i, j;
@@ -1140,9 +1140,10 @@ void D_XNetChangeMap(const char* const a_Map)
 	
 		if (Placement)
 		{
-			// Fill in data
-			WriteUInt8((uint8_t**)&Wp, 0);
-		
+			// Resetting players?
+			WriteUInt8((uint8_t**)&Wp, a_Reset);
+			
+			// Map name
 			for (i = 0, j = 0; i < 8; i++)
 				if (!j)
 				{

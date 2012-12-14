@@ -96,6 +96,7 @@ void G_PrepareDemoStuff(void);
 
 player_t* G_AddPlayer(int playernum);
 void G_InitPlayer(player_t* const a_Player);
+void G_ResetPlayer(player_t* const a_Player);
 
 void G_DoCompleted(void);
 void G_DoVictory(void);

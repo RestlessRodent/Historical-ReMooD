@@ -232,7 +232,7 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
 void D_XNetSendQuit(void);
 void D_XNetPartLocal(D_XPlayer_t* const a_Player);
 void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
-void D_XNetChangeMap(const char* const a_Map);
+void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset);
 void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile);
 void D_XNetSendColors(D_XPlayer_t* const a_Player);
 void D_XNetTryJoin(D_XPlayer_t* const a_Player);

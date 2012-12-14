@@ -206,51 +206,17 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 		return 1;
 	
 	/* Request Map */
-#if defined(__REMOOD_NCSNET)
-	// Send request
-	D_XNetChangeMap(a_ArgV[1]);
-	
-	// Return success
-	return 0;
-#else
-	
-	/* Locate map */
 	Info = P_FindLevelByNameEx(a_ArgV[1], NULL);
 	
 	// Not found?
 	if (!Info)
 		return 1;
 	
-	/* Switching levels */
-	if (strcasecmp(a_ArgV[0], "switchmap") == 0)
-		LevelSwitch = true;
+	// Send request
+	D_XNetChangeMap(a_ArgV[1], !!(!strcasecmp(a_ArgV[0], "map")));
 	
-	/* Reset player info */
-	if (!LevelSwitch)
-	{
-		// TODO: Multiplayer here!
-		for (i = 0; i < MAXPLAYERS; i++)
-			playeringame[i] = false;
-	
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			g_Splits[i].Console = g_Splits[i].Display = i;
-		
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			g_Splits[i].Active = false;
-		
-		g_SplitScreen = -1;
-	
-		// Spawn player 1 at least
-		//playeringame[0] = true;
-	}
-	
-	/* Load level */
-	if (P_ExLoadLevel(Info, true))
-		return 0;
-	
-	/* Failed */
-	return 1;
-#endif
+	// Return success
+	return 0;
 }
 
 /* P_InitSetupEx() -- Initializes extended setup code */

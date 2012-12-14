@@ -594,10 +594,6 @@ void D_DoomLoop(void)
 	
 	oldentertics = I_GetTime();
 	
-	// make sure to do a d_display to init mode _before_ load a level
-	SCR_SetMode();				// change video mode
-	SCR_Recalc();
-	
 	FPSLastTime = I_GetTimeMS();
 	
 	// Playing any demos?
@@ -2963,6 +2959,11 @@ void D_DoomMain(void)
 	// SoM: Init FraggleScript
 	////////////////////////////////
 	T_Init();
+	
+	/* Setup Screen */
+	// GhostlyDeath <December 14, 2012> -- This was done later on in D_DoomLoop
+	SCR_SetMode();				// change video mode
+	SCR_Recalc();
 	
 	/* Initial Game Setup */
 	// Hopefuly this is correct!
