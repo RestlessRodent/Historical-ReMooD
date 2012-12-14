@@ -124,6 +124,11 @@ typedef bool_t (*G_DEMO_WriteGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, c
 typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 
+typedef bool_t (*G_DEMO_ReadStartTicType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_WriteStartTicType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_ReadEndTicType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_WriteEndTicType_t)(struct G_CurrentDemo_s* a_Current);
+
 /* G_DemoFactory_t -- Demo Factory */
 typedef struct G_DemoFactory_s
 {
@@ -140,6 +145,11 @@ typedef struct G_DemoFactory_s
 	G_DEMO_PreGTickCmdType_t PostGTickCmdFunc;	// Post G_Ticker() Command
 	G_DEMO_ReadGlblCmdType_t ReadGlblCmdFunc;	// Read of global commands
 	G_DEMO_WriteGlblCmdType_t WriteGlblCmdFunc;	// Read of global commands
+	
+	G_DEMO_ReadStartTicType_t ReadStartTicFunc;	// Intro to tic
+	G_DEMO_WriteStartTicType_t WriteStartTicFunc;
+	G_DEMO_ReadEndTicType_t ReadEndTicFunc;		// Outro of tic
+	G_DEMO_WriteEndTicType_t WriteEndTicFunc;
 } G_DemoFactory_t;
 
 /* G_CurrentDemo_t -- Current Demo Info */

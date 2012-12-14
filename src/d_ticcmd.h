@@ -74,11 +74,6 @@ typedef enum
 // Mainly movements/button commands per game tick,
 // plus a checksum for internal state consistency.
 
-// bits in angleturn
-#define TICCMD_RECEIVED 1
-#define TICCMD_XY       2
-#define BT_FLYDOWN      4
-
 typedef enum
 {
 	TICCMD_NOTHING,								// Do nothing
@@ -127,9 +122,10 @@ typedef union
 		int16_t BaseAngleTurn;					// Base angle turning
 		int16_t BaseAiming;						// Base Aiming
 		uint8_t InventoryBits;					// Inventory Control
-		bool_t ResetAim;						// Reset Aim
+		uint8_t ResetAim;						// Reset Aim
 		
 		uint32_t StatFlags;						// Player Status Flags
+		uint32_t ExButtons;						// More Buttons
 		
 		uint16_t DataSize;						// Size of Data
 		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
@@ -186,6 +182,10 @@ typedef enum D_DiffBits_e
 	DDB_ANGLE						= 0x0100,	// Angle changes
 	DDB_INVENTORY					= 0x0200,	// Inventory Control
 	DDB_STATFLAGS					= 0x0400,	// Status Flags
+	
+	DDB_PLAYER						= 0x0800,	// Forward Changes
+	DDB_ARTIFACT					= 0x1000,	// Artifact Changes
+	DDB_EXBUTTONS					= 0x2000,	// More Buttons
 } D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];

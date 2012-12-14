@@ -2324,7 +2324,7 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 		else if (i == 1)
 		{
 			u32 = a_Stream->BlkSize;
-			u32 = LittleSwapUInt32(u32);
+			u32 = BigSwapUInt32(u32);//LittleSwapUInt32(u32);
 			PackData->ZStream.avail_in = 4;
 			PackData->ZStream.next_in = &u32;
 		}

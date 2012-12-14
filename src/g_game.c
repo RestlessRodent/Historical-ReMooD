@@ -34,6 +34,7 @@
 
 /* Includes */
 #include "doomdef.h"
+#include "doomtype.h"
 
 #include "console.h"
 #include "dstrings.h"
@@ -504,7 +505,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				strncpy(XPlayer->AccountCookie, AltBuf, MAXPLAYERNAME);
 				
 				// Add it
-				if (!j)
+				if (j)
 					D_XNetAddPlayer(GS_XAddPlayerCB, XPlayer);
 				break;
 				
@@ -1557,7 +1558,7 @@ void G_InitPlayer(player_t* const a_Player)
 		return;
 	
 	/* Get Player Number */
-	pNum = a_Player - players;
+	pNum = a_Player - &players[0];
 	
 	/* Allocate */
 	// Guns

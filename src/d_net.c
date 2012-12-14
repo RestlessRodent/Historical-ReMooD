@@ -813,7 +813,7 @@ void D_XNetDelSocket(D_XSocket_t* const a_Socket)
 /* D_XNetAddPlayer() -- Adds new player */
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data)
 {
-	D_XPlayer_t* New;
+	D_XPlayer_t* New, *Other;
 	uint32_t ID, OurHID;
 	void* Wp;
 	ticcmd_t* Placement;
@@ -834,7 +834,8 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 		a_PacketBack(New, a_Data);
 	
 	// ID already taken?
-	if (New->ID && D_XNetPlayerByID(New->ID) != New)
+	Other = D_XNetPlayerByID(New->ID);
+	if (New->ID && Other && Other != New)
 	{
 		Z_Free(New);
 		return NULL;
@@ -1151,7 +1152,7 @@ void D_XNetChangeMap(const char* const a_Map)
 						j = 1;
 				}
 				else
-					WriteUInt8((uint8_t**)&Wp, 1);
+					WriteUInt8((uint8_t**)&Wp, 0);
 		}
 	}
 	
@@ -2901,6 +2902,16 @@ void D_XNetUpdate(void)
 		// Human player
 		else
 			D_XNetBuildTicCmd(XPlay, TicCmdP);
+		
+		// Time Codes
+		TicCmdP->Ctrl.ProgramTic = g_ProgramTic;
+		TicCmdP->Ctrl.GameTic = gametic;
+		
+		// Ping of player (cap to 32 seconds)
+		if (XPlay->Ping >= 32767)
+			TicCmdP->Ctrl.Ping = 32767;
+		else
+			TicCmdP->Ctrl.Ping = XPlay->Ping;
 		
 		// No player for this one?
 		if (!XPlay->Player)
