@@ -2346,10 +2346,16 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 					for (i = 0; i < CmdP->Ext.DataSize; i++)
 					{
 						u8 = D_BSru8(Data->CBs);
+						CONL_PrintF("%02x", u8);
 						
 						if (i < u16 && i < MAXTCDATABUF)
 							CmdP->Ext.DataBuf[i] = u8;
 					}
+				CONL_PrintF("\n");
+					
+					// Cap
+					if (CmdP->Ext.DataSize > MAXTCDATABUF)
+						CmdP->Ext.DataSize = MAXTCDATABUF;
 				}
 		
 				// Player Buffer
@@ -2411,6 +2417,9 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 		else
 			G_DemoProblem(false, DSTR_BADDEMO_UNHANDLEDDATA, "%s\n", Header);
 	}
+	
+	/* Copy new into old (for the next tic) */
+	memmove(Data->OldCmds, Data->NewCmds, sizeof(Data->NewCmds));
 	
 	/* Success! */
 	return true;
@@ -2553,7 +2562,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 	
 	/* Copy new to old and clear new */
 	memmove(Data->OldCmds, Data->NewCmds, sizeof(Data->NewCmds));
-	memset(Data->NewCmds, 0, sizeof(Data->NewCmds));
+	//memset(Data->NewCmds, 0, sizeof(Data->NewCmds));
 	
 	/* Success! */
 	return true;

@@ -375,7 +375,7 @@ static void GS_XAddPlayerCB(D_XPlayer_t* const a_Player, void* const a_Data)
 /* GS_HandleExtraCommands() -- Handles extra commands */
 static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 {
-	const void* Rp, *Rb, *Re;
+	const uint8_t* Rp, *Rb, *Re;
 	uint8_t Command;
 	
 	int i, j, k, l;

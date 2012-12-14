@@ -3306,7 +3306,8 @@ void D_BSwcu64(D_BS_t* const a_Stream, const uint64_t a_Val)
 	Left = a_Val;
 	
 	// While there is something left
-	while (Left)
+		// DO while because if Left is zero, then no data is written
+	do
 	{
 		// Chop off 7-bits
 		Write = Left & UINT64_C(0x7F);
@@ -3318,7 +3319,7 @@ void D_BSwcu64(D_BS_t* const a_Stream, const uint64_t a_Val)
 		
 		// Write the current bit
 		D_BSwu8(a_Stream, Write);
-	}
+	} while (Left);
 }
 
 

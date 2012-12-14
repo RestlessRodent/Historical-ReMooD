@@ -842,13 +842,17 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	}
 	
 	/* Create ID for the player */
-	do
+	// If it does not exist!
+	if (!New->ID)
 	{
-		ID = D_CMakePureRandom();
-	} while (!ID || D_XNetPlayerByID(ID));
-	
-	// Set ID, is hopefully really random
-	New->ID = ID;
+		do
+		{
+			ID = D_CMakePureRandom();
+		} while (!ID || D_XNetPlayerByID(ID));
+
+		// Set ID, is hopefully really random
+		New->ID = ID;
+	}
 	
 	/* Link into players list */
 	// Find free spot
@@ -1439,8 +1443,13 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 					
 					// Move everything down
 					memmove(&l_GlobalBuf[0], &l_GlobalBuf[1], sizeof(ticcmd_t) * (MAXGLOBALBUFSIZE - 1));
+					memset(&l_GlobalBuf[MAXGLOBALBUFSIZE - 1], 0, sizeof(l_GlobalBuf[MAXGLOBALBUFSIZE - 1]));
 					l_GlobalAt--;
 				}
+				
+				// Nothing
+				else
+					memset(a_TicCmd, 0, sizeof(*a_TicCmd));
 			}
 			
 			// Individual player
