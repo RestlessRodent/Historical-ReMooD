@@ -542,6 +542,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// There are no bots
 	g_GotBots = false;
 	
+	// Reset random numbers to nothing
+	P_SetRandIndex(0);
+	
 	/* Clear all player information */
 	// Reset all vars
 	P_XGSSetAllDefaults();
@@ -609,6 +612,10 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	/* Set the proper gamestate */
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
 	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
+	
+	/* Set all game vars */
+	if (!demoplayback)
+		NG_ApplyVars();
 	
 	/* Initialize screens */
 	// Only give players to screens that have occupents
@@ -2932,4 +2939,69 @@ void D_XNetUpdate(void)
 			IP_ConnRun(l_XNetConns[i]);
 }
 
+/* D_XNetInitialServer() -- Create Initial Server */
+void D_XNetInitialServer(void)
+{
+#define BUFSIZE 128
+#define SMALLBUF 16
+	char Buf[BUFSIZE];
+	char SmallBuf[SMALLBUF];
+	bool_t DoServer;
+	uint16_t Port;
+	struct IP_Conn_s* Conn;
+	
+	/* Actually make the server? */
+	// Reset
+	DoServer = false;
+	Port = 0;
+	memset(Buf, 0, sizeof(Buf));
+	
+	// Specified -server or -host
+	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated"))
+	{
+		// Set as server
+		DoServer = true;
+		
+		// If there is a next argument, it is a protocol
+		if (M_IsNextParm())
+		{
+			strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
+			strncat(Buf, "://", BUFSIZE - 1);
+		}
+		
+		// Binding to certain address
+		if (M_CheckParm("-bind"))
+			if (M_IsNextParm())
+				strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
+		
+		// Also always auto start, so we don't get stuck a the title screen
+		NG_SetAutoStart(true);
+	}
+	
+	// Specifying port?
+	strncat(Buf, ":", BUFSIZE - 1);
+	snprintf(SmallBuf, SMALLBUF - 1, "%hu", Port);
+	strncat(Buf, SmallBuf, BUFSIZE - 1);
+	
+	/* Making the server */
+	// But only if auto starting
+	if (NG_IsAutoStart())
+	{
+		// Make unnetworked server as usual
+		D_XNetMakeServer(false, 0);
+		
+		// Bind server to it, if performing server
+		if (DoServer)
+		{
+			// Attempt creation
+			Conn = IP_Create(Buf, IPF_INPUT);
+			
+			// Worked! so bind it
+			if (Conn)
+				D_XNetBindConn(Conn);
+		}
+	}
+#undef BUFSIZE
+#undef SMALLBUF
+}
 

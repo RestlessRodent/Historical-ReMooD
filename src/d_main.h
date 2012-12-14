@@ -79,6 +79,7 @@ void D_WFJWDrawer(void);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
+void D_BuildMapName(char* const a_Dest, const size_t a_Len, const int32_t a_Epi, const int32_t a_Map);
 bool_t D_CheckWADBlacklist(const char* const a_Sum);
 
 bool_t D_JoyPortsEmpty(void);

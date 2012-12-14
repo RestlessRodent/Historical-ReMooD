@@ -1796,11 +1796,8 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	if (D_BSCompareHeader(Header, "REDM"))
 	{
 		// Read Host ID
-		l_DemoHostID = Data->HostID = D_BSru32(a_Current->BSs);
+		//l_DemoHostID = Data->HostID = D_BSru32(a_Current->BSs);
 		P_SetRandIndex(D_BSru8(a_Current->BSs));
-		
-		// Success!
-		return true;
 	}
 	
 	/* Otherwise */
@@ -1809,6 +1806,12 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		G_DemoProblem(true, DSTR_BADDEMO_ILLEGALHEADER, "\n");
 		return false;
 	}
+	
+	/* Set "waiting" gamestate */
+	gamestate = GS_WAITINGPLAYERS;
+	
+	/* Success! */
+	return true;
 }
 
 /* G_DEMO_ReMooD_StopPlaying() -- Stop playing demo */
@@ -1840,7 +1843,10 @@ bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 	D_BSRecordBlock(a_Current->BSs);
 	
 	/* Start Compressing */
-	Data->CBs = D_BSCreatePackedStream(a_Current->BSs);
+	if (M_CheckParm("-nodemocomp"))
+		Data->CBs = a_Current->BSs;
+	else
+		Data->CBs = D_BSCreatePackedStream(a_Current->BSs);
 	
 	/* Success! */
 	return true;
@@ -1863,7 +1869,8 @@ bool_t G_DEMO_ReMooD_StopRecord(struct G_CurrentDemo_s* a_Current)
 	D_BSFlushStream(Data->CBs);
 	
 	// Delete compressed stream
-	D_BSCloseStream(Data->CBs);
+	if (a_Current->BSs != Data->CBs)
+		D_BSCloseStream(Data->CBs);
 	
 	// Write End of demo
 	D_BSBaseBlock(a_Current->BSs, "EDMO");
@@ -1991,7 +1998,7 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 				LastTic = D_BSru64(Data->CBs);
 				
 				if (ThisTic != gametic)
-					G_DemoProblem(false, DSTR_BADDEMO_SKIPPEDTIC, "%u%u\n", ThisTic, gametic);
+					G_DemoProblem(false, DSTR_BADDEMO_SKIPPEDTIC, "%u%u\n", (uint32_t)ThisTic, (uint32_t)gametic);
 				
 				// Read consistency info
 				RealPrIndex = D_BSru8(Data->CBs);
@@ -2004,11 +2011,11 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 						if (players[i].mo)
 							RealPosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
 				
-				// Mistmatch?
+				// Mismatch?
 				if (PrIndex != RealPrIndex || PosMask != RealPosMask)
 				{
 					if (!Data->Desynced)
-						G_DemoProblem(false, DSTR_BADDEMO_DESYNC, "%u%u%u%08x%08x\n", ThisTic, PrIndex, RealPrIndex, PosMask, RealPosMask);
+						G_DemoProblem(false, DSTR_BADDEMO_DESYNC, "%u%u%u%08x%08x\n", (uint32_t)ThisTic, PrIndex, RealPrIndex, PosMask, RealPosMask);
 					Data->Desynced = true;
 				}
 				
@@ -2794,6 +2801,38 @@ bool_t G_CheckDemoStatus(void)
 	
 	/* Return checked status, if any */
 	return RetVal;
+}
+
+/* G_ReadStartTic() -- Reads tic intro */
+void G_ReadStartTic(void)
+{
+	/* Not Playing Demo? */
+	if (!demoplayback)
+		return;
+}
+
+/* G_WriteStartTic() -- Writes tic intro */
+void G_WriteStartTic(void)
+{
+	/* Not Recording Demo? */
+	if (!demorecording)
+		return;
+}
+
+/* G_ReadEndTic() -- Reads tic outro */
+void G_ReadEndTic(void)
+{
+	/* Not Playing Demo? */
+	if (!demoplayback)
+		return;
+}
+
+/* G_WriteEndTic() -- Writes tic outro */
+void G_WriteEndTic(void)
+{
+	/* Not Recording Demo? */
+	if (!demorecording)
+		return;
 }
 
 /* G_ReadDemoGlobalTicCmd() -- Reads global tic command from demo */

@@ -239,6 +239,7 @@ typedef enum CoreIWADFlags_e
 	CIF_CANFILE					= 0x0000008,	// Can -file -deh, etc.
 	CIF_EXTENDED				= 0x0000010,	// Extended Mode
 	CIF_DOWNLOADABLE			= 0x0000020,	// Can be downloaded
+	CIF_DOUBLEWARP				= 0x0000040,	// Warp Takes two arguments
 } CoreIWADFlags_t;
 
 /* CoreGame_t -- Game being played... */

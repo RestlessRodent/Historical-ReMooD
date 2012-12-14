@@ -332,5 +332,18 @@ bool_t P_XGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level);
 int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int32_t a_Value);
 int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const char* const a_Value);
 
+// New Game Control
+void NG_ResetVars(void);
+void NG_FromCLine(void);
+void NG_ApplyVars(void);
+void NG_Execute(void);
+
+void NG_SetAutoStart(const bool_t a_Value);
+bool_t NG_IsAutoStart(void);
+
+int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal);
+int32_t NG_SetVarDefault(const P_XGSBitID_t a_Bit);
+int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right);
+
 #endif							/* __P_DEMCMP_H__ */
 

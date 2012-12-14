@@ -170,10 +170,16 @@ void G_TimeDemo(char* name);
 void G_DeferedPlayDemo(char* demo);
 bool_t G_CheckDemoStatus(void);
 
+void G_ReadStartTic(void);
+void G_WriteStartTic(void);
+void G_ReadEndTic(void);
+void G_WriteEndTic(void);
+
 void G_ReadDemoGlobalTicCmd(ticcmd_t* const a_TicCmd);
 void G_WriteDemoGlobalTicCmd(ticcmd_t* const a_TicCmd);
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
+
 void G_DemoPreGTicker(void);
 void G_DemoPostGTicker(void);
 uint32_t G_GetDemoHostID(void);

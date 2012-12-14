@@ -1477,3 +1477,117 @@ int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const 
 	return P_XGSSetValue(a_Master, a_Bit, SetVal);
 }
 
+/***********************
+*** NEW GAME OPTIONS ***
+***********************/
+
+/*** LOCALS ***/
+
+static bool_t l_NGAutoStart = false;			// Auto start game
+
+static char l_NGNewMap[WLMAXENTRYNAME];			// Map to change to
+
+/*** FUNCTIONS ***/
+
+/* NG_ResetVars() -- Resets variables */
+void NG_ResetVars(void)
+{
+	/* Clear auto start */
+	l_NGAutoStart = false;
+}
+
+/* NG_FromCLine() -- Set vars from command line */
+void NG_FromCLine(void)
+{
+	int32_t a, b;
+	
+	/* Force automatic start? */
+	if (M_CheckParm("-autostart"))
+		l_NGAutoStart = true;
+	
+	/* Change map? */
+	// First map of episode (assumed 1)
+	if (M_CheckParm("-episode"))
+	{
+		if (M_IsNextParm())
+			a = C_strtou32(M_GetNextParm(), NULL, 10);
+		else
+			a = 1;
+		
+		// Build Map
+		D_BuildMapName(l_NGNewMap, WLMAXENTRYNAME, a, 1);
+		l_NGAutoStart = true;
+	}
+	
+	// Warp to map
+	if (M_CheckParm("-warp"))
+	{
+		// Two arguments
+		if (g_IWADFlags & CIF_DOUBLEWARP)
+		{
+			// Episode
+			if (M_IsNextParm())
+				a = C_strtou32(M_GetNextParm(), NULL, 10);
+			else
+				a = 1;
+			
+			// Map
+			if (M_IsNextParm())
+				b = C_strtou32(M_GetNextParm(), NULL, 10);
+			else
+				b = 1;
+		}
+		
+		// Just one
+		else
+		{
+			// Episode always 1
+			a = 1;
+			
+			// Only Map
+			if (M_IsNextParm())
+				b = C_strtou32(M_GetNextParm(), NULL, 10);
+			else
+				b = 1;
+		}
+		
+		// Build Map
+		D_BuildMapName(l_NGNewMap, WLMAXENTRYNAME, a, b);
+		l_NGAutoStart = true;
+	}	
+}
+
+/* NG_ApplyVars() -- Applies set variables */
+void NG_ApplyVars(void)
+{
+	/* Set any variables first */
+	
+	/* Switch to new map? */
+	if (l_NGNewMap[0])
+		D_XNetChangeMap(l_NGNewMap);
+}
+
+/* NG_SetAutoStart() -- Set game to auto start */
+void NG_SetAutoStart(const bool_t a_Value)
+{
+	l_NGAutoStart = a_Value;
+}
+
+/* NG_IsAutoStart() -- Is the game auto starting? */
+bool_t NG_IsAutoStart(void)
+{
+	return l_NGAutoStart;
+}
+
+int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal)
+{
+}
+
+int32_t NG_SetVarDefault(const P_XGSBitID_t a_Bit)
+{
+}
+
+int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right)
+{
+}
+

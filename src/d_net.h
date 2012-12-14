@@ -248,5 +248,7 @@ tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 
+void D_XNetInitialServer(void);
+
 #endif							/* __D_NET_H__ */
 

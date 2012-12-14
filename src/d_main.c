@@ -608,6 +608,12 @@ void D_DoomLoop(void)
 		G_PlayNextQ();
 	}
 	
+	// Auto start?
+	else if (NG_IsAutoStart())
+	{
+		// Do nothing?
+	}
+	
 	// Otherwise start the title sequence
 	else
 		D_StartTitle();
@@ -1158,6 +1164,7 @@ typedef struct D_IWADInfoEx_s
 	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
 	const char* MapInfoLump;					// Map Info Lump
 	uint32_t Flags;								// Flags for game
+	const char* MapNameFormat;					// Format of map names
 	
 	int mission;								// Deprecated mission
 	int mode;									// Deprecated mode
@@ -1183,6 +1190,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		false,
 		"MI_DOOM2",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
+		"map##",
 		
 		doom2,
 		commercial
@@ -1204,6 +1212,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		false,
 		"MI_TNT",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
+		"map##",
 		
 		doom2,
 		commercial
@@ -1225,6 +1234,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		false,
 		"MI_PLUT",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
+		"map##",
 		
 		doom2,
 		commercial
@@ -1245,7 +1255,8 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		false,
 		"MI_DOOM1",
-		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED,
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_DOUBLEWARP,
+		"e$m#",
 		
 		doom,
 		retail
@@ -1266,7 +1277,8 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		false,
 		"MI_DOOM1",
-		CIF_CANFILE | CIF_REGISTERED,
+		CIF_CANFILE | CIF_REGISTERED | CIF_DOUBLEWARP,
+		"e$m#",
 		
 		doom,
 		retail
@@ -1287,7 +1299,8 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		true,
 		"MI_DOOM1",
-		CIF_SHAREWARE | CIF_DOWNLOADABLE,
+		CIF_SHAREWARE | CIF_DOWNLOADABLE | CIF_DOUBLEWARP,
+		"e$m#",
 		
 		doom,
 		shareware
@@ -1308,7 +1321,8 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_HERETIC,
 		false,
 		"MI_HERTC",
-		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED,
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_DOUBLEWARP,
+		"e$m#",
 		
 		heretic,
 		heretic
@@ -1323,7 +1337,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Hexen Shareware
 
 	/* Last */
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, 0}
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, "", 0}
 };
 
 // l_BlockSums -- Checksums to disallow downloading from
@@ -1427,6 +1441,7 @@ uint32_t g_RandomDataSize = 0;					// Size of random data
 
 /*** LOCALS ***/
 
+static const D_IWADInfoEx_t* l_IWADCur;			// Current IWAD
 static char l_IWADSum[33];						// IWAD Sum
 
 /*** FUNCTIONS ***/
@@ -1678,6 +1693,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	if (devparm)
 		CONL_PrintF("DS_DetectGameMode: Selecting %s.\n", c_IWADInfos[Best].NiceTitle);
 	
+	l_IWADCur = &c_IWADInfos[Best];
 	g_CoreGame = c_IWADInfos[Best].CoreGame;
 	gamemode = c_IWADInfos[Best].mode;
 	gamemission = c_IWADInfos[Best].mission;
@@ -1718,6 +1734,58 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	return true;
 }
 
+/* D_BuildMapName() -- Builds map name */
+void D_BuildMapName(char* const a_Dest, const size_t a_Len, const int32_t a_Epi, const int32_t a_Map)
+{
+	const char* s;
+	char* d;
+	size_t i;
+	
+	/* Check */
+	if (!a_Dest || !a_Len || !l_IWADCur)
+		return;
+	
+	/* Setup */
+	s = l_IWADCur->MapNameFormat;
+	d = a_Dest;
+	
+	/* Copy slowly */
+	for (i = 0; *s && i < a_Len;)
+	{
+		// Episode
+		if (*s == '$')
+		{
+			*(d++) = (a_Epi % 10) + '0';
+			s++;	// Skip dollar
+			i++;
+		}
+		
+		// Map
+		else if (*s == '#')
+		{
+			// Double map?
+			if (*(s + 1) == '#')
+			{
+				*(d++) = ((a_Map / 10) % 10) + '0';
+				s++;
+				i++;
+			}
+			
+			// Lowest digit is the same otherwise
+			*(d++) = (a_Map % 10) + '0';
+			s++;
+			i++;
+		}
+		
+		// Normal?
+		else
+		{
+			*(d++) = *(s++);
+			i++;
+		}
+	}
+}
+
 /* D_CheckWADBlacklist() -- Checks the blacklist */
 bool_t D_CheckWADBlacklist(const char* const a_Sum)
 {
@@ -1729,7 +1797,7 @@ bool_t D_CheckWADBlacklist(const char* const a_Sum)
 	
 	/* Go through list */
 	for (i = 0; l_BlockSums[i]; i++)
-		if (strcasecmp(a_Sum, l_BlockSums[i]) == 0)
+		if (!strcasecmp(a_Sum, l_BlockSums[i]))
 			return true;
 	
 	/* Not found */
@@ -2698,20 +2766,17 @@ void D_DoomMain(void)
 		CONL_PrintF("Development mode activated!\n");
 	
 	if (M_CheckParm("-file"))
-	{
 		// the parms after p are wadfile/lump names,
 		// until end of parms or another - preceded parm
 		D_AddPWADs();
-	}
+	
 	// load dehacked file
 	p = M_CheckParm("-dehacked");
 	if (!p)
 		p = M_CheckParm("-deh");	//Fab:02-08-98:like Boom & DosDoom
 	if (p != 0)
-	{
 		while (M_IsNextParm())
 			D_AddFile(M_GetNextParm());
-	}
 	
 	// GhostlyDeath <October 6, 2012> -- Force single tics
 	singletics = 0;
@@ -2757,6 +2822,7 @@ void D_DoomMain(void)
 			}
 		}
 	
+#if 0
 	// get skill / episode / map from parms
 	gameskill = sk_medium;
 	startepisode = 1;
@@ -2793,6 +2859,7 @@ void D_DoomMain(void)
 		}
 		autostart = true;
 	}
+#endif
 	
 	// load wad, including the main wad file
 	CONL_PrintF("Initializing the Lite-WAD Subsystem...\n");
@@ -2876,9 +2943,6 @@ void D_DoomMain(void)
 	if (M_CheckParm("-turbo") && M_IsNextParm())
 		COM_BufAddText(va("turbo %s\n", M_GetNextParm()));
 #endif
-		
-	// push all "+" parameter at the command buffer
-	M_PushSpecialParameters();
 	
 	CONL_PrintF("Initializing the renderer state...\n");
 	R_Init();
@@ -2900,13 +2964,34 @@ void D_DoomMain(void)
 	////////////////////////////////
 	T_Init();
 	
+	/* Initial Game Setup */
+	// Hopefuly this is correct!
+	
+	// Reset game variables
+		// All settings assume defaults, of course
+	NG_ResetVars();
+	
+	// Load from command line
+		// Stuff like -warp, etc.
+	NG_FromCLine();
+	
 	// Recording Demo?
 	if (M_CheckParm("-record"))
 		if (M_IsNextParm())
 		{
 			PWADArg = M_GetNextParm();
 			G_BeginRecording(PWADArg, (M_IsNextParm() ? M_GetNextParm() : "remood"));
+			NG_SetAutoStart(true);
 		}
+	
+	// Initial Server?
+		// XNIS() calls XNMS() which calls NG_ApplyVars()
+	//if (NG_IsAutoStart())
+		D_XNetInitialServer();
+	
+	// Process all + parms
+		// Commands like other things
+	M_PushSpecialParameters();
 	
 #if 0
 	// start the apropriate game based on parms
