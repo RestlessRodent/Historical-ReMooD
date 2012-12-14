@@ -1023,6 +1023,9 @@ typedef enum UnicodeStringID_e
 	DSTR_INFOC_OLDPFDEH,
 	DSTR_INFOC_DEHNOSPRMAP,
 	
+	/* d_block.c */
+	DSTR_DBLOCKC_ZLIBINFLATEERR,
+	
 	/* p_demcmp.c */
 	DSTR_M_PGS_NOTHINGHERE,
 	DSTR_D_PGS_NOTHINGHERE,

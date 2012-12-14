@@ -1024,6 +1024,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "INFOC_OLDPFDEH", "WAD \"$1\" contains old DEHACKED lump, which may fail."},
 	{			  "INFOC_DEHNOSPRMAP", "No sprite mappings, DEHACKED not operational."},
 	
+	/*** D_BLOCK.C ***/
+	{		 "DBLOCKC_ZLIBINFLATEERR", "ZLib inflation error $1."},
+	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},
 	{               "D_PGS_NOTHINGHERE", "Nothing is here"},
