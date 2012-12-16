@@ -2274,6 +2274,12 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 		return false;
 	}
 	
+	/* End deflation */
+	mz_deflateEnd(&ZStream);
+	
+	// Return success!
+	return true;
+	
 #if 0
 	DS_RBSPackedData_t* PackData;
 	int Ret;

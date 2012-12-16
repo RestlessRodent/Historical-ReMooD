@@ -2818,45 +2818,6 @@ void D_DoomMain(void)
 			}
 		}
 	
-#if 0
-	// get skill / episode / map from parms
-	gameskill = sk_medium;
-	startepisode = 1;
-	startmap = 1;
-	autostart = false;
-	
-	p = M_CheckParm("-skill");
-	if (p && p < myargc - 1)
-	{
-		gameskill = myargv[p + 1][0] - '1';
-		autostart = true;
-	}
-	
-	p = M_CheckParm("-episode");
-	if (p && p < myargc - 1)
-	{
-		startepisode = myargv[p + 1][0] - '0';
-		startmap = 1;
-		autostart = true;
-	}
-	
-	p = M_CheckParm("-warp");
-	if (p && p < myargc - 1)
-	{
-		if (gamemode == commercial)
-			startmap = atoi(myargv[p + 1]);
-		else
-		{
-			startepisode = myargv[p + 1][0] - '0';
-			if (p < myargc - 2 && myargv[p + 2][0] >= '0' && myargv[p + 2][0] <= '9')
-				startmap = myargv[p + 2][0] - '0';
-			else
-				startmap = 1;
-		}
-		autostart = true;
-	}
-#endif
-	
 	// load wad, including the main wad file
 	CONL_PrintF("Initializing the Lite-WAD Subsystem...\n");
 	

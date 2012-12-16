@@ -1499,7 +1499,8 @@ void NG_ResetVars(void)
 /* NG_FromCLine() -- Set vars from command line */
 void NG_FromCLine(void)
 {
-	int32_t a, b;
+	int32_t a, b, i;
+	char* p;
 	
 	/* Force automatic start? */
 	if (M_CheckParm("-autostart"))
@@ -1554,7 +1555,108 @@ void NG_FromCLine(void)
 		// Build Map
 		D_BuildMapName(l_NGNewMap, WLMAXENTRYNAME, a, b);
 		l_NGAutoStart = true;
-	}	
+	}
+	
+	/* Options */
+	// Deathmatch
+	if (M_CheckParm("-deathmatch"))
+		if (NG_SetRules("dm"))
+			l_NGAutoStart = true;
+	
+	// Alt Deathmatch
+	if (M_CheckParm("-altdeath"))
+		if (NG_SetRules("dm2"))
+			l_NGAutoStart = true;
+	
+	// Rules
+	if (M_CheckParm("-rules"))
+		if (M_IsNextParm())
+		{
+			p = M_GetNextParm();
+			
+			if (NG_SetRules(p))
+				l_NGAutoStart = true;
+		}
+	
+	// Skill
+	if (M_CheckParm("-skill"))
+		if (M_IsNextParm())
+		{
+			p = M_GetNextParm();
+			a = C_strtoi32(p, NULL, 10);
+			b = 0;
+			
+			// Numerical
+			if (a >= 1 && a <= 5)
+				b = a;
+			
+			// By name alias
+			else
+				for (i = 0; c_PEXGSPVSkill[i].StrAlias; i++)
+					if (!strcasecmp(p, c_PEXGSPVSkill[i].StrAlias))
+					{
+						b = c_PEXGSPVSkill[i].IntVal + 1;
+						break;
+					}
+			
+			// Set skill now?
+			if (b > 0)
+			{
+				NG_SetVarValue(PGS_GAMESKILL, b - 1);
+				l_NGAutoStart = true;
+			}
+		}
+	
+	// Monster Respawn
+	if (M_CheckParm("-respawn"))
+	{
+		NG_SetVarValue(PGS_MONRESPAWNMONSTERS, 1);
+		l_NGAutoStart = true;
+	}
+	
+	// Fast Monsters
+	if (M_CheckParm("-fast"))
+	{
+		NG_SetVarValue(PGS_MONFASTMONSTERS, 1);
+		l_NGAutoStart = true;
+	}
+	
+	// Predicting Monsters (Legacy)
+	if (M_CheckParm("-predicting"))
+	{
+		NG_SetVarValue(PGS_MONPREDICTMISSILES, 1);
+		l_NGAutoStart = true;
+	}
+	
+	// Timer
+	if (M_CheckParm("-timer"))
+		if (M_IsNextParm())
+		{
+			a = C_strtoi32(M_GetNextParm(), NULL, 10);
+			NG_SetVarValue(PGS_GAMETIMELIMIT, a);
+			l_NGAutoStart = true;
+		}
+	
+	// Austin Virtual Gaming
+	if (M_CheckParm("-avg"))
+	{
+		NG_SetVarValue(PGS_GAMETIMELIMIT, 20);
+		l_NGAutoStart = true;
+	}
+	
+	// Teamplay (colors)
+	if (M_CheckParm("-teamplay"))
+	{
+		NG_SetVarValue(PGS_GAMETEAMPLAY, 1);
+		l_NGAutoStart = true;
+	}
+	
+	// Teamplay (skins)
+	if (M_CheckParm("-teamskin"))
+	{
+		NG_SetVarValue(PGS_GAMETEAMPLAY, 2);
+		l_NGAutoStart = true;
+	}
 }
 
 /* NG_ApplyVars() -- Applies set variables */
@@ -1564,7 +1666,7 @@ void NG_ApplyVars(void)
 	
 	/* Switch to new map? */
 	if (l_NGNewMap[0])
-		D_XNetChangeMap(l_NGNewMap);
+		D_XNetChangeMap(l_NGNewMap, true);
 }
 
 /* NG_SetAutoStart() -- Set game to auto start */
@@ -1577,6 +1679,12 @@ void NG_SetAutoStart(const bool_t a_Value)
 bool_t NG_IsAutoStart(void)
 {
 	return l_NGAutoStart;
+}
+
+/* NG_SetRules() -- Set next game from rules */
+bool_t NG_SetRules(const char* const a_Name)
+{
+	return false;
 }
 
 int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal)
