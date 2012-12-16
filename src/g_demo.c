@@ -2346,12 +2346,10 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 					for (i = 0; i < CmdP->Ext.DataSize; i++)
 					{
 						u8 = D_BSru8(Data->CBs);
-						CONL_PrintF("%02x", u8);
 						
 						if (i < u16 && i < MAXTCDATABUF)
 							CmdP->Ext.DataBuf[i] = u8;
 					}
-				CONL_PrintF("\n");
 					
 					// Cap
 					if (CmdP->Ext.DataSize > MAXTCDATABUF)

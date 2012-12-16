@@ -1494,6 +1494,9 @@ void NG_ResetVars(void)
 {
 	/* Clear auto start */
 	l_NGAutoStart = false;
+	
+	/* Clear map to switch to */
+	memset(l_NGNewMap, 0, sizeof(l_NGNewMap));
 }
 
 /* NG_FromCLine() -- Set vars from command line */
@@ -1667,6 +1670,9 @@ void NG_ApplyVars(void)
 	/* Switch to new map? */
 	if (l_NGNewMap[0])
 		D_XNetChangeMap(l_NGNewMap, true);
+	
+	/* Reset everything? */
+	NG_ResetVars();
 }
 
 /* NG_SetAutoStart() -- Set game to auto start */
@@ -1687,14 +1693,17 @@ bool_t NG_SetRules(const char* const a_Name)
 	return false;
 }
 
+/* NG_SetVarValue() -- Set variable to value */
 int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal)
 {
 }
 
+/* NG_SetVarDefault() -- Set variable to default */
 int32_t NG_SetVarDefault(const P_XGSBitID_t a_Bit)
 {
 }
 
+/* NG_GetNextValue() -- Get next value (for menus) */
 int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right)
 {
 }
