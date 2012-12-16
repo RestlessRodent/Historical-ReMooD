@@ -55,6 +55,9 @@
 *** FUNCTIONS ***
 ****************/
 
+bool_t P_SaveToStream(D_BS_t* const a_Stream);
+bool_t P_LoadFromStream(D_BS_t* const a_Stream);
+
 /* CLC_SaveGame() -- Saves the game */
 static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -94,17 +97,169 @@ void P_InitSGConsole(void)
 /* P_SaveGameEx() -- Extended savegame */
 bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
-	return false;
+	bool_t OK = false;
+	D_BS_t* BS = D_BSCreateFileStream(ExtFileName, DRBSSF_OVERWRITE);
+	
+	/* Failed? */
+	if (!BS)
+		return false;
+	
+	/* Save */
+	OK = P_SaveToStream(BS);
+	
+	// Close
+	D_BSCloseStream(BS);
+	
+	return OK;
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
 bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
+	bool_t OK = false;
+	D_BS_t* BS = D_BSCreateFileStream(ExtFileName, DRBSSF_READONLY);
+	
+	/* Failed? */
+	if (!BS)
+		return false;
+	
+	/* Load */
+	OK = P_LoadFromStream(BS);
+	
+	// Close
+	D_BSCloseStream(BS);
+	
+	return OK;
+}
+
+/*****************************************************************************/
+
+typedef void (*PS_TransformFunc_t)(const bool_t a_Write, void* const a_IO, const int32_t a_ESize, const size_t a_IOSize);
+
+/* PS_UnifiedHeader() -- Unified Header Handling (bases or reads blocks) */
+bool_t PS_UnifiedHeader(D_BS_t* const a_Stream, const bool_t a_Write, char* const a_IOHeader, const char* const a_CheckVS)
+{
+	/* Always true if writing */
+	if (a_Write)
+	{
+		D_BSBaseBlock(a_Stream, a_CheckVS);
+		return true;
+	}
+	
+	/* Otherwise compare header */
+	if (D_BSCompareHeader(a_IOHeader, a_CheckVS))
+		return true;
+	
+	// No match
 	return false;
 }
 
+/* PS_UnifiedRW() -- Unified Read/Write */
+// a_Stream  -- Stream being read/written to/from
+// a_Write   -- Set if writing to strean
+// a_IO      -- Pointer to actual type
+// a_ESize   -- Size to encode/decode in block stream
+// a_IOSize  -- Size of type in memory
+// a_Trans   -- Tranformation Function (if required)
+void PS_UnifiedRW(D_BS_t* const a_Stream, const bool_t a_Write, void* const a_IO, const int32_t a_ESize, const size_t a_IOSize, PS_TransformFunc_t a_Trans)
+{
+}
 
+/* PS_Nothing() -- Does nothing */
+void PS_Nothing(void)
+{
+}
 
+#define __WO if (l_SaveWrite) D_BSRecordBlock(a_Stream); else PS_Nothing
+#define __HE(cstar) if (PS_UnifiedHeader(a_Stream, l_SaveWrite, Header, cstar))
+#define __UN(io,sz,func) PS_UnifiedRW(a_Stream, l_SaveWrite, io, sz, sizeof(*io), func)
+
+/*****************************************************************************/
+
+static bool_t l_SaveWrite = false;				// Write to save
+
+/* PS_GenericSaveIO() -- Generic Save Game IO */
+bool_t PS_GenericSaveIO(D_BS_t* const a_Stream, const bool_t a_Write)
+{
+	char Header[5];
+	
+	/* Dual-Way Loop */
+	for (;;)
+	{
+		// Read/Write Block
+		memset(Header, 0, sizeof(Header));
+		
+		// If reading, read next block
+		if (!a_Write)
+			if (!D_BSPlayBlock(a_Stream, Header))
+				break;	// No more blocks read
+		
+		// Game State	
+		__HE("GSTT")
+		{
+			
+			
+			__WO;
+		}
+		
+		// If writing, always break out
+		if (a_Write)
+			break;
+	}
+	
+	/* Success? */
+	return true;
+}
+
+/* P_SaveToStream() -- Save to stream */
+bool_t P_SaveToStream(D_BS_t* const a_Stream)
+{
+	bool_t OK;
+	D_BS_t* CB;
+	
+	/* Create Compressed Stream */
+	CB = D_BSCreatePackedStream(a_Stream);
+	l_SaveWrite = true;
+	
+	// Failed?
+	if (!CB)
+		return false;
+	
+	/* Do IO */
+	OK = PS_GenericSaveIO(a_Stream, true);
+	
+	/* Close */
+	D_BSCloseStream(CB);
+	
+	// All done
+	return OK;
+}
+
+/* P_LoadFromStream() -- Load from stream */
+bool_t P_LoadFromStream(D_BS_t* const a_Stream)
+{
+	bool_t OK;
+	D_BS_t* CB;
+	
+	/* Create Compressed Stream */
+	CB = D_BSCreatePackedStream(a_Stream);
+	l_SaveWrite = false;
+	
+	// Failed?
+	if (!CB)
+		return false;
+	
+	/* Do IO */
+	OK = PS_GenericSaveIO(a_Stream, false);
+	
+	/* Close */
+	D_BSCloseStream(CB);
+	
+	// All done
+	return OK;
+}
+
+/*****************************************************************************/
 
 
 

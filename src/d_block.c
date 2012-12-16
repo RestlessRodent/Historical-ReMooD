@@ -2684,6 +2684,7 @@ void DS_RBSPacked_DeleteF(struct D_BS_s* const a_Stream)
 	/* Flush */
 	// This is so any unwritten compressed data gets written
 	DS_RBSPacked_FlushF(a_Stream);
+	D_BSFlushStream(a_Stream);
 		
 	/* Destroy input */
 	//D_BSCloseStream(PackData->InputBuf);

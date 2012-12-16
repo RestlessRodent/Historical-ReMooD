@@ -605,7 +605,7 @@ void D_DoomLoop(void)
 	}
 	
 	// Auto start?
-	else if (NG_IsAutoStart())
+	else if (NG_IsAutoStart() || D_XNetIsServer())
 	{
 		// Do nothing?
 	}
