@@ -605,6 +605,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
 	
 	// Set server infos
+	l_IsConnected = true;	// Connected to self!
 	
 	/* Clear important flags */
 	// not playing title screen demos
@@ -710,6 +711,8 @@ bool_t D_XNetGetHostID(void)
 		if (g_XPlays[i])
 			if (g_XPlays[i]->Flags & DXPF_LOCAL)
 				return g_XPlays[i]->HostID;
+	
+	/* If we are connecting (loading the save) then return the mapped ID */
 	
 	/* Fell through */
 	return 0;
@@ -1182,6 +1185,13 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 	/* Set screen to use profile */
 	g_Splits[a_ScreenID].XPlayer->Profile = a_Profile;
 	g_Splits[a_ScreenID].Profile = a_Profile;
+	
+	// If player is attached, switch profile
+	if (g_Splits[a_ScreenID].XPlayer->Player)
+		g_Splits[a_ScreenID].XPlayer->Player->ProfileEx = a_Profile;
+	
+	// Copy UUID to XPlayer
+	strncpy(g_Splits[a_ScreenID].XPlayer->ProfileUUID, a_Profile->UUID, MAXPLAYERNAME);
 	
 	/* Auto-Grab Joystick? */
 	// Only if it isn't grabbed by someone else

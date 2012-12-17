@@ -314,6 +314,10 @@ bool_t P_ExClearLevel(void)
 	/* Scores */
 	P_UpdateScores();
 	
+	/* Switch back to waiting for players screen */
+	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
+		gamestate = GS_WAITINGPLAYERS;
+	
 	/* Always succeeds */
 	return true;
 }

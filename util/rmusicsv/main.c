@@ -33,8 +33,17 @@
 *** INCLUDES ***
 ***************/
 
+#include <stdlib.h>
+
+#include "handler.h"
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* main() -- Main entry point */
+int main(void argc, char** argv)
+{
+	return EXIT_SUCCESS;
+}
 

@@ -144,6 +144,7 @@ void D_BSwu32(D_BS_t* const a_Stream, const uint32_t a_Val);
 void D_BSwu64(D_BS_t* const a_Stream, const uint64_t a_Val);
 
 void D_BSws(D_BS_t* const a_Stream, const char* const a_Val);
+void D_BSwsn(D_BS_t* const a_Stream, const char* const a_Val, const size_t a_N);
 void D_BSwp(D_BS_t* const a_Stream, const void* const a_Ptr);
 
 size_t D_BSReadChunk(D_BS_t* const a_Stream, void* const a_Data, const size_t a_Size);
@@ -164,6 +165,7 @@ void D_BSrhost(D_BS_t* const a_Stream, I_HostAddress_t* const a_Out);
 void D_BSwhost(D_BS_t* const a_Stream, const I_HostAddress_t* const a_In);
 
 size_t D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
+size_t D_BSrsn(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 uint64_t D_BSrp(D_BS_t* const a_Stream);
 
 #endif /* __D_BLOCK_H__ */

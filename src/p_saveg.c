@@ -50,13 +50,17 @@
 #include "console.h"
 #include "p_demcmp.h"
 #include "m_menu.h"
+#include "b_bot.h"
+#include "d_net.h"
+#include "d_netcmd.h"
+
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-bool_t P_SaveToStream(D_BS_t* const a_Stream);
-bool_t P_LoadFromStream(D_BS_t* const a_Stream);
+bool_t P_SaveToStream(D_BS_t* const a_Str);
+bool_t P_LoadFromStream(D_BS_t* const a_Str);
 
 /* CLC_SaveGame() -- Saves the game */
 static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
@@ -134,99 +138,355 @@ bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFil
 
 /*****************************************************************************/
 
-typedef void (*PS_TransformFunc_t)(const bool_t a_Write, void* const a_IO, const int32_t a_ESize, const size_t a_IOSize);
-
-/* PS_UnifiedHeader() -- Unified Header Handling (bases or reads blocks) */
-bool_t PS_UnifiedHeader(D_BS_t* const a_Stream, const bool_t a_Write, char* const a_IOHeader, const char* const a_CheckVS)
+/* PS_Expect() -- Expect header */
+static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 {
-	/* Always true if writing */
-	if (a_Write)
-	{
-		D_BSBaseBlock(a_Stream, a_CheckVS);
-		return true;
-	}
+	char Header[5] = {0, 0, 0, 0, 0};
 	
-	/* Otherwise compare header */
-	if (D_BSCompareHeader(a_IOHeader, a_CheckVS))
-		return true;
+	/* Play Block */
+	if (!D_BSPlayBlock(a_Str, Header))
+		return false;
 	
-	// No match
-	return false;
+	/* Compare */
+	return D_BSCompareHeader(a_Header, Header);
 }
 
-/* PS_UnifiedRW() -- Unified Read/Write */
-// a_Stream  -- Stream being read/written to/from
-// a_Write   -- Set if writing to strean
-// a_IO      -- Pointer to actual type
-// a_ESize   -- Size to encode/decode in block stream
-// a_IOSize  -- Size of type in memory
-// a_Trans   -- Tranformation Function (if required)
-void PS_UnifiedRW(D_BS_t* const a_Stream, const bool_t a_Write, void* const a_IO, const int32_t a_ESize, const size_t a_IOSize, PS_TransformFunc_t a_Trans)
+/* PS_SaveDummy() -- Saves dummy data */
+static void PS_SaveDummy(D_BS_t* const a_Str)
 {
+	/* Base */
+	D_BSBaseBlock(a_Str, "DUMY");
+	
+	/* Encode */
+	
+	/* Record */
+	D_BSRecordBlock(a_Str);
 }
 
-/* PS_Nothing() -- Does nothing */
-void PS_Nothing(void)
-{
-}
-
-#define __WO if (l_SaveWrite) D_BSRecordBlock(a_Stream); else PS_Nothing
-#define __HE(cstar) if (PS_UnifiedHeader(a_Stream, l_SaveWrite, Header, cstar))
-#define __UN(io,sz,func) PS_UnifiedRW(a_Stream, l_SaveWrite, io, sz, sizeof(*io), func)
-
-/*****************************************************************************/
-
-static bool_t l_SaveWrite = false;				// Write to save
-
-/* PS_GenericSaveIO() -- Generic Save Game IO */
-bool_t PS_GenericSaveIO(D_BS_t* const a_Stream, const bool_t a_Write)
-{
-	char Header[5];
+/* PS_LoadDummy() -- Loads dummy data */
+static bool_t PS_LoadDummy(D_BS_t* const a_Str)
+{	
+	/* Expect "NSTA" */
+	if (!PS_Expect(a_Str, "DUMY"))
+		return false;
 	
-	/* Dual-Way Loop */
-	for (;;)
-	{
-		// Read/Write Block
-		memset(Header, 0, sizeof(Header));
-		
-		// If reading, read next block
-		if (!a_Write)
-			if (!D_BSPlayBlock(a_Stream, Header))
-				break;	// No more blocks read
-		
-		// Game State	
-		__HE("GSTT")
-		{
-			
-			
-			__WO;
-		}
-		
-		// If writing, always break out
-		if (a_Write)
-			break;
-	}
+	/* Decode */
 	
-	/* Success? */
+	/* Success! */
 	return true;
 }
 
+/*---------------------------------------------------------------------------*/
+
+/* PS_SaveNetState() -- Saves networked state */
+static void PS_SaveNetState(D_BS_t* const a_Str)
+{
+	size_t i;
+	D_XPlayer_t* XPlay;
+	B_BotTemplate_t* BotTemp;
+	
+	/* Base */
+	D_BSBaseBlock(a_Str, "NSTA");
+	
+	/* Encode */
+	// Save host ID
+	D_BSwu32(a_Str, D_XNetGetHostID());
+	
+	// Save XPlayers
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Nothing here?
+		if (!XPlay)
+			continue;
+		
+		// Encode something is here
+		D_BSwu8(a_Str, i + 1);
+		
+		// Save IDs for recapturing
+		D_BSwu32(a_Str, XPlay->ID);
+		D_BSwu32(a_Str, XPlay->HostID);
+		D_BSwu32(a_Str, XPlay->ClProcessID);
+		
+		// Flags from server
+		D_BSwu32(a_Str, XPlay->Flags);
+		
+		// Local Profile Stuff
+		D_BSws(a_Str, XPlay->AccountName);
+		D_BSws(a_Str, XPlay->DisplayName);
+		D_BSws(a_Str, XPlay->ProfileUUID);
+		D_BSws(a_Str, XPlay->LoginUUID);
+		D_BSws(a_Str, XPlay->AccountServer);
+		D_BSws(a_Str, XPlay->AccountCookie);
+		
+		// Playing Info
+		D_BSwi8(a_Str, XPlay->ScreenID);
+		D_BSwi32(a_Str, XPlay->InGameID);
+		D_BSwi32(a_Str, XPlay->Ping);
+		D_BSwu32(a_Str, XPlay->StatusBits);
+		
+		// Try obtaining bot template
+		BotTemp = NULL;
+		if (XPlay->BotData)
+			BotTemp = &XPlay->BotData->BotTemplate;
+		
+		if (BotTemp)
+			D_BSws(a_Str, BotTemp->AccountName);
+		else
+			D_BSws(a_Str, "");
+	}
+	
+	// Encode End
+	D_BSwu8(a_Str, 0);
+	
+	/* Record */
+	D_BSRecordBlock(a_Str);
+}
+
+/* PS_LoadNetState() -- Loads networked state */
+static bool_t PS_LoadNetState(D_BS_t* const a_Str)
+{
+	uint32_t OurHost, SaveHost, i;
+	uint8_t Code;
+	D_XPlayer_t *XPlay;
+	char NameBuf[MAXPLAYERNAME];
+	B_BotTemplate_t* BotTemp;
+	
+	/* Expect "NSTA" */
+	if (!PS_Expect(a_Str, "NSTA"))
+		return false;
+	
+	/* Get associated host IDs */
+	OurHost = D_XNetGetHostID();
+	SaveHost = D_BSru32(a_Str);
+	
+	/* Read XPlayers */
+	for (;;)
+	{
+		// Read Code
+		Code = D_BSru8(a_Str);
+		
+		// End of list?
+		if (!Code)
+			break;
+		
+		// Clear fake player
+		XPlay = Z_Malloc(sizeof(*XPlay), PU_STATIC, NULL);
+		
+		// Link into list
+		for (i = 0; i < g_NumXPlays; i++)
+			if (!g_XPlays[i])
+			{
+				g_XPlays[i] = XPlay;
+				break;
+			}
+		
+		// No room? Add to end
+		if (i >= g_NumXPlays)
+		{
+			Z_ResizeArray((void**)&g_XPlays, sizeof(*g_XPlays),
+				g_NumXPlays, g_NumXPlays + 1);
+			g_XPlays[g_NumXPlays++] = XPlay;
+		}
+		
+		// Read into fake player
+		XPlay->ID = D_BSru32(a_Str);
+		XPlay->HostID = D_BSru32(a_Str);
+		XPlay->ClProcessID = D_BSru32(a_Str);
+		
+		XPlay->Flags = D_BSru32(a_Str);
+		
+		D_BSrs(a_Str, XPlay->AccountName, MAXPLAYERNAME);
+		D_BSrs(a_Str, XPlay->DisplayName, MAXPLAYERNAME);
+		D_BSrs(a_Str, XPlay->ProfileUUID, MAXPLAYERNAME);
+		D_BSrs(a_Str, XPlay->LoginUUID, MAXUUIDLENGTH);
+		D_BSrs(a_Str, XPlay->AccountServer, MAXXSOCKTEXTSIZE);
+		D_BSrs(a_Str, XPlay->AccountCookie, MAXPLAYERNAME);
+		
+		XPlay->ScreenID = D_BSri8(a_Str);
+		XPlay->InGameID = D_BSri32(a_Str);
+		XPlay->Ping = D_BSri32(a_Str);
+		XPlay->StatusBits = D_BSru32(a_Str);
+		
+		D_BSrs(a_Str, NameBuf, MAXPLAYERNAME);
+		
+		// Client, and this is our XPlayer
+		if (OurHost != 0 && OurHost == XPlay->HostID)
+		{
+			XPlay->Flags &= ~DXPF_SERVER;
+			XPlay->Flags |= DXPF_LOCAL;
+			
+			// As long as it is not a bot, bind to a screen!
+			if (!(XPlay->Flags & DXPF_BOT))
+			{
+				// Find local process split (if any)
+				i = D_NCSFindSplitByProcess(XPlay->ClProcessID);
+				
+				// Not found
+				if (i < 0)
+				{
+					// Find first free spot (hopefuly)
+					for (i = 0; i < MAXSPLITSCREEN; i++)
+						if (!D_ScrSplitHasPlayer(i))
+							break;
+					
+					// There is room
+					if (i < MAXSPLITSCREEN)
+					{
+						g_Splits[i].Waiting = true;
+						g_Splits[i].ProcessID = XPlay->ClProcessID;
+						
+						// Resize all screens
+						g_SplitScreen++;
+						R_ExecuteSetViewSize();
+					}
+				}
+				
+				// Found it
+				else
+				{
+					// Use said profile
+					XPlay->Profile = g_Splits[i].Profile;
+				}
+				
+				// Set common stuff
+				if (i < MAXSPLITSCREEN)
+				{
+					XPlay->ScreenID = i;
+					g_Splits[i].Console = 0;
+					g_Splits[i].Display = -1;
+					g_Splits[i].XPlayer = XPlay;
+				}
+			}
+		}
+		
+		// Server load
+		else if (OurHost == 0)
+		{
+			// Bot?
+			if (XPlay->Flags & DXPF_BOT)
+			{
+				// Try and find the bot template
+				BotTemp = B_GHOST_FindTemplate(NameBuf);
+				
+				// Not found? use random then
+				if (!BotTemp)
+					BotTemp = B_GHOST_RandomTemplate();
+				
+				// Initialize bot at this player
+				XPlay->BotData = B_InitBot(BotTemp);
+				XPlay->BotData->XPlayer = XPlay;
+			}
+			
+			// Server player
+			else if (XPlay->Flags & DXPF_SERVER)
+			{
+				XPlay->Flags |= DXPF_LOCAL;
+			}
+			
+			// Non-Server Player (delete next tic)
+			else
+			{
+				XPlay->Flags &= ~(DXPF_LOCAL);
+				XPlay->Flags |= DXPF_DEFUNCT;
+			}
+		}
+		
+		// Assign local profile if missing
+		if (XPlay->Flags & DXPF_LOCAL)
+			if (!XPlay->Profile)
+				XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
+		
+		// If the player is in game, assign it
+		if (XPlay->InGameID >= 0 && XPlay->InGameID < MAXPLAYERS)
+		{
+			XPlay->Player = &players[XPlay->InGameID];
+			
+			if (XPlay->BotData)
+				XPlay->BotData->Player = XPlay->Player;
+			
+			XPlay->Player->XPlayer = XPlay;
+			XPlay->Player->ProfileEx = XPlay->Profile;
+		}
+	}
+	
+	/* Success! */
+	return true;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* PS_SavePlayers() -- Saves player data */
+static void PS_SavePlayers(D_BS_t* const a_Str)
+{
+	int32_t i;
+		
+	/* Base */
+	D_BSBaseBlock(a_Str, "PLAY");
+	
+	/* Encode */
+	// Basic Info
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		D_BSwu8(a_Str, playeringame[i]);
+		D_BSws(a_Str, player_names[i]);
+		D_BSws(a_Str, team_names[i]);
+	}
+	
+	// Complex Info
+	
+	/* Record */
+	D_BSRecordBlock(a_Str);
+}
+
+/* PS_LoadPlayers() -- Loads player data */
+static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
+{
+	int32_t i;
+	
+	/* Expect "NSTA" */
+	if (!PS_Expect(a_Str, "PLAY"))
+		return false;
+	
+	/* Decode */
+	// Basic Info
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		playeringame[i] = D_BSru8(a_Str);
+		D_BSrs(a_Str, player_names[i], MAXPLAYERNAME);
+		D_BSrs(a_Str, team_names[i], MAXPLAYERNAME * 2);
+	}
+	
+	/* Success! */
+	return true;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+
+/*****************************************************************************/
+
 /* P_SaveToStream() -- Save to stream */
-bool_t P_SaveToStream(D_BS_t* const a_Stream)
+bool_t P_SaveToStream(D_BS_t* const a_Str)
 {
 	bool_t OK;
 	D_BS_t* CB;
 	
 	/* Create Compressed Stream */
-	CB = D_BSCreatePackedStream(a_Stream);
-	l_SaveWrite = true;
+	CB = D_BSCreatePackedStream(a_Str);
 	
 	// Failed?
 	if (!CB)
 		return false;
 	
-	/* Do IO */
-	OK = PS_GenericSaveIO(a_Stream, true);
+	/* Network State */
+	PS_SaveDummy(a_Str);
+	PS_SaveNetState(a_Str);
+	PS_SavePlayers(a_Str);
 	
 	/* Close */
 	D_BSCloseStream(CB);
@@ -235,22 +495,44 @@ bool_t P_SaveToStream(D_BS_t* const a_Stream)
 	return OK;
 }
 
+/*****************************************************************************/
+
 /* P_LoadFromStream() -- Load from stream */
-bool_t P_LoadFromStream(D_BS_t* const a_Stream)
+bool_t P_LoadFromStream(D_BS_t* const a_Str)
 {
 	bool_t OK;
 	D_BS_t* CB;
 	
+	/* Determine how loading is to be handled */
+	// If we are the server or playing solo, we want to disconnect dropping all
+	// other players from the game. However, if we are a connecting client we
+	// do not want to disconnect.
+	if (
+		// Playing Demo or on Title Screen
+		(demoplayback || gamestate == GS_DEMOSCREEN) ||
+		
+		// We are the server
+		(D_XNetIsServer())
+		)
+		D_XNetDisconnect(false);
+	
+	// Switch to the WFGS screen
+	gamestate = GS_WAITINGPLAYERS;
+	
 	/* Create Compressed Stream */
-	CB = D_BSCreatePackedStream(a_Stream);
-	l_SaveWrite = false;
+	CB = D_BSCreatePackedStream(a_Str);
 	
 	// Failed?
 	if (!CB)
 		return false;
 	
-	/* Do IO */
-	OK = PS_GenericSaveIO(a_Stream, false);
+	/* Clear level before loading */
+	P_ExClearLevel();
+	
+	/* Network State */
+	PS_LoadDummy(a_Str);
+	PS_LoadNetState(a_Str);
+	PS_LoadPlayers(a_Str);
 	
 	/* Close */
 	D_BSCloseStream(CB);
@@ -530,7 +812,7 @@ typedef enum P_SGBWTypeRec_e
 /*** STATICS ***/
 
 /* PRWS_DRPointer() -- Pointer to something */
-static bool_t PRWS_DRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
+static bool_t PRWS_DRPointer(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
 {
 	uint64_t pID;
 	
@@ -544,12 +826,12 @@ static bool_t PRWS_DRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const 
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
-		D_BSwp(a_Stream, *((void**)a_Ptr));
+		D_BSwp(a_Str, *((void**)a_Ptr));
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
-		pID = D_BSrp(a_Stream);
+		pID = D_BSrp(a_Str);
 		PLGS_DeRef(pID, ((void**)a_Ptr));
 		*((void**)a_Ptr) = NULL;	// FIXME: See if this causes problems?
 	}
@@ -559,7 +841,7 @@ static bool_t PRWS_DRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const 
 }
 
 /* PRWS_SRPointer() -- This is a pointer (that is pointed to) */
-static bool_t PRWS_SRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
+static bool_t PRWS_SRPointer(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
 {
 	uint64_t pID;
 	
@@ -575,15 +857,15 @@ static bool_t PRWS_SRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const 
 	if (!a_Load)
 	{
 		if (a_CType == PSTC_POINTERISDIRECT)	// Locals pointing to stuff
-			D_BSwp(a_Stream, ((void**)a_Ptr));
+			D_BSwp(a_Str, ((void**)a_Ptr));
 		else
-			D_BSwp(a_Stream, *((void**)a_Ptr));
+			D_BSwp(a_Str, *((void**)a_Ptr));
 	}
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
-		pID = D_BSrp(a_Stream);
+		pID = D_BSrp(a_Str);
 		if (a_CType == PSTC_POINTERISDIRECT)	// Locals pointing to stuff
 			PLGS_SetRef(pID, ((void**)a_Ptr));
 		else		// Arrays
@@ -595,32 +877,32 @@ static bool_t PRWS_SRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const 
 }
 
 // __REMOOD_PRWSBASE -- Handles basic integer types (they are all the same anyway)
-#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)\
+#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)\
 {\
 	if (a_Load)\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: *((x*)a_Ptr) = D_BSri8(a_Stream); break;\
-			case PSRC_INT16: *((x*)a_Ptr) = D_BSri16(a_Stream); break;\
-			case PSRC_INT32: *((x*)a_Ptr) = D_BSri32(a_Stream); break;\
-			case PSRC_INT64: *((x*)a_Ptr) = D_BSri64(a_Stream); break;\
-			case PSRC_UINT8: *((x*)a_Ptr) = D_BSru8(a_Stream); break;\
-			case PSRC_UINT16: *((x*)a_Ptr) = D_BSru16(a_Stream); break;\
-			case PSRC_UINT32: *((x*)a_Ptr) = D_BSru32(a_Stream); break;\
-			case PSRC_UINT64: *((x*)a_Ptr) = D_BSru64(a_Stream); break;\
+			case PSRC_INT8: *((x*)a_Ptr) = D_BSri8(a_Str); break;\
+			case PSRC_INT16: *((x*)a_Ptr) = D_BSri16(a_Str); break;\
+			case PSRC_INT32: *((x*)a_Ptr) = D_BSri32(a_Str); break;\
+			case PSRC_INT64: *((x*)a_Ptr) = D_BSri64(a_Str); break;\
+			case PSRC_UINT8: *((x*)a_Ptr) = D_BSru8(a_Str); break;\
+			case PSRC_UINT16: *((x*)a_Ptr) = D_BSru16(a_Str); break;\
+			case PSRC_UINT32: *((x*)a_Ptr) = D_BSru32(a_Str); break;\
+			case PSRC_UINT64: *((x*)a_Ptr) = D_BSru64(a_Str); break;\
 			default: return false;\
 		}\
 	else\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: D_BSwi8(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_INT16: D_BSwi16(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_INT32: D_BSwi32(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_INT64: D_BSwi64(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT8: D_BSwu8(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT16: D_BSwu16(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT32: D_BSwu32(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT64: D_BSwu64(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT8: D_BSwi8(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_INT16: D_BSwi16(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_INT32: D_BSwi32(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_INT64: D_BSwi64(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_UINT8: D_BSwu8(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_UINT16: D_BSwu16(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_UINT32: D_BSwu32(a_Str, *((x*)a_Ptr)); break;\
+			case PSRC_UINT64: D_BSwu64(a_Str, *((x*)a_Ptr)); break;\
 			default: return false;\
 		}\
 	return true;\
@@ -655,7 +937,7 @@ __REMOOD_PRWSBASE(size_t,sizet);
 static const struct
 {
 	size_t Size;								// Size of data
-	bool_t (*RWFunc)(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType);
+	bool_t (*RWFunc)(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType);
 } l_NativeData[NUMPSTCS] =
 {
 	{sizeof(char), PRWS_char},					// PSTC_CHAR
@@ -702,7 +984,7 @@ static const char l_RecChars[NUMPSRCS] =
 /* P_SGBiWayReadOrWrite() -- Read or write data */
 // This one should be dirty and ugly
 bool_t P_SGBiWayReadOrWrite(
-		D_BS_t* const a_Stream,
+		D_BS_t* const a_Str,
 		const bool_t a_Load,
 		void* const a_Ptr,
 		const size_t a_Size,
@@ -715,7 +997,7 @@ bool_t P_SGBiWayReadOrWrite(
 	
 	/* Read Data Marker */
 	if (a_Load)
-		Marker = D_BSru8(a_Stream);
+		Marker = D_BSru8(a_Str);
 	
 	/* Sanity Checks */
 	if (devparm)
@@ -738,22 +1020,22 @@ bool_t P_SGBiWayReadOrWrite(
 	
 	/* Write Data Marker */
 	if (!a_Load)
-		D_BSwu8(a_Stream, l_RecChars[a_RecType]);
+		D_BSwu8(a_Str, l_RecChars[a_RecType]);
 	
 	/* Handle Native Read/Write */
 	if (l_NativeData[a_NativeType].RWFunc)
-		return l_NativeData[a_NativeType].RWFunc(a_Stream, a_Load, a_RecType, a_Ptr, a_NativeType);
+		return l_NativeData[a_NativeType].RWFunc(a_Str, a_Load, a_RecType, a_Ptr, a_NativeType);
 	return false;
 }
 
 /* P_SGBiWayReadStr() -- Read string and Z_StrDup it */
-bool_t P_SGBiWayReadStr(D_BS_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
+bool_t P_SGBiWayReadStr(D_BS_t* const a_Str, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
 {
 	/* Clear */
 	//memset(a_Buf, 0, sizeof(a_Buf) * a_BufSize);
 	
 	/* Read String */
-	D_BSrs(a_Stream, a_Buf, a_BufSize - 1);
+	D_BSrs(a_Str, a_Buf, a_BufSize - 1);
 	
 	/* Dupe it */
 	if (a_Ptr)
@@ -810,29 +1092,29 @@ static uint8_t PS_IDThinkerType(thinker_t* const a_Thinker)
 }
 
 /* PS_WRAPPED_D_BSws() -- Wrapped for MSVC */
-bool_t PS_WRAPPED_D_BSws(D_BS_t* const a_Stream, const char* const a_Val)
+bool_t PS_WRAPPED_D_BSws(D_BS_t* const a_Str, const char* const a_Val)
 {
-	D_BSws(a_Stream, a_Val);
+	D_BSws(a_Str, a_Val);
 	return true;
 }
 
 /* P_SGBiWayBS() -- Saving function that goes both ways */
 // This one should be clean and neat
-bool_t P_SGBiWayBS(D_BS_t* const a_Stream, const bool_t a_Load)
+bool_t P_SGBiWayBS(D_BS_t* const a_Str, const bool_t a_Load)
 {
 	// __HEADER -- Determines if header matches or starts a new one
-#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header, a_NetAddr, &InAddr)) == 0) : (D_BSBaseBlock(a_Stream, PS_SGBiWayDH(s, NULL, NULL))))
+#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header, a_NetAddr, &InAddr)) == 0) : (D_BSBaseBlock(a_Str, PS_SGBiWayDH(s, NULL, NULL))))
 	// __REC -- Write: Continues (done with block so who cares); Read: Record block
-#define __REC if (a_Load) HitBlock = true; else D_BSRecordNetBlock(a_Stream, a_NetAddr)
+#define __REC if (a_Load) HitBlock = true; else D_BSRecordNetBlock(a_Str, a_NetAddr)
 	// __BI -- Reads or loads data
-#define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, __FILE__, __LINE__)
+#define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Str, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, __FILE__, __LINE__)
 	// __BISTRZ -- Z_Malloced String
-#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_BSws(a_Stream, x))
+#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Str,&x,Buf,BUFSIZE) : PS_WRAPPED_D_BSws(a_Str, x))
 	// __BISTRB -- Buffered String
-#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_BSws(a_Stream, buf))
+#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Str,NULL,buf,bs) : PS_WRAPPED_D_BSws(a_Str, buf))
 	
-	//D_BSws(D_BS_t* const a_Stream, const char* const a_Val);
-	//D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
+	//D_BSws(D_BS_t* const a_Str, const char* const a_Val);
+	//D_BSrs(D_BS_t* const a_Str, char* const a_Out, const size_t a_OutSize);
 
 #define BUFSIZE 512
 #if 0
@@ -863,7 +1145,7 @@ bool_t P_SGBiWayBS(D_BS_t* const a_Stream, const bool_t a_Load)
 	mobj_t* Mobj;
 	
 	/* Check */
-	if (!a_Stream)
+	if (!a_Str)
 		return false;
 	
 	/* Debug */
@@ -879,7 +1161,7 @@ bool_t P_SGBiWayBS(D_BS_t* const a_Stream, const bool_t a_Load)
 		// If loading, read block (play it back)
 		memset(Header, 0, sizeof(Header));
 		if (a_Load)
-			if (!(Continue = D_BSPlayBlock(a_Stream, Header)))
+			if (!(Continue = D_BSPlayBlock(a_Str, Header)))
 				break;
 		
 		//////////////////////////////
@@ -2278,7 +2560,7 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 /*****************************************************************************/
 
 /* P_LoadGameFromBS() -- Load game from block stream */
-bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
+bool_t P_LoadGameFromBS(D_BS_t* const a_Str, I_HostAddress_t* const a_NetAddr)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -2294,11 +2576,11 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 	sector_t* Sector;
 	
 	/* Do bi-way */
-	return P_SGDXSpec(a_Stream, a_NetAddr, true);
-	return P_SGBiWayBS(a_Stream, true);
+	return P_SGDXSpec(a_Str, a_NetAddr, true);
+	return P_SGBiWayBS(a_Str, true);
 	
 	/* Check */
-	if (!a_Stream)
+	if (!a_Str)
 		return false;
 	
 	/* Clear Future Ref */
@@ -2306,7 +2588,7 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 	/* Constantly Read Blocks */
 	memset(Header, 0, sizeof(Header));
 	memset(Buf, 0, sizeof(Buf));
-	while (D_BSPlayBlock(a_Stream, Header))
+	while (D_BSPlayBlock(a_Str, Header))
 	{
 		if (devparm)
 			CONL_PrintF("LOAD: Read %s\n", Header);
@@ -2315,10 +2597,10 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 		if (strcasecmp(Header, "SGVR") == 0)
 		{
 			// Read version markers
-			VerLeg = D_BSru8(a_Stream);
-			VerMaj = D_BSru8(a_Stream);
-			VerMin = D_BSru8(a_Stream);
-			VerRel = D_BSru8(a_Stream);
+			VerLeg = D_BSru8(a_Str);
+			VerMaj = D_BSru8(a_Str);
+			VerMin = D_BSru8(a_Str);
+			VerRel = D_BSru8(a_Str);
 			
 			// Print Info
 			CONL_PrintF("LOAD: Loading Version %i.%i%c (%i)\n",
@@ -2327,11 +2609,11 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 				);
 			
 			// Read Other Info
-			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Str, Buf, BUFSIZE - 1);
 			CONL_PrintF("LOAD: Release \"%s\"\n", Buf);
-			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Str, Buf, BUFSIZE - 1);
 			CONL_PrintF("LOAD: Fully known as %s\n", Buf);
-			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Str, Buf, BUFSIZE - 1);
 			CONL_PrintF("LOAD: For more info, see %s\n", Buf);
 		}
 		
@@ -2344,14 +2626,14 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 				;
 			
 			// Keep reading WADs
-			while ((CharBit = D_BSru8(a_Stream)) != 'E')
+			while ((CharBit = D_BSru8(a_Str)) != 'E')
 			{
 				// Read file and DOS Names
 				memset(Buf, 0, sizeof(Buf));
 				memset(BufB, 0, sizeof(BufB));
 				
-				D_BSrs(a_Stream, Buf, BUFSIZE - 1);
-				D_BSrs(a_Stream, BufB, BUFSIZE - 1);
+				D_BSrs(a_Str, Buf, BUFSIZE - 1);
+				D_BSrs(a_Str, BufB, BUFSIZE - 1);
 				
 				// Open the WAD and if that failed, try the DOSNAME
 				if (!(WAD = WL_OpenWAD(Buf)))
@@ -2366,22 +2648,22 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 				}
 				
 				// Check some bits
-				CheckBit = D_BSru8(a_Stream); // IP
-				CheckBit = D_BSru8(a_Stream); // WN
-				CheckBit = D_BSru8(a_Stream); // VI
+				CheckBit = D_BSru8(a_Str); // IP
+				CheckBit = D_BSru8(a_Str); // WN
+				CheckBit = D_BSru8(a_Str); // VI
 				
 				// Ignore index offset sizes and such
-				u32 = D_BSru32(a_Stream);
-				u32 = D_BSru32(a_Stream);
-				u32 = D_BSru32(a_Stream);
+				u32 = D_BSru32(a_Str);
+				u32 = D_BSru32(a_Str);
+				u32 = D_BSru32(a_Str);
 				
 				// Ignore integer sums
 				for (i = 0; i < 8; i++)
-					u32 = D_BSru32(a_Stream);
+					u32 = D_BSru32(a_Str);
 				
 				// Compare MD5/SS against WAD
 				for (i = 0; i < 64; i++)
-					CheckBit = D_BSru8(a_Stream);
+					CheckBit = D_BSru8(a_Str);
 				
 				// Push WAD
 				WL_PushWAD(WAD);
@@ -2395,19 +2677,19 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 		else if (strcasecmp(Header, "SGZS") == 0)
 		{
 			// Read Timing Information
-			gametic = D_BSru32(a_Stream);
-			D_SyncNetSetMapTime(D_BSru32(a_Stream));
-			D_BSru32(a_Stream);	// Ignore real time, not that important
+			gametic = D_BSru32(a_Str);
+			D_SyncNetSetMapTime(D_BSru32(a_Str));
+			D_BSru32(a_Str);	// Ignore real time, not that important
 			
 			// Read State Info
-			gamestate = D_BSru8(a_Stream);
-			u8 = D_BSru8(a_Stream);	// Ignore demorecording
-			u8 = D_BSru8(a_Stream);	// Ignore demoplayback
-			multiplayer = D_BSru8(a_Stream);
+			gamestate = D_BSru8(a_Str);
+			u8 = D_BSru8(a_Str);	// Ignore demorecording
+			u8 = D_BSru8(a_Str);	// Ignore demoplayback
+			multiplayer = D_BSru8(a_Str);
 			
 			// Read Map Name
 			memset(Buf, 0, sizeof(Buf));
-			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Str, Buf, BUFSIZE - 1);
 			
 			// Find level
 			g_CurrentLevelInfo = P_FindLevelByNameEx(Buf, NULL);
@@ -2417,21 +2699,21 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 		else if (strcasecmp(Header, "SGMV") == 0)
 		{
 			// Read Count
-			numvertexes = D_BSru32(a_Stream);
+			numvertexes = D_BSru32(a_Str);
 			vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, NULL);
 			
 			// Read every vertex
 			for (i = 0; i < numvertexes; i++)
 			{
-				vertexes[i].x = D_BSri32(a_Stream);
-				vertexes[i].y = D_BSri32(a_Stream);
+				vertexes[i].x = D_BSri32(a_Str);
+				vertexes[i].y = D_BSri32(a_Str);
 			}
 		}
 		
 		// SGMS -- Map Sectors
 		else if (strcasecmp(Header, "SGMS") == 0)
 		{
-			numsectors = D_BSru32(a_Stream);
+			numsectors = D_BSru32(a_Str);
 			sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, NULL);
 			
 			// Read every sector
@@ -2448,7 +2730,7 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 		else if (strcasecmp(Header, "SGMT") == 0)
 		{
 			// Read Count
-			nummapthings = D_BSru32(a_Stream);
+			nummapthings = D_BSru32(a_Str);
 			mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, NULL);
 			
 			// Read every map thing
@@ -2456,24 +2738,24 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 			{
 				// Set pointer reference
 				MapThing = &mapthings[i];
-				PLGS_SetRef(D_BSrp(a_Stream), MapThing);
+				PLGS_SetRef(D_BSrp(a_Str), MapThing);
 				
 				// Read the remainder
-				MapThing->x = D_BSri16(a_Stream);
-				MapThing->y = D_BSri16(a_Stream);
-				MapThing->z = D_BSri16(a_Stream);
-				MapThing->angle = D_BSri16(a_Stream);
-				MapThing->type = D_BSri16(a_Stream);
-				MapThing->options = D_BSri16(a_Stream);
-				PLGS_DeRef(D_BSrp(a_Stream), (void**)&MapThing->mobj);
-				MapThing->IsHexen = D_BSru8(a_Stream);
-				MapThing->HeightOffset = D_BSri16(a_Stream);
-				MapThing->ID = D_BSru16(a_Stream);
-				MapThing->Special = D_BSru8(a_Stream);
+				MapThing->x = D_BSri16(a_Str);
+				MapThing->y = D_BSri16(a_Str);
+				MapThing->z = D_BSri16(a_Str);
+				MapThing->angle = D_BSri16(a_Str);
+				MapThing->type = D_BSri16(a_Str);
+				MapThing->options = D_BSri16(a_Str);
+				PLGS_DeRef(D_BSrp(a_Str), (void**)&MapThing->mobj);
+				MapThing->IsHexen = D_BSru8(a_Str);
+				MapThing->HeightOffset = D_BSri16(a_Str);
+				MapThing->ID = D_BSru16(a_Str);
+				MapThing->Special = D_BSru8(a_Str);
 				for (j = 0; j < 5; j++)
-					MapThing->Args[i] = D_BSru8(a_Stream);
-				MapThing->MoType = D_BSru32(a_Stream);
-				MapThing->MarkedWeapon = D_BSru8(a_Stream);
+					MapThing->Args[i] = D_BSru8(a_Str);
+				MapThing->MoType = D_BSru32(a_Str);
+				MapThing->MarkedWeapon = D_BSru8(a_Str);
 			}
 		}
 		
@@ -2481,10 +2763,10 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 		else if (strcasecmp(Header, "SGMR") == 0)
 		{
 			// Read Player Starts
-			j = D_BSru32(a_Stream);
+			j = D_BSru32(a_Str);
 			for (k = 0; k < j; k++)
 			{
-				u32 = D_BSru32(a_Stream);
+				u32 = D_BSru32(a_Str);
 				if (k < MAXPLAYERS && u32 >= 0 && u32 < nummapthings)
 					playerstarts[k] = &mapthings[u32];
 			}
@@ -2504,59 +2786,59 @@ bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr
 }
 
 // Save Game Prototypes
-void P_SGBS_Time(D_BS_t* const a_Stream);
-void P_SGBS_Version(D_BS_t* const a_Stream);
-void P_SGBS_WAD(D_BS_t* const a_Stream);
-void P_SGBS_NetProfiles(D_BS_t* const a_Stream);
-void P_SGBS_SplitPlayers(D_BS_t* const a_Stream);
-void P_SGBS_Players(D_BS_t* const a_Stream);
-void P_SGBS_MapData(D_BS_t* const a_Stream);
-void P_SGBS_Thinkers(D_BS_t* const a_Stream);
-void P_SGBS_State(D_BS_t* const a_Stream);
+void P_SGBS_Time(D_BS_t* const a_Str);
+void P_SGBS_Version(D_BS_t* const a_Str);
+void P_SGBS_WAD(D_BS_t* const a_Str);
+void P_SGBS_NetProfiles(D_BS_t* const a_Str);
+void P_SGBS_SplitPlayers(D_BS_t* const a_Str);
+void P_SGBS_Players(D_BS_t* const a_Str);
+void P_SGBS_MapData(D_BS_t* const a_Str);
+void P_SGBS_Thinkers(D_BS_t* const a_Str);
+void P_SGBS_State(D_BS_t* const a_Str);
 
 /* P_SaveGameToBS() -- Save game to block stream */
-bool_t P_SaveGameToBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
+bool_t P_SaveGameToBS(D_BS_t* const a_Str, I_HostAddress_t* const a_NetAddr)
 {
 	const char* c;
 	
 	/* Check */
-	if (!a_Stream)
+	if (!a_Str)
 		return false;
 		
 	/* Do bi-way */
-	return P_SGDXSpec(a_Stream, a_NetAddr, false);
-	return P_SGBiWayBS(a_Stream, false);
+	return P_SGDXSpec(a_Str, a_NetAddr, false);
+	return P_SGBiWayBS(a_Str, false);
 		
 	/* Create Header Block */
 	// Save Game Save Stream
 		// Base
-	D_BSBaseBlock(a_Stream, "SGSS");
+	D_BSBaseBlock(a_Str, "SGSS");
 		// Fill
 	for (c = "ReMooD Save Game"; *c; c++)
-		D_BSwu8(a_Stream, *c);
+		D_BSwu8(a_Str, *c);
 		// Record
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Save Details of Game */
-	P_SGBS_Time(a_Stream);
-	P_SGBS_Version(a_Stream);
-	P_SGBS_WAD(a_Stream);
-	P_SGBS_State(a_Stream);
-	P_SGBS_NetProfiles(a_Stream);
-	P_SGBS_SplitPlayers(a_Stream);
-	P_SGBS_Players(a_Stream);
-	P_SGBS_MapData(a_Stream);
-	P_SGBS_Thinkers(a_Stream);
+	P_SGBS_Time(a_Str);
+	P_SGBS_Version(a_Str);
+	P_SGBS_WAD(a_Str);
+	P_SGBS_State(a_Str);
+	P_SGBS_NetProfiles(a_Str);
+	P_SGBS_SplitPlayers(a_Str);
+	P_SGBS_Players(a_Str);
+	P_SGBS_MapData(a_Str);
+	P_SGBS_Thinkers(a_Str);
 	
 	/* Write End Header */
 	// Save Game End Exit
 		// Base
-	D_BSBaseBlock(a_Stream, "SGEE");
+	D_BSBaseBlock(a_Str, "SGEE");
 		// Fill
 	for (c = "End Stream"; *c; c++)
-		D_BSwu8(a_Stream, *c);
+		D_BSwu8(a_Str, *c);
 		// Record
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Success */
 	return true;
@@ -2565,298 +2847,298 @@ bool_t P_SaveGameToBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
 /*** SAVING THE GAME STATE ***/
 
 /* P_SGBS_Time() -- Print Time Information */
-void P_SGBS_Time(D_BS_t* const a_Stream)
+void P_SGBS_Time(D_BS_t* const a_Str)
 {
 	/* Begin Header */
-	D_BSBaseBlock(a_Stream, "SGVT");
+	D_BSBaseBlock(a_Str, "SGVT");
 	
 	/* Place Time Information (Save Related) */
-	D_BSwu32(a_Stream, time(NULL));
-	D_BSwu32(a_Stream, g_ProgramTic);
+	D_BSwu32(a_Str, time(NULL));
+	D_BSwu32(a_Str, g_ProgramTic);
 	
 	/* Record Block */
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 /* P_SGBS_Version() -- Write version information */
-void P_SGBS_Version(D_BS_t* const a_Stream)
+void P_SGBS_Version(D_BS_t* const a_Str)
 {
 	/* Begin Header */
-	D_BSBaseBlock(a_Stream, "SGVR");
+	D_BSBaseBlock(a_Str, "SGVR");
 	
 	/* Fill With Versioning */
 		// Legacy Version
-	D_BSwu8(a_Stream, VERSION);
+	D_BSwu8(a_Str, VERSION);
 		// ReMooD Version
-	D_BSwu8(a_Stream, REMOOD_MAJORVERSION);
-	D_BSwu8(a_Stream, REMOOD_MINORVERSION);
-	D_BSwu8(a_Stream, REMOOD_RELEASEVERSION);
+	D_BSwu8(a_Str, REMOOD_MAJORVERSION);
+	D_BSwu8(a_Str, REMOOD_MINORVERSION);
+	D_BSwu8(a_Str, REMOOD_RELEASEVERSION);
 		// Version Strings
-	D_BSws(a_Stream, REMOOD_VERSIONCODESTRING);
-	D_BSws(a_Stream, REMOOD_FULLVERSIONSTRING);
-	D_BSws(a_Stream, REMOOD_URL);
+	D_BSws(a_Str, REMOOD_VERSIONCODESTRING);
+	D_BSws(a_Str, REMOOD_FULLVERSIONSTRING);
+	D_BSws(a_Str, REMOOD_URL);
 		// Compilation Stuff
-	D_BSws(a_Stream, __TIME__);
-	D_BSws(a_Stream, __DATE__);
+	D_BSws(a_Str, __TIME__);
+	D_BSws(a_Str, __DATE__);
 	
 	/* Record Block */
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 /* P_SGBS_WAD() -- Write WAD State */
-void P_SGBS_WAD(D_BS_t* const a_Stream)
+void P_SGBS_WAD(D_BS_t* const a_Str)
 {
 	const WL_WADFile_t* CurVWAD;
 	size_t i;
 	
 	/* Begin Header */
-	D_BSBaseBlock(a_Stream, "SGVW");
+	D_BSBaseBlock(a_Str, "SGVW");
 	
 	/* Iterate all VWADs */	
 	for (CurVWAD = WL_IterateVWAD(NULL, true); CurVWAD; CurVWAD = WL_IterateVWAD(CurVWAD, true))
 	{
-		D_BSwu8(a_Stream, 'B');
+		D_BSwu8(a_Str, 'B');
 		
 		// Print WAD Names
-		D_BSws(a_Stream, CurVWAD->__Private.__FileName);
-		D_BSws(a_Stream, CurVWAD->__Private.__DOSName);
+		D_BSws(a_Str, CurVWAD->__Private.__FileName);
+		D_BSws(a_Str, CurVWAD->__Private.__DOSName);
 		
 		// Print Some Flags
-		D_BSwu8(a_Stream, (CurVWAD->__Private.__IsIWAD ? 'I' : 'P'));
-		D_BSwu8(a_Stream, (CurVWAD->__Private.__IsWAD ? 'W' : 'N'));
-		D_BSwu8(a_Stream, (CurVWAD->__Private.__IsValid ? 'V' : 'I'));
+		D_BSwu8(a_Str, (CurVWAD->__Private.__IsIWAD ? 'I' : 'P'));
+		D_BSwu8(a_Str, (CurVWAD->__Private.__IsWAD ? 'W' : 'N'));
+		D_BSwu8(a_Str, (CurVWAD->__Private.__IsValid ? 'V' : 'I'));
 		
 		// Print Some WAD Identification
-		D_BSwu32(a_Stream, CurVWAD->NumEntries);
-		D_BSwu32(a_Stream, CurVWAD->__Private.__IndexOff);
-		D_BSwu32(a_Stream, CurVWAD->__Private.__Size);
+		D_BSwu32(a_Str, CurVWAD->NumEntries);
+		D_BSwu32(a_Str, CurVWAD->__Private.__IndexOff);
+		D_BSwu32(a_Str, CurVWAD->__Private.__Size);
 		
 		// Print WAD Sums
 		for (i = 0; i < 4; i++)
-			D_BSwu32(a_Stream, CurVWAD->CheckSum[i]);
+			D_BSwu32(a_Str, CurVWAD->CheckSum[i]);
 		for (i = 0; i < 4; i++)
-			D_BSwu32(a_Stream, CurVWAD->SimpleSum[i]);
+			D_BSwu32(a_Str, CurVWAD->SimpleSum[i]);
 		for (i = 0; i < 32; i++)
-			D_BSwu8(a_Stream, CurVWAD->CheckSumChars[i]);
+			D_BSwu8(a_Str, CurVWAD->CheckSumChars[i]);
 		for (i = 0; i < 32; i++)
-			D_BSwu8(a_Stream, CurVWAD->SimpleSumChars[i]);
+			D_BSwu8(a_Str, CurVWAD->SimpleSumChars[i]);
 	}
-	D_BSwu8(a_Stream, 'E');
+	D_BSwu8(a_Str, 'E');
 	
 	/* Record Block */
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 /* P_SGBS_NetProfiles() -- Record network profiles */
-void P_SGBS_NetProfiles(D_BS_t* const a_Stream)
+void P_SGBS_NetProfiles(D_BS_t* const a_Str)
 {
 }
 
 /* P_SGBS_SplitPlayers() -- Split players */
-void P_SGBS_SplitPlayers(D_BS_t* const a_Stream)
+void P_SGBS_SplitPlayers(D_BS_t* const a_Str)
 {
 	size_t i;
 	
 	/* Begin Header */
-	D_BSBaseBlock(a_Stream, "SGSC");
+	D_BSBaseBlock(a_Str, "SGSC");
 	
 	/* Print Local Players */
-	D_BSwu8(a_Stream, g_SplitScreen);
+	D_BSwu8(a_Str, g_SplitScreen);
 	
 	// Go through Each
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 	{
-		D_BSwu8(a_Stream, g_Splits[i].Active);
-		D_BSwu8(a_Stream, g_Splits[i].Console);
-		D_BSwu8(a_Stream, g_Splits[i].Display);
+		D_BSwu8(a_Str, g_Splits[i].Active);
+		D_BSwu8(a_Str, g_Splits[i].Console);
+		D_BSwu8(a_Str, g_Splits[i].Display);
 	}
 	
 	/* Record Block */
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 /* P_SGBS_Players() -- Dump Players */
-void P_SGBS_Players(D_BS_t* const a_Stream)
+void P_SGBS_Players(D_BS_t* const a_Str)
 {
 	size_t i, j;
 	player_t* Player;
 	
 	/* Begin Header */
-	D_BSBaseBlock(a_Stream, "SGPL");
+	D_BSBaseBlock(a_Str, "SGPL");
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		Player = &players[i];
 		
 		// Print Identifier
-		D_BSwu8(a_Stream, i);
-		D_BSwp(a_Stream, Player);
+		D_BSwu8(a_Str, i);
+		D_BSwp(a_Str, Player);
 		
 		// Not in game?
 		if (!playeringame[i])
 		{
-			D_BSwu8(a_Stream, 'V');
+			D_BSwu8(a_Str, 'V');
 			continue;
 		}
 		
 		// Write as In Game
-		D_BSwu8(a_Stream, 'P');
+		D_BSwu8(a_Str, 'P');
 		
 		// Write Links
-		D_BSwp(a_Stream, Player->ProfileEx);
-		D_BSws(a_Stream, (Player->ProfileEx ? Player->ProfileEx->UUID : ""));
+		D_BSwp(a_Str, Player->ProfileEx);
+		D_BSws(a_Str, (Player->ProfileEx ? Player->ProfileEx->UUID : ""));
 		
 		// Print Map Objects Connected To
-		D_BSwp(a_Stream, Player->mo);
-		D_BSwp(a_Stream, Player->rain1);
-		D_BSwp(a_Stream, Player->rain2);
-		D_BSwp(a_Stream, Player->attacker);
+		D_BSwp(a_Str, Player->mo);
+		D_BSwp(a_Str, Player->rain1);
+		D_BSwp(a_Str, Player->rain2);
+		D_BSwp(a_Str, Player->attacker);
 		
 		// Write Player Info
-		D_BSwu8(a_Stream, Player->playerstate);
-		D_BSwi32(a_Stream, Player->viewz);
-		D_BSwi32(a_Stream, Player->viewheight);
-		D_BSwi32(a_Stream, Player->deltaviewheight);
-		D_BSwi32(a_Stream, Player->bob);
-		D_BSwu32(a_Stream, Player->aiming);
-		D_BSwi32(a_Stream, Player->health);
-		D_BSwi32(a_Stream, Player->armorpoints);
-		D_BSwi32(a_Stream, Player->armortype);
-		D_BSwu32(a_Stream, Player->cards);
-		D_BSwu32(a_Stream, Player->backpack);
-		D_BSwu32(a_Stream, Player->addfrags);
-		D_BSwi32(a_Stream, Player->readyweapon);
-		D_BSws(a_Stream, Player->weaponinfo[Player->readyweapon]->ClassName);
-		D_BSwi32(a_Stream, Player->pendingweapon);
-		D_BSws(a_Stream, ((Player->pendingweapon < 0) ? "NoPending" :Player->weaponinfo[Player->pendingweapon]->ClassName));
-		D_BSwu8(a_Stream, Player->originalweaponswitch);
-		D_BSwu8(a_Stream, Player->autoaim_toggle);
-		D_BSwu8(a_Stream, Player->attackdown);
-		D_BSwu8(a_Stream, Player->usedown);
-		D_BSwu8(a_Stream, Player->jumpdown);
-		D_BSwu32(a_Stream, Player->cheats);
-		D_BSwu32(a_Stream, Player->refire);
-		D_BSwu32(a_Stream, Player->killcount);
-		D_BSwu32(a_Stream, Player->itemcount);
-		D_BSwu32(a_Stream, Player->secretcount);
-		D_BSwu32(a_Stream, Player->damagecount);
-		D_BSwu32(a_Stream, Player->bonuscount);
-		D_BSwu32(a_Stream, Player->specialsector);
-		D_BSwu32(a_Stream, Player->extralight);
-		D_BSwu32(a_Stream, Player->fixedcolormap);
-		D_BSwu32(a_Stream, Player->skincolor);
-		D_BSwu32(a_Stream, Player->skin);
-		D_BSwu8(a_Stream, Player->didsecret);
-		D_BSwi32(a_Stream, Player->chickenTics);
-		D_BSwi32(a_Stream, Player->chickenPeck);
-		D_BSwi32(a_Stream, Player->flamecount);
-		D_BSwi32(a_Stream, Player->flyheight);
-		D_BSwi32(a_Stream, Player->inv_ptr);
-		D_BSwi32(a_Stream, Player->st_curpos);
-		D_BSwi32(a_Stream, Player->st_inventoryTics);
-		D_BSwi32(a_Stream, Player->flushdelay);
-		D_BSwi32(a_Stream, Player->MoveMom);
-		D_BSwi32(a_Stream, Player->TargetViewZ);
-		D_BSwi32(a_Stream, Player->FakeMom[0]);
-		D_BSwi32(a_Stream, Player->FakeMom[1]);
-		D_BSwi32(a_Stream, Player->FakeMom[2]);
-		D_BSwi32(a_Stream, Player->MaxHealth[0]);
-		D_BSwi32(a_Stream, Player->MaxHealth[1]);
-		D_BSwi32(a_Stream, Player->MaxArmor[0]);
-		D_BSwi32(a_Stream, Player->MaxArmor[1]);
+		D_BSwu8(a_Str, Player->playerstate);
+		D_BSwi32(a_Str, Player->viewz);
+		D_BSwi32(a_Str, Player->viewheight);
+		D_BSwi32(a_Str, Player->deltaviewheight);
+		D_BSwi32(a_Str, Player->bob);
+		D_BSwu32(a_Str, Player->aiming);
+		D_BSwi32(a_Str, Player->health);
+		D_BSwi32(a_Str, Player->armorpoints);
+		D_BSwi32(a_Str, Player->armortype);
+		D_BSwu32(a_Str, Player->cards);
+		D_BSwu32(a_Str, Player->backpack);
+		D_BSwu32(a_Str, Player->addfrags);
+		D_BSwi32(a_Str, Player->readyweapon);
+		D_BSws(a_Str, Player->weaponinfo[Player->readyweapon]->ClassName);
+		D_BSwi32(a_Str, Player->pendingweapon);
+		D_BSws(a_Str, ((Player->pendingweapon < 0) ? "NoPending" :Player->weaponinfo[Player->pendingweapon]->ClassName));
+		D_BSwu8(a_Str, Player->originalweaponswitch);
+		D_BSwu8(a_Str, Player->autoaim_toggle);
+		D_BSwu8(a_Str, Player->attackdown);
+		D_BSwu8(a_Str, Player->usedown);
+		D_BSwu8(a_Str, Player->jumpdown);
+		D_BSwu32(a_Str, Player->cheats);
+		D_BSwu32(a_Str, Player->refire);
+		D_BSwu32(a_Str, Player->killcount);
+		D_BSwu32(a_Str, Player->itemcount);
+		D_BSwu32(a_Str, Player->secretcount);
+		D_BSwu32(a_Str, Player->damagecount);
+		D_BSwu32(a_Str, Player->bonuscount);
+		D_BSwu32(a_Str, Player->specialsector);
+		D_BSwu32(a_Str, Player->extralight);
+		D_BSwu32(a_Str, Player->fixedcolormap);
+		D_BSwu32(a_Str, Player->skincolor);
+		D_BSwu32(a_Str, Player->skin);
+		D_BSwu8(a_Str, Player->didsecret);
+		D_BSwi32(a_Str, Player->chickenTics);
+		D_BSwi32(a_Str, Player->chickenPeck);
+		D_BSwi32(a_Str, Player->flamecount);
+		D_BSwi32(a_Str, Player->flyheight);
+		D_BSwi32(a_Str, Player->inv_ptr);
+		D_BSwi32(a_Str, Player->st_curpos);
+		D_BSwi32(a_Str, Player->st_inventoryTics);
+		D_BSwi32(a_Str, Player->flushdelay);
+		D_BSwi32(a_Str, Player->MoveMom);
+		D_BSwi32(a_Str, Player->TargetViewZ);
+		D_BSwi32(a_Str, Player->FakeMom[0]);
+		D_BSwi32(a_Str, Player->FakeMom[1]);
+		D_BSwi32(a_Str, Player->FakeMom[2]);
+		D_BSwi32(a_Str, Player->MaxHealth[0]);
+		D_BSwi32(a_Str, Player->MaxHealth[1]);
+		D_BSwi32(a_Str, Player->MaxArmor[0]);
+		D_BSwi32(a_Str, Player->MaxArmor[1]);
 		
 		// Current Weapon Level
-		D_BSwu8(a_Stream, (Player->weaponinfo == wpnlev2info ? 1 : 0));
+		D_BSwu8(a_Str, (Player->weaponinfo == wpnlev2info ? 1 : 0));
 		
 		// Write Variable Info
 			// Powerups
 		for (j = 0; j < NUMPOWERS; j++)
-			D_BSwi32(a_Stream, Player->powers[j]);
+			D_BSwi32(a_Str, Player->powers[j]);
 			
 			// Ammo
 		for (j = 0; j < NUMAMMO; j++)
 		{
-			D_BSwi32(a_Stream, Player->ammo[j]);
-			D_BSwi32(a_Stream, Player->maxammo[j]);
+			D_BSwi32(a_Str, Player->ammo[j]);
+			D_BSwi32(a_Str, Player->maxammo[j]);
 		}
 			
 			// Weapons
 		for (j = 0; j < NUMWEAPONS; j++)
-			D_BSwu8(a_Stream, Player->weaponowned[j]);
+			D_BSwu8(a_Str, Player->weaponowned[j]);
 			
 			// Frags
 		for (j = 0; j < MAXPLAYERS; j++)
-			D_BSwu32(a_Stream, Player->frags[j]);
+			D_BSwu32(a_Str, Player->frags[j]);
 			
 			// Inventory Slots
 		for (j = 0; j < NUMINVENTORYSLOTS; j++)
 		{
-			D_BSwu8(a_Stream, Player->inventory[j].type);
-			D_BSwu8(a_Stream, Player->inventory[j].count);
+			D_BSwu8(a_Str, Player->inventory[j].type);
+			D_BSwu8(a_Str, Player->inventory[j].count);
 		}
 		
 		// Save psprites
 		for (j = 0; j < NUMPSPRITES; j++)
 		{
-			D_BSwi32(a_Stream, Player->psprites[j].tics);
-			D_BSwi32(a_Stream, Player->psprites[j].sx);
-			D_BSwi32(a_Stream, Player->psprites[j].sy);
+			D_BSwi32(a_Str, Player->psprites[j].tics);
+			D_BSwi32(a_Str, Player->psprites[j].sx);
+			D_BSwi32(a_Str, Player->psprites[j].sy);
 			
 			// Write current state
 			if (!Player->psprites[j].state)
-				D_BSwu8(a_Stream, 'N');
+				D_BSwu8(a_Str, 'N');
 			else
 			{
-				D_BSwu8(a_Stream, 'S');
-				D_BSwu32(a_Stream, Player->psprites[j].state->FrameID);
-				D_BSwu32(a_Stream, Player->psprites[j].state->ObjectID);
-				D_BSwu32(a_Stream, Player->psprites[j].state->Marker);
-				D_BSwu32(a_Stream, Player->psprites[j].state->SpriteID);
-				D_BSwu32(a_Stream, Player->psprites[j].state->DehackEdID);
+				D_BSwu8(a_Str, 'S');
+				D_BSwu32(a_Str, Player->psprites[j].state->FrameID);
+				D_BSwu32(a_Str, Player->psprites[j].state->ObjectID);
+				D_BSwu32(a_Str, Player->psprites[j].state->Marker);
+				D_BSwu32(a_Str, Player->psprites[j].state->SpriteID);
+				D_BSwu32(a_Str, Player->psprites[j].state->DehackEdID);
 			}
 		}
 		
 		// Save camera
-		D_BSwp(a_Stream, Player->camera.mo);
-		D_BSwu8(a_Stream, Player->camera.chase);
-		D_BSwu32(a_Stream, Player->camera.aiming);
-		D_BSwu32(a_Stream, Player->camera.startangle);
-		D_BSwi32(a_Stream, Player->camera.fixedcolormap);
-		D_BSwi32(a_Stream, Player->camera.viewheight);
+		D_BSwp(a_Str, Player->camera.mo);
+		D_BSwu8(a_Str, Player->camera.chase);
+		D_BSwu32(a_Str, Player->camera.aiming);
+		D_BSwu32(a_Str, Player->camera.startangle);
+		D_BSwi32(a_Str, Player->camera.fixedcolormap);
+		D_BSwi32(a_Str, Player->camera.viewheight);
 	}
 	
 	/* Record Block */
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 /* PS_SGBS_DumpMapThing() -- Dumps a map thing (occurs alot) */
-void PS_SGBS_DumpMapThing(D_BS_t* const a_Stream, mapthing_t* const MapThing)
+void PS_SGBS_DumpMapThing(D_BS_t* const a_Str, mapthing_t* const MapThing)
 {
-	D_BSwp(a_Stream, MapThing);
-	D_BSwi16(a_Stream, MapThing->x);
-	D_BSwi16(a_Stream, MapThing->y);
-	D_BSwi16(a_Stream, MapThing->z);
-	D_BSwi16(a_Stream, MapThing->angle);
-	D_BSwi16(a_Stream, MapThing->type);
-	D_BSwi16(a_Stream, MapThing->options);
-	D_BSwp(a_Stream, MapThing->mobj);
-	D_BSwu8(a_Stream, MapThing->IsHexen);
-	D_BSwi16(a_Stream, MapThing->HeightOffset);
-	D_BSwu16(a_Stream, MapThing->ID);
-	D_BSwu8(a_Stream, MapThing->Special);
-	D_BSwu8(a_Stream, MapThing->Args[0]);
-	D_BSwu8(a_Stream, MapThing->Args[1]);
-	D_BSwu8(a_Stream, MapThing->Args[2]);
-	D_BSwu8(a_Stream, MapThing->Args[3]);
-	D_BSwu8(a_Stream, MapThing->Args[4]);
-	D_BSwu32(a_Stream, MapThing->MoType);
-	D_BSwu8(a_Stream, MapThing->MarkedWeapon);
+	D_BSwp(a_Str, MapThing);
+	D_BSwi16(a_Str, MapThing->x);
+	D_BSwi16(a_Str, MapThing->y);
+	D_BSwi16(a_Str, MapThing->z);
+	D_BSwi16(a_Str, MapThing->angle);
+	D_BSwi16(a_Str, MapThing->type);
+	D_BSwi16(a_Str, MapThing->options);
+	D_BSwp(a_Str, MapThing->mobj);
+	D_BSwu8(a_Str, MapThing->IsHexen);
+	D_BSwi16(a_Str, MapThing->HeightOffset);
+	D_BSwu16(a_Str, MapThing->ID);
+	D_BSwu8(a_Str, MapThing->Special);
+	D_BSwu8(a_Str, MapThing->Args[0]);
+	D_BSwu8(a_Str, MapThing->Args[1]);
+	D_BSwu8(a_Str, MapThing->Args[2]);
+	D_BSwu8(a_Str, MapThing->Args[3]);
+	D_BSwu8(a_Str, MapThing->Args[4]);
+	D_BSwu32(a_Str, MapThing->MoType);
+	D_BSwu8(a_Str, MapThing->MarkedWeapon);
 }
 
 /* P_SGBS_MapData() -- Write All Map Data */
 // Some map data cannot be moved
 // Left: AFHKMQWXY
-void P_SGBS_MapData(D_BS_t* const a_Stream)
+void P_SGBS_MapData(D_BS_t* const a_Str)
 {
 	size_t i, j;
 	mapthing_t* MapThing;
@@ -2864,78 +3146,78 @@ void P_SGBS_MapData(D_BS_t* const a_Stream)
 	
 	/* Vertexes */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMV");
+	D_BSBaseBlock(a_Str, "SGMV");
 	
 	// Put vertexes
-	D_BSwu32(a_Stream, numvertexes);
+	D_BSwu32(a_Str, numvertexes);
 	for (i = 0; i < numvertexes; i++)
 	{
-		D_BSwi32(a_Stream, vertexes[i].x);
-		D_BSwi32(a_Stream, vertexes[i].y);
+		D_BSwi32(a_Str, vertexes[i].x);
+		D_BSwi32(a_Str, vertexes[i].y);
 	}
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Sectors */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMS");
+	D_BSBaseBlock(a_Str, "SGMS");
 	
 	// Put sectors
-	D_BSwu32(a_Stream, numsectors);
+	D_BSwu32(a_Str, numsectors);
 	for (i = 0; i < numsectors; i++)
 	{
 		// Get Current
 		Sector = &sectors[i];
 		
 		// Dump
-		D_BSwi32(a_Stream, Sector->floorheight);
-		D_BSwi32(a_Stream, Sector->ceilingheight);
-		D_BSwi32(a_Stream, Sector->nexttag);
-		D_BSwi32(a_Stream, Sector->firsttag);
-		D_BSwi32(a_Stream, Sector->validcount);
-		D_BSwi32(a_Stream, Sector->stairlock);
-		D_BSwi32(a_Stream, Sector->prevsec);
-		D_BSwi32(a_Stream, Sector->nextsec);
-		D_BSwi32(a_Stream, Sector->floor_xoffs);
-		D_BSwi32(a_Stream, Sector->floor_yoffs);
-		D_BSwi32(a_Stream, Sector->ceiling_xoffs);
-		D_BSwi32(a_Stream, Sector->ceiling_yoffs);
-		D_BSwi32(a_Stream, Sector->heightsec);
-		D_BSwi32(a_Stream, Sector->altheightsec);
-		D_BSwi32(a_Stream, Sector->floorlightsec);
-		D_BSwi32(a_Stream, Sector->ceilinglightsec);
-		D_BSwi32(a_Stream, Sector->teamstartsec);
-		D_BSwi32(a_Stream, Sector->bottommap);
-		D_BSwi32(a_Stream, Sector->midmap);
-		D_BSwi32(a_Stream, Sector->topmap);
-		D_BSwi32(a_Stream, Sector->validsort);
-		D_BSwi32(a_Stream, FLOAT_TO_FIXED(Sector->lineoutLength));
+		D_BSwi32(a_Str, Sector->floorheight);
+		D_BSwi32(a_Str, Sector->ceilingheight);
+		D_BSwi32(a_Str, Sector->nexttag);
+		D_BSwi32(a_Str, Sector->firsttag);
+		D_BSwi32(a_Str, Sector->validcount);
+		D_BSwi32(a_Str, Sector->stairlock);
+		D_BSwi32(a_Str, Sector->prevsec);
+		D_BSwi32(a_Str, Sector->nextsec);
+		D_BSwi32(a_Str, Sector->floor_xoffs);
+		D_BSwi32(a_Str, Sector->floor_yoffs);
+		D_BSwi32(a_Str, Sector->ceiling_xoffs);
+		D_BSwi32(a_Str, Sector->ceiling_yoffs);
+		D_BSwi32(a_Str, Sector->heightsec);
+		D_BSwi32(a_Str, Sector->altheightsec);
+		D_BSwi32(a_Str, Sector->floorlightsec);
+		D_BSwi32(a_Str, Sector->ceilinglightsec);
+		D_BSwi32(a_Str, Sector->teamstartsec);
+		D_BSwi32(a_Str, Sector->bottommap);
+		D_BSwi32(a_Str, Sector->midmap);
+		D_BSwi32(a_Str, Sector->topmap);
+		D_BSwi32(a_Str, Sector->validsort);
+		D_BSwi32(a_Str, FLOAT_TO_FIXED(Sector->lineoutLength));
 		
-		D_BSwu32(a_Stream, Sector->special);
-		D_BSwu32(a_Stream, Sector->oldspecial);
-		//D_BSwu32(a_Stream, Sector->xxxxxxxxx);
-		//D_BSwu32(a_Stream, Sector->xxxxxxxxx);
-		//D_BSwu32(a_Stream, Sector->xxxxxxxxx);
+		D_BSwu32(a_Str, Sector->special);
+		D_BSwu32(a_Str, Sector->oldspecial);
+		//D_BSwu32(a_Str, Sector->xxxxxxxxx);
+		//D_BSwu32(a_Str, Sector->xxxxxxxxx);
+		//D_BSwu32(a_Str, Sector->xxxxxxxxx);
 		
-		D_BSwi16(a_Stream, Sector->floorpic);
-		D_BSwi16(a_Stream, Sector->ceilingpic);
-		D_BSwi16(a_Stream, Sector->lightlevel);
-		D_BSwi16(a_Stream, Sector->tag);
-		D_BSwi16(a_Stream, Sector->soundtraversed);
-		D_BSwi16(a_Stream, Sector->floortype);
+		D_BSwi16(a_Str, Sector->floorpic);
+		D_BSwi16(a_Str, Sector->ceilingpic);
+		D_BSwi16(a_Str, Sector->lightlevel);
+		D_BSwi16(a_Str, Sector->tag);
+		D_BSwi16(a_Str, Sector->soundtraversed);
+		D_BSwi16(a_Str, Sector->floortype);
 		
 		// Arrays
 		for (j = 0; j < 4; j++)
 		{
-			D_BSwi32(a_Stream, Sector->blockbox[j]);
-			D_BSwi32(a_Stream, Sector->BBox[j]);
+			D_BSwi32(a_Str, Sector->blockbox[j]);
+			D_BSwi32(a_Str, Sector->BBox[j]);
 		}
 		
 		// Variable
 		
 		// Pointers
-		D_BSwp(a_Stream, Sector->soundtarget);
+		D_BSwp(a_Str, Sector->soundtarget);
 
 #if 0
 // origin for any sounds played by the sector
@@ -2990,42 +3272,42 @@ size_t SoundSecRef;							// Reference to sound sector
 	}
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* SideDefs */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMI");
+	D_BSBaseBlock(a_Str, "SGMI");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* LineDefs */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGML");
+	D_BSBaseBlock(a_Str, "SGML");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* SubSectors */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMU");
+	D_BSBaseBlock(a_Str, "SGMU");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Nodes */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMN");
+	D_BSBaseBlock(a_Str, "SGMN");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Segs */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMG");
+	D_BSBaseBlock(a_Str, "SGMG");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Block Map */
 	// extern long* blockmaplump;		// offsets in blockmap are from here
@@ -3037,67 +3319,67 @@ size_t SoundSecRef;							// Reference to sound sector
 	// extern mobj_t** blocklinks;		// for thing chains
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMB");
+	D_BSBaseBlock(a_Str, "SGMB");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Reject */
 	// extern uint8_t* rejectmatrix;	// for fast sight rejection
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMJ");
+	D_BSBaseBlock(a_Str, "SGMJ");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Things */
 	//extern int nummapthings;
 	//extern mapthing_t* mapthings;
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMT");
+	D_BSBaseBlock(a_Str, "SGMT");
 	
 	// Record all things
-	D_BSwu32(a_Stream, nummapthings);
+	D_BSwu32(a_Str, nummapthings);
 	for (i = 0; i < nummapthings; i++)
 	{
 		// Get Current
 		MapThing = &mapthings[i];
 		
 		// Write Out
-		PS_SGBS_DumpMapThing(a_Stream, MapThing);
+		PS_SGBS_DumpMapThing(a_Str, MapThing);
 	}
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Touching Sector Lists */
 	//msecnode_t* sector_list = NULL;
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMZ");
+	D_BSBaseBlock(a_Str, "SGMZ");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Active Plats */
 	// platlist_t* activeplats;
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMP");
+	D_BSBaseBlock(a_Str, "SGMP");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Active Ceilings */
 	// ceilinglist_t* activeceilings;
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGME");
+	D_BSBaseBlock(a_Str, "SGME");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Others */
 	// playerstarts[mthing->type - 1] = mthing;
@@ -3112,22 +3394,22 @@ size_t SoundSecRef;							// Reference to sound sector
 	//int bodyqueslot;
 	
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGMR");
+	D_BSBaseBlock(a_Str, "SGMR");
 	
 	// Player Starts
-	D_BSwu32(a_Stream, MAXPLAYERS);
+	D_BSwu32(a_Str, MAXPLAYERS);
 	for (i = 0; i < MAXPLAYERS; i++)
-		D_BSwu32(a_Stream, playerstarts[i] - mapthings);
+		D_BSwu32(a_Str, playerstarts[i] - mapthings);
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 void P_MobjNullThinker(mobj_t* mobj);
 
 /* P_SGBS_Thinkers() -- Thinkers */
 // extern thinker_t thinkercap;
-void P_SGBS_Thinkers(D_BS_t* const a_Stream)
+void P_SGBS_Thinkers(D_BS_t* const a_Str)
 {
 	size_t i, j;
 	thinker_t* CurThinker;
@@ -3157,125 +3439,125 @@ void P_SGBS_Thinkers(D_BS_t* const a_Stream)
 		CurThinker = CurThinker->next, Capped = true)
 	{
 		// Begin
-		D_BSBaseBlock(a_Stream, "SGTH");
+		D_BSBaseBlock(a_Str, "SGTH");
 		
 		// Print Thinker Current Pointer ID
-		D_BSwp(a_Stream, CurThinker);
+		D_BSwp(a_Str, CurThinker);
 		
 		// P_MobjNullThinker(mobj_t* mobj) || P_MobjThinker(mobj_t* mobj)
 		if (CurThinker->function.acv == P_MobjNullThinker ||
 				CurThinker->function.acv == P_MobjThinker)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'M');
+			D_BSwu8(a_Str, 'M');
 			if (CurThinker->function.acv == P_MobjNullThinker)
-				D_BSwu8(a_Stream, 'N');
+				D_BSwu8(a_Str, 'N');
 			else
-				D_BSwu8(a_Stream, 'O');
+				D_BSwu8(a_Str, 'O');
 			
 			// Get Thinker
 			Mobj = (mobj_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwi32(a_Stream, Mobj->x);
-			D_BSwi32(a_Stream, Mobj->y);
-			D_BSwi32(a_Stream, Mobj->z);
-			D_BSwu32(a_Stream, Mobj->angle);
-			D_BSwi32(a_Stream, Mobj->sprite);
-			D_BSwi32(a_Stream, Mobj->frame);
-			D_BSwi32(a_Stream, Mobj->skin);
-			D_BSwi32(a_Stream, Mobj->sprite);
-			D_BSwi32(a_Stream, Mobj->floorz);
-			D_BSwi32(a_Stream, Mobj->ceilingz);
-			D_BSwi32(a_Stream, Mobj->height);
-			D_BSwi32(a_Stream, Mobj->radius);
-			D_BSwi32(a_Stream, Mobj->momx);
-			D_BSwi32(a_Stream, Mobj->momy);
-			D_BSwi32(a_Stream, Mobj->momz);
-			D_BSwi32(a_Stream, Mobj->type);
-			D_BSwi32(a_Stream, Mobj->tics);
-			D_BSwi32(a_Stream, Mobj->flags);
-			D_BSwi32(a_Stream, Mobj->eflags);
-			D_BSwi32(a_Stream, Mobj->flags2);
-			D_BSwi32(a_Stream, Mobj->special1);
-			D_BSwi32(a_Stream, Mobj->special2);
-			D_BSwi32(a_Stream, Mobj->health);
-			D_BSwi32(a_Stream, Mobj->movedir);
-			D_BSwi32(a_Stream, Mobj->movecount);
-			D_BSwi32(a_Stream, Mobj->reactiontime);
-			D_BSwi32(a_Stream, Mobj->threshold);
-			D_BSwi32(a_Stream, Mobj->lastlook);
-			D_BSwi32(a_Stream, Mobj->friction);
-			D_BSwi32(a_Stream, Mobj->movefactor);
-			D_BSwi32(a_Stream, Mobj->dropped_ammo_count);
-			D_BSwu32(a_Stream, Mobj->XFlagsA);
-			D_BSwu32(a_Stream, Mobj->XFlagsB);
-			D_BSwu32(a_Stream, Mobj->XFlagsC);
-			D_BSwu32(a_Stream, Mobj->XFlagsD);
-			D_BSwu32(a_Stream, Mobj->RXAttackAttackType);
-			D_BSwu32(a_Stream, Mobj->RXShotWithWeapon);
-			D_BSwu8(a_Stream, Mobj->RemoveMo);
-			D_BSwu32(a_Stream, Mobj->RemType);
-			D_BSwi32(a_Stream, Mobj->MaxZObtained);
-			D_BSwi32(a_Stream, Mobj->SkinTeamColor);
-			D_BSwi32(a_Stream, Mobj->NoiseThinker.Pitch);
-			D_BSwi32(a_Stream, Mobj->NoiseThinker.Volume);
+			D_BSwi32(a_Str, Mobj->x);
+			D_BSwi32(a_Str, Mobj->y);
+			D_BSwi32(a_Str, Mobj->z);
+			D_BSwu32(a_Str, Mobj->angle);
+			D_BSwi32(a_Str, Mobj->sprite);
+			D_BSwi32(a_Str, Mobj->frame);
+			D_BSwi32(a_Str, Mobj->skin);
+			D_BSwi32(a_Str, Mobj->sprite);
+			D_BSwi32(a_Str, Mobj->floorz);
+			D_BSwi32(a_Str, Mobj->ceilingz);
+			D_BSwi32(a_Str, Mobj->height);
+			D_BSwi32(a_Str, Mobj->radius);
+			D_BSwi32(a_Str, Mobj->momx);
+			D_BSwi32(a_Str, Mobj->momy);
+			D_BSwi32(a_Str, Mobj->momz);
+			D_BSwi32(a_Str, Mobj->type);
+			D_BSwi32(a_Str, Mobj->tics);
+			D_BSwi32(a_Str, Mobj->flags);
+			D_BSwi32(a_Str, Mobj->eflags);
+			D_BSwi32(a_Str, Mobj->flags2);
+			D_BSwi32(a_Str, Mobj->special1);
+			D_BSwi32(a_Str, Mobj->special2);
+			D_BSwi32(a_Str, Mobj->health);
+			D_BSwi32(a_Str, Mobj->movedir);
+			D_BSwi32(a_Str, Mobj->movecount);
+			D_BSwi32(a_Str, Mobj->reactiontime);
+			D_BSwi32(a_Str, Mobj->threshold);
+			D_BSwi32(a_Str, Mobj->lastlook);
+			D_BSwi32(a_Str, Mobj->friction);
+			D_BSwi32(a_Str, Mobj->movefactor);
+			D_BSwi32(a_Str, Mobj->dropped_ammo_count);
+			D_BSwu32(a_Str, Mobj->XFlagsA);
+			D_BSwu32(a_Str, Mobj->XFlagsB);
+			D_BSwu32(a_Str, Mobj->XFlagsC);
+			D_BSwu32(a_Str, Mobj->XFlagsD);
+			D_BSwu32(a_Str, Mobj->RXAttackAttackType);
+			D_BSwu32(a_Str, Mobj->RXShotWithWeapon);
+			D_BSwu8(a_Str, Mobj->RemoveMo);
+			D_BSwu32(a_Str, Mobj->RemType);
+			D_BSwi32(a_Str, Mobj->MaxZObtained);
+			D_BSwi32(a_Str, Mobj->SkinTeamColor);
+			D_BSwi32(a_Str, Mobj->NoiseThinker.Pitch);
+			D_BSwi32(a_Str, Mobj->NoiseThinker.Volume);
 			
 			// Map Data Related
-			D_BSwi32(a_Stream, Mobj->player - players);
-			D_BSwu32(a_Stream, Mobj->subsector - subsectors);
-			D_BSwu32(a_Stream, Mobj->spawnpoint - mapthings);
+			D_BSwi32(a_Str, Mobj->player - players);
+			D_BSwu32(a_Str, Mobj->subsector - subsectors);
+			D_BSwu32(a_Str, Mobj->spawnpoint - mapthings);
 			
 			// Spawn Point is probably virtualzed
 			if (Mobj->spawnpoint)
 			{
 				MapThing = Mobj->spawnpoint;
-				D_BSwu8(a_Stream, 'T');
+				D_BSwu8(a_Str, 'T');
 				
-				PS_SGBS_DumpMapThing(a_Stream, MapThing);
+				PS_SGBS_DumpMapThing(a_Str, MapThing);
 			}
 			else
-				D_BSwu8(a_Stream, 'X');
+				D_BSwu8(a_Str, 'X');
 			
 			// Pointer Links
-			D_BSwp(a_Stream, Mobj->snext);
-			D_BSwp(a_Stream, Mobj->sprev);
-			D_BSwp(a_Stream, Mobj->bnext);
-			D_BSwp(a_Stream, Mobj->bprev);
-			D_BSwp(a_Stream, Mobj->target);
-			D_BSwp(a_Stream, Mobj->player);
-			D_BSwp(a_Stream, Mobj->tracer);
-			D_BSwp(a_Stream, Mobj->ChildFloor);
-			D_BSwp(a_Stream, Mobj->touching_sectorlist);
-			D_BSwp(a_Stream, Mobj->info);
+			D_BSwp(a_Str, Mobj->snext);
+			D_BSwp(a_Str, Mobj->sprev);
+			D_BSwp(a_Str, Mobj->bnext);
+			D_BSwp(a_Str, Mobj->bprev);
+			D_BSwp(a_Str, Mobj->target);
+			D_BSwp(a_Str, Mobj->player);
+			D_BSwp(a_Str, Mobj->tracer);
+			D_BSwp(a_Str, Mobj->ChildFloor);
+			D_BSwp(a_Str, Mobj->touching_sectorlist);
+			D_BSwp(a_Str, Mobj->info);
 			
 			// Info
-			D_BSws(a_Stream, (Mobj->info ? Mobj->info->RClassName : "NoRCN"));
+			D_BSws(a_Str, (Mobj->info ? Mobj->info->RClassName : "NoRCN"));
 			
 			// State
 			if (Mobj->state)
 			{
-				D_BSwu8(a_Stream, 'S');
-				D_BSwu32(a_Stream, Mobj->state->FrameID);
-				D_BSwu32(a_Stream, Mobj->state->ObjectID);
-				D_BSwu32(a_Stream, Mobj->state->Marker);
-				D_BSwu32(a_Stream, Mobj->state->SpriteID);
-				D_BSwu32(a_Stream, Mobj->state->DehackEdID);
+				D_BSwu8(a_Str, 'S');
+				D_BSwu32(a_Str, Mobj->state->FrameID);
+				D_BSwu32(a_Str, Mobj->state->ObjectID);
+				D_BSwu32(a_Str, Mobj->state->Marker);
+				D_BSwu32(a_Str, Mobj->state->SpriteID);
+				D_BSwu32(a_Str, Mobj->state->DehackEdID);
 			}
 			else
-				D_BSwu8(a_Stream, 'X');
+				D_BSwu8(a_Str, 'X');
 			
 			// Variable Info
 				// ReMooD Extended Flags
 			for (i = 0; i < NUMINFORXFIELDS; i++)
-				D_BSwu32(a_Stream, Mobj->RXFlags[i]);
+				D_BSwu32(a_Str, Mobj->RXFlags[i]);
 			
 				// Map Objects On
 			for (i = 0; i < 2; i++)
 			{
-				D_BSwu32(a_Stream, Mobj->MoOnCount[i]);
+				D_BSwu32(a_Str, Mobj->MoOnCount[i]);
 				for (j = 0; j < Mobj->MoOnCount[i]; j++)
-					D_BSwp(a_Stream, Mobj->MoOn[i][j]);
+					D_BSwp(a_Str, Mobj->MoOn[i][j]);
 			}
 		}
 		
@@ -3283,306 +3565,306 @@ void P_SGBS_Thinkers(D_BS_t* const a_Stream)
 		else if (CurThinker->function.acv == T_FireFlicker)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'F');
-			D_BSwu8(a_Stream, 'F');
+			D_BSwu8(a_Str, 'F');
+			D_BSwu8(a_Str, 'F');
 			
 			// Get Thinker
 			FireFlicker = (fireflicker_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu32(a_Stream, FireFlicker->sector - sectors);
-			D_BSwi32(a_Stream, FireFlicker->count);
-			D_BSwi32(a_Stream, FireFlicker->maxlight);
-			D_BSwi32(a_Stream, FireFlicker->minlight);
+			D_BSwu32(a_Str, FireFlicker->sector - sectors);
+			D_BSwi32(a_Str, FireFlicker->count);
+			D_BSwi32(a_Str, FireFlicker->maxlight);
+			D_BSwi32(a_Str, FireFlicker->minlight);
 		}
 		
 		// T_Friction(friction_t* f)
 		else if (CurThinker->function.acv == T_Friction)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'F');
-			D_BSwu8(a_Stream, 'R');
+			D_BSwu8(a_Str, 'F');
+			D_BSwu8(a_Str, 'R');
 			
 			// Get Thinker
 			Friction = (friction_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwi32(a_Stream, Friction->friction);
-			D_BSwi32(a_Stream, Friction->movefactor);
-			D_BSwi32(a_Stream, Friction->affectee);
+			D_BSwi32(a_Str, Friction->friction);
+			D_BSwi32(a_Str, Friction->movefactor);
+			D_BSwi32(a_Str, Friction->affectee);
 		}
 		
 		// T_Glow(glow_t* g)
 		else if (CurThinker->function.acv == T_Glow)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'G');
-			D_BSwu8(a_Stream, 'L');
+			D_BSwu8(a_Str, 'G');
+			D_BSwu8(a_Str, 'L');
 			
 			// Get Thinker
 			Glow = (glow_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu32(a_Stream, Glow->sector - sectors);
-			D_BSwi32(a_Stream, Glow->minlight);
-			D_BSwi32(a_Stream, Glow->maxlight);
-			D_BSwi32(a_Stream, Glow->direction);
+			D_BSwu32(a_Str, Glow->sector - sectors);
+			D_BSwi32(a_Str, Glow->minlight);
+			D_BSwi32(a_Str, Glow->maxlight);
+			D_BSwi32(a_Str, Glow->direction);
 		}
 		
 		// T_LightFade(lightlevel_t* ll)
 		else if (CurThinker->function.acv == T_LightFade)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'L');
-			D_BSwu8(a_Stream, 'A');
+			D_BSwu8(a_Str, 'L');
+			D_BSwu8(a_Str, 'A');
 			
 			// Get Thinker
 			LightFade = (lightlevel_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu32(a_Stream, LightFade->sector - sectors);
-			D_BSwi32(a_Stream, LightFade->destlevel);
-			D_BSwi32(a_Stream, LightFade->speed);
+			D_BSwu32(a_Str, LightFade->sector - sectors);
+			D_BSwi32(a_Str, LightFade->destlevel);
+			D_BSwi32(a_Str, LightFade->speed);
 		}
 		
 		// T_LightFlash(lightflash_t* flash)
 		else if (CurThinker->function.acv == T_LightFlash)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'L');
-			D_BSwu8(a_Stream, 'F');
+			D_BSwu8(a_Str, 'L');
+			D_BSwu8(a_Str, 'F');
 			
 			// Get Thinker
 			LightFlash = (lightflash_t*)CurThinker;
 			
 			// Dump Data
-			D_BSwu32(a_Stream, LightFlash->sector - sectors);
-			D_BSwi32(a_Stream, LightFlash->count);
-			D_BSwi32(a_Stream, LightFlash->maxlight);
-			D_BSwi32(a_Stream, LightFlash->minlight);
-			D_BSwi32(a_Stream, LightFlash->maxtime);
-			D_BSwi32(a_Stream, LightFlash->mintime);
+			D_BSwu32(a_Str, LightFlash->sector - sectors);
+			D_BSwi32(a_Str, LightFlash->count);
+			D_BSwi32(a_Str, LightFlash->maxlight);
+			D_BSwi32(a_Str, LightFlash->minlight);
+			D_BSwi32(a_Str, LightFlash->maxtime);
+			D_BSwi32(a_Str, LightFlash->mintime);
 		}
 		
 		// T_MoveCeiling(ceiling_t* ceiling)
 		else if (CurThinker->function.acv == T_MoveCeiling)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'M');
-			D_BSwu8(a_Stream, 'C');
+			D_BSwu8(a_Str, 'M');
+			D_BSwu8(a_Str, 'C');
 			
 			// Get Thinker
 			Ceiling = (ceiling_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu8(a_Stream, Ceiling->type);
-			D_BSwu8(a_Stream, Ceiling->crush);
-			D_BSwi32(a_Stream, Ceiling->bottomheight);
-			D_BSwi32(a_Stream, Ceiling->topheight);
-			D_BSwi32(a_Stream, Ceiling->speed);
-			D_BSwi32(a_Stream, Ceiling->oldspeed);
-			D_BSwi32(a_Stream, Ceiling->newspecial);
-			D_BSwi32(a_Stream, Ceiling->oldspecial);
-			D_BSwi32(a_Stream, Ceiling->texture);
-			D_BSwi32(a_Stream, Ceiling->direction);
-			D_BSwi32(a_Stream, Ceiling->tag);
-			D_BSwi32(a_Stream, Ceiling->olddirection);
-			D_BSwu32(a_Stream, Ceiling->sector - sectors);
-			D_BSwp(a_Stream, Ceiling->list);
+			D_BSwu8(a_Str, Ceiling->type);
+			D_BSwu8(a_Str, Ceiling->crush);
+			D_BSwi32(a_Str, Ceiling->bottomheight);
+			D_BSwi32(a_Str, Ceiling->topheight);
+			D_BSwi32(a_Str, Ceiling->speed);
+			D_BSwi32(a_Str, Ceiling->oldspeed);
+			D_BSwi32(a_Str, Ceiling->newspecial);
+			D_BSwi32(a_Str, Ceiling->oldspecial);
+			D_BSwi32(a_Str, Ceiling->texture);
+			D_BSwi32(a_Str, Ceiling->direction);
+			D_BSwi32(a_Str, Ceiling->tag);
+			D_BSwi32(a_Str, Ceiling->olddirection);
+			D_BSwu32(a_Str, Ceiling->sector - sectors);
+			D_BSwp(a_Str, Ceiling->list);
 		}
 		
 		// T_MoveElevator(elevator_t* elevator)
 		else if (CurThinker->function.acv == T_MoveElevator)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'M');
-			D_BSwu8(a_Stream, 'E');
+			D_BSwu8(a_Str, 'M');
+			D_BSwu8(a_Str, 'E');
 			
 			// Get Thinker
 			Elevator = (elevator_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu8(a_Stream, Elevator->type);
-			D_BSwu32(a_Stream, Elevator->sector - sectors);
-			D_BSwi32(a_Stream, Elevator->direction);
-			D_BSwi32(a_Stream, Elevator->floordestheight);
-			D_BSwi32(a_Stream, Elevator->ceilingdestheight);
-			D_BSwi32(a_Stream, Elevator->speed);
+			D_BSwu8(a_Str, Elevator->type);
+			D_BSwu32(a_Str, Elevator->sector - sectors);
+			D_BSwi32(a_Str, Elevator->direction);
+			D_BSwi32(a_Str, Elevator->floordestheight);
+			D_BSwi32(a_Str, Elevator->ceilingdestheight);
+			D_BSwi32(a_Str, Elevator->speed);
 		}
 		
 		// T_MoveFloor(floormove_t* floor)
 		else if (CurThinker->function.acv == T_MoveFloor)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'M');
-			D_BSwu8(a_Stream, 'F');
+			D_BSwu8(a_Str, 'M');
+			D_BSwu8(a_Str, 'F');
 			
 			// Get Thinker
 			FloorMove = (floormove_t*)CurThinker;
 			
 			// DumpInfo
-			D_BSwu8(a_Stream, FloorMove->type);
-			D_BSwu8(a_Stream, FloorMove->crush);
-			D_BSwu32(a_Stream, FloorMove->sector - sectors);
-			D_BSwi32(a_Stream, FloorMove->direction);
-			D_BSwi32(a_Stream, FloorMove->newspecial);
-			D_BSwi32(a_Stream, FloorMove->oldspecial);
-			D_BSwi32(a_Stream, FloorMove->texture);
-			D_BSwi32(a_Stream, FloorMove->floordestheight);
-			D_BSwi32(a_Stream, FloorMove->speed);
+			D_BSwu8(a_Str, FloorMove->type);
+			D_BSwu8(a_Str, FloorMove->crush);
+			D_BSwu32(a_Str, FloorMove->sector - sectors);
+			D_BSwi32(a_Str, FloorMove->direction);
+			D_BSwi32(a_Str, FloorMove->newspecial);
+			D_BSwi32(a_Str, FloorMove->oldspecial);
+			D_BSwi32(a_Str, FloorMove->texture);
+			D_BSwi32(a_Str, FloorMove->floordestheight);
+			D_BSwi32(a_Str, FloorMove->speed);
 		}
 		
 		// T_PlatRaise(plat_t* plat)
 		else if (CurThinker->function.acv == T_PlatRaise)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'P');
-			D_BSwu8(a_Stream, 'R');
+			D_BSwu8(a_Str, 'P');
+			D_BSwu8(a_Str, 'R');
 			
 			// Get Thinker
 			Plat = (plat_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu32(a_Stream, Plat->sector - sectors);
-			D_BSwi32(a_Stream, Plat->speed);
-			D_BSwi32(a_Stream, Plat->low);
-			D_BSwi32(a_Stream, Plat->high);
-			D_BSwi32(a_Stream, Plat->wait);
-			D_BSwi32(a_Stream, Plat->count);
-			D_BSwi32(a_Stream, Plat->tag);
-			D_BSwu8(a_Stream, Plat->status);
-			D_BSwu8(a_Stream, Plat->oldstatus);
-			D_BSwu8(a_Stream, Plat->crush);
-			D_BSwu8(a_Stream, Plat->type);
-			D_BSwp(a_Stream, Plat->list);
+			D_BSwu32(a_Str, Plat->sector - sectors);
+			D_BSwi32(a_Str, Plat->speed);
+			D_BSwi32(a_Str, Plat->low);
+			D_BSwi32(a_Str, Plat->high);
+			D_BSwi32(a_Str, Plat->wait);
+			D_BSwi32(a_Str, Plat->count);
+			D_BSwi32(a_Str, Plat->tag);
+			D_BSwu8(a_Str, Plat->status);
+			D_BSwu8(a_Str, Plat->oldstatus);
+			D_BSwu8(a_Str, Plat->crush);
+			D_BSwu8(a_Str, Plat->type);
+			D_BSwp(a_Str, Plat->list);
 		}
 		
 		// T_Pusher(pusher_t* p)
 		else if (CurThinker->function.acv == T_Pusher)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'P');
-			D_BSwu8(a_Stream, 'U');
+			D_BSwu8(a_Str, 'P');
+			D_BSwu8(a_Str, 'U');
 			
 			// Get Thinker
 			Pusher = (pusher_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu8(a_Stream, Pusher->type);
-			D_BSwp(a_Stream, Pusher->source);
-			D_BSwi32(a_Stream, Pusher->x_mag);
-			D_BSwi32(a_Stream, Pusher->y_mag);
-			D_BSwi32(a_Stream, Pusher->magnitude);
-			D_BSwi32(a_Stream, Pusher->radius);
-			D_BSwi32(a_Stream, Pusher->x);
-			D_BSwi32(a_Stream, Pusher->y);
-			D_BSwi32(a_Stream, Pusher->affectee);
+			D_BSwu8(a_Str, Pusher->type);
+			D_BSwp(a_Str, Pusher->source);
+			D_BSwi32(a_Str, Pusher->x_mag);
+			D_BSwi32(a_Str, Pusher->y_mag);
+			D_BSwi32(a_Str, Pusher->magnitude);
+			D_BSwi32(a_Str, Pusher->radius);
+			D_BSwi32(a_Str, Pusher->x);
+			D_BSwi32(a_Str, Pusher->y);
+			D_BSwi32(a_Str, Pusher->affectee);
 		}
 		
 		// T_Scroll(scroll_t* s)
 		else if (CurThinker->function.acv == T_Scroll)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'S');
-			D_BSwu8(a_Stream, 'C');
+			D_BSwu8(a_Str, 'S');
+			D_BSwu8(a_Str, 'C');
 			
 			// Get Thinker
 			Scroll = (scroll_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwi32(a_Stream, Scroll->dx);
-			D_BSwi32(a_Stream, Scroll->dy);
-			D_BSwi32(a_Stream, Scroll->affectee);
-			D_BSwi32(a_Stream, Scroll->control);
-			D_BSwi32(a_Stream, Scroll->last_height);
-			D_BSwi32(a_Stream, Scroll->vdx);
-			D_BSwi32(a_Stream, Scroll->vdy);
-			D_BSwi32(a_Stream, Scroll->accel);
-			D_BSwu8(a_Stream, Scroll->type);
+			D_BSwi32(a_Str, Scroll->dx);
+			D_BSwi32(a_Str, Scroll->dy);
+			D_BSwi32(a_Str, Scroll->affectee);
+			D_BSwi32(a_Str, Scroll->control);
+			D_BSwi32(a_Str, Scroll->last_height);
+			D_BSwi32(a_Str, Scroll->vdx);
+			D_BSwi32(a_Str, Scroll->vdy);
+			D_BSwi32(a_Str, Scroll->accel);
+			D_BSwu8(a_Str, Scroll->type);
 		}
 		
 		// T_StrobeFlash(strobe_t* flash)
 		else if (CurThinker->function.acv == T_StrobeFlash)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'S');
-			D_BSwu8(a_Stream, 'F');
+			D_BSwu8(a_Str, 'S');
+			D_BSwu8(a_Str, 'F');
 			
 			// Get Thinker
 			Strobe = (strobe_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu32(a_Stream, Strobe->sector - sectors);
-			D_BSwi32(a_Stream, Strobe->count);
-			D_BSwi32(a_Stream, Strobe->minlight);
-			D_BSwi32(a_Stream, Strobe->maxlight);
-			D_BSwi32(a_Stream, Strobe->darktime);
-			D_BSwi32(a_Stream, Strobe->brighttime);
+			D_BSwu32(a_Str, Strobe->sector - sectors);
+			D_BSwi32(a_Str, Strobe->count);
+			D_BSwi32(a_Str, Strobe->minlight);
+			D_BSwi32(a_Str, Strobe->maxlight);
+			D_BSwi32(a_Str, Strobe->darktime);
+			D_BSwi32(a_Str, Strobe->brighttime);
 		}
 		
 		// T_VerticalDoor(vldoor_t* door)
 		else if (CurThinker->function.acv == T_VerticalDoor)
 		{
 			// Thinker Header
-			D_BSwu8(a_Stream, 'V');
-			D_BSwu8(a_Stream, 'D');
+			D_BSwu8(a_Str, 'V');
+			D_BSwu8(a_Str, 'D');
 			
 			// Get Thinker
 			VLDoor = (vldoor_t*)CurThinker;
 			
 			// Dump Info
-			D_BSwu8(a_Stream, VLDoor->type);
-			D_BSwu32(a_Stream, VLDoor->sector - sectors);
-			D_BSwi32(a_Stream, VLDoor->topheight);
-			D_BSwi32(a_Stream, VLDoor->speed);
-			D_BSwu8(a_Stream, VLDoor->direction);
-			D_BSwi32(a_Stream, VLDoor->topwait);
-			D_BSwi32(a_Stream, VLDoor->topcountdown);
-			D_BSwu32(a_Stream, VLDoor->line - lines);
+			D_BSwu8(a_Str, VLDoor->type);
+			D_BSwu32(a_Str, VLDoor->sector - sectors);
+			D_BSwi32(a_Str, VLDoor->topheight);
+			D_BSwi32(a_Str, VLDoor->speed);
+			D_BSwu8(a_Str, VLDoor->direction);
+			D_BSwi32(a_Str, VLDoor->topwait);
+			D_BSwi32(a_Str, VLDoor->topcountdown);
+			D_BSwu32(a_Str, VLDoor->line - lines);
 		}
 		
 		// End
-		D_BSRecordBlock(a_Stream);
+		D_BSRecordBlock(a_Str);
 	}
 }
 
 /* P_SGBS_State() -- Game State */
-void P_SGBS_State(D_BS_t* const a_Stream)
+void P_SGBS_State(D_BS_t* const a_Str)
 {
 	size_t i;
 	P_XGSVariable_t* Vars;
 	
 	/* Something */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGZA");
+	D_BSBaseBlock(a_Str, "SGZA");
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Game State Info */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGZS");
+	D_BSBaseBlock(a_Str, "SGZS");
 	
 	// Write Times
-	D_BSwu32(a_Stream, gametic);
-	//D_BSwu32(a_Stream, D_SyncNetMapTime());
-	//D_BSwu32(a_Stream, D_SyncNetRealTime());
+	D_BSwu32(a_Str, gametic);
+	//D_BSwu32(a_Str, D_SyncNetMapTime());
+	//D_BSwu32(a_Str, D_SyncNetRealTime());
 	
 	// Write Game state
-	D_BSwu8(a_Stream, gamestate);
-	D_BSwu8(a_Stream, demorecording);
-	D_BSwu8(a_Stream, demoplayback);
-	D_BSwu8(a_Stream, multiplayer);
+	D_BSwu8(a_Str, gamestate);
+	D_BSwu8(a_Str, demorecording);
+	D_BSwu8(a_Str, demoplayback);
+	D_BSwu8(a_Str, multiplayer);
 	
 	// Write Current Level name
-	D_BSws(a_Stream, g_CurrentLevelInfo->LumpName);
+	D_BSws(a_Str, g_CurrentLevelInfo->LumpName);
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 	
 	/* Game Setting Variables */
 	// Begin
-	D_BSBaseBlock(a_Stream, "SGZV");
+	D_BSBaseBlock(a_Str, "SGZV");
 	
 	// Go through all variables
 	for (i = 0; i < PEXGSNUMBITIDS; i++)
@@ -3595,18 +3877,18 @@ void P_SGBS_State(D_BS_t* const a_Stream)
 			continue;
 		
 		// Write ID and Name
-		D_BSwu32(a_Stream, Vars->BitID);
-		D_BSws(a_Stream, Vars->Name);
+		D_BSwu32(a_Str, Vars->BitID);
+		D_BSws(a_Str, Vars->Name);
 		
 		// Write Value
 		if (Vars->WasSet)
-			D_BSwi32(a_Stream, Vars->ActualVal);
+			D_BSwi32(a_Str, Vars->ActualVal);
 		else
-			D_BSwi32(a_Stream, Vars->DefaultVal);
+			D_BSwi32(a_Str, Vars->DefaultVal);
 	}
 	
 	// End
-	D_BSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Str);
 }
 
 /*** WRITING THE GAME STATE ***/
@@ -6020,7 +6302,7 @@ typedef struct P_SGDXTypeIO_s
 {
 	const char* VarName;						// Name of variable
 	P_SGBWTypeC_t CType;						// C Type
-	bool_t (*IOFunc)(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy);
+	bool_t (*IOFunc)(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy);
 } P_SGDXTypeIO_t;
 
 // __SPEC -- Member Info
@@ -6044,7 +6326,7 @@ typedef struct P_SGDXTypeIO_s
 
 
 /* PRWS_DRPointer() -- Pointer to something */
-static bool_t PS_SGDXPointerHandler(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)
+static bool_t PS_SGDXPointerHandler(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)
 {
 	uint64_t pID;
 	
@@ -6058,12 +6340,12 @@ static bool_t PS_SGDXPointerHandler(D_BS_t* const a_Stream, const bool_t a_Load,
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
-		D_BSwp(a_Stream, *((void**)a_ValPtr));
+		D_BSwp(a_Str, *((void**)a_ValPtr));
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
-		pID = D_BSrp(a_Stream);
+		pID = D_BSrp(a_Str);
 		PLGS_DeRef(pID, ((void**)a_ValPtr));
 		*((void**)a_ValPtr) = NULL;	// FIXME: See if this causes problems?
 	}
@@ -6073,18 +6355,18 @@ static bool_t PS_SGDXPointerHandler(D_BS_t* const a_Stream, const bool_t a_Load,
 }
 
 #define __REMOOD_SGDXIHM(xxnamexx) PS_SGDXIntHandler_##xxnamexx
-#define __REMOOD_SGDXIH(xxnamexx,xxnativexx) static bool_t PS_SGDXIntHandler_##xxnamexx(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)\
+#define __REMOOD_SGDXIH(xxnamexx,xxnativexx) static bool_t PS_SGDXIntHandler_##xxnamexx(D_BS_t* const a_Str, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)\
 {\
 	if (a_Load)\
 	{\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: *((xxnativexx*)a_ValPtr) = D_BSri8(a_Stream); break;\
-			case PSRC_INT16: *((xxnativexx*)a_ValPtr) = D_BSri16(a_Stream); break;\
-			case PSRC_INT32: *((xxnativexx*)a_ValPtr) = D_BSri32(a_Stream); break;\
-			case PSRC_UINT8: *((xxnativexx*)a_ValPtr) = D_BSru8(a_Stream); break;\
-			case PSRC_UINT16: *((xxnativexx*)a_ValPtr) = D_BSru16(a_Stream); break;\
-			case PSRC_UINT32: *((xxnativexx*)a_ValPtr) = D_BSru32(a_Stream); break;\
+			case PSRC_INT8: *((xxnativexx*)a_ValPtr) = D_BSri8(a_Str); break;\
+			case PSRC_INT16: *((xxnativexx*)a_ValPtr) = D_BSri16(a_Str); break;\
+			case PSRC_INT32: *((xxnativexx*)a_ValPtr) = D_BSri32(a_Str); break;\
+			case PSRC_UINT8: *((xxnativexx*)a_ValPtr) = D_BSru8(a_Str); break;\
+			case PSRC_UINT16: *((xxnativexx*)a_ValPtr) = D_BSru16(a_Str); break;\
+			case PSRC_UINT32: *((xxnativexx*)a_ValPtr) = D_BSru32(a_Str); break;\
 			default: return false;\
 		}\
 		\
@@ -6095,12 +6377,12 @@ static bool_t PS_SGDXPointerHandler(D_BS_t* const a_Stream, const bool_t a_Load,
 	{\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: D_BSwi8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_INT16: D_BSwi16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_INT32: D_BSwi32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_UINT8: D_BSwu8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_UINT16: D_BSwu16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_UINT32: D_BSwu32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT8: D_BSwi8(a_Str, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT16: D_BSwi16(a_Str, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT32: D_BSwi32(a_Str, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT8: D_BSwu8(a_Str, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT16: D_BSwu16(a_Str, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT32: D_BSwu32(a_Str, *((xxnativexx*)a_ValPtr)); break;\
 			default: return false;\
 		}\
 		\
@@ -6307,7 +6589,7 @@ static const P_SGDXDataSpec_t c_SectorSpec[] =
 /*** FUNCTIONS ***/
 
 /* PS_SGDXReadWriteData() -- Read/Write Data */
-static bool_t PS_SGDXReadWriteData(D_BS_t* const a_Stream, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType, int32_t* const a_Copy)
+static bool_t PS_SGDXReadWriteData(D_BS_t* const a_Str, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType, int32_t* const a_Copy)
 {
 	P_SGDXTypeIO_t* IO;
 	
@@ -6319,7 +6601,7 @@ static bool_t PS_SGDXReadWriteData(D_BS_t* const a_Stream, const bool_t a_Load, 
 	
 	/* Use Function */
 	if (IO->IOFunc)
-		return IO->IOFunc(a_Stream, a_Load, a_RType, a_CType, a_Ptr, a_Size, a_Copy);
+		return IO->IOFunc(a_Str, a_Load, a_RType, a_CType, a_Ptr, a_Size, a_Copy);
 	
 	/* Nothing */
 	return false;
@@ -6327,13 +6609,13 @@ static bool_t PS_SGDXReadWriteData(D_BS_t* const a_Stream, const bool_t a_Load, 
 
 
 /* P_SGBSGDXReadStr() -- Read string and possibly Z_StrDup it */
-bool_t P_SGBSGDXReadStr(D_BS_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
+bool_t P_SGBSGDXReadStr(D_BS_t* const a_Str, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
 {
 	/* Clear */
 	//memset(a_Buf, 0, sizeof(a_Buf) * a_BufSize);
 	
 	/* Read String */
-	D_BSrs(a_Stream, a_Buf, a_BufSize - 1);
+	D_BSrs(a_Str, a_Buf, a_BufSize - 1);
 	
 	/* Dupe it */
 	if (a_Ptr)
@@ -6347,13 +6629,13 @@ bool_t P_SGBSGDXReadStr(D_BS_t* const a_Stream, char** const a_Ptr, char* const 
 }
 
 /* PS_SGDXDoStruct() -- Saves/Loads structure specification */
-static bool_t PS_SGDXDoStruct(D_BS_t* const a_Stream, const bool_t a_Load, void* const a_Base, const P_SGDXDataSpec_t* const a_Spec)
+static bool_t PS_SGDXDoStruct(D_BS_t* const a_Str, const bool_t a_Load, void* const a_Base, const P_SGDXDataSpec_t* const a_Spec)
 {
 	size_t i;
 	uint64_t pMark;
 	
 	/* Check */
-	if (!a_Stream || !a_Base || !a_Spec)
+	if (!a_Str || !a_Base || !a_Spec)
 		return false;
 	
 	/* Dump/Identify Pointer to Struct */
@@ -6361,13 +6643,13 @@ static bool_t PS_SGDXDoStruct(D_BS_t* const a_Stream, const bool_t a_Load, void*
 		// likely points to this structure.
 	if (a_Load)
 	{
-		pMark = D_BSrp(a_Stream);
+		pMark = D_BSrp(a_Str);
 		PLGS_SetRef(pMark, a_Base);
 	}
 	
 	// If saving, write pointer.
 	else
-		D_BSwp(a_Stream, a_Base);
+		D_BSwp(a_Str, a_Base);
 	
 	/* Go through each spec */
 	for (i = 0; !a_Spec[i].AtEnd; i++)
@@ -6380,7 +6662,7 @@ static bool_t PS_SGDXDoStruct(D_BS_t* const a_Stream, const bool_t a_Load, void*
 				);
 		
 		// Save/load each member
-		PS_SGDXReadWriteData(a_Stream, a_Load, (void*)(((uint8_t*)a_Base) + a_Spec[i].OffSet), a_Spec[i].SizeOf, a_Spec[i].CType, a_Spec[i].RType, NULL);
+		PS_SGDXReadWriteData(a_Str, a_Load, (void*)(((uint8_t*)a_Base) + a_Spec[i].OffSet), a_Spec[i].SizeOf, a_Spec[i].CType, a_Spec[i].RType, NULL);
 	}
 	
 	/* Success? */
@@ -6393,17 +6675,17 @@ static bool_t PS_SGDXDoStruct(D_BS_t* const a_Stream, const bool_t a_Load, void*
 	// a_SizeP -- Pointer to array count (&numwhatever)
 	// a_SizeSz -- Size of array count (sizeof(numwhatever))
 	// a_SizeType -- Native type for array count (INT,SIZE,UINT32,etc.)
-bool_t P_SGDXDoArray(D_BS_t* const a_Stream, const bool_t a_Load, void** const a_ArrayP, const size_t a_MemSz, void* const a_SizeP, const size_t a_SizeSz, const P_SGBWTypeC_t a_SizeType, const Z_MemoryTag_t a_PUTag)
+bool_t P_SGDXDoArray(D_BS_t* const a_Str, const bool_t a_Load, void** const a_ArrayP, const size_t a_MemSz, void* const a_SizeP, const size_t a_SizeSz, const P_SGBWTypeC_t a_SizeType, const Z_MemoryTag_t a_PUTag)
 {
 	int32_t i32;
 	
 	/* Check */
-	if (!a_Stream || !a_ArrayP || !a_MemSz || !a_SizeP || !a_SizeSz)
+	if (!a_Str || !a_ArrayP || !a_MemSz || !a_SizeP || !a_SizeSz)
 		return false;
 	
 	/* Read/Write Array Size */
 	// Use the preexisting handler!
-	PS_SGDXReadWriteData(a_Stream, a_Load, a_SizeP, a_SizeSz, a_SizeType, PSRC_UINT32, &i32);
+	PS_SGDXReadWriteData(a_Str, a_Load, a_SizeP, a_SizeSz, a_SizeType, PSRC_UINT32, &i32);
 	
 	/* Loading */
 	if (a_Load)
@@ -6436,16 +6718,16 @@ bool_t P_SGDXDoArray(D_BS_t* const a_Stream, const bool_t a_Load, void** const a
 	#undef __BISTRB
 #endif	
 
-#define __INITARRAY(ar,co,ct,pu) P_SGDXDoArray(a_Stream, a_Load, &ar, sizeof(*ar), &co, sizeof(co), PSTC_##ct,pu)
-#define __BI(x,nt,rc) PS_SGDXReadWriteData(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, NULL)
+#define __INITARRAY(ar,co,ct,pu) P_SGDXDoArray(a_Str, a_Load, &ar, sizeof(*ar), &co, sizeof(co), PSTC_##ct,pu)
+#define __BI(x,nt,rc) PS_SGDXReadWriteData(a_Str, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, NULL)
 
 	// __BISTRZ -- Z_Malloced String
-#define __BISTRZ(x) (a_Load ? P_SGDXReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_BSws(a_Stream, x))
+#define __BISTRZ(x) (a_Load ? P_SGDXReadStr(a_Str,&x,Buf,BUFSIZE) : PS_WRAPPED_D_BSws(a_Str, x))
 	// __BISTRB -- Buffered String
-#define __BISTRB(buf,bs) (a_Load ? P_SGBSGDXReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_BSws(a_Stream, buf))
+#define __BISTRB(buf,bs) (a_Load ? P_SGBSGDXReadStr(a_Str,NULL,buf,bs) : PS_WRAPPED_D_BSws(a_Str, buf))
 
 /* P_SGDXSpec() -- Save/Load Game via specification */
-bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, const bool_t a_Load)
+bool_t P_SGDXSpec(D_BS_t* const a_Str, I_HostAddress_t* const a_NetAddr, const bool_t a_Load)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -6458,7 +6740,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 	I_HostAddress_t InAddr;
 	
 	/* Check */
-	if (!a_Stream)
+	if (!a_Str)
 		return false;
 		
 	//M_ExUIMessageBox(MEXMBT_DONTCARE, 123, "Hello", "You just saved the game!", NULL);
@@ -6473,7 +6755,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 		if (a_Load)
 		{
 			memset(&InAddr, 0, sizeof(InAddr));
-			if (!(Continue = D_BSPlayNetBlock(a_Stream, Header, &InAddr)))
+			if (!(Continue = D_BSPlayNetBlock(a_Str, Header, &InAddr)))
 				break;
 			HitBlock = false;	// Check when a valid block was read
 		}
@@ -6522,7 +6804,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 			// Map Things
 			__INITARRAY(mapthings,nummapthings,INT,PU_LEVEL);
 			for (i = 0; i < nummapthings; i++)
-				PS_SGDXDoStruct(a_Stream, a_Load, &mapthings[i], c_MapThingSpec);
+				PS_SGDXDoStruct(a_Str, a_Load, &mapthings[i], c_MapThingSpec);
 			
 			// Player Starts
 			for (i = 0; i < MAXPLAYERS; i++)
@@ -6545,7 +6827,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 		{
 			__INITARRAY(vertexes,numvertexes,INT,PU_LEVEL);
 			for (i = 0; i < numvertexes; i++)
-				PS_SGDXDoStruct(a_Stream, a_Load, &vertexes[i], c_VertexSpec);
+				PS_SGDXDoStruct(a_Str, a_Load, &vertexes[i], c_VertexSpec);
 			
 			// Record
 			__REC;
@@ -6556,7 +6838,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 		{
 			__INITARRAY(lines,numlines,INT,PU_LEVEL);
 			for (i = 0; i < numlines; i++)
-				PS_SGDXDoStruct(a_Stream, a_Load, &lines[i], c_LineSpec);
+				PS_SGDXDoStruct(a_Str, a_Load, &lines[i], c_LineSpec);
 			
 			// Record
 			__REC;
@@ -6568,7 +6850,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 		{
 			__INITARRAY(sides,numsides,INT,PU_LEVEL);
 			for (i = 0; i < numsides; i++)
-				PS_SGDXDoStruct(a_Stream, a_Load, &sides[i], c_SideSpec);
+				PS_SGDXDoStruct(a_Str, a_Load, &sides[i], c_SideSpec);
 			
 			// Record
 			__REC;
@@ -6579,7 +6861,7 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, cons
 		{
 			__INITARRAY(sectors,numsectors,INT,PU_LEVEL);
 			for (i = 0; i < numsectors; i++)
-				PS_SGDXDoStruct(a_Stream, a_Load, &sectors[i], c_SectorSpec);
+				PS_SGDXDoStruct(a_Str, a_Load, &sectors[i], c_SectorSpec);
 			
 			// Record
 			__REC;
