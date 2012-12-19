@@ -587,7 +587,7 @@ static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player, void* const a_Data)
 	a_Player->Flags |= DXPF_SERVER | DXPF_LOCAL;
 	
 	/* Process ID from local player? */
-	if (a_Data)
+	//if (a_Data)
 		a_Player->ClProcessID = *((uint32_t*)a_Data);
 }
 
@@ -597,12 +597,27 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	int32_t i;
 	D_XPlayer_t* SPlay;
 	player_t* FakeP;
+	uint32_t ProcessID;
 	
 	/* Disconnect First */
 	D_XNetDisconnect(false);
 	
+	/* Create process ID, or grab one */
+	ProcessID = 0;
+	
+	// Try grabbing from first split
+	if (D_ScrSplitHasPlayer(0))
+		ProcessID = g_Splits[0].ProcessID;
+	
+	// Otherwise create a random one
+	if (!ProcessID)
+		do
+		{
+			ProcessID = D_CMakePureRandom();
+		} while (!ProcessID || D_XNetPlayerByID(ProcessID) || D_NCSFindSplitByProcess(ProcessID) >= 0);
+	
 	/* Create a starting spectator (the host) */
-	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
+	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)&ProcessID);
 	
 	// Set server infos
 	l_IsConnected = true;	// Connected to self!
@@ -625,8 +640,9 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 		if (D_ScrSplitHasPlayer(i))
 		{
 			// Create initial player for server, but not for P1
+				// P1 already has one
 			if (i)
-				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
+				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)g_Splits[i].ProcessID);
 			
 			// Assign player
 			g_Splits[i].XPlayer = SPlay;
@@ -1326,6 +1342,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Setup XPlayer */
 	XPlay->InGameID = k;
+	XPlay->ClProcessID = a_JoinData->ProcessID;
 	
 	/* Setup Game Player */
 	XPlay->Player = Player = G_AddPlayer(k);
@@ -1648,7 +1665,8 @@ static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 {
 	B_BotTemplate_t* BotTemp;
 	
-	/* Set Initial Flags */
+	/* Set Initial Data */
+	// Flags
 	a_Player->Flags |= DXPF_BOT | DXPF_NOLOGIN | DXPF_LOCAL;
 	
 	/* Init Bot */
@@ -2871,7 +2889,10 @@ void D_XNetUpdate(void)
 					XPlay->ScreenID = 0;
 					g_Splits[0].Waiting = true;
 					g_Splits[0].XPlayer = XPlay;
-					g_Splits[0].ProcessID = XPlay->ID;
+					if (XPlay->ClProcessID)
+						g_Splits[0].ProcessID = XPlay->ClProcessID;
+					else
+						g_Splits[0].ProcessID = XPlay->ID;
 					g_SplitScreen = 0;
 				}
 			}

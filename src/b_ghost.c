@@ -514,14 +514,6 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	Z_ResizeArray((void**)&ThisMatrix->Nodes, sizeof(*ThisMatrix->Nodes),
 			ThisMatrix->NumNodes, ThisMatrix->NumNodes + 1);
 	ThisMatrix->Nodes[ThisMatrix->NumNodes++] = New;
-	
-	/* Debug */
-	/*P_SpawnMobj(
-			RealX,
-			RealY,
-			l_GFloorZ,
-			INFO_GetTypeByName("ReMooDBotDebugNode")
-		);*/
 		
 	/* Return the new node */
 	return New;
@@ -1373,46 +1365,6 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	{
 		a_GhostBot->OldNode = a_GhostBot->AtNode;
 		Blip = true;
-	}
-	
-	/* Debug Movement */
-	if (a_GhostBot->AtNode)
-	{
-		j = 0;
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (g_Splits[i].Active && g_Splits[i].Console == (a_GhostBot->Player - players))
-			{
-				j = 1;
-				break;
-			}
-		
-		if (j == 1)
-		{
-			// Blip node handovers
-			if (Blip)
-				P_SpawnMobj(
-						((B_GhostNode_t*)a_GhostBot->AtNode)->x,
-						((B_GhostNode_t*)a_GhostBot->AtNode)->y,
-						((B_GhostNode_t*)a_GhostBot->AtNode)->FloorZ,
-						INFO_GetTypeByName("ReMooDBotDebugPath")
-					);
-			
-			// Targets
-			if ((gametic % TICRATE) == 0)
-				for (i = 0; i < 3; i++)
-					for (j = 0; j < 3; j++)
-					{
-						if (((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node)
-						{
-							P_SpawnMobj(
-									((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->x,
-									((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->y,
-									((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->FloorZ,
-									INFO_GetTypeByName("ReMooDBotDebugTarget")
-								);
-						}
-					}
-		}
 	}
 	
 	/* Go through targets and expire any of them */

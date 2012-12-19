@@ -53,6 +53,7 @@
 #include "b_bot.h"
 #include "d_net.h"
 #include "d_netcmd.h"
+#include "r_main.h"
 
 
 /****************
@@ -618,6 +619,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				if (i < MAXSPLITSCREEN)
 				{
 					XPlay->ScreenID = i;
+					g_Splits[i].ProcessID = XPlay->ClProcessID;
 					g_Splits[i].Console = 0;
 					g_Splits[i].Display = -1;
 					g_Splits[i].XPlayer = XPlay;
@@ -655,6 +657,40 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			else if (XPlay->Flags & DXPF_SERVER)
 			{
 				XPlay->Flags |= DXPF_LOCAL;
+				
+				// Re-assign to current splits, if possible
+				if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+				{
+					// Playing the game
+					if (XPlay->InGameID >= 0)
+					{
+						g_Splits[XPlay->ScreenID].Waiting = false;
+						g_Splits[XPlay->ScreenID].Active = true;
+						g_Splits[XPlay->ScreenID].Console = XPlay->InGameID;
+						g_Splits[XPlay->ScreenID].Display = g_Splits[XPlay->ScreenID].Console;
+					}
+					
+					// Not active
+					else
+					{
+						g_Splits[XPlay->ScreenID].Waiting = true;
+						g_Splits[XPlay->ScreenID].Active = false;
+						g_Splits[XPlay->ScreenID].Console = -1;
+						g_Splits[XPlay->ScreenID].Display = -1;
+					}
+					
+					// Set profile and XPlayer
+					g_Splits[XPlay->ScreenID].ProcessID = XPlay->ClProcessID;
+					g_Splits[XPlay->ScreenID].Profile = XPlay->Profile;
+					g_Splits[XPlay->ScreenID].XPlayer = XPlay;
+					
+					// Split screen count needs resize?
+					if (XPlay->ScreenID >= g_SplitScreen)
+					{
+						g_SplitScreen = XPlay->ScreenID;
+						R_ExecuteSetViewSize();
+					}
+				}
 			}
 			
 			// Non-Server Player (delete next tic)

@@ -812,7 +812,12 @@ void ST_DrawPlayerBarsEx(void)
 		{
 			// Get players to draw for
 			if (!g_Splits[p].XPlayer)
-				ConsoleP = &players[g_Splits[p].Console];
+			{
+				if (g_Splits[p].Console >= 0)
+					ConsoleP = &players[g_Splits[p].Console];
+				else
+					ConsoleP = NULL;
+			}
 			else
 				ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
 			DisplayP = P_SpecGetPOV(p);//&players[g_Splits[p].Display];
