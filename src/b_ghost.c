@@ -976,6 +976,13 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 	if (!a_GhostBot)
 		return false;
 	
+	/* Being a lemming? */
+	if (a_GhostBot->Lemmings)
+	{
+		a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 15);
+		return true;
+	}
+	
 	/* Find node in random direction, and move to it */
 	while (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
 	{
@@ -1239,7 +1246,6 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 #undef CLOSEMOS
 }
 
-
 /* BS_GHOST_JOB_GunControl() -- Determine weapon changing */
 static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 {
@@ -1305,6 +1311,215 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 #undef MAXGUNSWITCHERS
 }
 
+/*---------------------------------------------------------------------------*/
+
+#define MAXLEMMINGS 32
+#define MINLEMDIST FIXEDT_C(16)
+
+/* B_LemPt_t -- Saved lemming point */
+typedef struct B_LemPt_s
+{
+	bool_t Set;
+	fixed_t x;
+	fixed_t y;
+	fixed_t z;
+} B_LemPt_t;
+
+static B_LemPt_t (*l_BLems)[MAXLEMMINGS];
+
+/*** SUPPORT ***/
+
+void B_XClearAllLemmings(void)
+{
+	int i;
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+		B_XClearLemming(i);
+	
+	if (l_BLems)
+		Z_Free(l_BLems);
+	l_BLems = NULL;
+}
+
+void B_XClearLemming(const int32_t a_ID)
+{
+	/* Check */
+	if (a_ID < 0 || a_ID >= MAXPLAYERS)
+		return;
+	
+	/* Delete */
+	if (l_BLems)
+		memset(l_BLems[a_ID], 0, sizeof(l_BLems[a_ID]));
+}
+
+/* B_XCheckLemming() -- Checks existig lemming */
+bool_t B_XCheckLemming(const int32_t a_ID, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+{
+	fixed_t Dist;
+	int32_t j;
+	
+	/* Check */
+	if (!g_GotBots || a_ID < 0 || a_ID >= MAXPLAYERS)
+		return;
+	
+	/* No array? */
+	if (!l_BLems)
+		return true;
+	
+	/* Not set? */
+	if (!l_BLems[a_ID][0].Set)
+		return true;
+	
+	/* Calc Distance */
+	Dist = P_AproxDistance(a_X - l_BLems[a_ID][0].x, a_Y - l_BLems[a_ID][0].y);
+	
+	// Too short?
+	if (Dist < MINLEMDIST)
+		return false;
+	
+	/* Otherwise */
+	return true;
+}
+
+/* B_XAddLemming() -- Adds a new lemming */
+void B_XAddLemming(const int32_t a_ID, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+{
+	int j;
+	
+	/* Check */
+	if (!g_GotBots || a_ID < 0 || a_ID >= MAXPLAYERS)
+		return;
+	
+	/* Alloc? */
+	// Entire array
+	if (!l_BLems)
+		l_BLems = Z_Malloc(sizeof(*l_BLems) * MAXPLAYERS, PU_BOTS, NULL);
+	
+	/* Push back */
+	for (j = MAXLEMMINGS - 1; j > 0; j--)
+		l_BLems[a_ID][j] = l_BLems[a_ID][j - 1];
+	
+	/* Set */
+	l_BLems[a_ID][0].x = a_X;
+	l_BLems[a_ID][0].y = a_Y;
+	l_BLems[a_ID][0].z = a_Z;
+	l_BLems[a_ID][0].Set = true;
+}
+
+/*** JOB ***/
+
+/* BS_GHOST_JOB_Lemmings() -- Lemmings movement */
+static bool_t BS_GHOST_JOB_Lemmings(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+{
+	player_t* TargP;
+	mobj_t* TargM;
+	int32_t TargI, i, j, p;
+	struct B_GhostBot_s* OtherBot;
+	fixed_t Dist;
+	
+	/* No array? */
+	if (!l_BLems)
+	{
+		a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 15);
+		return true;
+	}
+	
+	/* Determine new lemmings player? */
+	if (!a_GhostBot->Lemmings)
+	{
+		TargI = -1;
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i] && players[i].mo)
+			{
+				// See if another bot is following
+				p = i;
+				for (j = 0; j < MAXPLAYERS; j++)
+					if (p != j && playeringame[j] && players[j].mo)
+					{
+						// No XPlayer
+						if (!players[j].XPlayer)
+							continue;
+						
+						// Check for other bot or self
+						OtherBot = players[j].XPlayer->BotData;
+						
+						if (!OtherBot || OtherBot == a_GhostBot)
+							continue;
+						
+						// Free bot
+						if (!OtherBot->Lemmings)
+						{
+							p = j;
+							break;
+						}
+						
+						// Following this one?
+						else
+							if (p == OtherBot->Lemmings - 1)
+							{
+								// Set player to this bot instead
+								p = j;
+								j = -1;
+								continue;
+							}
+					}
+				
+				// No bot following
+				if (j >= MAXPLAYERS)
+					j = p;
+				
+				// Follow specified player
+				a_GhostBot->Lemmings = j + 1;
+				break;
+			}
+		
+		// Not found?
+		if (!a_GhostBot->Lemmings)
+		{
+			a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 15);
+			return true;
+		}
+	}
+	
+	/* Obtain target */
+	TargI = a_GhostBot->Lemmings - 1;
+	TargP = &players[TargI];
+	TargM = TargP->mo;
+	
+	/* Find oldest lemming */
+	for (j = MAXLEMMINGS - 1; j >= 0; j--)
+		if (l_BLems[TargI][j].Set)
+			break;
+	
+	/* Move to lemming target specified */
+	// Dest point too close?
+	if (j >= 0)
+		if (P_AproxDistance(a_GhostBot->Player->mo->x - l_BLems[TargI][j].x, a_GhostBot->Player->mo->y - l_BLems[TargI][j].y) <= MINLEMDIST)
+			j = -1;
+		
+	// It is far enough
+	if (j >= 0)
+		for (i = 0; i < MAXBOTTARGETS; i++)
+			if (!a_GhostBot->Targets[i].IsSet)
+			{
+				a_GhostBot->Targets[i].IsSet = true;
+				a_GhostBot->Targets[i].MoveTarget = true;
+				a_GhostBot->Targets[i].ExpireTic = gametic + ((TICRATE * 1) - 1);
+				a_GhostBot->Targets[i].Priority = 30;
+				a_GhostBot->Targets[i].x = l_BLems[TargI][j].x;
+				a_GhostBot->Targets[i].y = l_BLems[TargI][j].y;
+				break;
+			}
+	
+	//CONL_PrintF("%i -> %i\n", a_GhostBot->Player - players, TargI);
+	
+	/* Keep Job */
+	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE);
+	return true;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* B_GHOST_Think() -- Bot thinker routine */
 void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 {
@@ -1335,6 +1550,10 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// Gun Control
 		a_GhostBot->Jobs[2].JobHere = true;
 		a_GhostBot->Jobs[2].JobFunc = BS_GHOST_JOB_GunControl;
+		
+		// Lemmings
+		//a_GhostBot->Jobs[3].JobHere = true;
+		//a_GhostBot->Jobs[3].JobFunc = BS_GHOST_JOB_Lemmings;
 		
 		// Randomize Posture
 		a_GhostBot->AISpec.Posture = BS_Random(a_GhostBot) % NUMBGHOSTATKPOSTURE;
@@ -1370,8 +1589,11 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	/* Go through targets and expire any of them */
 	for (i = 0; i < MAXBOTTARGETS; i++)
 		if (a_GhostBot->Targets[i].IsSet)
+		{
+			// Expired?
 			if (gametic > a_GhostBot->Targets[i].ExpireTic)
 				memset(&a_GhostBot->Targets[i], 0, sizeof(a_GhostBot->Targets[i]));
+		}
 	
 	/* Go through jobs and execute them */
 	for (J = 0; J < MAXBOTJOBS; J++)
@@ -1453,6 +1675,20 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 			default:
 				break;
 		}
+	}
+	
+	/* Really close to movement target? */
+	if (MoveTarg != -1)
+	{
+		// Distance to target
+		TargDist = P_AproxDistance(
+				a_GhostBot->Player->mo->x - a_GhostBot->Targets[MoveTarg].x,
+				a_GhostBot->Player->mo->y - a_GhostBot->Targets[MoveTarg].y
+			);
+			
+		// So close
+		if (TargDist <= FIXEDT_C(16))
+			MoveTarg = -1;
 	}
 	
 	/* Commence Movement/Attacking? */

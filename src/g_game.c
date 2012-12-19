@@ -1569,6 +1569,9 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Clear player junk */
 	G_ResetPlayer(a_Player);
 	
+	/* Clear Bot Lemmings */
+	B_XClearLemming(pNum);
+	
 	/* Clear Totals */
 	a_Player->addfrags = 0;
 	a_Player->killcount = a_Player->itemcount = a_Player->secretcount = 0;

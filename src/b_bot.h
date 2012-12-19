@@ -119,6 +119,7 @@ struct B_GhostBot_s
 	tic_t DeathTime;							// Time Died
 	int32_t RoamX, RoamY;						// Roaming X/Y
 	tic_t RespawnDelay;							// Respawn Delay
+	int32_t Lemmings;							// Lemmings Player
 	
 	struct
 	{
@@ -180,6 +181,11 @@ B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
 B_BotTemplate_t* B_GHOST_RandomTemplate(void);
 
 void B_XDestroyBot(B_GhostBot_t* const a_BotData);
+
+void B_XClearAllLemmings(void);
+void B_XClearLemming(const int32_t a_ID);
+void B_XAddLemming(const int32_t a_ID, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
+bool_t B_XCheckLemming(const int32_t a_ID, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
 
 #endif /* __B_BOT_H__ */
 
