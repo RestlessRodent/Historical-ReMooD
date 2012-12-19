@@ -571,8 +571,8 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 		Len = IRBSNETSOCKBUFSIZE - 8 - 1;
 	
 	// Length Limit?
-	if (!Len)
-		return false;
+	//if (!Len)
+	//	return false;
 	
 	/* Write data into block */
 	D_BSBaseBlock(a_Stream, Header);
@@ -2932,6 +2932,8 @@ void D_BSCloseStream(D_BS_t* const a_Stream)
 		a_Stream->DeleteF(a_Stream);
 	
 	/* Free it */
+	if (a_Stream->BlkData)
+		Z_Free(a_Stream->BlkData);
 	Z_Free(a_Stream);
 }
 
@@ -3120,6 +3122,10 @@ bool_t D_BSPlayNetBlock(D_BS_t* const a_Stream, char* const a_Header, I_HostAddr
 	/* Check */
 	if (!a_Stream)
 		return false;
+		
+	/* Clear */
+	if (a_Host)
+		memset(a_Host, 0, sizeof(*a_Host));
 	
 	/* Call recorder */
 	// Networked

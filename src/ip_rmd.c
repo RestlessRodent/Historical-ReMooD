@@ -57,6 +57,31 @@ typedef struct IP_RmdData_s
 *** FUNCTIONS ***
 ****************/
 
+/*****************************************************************************/
+
+typedef void (*IPR_HandleType_t)(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr);
+
+/* IPRS_RINF() -- Request Info */
+static void IPRS_RINF(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
+{
+	CONL_PrintF("Info request\n");
+}
+
+/* c_RMDProtoHeads -- Protocol headers */
+static const struct
+{
+	char Header[5];								// Header
+	IPR_HandleType_t Func;						// handler func
+} c_RMDProtoHeads[] =
+{
+	{"RINF", IPRS_RINF},
+	
+	// Done
+	{""},
+};
+
+/*****************************************************************************/
+
 /* IP_RMD_VerifyF() -- Verify Protocol */
 bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
 {
@@ -160,9 +185,34 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 /* IP_RMD_RunConnF() -- Runs connection */
 void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
 {
+	I_HostAddress_t RemAddr;
+	char Header[5];
+	IP_RmdData_t* Data;
+	register int i;
+	
 	/* Check */
 	if (!a_Proto || !a_Conn)
 		return;
+	
+	/* Get Data */
+	Data = a_Conn->Data;
+		
+	/* Constantly handle blocks */
+	Header[4] = 0;
+	while (D_BSPlayNetBlock(Data->BS, Header, &RemAddr))
+	{
+		for (i = 0; c_RMDProtoHeads[i].Header[0]; i++)
+			if (D_BSCompareHeader(Header, c_RMDProtoHeads[i].Header))
+			{
+				c_RMDProtoHeads[i].Func(Data, Data->BS, &RemAddr);
+				break;
+			}
+		
+		// Illegal?
+		if (devparm)
+			if (!c_RMDProtoHeads[i].Header[0])
+				CONL_PrintF("Unknown block \"%s\"\n", Header);
+	}
 }
 
 /* IP_RMD_DeleteConnF() -- Deletes connection */
