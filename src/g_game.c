@@ -730,7 +730,7 @@ void G_Ticker(void)
 		case GS_LEVEL:
 			// Title Screen Demo Fun
 			P_SpecTicker();
-	
+			
 			B_GHOST_Ticker();
 			P_Ticker();			// tic the game
 			ST_Ticker();
@@ -1568,9 +1568,6 @@ void G_InitPlayer(player_t* const a_Player)
 	
 	/* Clear player junk */
 	G_ResetPlayer(a_Player);
-	
-	/* Clear Bot Lemmings */
-	B_XClearLemming(pNum);
 	
 	/* Clear Totals */
 	a_Player->addfrags = 0;

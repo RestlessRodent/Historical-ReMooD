@@ -2186,7 +2186,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	int32_t TargetMove;
 	size_t i, PID, SID;
 	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
-	int32_t SideMove, ForwardMove, BaseAT, BaseAM, NegMod;
+	int32_t SideMove, ForwardMove, BaseAT, BaseAM, NegMod, FlyMove;
 	bool_t IsTurning, GunInSlot, ResetAim;
 	int slot, j, l, k;
 	PI_wepid_t newweapon;
@@ -2226,7 +2226,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	}
 	
 	/* Reset Some Things */
-	SideMove = ForwardMove = BaseAT = BaseAM = 0;
+	SideMove = ForwardMove = BaseAT = BaseAM = FlyMove = 0;
 	IsTurning = ResetAim = false;
 	
 	/* Modifiers */
@@ -2458,6 +2458,19 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			BaseAM -= Profile->LookUpDownSpeed >> 16;
 			//localaiming[SID] -= Profile->LookUpDownSpeed;
 	}
+	
+	// Flying
+		// Up
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_FLYUP))
+		FlyMove += 5;
+		
+		// Down
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_FLYDOWN))
+		FlyMove -= 5;
+		
+		// Land
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_LAND))
+		a_TicCmd->Std.ExButtons |= BTX_FLYLAND;
 	
 	// Weapons
 	if (Player)
@@ -2761,6 +2774,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	// Set
 	a_TicCmd->Std.sidemove = SideMove;
 	a_TicCmd->Std.forwardmove = ForwardMove;
+	a_TicCmd->Std.FlySwim = FlyMove;
 	
 	/* Slow turning? */
 	if (!IsTurning)
@@ -2887,6 +2901,7 @@ void D_XNetUpdate(void)
 				if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
 				{
 					XPlay->ScreenID = 0;
+					g_Splits[0].Display = -1;
 					g_Splits[0].Waiting = true;
 					g_Splits[0].XPlayer = XPlay;
 					if (XPlay->ClProcessID)

@@ -2377,6 +2377,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 					__READY(ResetAim, DDB_RESETAIM, u8);
 					__READY(StatFlags, DDB_STATFLAGS, u32);
 					__READY(ExButtons, DDB_EXBUTTONS, u32);
+					__READY(FlySwim, DDB_FLYSWIM, i16);
 		
 					if (DiffBits & DDB_WEAPON)
 						D_BSrs(Data->CBs, CmdP->Std.XSNewWeapon, MAXTCWEAPNAME);
@@ -2507,6 +2508,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 			__DIFFY(ResetAim, DDB_RESETAIM);
 			__DIFFY(StatFlags, DDB_STATFLAGS);
 			__DIFFY(ExButtons, DDB_EXBUTTONS);
+			__DIFFY(FlySwim, DDB_FLYSWIM);
 		
 			if (strcasecmp(CmdP->Std.XSNewWeapon, LastP->Std.XSNewWeapon))
 				DiffBits |= DDB_WEAPON;
@@ -2531,6 +2533,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 			__WRITEY(ResetAim, DDB_RESETAIM, u8);
 			__WRITEY(StatFlags, DDB_STATFLAGS, u32);
 			__WRITEY(ExButtons, DDB_EXBUTTONS, u32);
+			__WRITEY(FlySwim, DDB_FLYSWIM, i16);
 		
 			if (DiffBits & DDB_WEAPON)
 				D_BSws(Data->CBs, CmdP->Std.XSNewWeapon);

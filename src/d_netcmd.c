@@ -254,7 +254,7 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 {
 //#define __REMOOD_SWIRVYANGLE
 	size_t i, j;
-	int32_t FM, SM, AT, AM, RANG;
+	int32_t FM, SM, AT, AM, RANG, FLY;
 	fixed_t xDiv;
 	
 	/* Check */
@@ -263,12 +263,13 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 	
 	/* Merge Variadic Stuff */
 	// Super merging
-	FM = SM = AT = AM = RANG = 0;
+	FM = SM = AT = AM = RANG = FLY = 0;
 	for (j = 0; j < a_NumSrc; j++)
 	{
 		FM += a_SrcList[j].Std.forwardmove;
 		SM += a_SrcList[j].Std.sidemove;
 		RANG += a_SrcList[j].Std.angleturn;
+		FLY += a_SrcList[j].Std.FlySwim;
 
 #if defined(__REMOOD_SWIRVYANGLE)
 		AT += a_SrcList[j].Std.BaseAngleTurn;
@@ -307,6 +308,7 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 	xDiv = ((fixed_t)a_NumSrc) << FRACBITS;
 	a_DestCmd->Std.forwardmove = FixedDiv(FM << FRACBITS, xDiv) >> FRACBITS;
 	a_DestCmd->Std.sidemove = FixedDiv(SM << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->Std.FlySwim = FixedDiv(FLY << FRACBITS, xDiv) >> FRACBITS;
 	a_DestCmd->Std.angleturn = a_SrcList[0].Std.angleturn;//FixedDiv(RANG << FRACBITS, xDiv) >> FRACBITS;
 	
 	/* Aiming is slightly different */

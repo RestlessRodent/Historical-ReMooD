@@ -508,11 +508,6 @@ void P_XYMovement(mobj_t* mo)
 	}
 	
 	P_XYFriction(mo, oldx, oldy, P_XGSVal(PGS_COOLDFRICTIONMOVE));
-	
-	/* Player Lemmings */
-	if (mo->player)
-		if (B_XCheckLemming(mo->player - players, mo->x, mo->y, mo->z))
-			B_XAddLemming(mo->player - players, mo->x, mo->y, mo->z);
 }
 
 //
@@ -1736,9 +1731,6 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	}
 	
 	playernum = mthing->type - 1;
-	
-	/* Clear Bot Lemmings */
-	B_XClearLemming(playernum);
 	
 	// not playing?
 	if (!playeringame[playernum])

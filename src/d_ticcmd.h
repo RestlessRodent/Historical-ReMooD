@@ -69,6 +69,12 @@ typedef enum
 	BT_SLOTSHIFT = 11,
 } buttoncode_t;
 
+/* ExtButtonCodes_t -- Extended button codes */
+typedef enum ExtButtonCodes_e
+{
+	BTX_FLYLAND			= UINT32_C(0x00000001),	// Fly Up
+} ExtButtonCodes_t;
+
 // The data sampled per tick (single player)
 // and transmitted to other peers (multiplayer).
 // Mainly movements/button commands per game tick,
@@ -126,6 +132,7 @@ typedef union
 		
 		uint32_t StatFlags;						// Player Status Flags
 		uint32_t ExButtons;						// More Buttons
+		int16_t FlySwim;						// Fly/Swim
 		
 		uint16_t DataSize;						// Size of Data
 		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
@@ -186,6 +193,7 @@ typedef enum D_DiffBits_e
 	DDB_PLAYER						= 0x0800,	// Forward Changes
 	DDB_ARTIFACT					= 0x1000,	// Artifact Changes
 	DDB_EXBUTTONS					= 0x2000,	// More Buttons
+	DDB_FLYSWIM						= 0x4000,	// Flying/Swimming
 } D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];

@@ -241,7 +241,6 @@ bool_t P_ExClearLevel(void)
 	R_ClearLevelSplats();
 	P_ClearRecursiveSound();
 	B_ClearNodes();
-	B_XClearAllLemmings();
 	EV_ClearACSTags();
 	
 	/* Free all level tags */
@@ -1268,11 +1267,13 @@ bool_t P_ExFinalizeLevel(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && !players[i].mo)
 			if (!players[i].CounterOpPlayer)
+			{
 				// Use cluster spawns
 				if (P_XGSVal(PGS_GAMEDEATHMATCH))
 					G_DeathMatchSpawnPlayer(i);
 				else
 					G_CoopSpawnPlayer(i);
+			}
 	
 	/* Correct local player angles */
 	for (i = 0; i < MAXSPLITSCREEN; i++)

@@ -66,8 +66,8 @@ static const struct
 	{"backwards", "Move Backwards", DPEXIC_BACKWARDS},
 	{"strafeleft", "Strafe Left", DPEXIC_STRAFELEFT},
 	{"straferight", "Strafe Right", DPEXIC_STRAFERIGHT},
-	{"flyup", "Fly Up", DPEXIC_FLYUP},
-	{"flydown", "Fly Down", DPEXIC_FLYDOWN},
+	{"flyup", "Fly/Swim Up", DPEXIC_FLYUP},
+	{"flydown", "Fly/Swim Down", DPEXIC_FLYDOWN},
 	{"land", "Land", DPEXIC_LAND},
 	{"jump", "Jump", DPEXIC_JUMP},
 	
@@ -274,8 +274,8 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 			SETKEY(PREVINVENTORY, SEMICOLON);
 			SETKEY(NEXTINVENTORY, COLON);
 			SETKEY(USEINVENTORY, RETURN);
-			SETKEY(FLYUP, INSERT);
-			SETKEY(FLYDOWN, KDELETE);
+			SETKEY(FLYUP, P);//SETKEY(FLYUP, INSERT);
+			SETKEY(FLYDOWN, L);//SETKEY(FLYDOWN, KDELETE);
 			SETKEY(TOPSCORES, F);
 			SETKEY(COOPSPY, F12);
 			SETKEY(AUTOMAP, TAB);

@@ -213,7 +213,7 @@ typedef struct player_s
 	mobj_t* rain1;				// active rain maker 1
 	mobj_t* rain2;				// active rain maker 2
 	int32_t flamecount;
-	int32_t flyheight;
+	fixed_t flyheight;
 	inventory_t inventory[NUMINVENTORYSLOTS];
 	int32_t inventorySlotNum;
 	

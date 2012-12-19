@@ -1667,6 +1667,11 @@ void P_SpecTicker(void)
 			if (!CamMo)
 				continue;
 			
+			// Flying
+			CamMo->momz = Mod->flyheight << 16;
+			if (Mod->flyheight)
+				Mod->flyheight >>= 1;
+			
 			// Apply momentum to object
 			CamMo->x += CamMo->momx;
 			CamMo->y += CamMo->momy;
@@ -1675,7 +1680,6 @@ void P_SpecTicker(void)
 			// Reduce momentum (for friction)
 			CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
 			CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
-			CamMo->momz = FixedMul(CamMo->momz, ORIG_FRICTION);
 			
 			// Set sound thinker
 			CamMo->NoiseThinker.x = CamMo->x;
@@ -1687,6 +1691,9 @@ void P_SpecTicker(void)
 			CamMo->NoiseThinker.Angle = CamMo->angle;
 			CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
 			CamMo->NoiseThinker.Volume = FIXEDT_C(1);
+			
+			// Set Camera Z
+			Mod->TargetViewZ = Mod->viewz = CamMo->z;
 		}
 	}
 #undef TSCAMDIST
@@ -1726,6 +1733,9 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	Mo->subsector = &subsectors[0];
 	P_Thrust(Play, Mo->angle, a_TicCmd->Std.forwardmove * 2048);
 	P_Thrust(Play, Mo->angle - ANG90, a_TicCmd->Std.sidemove * 2048);
+	
+	/* Flying */
+	Play->flyheight = ((fixed_t)a_TicCmd->Std.FlySwim) * 2;
 }
 
 /* P_SpecGetPOV() -- Get player point of view */
