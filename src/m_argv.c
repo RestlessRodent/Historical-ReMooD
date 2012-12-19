@@ -123,7 +123,7 @@ void M_PushSpecialParametersAsOne(const bool_t plusplus)
 #endif
 			
 			// GhostlyDeath <May 9, 2012> -- Execute on new console instead
-			CONL_InputF(s);
+			CONL_InputF("%s", s);
 			i--;
 		}
 	}

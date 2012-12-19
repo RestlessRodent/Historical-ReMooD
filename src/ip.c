@@ -208,19 +208,42 @@ struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags)
 		return NULL;
 	
 	/* Extract Host */
-	p = strchr(q, ':');
-	
-	// No port
-	if (!p)
-		strncpy(HostBuf, q, HOSTSIZE);
-	
-	// There is a port
-	else
+	// IPv6?
+	if (*q == '[')
 	{
-		for (i = 0, x = q; x < p; x++)
+		p = strchr(q, ']');
+		
+		// Require ] for IPv6 numerics
+		if (!p)
+			return NULL;
+		
+		// Copy host until p
+		for (i = 0, x = q; x <= p; x++)
 			if (i < HOSTSIZE - 1)
 				HostBuf[i++] = *x;
 		HostBuf[i++] = 0;
+		
+		// Handle Port
+		p = strchr(p, ':');
+	}
+	
+	// IPv4
+	else
+	{
+		p = strchr(q, ':');
+
+		// No port
+		if (!p)
+			strncpy(HostBuf, q, HOSTSIZE);
+
+		// There is a port
+		else
+		{
+			for (i = 0, x = q; x < p; x++)
+				if (i < HOSTSIZE - 1)
+					HostBuf[i++] = *x;
+			HostBuf[i++] = 0;
+		}
 	}
 	
 	/* Extract Port */

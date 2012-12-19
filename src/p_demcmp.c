@@ -1607,6 +1607,17 @@ void NG_FromCLine(void)
 			{
 				NG_SetVarValue(PGS_GAMESKILL, b - 1);
 				l_NGAutoStart = true;
+				
+				// Double Ammo?
+				if (b == 1 || b == 5)
+					NG_SetVarValue(PGS_PLDOUBLEAMMO, 1);
+				
+				// Nightmare?
+				if (b == 5)
+				{
+					NG_SetVarValue(PGS_MONFASTMONSTERS, 1);
+					NG_SetVarValue(PGS_MONRESPAWNMONSTERS, 1);
+				}
 			}
 		}
 	

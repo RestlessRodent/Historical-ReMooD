@@ -50,6 +50,7 @@ typedef struct IP_RmdData_s
 {
 	struct IP_Conn_s* Conn;						// Connection
 	I_NetSocket_t* Socket;						// Socket to server
+	D_BS_t* BS;									// Block Stream
 } IP_RmdData_t;
 
 /****************
@@ -85,11 +86,19 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	I_NetSocket_t* Socket;
 	IP_RmdData_t* Data;
 	int32_t i;
+	bool_t IsV6;
 	
 	/* Valid Port */
 	Port = a_Port;
 	if (!Port)
-		Port = 29500;
+	{
+		if (M_CheckParm("-port"))
+			if (M_IsNextParm())
+				Port = C_strtoi32(M_GetNextParm(), NULL, 10);
+		
+		if (!Port || Port < 0 || Port >= 65536)
+			Port = 29500;
+	}
 	
 	/* Attempt Host Resolution */
 	if (!IP_UDPResolveHost(a_Proto, &Addr, a_Host, Port))
@@ -104,11 +113,19 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	}
 	
 	/* Setup Socket */
+	// V6?
+	IsV6 = false;
+	
+	if (M_CheckParm("-ipv6"))
+		IsV6 = true;
+	else if ((a_Flags & IPF_INPUT) && (((I_HostAddress_t*)&Addr.Private)->IPvX == INIPVN_IPV6))
+		IsV6 = true;
+	
 	// Try making sockets
 	for (i = 0; i < IPMAXSOCKTRIES; i++)
 	{
 		// Create socket to server
-		Socket = I_NetOpenSocket(0, ((a_Flags & IPF_INPUT) ? &Addr.Private : NULL), Port + i);
+		Socket = I_NetOpenSocket((IsV6 ? INSF_V6 : 0), ((a_Flags & IPF_INPUT) ? &Addr.Private : NULL), Port + i);
 	
 		// Worked?
 		if (Socket)
@@ -134,6 +151,7 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	// Set Data
 	Data->Socket = Socket;
 	Data->Conn = New;
+	Data->BS = D_BSCreateNetStream(Data->Socket);
 	
 	/* Return it */
 	return New;

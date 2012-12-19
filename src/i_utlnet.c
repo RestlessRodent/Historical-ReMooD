@@ -221,7 +221,8 @@ uint32_t I_NetHashHost(const I_HostAddress_t* const a_Host)
 	else if (a_Host->IPvX == INIPVN_IPV6)
 	{
 		for (i = 0; i < 16; i++)
-			HashVal ^= ((uint32_t)a_Host->Host.v6.b[i]) << ((i & 3) * 8);
+			HashVal ^= ((uint32_t)a_Host->Host.v6.Addr.b[i]) << ((i & 3) * 8);
+		HashVal ^= a_Host->Host.v6.Scope;
 		HashVal ^= ((uint32_t)a_Host->Port) << 16U;
 	}
 	
@@ -269,8 +270,10 @@ bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t*
 	else if (a_A->IPvX == INIPVN_IPV6)
 	{
 		// Check
+		if (a_A->Host.v6.Scope != a_B->Host.v6.Scope)
+			return false;
 		for (i = 0; i < 4; i++)
-			if (a_A->Host.v6.u[i] != a_B->Host.v6.u[i])
+			if (a_A->Host.v6.Addr.u[i] != a_B->Host.v6.Addr.u[i])
 				return false;
 		return true;
 	}
@@ -1032,7 +1035,9 @@ static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_H
 			((struct sockaddr_in6*)a_Native)->sin6_port = htons(a_Host->Port);
 	
 			for (i = 0; i < 16; i++)
-				((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i] = a_Host->Host.v6.b[i];
+				((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i] = a_Host->Host.v6.Addr.b[i];
+				
+			((struct sockaddr_in6*)a_Native)->sin6_scope_id = a_Host->Host.v6.Scope;
 			
 			// Success!
 			return true;
@@ -1075,7 +1080,8 @@ static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_H
 			// Copy over IP into host
 			a_Host->Port = ntohs(((struct sockaddr_in6*)a_Native)->sin6_port);
 			for (i = 0; i < 16; i++)
-				a_Host->Host.v6.b[i] = ((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i];
+				a_Host->Host.v6.Addr.b[i] = ((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i];
+			a_Host->Host.v6.Scope = ((struct sockaddr_in6*)a_Native)->sin6_scope_id;
 				
 			// Success!
 			return true;
@@ -1093,7 +1099,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 {
 #define BUFSIZE	256
 	char Buf[BUFSIZE];
-	char* PortP;
+	char* PortP, *Br;
 	uint16_t MatchPort;
 	
 	/* Variables */
@@ -1114,25 +1120,50 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 	
 	/* Extract port (if any) */
 	memset(Buf, 0, sizeof(Buf));
-	strncpy(Buf, a_Name, BUFSIZE - 1);
-	PortP = strchr(Buf, ':');
+	
+	// V6 Addr?
+	if (a_Name[0] == '[')
+	{
+		strncpy(Buf, a_Name + 1, BUFSIZE - 1);
+		Br = strchr(Buf, ']');
+		
+		// Require Matching bracket
+		if (!Br)
+			return false;
+		
+		// Port is after the bracket
+		PortP = strchr(Br, ':');
+		
+		// remove bracket
+		*Br = 0;
+	}
+	
+	// V4 Addr
+	else
+	{
+		strncpy(Buf, a_Name, BUFSIZE - 1);
+		
+		PortP = strchr(Buf, ':');
+	}
 	
 	// No :, presume default port
 	if (!PortP)
 		MatchPort = __REMOOD_BASEPORT;
-	
+
 	// Otherwise, take the name out
 	else
 	{
 		// Erase it
 		*PortP = 0;
-		
+	
 		// Move it up
 		PortP++;
-		
+	
 		// Translate to integer
 		MatchPort = atoi(PortP);
 	}
+	
+	CONL_PrintF("LU: %s\n", Buf);
 
 	/* Code */
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
@@ -1198,7 +1229,8 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			
 			// Copy over IP into host
 			for (i = 0; i < 16; i++)
-				a_Host->Host.v6.b[i] = SockInfoSix.sin6_addr.s6_addr[i];
+				a_Host->Host.v6.Addr.b[i] = SockInfoSix.sin6_addr.s6_addr[i];
+			a_Host->Host.v6.Scope = SockInfoSix.sin6_scope_id;
 			
 			a_Host->Port = MatchPort;
 			
@@ -1293,8 +1325,8 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 		memset(&In6, 0, sizeof(In6));
 		
 		// Lookup Host?
-		if (a_Host)
-			;
+		if (a_Host && a_Host->IPvX == INIPVN_IPV6)
+			IS_ConvertHost(true, a_Host, &In6);
 			
 		// Set Port
 		In6.sin6_family = AF_INET6;
@@ -1309,8 +1341,8 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 		In4.sin_addr.s_addr = INADDR_ANY;
 		
 		// Lookup Host?
-		if (a_Host)
-			;
+		if (a_Host && a_Host->IPvX == INIPVN_IPV4)
+			IS_ConvertHost(true, a_Host, &In4);
 		
 		// Set Port
 		In4.sin_family = AF_INET;

@@ -1703,6 +1703,7 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	int32_t i;
 	bool_t Flag;
 	struct IP_Conn_s* Conn;
+	I_HostAddress_t Addr;
 	
 	/* Not enough args? */
 	if (a_ArgC < 2)
@@ -1845,6 +1846,42 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		// Start connecting
 		D_XNetDisconnect(false);
+		return 0;
+	}
+	
+	/* Resolve hostname */
+	else if (strcasecmp(a_ArgV[1], "resolve") == 0)
+	{
+		// Requires one argument
+		if (a_ArgC < 3)
+			return 1;
+			
+		memset(&Addr, 0, sizeof(Addr));
+		
+		// Use net resolve
+		if (!I_NetNameToHost(NULL, &Addr, a_ArgV[2]))
+			CONL_OutputUT(CT_NETWORK, DSTR_DNETC_HOSTNORESOLVE, "%s\n", a_ArgV[2]);
+		else
+			if (Addr.IPvX == INIPVN_IPV6)
+				CONL_OutputUT(CT_NETWORK, DSTR_DNETC_HOSTRESSIX, "%s%08x%08x%04x%04x%04x%04x%u\n",
+						a_ArgV[2],
+						Addr.Host.v6.Addr.u[0],
+						Addr.Host.v6.Addr.u[1],
+						Addr.Host.v6.Addr.s[4],
+						Addr.Host.v6.Addr.s[5],
+						Addr.Host.v6.Addr.s[6],
+						Addr.Host.v6.Addr.s[7],
+						Addr.Host.v6.Scope
+					);
+			else
+				CONL_OutputUT(CT_NETWORK, DSTR_DNETC_HOSTRESFOUR, "%s%i%i%i%i\n",
+						a_ArgV[2],
+						Addr.Host.v4.b[0],
+						Addr.Host.v4.b[1],
+						Addr.Host.v4.b[2],
+						Addr.Host.v4.b[3]
+					);
+		
 		return 0;
 	}
 	
@@ -3120,6 +3157,21 @@ void D_XNetInitialServer(void)
 		
 		// Also always auto start, so we don't get stuck a the title screen
 		NG_SetAutoStart(true);
+	}
+	
+	// Client?
+	else if (M_CheckParm("-connect") && M_IsNextParm())
+	{
+		// Create Client Socket
+		Conn = IP_Create(M_GetNextParm(), 0);
+			
+		// Worked! so bind it
+		if (Conn)
+			D_XNetBindConn(Conn);
+		
+		// Also always auto start, so we don't get stuck a the title screen
+		NG_SetAutoStart(true);
+		return;
 	}
 	
 	// Specifying port?

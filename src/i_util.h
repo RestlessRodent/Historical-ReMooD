@@ -418,12 +418,16 @@ typedef struct I_HostAddress_s
 			uint8_t b[4];						// Bytes
 		} v4;									// IPv4 Address
 		
-		union
+		struct
 		{
-			uint64_t ll[2];						// Long Longs
-			uint32_t u[4];						// Integers
-			uint16_t s[8];						// Shorts
-			uint8_t b[16];						// Bytes
+			union
+			{
+				uint64_t ll[2];					// Long Longs
+				uint32_t u[4];					// Integers
+				uint16_t s[8];					// Shorts
+				uint8_t b[16];					// Bytes
+			} Addr;								// Address
+			uint32_t Scope;						// Scope
 		} v6;
 	} Host;										// IP Data
 } I_HostAddress_t;

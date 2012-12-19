@@ -975,6 +975,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "DNETC_SERVERCHANGENAME", "Server changed name to \"$1\"."},
 	{				"DNETC_CONNECTTO", "Connecting to \"$1\"."},
 	{				"DNETC_SERVERWAD", "Selecting WAD \"$1\"."},
+	{			"DNETC_HOSTNORESOLVE", "Host \"$1\" does not resolve."},
+	{			  "DNETC_HOSTRESFOUR", "Host \"$1\" resolves to $2.$3.$4.$5 (v4)."},
+	{			   "DNETC_HOSTRESSIX", "Host \"$1\" resolves to $2$3:$4:$5:$6:$7%$8 (v6)."},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
@@ -1395,7 +1398,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 	char SmallBuf[SMALLBUF];
 	char HackBuf[HACKBUF];
 	
-	char* Points[10];
+	char* Points[11];
 	char* o, *oe, *f, *Sym, *NextSym, *h;
 	const char* i, *iold;
 	int SpecialNum, sn, len, zz, hl;
@@ -1423,6 +1426,9 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 	// Clone small buffer
 	memset(SmallBuf, 0, sizeof(SmallBuf));
 	strncat(SmallBuf, a_Format, SMALLBUF);
+	
+	// Newline?
+	NewLine = !!strchr(a_Format, '\n');
 	
 	// Go through format
 	NewLine = !!(*a_Format == '\n');
@@ -1496,7 +1502,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 					break;
 			}
 		
-			if (sn < 9)
+			if (sn <= 9)
 			{
 				// Place here
 				Points[sn++] = h;
@@ -1527,7 +1533,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 			i++;	// Done later
 			
 			// Exists?
-			if (SpecialNum >= 0 && SpecialNum < 9)
+			if (SpecialNum >= 0 && SpecialNum <= 9)
 				if (Points[SpecialNum])
 				{
 					iold = i;
