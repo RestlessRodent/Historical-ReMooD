@@ -1365,6 +1365,10 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 	// Correct View Hieght
 	l_SpecPlayers[i].viewz = l_SpecMobjs[i].z;
 	
+	// Set viewing angle correctly, if not playing
+	if (!g_Splits[i].Active)
+		localangle[i] = l_SpecMobjs[i].angle;
+	
 	/* Map fake screens to XPlayers */
 	for (i = 0; i < g_NumXPlays; i++)
 	{

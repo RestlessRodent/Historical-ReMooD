@@ -139,7 +139,7 @@ PI_wep_t** wpnlev2info = NULL;
 size_t NUMWEAPONS = 0;
 
 PI_ammo_t** ammoinfo = NULL;
-size_t NUMAMMO = 0;
+PI_ammoid_t NUMAMMO = 0;
 char** sprnames = NULL;
 void** g_SprTouchSpecials = NULL;				// Sprite touch special markers
 size_t NUMSPRITES = 0;
@@ -639,6 +639,7 @@ typedef struct INFO_DataStore_s
 	INFO_ObjectStateGroup_t StateGroup;			// State group operating on
 	PI_mobjid_t MoType;							// Object Type
 	uint32_t FrameFor;							// Frame fors
+	PI_stateorigin_t Origin;					// origine for states
 	union
 	{
 		void* vP;								// Void pointer
@@ -689,6 +690,8 @@ void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Set object type */
 	This->MoType = Type + 1;
+	This->Origin.Type = 0;
+	This->Origin.ID = Type;
 	
 	/* Loading Screen */
 	CONL_EarlyBootTic(a_Name, true);
@@ -793,6 +796,9 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 		memset(StateP->DehackEdID, 0xFF, sizeof(StateP->DehackEdID));
 	}
 	
+	// Copy Origin
+	StateP->Origin = This->Parent->Parent->Origin;
+	
 	/* Frame is zero and reference not set? */
 	if (FrameID == 0 &&
 		*This->Parent->Cur.StateRefP == 0)
@@ -837,6 +843,8 @@ void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Set object type */
 	This->MoType = ~(Type + 1);
+	This->Origin.Type = 1;
+	This->Origin.ID = Type;
 	
 	/* Loading Screen */
 	CONL_EarlyBootTic(a_Name, true);
@@ -863,7 +871,8 @@ void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name)
 	Ptr = NULL;
 	
 	/* Found? */
-	if (Type < NUMAMMO)
+	// am_noammo is -1! and ammo by name always returns such things
+	if (Type >= 0 && Type < NUMAMMO)
 		Ptr = ammoinfo[Type];
 	
 	/* Not Found */
@@ -877,6 +886,7 @@ void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Set object type */
 	This->MoType = Type;
+	memset(&This->Origin, 0xFF, sizeof(This->Origin));
 	
 	/* Loading Screen */
 	CONL_EarlyBootTic(a_Name, true);
@@ -926,6 +936,7 @@ void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Set object type */
 	This->MoType = Type;
+	memset(&This->Origin, 0xFF, sizeof(This->Origin));
 	
 	/* Loading Screen */
 	CONL_EarlyBootTic(a_Name, true);
@@ -969,6 +980,7 @@ void* INFO_KeyGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Set object type */
 	This->MoType = Type;
+	memset(&This->Origin, 0xFF, sizeof(This->Origin));
 	
 	/* Loading Screen */
 	CONL_EarlyBootTic(a_Name, true);
@@ -1622,6 +1634,9 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 				NUMSTATES, NUMSTATES + 1);
 			Z_ChangeTag(states, PU_REMOODAT);
 			states[NUMSTATES++] = Z_Malloc(sizeof(**states), PU_REMOODAT, NULL);
+			
+			states[0]->Origin.Type = UINT8_C(0xFF);
+			states[0]->Origin.ID = UINT32_C(0xFFFFFFFF);
 			return true;
 			
 			// Last Time
@@ -2687,6 +2702,48 @@ uint32_t PI_GetDEHSound(const uint32_t a_InID)
 {
 	/* Just return the same number for now */
 	return a_InID;
+}
+
+/* INFO_GetWeaponByName() -- Return weapon by name */
+PI_wepid_t INFO_GetWeaponByName(const char* const a_Name)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return NUMWEAPONS;
+	
+	/* Loop */
+	for (i = 0; i < NUMWEAPONS; i++)
+		if (strcasecmp(a_Name, wpnlev1info[i]->ClassName) == 0)
+			return i;
+	
+	/* Failed */
+	return NUMWEAPONS;
+}
+
+/* INFO_GetAmmoByName() -- Return ammo by name */
+PI_ammoid_t INFO_GetAmmoByName(const char* const a_Name)
+{
+	PI_ammoid_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return am_noammo;
+	
+	/* Special Names */
+	if (strcasecmp(a_Name, "noammo") == 0)
+		return am_noammo;
+	else if (strcasecmp(a_Name, "all") == 0)
+		return am_all;
+	
+	/* Loop */
+	for (i = 0; i < NUMAMMO; i++)
+		if (strcasecmp(a_Name, ammoinfo[i]->ClassName) == 0)
+			return i;
+	
+	/* Failed */
+	return am_noammo;
 }
 
 

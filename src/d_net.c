@@ -1822,6 +1822,14 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		return 0;
 	}
 	
+	/* Disconnect */
+	else if (strcasecmp(a_ArgV[1], "disconnect") == 0)
+	{
+		// Start connecting
+		D_XNetDisconnect(false);
+		return 0;
+	}
+	
 	/* Failure */
 	return 1;
 #undef BUFSIZE

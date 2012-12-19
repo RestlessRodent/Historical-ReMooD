@@ -81,6 +81,13 @@ typedef struct INFO_StateArgsParm_s
 	int32_t IntVal;								// Numberic Value
 } INFO_StateArgsParm_t;
 
+/* PI_stateorigin_t -- Origin of state */
+typedef struct PI_stateorigin_s
+{
+	uint8_t Type;								// Where it came from
+	uint32_t ID;								// ID of origin
+} PI_stateorigin_t;
+
 typedef struct
 {
 	PI_stateid_t StateNum;						// State number
@@ -107,6 +114,8 @@ typedef struct
 	uint32_t SpriteID;							// Frame Sprite ID
 	PI_stateid_t DehackEdID[6];					// Dehacked ID
 	uint8_t IOSG;								// State Group
+	
+	PI_stateorigin_t Origin;					// Where state came from
 	
 	INFO_StateArgsNum_t ArgC;					// Argument Count
 	INFO_StateArgsParm_t* ArgV;					// Function Arguments
@@ -272,7 +281,6 @@ typedef struct
 
 extern PI_mobj_t** mobjinfo;
 
-
 /* AMMO */
 
 typedef int32_t PI_ammoid_t;
@@ -298,7 +306,7 @@ typedef struct ammoinfo_s
 } PI_ammo_t;
 
 extern PI_ammo_t** ammoinfo;
-extern size_t NUMAMMO;
+extern PI_ammoid_t NUMAMMO;
 
 /* WEAPON */
 

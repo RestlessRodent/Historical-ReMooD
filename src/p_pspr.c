@@ -1078,45 +1078,4 @@ static struct
 
 fixed_t bulletslope;
 
-/* INFO_GetWeaponByName() -- Return weapon by name */
-PI_wepid_t INFO_GetWeaponByName(const char* const a_Name)
-{
-	size_t i;
-	
-	/* Check */
-	if (!a_Name)
-		return NUMWEAPONS;
-	
-	/* Loop */
-	for (i = 0; i < NUMWEAPONS; i++)
-		if (strcasecmp(a_Name, wpnlev1info[i]->ClassName) == 0)
-			return i;
-	
-	/* Failed */
-	return NUMWEAPONS;
-}
-
-/* INFO_GetAmmoByName() -- Return ammo by name */
-PI_ammoid_t INFO_GetAmmoByName(const char* const a_Name)
-{
-	size_t i;
-	
-	/* Check */
-	if (!a_Name)
-		return am_noammo;
-	
-	/* Special Names */
-	if (strcasecmp(a_Name, "noammo") == 0)
-		return am_noammo;
-	else if (strcasecmp(a_Name, "all") == 0)
-		return am_all;
-	
-	/* Loop */
-	for (i = 0; i < NUMAMMO; i++)
-		if (strcasecmp(a_Name, ammoinfo[i]->ClassName) == 0)
-			return i;
-	
-	/* Failed */
-	return am_noammo;
-}
 

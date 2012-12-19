@@ -420,10 +420,10 @@ typedef struct mobj_s
 	//More drawing info: to determine current sprite.
 	angle_t angle;				// orientation
 	PI_spriteid_t sprite;			// used to find patch_t and flip value
-	int frame;					// frame number, plus bits see p_pspr.h
+	int32_t frame;					// frame number, plus bits see p_pspr.h
 	
 	//Fab:02-08-98
-	int skin;					// GhostlyDeath <Jult 16, 2011> -- Make this an integer instead
+	int32_t skin;					// GhostlyDeath <Jult 16, 2011> -- Make this an integer instead
 	// this one overrides 'sprite' when
 	// non NULL (currently hack for player
 	// bodies so they 'remember' the skin)
@@ -459,23 +459,23 @@ typedef struct mobj_s
 	PI_mobjid_t type;
 	PI_mobj_t* info;			// &mobjinfo[mobj->type]
 	
-	int tics;					// state tic counter
+	int32_t tics;					// state tic counter
 	PI_state_t* state;
 	
 	/*** DEPRECATED ***/
-	int flags;
-	int eflags;					//added:28-02-98: extra flags see above
-	int flags2;					// heretic stuff
+	int32_t flags;
+	int32_t eflags;					//added:28-02-98: extra flags see above
+	int32_t flags2;					// heretic stuff
 	
 	/******************/
 	
-	int special1;
-	int special2;
-	int health;
+	int32_t special1;
+	int32_t special2;
+	int32_t health;
 	
 	// Movement direction, movement generation (zig-zagging).
-	int movedir;				// 0-7
-	int movecount;				// when 0, select a new dir
+	int32_t movedir;				// 0-7
+	int32_t movecount;				// when 0, select a new dir
 	
 	// Thing being chased/attacked (or NULL),
 	// also the originator for missiles.
@@ -483,11 +483,11 @@ typedef struct mobj_s
 	
 	// Reaction time: if non 0, don't attack yet.
 	// Used by player to freeze a bit after teleporting.
-	int reactiontime;
+	int32_t reactiontime;
 	
 	// If >0, the target will be chased
 	// no matter what (even if shot)
-	int threshold;
+	int32_t threshold;
 	
 	// Additional info record for player avatars only.
 	struct player_s* player;
@@ -502,15 +502,15 @@ typedef struct mobj_s
 	struct mobj_s* tracer;
 	
 	//SoM: Friction.
-	int friction;
-	int movefactor;
+	int32_t friction;
+	int32_t movefactor;
 	
 	// a linked list of sectors where this object appears
 	struct msecnode_s* touching_sectorlist;
 	
 	// Support for Frag Weapon Falling
 	// This field valid only for MF_DROPPED ammo and weapn objects
-	int dropped_ammo_count;
+	int32_t dropped_ammo_count;
 	
 	// WARNING : new field are not automaticely added to save game
 	struct ffloor_s* ChildFloor;
@@ -537,7 +537,7 @@ typedef struct mobj_s
 
 #if defined(_DEBUG)
 	char* RefFile[NUMPMOBJREFTYPES];			// Reference From File
-	int RefLine[NUMPMOBJREFTYPES];				// Reference From Line
+	int32_t RefLine[NUMPMOBJREFTYPES];				// Reference From Line
 #endif
 
 	bool_t RemoveMo;							// Remove Map Object

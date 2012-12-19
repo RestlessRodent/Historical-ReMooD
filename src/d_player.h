@@ -94,7 +94,7 @@ typedef struct camera_s
 {
 	bool_t chase;
 	angle_t aiming;
-	int fixedcolormap;
+	int32_t fixedcolormap;
 	
 	//SoM: Things used by FS cameras.
 	fixed_t viewheight;
@@ -130,13 +130,13 @@ typedef struct player_s
 	
 	// This is only used between levels,
 	// mo->health is used during levels.
-	int health;
-	int armorpoints;
+	int32_t health;
+	int32_t armorpoints;
 	// Armor type is 0-2.
 	uint8_t armortype;
 	
 	// Power ups. invinc and invis are tic counters.
-	int powers[NUMPOWERS];
+	int32_t powers[NUMPOWERS];
 	uint32_t cards;				// bit field see declration of card_t
 	bool_t backpack;
 	
@@ -151,8 +151,8 @@ typedef struct player_s
 	PI_wepid_t* FavoriteWeapons;				// Favorite Weapons
 	
 	bool_t* weaponowned;
-	int* ammo;
-	int* maxammo;
+	int32_t* ammo;
+	int32_t* maxammo;
 	bool_t originalweaponswitch;
 	//added:28-02-98:
 	bool_t autoaim_toggle;
@@ -164,42 +164,42 @@ typedef struct player_s
 	
 	// Bit flags, for cheats and debug.
 	// See cheat_t, above.
-	int cheats;
+	int32_t cheats;
 	
 	// Refired shots are less accurate.
-	int refire;
+	int32_t refire;
 	
 	// For intermission stats.
-	int killcount;
-	int itemcount;
-	int secretcount;
+	int32_t killcount;
+	int32_t itemcount;
+	int32_t secretcount;
 	
 	// Hint messages.
 	char* message;
 	
 	// For screen flashing (red or bright).
-	int damagecount;
-	int bonuscount;
+	int32_t damagecount;
+	int32_t bonuscount;
 	uint8_t PalChoice;							// Palette to display for player
 	
 	// Who did damage (NULL for floors/ceilings).
 	mobj_t* attacker;
-	int specialsector;			//lava/slime/water...
+	int32_t specialsector;			//lava/slime/water...
 	
 	// So gun flashes light up areas.
-	int extralight;
+	int32_t extralight;
 	
 	// Current PLAYPAL, ???
 	//  can be set to REDCOLORMAP for pain, etc.
-	int fixedcolormap;
+	int32_t fixedcolormap;
 	
 	// Player skin colorshift,
 	//  0-3 for which color to draw player.
 	// adding 6-2-98 comment : unused by doom2 1.9 now is used
-	int skincolor;
+	int32_t skincolor;
 	
 	// added 2/8/98
-	int skin;
+	int32_t skin;
 	
 	// Overlay view sprites (gun, etc).
 	pspdef_t psprites[NUMPSPRITES];
@@ -208,23 +208,23 @@ typedef struct player_s
 	bool_t didsecret;
 	
 	// heretic
-	int chickenTics;			// player is a chicken if > 0
-	int chickenPeck;			// chicken peck countdown
+	int32_t chickenTics;			// player is a chicken if > 0
+	int32_t chickenPeck;			// chicken peck countdown
 	mobj_t* rain1;				// active rain maker 1
 	mobj_t* rain2;				// active rain maker 2
-	int flamecount;
-	int flyheight;
+	int32_t flamecount;
+	int32_t flyheight;
 	inventory_t inventory[NUMINVENTORYSLOTS];
-	int inventorySlotNum;
+	int32_t inventorySlotNum;
 	
-	int inv_ptr;
-	int st_curpos;				// position of inventory scroll
-	int st_inventoryTics;		// when >0 show inventory in status bar
+	int32_t inv_ptr;
+	int32_t st_curpos;				// position of inventory scroll
+	int32_t st_inventoryTics;		// when >0 show inventory in status bar
 	
 	PI_wep_t** weaponinfo;	// can be changed when use level2 weapons (heretic)
 	
 	// Sound Info
-	int flushdelay;
+	int32_t flushdelay;
 	
 	// GhostlyDeath <October 23, 2010> -- Player inflicted momentum
 	fixed_t MoveMom;

@@ -151,6 +151,270 @@ static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 	return D_BSCompareHeader(a_Header, Header);
 }
 
+/* PS_GetThinkerID() -- Returns ID of thinker */
+static int32_t PS_GetThinkerID(thinker_t* const a_Thinker)
+{
+	int32_t RetVal;
+	thinker_t* Rover;
+	
+	/* Check */
+	if (!a_Thinker)
+		return -1;
+	
+	/* Thinker Loop */
+	for (RetVal = 0, Rover = thinkercap.next; Rover != &thinkercap; Rover = Rover->next, RetVal++)
+		// Is this one?
+		if (Rover == a_Thinker)
+			return RetVal;
+	
+	/* Not in chain? */
+	return -2;
+}
+
+/* PS_LoadUnloadStateP() -- Saves/Restores Camera */
+static void PS_StateP(D_BS_t* const a_Str, const bool_t a_Write, PI_state_t** const a_StateP)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	uint8_t nn;
+	uint32_t mk;
+	uint32_t i, ID;
+	
+	/* Save */
+	if (a_Write)
+	{
+		// No state?
+		if (!*a_StateP)
+		{
+			D_BSwu8(a_Str, 0);
+		}
+		
+		// Is a state
+		else
+		{
+			D_BSwu8(a_Str, 1);
+			
+			// Write Origin Thing ID
+			D_BSwu8(a_Str, (*a_StateP)->Origin.Type);
+			
+			switch ((*a_StateP)->Origin.Type)
+			{
+					// Thing
+				case 0:
+					D_BSws(a_Str, mobjinfo[(*a_StateP)->Origin.ID]->RClassName);
+					break;
+					
+					// Weapon
+				case 1:
+					D_BSws(a_Str, wpnlev1info[(*a_StateP)->Origin.ID]->ClassName);
+					break;
+					
+					// S_NULL?
+				default:
+					D_BSwu8(a_Str, 0);
+					break;
+			}
+			
+			// Write Marker
+			D_BSwu32(a_Str, (*a_StateP)->Marker);
+		}
+	}
+	
+	/* Load */
+	else
+	{
+		// NULL State?
+		nn = D_BSru8(a_Str);
+		
+		// None
+		if (!nn)
+		{
+			*a_StateP = NULL;
+		}
+		
+		// Is set
+		else if (nn == 1)
+		{
+			// Read Type, String, Marker
+			nn = D_BSru8(a_Str);
+			D_BSrs(a_Str, Buf, BUFSIZE);
+			mk = D_BSru32(a_Str);
+			
+			// Reference ID
+			switch (nn)
+			{
+					// Thing
+				case 0:
+					ID = INFO_GetTypeByName(Buf);
+					break;
+					
+					// Weapon
+				case 1:
+					ID = INFO_GetWeaponByName(Buf);
+					break;
+					
+				default:
+					ID = UINT32_C(0xFFFFFFFF);
+					break;
+			}
+			
+			// Search all states for origin and marker match
+			for (i = 0; i < NUMSTATES; i++)
+				if (states[i]->Origin.Type == nn &&
+					states[i]->Origin.ID == ID &&
+					states[i]->Marker == mk)
+				{
+					*a_StateP = states[i];
+					return;
+				}
+		}
+	}
+#undef BUFSIZE
+}
+
+/* PS_LoadUnloadCamera() -- Saves/Restores Camera */
+static void PS_LoadUnloadCamera(D_BS_t* const a_Str, const bool_t a_Write, camera_t* const a_Cam)
+{
+}
+
+/* PS_LoadUnloadInvenT() -- Saves/Restores Inventory */
+static void PS_LoadUnloadInvenT(D_BS_t* const a_Str, const bool_t a_Write, inventory_t* const a_Inven)
+{
+}
+
+/* PS_LoadUnloadPSPDef() -- Saves/Restores PSP Definition */
+static void PS_LoadUnloadPSPDef(D_BS_t* const a_Str, const bool_t a_Write, pspdef_t* const a_PSP)
+{
+	/* Save */
+	if (a_Write)
+	{
+		PS_StateP(a_Str, a_Write, &a_PSP->state);
+		D_BSwi32(a_Str, a_PSP->tics);
+		D_BSwi32(a_Str, a_PSP->sx);
+		D_BSwi32(a_Str, a_PSP->sy);
+	}
+	
+	/* Load */
+	else
+	{
+		PS_StateP(a_Str, a_Write, &a_PSP->state);
+		a_PSP->tics = D_BSri32(a_Str);
+		a_PSP->sx = D_BSri32(a_Str);
+		a_PSP->sy = D_BSri32(a_Str);
+	}
+}
+
+/* PS_LoadUnloadTicCmd() -- Saves/Restores Tic Command */
+static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcmd_t* const a_TC)
+{
+	int32_t i, n;
+	uint8_t v;
+	
+	/* Saving */
+	if (a_Write)
+	{
+		// Save control
+		D_BSwu8(a_Str, a_TC->Ctrl.Type);
+		D_BSwcu64(a_Str, a_TC->Ctrl.ProgramTic);
+		D_BSwcu64(a_Str, a_TC->Ctrl.GameTic);
+		D_BSwu16(a_Str, a_TC->Ctrl.Ping);
+		
+		// Players
+		if (a_TC->Ctrl.Type == 0)
+		{
+			// Standard Commands
+			D_BSwu16(a_Str, a_TC->Std.Player);
+			D_BSwi8(a_Str, a_TC->Std.forwardmove);
+			D_BSwi8(a_Str, a_TC->Std.sidemove);
+			D_BSwi16(a_Str, a_TC->Std.angleturn);
+			D_BSwu16(a_Str, a_TC->Std.aiming);
+			D_BSwu16(a_Str, a_TC->Std.buttons);
+			D_BSwu8(a_Str, a_TC->Std.artifact);
+			D_BSwi16(a_Str, a_TC->Std.BaseAngleTurn);
+			D_BSwi16(a_Str, a_TC->Std.BaseAiming);
+			D_BSwu8(a_Str, a_TC->Std.InventoryBits);
+			D_BSwu8(a_Str, a_TC->Std.ResetAim);
+			D_BSwu32(a_Str, a_TC->Std.StatFlags);
+			D_BSwu32(a_Str, a_TC->Std.ExButtons);
+			
+			// Extended Command Buffer
+			D_BSwu16(a_Str, a_TC->Std.DataSize);
+			D_BSwu16(a_Str, MAXTCDATABUF);
+			
+			for (i = 0; i < MAXTCDATABUF; i++)
+				D_BSwu8(a_Str, a_TC->Std.DataBuf[i]);
+		}
+		
+		// Commands Only
+		else
+		{
+			D_BSwu16(a_Str, a_TC->Ext.DataSize);
+			D_BSwu16(a_Str, MAXTCDATABUF);
+			
+			for (i = 0; i < MAXTCDATABUF; i++)
+				D_BSwu8(a_Str, a_TC->Ext.DataBuf[i]);
+		}
+	}
+	
+	/* Loading */
+	else
+	{
+		// Read control
+		a_TC->Ctrl.Type = D_BSru8(a_Str);
+		a_TC->Ctrl.ProgramTic = D_BSrcu64(a_Str);
+		a_TC->Ctrl.GameTic = D_BSrcu64(a_Str);
+		a_TC->Ctrl.Ping = D_BSru16(a_Str);
+		
+		// Players
+		if (a_TC->Ctrl.Type == 0)
+		{
+			// Standard Commands
+			a_TC->Std.Player = D_BSru16(a_Str);
+			a_TC->Std.forwardmove = D_BSri8(a_Str);
+			a_TC->Std.sidemove = D_BSri8(a_Str);
+			a_TC->Std.angleturn = D_BSri16(a_Str);
+			a_TC->Std.aiming = D_BSru16(a_Str);
+			a_TC->Std.buttons = D_BSru16(a_Str);
+			a_TC->Std.artifact = D_BSru8(a_Str);
+			a_TC->Std.BaseAngleTurn = D_BSri16(a_Str);
+			a_TC->Std.BaseAiming = D_BSri16(a_Str);
+			a_TC->Std.InventoryBits = D_BSru8(a_Str);
+			a_TC->Std.ResetAim = D_BSru8(a_Str);
+			a_TC->Std.StatFlags = D_BSru32(a_Str);
+			a_TC->Std.ExButtons = D_BSru32(a_Str);
+			
+			// Extended Command Buffer
+			a_TC->Std.DataSize = D_BSru16(a_Str);
+			n = D_BSru16(a_Str);
+			
+			for (i = 0; i < n; i++)
+			{
+				v = D_BSru8(a_Str);
+				
+				if (i < MAXTCDATABUF)
+					a_TC->Std.DataBuf[i] = v;
+			}
+		}
+		
+		// Commands Only
+		else
+		{
+			a_TC->Ext.DataSize = D_BSru16(a_Str);
+			n = D_BSru16(a_Str);
+			
+			for (i = 0; i < n; i++)
+			{
+				v = D_BSru8(a_Str);
+				
+				if (i < MAXTCDATABUF)
+					a_TC->Ext.DataBuf[i] = v;
+			}
+		}
+	}
+}
+
+/*****************************************************************************/
+
 /* PS_SaveDummy() -- Saves dummy data */
 static void PS_SaveDummy(D_BS_t* const a_Str)
 {
@@ -361,6 +625,14 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			}
 		}
 		
+		// Client, and this is server host
+		else if (OurHost != 0 && SaveHost == XPlay->HostID)
+		{
+			// Make non-local but a server
+			XPlay->Flags &= ~DXPF_LOCAL;
+			XPlay->Flags |= DXPF_SERVER;
+		}
+		
 		// Server load
 		else if (OurHost == 0)
 		{
@@ -420,12 +692,13 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 /* PS_SavePlayers() -- Saves player data */
 static void PS_SavePlayers(D_BS_t* const a_Str)
 {
-	int32_t i;
+	int32_t i, j;
+	player_t* This;
 		
-	/* Base */
+	/* Encode */
+	// Base
 	D_BSBaseBlock(a_Str, "PLAY");
 	
-	/* Encode */
 	// Basic Info
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -434,16 +707,141 @@ static void PS_SavePlayers(D_BS_t* const a_Str)
 		D_BSws(a_Str, team_names[i]);
 	}
 	
-	// Complex Info
-	
-	/* Record */
+	// Record
 	D_BSRecordBlock(a_Str);
+	
+	// Complex Info
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Not in game?
+		if (i != 0 && !playeringame[i])
+			continue;
+		
+		// Base
+		D_BSBaseBlock(a_Str, "PINF");
+		
+		// Get Current
+		This = &players[i];
+		
+		// Encode Data
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)This->mo));
+		D_BSwi32(a_Str, This->playerstate);
+		PS_LoadUnloadTicCmd(a_Str, true, &This->cmd);
+		D_BSwi32(a_Str, This->viewz);
+		D_BSwi32(a_Str, This->viewheight);
+		D_BSwi32(a_Str, This->deltaviewheight);
+		D_BSwi32(a_Str, This->bob);
+		D_BSwu32(a_Str, This->aiming);
+		D_BSwi32(a_Str, This->health);
+		D_BSwi32(a_Str, This->armorpoints);
+		D_BSwu8(a_Str, This->armortype);
+		D_BSwu32(a_Str, This->cards);
+		D_BSwu8(a_Str, This->backpack);
+		D_BSwu16(a_Str, This->addfrags);
+		for (j = 0; j < MAXPLAYERS; j++)
+			D_BSwu16(a_Str, This->frags[j]);
+		D_BSwi32(a_Str, This->readyweapon);
+		D_BSwi32(a_Str, This->pendingweapon);
+		D_BSwi32(a_Str, This->DeadWeapon);
+		D_BSwu32(a_Str, NUMWEAPONS);
+		D_BSwu32(a_Str, NUMAMMO);
+		for (j = 0; j < NUMWEAPONS; j++)
+		{
+			D_BSws(a_Str, wpnlev1info[This->FavoriteWeapons[j]]->ClassName);
+			
+			if (This->weaponowned[j])
+				D_BSws(a_Str, wpnlev1info[j]->ClassName);
+			else
+				D_BSwu8(a_Str, 0);
+		}
+		for (j = 0; j < NUMAMMO; j++)
+		{
+			D_BSws(a_Str, ammoinfo[j]->ClassName);
+			D_BSwi32(a_Str, This->ammo[j]);
+			D_BSwi32(a_Str, This->maxammo[j]);
+		}
+		D_BSwu8(a_Str, This->originalweaponswitch);
+		D_BSwu8(a_Str, This->autoaim_toggle);
+		D_BSwu8(a_Str, This->attackdown);
+		D_BSwu8(a_Str, This->usedown);
+		D_BSwu8(a_Str, This->jumpdown);
+		D_BSwi32(a_Str, This->cheats);
+		D_BSwi32(a_Str, This->refire);
+		D_BSwi32(a_Str, This->killcount);
+		D_BSwi32(a_Str, This->itemcount);
+		D_BSwi32(a_Str, This->secretcount);
+		D_BSwi32(a_Str, This->damagecount);
+		D_BSwi32(a_Str, This->bonuscount);
+		D_BSwu8(a_Str, This->PalChoice);
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)This->attacker));
+		D_BSwi32(a_Str, This->specialsector);
+		D_BSwi32(a_Str, This->extralight);
+		D_BSwi32(a_Str, This->fixedcolormap);
+		D_BSwi32(a_Str, This->skincolor);
+		D_BSwi32(a_Str, This->skin);
+		D_BSwu32(a_Str, NUMPSPRITES);
+		for (j = 0; j < NUMPSPRITES; j++)
+			PS_LoadUnloadPSPDef(a_Str, true, &This->psprites[j]);
+		D_BSwu8(a_Str, This->didsecret);
+		D_BSwi32(a_Str, This->chickenTics);
+		D_BSwi32(a_Str, This->chickenPeck);
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)This->rain1));
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)This->rain2));
+		D_BSwi32(a_Str, This->flamecount);
+		D_BSwi32(a_Str, This->flyheight);
+		D_BSwu32(a_Str, NUMINVENTORYSLOTS);
+		for (j = 0; j < NUMINVENTORYSLOTS; j++)
+			PS_LoadUnloadInvenT(a_Str, true, &This->inventory[j]);
+		D_BSwi32(a_Str, This->inventorySlotNum);
+		D_BSwi32(a_Str, This->inv_ptr);
+		D_BSwi32(a_Str, This->st_curpos);
+		D_BSwi32(a_Str, This->st_inventoryTics);
+		if (This->weaponinfo == wpnlev1info)
+			D_BSwu8(a_Str, 1);
+		else if (This->weaponinfo == wpnlev2info)
+			D_BSwu8(a_Str, 2);
+		else
+			D_BSwu8(a_Str, 0);
+		D_BSwi32(a_Str, This->flushdelay);
+		D_BSwi32(a_Str, This->TargetViewZ);
+		for (j = 0; j < 3; j++)
+			D_BSwi32(a_Str, This->FakeMom[j]);
+		PS_LoadUnloadCamera(a_Str, true, &This->camera);
+		D_BSwi32(a_Str, This->CamDist);
+		D_BSwi32(a_Str, This->CamHeight);
+		D_BSwi32(a_Str, This->CamSpeed);
+		D_BSwu8(a_Str, This->ChaseCam);
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)This->LastBFGBall));
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)This->Attackee));
+		for (j = 0; j < 2; j++)
+		{
+			D_BSwi32(a_Str, This->MaxHealth[j]);
+			D_BSwi32(a_Str, This->MaxArmor[j]);
+		}
+		D_BSwu8(a_Str, This->CounterOpPlayer);
+		D_BSwi32(a_Str, This->TotalFrags);
+		D_BSwi32(a_Str, This->TotalDeaths);
+		D_BSwu32(a_Str, This->FraggerID);
+		D_BSwcu64(a_Str, This->SuicideDelay);
+		for (j = 0; j < 2; j++)
+			D_BSwu32(a_Str, This->KeyCards[j]);
+		
+		// Record
+		D_BSRecordBlock(a_Str);
+	}
 }
 
 /* PS_LoadPlayers() -- Loads player data */
 static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 {
-	int32_t i;
+#define BUFSIZE 128
+	int32_t i, j, n, mw, ma, a, b;
+	player_t* This;
+	pspdef_t pspjunk;
+	inventory_t invenjunk;
+	PI_wepid_t wi;
+	PI_ammoid_t ai;
+	char Buf[BUFSIZE];
 	
 	/* Expect "NSTA" */
 	if (!PS_Expect(a_Str, "PLAY"))
@@ -458,8 +856,145 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 		D_BSrs(a_Str, team_names[i], MAXPLAYERNAME * 2);
 	}
 	
+	// Complex Info
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Not in game?
+		if (i != 0 && !playeringame[i])
+			continue;
+		
+		// Expect "PINF" for each individual player
+		if (!PS_Expect(a_Str, "PINF"))
+			return false;
+		
+		// Get Current
+		This = &players[i];
+		
+		// Init player base
+		G_ResetPlayer(This);
+		
+		// Decode Info
+		This->mo = (void*)((intptr_t)D_BSri32(a_Str));
+		This->playerstate = D_BSri32(a_Str);
+		PS_LoadUnloadTicCmd(a_Str, false, &This->cmd);
+		This->viewz = D_BSri32(a_Str);
+		This->viewheight = D_BSri32(a_Str);
+		This->deltaviewheight = D_BSri32(a_Str);
+		This->bob = D_BSri32(a_Str);
+		This->aiming = D_BSru32(a_Str);
+		This->health = D_BSri32(a_Str);
+		This->armorpoints = D_BSri32(a_Str);
+		This->armortype = D_BSru8(a_Str);
+		This->cards = D_BSru32(a_Str);
+		This->backpack = D_BSru8(a_Str);
+		This->addfrags = D_BSru16(a_Str);
+		for (j = 0; j < MAXPLAYERS; j++)
+			This->frags[j] = D_BSru16(a_Str);
+		This->readyweapon = D_BSri32(a_Str);
+		This->pendingweapon = D_BSri32(a_Str);
+		This->DeadWeapon = D_BSri32(a_Str);
+		mw = D_BSru32(a_Str);
+		ma = D_BSru32(a_Str);
+		for (j = 0; j < mw; j++)
+		{
+			// Favorite Weapon
+			D_BSrs(a_Str, Buf, BUFSIZE);
+			wi = INFO_GetWeaponByName(Buf);
+			if (wi < NUMWEAPONS)
+				This->FavoriteWeapons[j] = wi;
+			
+			// Owned Weapon
+			D_BSrs(a_Str, Buf, BUFSIZE);
+			if (Buf[0])
+			{
+				wi = INFO_GetWeaponByName(Buf);
+				if (wi < NUMWEAPONS)
+					This->weaponowned[wi] = true;
+			}
+		}
+		for (j = 0; j < ma; j++)
+		{
+			// Ammo ID and such
+			D_BSrs(a_Str, Buf, BUFSIZE);
+			ai = INFO_GetAmmoByName(Buf);
+			a = D_BSri32(a_Str);
+			b = D_BSri32(a_Str);
+			
+			if (ai < NUMAMMO)
+			{
+				This->ammo[ai] = a;
+				This->maxammo[ai] = b;
+			}
+		}
+		This->originalweaponswitch = D_BSru8(a_Str);
+		This->autoaim_toggle = D_BSru8(a_Str);
+		This->attackdown = D_BSru8(a_Str);
+		This->usedown = D_BSru8(a_Str);
+		This->jumpdown = D_BSru8(a_Str);
+		This->cheats = D_BSri32(a_Str);
+		This->refire = D_BSri32(a_Str);
+		This->killcount = D_BSri32(a_Str);
+		This->itemcount = D_BSri32(a_Str);
+		This->secretcount = D_BSri32(a_Str);
+		This->damagecount = D_BSri32(a_Str);
+		This->bonuscount = D_BSri32(a_Str);
+		This->PalChoice = D_BSru8(a_Str);
+		This->attacker = (void*)((intptr_t)D_BSri32(a_Str));
+		This->specialsector = D_BSri32(a_Str);
+		This->extralight = D_BSri32(a_Str);
+		This->fixedcolormap = D_BSri32(a_Str);
+		This->skincolor = D_BSri32(a_Str);
+		This->skin = D_BSri32(a_Str);
+		n = D_BSru32(a_Str);
+		for (j = 0; j < n; j++)
+			PS_LoadUnloadPSPDef(a_Str, false, (j < NUMPSPRITES ? &This->psprites[j] : &pspjunk));
+		This->didsecret = D_BSru8(a_Str);
+		This->chickenTics = D_BSri32(a_Str);
+		This->chickenPeck = D_BSri32(a_Str);
+		This->rain1 = (void*)((intptr_t)D_BSri32(a_Str));
+		This->rain2 = (void*)((intptr_t)D_BSri32(a_Str));
+		This->flamecount = D_BSri32(a_Str);
+		This->flyheight = D_BSri32(a_Str);
+		n = D_BSru32(a_Str);
+		for (j = 0; j < n; j++)
+			PS_LoadUnloadInvenT(a_Str, false, (j < NUMINVENTORYSLOTS ? &This->inventory[j] : &invenjunk));
+		This->inventorySlotNum = D_BSri32(a_Str);
+		This->inv_ptr = D_BSri32(a_Str);
+		This->st_curpos = D_BSri32(a_Str);
+		This->st_inventoryTics = D_BSri32(a_Str);
+		n = D_BSru8(a_Str);
+		if (n == 2)
+			This->weaponinfo = wpnlev2info;
+		else
+			This->weaponinfo = wpnlev1info;
+		This->flushdelay = D_BSri32(a_Str);
+		This->TargetViewZ = D_BSri32(a_Str);
+		for (j = 0; j < 3; j++)
+			This->FakeMom[j] = D_BSri32(a_Str);
+		PS_LoadUnloadCamera(a_Str, false, &This->camera);
+		This->CamDist = D_BSri32(a_Str);
+		This->CamHeight = D_BSri32(a_Str);
+		This->CamSpeed = D_BSri32(a_Str);
+		This->ChaseCam = D_BSru8(a_Str);
+		This->LastBFGBall = (void*)((intptr_t)D_BSri32(a_Str));
+		This->Attackee = (void*)((intptr_t)D_BSri32(a_Str));
+		for (j = 0; j < 2; j++)
+		{
+			This->MaxHealth[j] = D_BSri32(a_Str);
+			This->MaxArmor[j] = D_BSri32(a_Str);
+		}
+		This->CounterOpPlayer = D_BSru8(a_Str);
+		This->TotalFrags = D_BSri32(a_Str);
+		This->TotalDeaths = D_BSri32(a_Str);
+		This->FraggerID = D_BSru32(a_Str);
+		This->SuicideDelay = D_BSrcu64(a_Str);
+		for (j = 0; j < 2; j++)
+			This->KeyCards[j] = D_BSru32(a_Str);
+	}
+	
 	/* Success! */
 	return true;
+#undef BUFSIZE
 }
 
 /*---------------------------------------------------------------------------*/
@@ -492,7 +1027,7 @@ bool_t P_SaveToStream(D_BS_t* const a_Str)
 	D_BSCloseStream(CB);
 	
 	// All done
-	return OK;
+	return true;
 }
 
 /*****************************************************************************/
@@ -537,7 +1072,9 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str)
 	/* Close */
 	D_BSCloseStream(CB);
 	
-	// All done
+	/* Handle Reference Links (if any) */
+	
+	/* Done! */
 	return OK;
 }
 

@@ -1569,15 +1569,6 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Clear player junk */
 	G_ResetPlayer(a_Player);
 	
-	/* Allocate */
-	// Guns
-	a_Player->FavoriteWeapons = Z_Malloc(sizeof(*a_Player->FavoriteWeapons) * (NUMWEAPONS + 2), PU_STATIC, NULL);
-	a_Player->weaponowned = Z_Malloc(sizeof(*a_Player->weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
-	
-	// Ammo
-	a_Player->maxammo = Z_Malloc(sizeof(*a_Player->maxammo) * NUMAMMO, PU_STATIC, NULL);
-	a_Player->ammo = Z_Malloc(sizeof(*a_Player->ammo) * NUMAMMO, PU_STATIC, NULL);
-	
 	/* Clear Totals */
 	a_Player->addfrags = 0;
 	a_Player->killcount = a_Player->itemcount = a_Player->secretcount = 0;
@@ -1663,6 +1654,19 @@ void G_ResetPlayer(player_t* const a_Player)
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 		a_Player->frags[i] = 0;
+		
+	/* Allocate */
+	// Guns
+	if (!a_Player->FavoriteWeapons)
+		a_Player->FavoriteWeapons = Z_Malloc(sizeof(*a_Player->FavoriteWeapons) * (NUMWEAPONS + 2), PU_STATIC, NULL);
+	if (!a_Player->weaponowned)
+		a_Player->weaponowned = Z_Malloc(sizeof(*a_Player->weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
+	
+	// Ammo
+	if (!a_Player->maxammo)
+		a_Player->maxammo = Z_Malloc(sizeof(*a_Player->maxammo) * NUMAMMO, PU_STATIC, NULL);
+	if (!a_Player->ammo)
+		a_Player->ammo = Z_Malloc(sizeof(*a_Player->ammo) * NUMAMMO, PU_STATIC, NULL);
 }
 
 //
