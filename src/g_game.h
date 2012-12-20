@@ -36,7 +36,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
-#include "d_event.h"
+
 #include "m_random.h"
 #include "console.h"
 
@@ -90,7 +90,6 @@ void G_ExitLevel(void);
 void G_SecretExitLevel(void);
 void G_NextLevel(void);
 void G_Ticker(void);
-bool_t G_Responder(event_t* ev);
 bool_t G_Downgrade(int version);
 void G_PrepareDemoStuff(void);
 

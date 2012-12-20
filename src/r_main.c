@@ -48,7 +48,7 @@
 #include "m_menu.h"
 #include "p_local.h"
 #include "t_func.h"
-#include "am_map.h"
+
 #include "d_main.h"
 #include "console.h"
 
@@ -789,7 +789,6 @@ void R_ExecuteSetViewSize_DOOM(void)
 	}
 	
 	st_recalc = true;
-	am_recalc = true;
 }
 
 //

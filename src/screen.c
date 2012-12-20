@@ -34,7 +34,7 @@
 #include "doomdef.h"
 #include "screen.h"
 #include "console.h"
-#include "am_map.h"
+
 #include "i_system.h"
 #include "i_video.h"
 #include "r_local.h"
@@ -254,11 +254,6 @@ void SCR_Recalc(void)
 	
 	SCR_ReclassBuffers();
 	
-	// toggle off automap because some screensize-dependent values will
-	// be calculated next time the automap is activated.
-	if (automapactive)
-		AM_Stop();
-		
 	// fuzzoffsets for the 'spectre' effect,... this is a quick hack for
 	// compatibility, because I don't use it anymore since transparency
 	// looks much better.
@@ -283,7 +278,6 @@ void SCR_Recalc(void)
 //    CON_ToggleOff ();  // make sure con height is right for new screen height
 
 	st_recalc = true;
-	am_recalc = true;
 	
 	dc_drawymove = vid.width;
 }

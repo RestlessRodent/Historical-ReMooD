@@ -41,7 +41,7 @@
 
 #include "doomstat.h"
 
-#include "am_map.h"
+
 #include "d_net.h"
 #include "d_netcmd.h"
 #include "dstrings.h"
@@ -141,10 +141,6 @@ char mapdir[1024];				// directory of development maps
 // Events can be discarded if no responder claims them
 // referenced from i_system.c for I_GetKey()
 
-event_t events[MAXEVENTS];
-int eventhead = 0;
-int eventtail;
-
 bool_t dedicated;
 
 /* FPS */
@@ -153,22 +149,6 @@ static int l_FPSTimePerGS = 0;
 static int l_FPSTrueFPS = 0;
 static int l_FPSRanFPS = 0;
 
-//
-// D_PostEvent
-// Called by the I/O functions when input is detected
-//
-void D_PostEvent(const event_t* ev)
-{
-	events[eventhead] = *ev;
-	eventhead = (eventhead + 1) & (MAXEVENTS - 1);
-}
-
-// just for lock this function
-#ifdef PC_DOS
-void D_PostEvent_end(void)
-{
-};
-#endif
 
 bool_t shiftdown = false;
 
@@ -291,8 +271,6 @@ void D_Display(void)
 		case GS_LEVEL:
 			if (!gametic)
 				break;
-			if (automapactive && !automapoverlay)
-				AM_Drawer();
 			if (wipe || menuactivestate || vid.recalc)
 				redrawsbar = true;
 			break;
@@ -335,7 +313,7 @@ void D_Display(void)
 		}
 		
 		// see if the border needs to be updated to the screen
-		if ((!automapactive || automapoverlay) && (scaledviewwidth != vid.width))
+		if (/*(!automapactive || automapoverlay) &&*/ (scaledviewwidth != vid.width))
 		{
 			// the menu may draw over parts out of the view window,
 			// which are refreshed only when needed
@@ -350,7 +328,7 @@ void D_Display(void)
 		}
 		
 		// draw the view directly
-		if (!automapactive || automapoverlay)
+		/*if (!automapactive || automapoverlay)*/
 		{
 			// Cool demos?
 			CoolDemo = (demoplayback && g_TitleScreenDemo);
@@ -417,8 +395,8 @@ void D_Display(void)
 			}
 		}
 		
-		if (automapactive && automapoverlay)
-			AM_Drawer();
+		/*if (automapactive && automapoverlay)
+			AM_Drawer();*/
 		
 		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
 		ST_DrawPlayerBarsEx();

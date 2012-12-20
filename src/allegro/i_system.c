@@ -90,8 +90,6 @@
 #include "i_video.h"
 #include "i_sound.h"
 
-extern void D_PostEvent(event_t*);
-
 #ifdef _WIN32
 typedef BOOL(WINAPI* MyFunc) (LPCSTR RootName, PULARGE_INTEGER pulA, PULARGE_INTEGER pulB, PULARGE_INTEGER pulFreeBytes);
 #endif

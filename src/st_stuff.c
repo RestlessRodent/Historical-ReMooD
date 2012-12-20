@@ -36,7 +36,7 @@
 
 #include "doomdef.h"
 
-#include "am_map.h"
+
 
 #include "g_game.h"
 #include "m_cheat.h"
@@ -295,31 +295,6 @@ void ST_TransSTChange(void)
 
 void ST_ExternrefreshBackground(void)
 {
-}
-
-// Respond to keyboard input events,
-//  intercept cheats.
-bool_t ST_Responder(event_t* ev)
-{
-
-	if (ev->type == ev_keyup)
-	{
-		// Filter automap on/off : activates the statusbar while automap is active
-		if ((ev->data1 & 0xffff0000) == AM_MSGHEADER)
-		{
-			switch (ev->data1)
-			{
-				case AM_MSGENTERED:
-					st_firsttime = true;	// force refresh of status bar
-					break;
-					
-				case AM_MSGEXITED:
-					break;
-			}
-		}
-		
-	}
-	return false;
 }
 
 bool_t ST_SameTeam(player_t* a, player_t* b)

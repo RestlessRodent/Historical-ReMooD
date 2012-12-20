@@ -37,7 +37,7 @@
 #define __STSTUFF_H__
 
 #include "doomtype.h"
-#include "d_event.h"
+
 #include "d_player.h"
 
 extern int ST_Y;
@@ -56,9 +56,6 @@ void ST_CalcPos(void);
 //
 
 void ST_ExternrefreshBackground(void);
-
-// Called by main loop.
-bool_t ST_Responder(event_t* ev);
 
 // Called by main loop.
 void ST_Ticker(void);
@@ -99,7 +96,6 @@ typedef enum
 	GetChatState
 } st_chatstateenum_t;
 
-bool_t ST_Responder(event_t* ev);
 
 // face load/unload graphics, called when skin changes
 void ST_loadFaceGraphics(char* facestr);
@@ -126,7 +122,6 @@ extern bool_t st_overlay;		// sb overlay on or off when fullscreen
 // heretic status bar
 void SB_Ticker(void);
 void SB_Drawer(bool_t refresh);
-bool_t SB_Responder(event_t* event);
 void SB_Init(void);
 
 /*****************************************************************************/

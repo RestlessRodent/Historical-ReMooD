@@ -46,7 +46,7 @@
 #include "p_saveg.h"
 #include "i_system.h"
 #include "wi_stuff.h"
-#include "am_map.h"
+
 #include "m_random.h"
 #include "p_local.h"
 #include "p_tick.h"
@@ -220,10 +220,6 @@ angle_t localangle[MAXSPLITSCREENPLAYERS];
 #define MAXPLMOVE       (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS    (6)
-
-static fixed_t forwardmove[2] = { 25, 50 };
-static fixed_t sidemove[2] = { 24, 40 };
-static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 bool_t P_CanUseWeapon(player_t* const a_Player, const PI_wepid_t a_Weapon);
 
@@ -734,7 +730,6 @@ void G_Ticker(void)
 			B_GHOST_Ticker();
 			P_Ticker();			// tic the game
 			ST_Ticker();
-			AM_Ticker();
 			ST_TickerEx();
 			break;
 			
@@ -1702,9 +1697,6 @@ void G_DoCompleted(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 			G_PlayerFinishLevel(i);	// take away cards and stuff
-			
-	if (automapactive)
-		AM_Stop();
 	
 	// GhostlyDeath <May 5, 2012> -- Secret Exit?
 	if (secretexit)
@@ -1739,8 +1731,6 @@ void G_DoCompleted(void)
 	}
 	
 	gamestate = GS_INTERMISSION;
-	automapactive = false;
-	automapoverlay = false;
 	
 	if (statcopy)
 		memcpy(statcopy, &wminfo, sizeof(wminfo));

@@ -29,7 +29,7 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Code
 
-#include "am_map.h"
+
 
 #include "doomdef.h"
 #include "dstrings.h"

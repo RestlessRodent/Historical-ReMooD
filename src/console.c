@@ -1577,6 +1577,7 @@ size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_
 	/* TODO: Text to speech, etc. */
 
 	return RetVal;
+#undef BUFSIZE
 }
 
 /* CONL_OutputUT() -- Type Specific Console Output */

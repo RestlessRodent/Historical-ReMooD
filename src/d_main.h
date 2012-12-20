@@ -35,7 +35,7 @@
 #define __D_MAIN__
 
 #include "doomtype.h"
-#include "d_event.h"
+
 #include "w_wad.h"				// for MAX_WADFILES
 #include "i_util.h"
 
@@ -59,10 +59,6 @@ void D_DoomLoop(void);
 // If not overrided by user input, calls N_AdvanceDemo.
 //
 void D_DoomMain(void);
-
-// Called by IO functions when input is detected.
-void D_PostEvent(const event_t* ev);
-void D_PostEvent_end(void);		// delimiter for locking memory
 
 void D_ProcessEvents(void);
 void D_DoAdvanceDemo(void);

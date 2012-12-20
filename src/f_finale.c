@@ -34,7 +34,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
-#include "am_map.h"
+
 #include "dstrings.h"
 #include "d_main.h"
 #include "f_finale.h"
@@ -63,7 +63,6 @@ static bool_t keypressed = false;
 
 void F_StartCast(void);
 void F_CastTicker(void);
-bool_t F_CastResponder(event_t* ev);
 void F_CastDrawer(void);
 
 //
@@ -174,24 +173,6 @@ void F_StartFinale(void)
 	finalestage = 0;
 	finalecount = 0;
 #endif
-}
-
-bool_t F_Responder(event_t* event)
-{
-	if (finalestage == 2)
-		return F_CastResponder(event);
-	if (finalestage == 0)
-	{
-		if (event->type != ev_keydown)
-			return false;
-			
-		if (keypressed)
-			return false;
-			
-		keypressed = true;
-		return true;
-	}
-	return false;
 }
 
 //
@@ -470,26 +451,6 @@ stopattack:
 //
 // F_CastResponder
 //
-
-bool_t F_CastResponder(event_t* ev)
-{
-	if (ev->type != ev_keydown)
-		return false;
-		
-	if (castdeath)
-		return true;			// already in dying frames
-		
-	// go into death frame
-	castdeath = true;
-	caststate = states[mobjinfo[castorder[castnum].type]->deathstate];
-	casttics = caststate->tics;
-	castframes = 0;
-	castattacking = false;
-	//if (mobjinfo[castorder[castnum].type]->deathsound)
-	//	S_StartSound(NULL, mobjinfo[castorder[castnum].type]->deathsound);
-		
-	return true;
-}
 
 #define CASTNAME_Y   180		// where the name of actor is drawn
 void F_CastPrint(char* text)

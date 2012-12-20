@@ -36,7 +36,7 @@
 //      Action functions for weapons.
 
 #include "doomdef.h"
-#include "d_event.h"
+
 #include "p_local.h"
 #include "p_pspr.h"
 #include "p_inter.h"

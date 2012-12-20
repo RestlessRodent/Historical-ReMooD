@@ -35,13 +35,10 @@
 #define __F_FINALE__
 
 #include "doomtype.h"
-#include "d_event.h"
+
 //
 // FINALE
 //
-
-// Called by main loop.
-bool_t F_Responder(event_t* ev);
 
 // Called by main loop.
 void F_Ticker(void);

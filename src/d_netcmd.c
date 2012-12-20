@@ -54,7 +54,7 @@
 #include "p_setup.h"
 #include "s_sound.h"
 #include "m_misc.h"
-#include "am_map.h"
+
 #include "p_spec.h"
 #include "m_cheat.h"
 #include "d_clisrv.h"
@@ -64,7 +64,7 @@
 #include "i_sound.h"
 #include "i_util.h"
 #include "i_video.h"
-#include "am_map.h"
+
 
 #include "b_bot.h"
 

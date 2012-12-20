@@ -34,7 +34,7 @@
 
 #include "doomdef.h"
 #include "i_system.h"			//I_Tactile currently has no effect
-#include "am_map.h"
+
 #include "dstrings.h"
 #include "g_game.h"
 #include "m_random.h"

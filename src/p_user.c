@@ -35,7 +35,7 @@
 //      Pending weapon.
 
 #include "doomdef.h"
-#include "d_event.h"
+
 #include "g_game.h"
 #include "p_local.h"
 #include "r_main.h"

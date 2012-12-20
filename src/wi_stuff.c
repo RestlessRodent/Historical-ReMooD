@@ -443,13 +443,6 @@ static void WI_slamBackground(void)
 	V_ImageDraw(0, l_PicINTER, 0, 0, NULL);
 }
 
-// The ticker is used to detect keys
-//  because of timing issues in netgames.
-bool_t WI_Responder(event_t* ev)
-{
-	return false;
-}
-
 // Draws "<Levelname> Finished!"
 static void WI_drawLF(void)
 {

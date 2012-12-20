@@ -36,7 +36,7 @@
 
 #include "doomtype.h"
 #include "d_ticcmd.h"
-#include "d_event.h"
+
 
 // See Shutdown_xxx() routines.
 extern uint8_t graphics_started;

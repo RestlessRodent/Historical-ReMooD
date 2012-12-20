@@ -38,7 +38,7 @@
 #include "v_video.h"
 #include "z_zone.h"
 #include "r_main.h"
-#include "am_map.h"
+
 
 #include "i_video.h"
 

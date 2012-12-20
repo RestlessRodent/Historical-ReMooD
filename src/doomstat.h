@@ -226,6 +226,8 @@ extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
 extern bool_t novideo;
 
+extern G_Action_t gameaction;
+
 /*********************
 *** EXTENDED STUFF ***
 *********************/

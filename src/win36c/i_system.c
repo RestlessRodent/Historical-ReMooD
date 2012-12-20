@@ -50,9 +50,7 @@
 #include "g_game.h"
 #include "i_video.h"
 #include "i_sound.h"
-
-extern void D_PostEvent(event_t*);
-
+	
 //
 //I_OutputMsg
 //
