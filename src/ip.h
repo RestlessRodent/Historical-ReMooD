@@ -125,6 +125,9 @@ struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID);
 
 void IP_ConnRun(struct IP_Conn_s* const a_Conn);
 
+void IP_XFaceMaster(void);
+void IP_RunXFace(void);
+
 #endif /* __IP_H__ */
 
 

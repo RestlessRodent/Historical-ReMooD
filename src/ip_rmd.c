@@ -57,8 +57,6 @@ typedef struct IP_RmdData_s
 *** FUNCTIONS ***
 ****************/
 
-/*****************************************************************************/
-
 typedef void (*IPR_HandleType_t)(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr);
 
 /* IPRS_RINF() -- Request Info */
@@ -80,7 +78,7 @@ static const struct
 	{""},
 };
 
-/*****************************************************************************/
+/*---------------------------------------------------------------------------*/
 
 /* IP_RMD_VerifyF() -- Verify Protocol */
 bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
@@ -122,7 +120,16 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 				Port = C_strtoi32(M_GetNextParm(), NULL, 10);
 		
 		if (!Port || Port < 0 || Port >= 65536)
-			Port = 29500;
+			// Random port for client
+			if (!(a_Flags & IPF_INPUT))
+			{
+				Port = D_CMakePureRandom() & UINT32_C(0xFFFF);
+				Port |= UINT32_C(0x8000);
+			}
+			
+			// If server, use default port
+			else
+				Port = 29500;
 	}
 	
 	/* Attempt Host Resolution */
@@ -143,7 +150,7 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	
 	if (M_CheckParm("-ipv6"))
 		IsV6 = true;
-	else if ((a_Flags & IPF_INPUT) && (((I_HostAddress_t*)&Addr.Private)->IPvX == INIPVN_IPV6))
+	else if (/*(a_Flags & IPF_INPUT) &&*/ (((I_HostAddress_t*)&Addr.Private)->IPvX == INIPVN_IPV6))
 		IsV6 = true;
 	
 	// Try making sockets
@@ -222,4 +229,25 @@ void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* cons
 	if (!a_Proto || !a_Conn)
 		return;
 }
+
+/*****************************************************************************/
+
+/* IPRS_BCST() -- Broadcast recieved */
+static void IPRS_BCST(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
+{
+	CONL_PrintF("Got broadcast\n");
+}
+
+/* c_RMDMasterProto -- Master headers */
+static const struct
+{
+	char Header[5];								// Header
+	IPR_HandleType_t Func;						// handler func
+} c_RMDMasterProto[] =
+{
+	{"BCST", IPRS_BCST},
+	
+	// Done
+	{""},
+};
 
