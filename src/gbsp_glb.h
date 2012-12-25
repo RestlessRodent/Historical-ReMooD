@@ -124,12 +124,12 @@
 		void (*fatal_error) (const char *str, ...)GCCATTR((format(printf, 1, 2)));
 
 		// The print_msg routine is used to display the various messages
-		// that occur, e.g. "Building GL nodes on MAP01" and that kind of
+		// that occur, e.g. "Building GL glnodes on MAP01" and that kind of
 		// thing.
 		// 
 		void (*print_msg) (const char *str, ...)GCCATTR((format(printf, 1, 2)));
 
-		// This routine is called frequently whilst building the nodes, and
+		// This routine is called frequently whilst building the glnodes, and
 		// can be used to keep a GUI responsive to user input.  Many
 		// toolkits have a "do iteration" or "check events" type of function
 		// that this can call.  Avoid anything that sleeps though, or it'll
@@ -138,7 +138,7 @@
 		void (*ticker) (void);
 
 		// These display routines is used for tasks that can show a progress
-		// bar, namely: building nodes, loading the wad, and saving the wad.
+		// bar, namely: building glnodes, loading the wad, and saving the wad.
 		// The command line version could show a percentage value, or even
 		// draw a bar using characters.
 
@@ -228,7 +228,7 @@
 //
 	glbsp_ret_e GlbspCheckInfo(nodebuildinfo_t * info, volatile nodebuildcomms_t * comms);
 
-// main routine, this will build the nodes (GL and/or normal) for the
+// main routine, this will build the glnodes (GL and/or normal) for the
 // given input wad file out to the given output file.  Returns
 // GLBSP_E_OK if everything went well, otherwise another error code.
 // Typical errors are fubar parameters (like input_file == NULL),

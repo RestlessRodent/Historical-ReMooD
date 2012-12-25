@@ -231,17 +231,17 @@ typedef struct sector_s
 {
 	fixed_t floorheight;
 	fixed_t ceilingheight;
-	short floorpic;
-	short ceilingpic;
-	short lightlevel;
+	int16_t floorpic;
+	int16_t ceilingpic;
+	int16_t lightlevel;
 	uint32_t special;
 	uint32_t oldspecial;			//SoM: 3/6/2000: Remember if a sector was secret (for automap)
-	short tag;
+	int16_t tag;
 	int nexttag, firsttag;		//SoM: 3/6/2000: by killough: improves searches for tags.
 	
 	// 0 = untraversed, 1,2 = sndlines -1
-	short soundtraversed;
-	short floortype;			// see floortype_t beffor
+	int16_t soundtraversed;
+	int16_t floortype;			// see floortype_t beffor
 	
 	// thing that made a sound (or null)
 	mobj_t* soundtarget;

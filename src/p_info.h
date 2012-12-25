@@ -32,6 +32,7 @@
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
 
+#include "m_fixed.h"
 #include "w_wad.h"
 
 /**************************

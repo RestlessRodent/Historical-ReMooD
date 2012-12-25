@@ -18,7 +18,7 @@
 //
 //------------------------------------------------------------------------
 //
-// To be able to divide the nodes down, this routine must decide which
+// To be able to divide the glnodes down, this routine must decide which
 // is the best Seg to use as a nodeline. It does this by selecting the
 // line with least splits and has least difference of Segs on either
 // side of it.
@@ -136,7 +136,7 @@ void RecomputeSeg(glbsp_seg_t * seg)
 //       If the seg has a partner, than that partner is also split.
 //       NOTE WELL: the new piece of the partner seg is inserted into
 //       the same list as the partner seg (and after it) -- thus ALL
-//       segs (except the one we are currently splitting) must exist
+//       glsegs (except the one we are currently splitting) must exist
 //       on a singly-linked list somewhere. 
 //
 // Note: we must update the count values of any superblock that
@@ -318,7 +318,7 @@ static int EvalPartitionWorker(glbsp_superblock_t * seg_list, glbsp_seg_t * part
 
 	// -AJA- this is the heart of my superblock idea, it tests the
 	//       _whole_ block against the partition line to quickly handle
-	//       all the segs within it at once.  Only when the partition
+	//       all the glsegs within it at once.  Only when the partition
 	//       line intercepts the box do we need to go deeper into it.
 
 	num = BoxOnLineSide(seg_list, part);
@@ -356,10 +356,10 @@ static int EvalPartitionWorker(glbsp_superblock_t * seg_list, glbsp_seg_t * part
 
 	/* check partition against all Segs */
 
-	for (check = seg_list->segs; check; check = check->next)
+	for (check = seg_list->glsegs; check; check = check->next)
 	{
 		// This is the heart of my pruning idea - it catches
-		// bad segs early on. Killough
+		// bad glsegs early on. Killough
 
 		if (info->cost > best_cost)
 			return true;
@@ -475,8 +475,8 @@ static int EvalPartitionWorker(glbsp_superblock_t * seg_list, glbsp_seg_t * part
 
 		// -AJA- check if the split point is very close to one end, which
 		//       is quite an undesirable situation (producing really short
-		//       segs).  This is perhaps _one_ source of those darn slime
-		//       trails.  Hence the name "IFFY segs", and a rather hefty
+		//       glsegs).  This is perhaps _one_ source of those darn slime
+		//       trails.  Hence the name "IFFY glsegs", and a rather hefty
 		//       surcharge :->.
 
 		if (fa < IFFY_LEN || fb < IFFY_LEN)
@@ -545,7 +545,7 @@ static int EvalPartition(glbsp_superblock_t * seg_list, glbsp_seg_t * part, int 
 	info.cost += 100 * ABS(info.real_left - info.real_right);
 
 	// -AJA- allow miniseg counts to affect the outcome, but only to a
-	//       lesser degree than real segs.
+	//       lesser degree than real glsegs.
 
 	info.cost += 50 * ABS(info.mini_left - info.mini_right);
 
@@ -569,7 +569,7 @@ static glbsp_seg_t *FindSegFromStaleNode(glbsp_superblock_t * part_list, glbsp_g
 	glbsp_seg_t *part;
 	int num;
 
-	for (part = part_list->segs; part; part = part->next)
+	for (part = part_list->glsegs; part; part = part->next)
 	{
 		double_t fa, fb;
 
@@ -615,7 +615,7 @@ static int PickNodeWorker(glbsp_superblock_t * part_list, glbsp_superblock_t * s
 	int cost;
 
 	/* use each Seg as partition */
-	for (part = part_list->segs; part; part = part->next)
+	for (part = part_list->glsegs; part; part = part->next)
 	{
 		if (cur_comms->cancelled)
 			return false;
@@ -705,7 +705,7 @@ glbsp_seg_t *PickNode(glbsp_superblock_t * seg_list, int depth, glbsp_glbsp_node
 	DisplayTicker();
 
 	/* -AJA- another (optional) optimisation, when building just the GL
-	 *       nodes.  We assume that the original nodes are reasonably
+	 *       glnodes.  We assume that the original glnodes are reasonably
 	 *       good choices, and re-use them as much as possible, saving
 	 *       *heaps* of time on really large levels.
 	 */
@@ -770,7 +770,7 @@ glbsp_seg_t *PickNode(glbsp_superblock_t * seg_list, int depth, glbsp_glbsp_node
 // -AJA- I have rewritten this routine based on the EvalPartition
 //       routine above (which I've also reworked, heavily).  I think
 //       it is important that both these routines follow the exact
-//       same logic when determining which segs should go left, right
+//       same logic when determining which glsegs should go left, right
 //       or be split.
 //
 void DivideOneSeg(glbsp_seg_t * cur, glbsp_seg_t * part, glbsp_superblock_t * left_list, glbsp_superblock_t * right_list, glbsp_intersection_t ** cut_list)
@@ -861,11 +861,11 @@ void SeparateSegs(glbsp_superblock_t * seg_list, glbsp_seg_t * part, glbsp_super
 {
 	int num;
 
-	while(seg_list->segs)
+	while(seg_list->glsegs)
 	{
-		glbsp_seg_t *cur = seg_list->segs;
+		glbsp_seg_t *cur = seg_list->glsegs;
 
-		seg_list->segs = cur->next;
+		seg_list->glsegs = cur->next;
 
 		cur->block = NULL;
 
@@ -897,7 +897,7 @@ static void FindLimitWorker(glbsp_superblock_t * block, glbsp_bbox_t * bbox)
 	glbsp_seg_t *cur;
 	int num;
 
-	for (cur = block->segs; cur; cur = cur->next)
+	for (cur = block->glsegs; cur; cur = cur->next)
 	{
 		double_t x1 = cur->start->x;
 		double_t y1 = cur->start->y;
@@ -931,7 +931,7 @@ static void FindLimitWorker(glbsp_superblock_t * block, glbsp_bbox_t * bbox)
 //
 // FindLimits
 //
-// Find the limits from a list of segs, by stepping through the segs
+// Find the limits from a list of glsegs, by stepping through the glsegs
 // and comparing the vertices at both ends.
 //
 void FindLimits(glbsp_superblock_t * seg_list, glbsp_bbox_t * bbox)
@@ -1098,7 +1098,7 @@ void AddMinisegs(glbsp_seg_t * part, glbsp_superblock_t * left_list, glbsp_super
 		RecomputeSeg(seg);
 		RecomputeSeg(buddy);
 
-		// add the new segs to the appropriate lists
+		// add the new glsegs to the appropriate lists
 		AddSegToSuper(right_list, seg);
 		AddSegToSuper(left_list, buddy);
 

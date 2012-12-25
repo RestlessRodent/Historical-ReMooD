@@ -64,7 +64,7 @@ glbsp_intersection_t;
 
 /* -------- functions ---------------------------- */
 
-// scan all the segs in the list, and choose the best seg to use as a
+// scan all the glsegs in the list, and choose the best seg to use as a
 // partition line, returning it.  If no seg can be used, returns NULL.
 // The 'depth' parameter is the current depth in the tree, used for
 // computing  the current progress.  When stale_nd is not NULL, it can
@@ -73,7 +73,7 @@ glbsp_intersection_t;
 //
 glbsp_seg_t *PickNode(glbsp_superblock_t * seg_list, int depth, glbsp_glbsp_node_t ** stale_nd, int *stale_opposite);
 
-// compute the boundary of the list of segs
+// compute the boundary of the list of glsegs
 void FindLimits(glbsp_superblock_t * seg_list, glbsp_bbox_t * bbox);
 
 // compute the seg private info (psx/y, pex/y, pdx/y, etc).
@@ -87,7 +87,7 @@ void RecomputeSeg(glbsp_seg_t * seg);
 //
 void DivideOneSeg(glbsp_seg_t * cur, glbsp_seg_t * part, glbsp_superblock_t * left_list, glbsp_superblock_t * right_list, glbsp_intersection_t ** cut_list);
 
-// remove all the segs from the list, partitioning them into the left
+// remove all the glsegs from the list, partitioning them into the left
 // or right lists based on the given partition line.  Adds any
 // intersections onto the intersection list as it goes.
 //

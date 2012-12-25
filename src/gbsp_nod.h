@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------
-// NODE : Recursively create nodes and return the pointers.
+// NODE : Recursively create glnodes and return the pointers.
 //------------------------------------------------------------------------
 //
 //  GL-Friendly Node Builder (C) 2000-2007 Andrew Apted
@@ -39,7 +39,7 @@ void AddSegToSuper(glbsp_superblock_t * block, glbsp_seg_t * seg);
 void SplitSegInSuper(glbsp_superblock_t * block, glbsp_seg_t * seg);
 
 // scan all the linedef of the level and convert each sidedef into a
-// seg (or seg pair).  Returns the list of segs.
+// seg (or seg pair).  Returns the list of glsegs.
 //
 glbsp_superblock_t *CreateSegs(void);
 
@@ -47,7 +47,7 @@ glbsp_superblock_t *CreateSegs(void);
 void FreeSuper(glbsp_superblock_t * block);
 
 // takes the seg list and determines if it is convex.  When it is, the
-// segs are converted to a subsector, and '*S' is the new subsector
+// glsegs are converted to a subsector, and '*S' is the new subsector
 // (and '*N' is set to NULL).  Otherwise the seg list is divided into
 // two halves, a node is created by calling this routine recursively,
 // and '*N' is the new node (and '*S' is set to NULL).  Normally
@@ -58,7 +58,7 @@ glbsp_ret_e BuildNodes(glbsp_superblock_t * seg_list, glbsp_glbsp_node_t ** N, g
 // compute the height of the bsp tree, starting at 'node'.
 int ComputeBspHeight(glbsp_glbsp_node_t * node);
 
-// traverse the BSP tree and put all the segs in each subsector into
+// traverse the BSP tree and put all the glsegs in each subsector into
 // clockwise order, and renumber the seg indices.  This cannot be done
 // DURING BuildNodes() since splitting a seg with a partner may insert
 // another seg into that partner's list -- usually in the wrong place
@@ -73,7 +73,7 @@ void ClockwiseBspTree(glbsp_glbsp_node_t * root);
 void NormaliseBspTree(glbsp_glbsp_node_t * root);
 
 // traverse the BSP tree, doing whatever is necessary to round
-// vertices to integer coordinates (for example, removing segs whose
+// vertices to integer coordinates (for example, removing glsegs whose
 // rounded coordinates degenerate to the same point).
 //
 void RoundOffBspTree(glbsp_glbsp_node_t * root);

@@ -66,8 +66,8 @@ typedef struct glbsp_vertex_s
 	glbsp_wall_tip_t *tip_set;
 
 	// contains a duplicate vertex, needed when both normal and V2 GL
-	// nodes are being built at the same time (this is the vertex used
-	// for the normal segs).  Normally NULL.  Note: the wall tips on
+	// glnodes are being built at the same time (this is the vertex used
+	// for the normal glsegs).  Normally NULL.  Note: the wall tips on
 	// this vertex are not created.
 	struct glbsp_vertex_s *normal_dup;
 }
@@ -80,13 +80,13 @@ typedef struct glbsp_sector_s
 	// sector index.  Always valid after loading & pruning.
 	int index;
 
-	// allow segs from other sectors to coexist in a subsector.
+	// allow glsegs from other sectors to coexist in a subsector.
 	char coalesce;
 
 	// -JL- non-zero if this sector contains a polyobj.
 	int has_polyobj;
 
-	// reference count.  When building normal nodes, unused sectors will
+	// reference count.  When building normal glnodes, unused sectors will
 	// be pruned.
 	int ref_count;
 
@@ -134,7 +134,7 @@ typedef struct glbsp_sidedef_s
 	// sidedef index.  Always valid after loading & pruning.
 	int index;
 
-	// reference count.  When building normal nodes, unused sidedefs will
+	// reference count.  When building normal glnodes, unused sidedefs will
 	// be pruned.
 	int ref_count;
 
@@ -185,7 +185,7 @@ typedef struct glbsp_linedef_s
 
 	// normally NULL, except when this linedef directly overlaps an earlier
 	// one (a rarely-used trick to create higher mid-masked textures).
-	// No segs should be created for these overlapping linedefs.
+	// No glsegs should be created for these overlapping linedefs.
 	struct glbsp_linedef_s *overlap;
 
 	// linedef index.  Always valid after loading & pruning of zero
@@ -226,7 +226,7 @@ typedef struct glbsp_seg_s
 	int side;
 
 	// seg on other side, or NULL if one-sided.  This relationship is
-	// always one-to-one -- if one of the segs is split, the partner seg
+	// always one-to-one -- if one of the glsegs is split, the partner seg
 	// must also be split.
 	struct glbsp_seg_s *partner;
 
@@ -255,7 +255,7 @@ typedef struct glbsp_seg_s
 	double_t p_para;
 	double_t p_perp;
 
-	// linedef that this seg initially comes from.  For "real" segs,
+	// linedef that this seg initially comes from.  For "real" glsegs,
 	// this is just the same as the 'linedef' field above.  For
 	// "minisegs", this is the linedef of the partition line.
 	glbsp_linedef_t *source_line;
@@ -264,10 +264,10 @@ glbsp_seg_t;
 
 typedef struct glbsp_subsec_s
 {
-	// list of segs
+	// list of glsegs
 	glbsp_seg_t *seg_list;
 
-	// count of segs
+	// count of glsegs
 	int seg_count;
 
 	// subsector index.  Always valid, set when the subsector is
@@ -333,13 +333,13 @@ typedef struct glbsp_superblock_s
 	// occurs horizontally (e.g. 512x512 -> 256x512 -> 256x256).
 	struct glbsp_superblock_s *subs[2];
 
-	// number of real segs and minisegs contained by this block
+	// number of real glsegs and minisegs contained by this block
 	// (including all sub-blocks below it).
 	int real_num;
 	int mini_num;
 
-	// list of segs completely contained by this block.
-	glbsp_seg_t *segs;
+	// list of glsegs completely contained by this block.
+	glbsp_seg_t *glsegs;
 }
 glbsp_superblock_t;
 
@@ -353,10 +353,10 @@ extern int num_linedefs;
 extern int num_sidedefs;
 extern int num_sectors;
 extern int num_things;
-extern int num_segs;
+extern int num_glsegs;
 extern int num_subsecs;
-extern int num_nodes;
-extern int num_stale_nodes;
+extern int num_glnodes;
+extern int num_stale_glnodes;
 
 extern int num_normal_vert;
 extern int num_gl_vert;
@@ -387,7 +387,7 @@ glbsp_subsec_t *LookupSubsec(int index);
 glbsp_glbsp_node_t *LookupNode(int index);
 glbsp_glbsp_node_t *LookupStaleNode(int index);
 
-// check whether the current level already has normal nodes
+// check whether the current level already has normal glnodes
 int CheckForNormalNodes(void);
 
 // load all level data for the current level

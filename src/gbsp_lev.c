@@ -24,6 +24,7 @@
 
 #include "w_wad.h"
 #include "p_info.h"
+#include "r_local.h"
 
 #include "gbsp_ana.h"
 #include "gbsp_blo.h"
@@ -52,10 +53,10 @@ static bool_t lev_force_v5;
 LEVELARRAY(glbsp_vertex_t, lev_vertices, num_vertices)
 LEVELARRAY(glbsp_linedef_t, lev_linedefs, num_linedefs)
 LEVELARRAY(glbsp_sidedef_t, lev_sidedefs, num_sidedefs) LEVELARRAY(glbsp_sector_t, lev_sectors, num_sectors) LEVELARRAY(glbsp_thing_t, lev_things, num_things)
-static LEVELARRAY(glbsp_seg_t, segs, num_segs)
+static LEVELARRAY(glbsp_seg_t, glsegs, num_glsegs)
 static LEVELARRAY(glbsp_subsec_t, subsecs, num_subsecs)
-static LEVELARRAY(glbsp_glbsp_node_t, nodes, num_nodes)
-static LEVELARRAY(glbsp_glbsp_node_t, stale_nodes, num_stale_nodes)
+static LEVELARRAY(glbsp_glbsp_node_t, glnodes, num_glnodes)
+static LEVELARRAY(glbsp_glbsp_node_t, stale_glnodes, num_stale_glnodes)
 static LEVELARRAY(glbsp_wall_tip_t, wall_tips, num_wall_tips)
 int num_normal_vert = 0;
 int num_gl_vert = 0;
@@ -80,10 +81,10 @@ glbsp_linedef_t *NewLinedef(void) ALLIGATOR(glbsp_linedef_t, lev_linedefs, num_l
 glbsp_sidedef_t *NewSidedef(void) ALLIGATOR(glbsp_sidedef_t, lev_sidedefs, num_sidedefs)
 glbsp_sector_t *NewSector(void) ALLIGATOR(glbsp_sector_t, lev_sectors, num_sectors)
 glbsp_thing_t *NewThing(void) ALLIGATOR(glbsp_thing_t, lev_things, num_things)
-glbsp_seg_t *NewSeg(void) ALLIGATOR(glbsp_seg_t, segs, num_segs)
+glbsp_seg_t *NewSeg(void) ALLIGATOR(glbsp_seg_t, glsegs, num_glsegs)
 glbsp_subsec_t *NewSubsec(void) ALLIGATOR(glbsp_subsec_t, subsecs, num_subsecs)
-glbsp_glbsp_node_t *NewNode(void) ALLIGATOR(glbsp_glbsp_node_t, nodes, num_nodes)
-glbsp_glbsp_node_t *NewStaleNode(void) ALLIGATOR(glbsp_glbsp_node_t, stale_nodes, num_stale_nodes)
+glbsp_glbsp_node_t *NewNode(void) ALLIGATOR(glbsp_glbsp_node_t, glnodes, num_glnodes)
+glbsp_glbsp_node_t *NewStaleNode(void) ALLIGATOR(glbsp_glbsp_node_t, stale_glnodes, num_stale_glnodes)
 glbsp_wall_tip_t *NewWallTip(void) ALLIGATOR(glbsp_wall_tip_t, wall_tips, num_wall_tips)
 /* ----- free routines ---------------------------- */
 #define FREEMASON(TYPE, BASEVAR, NUMVAR)  \
@@ -100,10 +101,10 @@ void FreeLinedefs(void) FREEMASON(glbsp_linedef_t, lev_linedefs, num_linedefs)
 void FreeSidedefs(void) FREEMASON(glbsp_sidedef_t, lev_sidedefs, num_sidedefs)
 void FreeSectors(void) FREEMASON(glbsp_sector_t, lev_sectors, num_sectors)
 void FreeThings(void) FREEMASON(glbsp_thing_t, lev_things, num_things)
-void FreeSegs(void) FREEMASON(glbsp_seg_t, segs, num_segs)
+void FreeSegs(void) FREEMASON(glbsp_seg_t, glsegs, num_glsegs)
 void FreeSubsecs(void) FREEMASON(glbsp_subsec_t, subsecs, num_subsecs)
-void FreeNodes(void) FREEMASON(glbsp_glbsp_node_t, nodes, num_nodes)
-void FreeStaleNodes(void) FREEMASON(glbsp_glbsp_node_t, stale_nodes, num_stale_nodes)
+void FreeNodes(void) FREEMASON(glbsp_glbsp_node_t, glnodes, num_glnodes)
+void FreeStaleNodes(void) FREEMASON(glbsp_glbsp_node_t, stale_glnodes, num_stale_glnodes)
 void FreeWallTips(void) FREEMASON(glbsp_wall_tip_t, wall_tips, num_wall_tips)
 /* ----- lookup routines ------------------------------ */
 #define LOOKERUPPER(BASEVAR, NUMVAR, NAMESTR)  \
@@ -119,62 +120,25 @@ glbsp_sidedef_t *LookupSidedef(int index) LOOKERUPPER(lev_sidedefs, num_sidedefs
 glbsp_sector_t *LookupSector(int index) LOOKERUPPER(lev_sectors, num_sectors, "sector")
 glbsp_thing_t *LookupThing(int index) LOOKERUPPER(lev_things, num_things, "thing")
 glbsp_subsec_t *LookupSubsec(int index) LOOKERUPPER(subsecs, num_subsecs, "subsector")
-glbsp_glbsp_node_t *LookupStaleNode(int index) LOOKERUPPER(stale_nodes, num_stale_nodes, "stale_node")
+glbsp_glbsp_node_t *LookupStaleNode(int index) LOOKERUPPER(stale_glnodes, num_stale_glnodes, "stale_node")
 /* ----- reading routines ------------------------------ */
-//
-// CheckForNormalNodes
-//
-int CheckForNormalNodes(void)
-{
-	// GhostlyDeath <December 25, 2012> -- Translated from glBSP to ReMooD	
-	
-	lump_t *lump;
-
-	/* Note: an empty NODES lump can be valid */
-	if (FindLevelLump("NODES") == NULL)
-		return false;
-
-	lump = FindLevelLump("SEGS");
-
-	if (!lump || lump->length == 0 || CheckLevelLumpZero(lump))
-		return false;
-
-	lump = FindLevelLump("SSECTORS");
-
-	if (!lump || lump->length == 0 || CheckLevelLumpZero(lump))
-		return false;
-
-	return true;
-}
 
 //
 // GetVertices
 //
 void GetVertices(void)
 {
-	int i, count = -1;
-	raw_glbsp_vertex_t *raw;
-	lump_t *lump = FindLevelLump("VERTEXES");
-
-	if (lump)
-		count = lump->length / sizeof(raw_glbsp_vertex_t);
-
-	DisplayTicker();
-
-#if DEBUG_LOAD
-#endif
-
-	if (!lump || count == 0)
-		FatalError("Couldn't find any Vertices");
-
-	raw = (raw_glbsp_vertex_t *) lump->data;
-
-	for (i = 0; i < count; i++, raw++)
+	// GhostlyDeath <December 25, 2012> -- Adapted to ReMooD for level which
+	// is already loaded by P_Setup.
+	int32_t i;
+	glbsp_vertex_t *vert;
+	
+	for (i = 0; i < numvertexes; i++)
 	{
-		glbsp_vertex_t *vert = NewVertex();
+		vert = NewVertex();
 
-		vert->x = (double_t) SINT16(raw->x);
-		vert->y = (double_t) SINT16(raw->y);
+		vert->x = vertexes[i].x >> FRACBITS;
+		vert->y = vertexes[i].y >> FRACBITS;
 
 		vert->index = i;
 	}
@@ -189,45 +153,30 @@ void GetVertices(void)
 //
 void GetSectors(void)
 {
-	int i, count = -1;
-	raw_glbsp_sector_t *raw;
-	lump_t *lump = FindLevelLump("SECTORS");
-
-	if (lump)
-		count = lump->length / sizeof(raw_glbsp_sector_t);
-
-	if (!lump || count == 0)
-		FatalError("Couldn't find any Sectors");
-
-	DisplayTicker();
-
-#if DEBUG_LOAD
-#endif
-
-	raw = (raw_glbsp_sector_t *) lump->data;
-
-	for (i = 0; i < count; i++, raw++)
+	// GhostlyDeath <December 25, 2012> -- Adapted to ReMooD for level which
+	// is already loaded by P_Setup.
+	int32_t i;
+	glbsp_sector_t *sector;
+	
+	for (i = 0; i < numsectors; i++)
 	{
-		glbsp_sector_t *sector = NewSector();
+		sector = NewSector();
+		
+		sector->floor_h = sectors[i].floorheight >> FRACBITS;
+		sector->ceil_h = sectors[i].ceilingheight >> FRACBITS;
 
-		sector->floor_h = SINT16(raw->floor_h);
-		sector->ceil_h = SINT16(raw->ceil_h);
+		strncpy(sector->floor_tex, sectors[i].FloorTexture, 8);
+		strncpy(sector->ceil_tex, sectors[i].CeilingTexture, 8);
 
-		memcpy(sector->floor_tex, raw->floor_tex, sizeof(sector->floor_tex));
-		memcpy(sector->ceil_tex, raw->ceil_tex, sizeof(sector->ceil_tex));
-
-		sector->light = UINT16(raw->light);
-		sector->special = UINT16(raw->special);
-		sector->tag = SINT16(raw->tag);
+		sector->light = sectors[i].lightlevel;
+		sector->special = sectors[i].special;
+		sector->tag = sectors[i].tag;
 
 		sector->coalesce = (sector->tag >= 900 && sector->tag < 1000) ? true : false;
-
-		/* sector indices never change */
+		
 		sector->index = i;
 
 		sector->warned_facing = -1;
-
-		/* Note: rej_* fields are handled completely in reject.c */
 	}
 }
 
@@ -530,7 +479,7 @@ void GetStaleNodes(void)
 
 	raw = (raw_glbsp_glbsp_node_t *) lump->data;
 
-	/* must allocate all the nodes beforehand, since they contain
+	/* must allocate all the glnodes beforehand, since they contain
 	 * internal references to each other.
 	 */
 	for (i = 0; i < count; i++)
@@ -640,15 +589,15 @@ void PutV3Segs(int do_v5)
 
 	DisplayTicker();
 
-	// sort segs into ascending index
-	qsort(segs, num_segs, sizeof(glbsp_seg_t *), SegCompare);
+	// sort glsegs into ascending index
+	qsort(glsegs, num_glsegs, sizeof(glbsp_seg_t *), SegCompare);
 
-	for (i = 0, count = 0; i < num_segs; i++)
+	for (i = 0, count = 0; i < num_glsegs; i++)
 	{
 		raw_v3_glbsp_seg_t raw;
-		glbsp_seg_t *seg = segs[i];
+		glbsp_seg_t *seg = glsegs[i];
 
-		// ignore degenerate segs
+		// ignore degenerate glsegs
 		if (seg->degenerate)
 			continue;
 
@@ -838,8 +787,8 @@ void PutNodes(char *name, int do_gl, int do_v5, glbsp_glbsp_node_t * root)
 			PutOneNode(root, lump);
 	}
 
-	if (node_cur_index != num_nodes)
-		InternalError("PutNodes miscounted (%d != %d)", node_cur_index, num_nodes);
+	if (node_cur_index != num_glnodes)
+		InternalError("PutNodes miscounted (%d != %d)", node_cur_index, num_glnodes);
 
 	if (!do_v5 && node_cur_index > 32767)
 		MarkHardFailure(LIMIT_NODES);
@@ -856,12 +805,12 @@ void LoadLevel(void)
 
 	const char *level_name = GetLevelName();
 
-	bool_t normal_exists = CheckForNormalNodes();
+	bool_t normal_exists = true;
 
 	// -JL- Identify Hexen mode by presence of BEHAVIOR lump
-	lev_doing_hexen = (FindLevelLump("BEHAVIOR") != NULL);
+	lev_doing_hexen = !!g_BSPLevel->EntryPtr[PLIEDS_BEHAVIOR];
 
-	message = UtilFormat("Building GL nodes on %s%s", level_name, lev_doing_hexen ? " (Hexen)" : "");
+	message = UtilFormat("Building GL glnodes on %s%s", level_name, lev_doing_hexen ? " (Hexen)" : "");
 
 	lev_doing_hexen |= cur_info->force_hexen;
 
@@ -876,23 +825,14 @@ void LoadLevel(void)
 	GetVertices();
 	GetSectors();
 	GetSidedefs();
-
-	if (lev_doing_hexen)
-	{
-		GetLinedefsHexen();
-		GetThingsHexen();
-	}
-	else
-	{
-		GetLinedefs();
-		GetThings();
-	}
+	GetLinedefs();
+	GetThings();
 
 	PrintVerbose("Loaded %d vertices, %d sectors, %d sides, %d lines, %d things\n", num_vertices, num_sectors, num_sidedefs, num_linedefs, num_things);
 
 	if (cur_info->fast && normal_exists && num_sectors > 5 && num_linedefs > 100)
 	{
-		PrintVerbose("Using original nodes to speed things up\n");
+		PrintVerbose("Using original glnodes to speed things up\n");
 		GetStaleNodes();
 	}
 
@@ -1024,7 +964,7 @@ void SaveLevel(glbsp_glbsp_node_t * root_node)
 		}
 	}
 
-	// this must be done _after_ the normal nodes have been built,
+	// this must be done _after_ the normal glnodes have been built,
 	// so that we use the new VERTEXES lump in the checksum.
 	PutGLChecksum();
 }

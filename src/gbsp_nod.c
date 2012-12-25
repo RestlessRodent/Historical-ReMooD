@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------
-// NODE : Recursively create nodes and return the pointers.
+// NODE : Recursively create glnodes and return the pointers.
 //------------------------------------------------------------------------
 //
 //  GL-Friendly Node Builder (C) 2000-2007 Andrew Apted
@@ -18,17 +18,17 @@
 //
 //------------------------------------------------------------------------
 //
-// Split a list of segs into two using the method described at bottom
+// Split a list of glsegs into two using the method described at bottom
 // of the file, this was taken from OBJECTS.C in the DEU5beta source.
 //
-// This is done by scanning all of the segs and finding the one that
+// This is done by scanning all of the glsegs and finding the one that
 // does the least splitting and has the least difference in numbers of
-// segs on either side.
+// glsegs on either side.
 //
 // If the ones on the left side make a SSector, then create another SSector
-// else put the segs into lefts list.
+// else put the glsegs into lefts list.
 // If the ones on the right side make a SSector, then create another SSector
-// else put the segs into rights list.
+// else put the glsegs into rights list.
 //
 // Rewritten by Andrew Apted (-AJA-), 1999-2000.
 //
@@ -157,8 +157,8 @@ void FreeSuper(glbsp_superblock_t * block)
 {
 	int num;
 
-	if (block->segs)
-		block->segs = NULL;
+	if (block->glsegs)
+		block->glsegs = NULL;
 
 	// recursively handle sub-blocks
 	for (num = 0; num < 2; num++)
@@ -199,10 +199,10 @@ void AddSegToSuper(glbsp_superblock_t * block, glbsp_seg_t * seg)
 		{
 			// block is a leaf -- no subdivision possible
 
-			seg->next = block->segs;
+			seg->next = block->glsegs;
 			seg->block = block;
 
-			block->segs = seg;
+			block->glsegs = seg;
 			return;
 		}
 
@@ -229,10 +229,10 @@ void AddSegToSuper(glbsp_superblock_t * block, glbsp_seg_t * seg)
 		{
 			// line crosses midpoint -- link it in and return
 
-			seg->next = block->segs;
+			seg->next = block->glsegs;
 			seg->block = block;
 
-			block->segs = seg;
+			block->glsegs = seg;
 			return;
 		}
 
@@ -314,7 +314,7 @@ static glbsp_seg_t *CreateOneSeg(glbsp_linedef_t * line, glbsp_vertex_t * start,
 //
 // CreateSegs
 //
-// Initially create all segs, one for each linedef.  Must be called
+// Initially create all glsegs, one for each linedef.  Must be called
 // _after_ InitBlockmap().
 //
 glbsp_superblock_t *CreateSegs(void)
@@ -380,7 +380,7 @@ glbsp_superblock_t *CreateSegs(void)
 
 			if (right)
 			{
-				// -AJA- Partner segs.  These always maintain a one-to-one
+				// -AJA- Partner glsegs.  These always maintain a one-to-one
 				//       correspondence, so if one of the gets split, the
 				//       other one must be split too.
 
@@ -449,7 +449,7 @@ static void DetermineMiddle(glbsp_subsec_t * sub)
 //
 // ClockwiseOrder
 //
-// -AJA- Put the list of segs into clockwise order.
+// -AJA- Put the list of glsegs into clockwise order.
 //       Uses the now famous "double bubble" sorter :).
 //
 static void ClockwiseOrder(glbsp_subsec_t * sub)
@@ -467,7 +467,7 @@ static void ClockwiseOrder(glbsp_subsec_t * sub)
 #if DEBUG_SUBSEC
 #endif
 
-	// count segs and create an array to manipulate them
+	// count glsegs and create an array to manipulate them
 	for (cur = sub->seg_list; cur; cur = cur->next)
 		total++;
 
@@ -483,7 +483,7 @@ static void ClockwiseOrder(glbsp_subsec_t * sub)
 	if (i != total)
 		InternalError("ClockwiseOrder miscounted.");
 
-	// sort segs by angle (from the middle point to the start vertex).
+	// sort glsegs by angle (from the middle point to the start vertex).
 	// The desired order (clockwise) means descending angles.
 
 	i = 0;
@@ -581,7 +581,7 @@ static void SanityCheckClosed(glbsp_subsec_t * sub)
 
 	if (gaps > 0)
 	{
-		PrintMiniWarn("Subsector #%d near (%1.1f,%1.1f) is not closed " "(%d gaps, %d segs)\n", sub->index, sub->mid_x, sub->mid_y, gaps, total);
+		PrintMiniWarn("Subsector #%d near (%1.1f,%1.1f) is not closed " "(%d gaps, %d glsegs)\n", sub->index, sub->mid_x, sub->mid_y, gaps, total);
 
 #if DEBUG_SUBSEC
 		for (cur = sub->seg_list; cur; cur = cur->next)
@@ -685,12 +685,12 @@ static void CreateSubsecWorker(glbsp_subsec_t * sub, glbsp_superblock_t * block)
 {
 	int num;
 
-	while(block->segs)
+	while(block->glsegs)
 	{
 		// unlink first seg from block
-		glbsp_seg_t *cur = block->segs;
+		glbsp_seg_t *cur = block->glsegs;
 
-		block->segs = cur->next;
+		block->glsegs = cur->next;
 
 		// link it into head of the subsector's list
 		cur->next = sub->seg_list;
@@ -723,7 +723,7 @@ static void CreateSubsecWorker(glbsp_subsec_t * sub, glbsp_superblock_t * block)
 //
 // CreateSubsec
 //
-// Create a subsector from a list of segs.
+// Create a subsector from a list of glsegs.
 //
 static glbsp_subsec_t *CreateSubsec(glbsp_superblock_t * seg_list)
 {
@@ -732,7 +732,7 @@ static glbsp_subsec_t *CreateSubsec(glbsp_superblock_t * seg_list)
 	// compute subsector's index
 	sub->index = num_subsecs - 1;
 
-	// copy segs into subsector
+	// copy glsegs into subsector
 	CreateSubsecWorker(sub, seg_list);
 
 	DetermineMiddle(sub);
@@ -768,7 +768,7 @@ static void DebugShowSegs(glbsp_superblock_t * seg_list)
 	glbsp_seg_t *cur;
 	int num;
 
-	for (cur = seg_list->segs; cur; cur = cur->next)
+	for (cur = seg_list->glsegs; cur; cur = cur->next)
 	{
 				   cur->linedef ? "" : "MINI", cur, cur->sector->index, cur->start->x, cur->start->y, cur->end->x, cur->end->y);
 	}
@@ -834,7 +834,7 @@ glbsp_ret_e BuildNodes(glbsp_superblock_t * seg_list, glbsp_glbsp_node_t ** N, g
 	lefts->x2 = rights->x2 = seg_list->x2;
 	lefts->y2 = rights->y2 = seg_list->y2;
 
-	/* divide the segs into two lists: left & right */
+	/* divide the glsegs into two lists: left & right */
 	cut_list = NULL;
 
 	SeparateSegs(seg_list, best, lefts, rights, &cut_list);
@@ -974,13 +974,13 @@ void ClockwiseBspTree(glbsp_glbsp_node_t * root)
 // CreateNodes does the following:
 //   1 - Pick a nodeline amongst the Segs (minimize the number of splits and
 //       keep the tree as balanced as possible).
-//   2 - Move all Segs on the right of the nodeline in a list (segs1) and do
-//       the same for all Segs on the left of the nodeline (in segs2).
-//   3 - If the first list (segs1) contains references to more than one
+//   2 - Move all Segs on the right of the nodeline in a list (glsegs1) and do
+//       the same for all Segs on the left of the nodeline (in glsegs2).
+//   3 - If the first list (glsegs1) contains references to more than one
 //       Sector or if the angle between two adjacent Segs is greater than
 //       180 degrees, then call CreateNodes with this (smaller) list.
 //       Else, create a SubSector with all these Segs.
-//   4 - Do the same for the second list (segs2).
+//   4 - Do the same for the second list (glsegs2).
 //   5 - Return the new node (its two children are already OK).
 //
 // Each time CreateSSector is called, the Segs are put in a global list.

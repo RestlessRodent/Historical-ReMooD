@@ -337,7 +337,7 @@ void GlbspFree(const char *str)
 	UtilFree((char *)str);
 }
 
-/* ----- build nodes for a single level --------------------------- */
+/* ----- build glnodes for a single level --------------------------- */
 
 static glbsp_ret_e HandleLevel(void)
 {
@@ -360,12 +360,12 @@ static glbsp_ret_e HandleLevel(void)
 
 	InitBlockmap();
 
-	// create initial segs
+	// create initial glsegs
 	seg_list = CreateSegs();
 
-	root_stale_node = (num_stale_nodes == 0) ? NULL : LookupStaleNode(num_stale_nodes - 1);
+	root_stale_node = (num_stale_glnodes == 0) ? NULL : LookupStaleNode(num_stale_glnodes - 1);
 
-	// recursively create nodes
+	// recursively create glnodes
 	ret = BuildNodes(seg_list, &root_node, &root_sub, 0, root_stale_node);
 	FreeSuper(seg_list);
 
@@ -373,7 +373,7 @@ static glbsp_ret_e HandleLevel(void)
 	{
 		ClockwiseBspTree(root_node);
 
-		PrintVerbose("Built %d NODES, %d SSECTORS, %d SEGS, %d VERTEXES\n", num_nodes, num_subsecs, num_segs, num_normal_vert + num_gl_vert);
+		PrintVerbose("Built %d NODES, %d SSECTORS, %d SEGS, %d VERTEXES\n", num_glnodes, num_subsecs, num_glsegs, num_normal_vert + num_gl_vert);
 
 		if (root_node)
 			PrintVerbose("Heights of left and right subtrees = (%d,%d)\n", ComputeBspHeight(root_node->r.node), ComputeBspHeight(root_node->l.node));
@@ -441,7 +441,7 @@ glbsp_ret_e GlbspBuildNodes(const nodebuildinfo_t * info, const nodebuildfuncs_t
 	}
 
 	PrintMsg("\n");
-	PrintVerbose("Creating nodes using tunable factor of %d\n", info->factor);
+	PrintVerbose("Creating glnodes using tunable factor of %d\n", info->factor);
 
 	DisplayOpen(DIS_BUILDPROGRESS);
 	DisplaySetTitle("glBSP Build Progress");
