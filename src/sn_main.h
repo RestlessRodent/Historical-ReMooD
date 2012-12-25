@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2012-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -29,33 +27,59 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Refresh (R_*) module, global header.
-//              All the rendering/drawing stuff is here.
+// DESCRIPTION: ReMooD Snow Renderer
 
-#ifndef __R_LOCAL__
-#define __R_LOCAL__
+#ifndef __SN_MAIN_H__
+#define __SN_MAIN_H__
 
-// Screen size related parameters.
+/***************
+*** INCLUDES ***
+***************/
+
+#include "doomtype.h"
 #include "doomdef.h"
+#include "doomdata.h"
+#include "m_fixed.h"
+#include "r_defs.h"
+#include "d_player.h"
 
-// Binary Angles, sine/cosine/atan lookups.
-#include "tables.h"
+/********************
+*** GENERIC TYPES ***
+********************/
 
-// this one holds the max vid sizes and standard doom aspect
-#include "screen.h"
+#if defined(__REMOOD_SNOWFLOAT)
+	/* Floating Point */
+	typedef double raster_t;
+	
+	#define rAd(a,b) (((raster_t)(a)) + ((raster_t)(b)))
+	#define rSu(a,b) (((raster_t)(a)) - ((raster_t)(b)))
+	#define rMu(a,b) (((raster_t)(a)) * ((raster_t)(b)))
+	
+#else
+	/* Fixed Point */
+	typedef fixed_t raster_t;
+	
+	#define rAd(a,b) (((raster_t)(a)) + ((raster_t)(b)))
+	#define rSu(a,b) (((raster_t)(a)) - ((raster_t)(b)))
+	#define rMu(a,b) (FixedMul(((raster_t)(a)), ((raster_t)(b))))
+#endif
 
-#include "m_bbox.h"
+/**************
+*** GLOBALS ***
+**************/
 
-#include "r_main.h"
-#include "r_bsp.h"
-#include "r_segs.h"
-#include "r_plane.h"
-#include "r_sky.h"
-#include "r_data.h"
-#include "r_things.h"
-#include "r_draw.h"
+extern bool_t g_SnowBug;						// Debug
 
-extern drawseg_t* firstseg;
+/****************
+*** FUNCTIONS ***
+****************/
 
-#endif							// __R_LOCAL__
+/*** SN_PREP.C ***/
+bool_t SN_InitLevel(void);
+
+/*** SN_MAIN.C ***/
+void SN_ViewResize(void);
+void SN_RenderView(player_t* player, const size_t a_Screen);
+
+#endif /* __SN_MAIN_H__ */
 

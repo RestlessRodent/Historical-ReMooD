@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2012-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -29,33 +27,83 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Refresh (R_*) module, global header.
-//              All the rendering/drawing stuff is here.
+// DESCRIPTION: ReMooD Snow Renderer
 
-#ifndef __R_LOCAL__
-#define __R_LOCAL__
+/***************
+*** INCLUDES ***
+***************/
 
-// Screen size related parameters.
-#include "doomdef.h"
+#include "sn_main.h"
+#include "r_defs.h"
+#include "r_state.h"
 
-// Binary Angles, sine/cosine/atan lookups.
-#include "tables.h"
+/*************
+*** LOCALS ***
+*************/
 
-// this one holds the max vid sizes and standard doom aspect
-#include "screen.h"
+/****************
+*** FUNCTIONS ***
+****************/
 
-#include "m_bbox.h"
+/* SNS_SubmitSub() -- Submits subsector */
+void SNS_SubmitSub(subsector_t* const a_SubS)
+{
+	/* Debug */
+	if (g_SnowBug)
+		CONL_PrintF("SubS %u\n", ((unsigned int)(a_SubS - subsectors)));
+}
 
-#include "r_main.h"
-#include "r_bsp.h"
-#include "r_segs.h"
-#include "r_plane.h"
-#include "r_sky.h"
-#include "r_data.h"
-#include "r_things.h"
-#include "r_draw.h"
+/* SNS_Triangulate() -- Triangulates Nodes */
+void SNS_Triangulate(node_t* const a_Node)
+{
+	register int i;
+	
+	/* Debug */
+	if (g_SnowBug)
+		CONL_PrintF("Node %u\n", ((unsigned int)(a_Node - nodes)));
+	
+	/* Split polygon by the node line */
+	// And get the left and right resulting polygons
+	
+	/* Traverse Sides */
+	// Start with left, go right
+	for (i = 1; i >= 0; i--)
+	{
+		// Subsector?
+		if (a_Node->children[i] & NF_SUBSECTOR)
+		{
+			// Finalize subsector
+			SNS_SubmitSub(&subsectors[(a_Node->children[i] & (~NF_SUBSECTOR))]);
+		}
+		
+		// Node?
+		else
+		{
+			// Triangulate this node further
+			SNS_Triangulate(&nodes[a_Node->children[i]]);
+		}
+	}
+}
 
-extern drawseg_t* firstseg;
+/* SN_ClearLevel() -- Clear the level */
+void SN_ClearLevel(void)
+{
+}
 
-#endif							// __R_LOCAL__
+/* SN_InitLevel() -- Initializes the level for rendering */
+bool_t SN_InitLevel(void)
+{
+	/* Debug */
+	if (M_CheckParm("-devsnow"))
+		g_SnowBug = true;
+	
+	/* First clear the level */
+	SN_ClearLevel();
+	
+	/* Triangulate */
+	SNS_Triangulate(&nodes[numnodes - 1]);
+	
+	/* Success? */
+	return true;
+}
 

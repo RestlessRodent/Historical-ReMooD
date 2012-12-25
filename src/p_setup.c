@@ -702,9 +702,6 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	if (!a_Info)
 		return false;
 	
-	/* Set global info */
-	g_CurrentLevelInfo = a_Info;
-	
 	/* Respawn all players */
 	if (!(a_Flags & PEXLL_NOPLREVIVE))
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -729,6 +726,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	CONL_LoadingScreenIncrMaj("Clearing level", 0);
 	if (!(a_Flags & PEXLL_NOCLEARLEVEL))
 		P_ExClearLevel();
+	
+	/* Set global info */
+	g_CurrentLevelInfo = a_Info;
 	
 	/* Load Map Data */
 	// Load vertex data (Non-Textual Format)

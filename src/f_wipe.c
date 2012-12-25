@@ -289,6 +289,10 @@ int wipe_exitMelt(int width, int height, int ticks)
 //
 int wipe_StartScreen(int x, int y, int width, int height)
 {
+	// Not in OpenGL
+	if (VHW_UseGLMode())
+		return 0;
+	
 	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
 	wipe_scr_start = Z_Malloc(vid.width * vid.height * vid.bpp, PU_STATIC, &wipe_scr_start);
 	//wipe_scr_start = screens[2];
@@ -301,6 +305,10 @@ int wipe_StartScreen(int x, int y, int width, int height)
 //
 int wipe_EndScreen(int x, int y, int width, int height)
 {
+	// Not in OpenGL
+	if (VHW_UseGLMode())
+		return 0;
+		
 	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
 	wipe_scr_end = Z_Malloc(vid.width * vid.height * vid.bpp, PU_STATIC, &wipe_scr_end);
 	//wipe_scr_end = screens[3];
@@ -319,6 +327,10 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 		wipe_initColorXForm, wipe_doColorXForm, wipe_exitColorXForm,
 		wipe_initMelt, wipe_doMelt, wipe_exitMelt, wipe_initBlindsXForm, wipe_doBlindsXForm, wipe_exitBlindsXForm,
 	};
+	
+	// Not in OpenGL
+	if (VHW_UseGLMode())
+		return 0;
 	
 	// GhostlyDeath <June 4, 2010> -- Force done?
 	if (ticks >= 0)

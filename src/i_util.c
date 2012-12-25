@@ -35,21 +35,21 @@
 /* System */
 #if !defined(__REMOOD_USECCSTUB)
 	// On UNIX include the standard header
-	#if defined(__unix__)
-	#include <unistd.h>				// Standard Stuff
-	#include <dirent.h>
+	#if defined(__unix__) || defined(__APPLE__)
+		#include <unistd.h>				// Standard Stuff
+		#include <dirent.h>
 	#endif
 
 	// On Windows include windows.h
 	#if defined(_WIN32)
-	#include <windows.h>
+		#include <windows.h>
 	#endif
 
 	// On DOS include dos.h (and conio.h for colors)
 	#if defined(__MSDOS__)
-	#include <dos.h>
-	#include <conio.h>
-	#include <dpmi.h>
+		#include <dos.h>
+		#include <conio.h>
+		#include <dpmi.h>
 	#endif
 
 	// Include the standard C stuff here
@@ -1052,12 +1052,16 @@ bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uin
 // This is enough to make the code work as it should
 void I_ReadScreen(uint8_t* scr)
 {
+	uint8_t* p;
+	uint32_t w, h;
+	
 	/* Check */
 	if (!scr)
 		return;
 		
 	/* Blind copy */
-	memcpy(scr, vid.buffer, vid.width * vid.height * vid.bpp);
+	p = I_VideoSoftBuffer(&w, &h);
+	memcpy(scr, p, w * h);
 }
 
 /* I_ShowEndTxt() -- Shows the ending text screen */

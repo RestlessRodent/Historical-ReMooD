@@ -55,6 +55,7 @@
 #include "rx_main.h"
 #include "rh_main.h"
 #include "vhw_wrap.h"
+#include "sn_main.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048
@@ -1173,6 +1174,7 @@ static const CONL_VarPossibleValue_t c_CVPVRRenderer[] =
 	{0, "Legacy"},
 	{1, "ReMooD"},
 	{2, "Heretic"},
+	{3, "Snow"},
 	
 	// End
 	{0, NULL},
@@ -1217,6 +1219,16 @@ static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar
 		R_ExecuteSetViewSize = R_ExecuteSetViewSize_HERETIC;
 		R_RenderPlayerView = R_RenderPlayerView_HERETIC;
 	}
+	
+	/* Snow? */
+	else if (!ForceReMooD && a_StaticVar->Value[0].Int == 3)
+	{
+		CONL_PrintF("Snow");
+		
+		R_ExecuteSetViewSize = SN_ViewResize;
+		R_RenderPlayerView = SN_RenderView;
+	}
+	
 	
 	/* Notice */
 	CONL_PrintF("\n");

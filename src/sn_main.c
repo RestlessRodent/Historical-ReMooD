@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2012-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -29,33 +27,51 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Refresh (R_*) module, global header.
-//              All the rendering/drawing stuff is here.
+// DESCRIPTION: ReMooD Snow Renderer
 
-#ifndef __R_LOCAL__
-#define __R_LOCAL__
+/***************
+*** INCLUDES ***
+***************/
 
-// Screen size related parameters.
-#include "doomdef.h"
+#include "sn_main.h"
+#include "p_info.h"
 
-// Binary Angles, sine/cosine/atan lookups.
-#include "tables.h"
+/**************
+*** GLOBALS ***
+**************/
 
-// this one holds the max vid sizes and standard doom aspect
-#include "screen.h"
+bool_t g_SnowBug = false;						// Debug
 
-#include "m_bbox.h"
+/*************
+*** LOCALS ***
+*************/
 
-#include "r_main.h"
-#include "r_bsp.h"
-#include "r_segs.h"
-#include "r_plane.h"
-#include "r_sky.h"
-#include "r_data.h"
-#include "r_things.h"
-#include "r_draw.h"
+static P_LevelInfoEx_t* l_SNLastLev = NULL;
 
-extern drawseg_t* firstseg;
+/****************
+*** FUNCTIONS ***
+****************/
 
-#endif							// __R_LOCAL__
+/* SN_ViewResize() -- Resizes the view (if needed that is) */
+void SN_ViewResize(void)
+{
+}
+
+/* SN_RenderView() -- Renders an individual player view */
+void SN_RenderView(player_t* player, const size_t a_Screen)
+{
+	/* Needs re-init? */
+	if (g_CurrentLevelInfo != l_SNLastLev)
+	{
+		// Try Initializing Level
+		if (!SN_InitLevel())
+		{
+			l_SNLastLev = NULL;
+			return;
+		}
+		
+		// Do not init if level does not change!
+		l_SNLastLev = g_CurrentLevelInfo;
+	}
+}
 
