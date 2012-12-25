@@ -232,6 +232,22 @@ void VHW_GL_HUDDrawLine(const vhwrgb_t a_RGB, int32_t a_X1, int32_t a_Y1, int32_
 {
 	/* Enter HUD Drawing Mode */
 	GLS_HUDMode();
+	
+#if 0
+	/* Place holder shape */
+	glBegin(GL_LINES);
+		// Obtain color
+		glColor3b(
+				VHWRGB_red(a_RGB),
+				VHWRGB_green(a_RGB),
+				VHWRGB_blue(a_RGB),
+			);
+		
+		// Vertex it
+		glVertex2f(a_X1, a_Y1);
+		glVertex2f(a_X2, a_Y2);
+	glEnd();
+#endif
 }
 
 /* VHW_GL_HUDDrawImageComplex() -- Draws complex image onto the screen */

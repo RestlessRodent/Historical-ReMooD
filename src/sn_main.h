@@ -54,9 +54,12 @@
 	#define rAd(a,b) (((raster_t)(a)) + ((raster_t)(b)))
 	#define rSu(a,b) (((raster_t)(a)) - ((raster_t)(b)))
 	#define rMu(a,b) (((raster_t)(a)) * ((raster_t)(b)))
+	#define rDi(a,b) (((raster_t)(a)) / ((raster_t)(b)))
 	
 	#define RASTERT_C(x) ((double)(x))
 	
+	#define SN_RasterToInt(x) ((int32_t)(x))
+	#define SN_FixedToRaster(x) ((double)(FIXED_TO_FLOAT(((fixed_t)(x)))))
 #else
 	/* Fixed Point */
 	typedef fixed_t raster_t;
@@ -64,8 +67,12 @@
 	#define rAd(a,b) (((raster_t)(a)) + ((raster_t)(b)))
 	#define rSu(a,b) (((raster_t)(a)) - ((raster_t)(b)))
 	#define rMu(a,b) (FixedMul(((raster_t)(a)), ((raster_t)(b))))
+	#define rDi(a,b) (FixedDiv(((raster_t)(a)), ((raster_t)(b))))
 	
 	#define RASTERT_C(x) (((fixed_t)(x)) << FRACBITS)
+	
+	#define SN_RasterToInt(x) ((int32_t)(((fixed_t)(x)) >> FRACBITS))
+	#define SN_FixedToRaster(x) ((fixed_t)(x))
 #endif
 
 /**************
