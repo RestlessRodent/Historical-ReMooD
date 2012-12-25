@@ -39,7 +39,6 @@ Stuff to hack in:
    - OnRevive() -- Object is revived
    - OnStopMoving() -- Sector stops moving
    - etc.
- * Spectators
  * Advanced Menu
  * RMOD Config File
  * Secondary Weapon Fire
@@ -51,11 +50,8 @@ Stuff to hack in:
  * Savegames
  * VM state saving (for perfect virtual machine restoration and preservation)
  * Multiplayer
- * Joysticks
  * MOD Music
- * Spectators
  * Thing sprite scaling, fliping, cropping
- * Palettes in Splitscreen (fake COLORMAP-like thing?)
  * New Menu System
  * 50,000 lines of code
  * Save games
