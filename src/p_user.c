@@ -1392,6 +1392,7 @@ void P_SpecInit(const int32_t a_PlayerNum)
 {
 	int i;
 	static const P_LevelInfoEx_t* LastSpecLevel;
+	static bool_t LastFlipped;
 	
 	/* All */
 	// This is called on a new level, possibly
@@ -1399,10 +1400,11 @@ void P_SpecInit(const int32_t a_PlayerNum)
 	{
 		// If the map did not change, do not reset (so specs don't get jerked
 		// all the time)
-		if (LastSpecLevel == g_CurrentLevelInfo)
+		if (LastSpecLevel == g_CurrentLevelInfo && LastFlipped == P_XGSVal(PGS_FUNFLIPLEVELS))
 			return;
 		
 		LastSpecLevel = g_CurrentLevelInfo;
+		LastFlipped = P_XGSVal(PGS_FUNFLIPLEVELS);
 		
 		// Initialize each player
 		for (i = 0; i < MAXSPLITSCREEN; i++)

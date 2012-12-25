@@ -504,6 +504,11 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	/* Get profile of player */
 	Profile = a_ConsoleP->ProfileEx;
 	
+	/* Draw something */
+	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 10, 10, 30);	// H
+	VHW_HUDDrawLine(VHWRGB(255,0,0), 30, 10, 10, 30);	// H
+	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 20, 30, 20);	// H
+	
 	/* Current Level Name */
 	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
 }

@@ -138,10 +138,10 @@ typedef struct mapdata_s {
 int bmapwidth;
 int bmapheight;					// size in mapblocks
 
-long* blockmap;					// int for large maps
+int32_t* blockmap;					// int for large maps
 
 // offsets in blockmap are from here
-long* blockmaplump;				// Big blockmap SSNTails
+int32_t* blockmaplump;				// Big blockmap SSNTails
 size_t g_BMLSize = 0;							// Block map lump size
 
 // origin of block map
@@ -694,13 +694,20 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	node_t* NodeP;
 	seg_t* SegP;
 	mapthing_t* ThingP;
-	size_t i, j, k;
+	int32_t i, j, k, l;
 	char Buf[BUFSIZE];
 	int16_t TempShort;
+	bool_t Flipped;
+	int32_t* pp;
 
 	/* Check */
 	if (!a_Info)
 		return false;
+	
+	/* Flipped Levels? */
+	Flipped = false;
+	if (P_XGSVal(PGS_FUNFLIPLEVELS))
+		Flipped = true;
 	
 	/* Respawn all players */
 	if (!(a_Flags & PEXLL_NOPLREVIVE))
@@ -762,6 +769,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				// Read
 				VertexP->x = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
 				VertexP->y = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
+				
+				if (Flipped)
+					VertexP->x = -VertexP->x;
 				
 				// Initialize
 				PS_ExVertexInit(VertexP);
@@ -908,7 +918,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				
 				// Read
 				for (k = 0; k < 2; k++)
-					LineDefP->VertexNum[k] = WL_Srlu16(Stream);
+					LineDefP->VertexNum[(Flipped ? !k : k)] = WL_Srlu16(Stream);
 				LineDefP->flags = WL_Srlu16(Stream);
 				
 				if (a_Info->Type.Hexen)	// Hexen
@@ -1010,9 +1020,27 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				NodeP->dx = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
 				NodeP->dy = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
 				
+				// Flip?
+				if (Flipped)
+				{
+					NodeP->x += NodeP->dx;
+					NodeP->y += NodeP->dy;
+					NodeP->x = -NodeP->x;
+					NodeP->dy = -NodeP->dy;
+				}
+				
 				for (k = 0; k < 2; k++)
+				{
 					for (j = 0; j < 4; j++)
 						NodeP->bbox[k][j] = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
+					
+					if (Flipped)
+					{
+						l = NodeP->bbox[k][2];
+						NodeP->bbox[k][2] = -NodeP->bbox[k][3];
+						NodeP->bbox[k][3] = -l;
+					}
+				}
 				
 				for (k = 0; k < 2; k++)
 					NodeP->children[k] = WL_Srlu16(Stream);
@@ -1056,11 +1084,14 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				
 				// Read
 				for (k = 0; k < 2; k++)
-					SegP->VertexID[k] = WL_Srlu16(Stream);
+					SegP->VertexID[(Flipped ? !k : k)] = WL_Srlu16(Stream);
 				SegP->angle = ((angle_t)WL_Srlu16(Stream)) << 16;
 				SegP->LineID = WL_Srlu16(Stream);
 				SegP->side = WL_Srlu16(Stream);
 				SegP->offset = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
+				
+				if (Flipped)
+					*((int32_t*)&SegP->angle) = -(*((int32_t*)&SegP->angle));
 				
 				// Initialize
 				PS_ExSegInit(SegP);
@@ -1072,7 +1103,6 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load the Block Map
-	
 	CONL_LoadingScreenIncrMaj("Loading block map", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_BLOCKMAP]))
 	{
@@ -1122,13 +1152,31 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 					blockmap[i] = ((int32_t)TempShort) & 0xFFFF;
 			}
 			
+			// Flip Blockmap?
+			if (Flipped)
+			{
+				bmaporgx += bmapwidth * 128 * FRACUNIT;
+				bmaporgx = -bmaporgx;
+				
+				for (i = 0; i < bmapheight; i++)
+				{
+					pp = blockmap + (i * bmapwidth);
+					
+					for (j = 0; j < bmapwidth / 2; j++)
+					{
+						l = pp[j];
+						pp[j] = pp[bmapwidth - 1 - j];
+						pp[bmapwidth - 1 - j] = l;
+					}
+				}
+			}
+			
 			// Close stream
 			WL_StreamClose(Stream);
 		}
 	}
 	
 	// Load the Reject
-	
 	CONL_LoadingScreenIncrMaj("Loading reject", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_REJECT]))
 	{
@@ -1202,10 +1250,17 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				ThingP->x = WL_Srli16(Stream);
 				ThingP->y = WL_Srli16(Stream);
 				
+				if (Flipped)
+					ThingP->x = -ThingP->x;
+				
 				if (ThingP->IsHexen)
 					ThingP->HeightOffset = WL_Srli16(Stream);
 				
 				ThingP->angle = WL_Srli16(Stream);
+				
+				if (Flipped)
+					ThingP->angle = 180 - ThingP->angle;
+				
 				ThingP->type = WL_Srli16(Stream);
 				ThingP->options = WL_Srli16(Stream);
 				

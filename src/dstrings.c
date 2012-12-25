@@ -1333,6 +1333,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{      "D_PGS_PLSPAWNWITHRANDOMGUN", "When a player is spawned, they are spawned with a random weapon. Spawn with non-super/super/melee affects this option."},
 	{            "M_PGS_COENABLESLOPES", "Enables Slopes"},
 	{            "D_PGS_COENABLESLOPES", "Enables the usage of sloped floors and ceilings. [ReMooD >= 1.0a]"},
+	{			  "M_PGS_FUNFLIPLEVELS", "Flip Levels"},
+	{			  "D_PGS_FUNFLIPLEVELS", "Levels are horizontaly flipped."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

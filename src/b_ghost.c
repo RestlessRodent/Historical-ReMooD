@@ -43,6 +43,7 @@
 #include "g_game.h"
 #include "b_bot.h"
 #include "t_ini.h"
+#include "sn_polyg.h"
 
 /****************
 *** CONSTANTS ***
@@ -963,6 +964,10 @@ void B_InitNodes(void)
 			if (g_XPlays[i])
 				if ((g_XPlays[i]->Flags & (DXPF_LOCAL | DXPF_BOT)) == (DXPF_LOCAL | DXPF_BOT))
 					g_GotBots = true;
+	
+	/* Build nodes? */
+	if (g_GotBots)
+		SN_PolygonizeLevel();
 }
 
 /* BS_GHOST_JOB_RandomNav() -- Random navigation */

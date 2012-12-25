@@ -732,6 +732,26 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 	return NULL;
 }
 
+/* WL_AttachWAD() -- Attaches another WAD to this WAD as a reference */
+// i.e. for GL_Nodes, etc.
+void WL_AttachWAD(const WL_WADFile_t* const a_WAD, const WL_WADFile_t* a_OtherWAD)
+{
+	register int i;
+	
+	/* Find free spot */
+	for (i = 0; i < a_WAD->NumAttached; i++)
+		if (!a_WAD->Attached[i])
+		{
+			a_WAD->Attached[i] = a_OtherWAD;
+			return;
+		}
+	
+	/* No room? */
+	Z_ResizeArray((void**)&a_WAD->Attached, sizeof(*a_WAD->Attached),
+		a_WAD->NumAttached, a_WAD->NumAttached + 1);
+	((WL_WADFile_t*)a_WAD)->Attached[((WL_WADFile_t*)a_WAD)->NumAttached++] = a_OtherWAD;
+}
+
 /* WL_CloseWAD() -- Closes a WAD File */
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 {
@@ -773,6 +793,15 @@ void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 	// C FILE?
 	if (a_WAD->__Private.__CFile)
 		fclose(a_WAD->__Private.__CFile);
+	
+	/* Close attached WADs */
+	if (a_WAD->Attached)
+	{
+		for (i = 0; i < a_WAD->NumAttached; i++)
+			if (a_WAD->Attached[i])
+				WL_CloseWAD(a_WAD->Attached[i]);
+		Z_Free(a_WAD->Attached);
+	}
 	
 	/* De-allocate the remaining WAD junk */
 	// Hash table

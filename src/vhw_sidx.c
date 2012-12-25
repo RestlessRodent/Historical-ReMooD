@@ -49,9 +49,108 @@
 *** FUNCTIONS ***
 ****************/
 
+unsigned char NearestColor(unsigned char r, unsigned char g, unsigned char b);
+
 /* VHW_SIDX_HUDDrawLine() -- Draws HUD Line */
 void VHW_SIDX_HUDDrawLine(const vhwrgb_t a_RGB, int32_t a_X1, int32_t a_Y1, int32_t a_X2, int32_t a_Y2)
 {
+	uint8_t* vBase, Color;
+	uint32_t Pitch;
+	int32_t dx, dy, xp1, yp1, xp2, yp2, n, d, na, np, cp, x, y;
+	
+	/* Check */
+	// Both points off left side
+	if (a_X1 < 0 && a_X2 < 0)
+		return;
+	
+	// Both points off right side
+	if (a_X1 >= vid.width && a_X2 >= vid.width)
+		return;
+	
+	// Both points off top side
+	if (a_Y1 < 0 && a_Y2 < 0)
+		return;
+	
+	// Both points off bottom side
+	if (a_Y1 >= vid.height && a_Y2 >= vid.height)
+		return;
+	
+	/* Obtain screen */
+	vBase = I_GetVideoBuffer(IVS_BACKBUFFER, &Pitch);
+	
+	/* Find Color */
+	Color = NearestColor(VHWRGB_red(a_RGB), VHWRGB_green(a_RGB), VHWRGB_blue(a_RGB));
+	
+	/* Copy Position */
+	x = a_X1;
+	y = a_Y1;
+	
+	/* Calculate Draw */
+	// Get Difference
+	dx = a_X2 - a_X1;
+	dy = a_Y2 - a_Y1;
+	
+	if (dx < 0)
+		dx = -dx;
+	if (dy < 0)
+		dy = -dy;
+	
+	// X Increase/Decrease
+	if (a_X2 >= a_X1)
+		xp1 = xp2 = 1;
+	else
+		xp1 = xp2 = -1;
+		
+	// Y Increase/Decrease
+	if (a_Y2 >= a_Y1)
+		yp1 = yp2 = 1;
+	else
+		yp1 = yp2 = -1;
+	
+	// At least 1 x for every y
+	if (dx >= dy)
+	{
+		xp1 = 0;
+		yp2 = 0;
+		d = dx;
+		n = dx >> 1;
+		na = dy;
+		np = dx;
+	}
+	
+	// At least 1 y for every x
+	else
+	{
+		xp2 = 0;
+		yp1 = 0;
+		d = dy;
+		n = dy >> 1;
+		na = dx;
+		np = dy;
+	}
+		
+	/* Now Draw */
+	for (cp = 0; cp <= np; cp++)
+	{
+		// Put Pixel
+		//if (x >= 0
+		vBase[(y * Pitch) + x] = Color;
+		
+		n += na;
+		
+		if (n >= d)
+		{
+			n -= d;
+			x += xp1;
+			y += yp1;
+		}
+		
+		x += xp2;
+		y += yp2;
+	}
+	
+	/* Done with buffer */
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 }
 
 /* VHW_SIDX_HUDDrawImageComplex() -- Draws complex image onto the screen */
@@ -79,8 +178,6 @@ void VHW_SIDX_HUDBlurBack(const uint32_t a_Flags, int32_t a_X1, int32_t a_Y1, in
 {
 	V_DrawFadeConsBackEx(a_Flags, a_X1, a_Y1, a_X2, a_Y2);
 }
-
-unsigned char NearestColor(unsigned char r, unsigned char g, unsigned char b);
 
 /* VHW_SIDX_HUDDrawBox() -- Draws colorized box */
 void VHW_SIDX_HUDDrawBox(const uint32_t a_Flags, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B, int32_t a_X1, int32_t a_Y1, int32_t a_X2, int32_t a_Y2)
