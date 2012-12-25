@@ -21,8 +21,8 @@
 #ifndef __GLBSP_BLOCKMAP_H__
 #define __GLBSP_BLOCKMAP_H__
 
-#include "structs.h"
-#include "level.h"
+#include "gbsp_str.h"
+#include "gbsp_lev.h"
 
 #define DEFAULT_BLOCK_LIMIT  16000
 

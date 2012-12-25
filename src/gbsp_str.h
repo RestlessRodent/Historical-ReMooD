@@ -21,7 +21,8 @@
 #ifndef __GLBSP_STRUCTS_H__
 #define __GLBSP_STRUCTS_H__
 
-#include "system.h"
+#include "doomtype.h"
+#include "gbsp_glb.h"
 
 /* ----- The wad structures ---------------------- */
 
@@ -231,5 +232,7 @@ typedef struct raw_v5_glbsp_glbsp_node_s
 	uint32_t right, left;		// children: Node or SSector (if high bit is set)
 }
 raw_v5_glbsp_glbsp_node_t;
+
+extern const nodebuildinfo_t *cur_info;
 
 #endif							/* __GLBSP_STRUCTS_H__ */

@@ -18,26 +18,11 @@
 //
 //------------------------------------------------------------------------
 
-#include "system.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#include <assert.h>
-
-#include "blockmap.h"
-#include "level.h"
-#include "node.h"
-#include "seg.h"
-#include "structs.h"
-#include "util.h"
-#include "wad.h"
-
-#define DEBUG_BLOCKMAP  0
+#include "gbsp_blo.h"
+#include "gbsp_lev.h"
+#include "gbsp_nod.h"
+#include "gbsp_seg.h"
+#include "gbsp_str.h"
 
 static int block_x, block_y;
 static int block_w, block_h;
@@ -162,10 +147,10 @@ static void FindBlockmapLimits(glbsp_bbox_t * bbox)
 
 		if (!L->zero_len)
 		{
-			float_g x1 = L->start->x;
-			float_g y1 = L->start->y;
-			float_g x2 = L->end->x;
-			float_g y2 = L->end->y;
+			double_t x1 = L->start->x;
+			double_t y1 = L->start->y;
+			double_t x2 = L->end->x;
+			double_t y2 = L->end->y;
 
 			int lx = (int)floor(MIN(x1, x2));
 			int ly = (int)floor(MIN(y1, y2));
@@ -192,9 +177,6 @@ static void FindBlockmapLimits(glbsp_bbox_t * bbox)
 		block_mid_x = (mid_x / num_linedefs) * 16;
 		block_mid_y = (mid_y / num_linedefs) * 16;
 	}
-
-#if DEBUG_BLOCKMAP
-#endif
 }
 
 //

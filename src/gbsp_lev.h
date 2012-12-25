@@ -21,8 +21,7 @@
 #ifndef __GLBSP_LEVEL_H__
 #define __GLBSP_LEVEL_H__
 
-#include "structs.h"
-#include "wad.h"
+#include "gbsp_str.h"
 
 struct glbsp_glbsp_node_s;
 struct glbsp_sector_s;
@@ -36,7 +35,7 @@ typedef struct glbsp_wall_tip_s
 	struct glbsp_wall_tip_s *prev;
 
 	// angle that line makes at vertex (degrees).
-	angle_g angle;
+	double_t angle;
 
 	// sectors on each side of wall.  Left is the side of increasing
 	// angles, right is the side of decreasing angles.  Either can be
@@ -49,7 +48,7 @@ glbsp_wall_tip_t;
 typedef struct glbsp_vertex_s
 {
 	// coordinates
-	float_g x, y;
+	double_t x, y;
 
 	// vertex index.  Always valid after loading and pruning of unused
 	// vertices has occurred.  For GL vertices, bit 30 will be set.
@@ -247,14 +246,14 @@ typedef struct glbsp_seg_s
 	struct glbsp_superblock_s *block;
 
 	// precomputed data for faster calculations
-	float_g psx, psy;
-	float_g pex, pey;
-	float_g pdx, pdy;
+	double_t psx, psy;
+	double_t pex, pey;
+	double_t pdx, pdy;
 
-	float_g p_length;
-	float_g p_angle;
-	float_g p_para;
-	float_g p_perp;
+	double_t p_length;
+	double_t p_angle;
+	double_t p_para;
+	double_t p_perp;
 
 	// linedef that this seg initially comes from.  For "real" segs,
 	// this is just the same as the 'linedef' field above.  For
@@ -276,8 +275,8 @@ typedef struct glbsp_subsec_s
 	int index;
 
 	// approximate middle point
-	float_g mid_x;
-	float_g mid_y;
+	double_t mid_x;
+	double_t mid_y;
 }
 glbsp_subsec_t;
 

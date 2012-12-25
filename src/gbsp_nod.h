@@ -21,7 +21,8 @@
 #ifndef __GLBSP_NODE_H__
 #define __GLBSP_NODE_H__
 
-#include "structs.h"
+#include "gbsp_str.h"
+#include "gbsp_glb.h"
 
 // check the relationship between the given box and the partition
 // line.  Returns -1 if box is on left side, +1 if box is on right

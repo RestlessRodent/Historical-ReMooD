@@ -18,24 +18,11 @@
 //
 //------------------------------------------------------------------------
 
-#include "system.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#include <assert.h>
-
-#include "blockmap.h"
-#include "level.h"
-#include "node.h"
-#include "seg.h"
-#include "structs.h"
-#include "util.h"
-#include "wad.h"
+#include "gbsp_blo.h"
+#include "gbsp_lev.h"
+#include "gbsp_nod.h"
+#include "gbsp_seg.h"
+#include "gbsp_str.h"
 
 const nodebuildinfo_t *cur_info = NULL;
 const nodebuildfuncs_t *cur_funcs = NULL;

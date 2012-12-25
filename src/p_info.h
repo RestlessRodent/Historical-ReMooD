@@ -32,8 +32,6 @@
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
 
-
-
 #include "w_wad.h"
 
 /**************************

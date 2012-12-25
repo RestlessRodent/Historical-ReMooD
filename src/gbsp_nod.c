@@ -33,25 +33,12 @@
 // Rewritten by Andrew Apted (-AJA-), 1999-2000.
 //
 
-#include "system.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#include <assert.h>
-
-#include "analyze.h"
-#include "blockmap.h"
-#include "level.h"
-#include "node.h"
-#include "seg.h"
-#include "structs.h"
-#include "util.h"
-#include "wad.h"
+#include "gbsp_ana.h"
+#include "gbsp_blo.h"
+#include "gbsp_lev.h"
+#include "gbsp_nod.h"
+#include "gbsp_seg.h"
+#include "gbsp_str.h"
 
 #define DEBUG_BUILDER  0
 #define DEBUG_SORTER   0
@@ -64,9 +51,9 @@ static glbsp_superblock_t *quick_alloc_supers = NULL;
 //
 // Returns -1 for left, +1 for right, or 0 for intersect.
 //
-static int PointOnLineSide(glbsp_seg_t * part, float_g x, float_g y)
+static int PointOnLineSide(glbsp_seg_t * part, double_t x, double_t y)
 {
-	float_g perp = UtilPerpDist(part, x, y);
+	double_t perp = UtilPerpDist(part, x, y);
 
 	if (fabs(perp) <= DIST_EPSILON)
 		return 0;
@@ -79,10 +66,10 @@ static int PointOnLineSide(glbsp_seg_t * part, float_g x, float_g y)
 //
 int BoxOnLineSide(glbsp_superblock_t * box, glbsp_seg_t * part)
 {
-	float_g x1 = (float_g) box->x1 - IFFY_LEN * 1.5;
-	float_g y1 = (float_g) box->y1 - IFFY_LEN * 1.5;
-	float_g x2 = (float_g) box->x2 + IFFY_LEN * 1.5;
-	float_g y2 = (float_g) box->y2 + IFFY_LEN * 1.5;
+	double_t x1 = (double_t) box->x1 - IFFY_LEN * 1.5;
+	double_t y1 = (double_t) box->y1 - IFFY_LEN * 1.5;
+	double_t x2 = (double_t) box->x2 + IFFY_LEN * 1.5;
+	double_t y2 = (double_t) box->y2 + IFFY_LEN * 1.5;
 
 	int p1, p2;
 
@@ -443,7 +430,7 @@ static void DetermineMiddle(glbsp_subsec_t * sub)
 {
 	glbsp_seg_t *cur;
 
-	float_g mid_x = 0, mid_y = 0;
+	double_t mid_x = 0, mid_y = 0;
 	int total = 0;
 
 	// compute middle coordinates
@@ -506,7 +493,7 @@ static void ClockwiseOrder(glbsp_subsec_t * sub)
 		glbsp_seg_t *A = array[i];
 		glbsp_seg_t *B = array[i + 1];
 
-		angle_g angle1, angle2;
+		double_t angle1, angle2;
 
 		angle1 = UtilComputeAngle(A->start->x - sub->mid_x, A->start->y - sub->mid_y);
 		angle2 = UtilComputeAngle(B->start->x - sub->mid_x, B->start->y - sub->mid_y);
@@ -567,7 +554,7 @@ static void ClockwiseOrder(glbsp_subsec_t * sub)
 
 	for (cur = sub->seg_list; cur; cur = cur->next)
 	{
-		angle_g angle = UtilComputeAngle(cur->start->x - sub->mid_x,
+		double_t angle = UtilComputeAngle(cur->start->x - sub->mid_x,
 										 cur->start->y - sub->mid_y);
 
 	}

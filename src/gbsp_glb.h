@@ -21,6 +21,8 @@
 #ifndef __GLBSP_GLBSP_H__
 #define __GLBSP_GLBSP_H__
 
+#include "doomtype.h"
+
 #define GLBSP_VER  "2.24"
 #define GLBSP_VER_HEX  0x224
 
@@ -30,34 +32,6 @@
 #define GCCATTR(xyz)  __attribute__ (xyz)
 #else
 #define GCCATTR(xyz)									   /* nothing */
-#endif
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif							// __cplusplus
-
-/* ----- basic types --------------------------- */
-
-	typedef signed char int8_t;
-	typedef signed short int16_t;
-	typedef signed int int32_t;
-
-	typedef unsigned char uint8_t;
-	typedef unsigned short uint16_t;
-	typedef unsigned int uint32_t;
-
-	typedef double float_g;
-	typedef double angle_g;		// degrees, 0 is E, 90 is N
-
-// boolean type
-	typedef int bool_t;
-
-#ifndef false
-#define false  0
-#endif
-#ifndef true
-#define true   1
 #endif
 
 /* ----- complex types --------------------------- */
@@ -271,8 +245,6 @@ extern "C"
 	const char *GlbspStrDup(const char *str);
 	void GlbspFree(const char *str);
 
-#ifdef __cplusplus
-}
-#endif							// __cplusplus
+#define g_BSPLevel g_CurrentLevelInfo
 
 #endif							/* __GLBSP_GLBSP_H__ */

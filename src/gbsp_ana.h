@@ -21,8 +21,8 @@
 #ifndef __GLBSP_ANALYZE_H__
 #define __GLBSP_ANALYZE_H__
 
-#include "structs.h"
-#include "level.h"
+#include "gbsp_str.h"
+#include "gbsp_lev.h"
 
 // detection routines
 void DetectDuplicateVertices(void);
@@ -43,7 +43,7 @@ void CalculateWallTips(void);
 // return a new vertex (with correct wall_tip info) for the split that
 // happens along the given seg at the given location.
 //
-glbsp_vertex_t *NewVertexFromSplitSeg(glbsp_seg_t * seg, float_g x, float_g y);
+glbsp_vertex_t *NewVertexFromSplitSeg(glbsp_seg_t * seg, double_t x, double_t y);
 
 // return a new end vertex to compensate for a seg that would end up
 // being zero-length (after integer rounding).  Doesn't compute the
@@ -56,6 +56,6 @@ glbsp_vertex_t *NewVertexDegenerate(glbsp_vertex_t * start, glbsp_vertex_t * end
 // at this vertex is open.  Returns a sector reference if it's open,
 // or NULL if closed (void space or directly along a linedef).
 //
-glbsp_sector_t *VertexCheckOpen(glbsp_vertex_t * vert, float_g dx, float_g dy);
+glbsp_sector_t *VertexCheckOpen(glbsp_vertex_t * vert, double_t dx, double_t dy);
 
 #endif							/* __GLBSP_ANALYZE_H__ */

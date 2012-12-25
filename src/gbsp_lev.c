@@ -22,26 +22,16 @@
 // 
 //------------------------------------------------------------------------
 
-#include "system.h"
+#include "w_wad.h"
+#include "p_info.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#include <assert.h>
-
-#include "analyze.h"
-#include "blockmap.h"
-#include "level.h"
-#include "node.h"
-#include "reject.h"
-#include "seg.h"
-#include "structs.h"
-#include "util.h"
-#include "wad.h"
+#include "gbsp_ana.h"
+#include "gbsp_blo.h"
+#include "gbsp_lev.h"
+#include "gbsp_nod.h"
+#include "gbsp_rej.h"
+#include "gbsp_seg.h"
+#include "gbsp_str.h"
 
 #define DEBUG_LOAD      0
 #define DEBUG_BSP       0
@@ -136,6 +126,8 @@ glbsp_glbsp_node_t *LookupStaleNode(int index) LOOKERUPPER(stale_nodes, num_stal
 //
 int CheckForNormalNodes(void)
 {
+	// GhostlyDeath <December 25, 2012> -- Translated from glBSP to ReMooD	
+	
 	lump_t *lump;
 
 	/* Note: an empty NODES lump can be valid */
@@ -181,8 +173,8 @@ void GetVertices(void)
 	{
 		glbsp_vertex_t *vert = NewVertex();
 
-		vert->x = (float_g) SINT16(raw->x);
-		vert->y = (float_g) SINT16(raw->y);
+		vert->x = (double_t) SINT16(raw->x);
+		vert->y = (double_t) SINT16(raw->y);
 
 		vert->index = i;
 	}
@@ -364,7 +356,7 @@ void GetSidedefs(void)
 	}
 }
 
-static INLINE_G glbsp_sidedef_t *SafeLookupSidedef(uint16_t num)
+static glbsp_sidedef_t *SafeLookupSidedef(uint16_t num)
 {
 	if (num == 0xFFFF)
 		return NULL;
@@ -630,7 +622,7 @@ void PutV2Vertices(int do_v5)
 		MarkSoftFailure(LIMIT_GL_VERT);
 }
 
-static INLINE_G uint32_t VertexIndex32BitV5(const glbsp_vertex_t * v)
+static uint32_t VertexIndex32BitV5(const glbsp_vertex_t * v)
 {
 	if (v->index & IS_GL_VERTEX)
 		return (uint32_t) ((v->index & ~IS_GL_VERTEX) | 0x80000000U);

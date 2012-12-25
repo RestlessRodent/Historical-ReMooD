@@ -21,7 +21,7 @@
 #ifndef __GLBSP_SEG_H__
 #define __GLBSP_SEG_H__
 
-#include "structs.h"
+#include "gbsp_str.h"
 
 #define DEFAULT_FACTOR  11
 
@@ -50,7 +50,7 @@ typedef struct glbsp_intersection_s
 	// partition seg's start point, positive values move in the same
 	// direction as the partition's direction, and negative values move
 	// in the opposite direction.
-	float_g along_dist;
+	double_t along_dist;
 
 	// true if this intersection was on a self-referencing linedef
 	bool_t self_ref;

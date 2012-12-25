@@ -35,25 +35,12 @@
 // Rewritten again by Andrew Apted (-AJA-), 1999-2000.
 //
 
-#include "system.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#include <assert.h>
-
-#include "analyze.h"
-#include "blockmap.h"
-#include "level.h"
-#include "node.h"
-#include "seg.h"
-#include "structs.h"
-#include "util.h"
-#include "wad.h"
+#include "gbsp_ana.h"
+#include "gbsp_blo.h"
+#include "gbsp_lev.h"
+#include "gbsp_nod.h"
+#include "gbsp_seg.h"
+#include "gbsp_str.h"
 
 #define PRECIOUS_MULTIPLY  100
 
@@ -156,7 +143,7 @@ void RecomputeSeg(glbsp_seg_t * seg)
 //       contains the seg (and/or partner), so that future processing
 //       is not fucked up by incorrect counts.
 //
-static glbsp_seg_t *SplitSeg(glbsp_seg_t * old_seg, float_g x, float_g y)
+static glbsp_seg_t *SplitSeg(glbsp_seg_t * old_seg, double_t x, double_t y)
 {
 	glbsp_seg_t *new_seg;
 	glbsp_vertex_t *new_vert;
@@ -226,7 +213,7 @@ static glbsp_seg_t *SplitSeg(glbsp_seg_t * old_seg, float_g x, float_g y)
 //       and the partitioning seg, and takes advantage of some common
 //       situations like horizontal/vertical lines.
 //
-static INLINE_G void ComputeIntersection(glbsp_seg_t * cur, glbsp_seg_t * part, float_g perp_c, float_g perp_d, float_g * x, float_g * y)
+static void ComputeIntersection(glbsp_seg_t * cur, glbsp_seg_t * part, double_t perp_c, double_t perp_d, double_t * x, double_t * y)
 {
 	double ds;
 
@@ -323,8 +310,8 @@ static int EvalPartitionWorker(glbsp_superblock_t * seg_list, glbsp_seg_t * part
 {
 	glbsp_seg_t *check;
 
-	float_g qnty;
-	float_g a, b, fa, fb;
+	double_t qnty;
+	double_t a, b, fa, fb;
 
 	int num;
 	int factor = cur_info->factor;
@@ -584,7 +571,7 @@ static glbsp_seg_t *FindSegFromStaleNode(glbsp_superblock_t * part_list, glbsp_g
 
 	for (part = part_list->segs; part; part = part->next)
 	{
-		float_g fa, fb;
+		double_t fa, fb;
 
 		/* ignore minisegs as partition candidates */
 		if (!part->linedef)
@@ -790,11 +777,11 @@ void DivideOneSeg(glbsp_seg_t * cur, glbsp_seg_t * part, glbsp_superblock_t * le
 {
 	glbsp_seg_t *new_seg;
 
-	float_g x, y;
+	double_t x, y;
 
 	/* get state of lines' relation to each other */
-	float_g a = UtilPerpDist(part, cur->psx, cur->psy);
-	float_g b = UtilPerpDist(part, cur->pex, cur->pey);
+	double_t a = UtilPerpDist(part, cur->psx, cur->psy);
+	double_t b = UtilPerpDist(part, cur->pex, cur->pey);
 
 	bool_t self_ref = cur->linedef ? cur->linedef->self_ref : false;
 
@@ -912,10 +899,10 @@ static void FindLimitWorker(glbsp_superblock_t * block, glbsp_bbox_t * bbox)
 
 	for (cur = block->segs; cur; cur = cur->next)
 	{
-		float_g x1 = cur->start->x;
-		float_g y1 = cur->start->y;
-		float_g x2 = cur->end->x;
-		float_g y2 = cur->end->y;
+		double_t x1 = cur->start->x;
+		double_t y1 = cur->start->y;
+		double_t x2 = cur->end->x;
+		double_t y2 = cur->end->y;
 
 		int lx = (int)floor(MIN(x1, x2));
 		int ly = (int)floor(MIN(y1, y2));
@@ -982,7 +969,7 @@ void AddMinisegs(glbsp_seg_t * part, glbsp_superblock_t * left_list, glbsp_super
 
 	while(cur && next)
 	{
-		float_g len = next->along_dist - cur->along_dist;
+		double_t len = next->along_dist - cur->along_dist;
 
 		if (len < -0.1)
 			InternalError("Bad order in intersect list: %1.3f > %1.3f\n", cur->along_dist, next->along_dist);

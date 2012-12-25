@@ -21,8 +21,8 @@
 #ifndef __GLBSP_REJECT_H__
 #define __GLBSP_REJECT_H__
 
-#include "structs.h"
-#include "level.h"
+#include "gbsp_str.h"
+#include "gbsp_lev.h"
 
 // build the reject table and write it into the REJECT lump
 void PutReject(void);

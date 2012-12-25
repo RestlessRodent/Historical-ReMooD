@@ -18,30 +18,15 @@
 //
 //------------------------------------------------------------------------
 
-#include "system.h"
+#include "doomtype.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#include <assert.h>
-
-#include "analyze.h"
-#include "blockmap.h"
-#include "level.h"
-#include "node.h"
-#include "reject.h"
-#include "seg.h"
-#include "structs.h"
-#include "util.h"
-#include "wad.h"
-
-#define DEBUG_WALLTIPS   0
-#define DEBUG_POLYOBJ    0
-#define DEBUG_WINDOW_FX  0
+#include "gbsp_ana.h"
+#include "gbsp_blo.h"
+#include "gbsp_lev.h"
+#include "gbsp_nod.h"
+#include "gbsp_rej.h"
+#include "gbsp_seg.h"
+#include "gbsp_str.h"
 
 #define POLY_BOX_SZ  10
 
@@ -59,9 +44,6 @@ static void MarkPolyobjSector(glbsp_sector_t * sector)
 
 	if (!sector)
 		return;
-
-#if DEBUG_POLYOBJ
-#endif
 
 	/* already marked ? */
 	if (sector->has_polyobj)
@@ -83,17 +65,17 @@ static void MarkPolyobjSector(glbsp_sector_t * sector)
 	}
 }
 
-static void MarkPolyobjPoint(float_g x, float_g y)
+static void MarkPolyobjPoint(double_t x, double_t y)
 {
 	int i;
 	int inside_count = 0;
 
-	float_g best_dist = 999999;
+	double_t best_dist = 999999;
 	glbsp_linedef_t *best_match = NULL;
 	glbsp_sector_t *sector = NULL;
 
-	float_g x1, y1;
-	float_g x2, y2;
+	double_t x1, y1;
+	double_t x2, y2;
 
 	// -AJA- First we handle the "awkward" cases where the polyobj sits
 	//       directly on a linedef or even a vertex.  We check all lines
@@ -110,9 +92,6 @@ static void MarkPolyobjPoint(float_g x, float_g y)
 
 		if (CheckLinedefInsideBox(bminx, bminy, bmaxx, bmaxy, (int)L->start->x, (int)L->start->y, (int)L->end->x, (int)L->end->y))
 		{
-#if DEBUG_POLYOBJ
-#endif
-
 			if (L->left)
 				MarkPolyobjSector(L->left->sector);
 
@@ -136,7 +115,7 @@ static void MarkPolyobjPoint(float_g x, float_g y)
 	{
 		glbsp_linedef_t *L = lev_linedefs[i];
 
-		float_g x_cut;
+		double_t x_cut;
 
 		x1 = L->start->x;
 		y1 = L->start->y;
@@ -170,16 +149,6 @@ static void MarkPolyobjPoint(float_g x, float_g y)
 	y1 = best_match->start->y;
 	y2 = best_match->end->y;
 
-#if DEBUG_POLYOBJ
-#endif
-
-	/* sanity check: shouldn't be directly on the line */
-#if DEBUG_POLYOBJ
-	if (fabs(best_dist) < DIST_EPSILON)
-	{
-	}
-#endif
-
 	/* check orientation of line, to determine which side the polyobj is
 	 * actually on.
 	 */
@@ -187,9 +156,6 @@ static void MarkPolyobjPoint(float_g x, float_g y)
 		sector = best_match->right ? best_match->right->sector : NULL;
 	else
 		sector = best_match->left ? best_match->left->sector : NULL;
-
-#if DEBUG_POLYOBJ
-#endif
 
 	if (!sector)
 	{
@@ -248,16 +214,13 @@ void DetectPolyobjSectors(void)
 			break;
 		}
 	}
-
-#if DEBUG_POLYOBJ
-#endif
-
+	
 	for (i = 0; i < num_things; i++)
 	{
 		glbsp_thing_t *T = LookupThing(i);
 
-		float_g x = (float_g) T->x;
-		float_g y = (float_g) T->y;
+		double_t x = (double_t) T->x;
+		double_t y = (double_t) T->y;
 
 		// ignore everything except polyobj start spots
 		if (hexen_style)
@@ -273,16 +236,13 @@ void DetectPolyobjSectors(void)
 				continue;
 		}
 
-#if DEBUG_POLYOBJ
-#endif
-
 		MarkPolyobjPoint(x, y);
 	}
 }
 
 /* ----- analysis routines ----------------------------- */
 
-static INLINE_G int LineVertexLowest(const glbsp_linedef_t * L)
+static int LineVertexLowest(const glbsp_linedef_t * L)
 {
 	// returns the "lowest" vertex (normally the left-most, but if the
 	// line is vertical, then the bottom-most) => 0 for start, 1 for end.
@@ -410,19 +370,19 @@ void TestForWindowEffect(glbsp_linedef_t * L)
 
 	int i;
 
-	float_g mx = (L->start->x + L->end->x) / 2.0;
-	float_g my = (L->start->y + L->end->y) / 2.0;
+	double_t mx = (L->start->x + L->end->x) / 2.0;
+	double_t my = (L->start->y + L->end->y) / 2.0;
 
-	float_g dx = L->end->x - L->start->x;
-	float_g dy = L->end->y - L->start->y;
+	double_t dx = L->end->x - L->start->x;
+	double_t dy = L->end->y - L->start->y;
 
 	int cast_horiz = fabs(dx) < fabs(dy) ? 1 : 0;
 
-	float_g back_dist = 999999.0;
+	double_t back_dist = 999999.0;
 	glbsp_sector_t *back_open = NULL;
 	int back_line = -1;
 
-	float_g front_dist = 999999.0;
+	double_t front_dist = 999999.0;
 	glbsp_sector_t *front_open = NULL;
 	int front_line = -1;
 
@@ -430,11 +390,11 @@ void TestForWindowEffect(glbsp_linedef_t * L)
 	{
 		glbsp_linedef_t *N = lev_linedefs[i];
 
-		float_g dist;
+		double_t dist;
 		bool_t is_front;
 		glbsp_sidedef_t *hit_side;
 
-		float_g dx2, dy2;
+		double_t dx2, dy2;
 
 		if (N == L || N->zero_len || N->overlap)
 			continue;
@@ -503,9 +463,6 @@ void TestForWindowEffect(glbsp_linedef_t * L)
 		}
 	}
 
-#if DEBUG_WINDOW_FX
-#endif
-
 	if (back_open && front_open && L->right->sector == front_open)
 	{
 		L->window_effect = back_open;
@@ -535,8 +492,6 @@ void DetectWindowEffects(void)
 
 		if ((one_siders % 2) == 1 && (one_siders + two_siders) > 1)
 		{
-#if DEBUG_WINDOW_FX
-#endif
 			TestForWindowEffect(L);
 			continue;
 		}
@@ -545,8 +500,6 @@ void DetectWindowEffects(void)
 
 		if ((one_siders % 2) == 1 && (one_siders + two_siders) > 1)
 		{
-#if DEBUG_WINDOW_FX
-#endif
 			TestForWindowEffect(L);
 		}
 	}
@@ -554,7 +507,7 @@ void DetectWindowEffects(void)
 
 /* ----- vertex routines ------------------------------- */
 
-static void VertexAddWallTip(glbsp_vertex_t * vert, float_g dx, float_g dy, glbsp_sector_t * left, glbsp_sector_t * right)
+static void VertexAddWallTip(glbsp_vertex_t * vert, double_t dx, double_t dy, glbsp_sector_t * left, glbsp_sector_t * right)
 {
 	glbsp_wall_tip_t *tip = NewWallTip();
 	glbsp_wall_tip_t *after;
@@ -604,10 +557,10 @@ void CalculateWallTips(void)
 		if (line->self_ref && cur_info->skip_self_ref)
 			continue;
 
-		float_g x1 = line->start->x;
-		float_g y1 = line->start->y;
-		float_g x2 = line->end->x;
-		float_g y2 = line->end->y;
+		double_t x1 = line->start->x;
+		double_t y1 = line->start->y;
+		double_t x2 = line->end->x;
+		double_t y2 = line->end->y;
 
 		glbsp_sector_t *left = (line->left) ? line->left->sector : NULL;
 		glbsp_sector_t *right = (line->right) ? line->right->sector : NULL;
@@ -615,25 +568,12 @@ void CalculateWallTips(void)
 		VertexAddWallTip(line->start, x2 - x1, y2 - y1, left, right);
 		VertexAddWallTip(line->end, x1 - x2, y1 - y2, right, left);
 	}
-
-#if DEBUG_WALLTIPS
-	for (i = 0; i < num_vertices; i++)
-	{
-		glbsp_vertex_t *vert = LookupVertex(i);
-		glbsp_wall_tip_t *tip;
-
-
-		for (tip = vert->tip_set; tip; tip = tip->next)
-		{
-		}
-	}
-#endif
 }
 
 //
 // NewVertexFromSplitSeg
 //
-glbsp_vertex_t *NewVertexFromSplitSeg(glbsp_seg_t * seg, float_g x, float_g y)
+glbsp_vertex_t *NewVertexFromSplitSeg(glbsp_seg_t * seg, double_t x, double_t y)
 {
 	glbsp_vertex_t *vert = NewVertex();
 
@@ -657,11 +597,11 @@ glbsp_vertex_t *NewVertexFromSplitSeg(glbsp_seg_t * seg, float_g x, float_g y)
 //
 // VertexCheckOpen
 //
-glbsp_sector_t *VertexCheckOpen(glbsp_vertex_t * vert, float_g dx, float_g dy)
+glbsp_sector_t *VertexCheckOpen(glbsp_vertex_t * vert, double_t dx, double_t dy)
 {
 	glbsp_wall_tip_t *tip;
 
-	angle_g angle = UtilComputeAngle(dx, dy);
+	double_t angle = UtilComputeAngle(dx, dy);
 
 	// first check whether there's a wall_tip that lies in the exact
 	// direction of the given direction (which is relative to the
