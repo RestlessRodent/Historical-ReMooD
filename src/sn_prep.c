@@ -41,6 +41,21 @@
 *** LOCALS ***
 *************/
 
+/* SN_Vert_t -- Vertex */
+typedef struct SN_Vert_s
+{
+	raster_t x;
+	raster_t y;
+	raster_t z;
+} SN_Vert_t;
+
+/* SN_Poly_t -- Polygon, which is split */
+typedef struct SN_Poly_s
+{
+	SN_Vert_t* Verts;
+	size_t NumVerts;
+} SN_Poly_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -101,6 +116,9 @@ bool_t SN_InitLevel(void)
 	SN_ClearLevel();
 	
 	/* Triangulate */
+	// Create initial box
+	
+	// Now do the hard work
 	SNS_Triangulate(&nodes[numnodes - 1]);
 	
 	/* Success? */

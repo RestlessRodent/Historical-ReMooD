@@ -137,36 +137,51 @@ static const char* const c_AxisMap[NUMDPROFILEEXCTRLMAS] =
 	"neglooky",									// DPEXCMA_NEGLOOKY,
 };
 
+/* D_PDST_t -- Profile Data Stat Type */
+typedef enum D_PDST_e
+{
+	PDST_UINT8,
+	PDST_UINT32,
+	PDST_INT32,
+	PDST_FIXED,
+	PDST_BOOL,
+	PDST_STRING,
+	PDST_TIC,
+} D_PDST_t;
+
 /* c_ProfDataStat -- Simplified config space */
 static const struct
 {
 	const char ArgName[16];
 	size_t Offset;
-	uint16_t Size;
+	D_PDST_t Type;
 } c_ProfDataStat[] =
 {
 #define QUICKDS(x,s) {#x, offsetof(D_ProfileEx_t, x), s}
-	QUICKDS(Color, 8),
-	QUICKDS(JoyControl, 8),
-	QUICKDS(SlowTurnTime, 717),
-	QUICKDS(MouseSens[0], 32),
-	QUICKDS(MouseSens[1], 32),
-	QUICKDS(JoySens[0], 32),
-	QUICKDS(JoySens[1], 32),
-	QUICKDS(LookUpDownSpeed, 32),
-	QUICKDS(AutoGrabJoy, 32),
-	QUICKDS(ColorPickup, 8),
-	QUICKDS(ColorSecret, 8),
-	QUICKDS(SoundSecret, 5555),
-	QUICKDS(DrawPSprites, 1010),
-	QUICKDS(BobMode, 8),
-	QUICKDS(ViewHeight, 3232),
-	QUICKDS(CamDist, 3232),
-	QUICKDS(CamHeight, 3232),
-	QUICKDS(CamSpeed, 3232),
-	QUICKDS(ChaseCam, 1010),
-	QUICKDS(TransSBar, 1010),
-	QUICKDS(ScaledSBar, 1010),
+	QUICKDS(Color, PDST_UINT8),
+	QUICKDS(JoyControl, PDST_UINT8),
+	QUICKDS(SlowTurnTime, PDST_TIC),
+	QUICKDS(MouseSens[0], PDST_INT32),
+	QUICKDS(MouseSens[1], PDST_INT32),
+	QUICKDS(JoySens[0], PDST_INT32),
+	QUICKDS(JoySens[1], PDST_INT32),
+	QUICKDS(LookUpDownSpeed, PDST_INT32),
+	QUICKDS(AutoGrabJoy, PDST_INT32),
+	QUICKDS(ColorPickup, PDST_UINT8),
+	QUICKDS(ColorSecret, PDST_UINT8),
+	QUICKDS(SoundSecret, PDST_STRING),
+	QUICKDS(DrawPSprites, PDST_BOOL),
+	QUICKDS(BobMode, PDST_UINT8),
+	QUICKDS(ViewHeight, PDST_FIXED),
+	QUICKDS(CamDist, PDST_FIXED),
+	QUICKDS(CamHeight, PDST_FIXED),
+	QUICKDS(CamSpeed, PDST_FIXED),
+	QUICKDS(ChaseCam, PDST_BOOL),
+	QUICKDS(TransSBar, PDST_BOOL),
+	QUICKDS(ScaledSBar, PDST_BOOL),
+	QUICKDS(HexenClass, PDST_STRING),
+	QUICKDS(AutoRun, PDST_BOOL),
+	QUICKDS(SlowTurn, PDST_BOOL),
 	
 	{"", 0, 0},
 #undef QUICKDS
@@ -216,8 +231,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	strncpy(New->DisplayName, a_Name, MAXPLAYERNAME - 1);
 	
 	/* Set Default Options */
-	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY | DPEXF_SLOWTURNING;
+	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY;
 	New->SlowTurnTime = 6;
+	New->SlowTurn = true;
 	
 	// Default Controls (First Time)
 	if (!l_DefaultCtrlsMapped)
@@ -379,7 +395,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->ColorSecret = VEX_MAP_BRIGHTWHITE;
 	
 	// Default Sounds
-	New->SoundSecret = sfx_secret;
+	strncpy(New->SoundSecret, "secret", MAXPLAYERNAME - 1);
 	
 	// Default other options
 	New->DrawPSprites = true;
@@ -561,48 +577,99 @@ static void DS_ReloadValue(D_ProfileEx_t* const a_Profile, const char* const a_O
 	/* Get offset */
 	Ptr = (void*)((uintptr_t)a_Profile + c_ProfDataStat[i].Offset);
 	
-	/* Based on Size */
-	switch (c_ProfDataStat[i].Size)
+	/* Based on type */
+	switch (c_ProfDataStat[i].Type)
 	{
-		case 8: *((uint8_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
-		case 16: *((uint16_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
-		case 32: *((uint32_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
-		case 717: *((tic_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
-		case 3232: *((fixed_t*)Ptr) = FLOAT_TO_FIXED(atof(a_Value)); break;
-		
-		case 1010:
-			if (strcasecmp(a_Value, "true") == 0 || strcasecmp(a_Value, "yes") == 0)
-				*((bool_t*)Ptr) = true;
-			else
-				*((bool_t*)Ptr) = false;
+			// uint8_t
+		case PDST_UINT8:
+			*((uint8_t*)Ptr) = C_strtou32(a_Value, NULL, 10);
 			break;
-		
-		case 5555:
-			for (i = 0; i < NUMSFX; i++)
-				if (strcasecmp(a_Value, S_sfx[i].name) == 0)
-				{
-					*((int32_t*)Ptr) = i;
-					break;
-				}
+			
+			// uint32_t
+		case PDST_UINT32:
+			*((uint32_t*)Ptr) = C_strtou32(a_Value, NULL, 10);
+			break;
+			
+			// int32_t
+		case PDST_INT32:
+			*((int32_t*)Ptr) = C_strtoi32(a_Value, NULL, 10);
+			break;
+			
+			// fixed_t
+		case PDST_FIXED:
+			*((fixed_t*)Ptr) = FLOAT_TO_FIXED(atof(a_Value));
+			break;
+			
+			// bool_t
+		case PDST_BOOL:
+			*((bool_t*)Ptr) = false;
+			if (!strcasecmp("true", a_Value))
+				*((bool_t*)Ptr) = true;
+			break;
+			
+			// char*
+		case PDST_STRING:
+			CONL_UnEscapeString(Ptr, MAXPLAYERNAME, a_Value);
+			break;
+			
+			// tic_t
+		case PDST_TIC:
+			*((tic_t*)Ptr) = C_strtou32(a_Value, NULL, 10);
+			break;
+			
+			// Unknown?
+		default:
 			break;
 	}
 }
 
 /* DS_SizeToStr() -- Converts sized argument to a string */
-static void DS_SizeToStr(void* const a_Ptr, const uint16_t a_Size, char* const a_Buf, const size_t a_BufSize)
+static void DS_SizeToStr(void* const a_Ptr, const D_PDST_t a_Type, char* const a_Buf, const size_t a_BufSize)
 {
-	switch (a_Size)
+	switch (a_Type)
 	{
-		case 8: snprintf(a_Buf, a_BufSize, "%i", *((uint8_t*)a_Ptr)); break;
-		case 16: snprintf(a_Buf, a_BufSize, "%i", *((uint16_t*)a_Ptr)); break;
-		case 32: snprintf(a_Buf, a_BufSize, "%i", *((uint32_t*)a_Ptr)); break;
-		
-		case 3232: snprintf(a_Buf, a_BufSize, "%f", FIXED_TO_FLOAT(*((fixed_t*)a_Ptr))); break;
-		case 717: snprintf(a_Buf, a_BufSize, "%li", *((tic_t*)a_Ptr)); break;
-		case 1010: snprintf(a_Buf, a_BufSize, "%s", (*((bool_t*)a_Ptr) ? "true" : "false")); break;
-		case 5555: snprintf(a_Buf, a_BufSize, "%s", S_sfx[*((int32_t*)a_Ptr)].name); break;
-		
-		default: snprintf(a_Buf, a_BufSize, "0"); break;
+			// uint8_t
+		case PDST_UINT8:
+			snprintf(a_Buf, a_BufSize - 1, "%hhu", (int)(*((uint8_t*)a_Ptr)));
+			break;
+			
+			// uint32_t
+		case PDST_UINT32:
+			snprintf(a_Buf, a_BufSize - 1, "%u", (int)(*((uint32_t*)a_Ptr)));
+			break;
+			
+			// int32_t
+		case PDST_INT32:
+			snprintf(a_Buf, a_BufSize - 1, "%i", (int)(*((int32_t*)a_Ptr)));
+			break;
+			
+			// fixed_t
+		case PDST_FIXED:
+			snprintf(a_Buf, a_BufSize - 1, "%f", FIXED_TO_FLOAT(*((fixed_t*)a_Ptr)));
+			break;
+			
+			// bool_t
+		case PDST_BOOL:
+			if (*((bool_t*)a_Ptr))
+				strncpy(a_Buf, "true", a_BufSize - 1);
+			else
+				strncpy(a_Buf, "false", a_BufSize - 1);
+			break;
+			
+			// char*
+		case PDST_STRING:
+			CONL_EscapeString(a_Buf, a_BufSize, *((char**)a_Ptr));
+			break;
+			
+			// tic_t
+		case PDST_TIC:
+			snprintf(a_Buf, a_BufSize - 1, "%u", (int)(*((tic_t*)a_Ptr)));
+			break;
+			
+			// Unknown?
+		default:
+			strncpy(a_Buf, "???", a_BufSize - 1);
+			break;
 	}
 }
 
@@ -646,7 +713,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 		{
 			// Value
 			memset(BufB, 0, sizeof(BufB));
-			DS_SizeToStr((void*)((uintptr_t)Rover + c_ProfDataStat[i].Offset), c_ProfDataStat[i].Size, BufB, BUFSIZE);
+			DS_SizeToStr((void*)((uintptr_t)Rover + c_ProfDataStat[i].Offset), c_ProfDataStat[i].Type, BufB, BUFSIZE);
 			
 			// Write
 			snprintf(Buf, BUFSIZE, "profile value \"%s\" \"%s\" \"%s\"\n", EscapeUUID, c_ProfDataStat[i].ArgName, BufB);

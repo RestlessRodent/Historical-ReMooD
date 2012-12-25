@@ -2291,13 +2291,22 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		MoveSpeed = 0;
 	
 	// Turn Speed
-	if ((Profile->Flags & DPEXF_SLOWTURNING) &&
+	if ((Profile->SlowTurn) &&
 			gametic < (a_NPp->TurnHeld + Profile->SlowTurnTime))
 		TurnSpeed = 2;
 	else if (MoveSpeed)
 		TurnSpeed = 1;
 	else
 		TurnSpeed = 0;
+	
+	// Auto-run? If so, invert speeds
+	if (Profile->AutoRun)
+	{
+		MoveSpeed = !MoveSpeed;
+		
+		if (TurnSpeed != 2)
+			TurnSpeed = !TurnSpeed;
+	}
 	
 	/* Player has joystick input? */
 	// Read input for all axis

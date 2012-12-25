@@ -654,12 +654,16 @@ void I_GetEvent(void)
 {
 	SDL_Event Event;
 	I_EventEx_t ExEvent[4];
-	size_t i, j, a, d, o, dc, oc, dir;
+	int32_t i, j, a, d, o, dc, oc, dir;
 	static bool_t Focused = true;
-	static bool_t DidWarp = false;
+	static bool_t WarpX = false;
+	static bool_t WarpY = false;
 	static bool_t DownKeys[SDLK_LAST];
 	static uint16_t LastUnic[SDLK_LAST];
 	SDLKey Key;
+	int32_t x, y;
+	static int32_t ox;
+	static int32_t oy;
 	
 	/* Clear Event */
 	// Somewhere in SDL land...
@@ -724,19 +728,79 @@ void I_GetEvent(void)
 				
 				// Mouse Motion:
 			case SDL_MOUSEMOTION:
-				// If there was a warp, ignore
-				if (DidWarp)
+				// SDL has a stack based event system, which means that if the
+				// mouse cursor is warped, any old events in the old location
+				// still exist. Then on top of that the warping creates a new
+				// mouse event. Very fun. So basically, the old x position has
+				// to be remembered only when it is set to the old position on
+				// a warp, otherwise it is not needed.
+				
+				// Calculate Screen Center
+				i = l_SDLSurface->w >> 1;
+				j = l_SDLSurface->h >> 1;
+				a = l_SDLSurface->w >> 2;
+				d = l_SDLSurface->h >> 2;
+				
+				// Difference from last mouse location
+				// But warping needs to be checked because warps generate new
+				// events.
+				if (!WarpX || (WarpX && Event.motion.x != i))
 				{
-					DidWarp = false;
-					continue;
+					x = ((int32_t)Event.motion.x) - ox;
+					ox = Event.motion.x;
+				}
+				else
+				{
+					x = 0;
+					ox = i;
 				}
 				
+				if (!WarpY || (WarpY && Event.motion.y != j))
+				{
+					y = ((int32_t)Event.motion.y) - oy;
+					oy = Event.motion.y;
+					
+					// Invert
+					y = -y;
+				}
+				else
+				{
+					y = 0;
+					oy = j;
+				}
+				
+				// Build event for this mouse
 				ExEvent[0].Type = IET_MOUSE;
 				ExEvent[0].Data.Mouse.MouseID = 0;	// Always mouse Zero
 				ExEvent[0].Data.Mouse.Pos[0] = Event.motion.x;
 				ExEvent[0].Data.Mouse.Pos[1] = Event.motion.y;
-				ExEvent[0].Data.Mouse.Move[0] = Event.motion.xrel;
-				ExEvent[0].Data.Mouse.Move[1] = -Event.motion.yrel;	// Negative because SDL is swapped
+				ExEvent[0].Data.Mouse.Move[0] = x;
+				ExEvent[0].Data.Mouse.Move[1] = y;
+				
+				// Set to current location
+				x = Event.motion.x;
+				y = Event.motion.y;
+				
+				// Fall off/y x area? Only if focused and grabbed
+				if (Focused && l_DoGrab)
+					if ((x < (i - a) || x > (i + a)) ||
+						(y < (j - d) || y > (j + d)))
+					{
+						if (x < (i - a) || x > (i + a))
+						{
+							x = i;
+							WarpX = true;
+						}
+					
+						if (y < (j - d) || y > (j + d))
+						{
+							y = j;
+							WarpY = true;
+						}
+					
+						// Warp
+						SDL_WarpMouse(x, y);
+					}
 				break;
 				
 				// Mouse button
@@ -885,17 +949,6 @@ void I_GetEvent(void)
 		for (i = 0; i < 4; i++)
 			if (ExEvent[i].Type != IET_NULL)
 				I_EventExPush(&ExEvent[i]);
-	}
-	
-	/* Warp the mouse */
-	// But not if we are not focused
-	if (Focused && l_DoGrab)
-	{
-		SDL_WarpMouse(l_SDLSurface->w >> 1, l_SDLSurface->h >> 1);
-		// Normally one would poll this even but who knows if some other event
-		// was handled after warp mouse was handled and before the event was polled?
-		//SDL_PollEvent(&Event);
-		DidWarp = true;
 	}
 }
 

@@ -59,7 +59,6 @@ typedef enum D_ProfileExFlags_e
 	DPEXF_GOTMOUSE				= 0x00000001,	// Has control of the mouse
 	DPEXF_GOTJOY				= 0x00000002,	// Controls a joystick
 	DPEXF_PLAYING				= 0x00000004,	// Is playing the game
-	DPEXF_SLOWTURNING			= 0x00000008,	// Enables Slow Turning
 	DPEXF_DONTSAVE				= 0x00000010,	// Don't save in configs
 	DPEXF_DEFAULTKEYS			= 0x00000020,	// Default Keys here!
 } D_ProfileExFlags_t;
@@ -202,7 +201,7 @@ typedef struct D_ProfileEx_s
 	/* Other stuff */
 	uint8_t ColorPickup;						// Color for pickups
 	uint8_t ColorSecret;						// Secret Found Color
-	int32_t SoundSecret;						// Sound to play when Secret Found
+	char SoundSecret[MAXPLAYERNAME];			// Sound to play when Secret Found
 	bool_t DrawPSprites;						// Draw Player Sprites
 	int8_t BobMode;								// Bobbing Mode (Doom, Mid, Effort)
 	fixed_t ViewHeight;							// View Height
@@ -211,6 +210,8 @@ typedef struct D_ProfileEx_s
 	bool_t TransSBar;							// Transparent Status Bar
 	bool_t ScaledSBar;							// Scaled Status Bar
 	char HexenClass[MAXPLAYERNAME];				// Hexen Class
+	bool_t AutoRun;								// Autorun
+	bool_t SlowTurn;							// Perform slow turning
 } D_ProfileEx_t;
 
 /*** GLOBALS ***/

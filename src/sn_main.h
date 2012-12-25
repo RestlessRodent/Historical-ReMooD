@@ -55,6 +55,8 @@
 	#define rSu(a,b) (((raster_t)(a)) - ((raster_t)(b)))
 	#define rMu(a,b) (((raster_t)(a)) * ((raster_t)(b)))
 	
+	#define RASTERT_C(x) ((double)(x))
+	
 #else
 	/* Fixed Point */
 	typedef fixed_t raster_t;
@@ -62,6 +64,8 @@
 	#define rAd(a,b) (((raster_t)(a)) + ((raster_t)(b)))
 	#define rSu(a,b) (((raster_t)(a)) - ((raster_t)(b)))
 	#define rMu(a,b) (FixedMul(((raster_t)(a)), ((raster_t)(b))))
+	
+	#define RASTERT_C(x) (((fixed_t)(x)) << FRACBITS)
 #endif
 
 /**************
