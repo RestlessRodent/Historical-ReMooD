@@ -147,9 +147,108 @@ static SN_Poly_t* SNS_AddVertex(SN_Poly_t* const a_Base, SN_Vert_t* const a_Vert
 	}
 }
 
+/* SN_LineProp_t -- Properties of line */
+typedef struct SN_LineProp_s
+{
+	bool_t Vert;
+	fixed_t Slope;
+	fixed_t YInter;
+	
+	SN_Vert_t* v[2];
+} SN_LineProp_t;
+
+/* SNS_CheckInter() -- Checks for intercept */
+static bool_t SNS_CheckInter(SN_LineProp_t* const a_A, SN_LineProp_t* const a_BSN_Vert_t* const a_Out)
+{
+	fixed_t xx, yy;
+	
+	/* Both Lines are vertical */
+	if (a_A->Vert && a_B->Vert)
+		return false;
+	
+	/* Have same slope */
+	else if (a_A->Slope == a_B->Slope)
+		return false;
+	
+	/* Otherwise, calculate intersection */
+	else
+	{
+		// y1 = m1x1 + b1
+		// y2 = m2x2 + b2
+		
+		// m1x1 + b1 = m2x2 + b2
+		
+		xx = FixedDiv((a_B->YInter - a_A->YInter), (a_A->Slope - a_B->Slope));
+		yy = FixedMul(a_A->Slope, xx) + a_A->YInter;
+	}
+	
+	/* No interception */
+	return false;
+}
+
+/* SNS_GetLineProps() -- Gets property of lines */
+static void SNS_GetLineProps(SN_LineProp_t* const a_Out, SN_Vert_t* const a_A, SN_Vert_t* const a_B)
+{
+	/* Copy Verts */
+	a_Out->v[0] = a_A;
+	a_Out->v[1] = a_B;
+	
+	/* Get Slope of line */
+	// Vertical?
+	if (a_B->v[0] - a_A->v[0] == 0)
+		a_Out->Vert = true;
+	else
+	{
+		a_Out->Vert = false;
+		a_Out->Slope = FixedDiv(a_B->v[1] - a_A->v[1], a_B->v[0] - a_A->v[0]);
+		
+		// Get Y Intercept
+		YInter = ((-FixedMul(a_Out->Slope, a_A->v[0])) + a_A->v[1]);
+	}
+}
+
 /* SNS_SplitPoly() -- Splits polygon with line */
 static void SNS_SplitPoly(SN_Poly_t* const a_Poly, SN_Vert_t* const a_Line, SN_Poly_t** const a_Left, SN_Poly_t** const a_Right)
 {
+	SN_LineProp_t SplitProp;
+	SN_Poly_t* Rover;
+	
+	SN_LineProp_t CheckProp;
+	
+	SN_LineProp_t HitP[2];
+	SN_Vert_t HitV[2];
+	int HitCount;
+	
+	/* Get property of split line */
+	memset(&SplitProp, 0, sizeof(SplitProp));
+	SNS_GetLineProps(&SplitProp, &a_Line[0], &a_Line[1]);
+	
+	/* Init */
+	memset(HitP, 0, sizeof(HitP));
+	memset(HitV, 0, sizeof(HitV));
+	HitCount = 0;
+	
+	/* Look through all vertexes */
+	Rover = a_Poly;
+	do
+	{
+		// Get properties of this line
+		memset(&CheckProp, 0, sizeof(CheckProp));
+		SNS_GetLineProps(&CheckProp, &Rover->v, &Rover->Next->v);
+		
+		// See if line intercepts
+		if (SNS_CheckInter(&SplitProp, &CheckProp, &HitV[HitCount]))
+		{
+			memmove(&HitP[HitCount], &CheckProp, sizeof(CheckProp));
+			HitCount++;
+		}
+		
+		// Get next rover
+		Rover = Rover->Next;
+	} while (Rover != a_Poly);
+	
+	/* Debug */
+	CONL_PrintF("Intercepts: %i\n", HitCount);
 }
 
 /* SNS_RunNode() -- Runs a single node */
