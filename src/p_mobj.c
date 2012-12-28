@@ -72,8 +72,8 @@ static const fixed_t FloatBobOffsets[64] =
 	-200637, -152193, -102284, -51389
 };
 
-/* P_AdjMobjStateTics() -- Adjust object state tics */
-void P_AdjMobjStateTics(mobj_t* const a_Object)
+/* PS_AdjMobjStateTics() -- Adjust object state tics */
+static void PS_AdjMobjStateTics(mobj_t* const a_Object)
 {
 	int32_t BloodTime;
 	
@@ -151,7 +151,7 @@ bool_t P_SetMobjState(mobj_t* mobj, PI_stateid_t state)
 			mobj->tics = st->tics;
 		
 		// GhostlyDeath <March 6, 2012> -- Special tic constants?
-		P_AdjMobjStateTics(mobj);
+		PS_AdjMobjStateTics(mobj);
 		
 		mobj->sprite = st->sprite;
 		mobj->frame = st->frame;
@@ -1320,7 +1320,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, PI_mobjid_t type)
 	mobj->friction = ORIG_FRICTION;	//SoM: 4/7/2000
 	
 	// GhostlyDeath <March 6, 2012> -- Init tics
-	P_AdjMobjStateTics(mobj);
+	PS_AdjMobjStateTics(mobj);
 	
 	// BP: SoM right ? if not ajust in p_saveg line 625 and 979
 	mobj->movefactor = ORIG_FRICTION_FACTOR;
@@ -1709,6 +1709,21 @@ void P_RemoveFromBodyQueue(mobj_t* const a_Mo)
 			bodyque[i] = NULL;
 			break;
 		}
+}
+
+/* P_SpawnPlayerBackup() -- Spawns player at (0, 0) */
+void P_SpawnPlayerBackup(int32_t const a_PlayerNum)
+{
+	mapthing_t ZeroThing;
+	
+	/* Setup Thing */
+	memset(&ZeroThing, 0, sizeof(ZeroThing));
+	
+	// Set player id
+	ZeroThing.type = a_PlayerNum + 1;
+	
+	/* Spawn */
+	P_SpawnPlayer(&ZeroThing);
 }
 
 //

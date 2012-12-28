@@ -1381,6 +1381,15 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Update Scores */
 	P_UpdateScores();
+	
+	/* Spawn player into game */
+	// Control monster, initially
+	if (Player->CounterOpPlayer && P_XGSVal(PGS_MONENABLEPLAYASMONSTER))
+		P_ControlNewMonster(Player);
+	
+	// Spawn them normally
+	else
+		G_DoReborn(Player - players);
 }
 
 /* D_XNetSetServerName() -- Server changes name */

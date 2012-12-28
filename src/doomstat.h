@@ -121,7 +121,6 @@ extern bool_t newnet_solo;
 // Netgame? only true in a netgame
 extern bool_t netgame;
 extern bool_t serverside;
-extern bool_t localgame;
 
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
 extern bool_t multiplayer;

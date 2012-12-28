@@ -115,7 +115,6 @@ tic_t demostarttime;			// for comparative timing purposes
 bool_t netgame;					// only true if packets are broadcast
 bool_t multiplayer;
 bool_t serverside;
-bool_t localgame;
 bool_t playeringame[MAXPLAYERS];
 player_t players[MAXPLAYERS];
 
@@ -1430,15 +1429,15 @@ void G_CoopSpawnPlayer(int playernum)
 {
 	int i;
 	
-	// no deathmatch use the spot
+	/* Try using explicit player spot */
 	if (G_CheckSpot(playernum, playerstarts[playernum], false))
 	{
 		P_SpawnPlayer(playerstarts[playernum]);
 		return;
 	}
-	// try to spawn at one of the other players spots
+	
+	/* If that fails, try another player start */
 	for (i = 0; i < MAXPLAYERS; i++)
-	{
 		if (G_CheckSpot(playernum, playerstarts[i], false))
 		{
 			playerstarts[i]->type = playernum + 1;	// fake as other player
@@ -1446,9 +1445,8 @@ void G_CoopSpawnPlayer(int playernum)
 			playerstarts[i]->type = i + 1;	// restore
 			return;
 		}
-		// he's going to be inside something.  Too bad.
-	}
 	
+	/* Spawn clustering (extra virtual spots) */
 	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
 	if (P_XGSVal(PGS_PLSPAWNCLUSTERING))
 	{
@@ -1461,17 +1459,27 @@ void G_CoopSpawnPlayer(int playernum)
 			return;
 	}
 	
-	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS) || (!P_XGSVal(PGS_COALLOWSTUCKSPAWNS) && localgame))
+	/* Allow getting stuck in other players */
+	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS))
 		P_SpawnPlayer(playerstarts[playernum]);
+	
+	/* Try using DM starts instead */
 	else
 	{
 		int selections;
 		
+		// GhostlyDeath <December 28, 2012> -- Instead of an I_Error, just spawn
+		// at (0, 0) instead. Better than nothing!
 		if (!numdmstarts)
-			I_Error("No deathmatch start in this map !");
-		selections = P_Random() % numdmstarts;
-		deathmatchstarts[selections]->type = playernum + 1;
-		P_SpawnPlayer(deathmatchstarts[selections]);
+			P_SpawnPlayerBackup(playernum);
+		
+		// Otherwise, use a DM spot
+		else
+		{
+			selections = P_Random() % numdmstarts;
+			deathmatchstarts[selections]->type = playernum + 1;
+			P_SpawnPlayer(deathmatchstarts[selections]);
+		}
 	}
 }
 

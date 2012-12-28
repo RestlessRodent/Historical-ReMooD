@@ -849,15 +849,9 @@ void P_PlayerThink(player_t* player)
 		if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
 			P_ControlNewMonster(player);
 		
-		// Still bad?
+		// Still bad? Then the middle of nowhere is better than nothing
 		if (!player->mo)
-		{
-			// In the middle of nowhere could be better than nothing
-			player->mo = P_SpawnMobj(0, 0, 0, INFO_GetTypeByName("DoomPlayer"));
-		
-			// Set as reborn
-			player->playerstate = PST_REBORN;
-		}
+			P_SpawnPlayerBackup(player - players);
 	}
 	
 	// fixme: do this in the cheat code

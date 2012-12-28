@@ -584,6 +584,7 @@ int P_MobjFlagsExtendedToNatural(mobj_t* MObj);
 void P_MobjCheckWater(mobj_t* mobj);
 
 void P_SpawnMapThing(mapthing_t* mthing);
+void P_SpawnPlayerBackup(int32_t const a_PlayerNum);
 void P_SpawnPlayer(mapthing_t* mthing);
 int P_HitFloor(mobj_t* thing);
 
