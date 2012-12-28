@@ -1037,7 +1037,7 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 #else
 				CONL_PrintF("{4%-25s{z\n", l_GSVars[i].Name);
 				CONL_PrintF("  : {5%.45s{z\n", l_GSVars[i].Description);
-				CONL_PrintF("  = %i\n", (l_GSVars[i].WasSet ? l_GSVars[i].ActualVal : l_GSVars[i].DefaultVal));
+				CONL_PrintF("  = %s\n", l_GSVars[i].StrVal);
 #endif
 			}
 			
@@ -1058,7 +1058,7 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 			// Return value and information
 			CONL_PrintF("{4%-30s{z \"{7%s{z\"\n", Var->Name, DS_GetString(Var->MenuTitle));
 			CONL_PrintF("  Desc: %s\n", DS_GetString(Var->Description));
-			CONL_PrintF("  Valu: %i\n", P_XGSVal(Var->BitID));
+			CONL_PrintF("  Valu: %s (%i)\n", Var->StrVal, P_XGSVal(Var->BitID));
 			
 			return 0;
 		}
@@ -1112,7 +1112,7 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* PS_EXGSValToStr() -- Convert Value to String */
-const void PS_EXGSValToStr(P_XGSVariable_t* const a_Var)
+static void PS_EXGSValToStr(P_XGSVariable_t* const a_Var)
 {
 	int32_t XVal, a, b, c;
 	
@@ -1352,12 +1352,12 @@ bool_t P_XGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level)
 	return true;
 }
 
-/* P_XGSSetValue() -- Sets value of variable */
-int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int32_t a_Value)
+/* PS_XGSCapValue() -- Caps the input value */
+static int32_t PS_XGSCapValue(const P_XGSBitID_t a_Bit, const int32_t a_Value, bool_t* const a_IsValid)
 {
-	P_XGSVariable_t* Var;
 	int32_t MinVal, MaxVal, i, pv;
 	bool_t Possibly;
+	P_XGSVariable_t* Var;
 	
 	/* Get variable first */
 	Var = P_XGSVarForBit(a_Bit);
@@ -1365,18 +1365,6 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	// Nothing?
 	if (!Var)
 		return 0;
-	
-	/* Permitted to change value? */
-	if (!a_Master)
-	{
-		// Change it in a tic command
-		D_XNetChangeVar(a_Bit, a_Value);
-		
-		// Return the previous value
-		if (Var->WasSet)
-			return Var->ActualVal;
-		return Var->DefaultVal;
-	}
 	
 	/* Perform value limiting on it (enum) */
 	Possibly = false;
@@ -1406,32 +1394,74 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 		// Found value? Use pv
 		if (Possibly)
 		{
-			Var->WasSet = true;
-			Var->ActualVal = pv;
+			if (a_IsValid)
+				*a_IsValid = true;
+			return pv;
 		}
 		
 		// Otherwise, cap between min/max
 		else
 		{
-			if (a_Value < MinVal)
-				Var->ActualVal = MinVal;
-			else if (a_Value > MaxVal)
-				Var->ActualVal = MaxVal;
-			else
-				Var->ActualVal = a_Value;
+			if (a_IsValid)
+				*a_IsValid = true;
 			
-			// Set to true, since it would be set anyways
-			Var->WasSet = true;
-			Possibly = true;
+			if (a_Value < MinVal)
+				return MinVal;
+			else if (a_Value > MaxVal)
+				return MaxVal;
+			else
+				return a_Value;
 		}
 	}
 	
 	/* Set value */
-	if (!Possibly)
+	// There is no possible value for this variable
+	if (a_IsValid)
+		*a_IsValid = true;
+	return a_Value;
+}
+
+/* P_XGSSetValue() -- Sets value of variable */
+int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int32_t a_Value)
+{
+	P_XGSVariable_t* Var;
+	bool_t Valid;
+	int32_t Value;
+	
+	/* Get variable first */
+	Var = P_XGSVarForBit(a_Bit);
+	
+	// Nothing?
+	if (!Var)
+		return 0;
+	
+	/* Permitted to change value? */
+	if (!a_Master)
 	{
-		Var->WasSet = true;
-		Var->ActualVal = a_Value;
+		// Change it in a tic command
+		D_XNetChangeVar(a_Bit, a_Value);
+		
+		// Return the previous value
+		if (Var->WasSet)
+			return Var->ActualVal;
+		return Var->DefaultVal;
 	}
+	
+	/* Cap the value */
+	Valid = false;
+	Value = PS_XGSCapValue(a_Bit, a_Value, &Valid);
+	
+	// Not valid?
+	if (!Valid)
+	{
+		if (Var->WasSet)
+			return Var->ActualVal;
+		return Var->DefaultVal;
+	}
+	
+	// Set it now
+	Var->WasSet = true;
+	Var->ActualVal = Value;
 	
 	/* Set string */
 	PS_EXGSValToStr(Var);
@@ -1444,8 +1474,8 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	return Var->ActualVal;
 }
 
-/* P_XGSSetValueStr() -- Sets value by string */
-int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const char* const a_Value)
+/* PS_XGSCapValueStr() -- Caps the input value by string */
+static int32_t PS_XGSCapValueStr(const P_XGSBitID_t a_Bit, const char* const a_Value, bool_t* const a_IsValid)
 {
 	int32_t SetVal, i;
 	P_XGSVariable_t* Var;
@@ -1468,14 +1498,45 @@ int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const 
 		for (i = 0; Var->Possible[i].StrAlias; i++)
 			if (strcasecmp(a_Value, Var->Possible[i].StrAlias) == 0)
 			{
-				Possibly = true;
-				SetVal = Var->Possible[i].IntVal;
-				break;
+				if (a_IsValid)
+					*a_IsValid = true;
+				return Var->Possible[i].IntVal;
 			}
 	
 	/* See which value to use here */
-	if (!Possibly)
-		SetVal = strtol(a_Value, NULL, 0);
+	if (a_IsValid)
+		*a_IsValid = true;
+	if (Var->Type == PEXGST_FLOAT)
+		return FLOAT_TO_FIXED(strtod(a_Value, NULL));
+	else
+		return C_strtoi32(a_Value, NULL, 0);
+}
+
+/* P_XGSSetValueStr() -- Sets value by string */
+int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const char* const a_Value)
+{
+	P_XGSVariable_t* Var;
+	int32_t SetVal;
+	bool_t Valid;
+	
+	/* Check */
+	if (!a_Value || a_Master)
+		return 0;
+	
+	/* Get variable first */
+	Var = P_XGSVarForBit(a_Bit);
+	
+	// Nothing?
+	if (!Var)
+		return 0;
+	
+	/* Cap the value */
+	Valid = false;
+	SetVal = PS_XGSCapValueStr(a_Bit, a_Value, &Valid);
+	
+	// Not valid?
+	if (!Valid)
+		return false;
 	
 	/* Return the value */
 	return P_XGSSetValue(a_Master, a_Bit, SetVal);
@@ -1491,16 +1552,30 @@ static bool_t l_NGAutoStart = false;			// Auto start game
 
 static char l_NGNewMap[WLMAXENTRYNAME];			// Map to change to
 
+/* c_NGValues -- New values for everything */
+static struct
+{
+	bool_t IsSet;								// Value is set
+	int32_t Value;								// Value changed to
+} l_NGValues[PEXGSNUMBITIDS];
+
 /*** FUNCTIONS ***/
 
 /* NG_ResetVars() -- Resets variables */
 void NG_ResetVars(void)
 {
+	int32_t i;
+	
 	/* Clear auto start */
 	l_NGAutoStart = false;
 	
 	/* Clear map to switch to */
 	memset(l_NGNewMap, 0, sizeof(l_NGNewMap));
+	
+	/* Clear all set values */
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+		NG_SetVarDefault(i);
+	memset(l_NGValues, 0, sizeof(l_NGValues));
 }
 
 /* NG_FromCLine() -- Set vars from command line */
@@ -1680,7 +1755,13 @@ void NG_FromCLine(void)
 /* NG_ApplyVars() -- Applies set variables */
 void NG_ApplyVars(void)
 {
+	int32_t i;
+	
 	/* Set any variables first */
+	// But only for explicitly set ones
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+		if (l_NGValues[i].IsSet)
+			P_XGSSetValue(true, i, l_NGValues[i].Value);
 	
 	/* Switch to new map? */
 	if (l_NGNewMap[0])
@@ -1708,18 +1789,47 @@ bool_t NG_SetRules(const char* const a_Name)
 	return false;
 }
 
+/* NG_SetVarValueStr() -- Sets value as string */
+int32_t NG_SetVarValueStr(const P_XGSBitID_t a_Bit, const char* const a_NewVal)
+{
+	/* Check */
+	if (a_Bit < 0 || a_Bit >= PEXGSNUMBITIDS || !a_NewVal)
+		return 0;
+	
+	/* Use standard capping */
+	return NG_SetVarValue(a_Bit, PS_XGSCapValueStr(a_Bit, a_NewVal, &l_NGValues[a_Bit].IsSet));
+}
+
 /* NG_SetVarValue() -- Set variable to value */
 int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal)
 {
+	/* Check */
+	if (a_Bit < 0 || a_Bit >= PEXGSNUMBITIDS)
+		return 0;
+	
+	/* Cap and return value */
+	l_NGValues[a_Bit].Value = PS_XGSCapValue(a_Bit, a_NewVal, &l_NGValues[a_Bit].IsSet);
+	return l_NGValues[a_Bit].Value;
 }
 
 /* NG_SetVarDefault() -- Set variable to default */
 int32_t NG_SetVarDefault(const P_XGSBitID_t a_Bit)
 {
+	/* Check */
+	if (a_Bit < 0 || a_Bit >= PEXGSNUMBITIDS)
+		return 0;
+	
+	/* Clear set */
+	l_NGValues[a_Bit].IsSet = false;
+	
+	/* Return actual default */
+	l_NGValues[a_Bit].Value = l_GSVars[a_Bit].DefaultVal;
+	return l_NGValues[a_Bit].Value;
 }
 
 /* NG_GetNextValue() -- Get next value (for menus) */
 int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right)
 {
+	return P_XGSGetNextValue(a_Bit, a_Right);
 }
 
