@@ -2213,6 +2213,9 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 	shootthing = t1;
 	la_damage = damage;
 	
+	// GhostlyDeath <December 28, 2012> -- Set killing method
+	t1->RXAttackAttackType = PRXAT_RANGED;
+	
 	// player autoaimed attack,
 	if (!P_XGSVal(PGS_CONEWAIMINGCODE) || !t1->player)
 	{
