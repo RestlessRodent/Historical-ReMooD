@@ -589,7 +589,8 @@ static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 	{"Sprite", IRVT_FUNC, offsetof(PI_state_t, HoldSprite), INFO_FrameMisc},
 	{"Transparency", IRVT_FUNC, offsetof(PI_state_t, frame), INFO_FrameMisc},
 	{"FullBright", IRVT_FUNC, offsetof(PI_state_t, frame), INFO_FrameMisc},
-	{"Priority", IRVT_FUNC, offsetof(PI_state_t, Priority), INFO_FrameMisc},
+	{"ViewPriority", IRVT_FUNC, offsetof(PI_state_t, Priority), INFO_FrameMisc},
+	{"UseBloodTime", IRVT_FUNC, offsetof(PI_state_t, ExtraStateFlags), INFO_FrameMisc},
 	
 	{NULL},
 };
@@ -794,6 +795,7 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 		StateP->Marker = ((uint32_t)StateP->IOSG) << UINT32_C(16);
 		StateP->Marker |= ((uint32_t)StateP->FrameID) & UINT32_C(0xFFFF);
 		memset(StateP->DehackEdID, 0xFF, sizeof(StateP->DehackEdID));
+		StateP->Priority = STP_DEFAULT;
 	}
 	
 	// Copy Origin
@@ -1463,9 +1465,16 @@ void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 	}
 	
 	/* Priority */
-	else if (strcasecmp(a_Field, "Priority") == 0)
-	{
+	else if (strcasecmp(a_Field, "ViewPriority") == 0)
 		This->Cur.StateP->Priority = INFO_PriorityByName(a_Value);
+	
+	/* Blood Time */
+	else if (!strcasecmp(a_Field, "UseBloodTime"))
+	{
+		This->Cur.StateP->ExtraStateFlags &= ~__REMOOD_BLOODTIMECONST;
+		
+		if (INFO_BoolFromString(a_Value))
+			This->Cur.StateP->ExtraStateFlags |= __REMOOD_BLOODTIMECONST;
 	}
 }
 
@@ -2493,8 +2502,10 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 }
 
 /* INFO_PriorityByName() -- Priority by name */
-int INFO_PriorityByName(const char* const a_Name)
+uint8_t INFO_PriorityByName(const char* const a_Name)
 {
+	int32_t Val;
+	
 	/* Check */
 	if (!a_Name)
 		return STP_DEFAULT;
@@ -2517,7 +2528,21 @@ int INFO_PriorityByName(const char* const a_Name)
 	else if (strcasecmp(a_Name, "Projectiles") == 0) return STP_PROJECTILES;
 	
 	/* Not Found */
-	return STP_DEFAULT;
+	// Try obtaining from integer
+	Val = C_strtou32(a_Name, NULL, 10);
+	
+	// Nothing
+	if (!Val)
+		return STP_DEFAULT;
+	
+	// Cap to min/max
+	if (Val > 255)
+		return 255;
+	else if (Val < 1)
+		return 1;
+	
+	// A correct value
+	return Val;
 }
 
 /* INFO_TransparencyByName() -- Return transparency for name */

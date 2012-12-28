@@ -61,7 +61,7 @@ typedef enum StatePriorities_e
 	STP_WEAPON = 112,			// Weapons
 	STP_AMMO = 90,				// Ammo on the ground
 	STP_WEPFLASH = 36,			// Weapon flashes
-	STP_EFFECTS = 48,			// Effects (blood, fog, puffs, etc.)
+	STP_EFFECTS = 8,			// Effects (blood, fog, puffs, etc.)
 	STP_MONSTERS = 96,			// Monsters that are alive
 	STP_CORPSES = 32,			// Dead things
 	STP_PLAYERS = 116,			// Other players
@@ -474,7 +474,7 @@ bool_t INFO_BoolFromString(const char* const a_String);
 PI_mobjid_t INFO_GetTypeByName(const char* const a_Name);
 PI_spriteid_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);
-int INFO_PriorityByName(const char* const a_Name);
+uint8_t INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);
 INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 PI_touchid_t P_RMODTouchSpecialByString(const char* const a_String);

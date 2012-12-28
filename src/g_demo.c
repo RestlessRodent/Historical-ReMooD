@@ -900,7 +900,14 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	// DM Before 1.27
 	if (VerMarker < 127)
+	{
 		P_XGSSetValue(true, PGS_GAMEDEATHMATCH, DM);
+		
+		if (DM == 1)
+			P_XGSSetValue(true, PGS_ITEMSKEEPWEAPONS, 1);
+		else
+			P_XGSSetValue(true, PGS_ITEMSKEEPWEAPONS, false);
+	}
 	
 	// Respawn and Fast before 1.28
 	if (VerMarker < 128)

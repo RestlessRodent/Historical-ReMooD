@@ -157,7 +157,7 @@ static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Pr
 	
 	/* Get current priority of state */
 	// Within distance 4096
-	ThisPr = FixedMul(a_BasePr << FRACBITS, (1 << FRACBITS) - FixedMul(a_Dist, 16)) >> FRACBITS;
+	ThisPr = a_BasePr;//FixedMul(a_BasePr << FRACBITS, (1 << FRACBITS) - FixedMul(a_Dist, 16)) >> FRACBITS;
 	
 	/* No more vissprites? */
 	// If this is the case, find a free sprite
