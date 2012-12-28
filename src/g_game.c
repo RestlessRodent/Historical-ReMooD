@@ -605,9 +605,6 @@ void G_Ticker(void)
 	if (g_ResumeMenu > 0)
 		g_ResumeMenu--;
 	
-	//for (i = 0; i == 0 && (gametic == g_WatchTic);)
-		;
-	
 	// do player reborns if needed
 	if (gamestate == GS_LEVEL)
 	{

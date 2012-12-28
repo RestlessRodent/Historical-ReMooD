@@ -120,6 +120,7 @@ static const struct
 	{"chatmode", "Enter Chat Mode", DPEXIC_CHATMODE},
 	{"popupmenu", "Show the Menu", DPEXIC_POPUPMENU},
 	{"morestuff", "More Commands Modifier", DPEXIC_MORESTUFF},
+	{"quickmenu", "Quick Selection Menu", DPEXIC_QUICKMENU},
 };
 
 /* c_AxisMap -- Map of axis names */
@@ -478,27 +479,27 @@ static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint3
 	
 	/* Joystick */
 	else if (a_Code & 0x1000)
-		snprintf(a_Dest, a_Size, "joyb%02i", (int)((a_Code & 0xFFF) - 1));
+		snprintf(a_Dest, a_Size, "joyb%02i", (int)((a_Code & 0xFFF) + 1));
 	
 	/* Mouse */
 	else if (a_Code & 0x2000)
-		snprintf(a_Dest, a_Size, "mouseb%02i", (int)((a_Code & 0xFFF) - 1));
+		snprintf(a_Dest, a_Size, "mouseb%02i", (int)((a_Code & 0xFFF) + 1));
 	
 	/* Double Mouse */
 	else if (a_Code & 0x3000)
-		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & 0xFFF) - 1));
+		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & 0xFFF) + 1));
 		
 	/* More Joystick */
 	else if (a_Code & 0x4000)
-		snprintf(a_Dest, a_Size, "morejoyb%02i", (int)((a_Code & 0xFFF) - 1));
+		snprintf(a_Dest, a_Size, "morejoyb%02i", (int)((a_Code & 0xFFF) + 1));
 	
 	/* More Mouse */
 	else if (a_Code & 0x5000)
-		snprintf(a_Dest, a_Size, "moremouseb%02i", (int)((a_Code & 0xFFF) - 1));
+		snprintf(a_Dest, a_Size, "moremouseb%02i", (int)((a_Code & 0xFFF) + 1));
 	
 	/* More Double Mouse */
 	else if (a_Code & 0x6000)
-		snprintf(a_Dest, a_Size, "moredblmouseb%02i", (int)((a_Code & 0xFFF) - 1));
+		snprintf(a_Dest, a_Size, "moredblmouseb%02i", (int)((a_Code & 0xFFF) + 1));
 	
 	/* Keyboard */
 	else if (a_Code >= 0 && a_Code < NUMIKEYBOARDKEYS)
@@ -524,27 +525,27 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 	
 	/* Joystick Buttons */
 	else if (strncasecmp(a_Str, "joyb", 4) == 0)
-		return 0x1000 | (C_strtou32(a_Str + 4, NULL, 10) + 1);
+		return 0x1000 | (C_strtou32(a_Str + 4, NULL, 10) - 1);
 	
 	/* Mouse Buttons */
 	else if (strncasecmp(a_Str, "mouseb", 6) == 0)
-		return 0x2000 | (C_strtou32(a_Str + 6, NULL, 10) + 1);
+		return 0x2000 | (C_strtou32(a_Str + 6, NULL, 10) - 1);
 	
 	/* Double Mouse Buttons */
 	else if (strncasecmp(a_Str, "dblmouseb", 9) == 0)
-		return 0x3000 | (C_strtou32(a_Str + 9, NULL, 10) + 1);
+		return 0x3000 | (C_strtou32(a_Str + 9, NULL, 10) - 1);
 		
 	/* More Joystick Buttons */
 	else if (strncasecmp(a_Str, "morejoyb", 8) == 0)
-		return 0x4000 | (C_strtou32(a_Str + 4, NULL, 10) + 1);
+		return 0x4000 | (C_strtou32(a_Str + 4, NULL, 10) - 1);
 	
 	/* More Mouse Buttons */
 	else if (strncasecmp(a_Str, "moremouseb", 10) == 0)
-		return 0x5000 | (C_strtou32(a_Str + 6, NULL, 10) + 1);
+		return 0x5000 | (C_strtou32(a_Str + 6, NULL, 10) - 1);
 	
 	/* More Double Mouse Buttons */
 	else if (strncasecmp(a_Str, "moredblmouseb", 13) == 0)
-		return 0x6000 | (C_strtou32(a_Str + 9, NULL, 10) + 1);
+		return 0x6000 | (C_strtou32(a_Str + 9, NULL, 10) - 1);
 	
 	/* Keyboard Keys */
 	else
@@ -658,7 +659,7 @@ static void DS_SizeToStr(void* const a_Ptr, const D_PDST_t a_Type, char* const a
 			
 			// char*
 		case PDST_STRING:
-			CONL_EscapeString(a_Buf, a_BufSize, *((char**)a_Ptr));
+			CONL_EscapeString(a_Buf, a_BufSize, ((char**)a_Ptr));
 			break;
 			
 			// tic_t
@@ -727,7 +728,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 			for (j = 0; j < MAXMOUSEAXIS; j++)
 			{
 				// If not the default, change
-				if (Rover->MouseAxis[i][j] == l_DefaultMouseAxis[i][j])
+				if (!(Rover->Flags & DPEXF_DUMPALL) && Rover->MouseAxis[i][j] == l_DefaultMouseAxis[i][j])
 					continue;
 					
 				// Write Axis
@@ -744,7 +745,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 			for (j = 0; j < MAXJOYAXIS; j++)
 			{
 				// If not the default, change
-				if (Rover->JoyAxis[i][j] == l_DefaultJoyAxis[i][j])
+				if (!(Rover->Flags & DPEXF_DUMPALL) && Rover->JoyAxis[i][j] == l_DefaultJoyAxis[i][j])
 					continue;
 					
 				// Write Axis
@@ -765,7 +766,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 				// If the key does not match the default then save it.
 				// Otherwise don't save it (since this fills the config
 				// file up to insane proportions.
-				if (Rover->Ctrls[i][j] == l_DefaultCtrls[i][j])
+				if (!(Rover->Flags & DPEXF_DUMPALL) && Rover->Ctrls[i][j] == l_DefaultCtrls[i][j])
 					continue;
 				
 				// Convert Key to String
@@ -809,8 +810,23 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 	memset(BufB, 0, sizeof(BufB));
 	
 	/* Which Sub Command */
+	// Dump all to config
+	if (!strcasecmp(a_ArgV[1], "dumpall"))
+	{
+		// Find profile
+		New = D_FindProfileEx(a_ArgV[2]);
+		
+		// Not found?
+		if (!New)
+			return false;
+		
+		// Set dump flag
+		New->Flags |= DPEXF_DUMPALL;
+		return true;
+	}
+	
 	// Create Profile
-	if (strcasecmp(a_ArgV[1], "create") == 0)
+	else if (strcasecmp(a_ArgV[1], "create") == 0)
 	{
 		// Read Name
 		CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);

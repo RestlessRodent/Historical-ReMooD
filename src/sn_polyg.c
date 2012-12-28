@@ -40,10 +40,21 @@
 #include "r_local.h"
 #include "sn_main.h"
 #include "vhw_wrap.h"
+#include "b_bot.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
+
+#define __REMOOD_DOUBLEPOLY
+
+#if defined(__REMOOD_DOUBLEPOLY)
+	typedef double polyf_t;
+	
+#else
+	typedef fixed_t polyf_t;
+
+#endif
 
 /**************
 *** GLOBALS ***

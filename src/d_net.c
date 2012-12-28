@@ -1350,6 +1350,11 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	Player->XPlayer = XPlay;
 	Player->skincolor = a_JoinData->Color;
 	
+	// GhostlyDeath <December 28, 2012> -- Counter op
+	Player->CounterOpPlayer = false;
+	if (a_JoinData->Flags & DTCJF_MONSTERTEAM)
+		Player->CounterOpPlayer = true;
+	
 	if (a_JoinData->DisplayName[0])
 		D_NetSetPlayerName(k, a_JoinData->DisplayName);
 	else
