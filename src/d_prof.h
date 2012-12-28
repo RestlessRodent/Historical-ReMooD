@@ -168,6 +168,19 @@ typedef enum D_ProfileExCtrlMA_e
 
 #define MAXPROFILEUUID (MAXPLAYERNAME * 2)
 
+/* Key bits for profiles */
+// This gives extra keys and such for each action performed
+#define PRFKBIT_MASK	UINT32_C(0xFFFFF000)
+#define PRFKBIT_VMASK	UINT32_C(0x00000FFF)
+#define PRFKBIT_KEY		UINT32_C(0x00000000)
+#define PRFKBIT_JOY		UINT32_C(0x00001000)
+#define PRFKBIT_MOUSE	UINT32_C(0x00002000)
+#define PRFKBIT_DMOUSE	UINT32_C(0x00003000)
+#define PRFKBIT_JOYP	UINT32_C(0x00004000)
+#define PRFKBIT_MOUSEP	UINT32_C(0x00005000)
+#define PRFKBIT_DMOUSEP	UINT32_C(0x00006000)
+#define PRFKBIT_KEYP	UINT32_C(0x00007000)
+
 /*** STRUCTURES ***/
 
 struct mobj_s;
@@ -220,6 +233,8 @@ typedef struct D_ProfileEx_s
 extern D_ProfileEx_t* g_KeyDefaultProfile;
 
 /*** FUNCTIONS ***/
+
+void D_ProfFixAccountName(char* const a_Buffer);
 
 D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);
 

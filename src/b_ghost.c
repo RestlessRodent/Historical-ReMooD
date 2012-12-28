@@ -1721,6 +1721,7 @@ static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 				
 				// Set Account Name
 				strncpy(Template->AccountName, Rover->Name, MAXPLAYERNAME);
+				D_ProfFixAccountName(Template->AccountName);
 			}
 			
 			// Begin reading

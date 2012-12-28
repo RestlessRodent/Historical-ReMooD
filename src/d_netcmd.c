@@ -537,7 +537,7 @@ void D_CMakeUUID(char* const a_Buf)
 	uint32_t Garbage;
 	
 	/* Generate a hopefully random ID */
-	for (i = 0; i < (MAXPLAYERNAME * 2) - 1; i++)
+	for (i = 0; i < MAXUUIDLENGTH - 1; i++)
 	{
 		// Hopefully random enough
 		Garbage = D_CMakePureRandom();

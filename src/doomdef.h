@@ -76,7 +76,7 @@ extern uint8_t demoversion;
 #define MAXSPLITSCREENPLAYERS	4
 #define MAXSPLITSCREEN			MAXSPLITSCREENPLAYERS
 #define MAXSKINS                MAXPLAYERS
-#define MAXPLAYERNAME           21
+#define MAXPLAYERNAME           32
 #define MAXSKINCOLORS           16
 
 #define SAVESTRINGSIZE          24

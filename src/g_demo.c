@@ -636,6 +636,8 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 *********************/
 // Handles 1.11 through 1.43 demos
 
+#define LEGACYMAXPLAYERNAME 21
+
 /*** STRUCTURES ***/
 
 /* G_LegacyExtraBuf_t -- Extra command buffer */

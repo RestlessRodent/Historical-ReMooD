@@ -1426,7 +1426,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 		
 			// Draw player name
 			if (l_DrawPlayers[dp].LocalPlayer)
-				snprintf(Buf, BUFSIZE - 1, "%s (P%i)", l_DrawPlayers[dp].PlayerName, l_DrawPlayers[dp].ScreenNum + 1);
+				snprintf(Buf, BUFSIZE - 1, "%s{z %s", l_DrawPlayers[dp].PlayerName, DS_GetString(DSTR_DMAINC_PLAYER1 + l_DrawPlayers[dp].ScreenNum));
 			else
 				snprintf(Buf, BUFSIZE - 1, "%s", l_DrawPlayers[dp].PlayerName);
 			V_DrawStringA(

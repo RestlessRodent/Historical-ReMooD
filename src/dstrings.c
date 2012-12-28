@@ -1001,10 +1001,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** D_MAIN.C ***/
 	{			 "DMAINC_JOYINSTRUCT", "Hold joystick towards\ndirection to control."},
-	{				 "DMAINC_PLAYER1", "P1"},
-	{				 "DMAINC_PLAYER2", "P2"},
-	{				 "DMAINC_PLAYER3", "P3"},
-	{				 "DMAINC_PLAYER4", "P4"},
+	{				 "DMAINC_PLAYER1", "{x70P1"},
+	{				 "DMAINC_PLAYER2", "{x71P2"},
+	{				 "DMAINC_PLAYER3", "{x72P3"},
+	{				 "DMAINC_PLAYER4", "{x73P4"},
 	
 	/*** IP_*.c ***/
 	{				 "IPC_CREATECONN", "Creating connection \"$1\" ($2)"},

@@ -159,6 +159,7 @@ static const struct
 } c_ProfDataStat[] =
 {
 #define QUICKDS(x,s) {#x, offsetof(D_ProfileEx_t, x), s}
+	QUICKDS(DisplayName, PDST_STRING),
 	QUICKDS(Color, PDST_UINT8),
 	QUICKDS(JoyControl, PDST_UINT8),
 	QUICKDS(SlowTurnTime, PDST_TIC),
@@ -203,6 +204,42 @@ static uint32_t l_DefaultCtrls[NUMDPROFILEEXINPUTCTRLS][4];
 
 /*** FUNCTIONS ***/
 
+/* D_ProfFixAccountName() -- Fixes account name */
+void D_ProfFixAccountName(char* const a_Buffer)
+{
+#define BUFSIZE MAXPLAYERNAME
+	char Buf[BUFSIZE];
+	char* d, *s, c;
+	
+	/* Check */
+	if (!a_Buffer)
+		return;
+	
+	/* Copy old name to buffer */
+	memset(Buf, 0, sizeof(Buf));
+	strncpy(Buf, a_Buffer, BUFSIZE - 1);
+	
+	/* Slowly Copy */
+	for (d = a_Buffer, s = Buf; *s; s++)
+	{
+		// Get current character
+		c = tolower(*s);
+		
+		// Legal Character
+		if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+			*(d++) = c;
+	}
+	
+	// No characters?
+	if (d == a_Buffer)
+		*(d++) = 'x';
+	
+	// Always place ending zero
+	*(d++) = 0;
+
+#undef BUFSIZE
+}
+
 /* D_CreateProfileEx() -- Create Profile */
 D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 {
@@ -231,6 +268,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	strncpy(New->AccountName, a_Name, MAXPLAYERNAME - 1);
 	strncpy(New->DisplayName, a_Name, MAXPLAYERNAME - 1);
 	
+	// Correct Name
+	D_ProfFixAccountName(New->AccountName);
+	
 	/* Set Default Options */
 	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY;
 	New->SlowTurnTime = 6;
@@ -240,120 +280,126 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	if (!l_DefaultCtrlsMapped)
 	{
 #define SETKEY_M(a,b) a##b
-#define SETKEY(c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
-#define SETJOY(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
-#define SETJOYMORE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][3] = 0x4000 | ((b) - 1)
-#define SETMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
-#define SETDBLMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][2] = 0x3000 | ((b) - 1)
+#define SETKEY(x,c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_KEY | (SETKEY_M(IKBK_,k))
+#define SETJOY(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOY | ((b) - 1)
+#define SETJOYMORE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOYP | ((b) - 1)
+#define SETMOUSE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_MOUSE | ((b) - 1)
+#define SETDBLMOUSE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_DMOUSE | ((b) - 1)
 		
 		// Default Controls
 		if (g_ModelMode == DMM_DEFAULT)
 		{
-			SETMOUSE(ATTACK, 1);
-			SETMOUSE(MOVEMENT, 2);
-			SETMOUSE(PREVWEAPON, 5);
-			SETMOUSE(NEXTWEAPON, 4);
-			SETDBLMOUSE(USE, 2);
+			SETMOUSE(1, ATTACK, 1);
+			SETMOUSE(1, MOVEMENT, 2);
+			SETMOUSE(1, PREVWEAPON, 5);
+			SETMOUSE(1, NEXTWEAPON, 4);
+			SETDBLMOUSE(1, USE, 2);
 			
-			SETKEY(SPEED, SHIFT);
-			SETKEY(MOVEMENT, ALT);
-			SETKEY(LOOKING, S);
-			SETKEY(FORWARDS, UP);
-			SETKEY(BACKWARDS, DOWN);
-			SETKEY(STRAFELEFT, COMMA);
-			SETKEY(STRAFERIGHT, PERIOD);
-			SETKEY(JUMP, FORWARDSLASH);
-			SETKEY(LAND, HOME);
-			SETKEY(TURNSEMICIRCLE, BACKSLASH);
-			SETKEY(TURNLEFT, LEFT);
-			SETKEY(TURNRIGHT, RIGHT);
-			SETKEY(LOOKUP, PAGEUP);
-			SETKEY(LOOKDOWN, PAGEDOWN);
-			SETKEY(LOOKCENTER, END);
-			SETKEY(USE, SPACE);
-			SETKEY(TAUNT, U);
-			SETKEY(CHAT, T);
-			SETKEY(TEAMCHAT, Y);
-			SETKEY(ATTACK, CTRL);
-			SETKEY(RELOAD, R);
-			SETKEY(SLOT1, 1);
-			SETKEY(SLOT2, 2);
-			SETKEY(SLOT3, 3);
-			SETKEY(SLOT4, 4);
-			SETKEY(SLOT5, 5);
-			SETKEY(SLOT6, 6);
-			SETKEY(SLOT7, 7);
-			SETKEY(SLOT8, 8);
-			SETKEY(SLOT9, 9);
-			SETKEY(SLOT10, 0);
-			SETKEY(PREVWEAPON, LEFTBRACKET);
-			SETKEY(NEXTWEAPON, RIGHTBRACKET);
-			SETKEY(PREVINVENTORY, SEMICOLON);
-			SETKEY(NEXTINVENTORY, COLON);
-			SETKEY(USEINVENTORY, RETURN);
-			SETKEY(FLYUP, P);//SETKEY(FLYUP, INSERT);
-			SETKEY(FLYDOWN, L);//SETKEY(FLYDOWN, KDELETE);
-			SETKEY(TOPSCORES, F);
-			SETKEY(COOPSPY, F12);
-			SETKEY(AUTOMAP, TAB);
+			SETKEY(0, SPEED, SHIFT);
+			SETKEY(0, MOVEMENT, ALT);
+			SETKEY(0, LOOKING, S);
+			SETKEY(0, FORWARDS, UP);
+			SETKEY(0, BACKWARDS, DOWN);
+			SETKEY(0, STRAFELEFT, COMMA);
+			SETKEY(0, STRAFERIGHT, PERIOD);
+			SETKEY(0, JUMP, FORWARDSLASH);
+			SETKEY(0, LAND, HOME);
+			SETKEY(0, TURNSEMICIRCLE, BACKSLASH);
+			SETKEY(0, TURNLEFT, LEFT);
+			SETKEY(0, TURNRIGHT, RIGHT);
+			SETKEY(0, LOOKUP, PAGEUP);
+			SETKEY(0, LOOKDOWN, PAGEDOWN);
+			SETKEY(0, LOOKCENTER, END);
+			SETKEY(0, USE, SPACE);
+			SETKEY(0, TAUNT, U);
+			SETKEY(0, CHAT, T);
+			SETKEY(0, TEAMCHAT, Y);
+			SETKEY(0, ATTACK, CTRL);
+			SETKEY(0, RELOAD, R);
+			SETKEY(0, SLOT1, 1);
+			SETKEY(0, SLOT2, 2);
+			SETKEY(0, SLOT3, 3);
+			SETKEY(0, SLOT4, 4);
+			SETKEY(0, SLOT5, 5);
+			SETKEY(0, SLOT6, 6);
+			SETKEY(0, SLOT7, 7);
+			SETKEY(0, SLOT8, 8);
+			SETKEY(0, SLOT9, 9);
+			SETKEY(0, SLOT10, 0);
+			SETKEY(0, PREVWEAPON, LEFTBRACKET);
+			SETKEY(0, NEXTWEAPON, RIGHTBRACKET);
+			SETKEY(0, PREVINVENTORY, SEMICOLON);
+			SETKEY(0, NEXTINVENTORY, COLON);
+			SETKEY(0, USEINVENTORY, RETURN);
+			SETKEY(0, FLYUP, P);
+			SETKEY(1, FLYUP, INSERT);
+			SETKEY(0, FLYDOWN, L);
+			SETKEY(1, FLYDOWN, KDELETE);
+			SETKEY(0, TOPSCORES, F);
+			SETKEY(0, COOPSPY, F12);
+			SETKEY(0, AUTOMAP, TAB);
 	
 			// Joystick Buttons
-			SETJOY(ATTACK, 1);
-			SETJOY(USE, 2);
-			SETJOY(MOVEMENT, 3);
-			SETJOY(SPEED, 4);
+			SETJOY(3, ATTACK, 1);
+			SETJOY(3, USE, 2);
+			SETJOY(3, MOVEMENT, 3);
+			SETJOY(3, SPEED, 4);
 		
-			SETJOY(STRAFELEFT, 5);
-			SETJOY(STRAFERIGHT, 6);
+			SETJOY(3, STRAFELEFT, 5);
+			SETJOY(3, STRAFERIGHT, 6);
 		
-			SETJOY(PREVWEAPON, 7);
-			SETJOY(NEXTWEAPON, 8);
+			SETJOY(3, PREVWEAPON, 7);
+			SETJOY(3, NEXTWEAPON, 8);
 		
-			SETJOY(MORESTUFF, 9);
-			SETJOY(POPUPMENU, 10);
+			SETJOY(3, MORESTUFF, 9);
+			SETJOY(3, POPUPMENU, 10);
 		
-			SETJOY(JUMP, 11);
+			SETJOY(3, JUMP, 11);
 		
 			// More Joystick Buttons (with more key)
-			SETJOYMORE(TOPSCORES, 1);
-			SETJOYMORE(COOPSPY, 2);
-			SETJOYMORE(AUTOMAP, 3);
-			SETJOYMORE(USEINVENTORY, 4);
+			SETJOYMORE(3, TOPSCORES, 1);
+			SETJOYMORE(3, COOPSPY, 2);
+			SETJOYMORE(3, AUTOMAP, 3);
+			SETJOYMORE(3, USEINVENTORY, 4);
 		
-			SETJOYMORE(RELOAD, 5);
-			SETJOYMORE(SWITCHFIREMODE, 6);
+			SETJOYMORE(3, RELOAD, 5);
+			SETJOYMORE(3, SWITCHFIREMODE, 6);
 		
-			SETJOYMORE(PREVINVENTORY, 7);
-			SETJOYMORE(NEXTINVENTORY, 8);
+			SETJOYMORE(3, PREVINVENTORY, 7);
+			SETJOYMORE(3, NEXTINVENTORY, 8);
 		
-			SETJOYMORE(CHATMODE, 10);
-			SETJOYMORE(SUICIDE, 11);
+			SETJOYMORE(3, CHATMODE, 10);
+			SETJOYMORE(3, SUICIDE, 11);
 		}
 		
 		// GCW Zero
 		else if (g_ModelMode == DMM_GCW)
 		{
-			SETKEY(FORWARDS, UP);
-			SETKEY(BACKWARDS, DOWN);
-			SETKEY(TURNLEFT, LEFT);
-			SETKEY(TURNRIGHT, RIGHT);
+			SETKEY(0, FORWARDS, UP);
+			SETKEY(0, BACKWARDS, DOWN);
+			SETKEY(0, TURNLEFT, LEFT);
+			SETKEY(0, TURNRIGHT, RIGHT);
 			
-			SETKEY(ATTACK, SPACE);
-			SETKEY(USE, CTRL);
-			SETKEY(MOVEMENT, ALT);
-			SETKEY(SPEED, SHIFT);
+			SETKEY(0, ATTACK, SPACE);
+			SETKEY(0, USE, CTRL);
+			SETKEY(0, MOVEMENT, ALT);
+			SETKEY(0, SPEED, SHIFT);
 		
-			SETKEY(STRAFELEFT, TAB);
-			SETKEY(STRAFERIGHT, BACKSPACE);
+			SETKEY(0, STRAFELEFT, TAB);
+			SETKEY(0, STRAFERIGHT, BACKSPACE);
 			
-			SETKEY(NEXTWEAPON, PAUSE);
+			SETKEY(0, NEXTWEAPON, PAUSE);
 			
-			SETKEY(QUICKMENU, RETURN);
+			SETKEY(0, QUICKMENU, RETURN);
 		}
 		
 #undef SETJOY
 #undef SETKEY_M
 #undef SETKEY
+#undef SETMOUSE
+#undef SETDBLMOUSE
+#undef SETJOY
+#undef SETJOYMORE
 		
 		// Mouse Axis
 			// Not ALT
@@ -478,29 +524,33 @@ static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint3
 		snprintf(a_Dest, a_Size, "---");
 	
 	/* Joystick */
-	else if (a_Code & 0x1000)
-		snprintf(a_Dest, a_Size, "joyb%02i", (int)((a_Code & 0xFFF) + 1));
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_JOY)
+		snprintf(a_Dest, a_Size, "joyb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
 	
 	/* Mouse */
-	else if (a_Code & 0x2000)
-		snprintf(a_Dest, a_Size, "mouseb%02i", (int)((a_Code & 0xFFF) + 1));
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_MOUSE)
+		snprintf(a_Dest, a_Size, "mouseb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
 	
 	/* Double Mouse */
-	else if (a_Code & 0x3000)
-		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & 0xFFF) + 1));
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_DMOUSE)
+		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
 		
 	/* More Joystick */
-	else if (a_Code & 0x4000)
-		snprintf(a_Dest, a_Size, "morejoyb%02i", (int)((a_Code & 0xFFF) + 1));
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_JOYP)
+		snprintf(a_Dest, a_Size, "morejoyb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
 	
 	/* More Mouse */
-	else if (a_Code & 0x5000)
-		snprintf(a_Dest, a_Size, "moremouseb%02i", (int)((a_Code & 0xFFF) + 1));
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_MOUSEP)
+		snprintf(a_Dest, a_Size, "moremouseb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
 	
 	/* More Double Mouse */
-	else if (a_Code & 0x6000)
-		snprintf(a_Dest, a_Size, "moredblmouseb%02i", (int)((a_Code & 0xFFF) + 1));
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_DMOUSEP)
+		snprintf(a_Dest, a_Size, "moredblmouseb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
 	
+	/* More Keyboard */
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_KEYP)
+		snprintf(a_Dest, a_Size, "morekey%s", c_KeyNames[a_Code][0]);
+		
 	/* Keyboard */
 	else if (a_Code >= 0 && a_Code < NUMIKEYBOARDKEYS)
 		snprintf(a_Dest, a_Size, "%s", c_KeyNames[a_Code][0]);
@@ -514,6 +564,8 @@ static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint3
 static uint32_t DS_KeyStrToCode(const char* const a_Str)
 {
 	int i;
+	const char* p;
+	uint32_t ExtraMask;
 	
 	/* Check */
 	if (!a_Str)
@@ -525,34 +577,45 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 	
 	/* Joystick Buttons */
 	else if (strncasecmp(a_Str, "joyb", 4) == 0)
-		return 0x1000 | (C_strtou32(a_Str + 4, NULL, 10) - 1);
+		return PRFKBIT_JOY | (C_strtou32(a_Str + 4, NULL, 10) - 1);
 	
 	/* Mouse Buttons */
 	else if (strncasecmp(a_Str, "mouseb", 6) == 0)
-		return 0x2000 | (C_strtou32(a_Str + 6, NULL, 10) - 1);
+		return PRFKBIT_MOUSE | (C_strtou32(a_Str + 6, NULL, 10) - 1);
 	
 	/* Double Mouse Buttons */
 	else if (strncasecmp(a_Str, "dblmouseb", 9) == 0)
-		return 0x3000 | (C_strtou32(a_Str + 9, NULL, 10) - 1);
+		return PRFKBIT_DMOUSE | (C_strtou32(a_Str + 9, NULL, 10) - 1);
 		
 	/* More Joystick Buttons */
 	else if (strncasecmp(a_Str, "morejoyb", 8) == 0)
-		return 0x4000 | (C_strtou32(a_Str + 4, NULL, 10) - 1);
+		return PRFKBIT_JOYP | (C_strtou32(a_Str + 4, NULL, 10) - 1);
 	
 	/* More Mouse Buttons */
 	else if (strncasecmp(a_Str, "moremouseb", 10) == 0)
-		return 0x5000 | (C_strtou32(a_Str + 6, NULL, 10) - 1);
+		return PRFKBIT_MOUSEP | (C_strtou32(a_Str + 6, NULL, 10) - 1);
 	
 	/* More Double Mouse Buttons */
 	else if (strncasecmp(a_Str, "moredblmouseb", 13) == 0)
-		return 0x6000 | (C_strtou32(a_Str + 9, NULL, 10) - 1);
+		return PRFKBIT_DMOUSEP | (C_strtou32(a_Str + 9, NULL, 10) - 1);
 	
 	/* Keyboard Keys */
 	else
 	{
+		// Get base
+		p = a_Str;
+		ExtraMask = PRFKBIT_KEY;
+		
+		// If string starts with morekey, is a more modifier code
+		if (!strncasecmp(p, "morekey", 7))
+		{
+			p += 7;
+			ExtraMask = PRFKBIT_KEYP;
+		}
+		
 		for (i = 0; i < NUMIKEYBOARDKEYS; i++)
-			if (strcasecmp(a_Str, c_KeyNames[i][0]) == 0)
-				return i;
+			if (strcasecmp(p, c_KeyNames[i][0]) == 0)
+				return ExtraMask | i;
 	}
 }
 
