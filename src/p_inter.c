@@ -1475,8 +1475,11 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		target->player->playerstate = PST_DEAD;
 		P_DropWeapon(target->player);	// put weapon away
 		
+		// GhostlyDeath <December 28, 2012> -- Reset aiming angle on death
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			if (playeringame[g_Splits[i].Console] && target->player == &players[g_Splits[i].Console])
+			if (D_ScrSplitHasPlayer(i))
+				if (g_Splits[i].XPlayer &&
+					g_Splits[i].XPlayer->Player == target->player)
 				localaiming[i] = 0;
 	}
 	

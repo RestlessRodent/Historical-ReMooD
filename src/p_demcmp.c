@@ -861,6 +861,10 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_PLREDUCEINVENTORY, "pl_reduceinventory", DSTR_M_PGS_PLREDUCEINVENTORY,
 		DSTR_D_PGS_PLREDUCEINVENTORY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 1,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PGS_CODISPLACESPAWN, "co_displacespawning", DSTR_M_PGS_CODISPLACESPAWN,
+		DSTR_D_PGS_CODISPLACESPAWN, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/
@@ -1717,6 +1721,13 @@ void NG_FromCLine(void)
 	if (M_CheckParm("-fast"))
 	{
 		NG_SetVarValue(PGS_MONFASTMONSTERS, 1);
+		l_NGAutoStart = true;
+	}
+	
+	// No Monsters
+	if (M_CheckParm("-nomonsters"))
+	{
+		NG_SetVarValue(PGS_MONSPAWNMONSTERS, 0);
 		l_NGAutoStart = true;
 	}
 	

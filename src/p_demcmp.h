@@ -281,6 +281,7 @@ typedef enum P_XGSBitID_e
 	PGS_COENABLESLOPES,							// Enables Slope Support
 	PGS_FUNFLIPLEVELS,							// Levels are flipped
 	PGS_PLREDUCEINVENTORY,						// Reduce inventory at end of level
+	PGS_CODISPLACESPAWN,						// Enables Displace Spawning
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

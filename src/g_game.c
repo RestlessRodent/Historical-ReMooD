@@ -1073,10 +1073,10 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 			}
 		}
 	
-	// GhostlyDeath <April 21, 2012> -- Check 
-	if (a_NoFirstMo && P_XGSVal(PGS_CORADIALSPAWNCHECK))
+	// GhostlyDeath <April 21, 2012> -- Check against radius
+	if (/*a_NoFirstMo &&*/ P_XGSVal(PGS_CORADIALSPAWNCHECK))
 	{
-		if (!P_CheckPosRadius(x, y, 20 << FRACBITS))
+		if (!P_CheckPosRadius(x, y, FIXEDT_C(20)))
 			return false;
 	}
 	
@@ -1162,18 +1162,74 @@ static bool_t GS_ClusterTraverser(intercept_t* in, void* const a_Data)
 	}
 }
 
+/* GS_CheckSpotArea() -- Checks the area a spot belong in */
+// Sees if there is no path there, not walkable, can't be seen there, etc.
+static bool_t GS_CheckSpotArea(const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const fixed_t a_Y2)
+{
+#define BLOCKSIZE FIXEDT_C(16)
+	
+	/* See if a straight line can be drawn between these two spots */
+	if (!P_CheckSightLine(
+				a_X1,
+				a_Y1,
+				a_X2,
+				a_Y2
+			))
+		return false;
+	
+	/* Draw another line from the soure to destination */
+	if (!P_PathTraverse(
+				a_X1,
+				a_Y1,
+				a_X2,
+				a_Y2,
+				PT_ADDLINES,
+				GS_ClusterTraverser,
+				NULL
+			))
+		return false;
+	
+	/* Draw line from thing corner (corss section BL to TR) */
+	if (!P_PathTraverse(
+				a_X2 - BLOCKSIZE,
+				a_Y2 - BLOCKSIZE,
+				a_X2 + BLOCKSIZE,
+				a_Y2 + BLOCKSIZE,
+				PT_ADDLINES | PT_ADDTHINGS,
+				GS_ClusterTraverser,
+				NULL
+			))
+		return false;
+	
+	/* Draw line from thing corner (corss section TL to BR) */
+	if (!P_PathTraverse(
+				a_X2 - BLOCKSIZE,
+				a_Y2 + BLOCKSIZE,
+				a_X2 + BLOCKSIZE,
+				a_Y2 - BLOCKSIZE,
+				PT_ADDLINES | PT_ADDTHINGS,
+				GS_ClusterTraverser,
+				NULL
+			))
+		return false;
+	
+	/* Nothing is here and it is reachable */
+	return true;
+#undef BLOCKSIZE
+}
+
 /* G_ClusterSpawnPlayer() -- Spawns player in cluster spot */
 bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 {
 #define MAXFAILURES 128
 	mapthing_t** Spots;
 	size_t NumSpots, i, s, j, f;
-	int x, y, bx, by;
+	int32_t x, y, bx, by;
 	mapthing_t OrigThing, FakeThing;
 	subsector_t* SubS;
 	bool_t RandomSpot;
 	bool_t* Tried;
-	bool_t PreDiamond;
+	bool_t PreDiamond, DMMode;
 	
 	static const uint8_t SpawnDiamond[9][9] =
 	{
@@ -1192,9 +1248,12 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
 		return false;
 	
+	/* Deathmatch mode? */
+	DMMode = P_XGSVal(PGS_GAMEDEATHMATCH);
+	
 	/* Which spots to prefer? */
 	// Deathmatch
-	if (P_XGSVal(PGS_GAMEDEATHMATCH) || (!P_XGSVal(PGS_GAMEDEATHMATCH) && a_CheckOp))
+	if (DMMode || (!DMMode && a_CheckOp))
 	{
 		PreDiamond = false;
 		RandomSpot = true;
@@ -1204,7 +1263,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	}
 	
 	// Coop
-	else if (!P_XGSVal(PGS_GAMEDEATHMATCH) || (P_XGSVal(PGS_GAMEDEATHMATCH) && a_CheckOp))
+	else if (!DMMode || (DMMode && a_CheckOp))
 	{
 		PreDiamond = true;
 		RandomSpot = false;
@@ -1214,7 +1273,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	}
 	
 	/* Determine offset base */
-	if (a_CheckOp || P_XGSVal(PGS_GAMEDEATHMATCH))
+	if (a_CheckOp || DMMode)
 		bx = by = 2;
 	else
 		bx = by = 4;
@@ -1264,7 +1323,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 			for (y = -by; y <= by; y++)
 			{
 				// Coop -- Spawn in pre-made diamond
-				if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+				if (!DMMode)
 				{
 					if (!SpawnDiamond[x + bx][y + by])
 						continue;
@@ -1285,48 +1344,12 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 				FakeThing.x += (x * 36);
 				FakeThing.y += (y * 36);
 				
-				// See if a straight line can be drawn between these two spots
-				if (!P_CheckSightLine(
-							((fixed_t)OrigThing.x) << FRACBITS,
-							((fixed_t)OrigThing.y) << FRACBITS,
-							((fixed_t)FakeThing.x) << FRACBITS,
-							((fixed_t)FakeThing.y) << FRACBITS
-						))
-					continue;
-				
-				// Draw another line from the soure to destination
-				if (!P_PathTraverse(
-							((fixed_t)OrigThing.x) << FRACBITS,
-							((fixed_t)OrigThing.y) << FRACBITS,
-							((fixed_t)FakeThing.x) << FRACBITS,
-							((fixed_t)FakeThing.y) << FRACBITS,
-							PT_ADDLINES,
-							GS_ClusterTraverser,
-							NULL
-						))
-					continue;
-				
-				// Draw line from thing corner (corss section BL to TR)
-				if (!P_PathTraverse(
-							((fixed_t)FakeThing.x - 16) << FRACBITS,
-							((fixed_t)FakeThing.y - 16) << FRACBITS,
-							((fixed_t)FakeThing.x + 16) << FRACBITS,
-							((fixed_t)FakeThing.y + 16) << FRACBITS,
-							PT_ADDLINES | PT_ADDTHINGS,
-							GS_ClusterTraverser,
-							NULL
-						))
-					continue;
-				
-				// Draw line from thing corner (corss section TL to BR)
-				if (!P_PathTraverse(
-							((fixed_t)FakeThing.x - 16) << FRACBITS,
-							((fixed_t)FakeThing.y + 16) << FRACBITS,
-							((fixed_t)FakeThing.x + 16) << FRACBITS,
-							((fixed_t)FakeThing.y - 16) << FRACBITS,
-							PT_ADDLINES | PT_ADDTHINGS,
-							GS_ClusterTraverser,
-							NULL
+				// Check the area to and around the wanted spot
+				if (!GS_CheckSpotArea(
+						((fixed_t)OrigThing.x) << FRACBITS,
+						((fixed_t)OrigThing.y) << FRACBITS,
+						((fixed_t)FakeThing.x) << FRACBITS,
+						((fixed_t)FakeThing.y) << FRACBITS
 						))
 					continue;
 				
@@ -1370,18 +1393,94 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 #undef MAXFAILURES
 }
 
-//
-// G_DeathMatchSpawnPlayer
-// Spawns a player at one of the random death match spots
-// called at level load and each death
-//
+/* G_DisplaceSpawnPlayer() -- Spawns player next to another player */
+bool_t G_DisplaceSpawnPlayer(const int32_t a_PlayerID)
+{
+	int32_t i, x, y;
+	bool_t DMMode, Teams;
+	mapthing_t FakeSpot;
+	
+	/* Deathmatch mode? */
+	Teams = P_XGSVal(PGS_GAMETEAMPLAY) && !P_XGSVal(PGS_CODISABLETEAMPLAY);
+	DMMode = P_XGSVal(PGS_GAMEDEATHMATCH);
+	
+	// Non-team DM, always fail
+	if (DMMode && !Teams)
+		return false;
+	
+	/* Go through all players */
+	// Go from last to first, since later players would be far away
+	for (i = MAXPLAYERS - 1; i >= 0; i--)
+	{
+		// Not playing? ignore
+		if (!playeringame[i])
+			continue;
+		
+		// This is ourself
+		if (i == a_PlayerID)
+			continue;
+			
+		// Not on same team?
+		if (DMMode && Teams && !ST_SameTeam(&players[i], &players[a_PlayerID]))
+			continue;
+		
+		// Player has no object
+		if (!players[i].mo)
+			continue;
+		
+		// Initialize spot
+		memset(&FakeSpot, 0, sizeof(FakeSpot));
+		FakeSpot.type = a_PlayerID + 1;
+		
+		// Try spawning near them
+		for (x = -1; x <= 1; x++)
+			for (y = -1; y <= 1; y++)
+			{
+				// Only in square-ish pattern
+				if (/*x != 0 && y != 0 &&*/ x == y)
+					continue;
+				
+				// Setup spot next to player
+				FakeSpot.x = (players[i].mo->x >> FRACBITS) + (40 * x);
+				FakeSpot.y = (players[i].mo->y >> FRACBITS) + (40 * y);
+				
+				// Check the area to and around the wanted spot
+				if (!GS_CheckSpotArea(
+							players[i].mo->x,
+							players[i].mo->y,
+							((fixed_t)FakeSpot.x) << FRACBITS,
+							((fixed_t)FakeSpot.y) << FRACBITS
+						))
+					continue;
+				
+				// Check it, if it works return from there
+				if (G_CheckSpot(a_PlayerID, &FakeSpot, false))
+				{
+					P_SpawnPlayer(&FakeSpot);
+					return true;
+				}
+			}
+	}
+	
+	/* Failed */
+	return false;
+}
+
+/* G_DeathMatchSpawnPlayer() -- Spawns a player at one of the random death match spots called at level load and each respawn */
 bool_t G_DeathMatchSpawnPlayer(int playernum)
 {
 	int i, j, n;
 	
+	/* Use coop start if no DM spots */
 	if (!numdmstarts)
 	{
-		CONL_PrintF("No deathmatch start in this map, falling back to Coop starts!");
+		// GhostlyDeath <December 28, 2012> -- If spawn clustering is enabled
+		// and there are no spots, try to cluster at a coop start.
+		if (P_XGSVal(PGS_PLSPAWNCLUSTERING))
+			if (G_ClusterSpawnPlayer(playernum, false))
+				return true;
+		
+		// Otherwise we just get stuck in our player designated spot
 		P_SpawnPlayer(playerstarts[playernum]);
 		return false;
 	}
@@ -1391,6 +1490,20 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	else
 		n = 64;
 	
+	/* Look in normal DM Starts */
+	for (j = 0; j < n; j++)
+	{
+		i = P_Random() % numdmstarts;
+		
+		if (G_CheckSpot(playernum, deathmatchstarts[i], false))
+		{
+			deathmatchstarts[i]->type = playernum + 1;
+			P_SpawnPlayer(deathmatchstarts[i]);
+			return true;
+		}
+	}
+	
+	/* Spawn Clustering */
 	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
 	if (P_XGSVal(PGS_PLSPAWNCLUSTERING))
 	{
@@ -1403,19 +1516,13 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 			return true;
 	}
 	
-	for (j = 0; j < n; j++)
-	{
-		i = P_Random() % numdmstarts;
-		
-		if (G_CheckSpot(playernum, deathmatchstarts[i], false))
-		{
-			deathmatchstarts[i]->type = playernum + 1;
-			P_SpawnPlayer(deathmatchstarts[i]);
-			return true;
-		}
-	}
+	/* Displace spawn player */
+	// This will place them next to an adjacent player
+	if (P_XGSVal(PGS_CODISPLACESPAWN))
+		if (G_DisplaceSpawnPlayer(playernum))
+			return;
 
-	// no good spot, so the player will probably get stuck
+	/* no good spot, so the player will probably get stuck */
 	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS))
 	{
 		P_SpawnPlayer(playerstarts[playernum]);
@@ -1458,6 +1565,12 @@ void G_CoopSpawnPlayer(int playernum)
 		if (G_ClusterSpawnPlayer(playernum, true))
 			return;
 	}
+	
+	/* Displace spawn player */
+	// This will place them next to an adjacent player
+	if (P_XGSVal(PGS_CODISPLACESPAWN))
+		if (G_DisplaceSpawnPlayer(playernum))
+			return;
 	
 	/* Allow getting stuck in other players */
 	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS))
@@ -1505,12 +1618,11 @@ void G_DoReborn(int playernum)
 			player->mo->player = NULL;
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
+		
 		// spawn at random spot if in death match
 		if (P_XGSVal(PGS_GAMEDEATHMATCH))
-		{
 			if (G_DeathMatchSpawnPlayer(playernum))
 				return;
-		}
 		
 		G_CoopSpawnPlayer(playernum);
 	}

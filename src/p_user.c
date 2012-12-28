@@ -1721,6 +1721,10 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	localangle[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAngleTurn << UINT32_C(16);
 	localaiming[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
 	
+	// Reset aim?
+	if (a_TicCmd->Std.ResetAim)
+		localaiming[a_Screen] = 0;
+	
 	/* Set object looking angles to local */
 	Mo->angle = localangle[a_Screen];
 	Play->aiming = localaiming[a_Screen];

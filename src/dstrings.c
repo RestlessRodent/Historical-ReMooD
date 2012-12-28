@@ -1337,7 +1337,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "D_PGS_FUNFLIPLEVELS", "Levels are horizontaly flipped."},
 	{		  "M_PGS_PLREDUCEINVENTORY", "Reduce Inventory on Exit"},
 	{		  "D_PGS_PLREDUCEINVENTORY", "All items in the player inventory are reduced to a single item, that is all stacks are lost."},
-	
+	{			"M_PGS_CODISPLACESPAWN", "Displawn Spawning"},
+	{			"D_PGS_CODISPLACESPAWN", "If the standard spawners and/or cluster spawners fail, a displace spawn will occur. This spawns the failed player next to an adjacent player. Used in cooperative and team modes only."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */
