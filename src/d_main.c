@@ -1001,8 +1001,6 @@ bool_t g_TitleScreenDemo = false;				// Titlescreen demo
 //
 void D_DoAdvanceDemo(void)
 {
-	static bool_t RanPlusPlus = false;
-	
 	players[g_Splits[0].Console].playerstate = PST_LIVE;	// not reborn
 	advancedemo = false;
 	gameaction = ga_nothing;
@@ -1065,13 +1063,6 @@ void D_DoAdvanceDemo(void)
 			pagetic = 9999999;
 			G_DoPlayDemo("demo4", true);
 			break;
-	}
-	
-	// GhostlyDeath <August 27, 2011> -- Push all "++" parameter to the command buffer
-	if (!RanPlusPlus)
-	{
-		M_PushSpecialPlusParameters();
-		RanPlusPlus = true;
 	}
 }
 
@@ -2933,6 +2924,16 @@ void D_DoomMain(void)
 		// Commands like other things
 	M_PushSpecialParameters();
 	
+	// Warp to map and reset new vars
+	if (NG_IsAutoStart() || D_XNetIsServer())
+	{
+		NG_WarpMap();
+		
+		NG_ResetVars();
+	}
+	
+	// Process all ++ parms
+	M_PushSpecialPlusParameters();
 #if 0
 	// start the apropriate game based on parms
 	p = M_CheckParm("-record");

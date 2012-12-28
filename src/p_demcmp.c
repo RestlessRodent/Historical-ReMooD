@@ -37,6 +37,7 @@
 #include "p_local.h"
 #include "g_game.h"
 #include "p_inter.h"
+#include "m_argv.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***
@@ -1752,6 +1753,14 @@ void NG_FromCLine(void)
 	}
 }
 
+/* NG_WarpMap() -- Warp to map */
+void NG_WarpMap(void)
+{
+	/* Switch to new map? */
+	if (l_NGNewMap[0])
+		D_XNetChangeMap(l_NGNewMap, true);
+}
+
 /* NG_ApplyVars() -- Applies set variables */
 void NG_ApplyVars(void)
 {
@@ -1762,13 +1771,6 @@ void NG_ApplyVars(void)
 	for (i = 0; i < PEXGSNUMBITIDS; i++)
 		if (l_NGValues[i].IsSet)
 			P_XGSSetValue(true, i, l_NGValues[i].Value);
-	
-	/* Switch to new map? */
-	if (l_NGNewMap[0])
-		D_XNetChangeMap(l_NGNewMap, true);
-	
-	/* Reset everything? */
-	NG_ResetVars();
 }
 
 /* NG_SetAutoStart() -- Set game to auto start */

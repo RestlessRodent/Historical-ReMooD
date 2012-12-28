@@ -337,6 +337,7 @@ int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const 
 void NG_ResetVars(void);
 void NG_FromCLine(void);
 void NG_ApplyVars(void);
+void NG_WarpMap(void);
 void NG_Execute(void);
 
 void NG_SetAutoStart(const bool_t a_Value);
