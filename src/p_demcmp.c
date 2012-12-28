@@ -232,6 +232,7 @@ void P_XGSChangeFunc_GAMEFRAGLIMIT(struct P_XGSVariable_s* const a_Bit)
 {
 	size_t i;
 	
+	/* See if the frag limit has been exceeded at all */
 	if (P_XGSVal(PGS_GAMEFRAGLIMIT))
 		for (i = 0; i < MAXPLAYERS; i++)
 			P_CheckFragLimit(&players[i]);
@@ -856,6 +857,10 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_FUNFLIPLEVELS, "fun_fliplevels", DSTR_M_PGS_FUNFLIPLEVELS,
 		DSTR_D_PGS_FUNFLIPLEVELS, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
 		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PGS_PLREDUCEINVENTORY, "pl_reduceinventory", DSTR_M_PGS_PLREDUCEINVENTORY,
+		DSTR_D_PGS_PLREDUCEINVENTORY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 1,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

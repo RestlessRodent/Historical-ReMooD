@@ -280,6 +280,7 @@ typedef enum P_XGSBitID_e
 	PGS_PLSPAWNWITHRANDOMGUN,					// Spawn With Random Gun
 	PGS_COENABLESLOPES,							// Enables Slope Support
 	PGS_FUNFLIPLEVELS,							// Levels are flipped
+	PGS_PLREDUCEINVENTORY,						// Reduce inventory at end of level
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;
@@ -338,7 +339,6 @@ void NG_ResetVars(void);
 void NG_FromCLine(void);
 void NG_ApplyVars(void);
 void NG_WarpMap(void);
-void NG_Execute(void);
 
 void NG_SetAutoStart(const bool_t a_Value);
 bool_t NG_IsAutoStart(void);

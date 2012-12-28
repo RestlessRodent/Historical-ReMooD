@@ -1335,6 +1335,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{            "D_PGS_COENABLESLOPES", "Enables the usage of sloped floors and ceilings. [ReMooD >= 1.0a]"},
 	{			  "M_PGS_FUNFLIPLEVELS", "Flip Levels"},
 	{			  "D_PGS_FUNFLIPLEVELS", "Levels are horizontaly flipped."},
+	{		  "M_PGS_PLREDUCEINVENTORY", "Reduce Inventory on Exit"},
+	{		  "D_PGS_PLREDUCEINVENTORY", "All items in the player inventory are reduced to a single item, that is all stacks are lost."},
+	
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

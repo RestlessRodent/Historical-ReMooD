@@ -773,25 +773,28 @@ void G_PlayerFinishLevel(int player)
 	
 	p = &players[player];
 	memset(p->powers, 0, sizeof(p->powers));
-	for (i = 0; i < p->inventorySlotNum; i++)
-		if (p->inventory[i].count > 1)
-			p->inventory[i].count = 1;
-	//if (gamemode == heretic)
+	
+	// GhostlyDeath <December 28, 2012> -- Inventory reduction
+	if (P_XGSVal(PGS_PLREDUCEINVENTORY))
+		for (i = 0; i < p->inventorySlotNum; i++)
+			if (p->inventory[i].count > 1)
+				p->inventory[i].count = 1;
+	
 	p->weaponinfo = wpnlev1info;	// cancel power weapons
-	//else
-	//  p->weaponinfo = doomweaponinfo;
 	p->cards = 0;
 	p->mo->flags &= ~MF_SHADOW;	// cancel invisibility
 	p->extralight = 0;			// cancel gun flashes
 	p->fixedcolormap = 0;		// cancel ir gogles
 	p->damagecount = 0;			// no palette changes
 	p->bonuscount = 0;
+	p->PalChoice = 0;
 	
 	if (p->chickenTics)
 	{
 		p->readyweapon = p->mo->special1;	// Restore weapon
 		p->chickenTics = 0;
 	}
+	
 	p->rain1 = NULL;
 	p->rain2 = NULL;
 }
