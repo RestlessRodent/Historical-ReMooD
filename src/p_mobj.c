@@ -75,18 +75,22 @@ static const fixed_t FloatBobOffsets[64] =
 /* P_AdjMobjStateTics() -- Adjust object state tics */
 void P_AdjMobjStateTics(mobj_t* const a_Object)
 {
+	int32_t BloodTime;
+	
 	/* Check */
 	if (!a_Object)
 		return;
 	
 	/* Special value? */
-	if (P_XGSVal(PGS_COENABLEBLOODTIME))
-		if (a_Object->state->ExtraStateFlags & __REMOOD_BLOODTIMECONST)
+	if (a_Object->state->ExtraStateFlags & __REMOOD_BLOODTIMECONST)
+		if (P_XGSVal(PGS_COENABLEBLOODTIME))
 		{
-			if (P_XGSVal(PGS_GAMEBLOODTIME) <= 0)
+			BloodTime = P_XGSVal(PGS_GAMEBLOODTIME);
+			
+			if (BloodTime <= 0)
 				a_Object->tics = 0;
 			else
-				a_Object->tics = (P_XGSVal(PGS_GAMEBLOODTIME) * TICRATE) - 16;
+				a_Object->tics = (BloodTime * TICRATE) - 16;
 		}
 }
 
