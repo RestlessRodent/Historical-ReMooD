@@ -422,11 +422,12 @@ void D_Display(void)
 	
 	//CON_Drawer();
 	
+	// GhostlyDeath <September 5, 2012> -- Joystick specials
+	D_JoySpecialDrawer();
+	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
 	
-	// GhostlyDeath <September 5, 2012> -- Joystick specials
-	D_JoySpecialDrawer();
 	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
