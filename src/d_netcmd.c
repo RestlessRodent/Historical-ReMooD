@@ -294,6 +294,7 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 		
 		// Merge Buttons
 		a_DestCmd->Std.buttons |= a_SrcList[j].Std.buttons;
+		a_DestCmd->Std.ExButtons |= a_SrcList[j].Std.ExButtons;
 		
 		a_DestCmd->Std.aiming = a_SrcList[j].Std.aiming;
 		

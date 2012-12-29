@@ -87,5 +87,7 @@ int SlopeDiv(unsigned num, unsigned den);
 
 fixed_t TBL_BAMToDeg(const angle_t a_Angle);
 
+extern const int16_t c_AngLUT[8192];
+
 #endif
 

@@ -1543,7 +1543,17 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 							if (a_TicCmd->Std.ResetAim)
 								localaiming[XPlay->ScreenID] = 0;
 							else
-								localaiming[XPlay->ScreenID] += a_TicCmd->Std.BaseAiming << 16;
+							{
+								// Panning Look
+								if (a_TicCmd->Std.ExButtons & BTX_PANLOOK)
+									localaiming[XPlay->ScreenID] = a_TicCmd->Std.BaseAiming << 16;
+								
+								// Standard Look
+								else
+									localaiming[XPlay->ScreenID] += a_TicCmd->Std.BaseAiming << 16;
+							}
+							
+							// Clip aiming pitch to not exceed bounds
 							a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[XPlay->ScreenID]);
 						}
 					
@@ -2239,7 +2249,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 	return false;
 }
 
-short G_ClipAimingPitch(int* aiming);
+int16_t G_ClipAimingPitch(int32_t* aiming);
 
 /* D_XNetBuildTicCmd() -- Builds tic command for player */
 void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
@@ -2383,6 +2393,51 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 						NegMod = -1;
 						
 					case DPEXCMA_LOOKY:
+#if 0
+						TargetMove = (((double)TargetMove) / ((double)32767.0)) *
+						
+						((double)Profile->LookUpDownSpeed) / (double;
+						TargetMove *= NegMod;
+						BaseAM += (TargetMove * NegMod);
+#endif
+						break;
+						
+						// Panning Up/Down (Linear)
+					case DPEXCMA_NEGPANY:
+						NegMod = -1;
+						
+					case DPEXCMA_PANY:
+						BaseAM = (((double)l_JoyAxis[g_Splits[SID].JoyID - 1][i]) / ((double)32767.0)) * ((double)5856.0);
+						BaseAM *= -1 * NegMod;
+						
+						// Make sure panning look is set
+						a_TicCmd->Std.ExButtons |= BTX_PANLOOK;
+						break;
+						
+						// Panning Up/Down (Angular)
+					case DPEXCMA_NEGANGPANY:
+						NegMod = -1;
+						
+					case DPEXCMA_ANGPANY:
+						// Get angle to extract
+						TargetMove = abs(l_JoyAxis[g_Splits[SID].JoyID - 1][i]) >> 2;
+						
+						// Cap to valid precision in LUT
+						if (TargetMove >= 8192)
+							TargetMove = 8191;
+						else if (TargetMove < 0)
+							TargetMove = 0;
+						
+						// Extract from LUT
+						BaseAM = (((double)c_AngLUT[TargetMove]) / ((double)32767.0)) * ((double)5856.0);
+						BaseAM *= -1 * NegMod;
+						
+						// Negative?
+						if (l_JoyAxis[g_Splits[SID].JoyID - 1][i] < 0)
+							BaseAM *= -1;
+						
+						// Make sure panning look is set
+						a_TicCmd->Std.ExButtons |= BTX_PANLOOK;
 						break;
 				
 					default:

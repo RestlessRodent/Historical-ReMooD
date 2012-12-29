@@ -188,9 +188,9 @@ char* G_BuildMapName(int episode, int map)
 //
 //added:22-02-98:
 //changed:3-3-98: do a angle limitation now
-short G_ClipAimingPitch(int* aiming)
+int16_t G_ClipAimingPitch(int32_t* aiming)
 {
-	int limitangle;
+	int32_t limitangle;
 	
 	//note: the current software mode implementation doesn't have true perspective
 	limitangle = 732 << ANGLETOFINESHIFT;

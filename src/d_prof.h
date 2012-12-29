@@ -159,6 +159,12 @@ typedef enum D_ProfileExCtrlMA_e
 	DPEXCMA_NEGLOOKX,							// Negative Look on axis
 	DPEXCMA_NEGLOOKY,
 	
+	DPEXCMA_PANY,								// Pan on Y Axis (joys only)
+	DPEXCMA_NEGPANY,
+	
+	DPEXCMA_ANGPANY,							// Log Pan on Y Axis (joys only)
+	DPEXCMA_NEGANGPANY,
+	
 	NUMDPROFILEEXCTRLMAS
 } D_ProfileExCtrlMA_t;
 

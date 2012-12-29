@@ -136,6 +136,12 @@ static const char* const c_AxisMap[NUMDPROFILEEXCTRLMAS] =
 	"negmovey",									// DPEXCMA_NEGMOVEY,
 	"neglookx",									// DPEXCMA_NEGLOOKX,
 	"neglooky",									// DPEXCMA_NEGLOOKY,
+	
+	"pany",										// DPEXCMA_PANY
+	"negpany",									// DPEXCMA_NEGPANY
+	
+	"angpany",									// DPEXCMA_ANGPANY
+	"negangpany",								// DPEXCMA_NEGANGPANY
 };
 
 /* D_PDST_t -- Profile Data Stat Type */

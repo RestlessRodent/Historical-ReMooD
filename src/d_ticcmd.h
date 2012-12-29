@@ -73,6 +73,7 @@ typedef enum
 typedef enum ExtButtonCodes_e
 {
 	BTX_FLYLAND			= UINT32_C(0x00000001),	// Fly Up
+	BTX_PANLOOK			= UINT32_C(0x00000002),	// Panning Loop
 } ExtButtonCodes_t;
 
 // The data sampled per tick (single player)

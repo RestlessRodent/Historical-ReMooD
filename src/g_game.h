@@ -75,7 +75,7 @@ extern uint32_t g_CheatFlags;
 
 /* Prototypes */
 char* G_BuildMapName(int episode, int map);
-short G_ClipAimingPitch(int* aiming);
+int16_t G_ClipAimingPitch(int32_t* aiming);
 void G_DoReborn(int playernum);
 bool_t G_DeathMatchSpawnPlayer(int playernum);
 void G_CoopSpawnPlayer(int playernum);
