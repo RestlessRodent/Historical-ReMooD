@@ -1233,13 +1233,19 @@ void P_MobjThinker(mobj_t* mobj)
 		// check for nightmare respawn
 		if (!P_XGSVal(PGS_MONRESPAWNMONSTERS))
 			return;
-			
+		
+		// Only monsters respawn
 		if (!(mobj->RXFlags[0] & MFREXA_ISMONSTER))
 			return;
 		
 		// GhostlyDeath <June 15, 2012> -- No Nightmare Respawn
 		if (mobj->RXFlags[1] & MFREXB_NONMRESPAWN)
 			return;
+		
+		// GhostlyDeath <December 29, 2012> -- Object is corpse
+		if (P_XGSVal(PGS_CORESPAWNCORPSESONLY))
+			if (!(mobj->flags & MF_CORPSE))
+				return;
 			
 		mobj->movecount++;
 		

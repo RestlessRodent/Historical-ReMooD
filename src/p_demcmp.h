@@ -282,6 +282,7 @@ typedef enum P_XGSBitID_e
 	PGS_FUNFLIPLEVELS,							// Levels are flipped
 	PGS_PLREDUCEINVENTORY,						// Reduce inventory at end of level
 	PGS_CODISPLACESPAWN,						// Enables Displace Spawning
+	PGS_CORESPAWNCORPSESONLY,					// Only respawn dead bodies
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;
