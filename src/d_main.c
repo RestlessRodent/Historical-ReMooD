@@ -2242,9 +2242,15 @@ void D_JoySpecialDrawer(void)
 		return;
 	
 	/* Do not draw if no menu of sort is active */
-	if (!((gamestate != GS_LEVEL) || demoplayback ||
-		(gamestate == GS_LEVEL && (CONL_IsActive() || M_ExUIActive() || g_SplitScreen < 0))))
+	// Also don't draw if we -playdemo
+	LastOK = CONL_IsActive() || M_ExUIActive();
+	
+	if (!LastOK && (G_GetDemoExplicit() || (!demoplayback && gamestate == GS_LEVEL)))
 		return;
+	
+	/*if (!((gamestate != GS_LEVEL) || demoplayback ||
+		(gamestate == GS_LEVEL && ( || g_SplitScreen < 0))) || G_GetDemoExplicit())
+		return;*/
 	
 #if 1
 #define BOXSHIFT 11

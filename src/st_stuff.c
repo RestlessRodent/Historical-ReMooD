@@ -788,7 +788,7 @@ void ST_DrawPlayerBarsEx(void)
 	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
 	{
 		// Split player active
-		if (D_ScrSplitVisible(p))
+		if (D_ScrSplitVisible(p) || (demoplayback && g_Splits[p].Active))
 		{
 			// Get players to draw for
 			if (!g_Splits[p].XPlayer)

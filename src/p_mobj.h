@@ -334,6 +334,7 @@ typedef enum mobjflagrexb_e
 	MFREXB_SPITBIT				= 0x00008000U,	// Brain Spit Something (easy shifter)
 	MFREXB_NONMRESPAWN			= 0x00010000U,	// Cannot be respawned
 	MFREXB_FREEZEDEMO			= 0x00020000U,	// Freezes Demo Playback
+	MFREXB_NOHERETICFRICT		= 0x00040000U,	// No Heretic Friction
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */

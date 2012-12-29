@@ -64,7 +64,8 @@ void P_Thrust(player_t* player, angle_t angle, fixed_t move)
 	fixed_t cX, cY;
 	
 	angle >>= ANGLETOFINESHIFT;
-	if (player->mo->subsector->sector->special == 15 && !(!(player->mo->z <= player->mo->floorz)))	// Friction_Low
+	
+	if (!(player->mo->RXFlags[1] & MFREXB_NOHERETICFRICT) && player->mo->subsector && (player->mo->subsector->sector->special & REXS_HFRICTMASK) && player->mo->z <= player->mo->floorz)	// Friction_Low
 	{
 		cX = FixedMul(move >> 2, finecosine[angle]);
 		cY = FixedMul(move >> 2, finesine[angle]);
@@ -1362,6 +1363,9 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 	// Set viewing angle correctly, if not playing
 	if (!g_Splits[i].Active)
 		localangle[i] = l_SpecMobjs[i].angle;
+	
+	// Don't apply heretic friction to the spectator
+	l_SpecPlayers[i].mo->RXFlags[1] |= MFREXB_NOHERETICFRICT;
 	
 	/* Map fake screens to XPlayers */
 	for (i = 0; i < g_NumXPlays; i++)

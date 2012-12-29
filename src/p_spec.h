@@ -722,8 +722,8 @@ typedef enum REXWindPushDir_s
 #define REXS_SPEEDMASK		UINT32_C(0x1C0000)
 #define REXS_SPEEDSHIFT		UINT32_C(18)
 
-#define REXS_HFRICTMASK		UINT32_C(0x1C0000)
-#define REXS_HFRICTSHIFT	UINT32_C(18)
+#define REXS_HFRICTMASK		UINT32_C(0x200000)
+#define REXS_HFRICTSHIFT	UINT32_C(21)
 
 //jff 02/04/98 Define masks, shifts, for fields in
 // generalized linedef types

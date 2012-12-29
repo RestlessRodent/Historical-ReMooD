@@ -3295,3 +3295,10 @@ void G_DemoProblem(const bool_t a_IsError, const UnicodeStringID_t a_StrID, cons
 	va_end(ArgPtr);
 }
 
+/* G_GetDemoExplicit() -- Gets whether this was an explicit demo */
+bool_t G_GetDemoExplicit(void)
+{
+	return demoplayback && !g_TitleScreenDemo;
+}
+
+

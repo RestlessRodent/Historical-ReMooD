@@ -179,6 +179,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen);
 void G_TimeDemo(char* name);
 void G_DeferedPlayDemo(char* demo);
 bool_t G_CheckDemoStatus(void);
+bool_t G_GetDemoExplicit(void);
 
 void G_ReadStartTic(void);
 void G_WriteStartTic(void);
