@@ -1630,8 +1630,6 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 	WI_PlayerInfo_t Store;
 	bool_t DMSort;
 	
-	wbs = wbstartstruct;
-	
 	/* Determine Players to Draw */
 	// Clear
 	memset(l_DrawPlayers, 0, sizeof(l_DrawPlayers));
