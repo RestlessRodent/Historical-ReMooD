@@ -203,6 +203,11 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Skin Name Hash
 		// uint8* Display Name
 		// uint8* Hexen Class
+	
+	// DTCT_XCHANGEMONSTERTEAM, Change Monster Team
+	4 + 1,
+		// uint32 Player ID
+		// uint8  Set Flag
 };
 
 /*** GLOBALS ***/

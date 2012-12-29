@@ -323,6 +323,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 			SETKEY(0, TEAMCHAT, Y);
 			SETKEY(0, ATTACK, CTRL);
 			SETKEY(0, RELOAD, R);
+			SETKEY(0, SUICIDE, K);
 			SETKEY(0, SLOT1, 1);
 			SETKEY(0, SLOT2, 2);
 			SETKEY(0, SLOT3, 3);

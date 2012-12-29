@@ -577,6 +577,22 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Change Variable
 				P_XGSSetValue(true, u32[0], i32[0]);
 				break;
+			
+				// Change Monster Team
+			case DTCT_XCHANGEMONSTERTEAM:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u8[0] = ReadUInt8((uint32_t**)&Rp);
+				
+				// Bounds OK?
+				if (u32[0] >= 0 && u32[0] < MAXPLAYERS)
+					if (playeringame[u32[0]])
+					{
+						players[u32[0]].CounterOpPlayer = false;
+						if (u8[0])
+							players[u32[0]].CounterOpPlayer = true;
+					}
+				break;
 				
 			default:
 				CONL_PrintF("Unknown command %i.\n", Command);

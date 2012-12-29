@@ -36,6 +36,7 @@
 #include "doomtype.h"
 #include "console.h"
 #include "d_net.h"
+#include "info.h"
 
 /****************
 *** FUNCTIONS ***
@@ -106,7 +107,7 @@ static int ROOT_ListPlayers(const uint32_t a_ArgC, const char** const a_ArgV)
 			continue;
 		
 		// Print
-		CONL_PrintF("%2i: %s^%s [%08x]\n", i, XPlay->AccountName, XPlay->AccountServer, XPlay->ID);
+		CONL_PrintF("%2i: (P%i) %s^%s [%08x]\n", i, XPlay->InGameID, XPlay->AccountName, XPlay->AccountServer, XPlay->ID);
 	}
 	
 	/* Always Works */
@@ -135,6 +136,43 @@ static int ROOT_Info(const uint32_t a_ArgC, const char** const a_ArgV)
 	return 1;
 }
 
+/* ROOT_SetMonster() -- Sets monster team for player */
+static int ROOT_SetMonster(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	D_XPlayer_t* XPlay;
+	bool_t Set;
+	void* Wp;
+	
+	/* Find Player */
+	XPlay = ROOT_GetXPlayer(a_ArgV[0]);
+	
+	// Not found?
+	if (!XPlay)
+		return 1;
+	
+	// Not in game?
+	if (XPlay->InGameID < 0 || XPlay->InGameID >= MAXPLAYERS)
+	{
+		CONL_PrintF("%s is not playing!\n", a_ArgV[0]);
+		return 1;
+	}
+	
+	/* Get Bool */
+	Set = INFO_BoolFromString(a_ArgV[1]);
+	
+	/* Create command */
+	if (D_XNetGlobalTic(DTCT_XCHANGEMONSTERTEAM, &Wp))
+	{
+		LittleWriteUInt32((uint32_t**)&Wp, XPlay->InGameID);
+		WriteUInt8((uint8_t**)&Wp, Set);
+		
+		return 0;
+	}
+	
+	// Failed
+	return 1;
+}
+
 /* DS_XNetRootCon() -- Root Game Control */
 int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -151,6 +189,7 @@ int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		{"list", 0, "", ROOT_ListPlayers},
 		{"info", 1, "<xplay>", ROOT_Info},
+		{"setmonster", 2, "<xplay> <bool>", ROOT_SetMonster},
 		
 		{NULL}
 	};
@@ -197,7 +236,12 @@ int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		{
 			CONL_PrintF("{1Root Game Control{z Commands:\n");
 			for (MC = 0; c_MasterCommands[MC].Name; MC++)
+			{
 				CONL_PrintF("%s ", c_MasterCommands[MC].Name);
+				
+				if (((MC + 1) % 5) == 0)
+					CONL_PrintF("\n");
+			}
 			CONL_PrintF("\n");
 		}
 		

@@ -442,6 +442,17 @@ static ticcmd_t* DS_GrabGlobal(const uint8_t a_ID, const int32_t a_NeededSize, v
 	return Placement;
 }
 
+/* D_XNetGlobalTic() -- Wrapper for DS_GrabGlobal() */
+bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp)
+{
+	/* Check */
+	if (!D_XNetIsServer())
+		return false;
+	
+	/* Call it */
+	return !!DS_GrabGlobal(a_ID, c_TCDataSize[a_ID], a_Wp);
+}
+
 /*** FUNCTIONS ***/
 
 /*****************************************************************************/

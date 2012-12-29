@@ -893,9 +893,10 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	// ?
 nomissile:
 	// possibly choose another target
-	if (P_XGSVal(PGS_COMULTIPLAYER) && !actor->threshold && !P_CheckSight(actor, actor->target))
-		if (P_LookForPlayers(actor, true))
-			return;				// got a new target
+	if (!Controlled)
+		if (P_XGSVal(PGS_COMULTIPLAYER) && !actor->threshold && !P_CheckSight(actor, actor->target))
+			if (P_LookForPlayers(actor, true))
+				return;				// got a new target
 	
 	// chase towards player
 	if (--actor->movecount < 0 || !P_Move(actor))
