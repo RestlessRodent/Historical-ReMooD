@@ -184,6 +184,7 @@ static const struct
 	QUICKDS(HexenClass, PDST_STRING),
 	QUICKDS(AutoRun, PDST_BOOL),
 	QUICKDS(SlowTurn, PDST_BOOL),
+	QUICKDS(LookSpring, PDST_BOOL),
 	
 	{"", 0, 0},
 #undef QUICKDS

@@ -2525,11 +2525,9 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	{
 		if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKUP))
 			BaseAM += Profile->LookUpDownSpeed >> 16;
-			//localaiming[SID] += Profile->LookUpDownSpeed;
 		
 		if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKDOWN))
 			BaseAM -= Profile->LookUpDownSpeed >> 16;
-			//localaiming[SID] -= Profile->LookUpDownSpeed;
 	}
 	
 	// Flying
@@ -2857,6 +2855,15 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	a_TicCmd->Std.BaseAngleTurn = BaseAT;
 	a_TicCmd->Std.BaseAiming = BaseAM;
 	a_TicCmd->Std.ResetAim = ResetAim;
+	
+	/* Handle Look Spring */
+	// This resets aim to center once you move
+	if (Profile->LookSpring)
+		if (!BaseAM && (abs(ForwardMove) >= c_forwardmove[0] || abs(SideMove) >= c_sidemove[0]))
+		{
+			a_TicCmd->Std.BaseAiming = 0;
+			a_TicCmd->Std.ResetAim = true;
+		}
 	
 #undef MAXWEAPONSLOTS
 }

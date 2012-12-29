@@ -226,6 +226,7 @@ typedef struct D_ProfileEx_s
 	char HexenClass[MAXPLAYERNAME];				// Hexen Class
 	bool_t AutoRun;								// Autorun
 	bool_t SlowTurn;							// Perform slow turning
+	bool_t LookSpring;							// Spring back to center on move
 } D_ProfileEx_t;
 
 /*** GLOBALS ***/
