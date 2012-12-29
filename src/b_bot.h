@@ -81,6 +81,12 @@ typedef enum B_GhostAtkPosture_e
 	NUMBGHOSTATKPOSTURE
 } B_GhostAtkPosture_t;
 
+/* B_GhostBotFlags_t -- Flags for bots */
+typedef enum B_GhostBotFlags_e
+{
+	BGBF_SHOOTALLIES	= UINT32_C(0x00000001),	// Shoot through allies
+} B_GhostBotFlags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -101,6 +107,7 @@ typedef struct B_BotTemplate_s
 	char HexenClass[MAXPLAYERNAME];				// Favorite Hexen Class
 	
 	uint32_t Count;								// Usage Count
+	uint32_t Flags;								// Flags for bot
 } B_BotTemplate_t;
 
 /* B_GhostBot_t -- GhostlyBots information */
@@ -120,6 +127,9 @@ struct B_GhostBot_s
 	int32_t RoamX, RoamY;						// Roaming X/Y
 	tic_t RespawnDelay;							// Respawn Delay
 	int32_t Lemmings;							// Lemmings Player
+	bool_t IsPlayer;							// Bot is a player
+	tic_t MonsterForceTic;						// Force attack/move timeout
+	bool_t MonsterForce;						// Force attack/move
 	
 	struct
 	{

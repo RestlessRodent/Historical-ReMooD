@@ -1074,7 +1074,21 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 	m = 0;
 	
 	/* Get metric of current gun */
-	GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
+	// Player
+	if (a_GhostBot->IsPlayer)
+		GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
+	
+	// Monster
+	else
+	{
+		// Only Melee Attack
+		if (!a_GhostBot->Mo->info->missilestate && a_GhostBot->Mo->info->meleestate)
+			GunMetric = INFOBM_WEAPONMELEE;
+		
+		// Other kinds of attack
+		else
+			GunMetric = 0;
+	}
 	
 	/* Go through adjacent sectors */
 	// Get current sector
@@ -1117,11 +1131,15 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 			if (!P_CheckSight(a_GhostBot->Mo, Mo))
 				continue;
 			
-			// See if autoaim acquires a friendly target
-			slope = P_AimLineAttack(a_GhostBot->Mo, a_GhostBot->Mo->angle, MISSILERANGE, NULL);
+			// See if autoaim acquires a friendly target, but do not perform
+			// this check if shoot allies is enabled.
+			if (!(a_GhostBot->BotTemplate.Flags & BGBF_SHOOTALLIES))
+			{
+				slope = P_AimLineAttack(a_GhostBot->Mo, a_GhostBot->Mo->angle, MISSILERANGE, NULL);
 			
-			if (linetarget && P_MobjOnSameTeam(a_GhostBot->Mo, linetarget))
-				continue;
+				if (linetarget && P_MobjOnSameTeam(a_GhostBot->Mo, linetarget))
+					continue;
+			}
 			
 			// Set in chain
 			if (m < CLOSEMOS)
@@ -1170,8 +1188,9 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 					}
 					
 					// Force Attacking
-					if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
-						a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+					if (a_GhostBot->IsPlayer)
+						if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
+							a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 					
 					// Clear from current
 					ListMos[s] = NULL;
@@ -1198,8 +1217,9 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 				a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
 				
 				// Force Attacking
-				if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
-					a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+				if (a_GhostBot->IsPlayer)
+					if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
+						a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 				
 				// Big time target?
 				if (BigTarg == -1 ||
@@ -1256,6 +1276,10 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 	
 	/* Sleep Job */
 	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 10);
+	
+	// If not a player, then don't mess with our guns
+	if (!a_GhostBot->IsPlayer)
+		return true;
 	
 	/* Get Our Favorite Gun */
 	FavoriteGun = P_PlayerBestWeapon(a_GhostBot->Player);
@@ -1357,7 +1381,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// If there is no player, they are spectating
 		if (!a_GhostBot->XPlayer->Player)
 		{
-			if ((gametic / TICRATE) & 1)
+			if ((gametic & 63) == 0)
 				a_TicCmd->Std.buttons |= BT_USE;
 			return;
 		}
@@ -1366,6 +1390,9 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	/* Init */
 	a_GhostBot->TicCmdPtr = a_TicCmd;
 	a_GhostBot->AtNode = B_GHOST_NodeNearPos(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Mo->z, true);
+	a_GhostBot->IsPlayer = false;
+	if (a_GhostBot->Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		a_GhostBot->IsPlayer = true;
 	
 	// At new location?
 	Blip = false;
@@ -1433,8 +1460,28 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		
 			
 	/* Get metric of current gun */
-	GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
+	GunMetric = 0;
+	if (a_GhostBot->IsPlayer)
+		GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
 	TargOff[0] = TargOff[1] = 0;
+	
+	// If we are a monster, then either only attack or move
+	if (!a_GhostBot->IsPlayer)
+		if (MoveTarg != -1 && AttackTarg != -1)
+		{
+			// Timed out?
+			if (gametic >= a_GhostBot->MonsterForceTic)
+			{
+				a_GhostBot->MonsterForceTic = gametic + (TICRATE * 4);
+				a_GhostBot->MonsterForce = !a_GhostBot->MonsterForce;
+			}
+			
+			// Move or attack?
+			if (a_GhostBot->MonsterForce)
+				MoveTarg = -1;
+			else
+				AttackTarg = -1;
+		}
 	
 	// Special Metric?
 	if (AttackTarg != -1)
@@ -1756,6 +1803,15 @@ static bool_t B_BotCodeOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 				// Hexen Class
 				else if (strcasecmp(Opt, "hexenclass") == 0)
 					strncpy(Template->HexenClass, Val, MAXPLAYERNAME);
+				
+				// Ignores Ally Check
+				else if (strcasecmp(Opt, "shootallies") == 0)
+				{
+					Template->Flags &= ~BGBF_SHOOTALLIES;
+					if (INFO_BoolFromString(Val))
+						Template->Flags |= BGBF_SHOOTALLIES;
+				}
+				
 					
 				// TODO FIXME -- Implement reading these
 //const char* WeaponOrder;					// Weapon Order

@@ -1723,6 +1723,7 @@ static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 	g_GotBots = true;
 }
 
+
 /* DS_XNetCon() -- Command */
 static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -1920,10 +1921,13 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 #undef BUFSIZE
 }
 
+int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV);
+
 /* D_XNetInit() -- Initializes the Extended Network Code */
 void D_XNetInit(void)
 {
 	CONL_AddCommand("xnet", DS_XNetCon);
+	CONL_AddCommand("root", DS_XNetRootCon);
 }
 
 /* D_XNetHandleEvent() -- Handle advanced events */
