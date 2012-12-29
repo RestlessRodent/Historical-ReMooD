@@ -2535,7 +2535,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 		if ((M_ExPlayerUIActive(RealPlayer) ||
 			(RealPlayer == 0 && CONL_IsActive()) ||
 			CONL_OSKIsActive(RealPlayer) ||
-			(gamestate != GS_LEVEL)))
+			(gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)))
 		{
 			// Clear Event
 			l_JoyKeepEvent[RealPlayer].Type = IET_SYNTHOSK;
