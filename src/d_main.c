@@ -2117,7 +2117,6 @@ void D_JoySpecialTicker(void)
 		else
 			MultiEventTic[i][1] = MultiEventTic[i][0] = 0;
 	
-#if 1
 	/* Alternative Joystick grabbing */
 	Wanted = false;
 	for (i = 0; i < NumJoys; i++)
@@ -2205,15 +2204,6 @@ void D_JoySpecialTicker(void)
 				// Clear time
 				l_JoyTime[WantForJoy[i] - 1] = 0;
 			}
-	
-#else
-	/* Decay Time */
-	l_JoyMagicTime--;
-	
-	// End?
-	if (l_JoyMagicTime < -((int32_t)(TICRATE * 2)))
-		l_JoyMagicTime = TICRATE * 3;
-#endif
 }
 
 /* D_JoySpecialDrawer() -- Draws joy specials */
@@ -2248,11 +2238,6 @@ void D_JoySpecialDrawer(void)
 	if (!LastOK && (G_GetDemoExplicit() || (!demoplayback && gamestate == GS_LEVEL)))
 		return;
 	
-	/*if (!((gamestate != GS_LEVEL) || demoplayback ||
-		(gamestate == GS_LEVEL && ( || g_SplitScreen < 0))) || G_GetDemoExplicit())
-		return;*/
-	
-#if 1
 #define BOXSHIFT 11
 #define BOXSIZE (32768 >> (BOXSHIFT - 1))
 #define BOXXPOS (80 - (BOXSIZE >> 1))
@@ -2351,71 +2336,6 @@ void D_JoySpecialDrawer(void)
 #undef BOXYPOS
 #undef BOXCENTERX
 #undef BOXCENTERY
-#else
-	/* Draw Fade Bar */
-	//V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE), 0, 180, 320, 200);
-	
-	/* Draw screen statuses */
-	LastOK = false;
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-	{
-		// Determine Text Position
-			// Bottom of screen somewhere
-		if (i & 2)
-			tY = 190;
-		else
-			tY = 180;
-			
-			// Left or right
-		if (i & 1)
-			tX = 165;
-		else
-			tX = 5;
-		//if (g_Splits[i].JoyBound || (!demoplayback && g_Splits[i].Active))
-		
-		// Player is here
-		if (D_ScrSplitHasPlayer(i))
-		{
-			// Set Ok
-			LastOK = true;
-			
-			// Set string to their name
-			if (g_Splits[i].Profile)
-				TextString = g_Splits[i].Profile->DisplayName;
-			else
-				TextString = "Choose!";
-			snprintf(Buf, BUFSIZE, "{x7%iP%i:{z %s", i, i + 1, TextString);
-			V_DrawStringA(VFONT_OEM, 0, Buf, tX, tY);
-		}
-		
-		// Player is not here
-		else
-		{
-			// Set Not Ok
-			LastOK = false;
-			
-			// Tell them to do the magic combo
-			if (i == l_JoyMagicAt && l_JoyMagicTime > 0)
-			{
-				snprintf(Buf, BUFSIZE, "Joy Move + 1 + 2");
-				
-				V_DrawStringA(VFONT_OEM, 1 + (g_ProgramTic & 7)/*(g_ProgramTic & 1 ? VFO_COLOR(VEX_MAP_RED) : VFO_COLOR(VEX_MAP_BRIGHTWHITE))*/, Buf, tX, tY);
-			}
-			
-			// Otherwise print player color and spot thing
-			else
-			{
-				snprintf(Buf, BUFSIZE, "{x7%iPlayer %i", i, i + 1);
-				
-				V_DrawStringA(VFONT_OEM, 0, Buf, tX, tY);
-			}
-		}
-		
-		// If last was not OK, stop
-		if (!LastOK)
-			break;
-	}
-#endif
 #undef BUFSIZE
 }
 
@@ -2470,7 +2390,6 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	else
 		RealPlayer = ForPlayer;
 	
-#if 1
 	/* Alternative Chooser Thing */
 	// Go through all joys
 	for (i = 0; i < NumJoys; i++)
@@ -2492,48 +2411,6 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 				else
 					l_JoyLastAxis[JoyID][2] |= 1 << (a_Event->Data.Joystick.Button - 1);
 	}
-	
-#else
-	/* Magic Joystick Combination */
-	// Only the first 8 joysticks support magic combos
-	if (l_JoyMagicAt != MAXSPLITSCREEN && !D_JoyToPort(JoyID + 1))
-		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_Splits[RealPlayer].JoyBound)
-			// Make sure it is in bounds
-			if (JoyID < MAXPORTJOYS - 1)
-			{
-				// Place axis info into last info
-				if (a_Event->Data.Joystick.Axis > 0)
-					if (a_Event->Data.Joystick.Axis < 3)
-						l_JoyLastAxis[JoyID][a_Event->Data.Joystick.Axis - 1] = a_Event->Data.Joystick.Value;
-		
-				// Place buttons also
-				if (a_Event->Data.Joystick.Button > 0)
-					if (a_Event->Data.Joystick.Button < 3)
-						if (!a_Event->Data.Joystick.Down)
-							l_JoyLastAxis[JoyID][2] = 0;
-						else
-							l_JoyLastAxis[JoyID][2] |= 1 << (a_Event->Data.Joystick.Button - 1);
-		
-				// Magic Triggered?
-				if (l_JoyMagicTime > 0)
-					if ((l_JoyLastAxis[JoyID][2] & 3) == 3 &&
-						(abs(l_JoyLastAxis[JoyID][0]) >= 16383 ||
-						abs(l_JoyLastAxis[JoyID][1]) >= 16383))
-					{
-						// Clear kept events for OSK and magic
-							// This is so if the joy is now dead and
-							// the game disconnects, they don't auto-rejoin.
-						memset(&l_JoyKeepEvent[l_JoyMagicAt], 0, sizeof(l_JoyKeepEvent[l_JoyMagicAt]));
-						l_JoyLastAxis[JoyID][2] = l_JoyLastAxis[JoyID][1] =
-							l_JoyLastAxis[JoyID][0] = 0;
-						
-						// Add local player (super handled)
-						D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt, true);
-						l_JoyMagicAt = MAXSPLITSCREEN;
-						return true;
-					}
-				}
-#endif
 	
 	/* Synthetic OSK Events */
 	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
