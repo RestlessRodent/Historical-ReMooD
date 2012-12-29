@@ -166,6 +166,7 @@ enum
 	DTCT_XADDPLAYER,							// Adds a new player
 	DTCT_XJOINPLAYER,							// Joins player
 	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
+	DTCT_XMORPHPLAYER,							// Morph Player
 	
 	NUMDTCT
 };

@@ -594,6 +594,19 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 					}
 				break;
 				
+				// Morph Player
+			case DTCT_XMORPHPLAYER:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					
+				// Bounds OK?
+				if (u32[0] >= 0 && u32[0] < MAXPLAYERS)
+					if (playeringame[u32[0]])
+						P_MorphObjectClass(players[u32[0]].mo, INFO_GetTypeByName(NameBuf));
+				break;
+				
 			default:
 				CONL_PrintF("Unknown command %i.\n", Command);
 				Command = 0;

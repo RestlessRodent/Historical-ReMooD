@@ -557,6 +557,10 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	
 			if (player->health <= 0)
 				continue;			// dead
+			
+			// No object?
+			if (!player->mo)
+				continue;
 	
 			if (!P_CheckSight(actor, player->mo))
 				continue;			// out of sight

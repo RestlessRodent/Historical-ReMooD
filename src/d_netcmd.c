@@ -208,6 +208,11 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	4 + 1,
 		// uint32 Player ID
 		// uint8  Set Flag
+	
+	// DTCT_XMORPHPLAYER, Morphs base class of player
+	4 + MAXPLAYERNAME,
+		// uint32 Player ID
+		// uint8* Class to morph to
 };
 
 /*** GLOBALS ***/

@@ -173,6 +173,54 @@ static int ROOT_SetMonster(const uint32_t a_ArgC, const char** const a_ArgV)
 	return 1;
 }
 
+/* ROOT_Morph() -- Morphs Player */
+static int ROOT_Morph(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	D_XPlayer_t* XPlay;
+	void* Wp;
+	int32_t i;
+	const char* c;
+	PI_mobjid_t Class;
+	
+	/* Find Player */
+	XPlay = ROOT_GetXPlayer(a_ArgV[0]);
+	
+	// Not found?
+	if (!XPlay)
+		return 1;
+	
+	// Not in game?
+	if (XPlay->InGameID < 0 || XPlay->InGameID >= MAXPLAYERS)
+	{
+		CONL_PrintF("%s is not playing!\n", a_ArgV[0]);
+		return 1;
+	}
+	
+	/* Bad Class? */
+	Class = INFO_GetTypeByName(a_ArgV[1]);
+	
+	if (Class < 0 || Class >= NUMMOBJTYPES)
+	{
+		CONL_PrintF("%s is an invalid class!\n", a_ArgV[1]);
+		return 1;
+	}
+	
+	/* Create command */
+	if (D_XNetGlobalTic(DTCT_XMORPHPLAYER, &Wp))
+	{
+		LittleWriteUInt32((uint32_t**)&Wp, XPlay->InGameID);
+		for (c = a_ArgV[1], i = 0; i < MAXPLAYERNAME; i++)
+			if (*c)
+				WriteUInt8((uint8_t**)&Wp, *(c++));
+			else
+				WriteUInt8((uint8_t**)&Wp, 0);
+		return 0;
+	}
+	
+	// Failed
+	return 1;
+}
+
 /* DS_XNetRootCon() -- Root Game Control */
 int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -190,6 +238,7 @@ int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		{"list", 0, "", ROOT_ListPlayers},
 		{"info", 1, "<xplay>", ROOT_Info},
 		{"setmonster", 2, "<xplay> <bool>", ROOT_SetMonster},
+		{"morph", 2, "<xplay> <class>", ROOT_Morph},
 		
 		{NULL}
 	};

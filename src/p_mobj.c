@@ -1453,7 +1453,7 @@ void P_RemoveMobj(mobj_t* mobj)
 	// GhostlyDeath <May 8, 2012> -- Remove from queue
 	P_RemoveFromBodyQueue(mobj);
 	
-	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN))
+	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN) && mobj->spawnpoint)
 	{
 		itemrespawnque[iquehead] = mobj->spawnpoint;
 		itemrespawntime[iquehead] = leveltime;
@@ -1518,6 +1518,13 @@ void P_RemoveMobj(mobj_t* mobj)
 				// Remove Follow Player
 				if (players[i].mo->FollowPlayer)
 					P_RefMobj(PMRT_FOLLOWPLAYER, players[i].mo, NULL);
+				
+				// Object is our player object!
+				if (players[i].mo == mobj)
+				{
+					players[i].mo = NULL;
+					players[i].playerstate = PST_REBORN;
+				}
 			}
 		}
 	
@@ -2804,16 +2811,41 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass)
 	a_Mo->height = FixedMul(__REMOOD_GETHEIGHT(NewI), HeightP);
 	a_Mo->info = NewI;
 	
-	// Setup player health
-	if (a_Mo->player)
-		a_Mo->player->health = a_Mo->health;
-	
 	// Setup Flags
 	a_Mo->flags = NewI->flags;
 	a_Mo->flags2 = NewI->flags2;
 	for (i = 0; i < NUMINFORXFIELDS; i++)
 		a_Mo->RXFlags[i] = NewI->RXFlags[i];
 	
+#if 1
+	/* Go to specific state */
+	// Dead
+	if (a_Mo->health <= 0)
+	{
+		// Death state available
+		if (NewI->deathstate || NewI->xdeathstate)
+		{
+			// Choose death state
+			if (NewI->deathstate)
+				NewState = NewI->deathstate;
+			else
+				NewState = NewI->xdeathstate;
+		}
+		
+		// None available
+		else
+		{
+			// Respawn
+			a_Mo->health = NewI->spawnhealth;
+			NewState = NewI->spawnstate;
+		}
+	}
+	
+	// Alive to begin with
+	else
+		NewState = NewI->spawnstate;
+	
+#else
 	/* Determine state to change to */
 	OldGroup = (a_Mo->state->Marker & 0xFFFF0000U) >> 16U;
 	
@@ -2856,6 +2888,11 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass)
 	else if (NewGroup == IOSG_BRAINEXPLODE) NewState = NewI->RBrainExplodeState;
 	else if (NewGroup == IOSG_MELEEPUFF) NewState = NewI->RMeleePuffState;
 	else NewState = 0;
+#endif
+	
+	// Setup player health
+	if (a_Mo->player)
+		a_Mo->player->health = a_Mo->health;
 	
 	// Set state to that
 	P_SetMobjState(a_Mo, NewState);
@@ -3211,6 +3248,9 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 					localangle[i] = mo->angle;
 					break;
 				}
+		
+		// Clear weapon shot
+		mo->RXShotWithWeapon = -1;
 		
 		// Took control of something
 		return;
