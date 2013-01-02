@@ -232,6 +232,7 @@ D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str);
 void D_XNetDelSocket(D_XSocket_t* const a_Socket);
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);
 void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
+void D_XNetSpectate(const int32_t a_PlayerID);
 void D_XNetSendQuit(void);
 void D_XNetPartLocal(D_XPlayer_t* const a_Player);
 void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);

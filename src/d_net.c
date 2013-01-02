@@ -126,6 +126,7 @@ bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID)
 
 uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
 tic_t g_LastServerTic = 0;						// Server's Last tic
+extern int32_t g_IgnoreWipeTics;				// Demo playback, ignore this many wipe tics
 
 /*** LOCALS ***/
 
@@ -673,6 +674,10 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
+	
+	/* Savegame into demo */
+	if (demorecording)
+		G_EncodeSaveGame();
 }
 
 /* D_XNetConnect() -- Connects to server */
@@ -1083,6 +1088,41 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	P_UpdateScores();
 }
 
+/* D_XNetSpectate() -- Forces player to spectate */
+void D_XNetSpectate(const int32_t a_PlayerID)
+{
+	void* Wp;
+	ticcmd_t* Placement;
+	D_XPlayer_t* XPlayer;
+	
+	/* Check */
+	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS || !playeringame[a_PlayerID])
+		return;
+	
+	/* Get XPlayer */
+	XPlayer = players[a_PlayerID].XPlayer;
+	
+	/* If server setup command */
+	if (D_XNetIsServer())
+	{
+		// Grab global command
+		Placement = DS_GrabGlobal(DTCT_XSPECPLAYER, c_TCDataSize[DTCT_XSPECPLAYER], &Wp);
+		
+		// Got one
+		if (Placement)
+		{
+			// Send player to remove
+			LittleWriteUInt16((uint16_t**)&Wp, a_PlayerID);
+			LittleWriteUInt32((uint32_t**)&Wp, (XPlayer ? XPlayer->ID : 0));
+		}
+	}
+	
+	/* Otherwise, request spectate from server */
+	else
+	{
+	}
+}
+
 /* D_XNetSendQuit() -- Informs the server we are quitting */
 void D_XNetSendQuit(void)
 {
@@ -1345,7 +1385,12 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	/* Change variables */
 	// Set multiplayer mode, if player already exists
 	if (j > 0)
+	{
 		P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
+		
+		// Make multiplayer stuff spawn too
+		P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
+	}
 	
 	/* Find XPlayer */
 	XPlay = D_XNetPlayerByID(a_JoinData->ID);
@@ -1363,6 +1408,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	Player->XPlayer = XPlay;
 	Player->skincolor = a_JoinData->Color;
+	Player->VTeamColor = a_JoinData->CTFTeam;
 	
 	// GhostlyDeath <December 28, 2012> -- Counter op
 	Player->CounterOpPlayer = false;
@@ -1382,6 +1428,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 				g_Splits[i].Active = true;
 				g_Splits[i].Waiting = false;
 				g_Splits[i].Console = g_Splits[i].Display = k;
+				localaiming[i] = 0;
 				break;
 			}
 	
@@ -1654,7 +1701,10 @@ tic_t D_XNetTicsToRun(void)
 		// No other clients in game?
 		if (!NonLocal)
 			// If a menu or console is open
-			if (!demoplayback && ((M_ExAllUIActive() && g_ResumeMenu <= 0)
+			if (!demoplayback && (
+					M_SMFreezeGame()
+					|| (g_IgnoreWipeTics > 0)
+					|| (M_ExAllUIActive() && g_ResumeMenu <= 0)
 					|| (l_CONPauseGame.Value->Int && CONL_IsActive())))
 				Lagging = true;
 		

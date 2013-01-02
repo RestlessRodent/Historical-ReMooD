@@ -197,6 +197,7 @@ typedef struct player_s
 	//  0-3 for which color to draw player.
 	// adding 6-2-98 comment : unused by doom2 1.9 now is used
 	int32_t skincolor;
+	int32_t VTeamColor;							// Virtual Team Color
 	
 	// added 2/8/98
 	int32_t skin;

@@ -477,13 +477,19 @@ void D_Display(void)
 	//CONL_PrintF ("last frame update took %d\n", I_EndProfile());
 	
 	if (!wipe)
+	{
+		g_IgnoreWipeTics = 0;
 		return;
+	}
 		
 //
 // wipe update
 //
 	if (!l_VIDScreenLink.Value->Int)
+	{
+		wipe = false;
 		return;
+	}
 		
 	// Clear ignoring tic indicator
 	g_IgnoreWipeTics = 0;
@@ -2089,7 +2095,7 @@ void D_JoySpecialTicker(void)
 			// Not Active
 			if (!(M_ExPlayerUIActive(i) ||
 				(i == 0 && CONL_IsActive()) ||
-				CONL_OSKIsActive(i)))
+				CONL_OSKIsActive(i) || M_SMGenSynth(i)))
 			{
 				// Trash events to prevent retriggers
 				memset(&l_JoyKeepEvent[i], 0, sizeof(l_JoyKeepEvent[i]));

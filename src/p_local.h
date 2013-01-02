@@ -360,5 +360,7 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd);
 
 struct player_s* P_SpecGetPOV(const int32_t a_Screen);
 
+void P_VerifyCoopSpy(void);
+
 #endif							// __P_LOCAL__
 

@@ -213,6 +213,11 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	4 + MAXPLAYERNAME,
 		// uint32 Player ID
 		// uint8* Class to morph to
+	
+	// DTCT_XSPECPLAYER, Spectates Player
+	2 + 4,
+		// uint16 Player ID
+		// uint32 Unique ID
 };
 
 /*** GLOBALS ***/

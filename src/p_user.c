@@ -1407,6 +1407,9 @@ void P_SpecInit(const int32_t a_PlayerNum)
 		// Initialize each player
 		for (i = 0; i < MAXSPLITSCREEN; i++)
 			P_SpecInitOne(i);
+		
+		// Verify Coop spy
+		P_VerifyCoopSpy();
 	}
 	
 	/* Or one */
@@ -1804,5 +1807,10 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 	/* Failed */
 	// This is never reached, but for GCC
 	return NULL;
+}
+
+/* P_VerifyCoopSpy() -- Verify coop spy settings */
+void P_VerifyCoopSpy(void)
+{
 }
 

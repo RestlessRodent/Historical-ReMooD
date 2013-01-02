@@ -426,6 +426,49 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 		// Which command?
 		switch (Command)
 		{
+				// Spectate Player
+			case DTCT_XSPECPLAYER:
+				// Read Data
+				u16[0] = LittleReadUInt16((uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				
+				// Locate player ID
+				XPlayer = D_XNetPlayerByID(u32[0]);
+				
+				// Kill player object from game
+				if (u16[0] < MAXPLAYERS && playeringame[u16[0]])
+				{
+					// Get player's object
+					Mo = players[u16[0]].mo;
+				
+					// Remove object binding
+					if (Mo)
+						Mo->player = NULL;
+					players[u16[0]].mo = NULL;
+				
+					// Set the player as not in game
+					playeringame[u16[0]] = false;
+			
+					// Kill object, if it exists
+						// Don't remove it, corpse cleanup will get to it eventually
+					if (Mo)
+						P_KillMobj(Mo, Mo, Mo);
+						
+					// Make XPlayer not play anymore
+					if (XPlayer)
+					{
+						XPlayer->InGameID = -1;
+						XPlayer->Player = NULL;
+					}
+					
+					// Verify Coop Spy
+					P_VerifyCoopSpy();
+				}
+				
+				// Always update scores
+				P_UpdateScores();
+				break;
+			
 				// Join Player
 			case DTCT_XJOINPLAYER:
 				// Read Data
@@ -537,10 +580,13 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				
 				// Kick player from game (network wise)
 				if (XPlayer)
-				{
 					D_XNetKickPlayer(XPlayer, AltBuf);
-					P_UpdateScores();
-				}
+					
+				// Verify Coop Spy
+				P_VerifyCoopSpy();
+				
+				// Always update scores
+				P_UpdateScores();
 				break;
 				
 				// Map Changes
@@ -1450,7 +1496,7 @@ bool_t G_DisplaceSpawnPlayer(const int32_t a_PlayerID)
 			continue;
 			
 		// Not on same team?
-		if (DMMode && Teams && !ST_SameTeam(&players[i], &players[a_PlayerID]))
+		if (DMMode && Teams && !P_MobjOnSameTeam(players[i].mo, players[a_PlayerID].mo))
 			continue;
 		
 		// Player has no object

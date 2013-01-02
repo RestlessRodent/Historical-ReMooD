@@ -611,6 +611,7 @@ void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
 void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass);
 
 bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
+int32_t P_GetMobjTeam(mobj_t* const a_Mo);
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor);
 

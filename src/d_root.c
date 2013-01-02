@@ -221,6 +221,30 @@ static int ROOT_Morph(const uint32_t a_ArgC, const char** const a_ArgV)
 	return 1;
 }
 
+/* ROOT_Spectate() -- Force spectates a player */
+static int ROOT_Spectate(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	D_XPlayer_t* XPlay;
+	
+	/* Find Player */
+	XPlay = ROOT_GetXPlayer(a_ArgV[0]);
+	
+	// Not found?
+	if (!XPlay)
+		return 1;
+	
+	// Not in game?
+	if (XPlay->InGameID < 0 || XPlay->InGameID >= MAXPLAYERS)
+	{
+		CONL_PrintF("%s is not playing!\n", a_ArgV[0]);
+		return 1;
+	}
+	
+	/* Send spectate */
+	D_XNetSpectate(XPlay->InGameID);
+	return 0;
+}
+
 /* DS_XNetRootCon() -- Root Game Control */
 int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -239,6 +263,7 @@ int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		{"info", 1, "<xplay>", ROOT_Info},
 		{"setmonster", 2, "<xplay> <bool>", ROOT_SetMonster},
 		{"morph", 2, "<xplay> <class>", ROOT_Morph},
+		{"spectate", 1, "<xplay>", ROOT_Spectate},
 		
 		{NULL}
 	};
@@ -246,7 +271,7 @@ int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	/* Not Server */
 	if (!D_XNetIsServer())
 	{
-		CONL_PrintF("Root control is functional only with servers.\n");
+		CONL_PrintF("Root control is functional only as a server.\n");
 		return 1;
 	}
 	

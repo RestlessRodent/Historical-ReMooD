@@ -3301,4 +3301,8 @@ bool_t G_GetDemoExplicit(void)
 	return demoplayback && !g_TitleScreenDemo;
 }
 
+/* G_EncodeSaveGame() -- Encodes savegame into demo (to be loaded) */
+void G_EncodeSaveGame(void)
+{
+}
 

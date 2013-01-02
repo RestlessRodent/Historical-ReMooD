@@ -203,6 +203,8 @@ typedef enum M_SMMenus_e
 void M_SMInit(void);
 bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event);
 bool_t M_SMDoGrab(void);
+bool_t M_SMGenSynth(const int32_t a_ScreenID);
+bool_t M_SMFreezeGame(void);
 void M_SMDrawer(void);
 void M_SMTicker(void);
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID);

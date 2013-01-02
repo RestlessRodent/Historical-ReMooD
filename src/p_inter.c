@@ -1315,7 +1315,7 @@ void P_CheckFragLimit(player_t* p)
 		int fragteam = 0, i;
 		
 		for (i = 0; i < MAXPLAYERS; i++)
-			if (ST_SameTeam(p, &players[i]))
+			if (P_MobjOnSameTeam(p->mo, players[i].mo))
 				fragteam += ST_PlayerFrags(i);
 				
 		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= fragteam)
@@ -1728,7 +1728,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_XGSVal(PGS_CODISABLETEAMPLAY) ||	// support old demo version
 		        P_XGSVal(PGS_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
-		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_XGSVal(PGS_GAMEDEATHMATCH) && (!P_XGSVal(PGS_GAMETEAMPLAY) || !ST_SameTeam(source->player, player))))
+		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_XGSVal(PGS_GAMEDEATHMATCH) && (!P_XGSVal(PGS_GAMETEAMPLAY) || !P_MobjOnSameTeam(source->player->mo, player->mo))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)

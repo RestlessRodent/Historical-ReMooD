@@ -1158,6 +1158,7 @@ void M_ExUIDrawer(void)
 typedef enum M_SWidFlags_e
 {
 	MSWF_NOSELECT		= UINT32_C(0x00000001),	// Cannot be selected
+	MSWF_NOHANDLEEVT	= UINT32_C(0x00000002),	// Do not handle events
 } M_SWidFlags_t;
 
 /*** STRUCTURES ***/
@@ -1181,11 +1182,17 @@ typedef struct M_SWidget_s
 	
 	int32_t CursorOn;							// Curson on which kid?
 	
-	// Custom Draw Cursor
+	// Drawing
 	void (*DCursor)(struct M_SWidget_s* const, struct M_SWidget_s* const);
-	
-	// Draw self
 	void (*DDraw)(struct M_SWidget_s* const);
+	
+	// Functions
+	void (*FDestroy)(struct M_SWidget_s* const);
+	bool_t (*FEvent)(struct M_SWidget_s* const, const I_EventEx_t* const);
+	bool_t (*FLeftRight)(struct M_SWidget_s* const, const int32_t);
+	bool_t (*FUpDown)(struct M_SWidget_s* const, const int32_t);
+	bool_t (*FSelect)(struct M_SWidget_s* const);
+	bool_t (*FCancel)(struct M_SWidget_s* const);
 	
 	union
 	{
@@ -1193,6 +1200,11 @@ typedef struct M_SWidget_s
 		{
 			V_Image_t* Pic;						// Picture to draw
 		} Image;								// Simple Image
+		
+		struct
+		{
+			V_Image_t* Skulls[2];				// Skulls
+		} MainMenu;								// Main Menu Stuff
 	} Data;										// Widget Data
 } M_SWidget_t;
 
@@ -1202,6 +1214,28 @@ static M_SWidget_t** l_SMWi[MAXSPLITSCREEN];
 static size_t l_NumSMWi[MAXSPLITSCREEN];
 
 /*** HELPERS ***/
+
+/* MS_SMDestroy() -- Destroys Widget */
+static void MS_SMDestroy(M_SWidget_t* const a_Widget)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Widget)
+		return;
+	
+	/* Kill all kids */
+	for (i = 0; i < a_Widget->NumKids; i++)
+		if (a_Widget->Kids[i])
+			MS_SMDestroy(a_Widget->Kids[i]);
+	
+	/* Call destruction function */
+	if (a_Widget->FDestroy)
+		a_Widget->FDestroy(a_Widget);
+		
+	/* Free self */
+	Z_Free(a_Widget);
+}
 
 /* MS_SMStackPush() -- Pushes menu onto player stack */
 static void MS_SMStackPush(const int32_t a_ScreenID, M_SWidget_t* const a_Widget)
@@ -1223,6 +1257,29 @@ static void MS_SMStackPush(const int32_t a_ScreenID, M_SWidget_t* const a_Widget
 	// Any other menu
 	else
 		S_StartSound(NULL, sfx_generic_menupress);
+}
+
+/* MS_SMStackPop() -- Pops Widget */
+static void MS_StackPop(const int32_t a_ScreenID)
+{
+	M_SWidget_t* Popped;
+	
+	/* Check */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+		return;
+	
+	/* No items? */
+	if (!l_NumSMWi[a_ScreenID])
+		return;
+	
+	/* Destroy last pushed widget */
+	Popped = l_SMWi[a_ScreenID][--l_NumSMWi[a_ScreenID]];
+	
+	// Kill it
+	MS_SMDestroy(Popped);
+	
+	// Play sound
+	S_StartSound(NULL, sfx_generic_switchoff);
 }
 
 /* MS_SMCreateBase() -- Creates base widget */
@@ -1377,6 +1434,156 @@ static void MS_SMDrawWidget(M_SWidget_t* const a_Widget)
 		a_Widget->DDraw(a_Widget);
 }
 
+/* MS_GenUDEvt() -- Generic up/down event */
+static bool_t MS_GenUDEvt(M_SWidget_t* const a_Widget, int32_t a_Down)
+{
+	int32_t OldItem, This;
+	
+	/* Check */
+	if (!a_Widget || !a_Down)
+		return false;
+	
+	/* Widget only has one or none kids */
+	if (a_Widget->NumKids <= 1)
+		return false;
+	
+	/* Remember old item */
+	OldItem = a_Widget->CursorOn;
+	This = OldItem + a_Down;
+	
+	/* Loop */
+	for (; This != OldItem; This += a_Down)
+	{
+		// Correct this within bounds
+		if (This < 0)
+			This = a_Widget->NumKids - 1;
+		
+		else if (This >= a_Widget->NumKids)
+			This = 0;
+		
+		// Illegal kid here
+		if (!a_Widget->Kids[This])
+			continue;
+		
+		// Cannot park on kid
+		if (a_Widget->Kids[This]->Flags & MSWF_NOSELECT)
+			continue;
+		
+		// Otherwise, done
+		break;
+	}
+	
+	/* Set this */
+	a_Widget->CursorOn = This;
+	
+	/* Return */
+	if (This != OldItem)
+	{
+		// Play a sound
+		S_StartSound(NULL, sfx_generic_menumove);
+		return true;
+	}
+	
+	// Did not move at all
+	else
+		return false;
+}
+
+/* MS_SMWidEvent() -- Handle Widget Events */
+static bool_t MS_SMWidEvent(M_SWidget_t* const a_Widget, const I_EventEx_t* const a_Event)
+{
+	bool_t Handled;
+	int32_t Right, Down;
+	bool_t Select, Cancel;
+	
+	/* Init */
+	Handled = false;
+	
+	/* Handle event on selected child */
+	if (a_Widget->CursorOn < a_Widget->NumKids)
+		if (a_Widget->Kids[a_Widget->CursorOn])
+			if (!(a_Widget->Kids[a_Widget->CursorOn]->Flags & MSWF_NOHANDLEEVT))
+			{
+				Handled = MS_SMWidEvent(a_Widget->Kids[a_Widget->CursorOn], a_Event);
+				
+				if (Handled)
+					return true;
+			}
+	
+	/* Advanced handle event? */
+	if (a_Widget->FEvent)
+	{
+		Handled = a_Widget->FEvent(a_Widget, a_Event);
+		
+		if (Handled)
+			return true;
+	}
+	
+	/* Generic Event Handling */
+	// Clear
+	Cancel = Select = false;
+	Right = Down = 0;
+	
+	// Keyboard (P1)
+	if (a_Event->Type == IET_KEYBOARD)
+	{
+		switch (a_Event->Data.Keyboard.KeyCode)
+		{
+			case IKBK_RIGHT: Right = 1; break;
+			case IKBK_LEFT: Right = -1; break;
+			case IKBK_UP: Down = -1; break;
+			case IKBK_DOWN: Down = 1; break;
+			case IKBK_ESCAPE: Cancel = true; break;
+			case IKBK_RETURN: Select = true; break;
+			default: break;
+		}
+	}
+	
+	// Synth (Any)
+	else if (a_Event->Type == IET_SYNTHOSK)
+	{
+		Right = a_Event->Data.SynthOSK.Right;
+		Down = a_Event->Data.SynthOSK.Down;
+		Select = a_Event->Data.SynthOSK.Press;
+		Cancel = a_Event->Data.SynthOSK.Cancel;
+	}
+	
+	// Nothing?
+	if (!Right && !Down && !Select && !Cancel)
+		return false;
+	
+	// Select
+	if (Select)
+		if (a_Widget->FSelect)
+			return a_Widget->FSelect(a_Widget);
+	
+	// Cancel
+	if (Cancel)
+		if (a_Widget->FCancel)
+			return a_Widget->FCancel(a_Widget);
+	
+	// Left/Right?
+	if (Right)
+		if (a_Widget->FLeftRight)
+			return a_Widget->FLeftRight(a_Widget, Right);
+	
+	// Up/Down?
+	if (Down)
+	{
+		if (a_Widget->FUpDown)
+			Handled = a_Widget->FUpDown(a_Widget, Down);
+		
+		if (Handled)
+			return true;
+		
+		// Generic cursor up/down movement
+		return MS_GenUDEvt(a_Widget, Down);
+	}
+	
+	/* Not handled */
+	return false;
+}
+
 /*** FUNCTIONS ***/
 
 /* M_SMInit() -- Simple Menus */
@@ -1388,6 +1595,14 @@ void M_SMInit(void)
 bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
 {
 	int32_t Screen;
+	
+	/* Ignore Up events */
+	if (a_Event->Type == IET_KEYBOARD && !a_Event->Data.Keyboard.Down)
+		return false;
+	
+	/* Ignore joysticks */
+	if (a_Event->Type == IET_JOYSTICK)
+		return false;
 	
 	/* Get screen event is for, otherwise it is for player 1 */
 	Screen = 0;
@@ -1409,6 +1624,22 @@ bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
 	/* Menus for this player */
 	else
 	{
+		// Handle Widget events
+		if (MS_SMWidEvent(l_SMWi[Screen][l_NumSMWi[Screen] - 1], a_Event))
+			return true;
+			
+		// Generic ESC pop
+		if ((Screen == 0 && a_Event->Type == IET_KEYBOARD &&
+			a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE) ||
+			(a_Event->Type == IET_SYNTHOSK && a_Event->Data.SynthOSK.Cancel))
+		{
+			MS_StackPop(Screen);
+			return true;
+		}
+		
+		// Eat all unhandled events for the first screen
+		if (Screen == 0)
+			return true;
 	}
 	
 	/* Not handled */
@@ -1420,6 +1651,37 @@ bool_t M_SMDoGrab(void)
 {
 	/* Only for player 1 */
 	return !!l_NumSMWi[0];
+}
+
+/* M_SMGenSynth() -- Generate synth events? */
+bool_t M_SMGenSynth(const int32_t a_ScreenID)
+{
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+		return false;
+	return !!l_NumSMWi[a_ScreenID];
+}
+
+/* M_SMFreezeGame() -- Freeze game? */
+bool_t M_SMFreezeGame(void)
+{
+	int i, OpenCount;
+	
+	/* Never on demo */
+	if (demoplayback)	
+		return false;
+	
+	/* Only for player 1, if playing alone */
+	if (g_SplitScreen == 0)
+		return !!l_NumSMWi[0];
+	
+	/* Otherwise, see if all players inside have menus open */
+	for (i = OpenCount = 0; i < g_SplitScreen + 1; i++)
+		if (g_Splits[i].Active || g_Splits[i].Waiting)
+			if (l_NumSMWi[i])
+				OpenCount++;
+	
+	// If all menus are open
+	return !!(OpenCount == (g_SplitScreen + 1));
 }
 
 /* M_SMDrawer() -- Draws menu */
@@ -1468,6 +1730,23 @@ void M_SMTicker(void)
 /* MS_MainMenu_DCursor() -- Draws cursor over item */
 void MS_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub)
 {
+	bool_t SkullNum;
+	
+	/* Which skull? */
+	SkullNum = !!(g_ProgramTic & 0x8);
+	
+	/* Load Skull? */
+	if (!a_Widget->Data.MainMenu.Skulls[SkullNum])
+		a_Widget->Data.MainMenu.Skulls[SkullNum] = V_ImageFindA((SkullNum ? "M_SKULL2" : "M_SKULL1"), VCP_DOOM);
+	
+	/* Draw it */
+	V_ImageDraw(
+			0,
+			a_Widget->Data.MainMenu.Skulls[SkullNum],
+			a_Sub->dx - 32,
+			a_Sub->dy - 5,
+			NULL
+		);
 }
 
 /* M_SMSpawn() -- Spawns menu for player */
@@ -1506,6 +1785,8 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work = MS_SMCreateImage(Root, 97, 112, V_ImageFindA("M_SAVEG", VCP_DOOM));
 			Work = MS_SMCreateImage(Root, 97, 128, V_ImageFindA("M_QUITG", VCP_DOOM));
 			
+			// Start on new game
+			Root->CursorOn = 1;
 			break;
 		
 			// Unknown

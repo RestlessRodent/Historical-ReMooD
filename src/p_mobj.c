@@ -3039,10 +3039,51 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 	return true;
 }
 
+/* P_GetMobjTeam() -- Get object's team */
+int32_t P_GetMobjTeam(mobj_t* const a_Mo)
+{
+	int32_t RetVal;
+	bool_t VTeam;
+	
+	/* Check */
+	if (!a_Mo)
+		return -1;
+	
+	/* Virtual Teams? */
+	VTeam = false;//!!P_XGSVal();
+	
+	/* Player? */
+	if ((a_Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && a_Mo->player)
+	{
+		if (VTeam)
+			RetVal = a_Mo->player->VTeamColor;
+		
+		else
+			if (P_XGSVal(PGS_GAMETEAMPLAY) == 2)
+				RetVal = a_Mo->player->skin;
+			else
+				RetVal = a_Mo->player->skincolor;
+	}
+	
+	/* Monster? */
+	else
+	{
+		RetVal =  a_Mo->SkinTeamColor - 1;
+	}
+	
+	/* Cap team to team limit */
+	if (VTeam)
+		;//RetVal = RetVal % P_XGSVal();
+	
+	/* Return */
+	return VTeam;
+}
+
 /* P_MobjOnSameTeam() -- Determines whether two objects are on the same team */
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 {
 	bool_t IsThisPlayer, IsOtherPlayer;
+	int32_t TeamA, TeamB;
 	
 	/* Check */
 	if (!a_ThisMo || !a_OtherMo)
@@ -3054,10 +3095,14 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Determine if this is a standard player or a monster player */
 	IsThisPlayer = IsOtherPlayer = false;
-	if (/*a_ThisMo->player &&*/ (a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if ((a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && a_ThisMo->player)
 		IsThisPlayer = true;
-	if (/*a_OtherMo->player &&*/ (a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if ((a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && a_OtherMo->player)
 		IsOtherPlayer = true;
+	
+	/* Get team numbers */
+	TeamA = P_GetMobjTeam(a_ThisMo);
+	TeamB = P_GetMobjTeam(a_OtherMo);
 	
 	/* Cooperative Players */
 	if (!P_XGSVal(PGS_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
@@ -3070,7 +3115,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 		if (P_XGSVal(PGS_GAMETEAMPLAY))
 		{
 			// On same team?
-			if (a_ThisMo->player->skincolor == a_OtherMo->player->skincolor)
+			if (TeamA == TeamB)
 				return true;
 		}
 		
@@ -3089,17 +3134,14 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	if (P_XGSVal(PGS_GAMETEAMPLAY))
 	{
 		// Player and monster on the same colored team?
-		if ((IsThisPlayer && !IsOtherPlayer && a_ThisMo->player &&
-				a_ThisMo->player->skincolor == a_OtherMo->SkinTeamColor - 1) ||
-			(IsOtherPlayer && !IsThisPlayer && a_OtherMo->player &&
-				a_OtherMo->player->skincolor == a_ThisMo->SkinTeamColor - 1))
+		if (((IsThisPlayer && !IsOtherPlayer) || (IsOtherPlayer && !IsThisPlayer)) && TeamA == TeamB)
 			return true;
 	
 		// Monsters on the same skin team
 		if (a_ThisMo->SkinTeamColor > 0 && a_OtherMo->SkinTeamColor > 0)
 		{
 			// Same team?
-			if (a_ThisMo->SkinTeamColor == a_OtherMo->SkinTeamColor)
+			if (TeamA == TeamB)
 				return true;
 			
 			// Different Team
