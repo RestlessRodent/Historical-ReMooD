@@ -485,17 +485,21 @@ void I_OsPolling(void)
 		}
 		
 		// Translate
-		if (!D_JoySpecialEvent(&Event))
-			if (!CONL_HandleEvent(&Event))
-				if (!M_ExUIHandleEvent(&Event))
-					if (!D_XNetHandleEvent(&Event))
-						I_EventToOldDoom(&Event);
+		if (D_JoySpecialEvent(&Event))
+			continue;
+			
+		if (CONL_HandleEvent(&Event))
+			continue;
+			
+		if (M_SMHandleEvent(&Event))
+			continue;
+			
+		if (M_ExUIHandleEvent(&Event))
+			continue;
+			
+		if (D_XNetHandleEvent(&Event))
+			continue;
 	}
-}
-
-/* I_EventToOldDoom() -- Converts an extended event to the old format */
-void I_EventToOldDoom(const I_EventEx_t* const a_Event)
-{
 }
 
 /* I_DoMouseGrabbing() -- Does grabbing if the mouse should be grabbed */
@@ -510,7 +514,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || M_ExUIActive() || CONL_IsActive());
+	New = !(dedicated || demoplayback || M_ExUIActive() || CONL_IsActive() || M_SMDoGrab());
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

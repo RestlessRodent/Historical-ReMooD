@@ -184,5 +184,28 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
 
 void M_DoMappedVars(void);
 
+/*******************
+*** SIMPLE MENUS ***
+*******************/
+
+/*** CONSTANTS ***/
+
+/* M_SMMenus_t -- Possible Menus */
+typedef enum M_SMMenus_e
+{
+	MSM_MAIN,									// Main menu	
+	
+	NUMMSMMENUS
+} M_SMMenus_t;
+
+/*** FUNCTIONS ***/
+
+void M_SMInit(void);
+bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event);
+bool_t M_SMDoGrab(void);
+void M_SMDrawer(void);
+void M_SMTicker(void);
+void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID);
+
 #endif
 

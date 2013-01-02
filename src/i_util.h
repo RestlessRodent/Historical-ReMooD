@@ -459,7 +459,6 @@ size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, v
 /*** i_util.c ***/
 void I_EventExPush(const I_EventEx_t* const a_Event);
 bool_t I_EventExPop(I_EventEx_t* const a_Event);
-void I_EventToOldDoom(const I_EventEx_t* const a_Event);
 void I_DoMouseGrabbing(void);
 void I_StartupMouse(void);
 void I_StartupMouse2(void);

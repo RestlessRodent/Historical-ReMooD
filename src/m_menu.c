@@ -1148,4 +1148,373 @@ void M_ExUIDrawer(void)
 		M_ExMenuDrawer();
 }
 
+/*******************
+*** SIMPLE MENUS ***
+*******************/
+
+/*** CONSTANTS ***/
+
+/* M_SWidFlags_t -- Widget flags */
+typedef enum M_SWidFlags_e
+{
+	MSWF_NOSELECT		= UINT32_C(0x00000001),	// Cannot be selected
+} M_SWidFlags_t;
+
+/*** STRUCTURES ***/
+
+/* M_SWidget_t -- Simple menu widget */
+typedef struct M_SWidget_s
+{
+	uint32_t Flags;								// Widget Flags
+	
+	int32_t x, y;								// X/Y position
+	int32_t w, h;								// Width/Height
+	int32_t offx, offy;							// X/Y offset
+	
+	int32_t dx, dy;								// Draw X/Y
+	int32_t dw, dh;								// Draw W/H
+	
+	struct M_SWidget_s* Parent;					// Parent Widget
+	
+	struct M_SWidget_s** Kids;					// Kid Widgets
+	int32_t NumKids;							// Number of kids
+	
+	int32_t CursorOn;							// Curson on which kid?
+	
+	// Custom Draw Cursor
+	void (*DCursor)(struct M_SWidget_s* const, struct M_SWidget_s* const);
+	
+	// Draw self
+	void (*DDraw)(struct M_SWidget_s* const);
+	
+	union
+	{
+		struct
+		{
+			V_Image_t* Pic;						// Picture to draw
+		} Image;								// Simple Image
+	} Data;										// Widget Data
+} M_SWidget_t;
+
+/*** LOCALS ***/
+
+static M_SWidget_t** l_SMWi[MAXSPLITSCREEN];
+static size_t l_NumSMWi[MAXSPLITSCREEN];
+
+/*** HELPERS ***/
+
+/* MS_SMStackPush() -- Pushes menu onto player stack */
+static void MS_SMStackPush(const int32_t a_ScreenID, M_SWidget_t* const a_Widget)
+{
+	/* Check */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || !a_Widget)
+		return;
+	
+	/* Resize array */
+	Z_ResizeArray((void**)&l_SMWi[a_ScreenID], sizeof(*l_SMWi[a_ScreenID]),
+		l_NumSMWi[a_ScreenID], l_NumSMWi[a_ScreenID] + 1);
+	l_SMWi[a_ScreenID][l_NumSMWi[a_ScreenID]++] = a_Widget;
+	
+	/* Play a nice sound */
+	// First menu
+	if (l_NumSMWi[a_ScreenID] == 1)
+		S_StartSound(NULL, sfx_generic_switchon);
+	
+	// Any other menu
+	else
+		S_StartSound(NULL, sfx_generic_menupress);
+}
+
+/* MS_SMCreateBase() -- Creates base widget */
+static M_SWidget_t* MS_SMCreateBase(M_SWidget_t* const a_Parent)
+{
+	M_SWidget_t* New;
+	
+	/* Setup new widget */
+	New = Z_Malloc(sizeof(*New), PU_SIMPLEMENU, NULL);
+	
+	// Parent
+	New->Parent = a_Parent;
+	
+	// Add to parents kids
+	if (New->Parent)
+	{
+		Z_ResizeArray((void**)&New->Parent->Kids, sizeof(*New->Parent->Kids),
+			New->Parent->NumKids, New->Parent->NumKids + 1);
+		New->Parent->Kids[New->Parent->NumKids++] = New;
+	}
+	
+	/* Return it */
+	return New;
+}
+
+/* MS_SMCreateBox() -- Creates simple box */
+static M_SWidget_t* MS_SMCreateBox(M_SWidget_t* const a_Parent, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+{
+	M_SWidget_t* New;
+	
+	/* First create base */
+	New = MS_SMCreateBase(a_Parent);
+	
+	// Set box shape
+	New->x = a_X;
+	New->y = a_Y;
+	New->w = a_W;
+	New->h = a_H;
+	
+	/* Return it */
+	return New;
+}
+
+/* MS_Image_DDraw() -- Draws Image */
+void MS_Image_DDraw(struct M_SWidget_s* const a_Widget)
+{
+	V_ImageDraw(0, a_Widget->Data.Image.Pic, a_Widget->dx, a_Widget->dy, NULL);
+}
+
+/* MS_SMCreateImage() -- Creates image widget */
+static M_SWidget_t* MS_SMCreateImage(M_SWidget_t* const a_Parent, const int32_t a_X, const int32_t a_Y, V_Image_t* const a_Image)
+{
+	M_SWidget_t* New;
+	
+	/* Check */
+	if (!a_Image)
+		return NULL;
+	
+	/* First create base */
+	New = MS_SMCreateBase(a_Parent);
+	
+	// Set image props
+	New->Data.Image.Pic = a_Image;
+	New->x = a_X;
+	New->y = a_Y;
+	New->w = a_Image->Width;
+	New->h = a_Image->Height;
+	New->DDraw = MS_Image_DDraw;
+	
+	/* Return it */
+	return New;
+}
+
+/* MS_SMDrawWidget() -- Recursively draws widgets */
+static void MS_SMDrawWidget(M_SWidget_t* const a_Widget)
+{
+	int32_t i;
+	M_SWidget_t* Sub;
+	bool_t Blink;
+	
+	/* Set drawing location */
+	// No parent? First to draw
+	if (!a_Widget->Parent)
+	{
+		a_Widget->dx = a_Widget->x;
+		a_Widget->dy = a_Widget->y;
+		a_Widget->dw = a_Widget->w;
+		a_Widget->dh = a_Widget->h;
+	}
+	
+	// Otherwise base it on parent
+	else
+	{
+		// Offsets are easy
+		a_Widget->dx = a_Widget->Parent->dx + a_Widget->x;
+		a_Widget->dy = a_Widget->Parent->dy + a_Widget->y;
+		
+		// Cap sizes
+		a_Widget->dw = a_Widget->w;
+		if (a_Widget->dw > a_Widget->Parent->dw - a_Widget->x)
+			a_Widget->dw = a_Widget->Parent->dw - a_Widget->x;
+			
+		a_Widget->dh = a_Widget->h;
+		if (a_Widget->dh > a_Widget->Parent->dh - a_Widget->y)
+			a_Widget->dh = a_Widget->Parent->dh - a_Widget->y;
+	}
+	
+	/* Debug Box */
+	if (devparm)
+		VHW_HUDDrawBox(VEX_HOLLOW, 0xFF, ((g_ProgramTic & 0x100) ? (g_ProgramTic & 0xFF) : ~(g_ProgramTic & 0xFF)), 0, a_Widget->dx, a_Widget->dy, a_Widget->dx + a_Widget->dw, a_Widget->dy + a_Widget->dh);
+	
+	/* Draw Kids First */
+	for (i = 0; i < a_Widget->NumKids; i++)
+	{
+		Sub = a_Widget->Kids[i];
+		
+		// Nothing?
+		if (!Sub)
+			continue;
+		
+		// Draw it
+		MS_SMDrawWidget(Sub);
+		
+		// This thing is selected
+		if (i == a_Widget->CursorOn)
+		{
+			// Special cursor drawing function
+			if (a_Widget->DCursor)
+				a_Widget->DCursor(a_Widget, Sub);
+			
+			// Generic Cursor
+			else
+			{
+				// Blinked?
+				Blink = !!(g_ProgramTic & 0x4);
+				
+				if (Blink)
+					V_DrawCharacterMB(
+						VFONT_SMALL,
+						VFO_COLOR(VEX_MAP_BRIGHTWHITE),
+						"*",
+						Sub->dx - (V_FontWidth(VFONT_SMALL) + 4),
+						Sub->dy,
+						NULL, NULL
+					);
+			}
+		}
+	}
+	
+	/* Draw this widget ontop */
+	if (a_Widget->DDraw)
+		a_Widget->DDraw(a_Widget);
+}
+
+/*** FUNCTIONS ***/
+
+/* M_SMInit() -- Simple Menus */
+void M_SMInit(void)
+{
+}
+
+/* M_SMHandleEvent() -- Handles Event */
+bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
+{
+	int32_t Screen;
+	
+	/* Get screen event is for, otherwise it is for player 1 */
+	Screen = 0;
+	if (a_Event->Type == IET_SYNTHOSK)
+		Screen = a_Event->Data.SynthOSK.PNum;
+	
+	/* No menus for this player */
+	if (!l_NumSMWi[Screen])
+	{
+		// If hitting ESC, spawn main menu (P1 Only)
+		if (Screen == 0 && a_Event->Type == IET_KEYBOARD &&
+			a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
+		{
+			M_SMSpawn(Screen, MSM_MAIN);
+			return true;
+		}
+	}
+	
+	/* Menus for this player */
+	else
+	{
+	}
+	
+	/* Not handled */
+	return false;
+}
+
+/* M_SMDoGrab() -- Grabbing mouse */
+bool_t M_SMDoGrab(void)
+{
+	/* Only for player 1 */
+	return !!l_NumSMWi[0];
+}
+
+/* M_SMDrawer() -- Draws menu */
+void M_SMDrawer(void)
+{
+	int32_t Screen;
+	bool_t DrawCursor;
+	
+	/* For all screens */
+	DrawCursor = false;
+	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
+	{
+		// No Menus?
+		if (!l_NumSMWi[Screen])
+			continue;
+		
+		// Draw recursive menu stuff
+		MS_SMDrawWidget(l_SMWi[Screen][l_NumSMWi[Screen] - 1]);
+		
+		// Cursor?
+		if (Screen == 0)
+			DrawCursor = true;
+	}
+	
+	/* Draw Mouse? */
+	if (DrawCursor)
+		CONL_DrawMouse();
+}
+
+/* M_SMTicker() -- Ticks simple menu */
+void M_SMTicker(void)
+{
+	int32_t Screen;
+	
+	/* For all screens */
+	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
+	{
+		// No Menus?
+		if (!l_NumSMWi[Screen])
+			continue;
+		
+		// Tick menu stuff in this menu
+	}
+}
+
+/* MS_MainMenu_DCursor() -- Draws cursor over item */
+void MS_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub)
+{
+}
+
+/* M_SMSpawn() -- Spawns menu for player */
+void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
+{
+	M_SWidget_t* Root, *Work;
+	
+	/* Check */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || a_MenuID < 0 || a_MenuID >= NUMMSMMENUS)
+		return;
+	
+	/* Init */
+	Root = NULL;
+	
+	/* Which menu to spawn? */
+	switch (a_MenuID)
+	{
+			// Main Menu (Doom)
+		case MSM_MAIN:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Use skull cursor instead
+			Root->DCursor = MS_MainMenu_DCursor;
+			
+			// Nice Doom picture
+			Work = MS_SMCreateImage(Root, 94, 2, V_ImageFindA("M_DOOM", VCP_DOOM));
+			
+			if (Work)
+				Work->Flags |= MSWF_NOSELECT;
+			
+			// Main Menu Stuff
+			Work = MS_SMCreateImage(Root, 97, 64, V_ImageFindA("M_NGAME", VCP_DOOM));
+			Work = MS_SMCreateImage(Root, 97, 80, V_ImageFindA("M_OPTION", VCP_DOOM));
+			Work = MS_SMCreateImage(Root, 97, 96, V_ImageFindA("M_LOADG", VCP_DOOM));
+			Work = MS_SMCreateImage(Root, 97, 112, V_ImageFindA("M_SAVEG", VCP_DOOM));
+			Work = MS_SMCreateImage(Root, 97, 128, V_ImageFindA("M_QUITG", VCP_DOOM));
+			
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Pushing? */
+	if (Root)
+		MS_SMStackPush(a_ScreenID, Root);
+}
 

@@ -427,7 +427,7 @@ void D_Display(void)
 	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
-	
+	M_SMDrawer();
 	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
@@ -2587,6 +2587,7 @@ void D_DoomMain(void)
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
+	M_SMInit();							// Simple Menus
 	G_PrepareDemoStuff();				// Demos
 	M_DoMappedVars();					// Mapped Vars
 	B_InitBotCodes();					// Initialize bot coding

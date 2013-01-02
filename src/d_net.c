@@ -2960,6 +2960,7 @@ void D_XNetUpdate(void)
 	D_ProcessEvents();			// menu responder ???!!!
 	CONL_Ticker();
 	D_JoySpecialTicker();
+	M_SMTicker();				// Simple Menu Ticker
 	
 	/* Not playing? */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
