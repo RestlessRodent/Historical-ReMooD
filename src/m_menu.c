@@ -1167,6 +1167,7 @@ typedef enum M_SWidFlags_e
 typedef struct M_SWidget_s
 {
 	uint32_t Flags;								// Widget Flags
+	int32_t Screen;								// Screen
 	
 	int32_t x, y;								// X/Y position
 	int32_t w, h;								// Width/Height
@@ -1181,6 +1182,7 @@ typedef struct M_SWidget_s
 	int32_t NumKids;							// Number of kids
 	
 	int32_t CursorOn;							// Curson on which kid?
+	M_SMMenus_t SubMenu;						// SubMenu to open
 	
 	// Drawing
 	void (*DCursor)(struct M_SWidget_s* const, struct M_SWidget_s* const);
@@ -1205,6 +1207,13 @@ typedef struct M_SWidget_s
 		{
 			V_Image_t* Skulls[2];				// Skulls
 		} MainMenu;								// Main Menu Stuff
+		
+		struct
+		{
+			VideoFont_t Font;						// Font to draw in
+			uint32_t Flags;						// Draw flags
+			const char** Ref;					// Reference to text
+		} Label;
 	} Data;										// Widget Data
 } M_SWidget_t;
 
@@ -1320,6 +1329,51 @@ static M_SWidget_t* MS_SMCreateBox(M_SWidget_t* const a_Parent, const int32_t a_
 	New->h = a_H;
 	
 	/* Return it */
+	return New;
+}
+
+/* MS_Label_DDraw() -- Draws Label */
+void MS_Label_DDraw(struct M_SWidget_s* const a_Widget)
+{
+	V_DrawStringA(a_Widget->Data.Label.Font, a_Widget->Data.Label.Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
+}
+
+
+/* MS_SMCreateLabel() -- Creates label */
+static M_SWidget_t* MS_SMCreateLabel(M_SWidget_t* const a_Parent, const VideoFont_t a_Font, const uint32_t a_Flags, const char** const a_Ref)
+{
+	M_SWidget_t* New;
+	
+	/* First create base */
+	New = MS_SMCreateBase(a_Parent);
+	
+	// Parent has no kids, start from base position
+	if (a_Parent->NumKids == 1)
+	{
+		New->x = 12;
+		New->y = 5;
+	}
+	
+	// Otherwise add to it
+	else
+	{
+		New->x = a_Parent->Kids[a_Parent->NumKids - 2]->x;
+		New->y = a_Parent->Kids[a_Parent->NumKids - 2]->y + a_Parent->Kids[a_Parent->NumKids - 2]->h + 4;
+	}
+	
+	// Width and height matches font
+	New->w = V_FontWidth(a_Font);
+	New->h = V_FontHeight(a_Font);
+	
+	// Drawer
+	New->DDraw = MS_Label_DDraw;
+	
+	// Setup
+	New->Data.Label.Font = a_Font;
+	New->Data.Label.Flags = a_Flags;
+	New->Data.Label.Ref = a_Ref;
+	
+	/* Done */
 	return New;
 }
 
@@ -1749,9 +1803,76 @@ void MS_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s*
 		);
 }
 
+/* MS_SubMenu_FSelect() -- Opens submenu */
+static bool_t MS_SubMenu_FSelect(struct M_SWidget_s* const a_Widget)
+{
+	M_SMSpawn(a_Widget->Screen, a_Widget->SubMenu);
+	return true;
+}
+
+/* MS_NewGameClassic_FSelect() -- Classic is selected at the top menu */
+static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Clear next game vars */
+	NG_ResetVars();
+	
+	/* Doom */
+	if (g_CoreGame == COREGAME_DOOM)
+	{
+		// Doom II
+		if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL))
+		{
+			NG_SetNextMap("map01");
+			M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
+			return true;
+		}
+		
+		// Doom II: BFG Edition
+		else if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL | CIF_EXTENDED))
+		{
+		}
+		
+		// Shareware Doom
+		else if ((g_IWADFlags & (CIF_SHAREWARE)) == (CIF_SHAREWARE))
+		{
+			NG_SetNextMap("e1m1");
+			M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
+			return true;
+		}
+		
+		// Registered Doom
+		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED))
+		{
+		}
+		
+		// Ultimate Doom
+		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED | CIF_EXTENDED))
+		{
+		}
+		
+		// Unknown
+		else
+			return false;
+	}
+	
+	/* Heretic */
+	else if (g_CoreGame == COREGAME_HERETIC)
+	{
+	}
+	
+	/* Unknown!? */
+	else
+		return false;
+	
+	/* Success! */
+	return true;
+}
+
 /* M_SMSpawn() -- Spawns menu for player */
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 {
+#define SUBMENUFLAGS (VFO_COLOR(VEX_MAP_BRIGHTWHITE))
+#define SORTFLAGS (VFO_COLOR(VEX_MAP_ORANGE))
 	M_SWidget_t* Root, *Work;
 	
 	/* Check */
@@ -1780,6 +1901,9 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Main Menu Stuff
 			Work = MS_SMCreateImage(Root, 97, 64, V_ImageFindA("M_NGAME", VCP_DOOM));
+			Work->FSelect = MS_SubMenu_FSelect;
+			Work->SubMenu = MSM_NEWGAME;
+			
 			Work = MS_SMCreateImage(Root, 97, 80, V_ImageFindA("M_OPTION", VCP_DOOM));
 			Work = MS_SMCreateImage(Root, 97, 96, V_ImageFindA("M_LOADG", VCP_DOOM));
 			Work = MS_SMCreateImage(Root, 97, 112, V_ImageFindA("M_SAVEG", VCP_DOOM));
@@ -1787,6 +1911,26 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Start on new game
 			Root->CursorOn = 1;
+			break;
+			
+			// New Game
+		case MSM_NEWGAME:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Add sub options
+				// New Game
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CLASSIC));
+			
+				// More advanced settings
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CREATEGAME));
+			
+				// Server List: Name
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SORTFLAGS, DS_GetStringRef(DSTR_MENUGENERAL_SVNAME));
+			break;
+			
+			// Select Skill
+		case MSM_SKILLSELECTDOOM:
 			break;
 		
 			// Unknown
@@ -1796,6 +1940,11 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 	
 	/* Pushing? */
 	if (Root)
+	{
+		Root->Screen = a_ScreenID;
 		MS_SMStackPush(a_ScreenID, Root);
+	}
+#undef SUBMENUFLAGS
+#undef SORTFLAGS
 }
 

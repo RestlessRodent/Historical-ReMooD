@@ -193,7 +193,9 @@ void M_DoMappedVars(void);
 /* M_SMMenus_t -- Possible Menus */
 typedef enum M_SMMenus_e
 {
-	MSM_MAIN,									// Main menu	
+	MSM_MAIN,									// Main menu (Doom)
+	MSM_NEWGAME,								// New Game
+	MSM_SKILLSELECTDOOM,						// Select Skill (Doom)
 	
 	NUMMSMMENUS
 } M_SMMenus_t;

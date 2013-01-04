@@ -1855,3 +1855,20 @@ int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right)
 	return P_XGSGetNextValue(a_Bit, a_Right);
 }
 
+/* NG_SetNextMap() -- Sets the next map */
+void NG_SetNextMap(const char* const a_Map)
+{
+	/* No map? */
+	if (!a_Map)
+	{
+		l_NGNewMap[0] = 0;
+	}
+	
+	/* Placed map */
+	else
+	{
+		strncpy(l_NGNewMap, a_Map, WLMAXENTRYNAME - 1);
+		l_NGNewMap[WLMAXENTRYNAME - 1] = 0;
+	}
+}
+

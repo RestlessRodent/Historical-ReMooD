@@ -21,7 +21,7 @@ LOCKDOOR 0x3800
 @	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
 @	SPEED [ 3 0x0018 slow normal fast turbo ]
 @	KIND [ 5 0x0060 owc oso ]
-@	KEY [ 6 0x01c0 anykey redcard bluecard yellowcard redskull blueskull yellowskull ]
+@	KEY [ 6 0x01c0 anykey redcard bluecard yellowcard redskull blueskull yellowskull allkeys ]
 @	SKULLISCARD [ 9 0x0200 skullisnotcard skulliscard ]
 
 FLOOR 0x6000
