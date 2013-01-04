@@ -554,7 +554,7 @@ void P_SetThingPosition(mobj_t* thing)
 bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*, void*), void* a_Arg)
 {
 	int offset;
-	const long* list;			// Big blockmap Tails
+	const int32_t* list;			// Big blockmap Tails
 	line_t* ld;
 	
 	if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)

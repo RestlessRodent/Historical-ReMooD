@@ -1183,6 +1183,7 @@ typedef struct M_SWidget_s
 	
 	int32_t CursorOn;							// Curson on which kid?
 	M_SMMenus_t SubMenu;						// SubMenu to open
+	int32_t Option;								// Option
 	
 	// Drawing
 	void (*DCursor)(struct M_SWidget_s* const, struct M_SWidget_s* const);
@@ -1289,6 +1290,17 @@ static void MS_StackPop(const int32_t a_ScreenID)
 	
 	// Play sound
 	S_StartSound(NULL, sfx_generic_switchoff);
+}
+
+/* MS_StackPopAll() -- Pops all from stack */
+static void MS_StackPopAll(void)
+{
+	int32_t i;
+	
+	/* Pop */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		while (l_NumSMWi[i])
+			MS_StackPop(i);
 }
 
 /* MS_SMCreateBase() -- Creates base widget */
@@ -1489,7 +1501,7 @@ static void MS_SMDrawWidget(M_SWidget_t* const a_Widget)
 }
 
 /* MS_GenUDEvt() -- Generic up/down event */
-static bool_t MS_GenUDEvt(M_SWidget_t* const a_Widget, int32_t a_Down)
+static bool_t MS_GenUDEvt(M_SWidget_t* const a_Widget, const int32_t a_Down)
 {
 	int32_t OldItem, This;
 	
@@ -1502,18 +1514,24 @@ static bool_t MS_GenUDEvt(M_SWidget_t* const a_Widget, int32_t a_Down)
 		return false;
 	
 	/* Remember old item */
-	OldItem = a_Widget->CursorOn;
-	This = OldItem + a_Down;
+	This = OldItem = a_Widget->CursorOn;
 	
 	/* Loop */
-	for (; This != OldItem; This += a_Down)
+	for (;;)
 	{
+		// Modify movement
+		This += a_Down;
+		
 		// Correct this within bounds
 		if (This < 0)
 			This = a_Widget->NumKids - 1;
 		
 		else if (This >= a_Widget->NumKids)
 			This = 0;
+		
+		// Same?
+		if (This == OldItem)
+			break;
 		
 		// Illegal kid here
 		if (!a_Widget->Kids[This])
@@ -1868,6 +1886,28 @@ static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
 	return true;
 }
 
+/* MS_NewGameSkill_FSelect() -- Selects skill */
+static bool_t MS_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
+{
+	NG_SetVarValue(PGS_GAMESKILL, a_Widget->Option);
+	
+	// Nightmare
+	if (a_Widget->Option == 4)
+	{
+		NG_SetVarValue(PGS_MONFASTMONSTERS, 1);
+		NG_SetVarValue(PGS_MONRESPAWNMONSTERS, 1);
+	}
+	
+	/* Make Game Now */
+	D_XNetMakeServer(false, 0);
+	NG_ApplyVars();
+	NG_WarpMap();
+	
+	/* Kill all menus */
+	MS_StackPopAll();
+	return true;
+}
+
 /* M_SMSpawn() -- Spawns menu for player */
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 {
@@ -1895,9 +1935,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Nice Doom picture
 			Work = MS_SMCreateImage(Root, 94, 2, V_ImageFindA("M_DOOM", VCP_DOOM));
-			
-			if (Work)
-				Work->Flags |= MSWF_NOSELECT;
+			Work->Flags |= MSWF_NOSELECT;
 			
 			// Main Menu Stuff
 			Work = MS_SMCreateImage(Root, 97, 64, V_ImageFindA("M_NGAME", VCP_DOOM));
@@ -1921,6 +1959,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Add sub options
 				// New Game
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CLASSIC));
+			Work->FSelect = MS_NewGameClassic_FSelect;
 			
 				// More advanced settings
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CREATEGAME));
@@ -1931,6 +1970,43 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Select Skill
 		case MSM_SKILLSELECTDOOM:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Use skull cursor instead
+			Root->DCursor = MS_MainMenu_DCursor;
+			
+			// Nice new game picture
+			Work = MS_SMCreateImage(Root, 96, 14, V_ImageFindA("M_NEWG", VCP_DOOM));
+			Work->Flags |= MSWF_NOSELECT;
+			
+			// Nice new game picture
+			Work = MS_SMCreateImage(Root, 54, 38, V_ImageFindA("M_SKILL", VCP_DOOM));
+			Work->Flags |= MSWF_NOSELECT;
+			
+			// Skill Select
+			Work = MS_SMCreateImage(Root, 48, 63, V_ImageFindA("M_JKILL", VCP_DOOM));
+			Work->Option = 0;
+			Work->FSelect = MS_NewGameSkill_FSelect;
+			
+			Work = MS_SMCreateImage(Root, 48, 79, V_ImageFindA("M_ROUGH", VCP_DOOM));
+			Work->Option = 1;
+			Work->FSelect = MS_NewGameSkill_FSelect;
+			
+			Work = MS_SMCreateImage(Root, 48, 95, V_ImageFindA("M_HURT", VCP_DOOM));
+			Work->Option = 2;
+			Work->FSelect = MS_NewGameSkill_FSelect;
+			
+			Work = MS_SMCreateImage(Root, 48, 111, V_ImageFindA("M_ULTRA", VCP_DOOM));
+			Work->Option = 3;
+			Work->FSelect = MS_NewGameSkill_FSelect;
+			
+			Work = MS_SMCreateImage(Root, 48, 127, V_ImageFindA("M_NMARE", VCP_DOOM));
+			Work->Option = 4;
+			Work->FSelect = MS_NewGameSkill_FSelect;
+			
+			// Start on HMP
+			Root->CursorOn = 4;
 			break;
 		
 			// Unknown
