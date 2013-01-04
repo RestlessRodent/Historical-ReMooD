@@ -38,6 +38,7 @@
 	#if defined(__unix__) || defined(__APPLE__)
 		#include <unistd.h>				// Standard Stuff
 		#include <dirent.h>
+		#include <libgen.h>
 	#endif
 
 	// On Windows include windows.h

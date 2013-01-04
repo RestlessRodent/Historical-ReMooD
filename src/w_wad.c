@@ -40,6 +40,7 @@
 #include "md5.h"
 #include "v_video.h"
 #include "console.h"
+#include "i_util.h"
 
 // WAD DATA
 #include "m_argv.h"
