@@ -217,8 +217,6 @@
 
 #endif /* __REMOOD_IGNORE_FIXEDTYPES */
 
-typedef double double_t;
-
 /***********
 *** BOOL ***
 ***********/
