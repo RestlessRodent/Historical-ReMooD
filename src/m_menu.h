@@ -196,6 +196,8 @@ typedef enum M_SMMenus_e
 	MSM_MAIN,									// Main menu (Doom)
 	MSM_NEWGAME,								// New Game
 	MSM_SKILLSELECTDOOM,						// Select Skill (Doom)
+	MSM_EPISELECTDOOM,							// Select Episode (Doom)
+	MSM_EPISELECTUDOOM,							// Select Episode (Ult Doom)
 	
 	NUMMSMMENUS
 } M_SMMenus_t;

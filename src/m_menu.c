@@ -1861,11 +1861,15 @@ static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
 		// Registered Doom
 		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED))
 		{
+			M_SMSpawn(a_Widget->Screen, MSM_EPISELECTDOOM);
+			return true;
 		}
 		
 		// Ultimate Doom
 		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED | CIF_EXTENDED))
 		{
+			M_SMSpawn(a_Widget->Screen, MSM_EPISELECTUDOOM);
+			return true;
 		}
 		
 		// Unknown
@@ -1884,6 +1888,18 @@ static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
 	
 	/* Success! */
 	return true;
+}
+
+/* MS_NewGameEpi_FSelect() -- Episode Selected */
+static bool_t MS_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget)
+{
+#define BUFSIZE 8
+	char Buf[BUFSIZE];
+	snprintf(Buf, BUFSIZE, "e%dm1", a_Widget->Option);
+	NG_SetNextMap(Buf);
+	M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
+	return true;
+#undef BUFSIZE
 }
 
 /* MS_NewGameSkill_FSelect() -- Selects skill */
@@ -1980,7 +1996,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work = MS_SMCreateImage(Root, 96, 14, V_ImageFindA("M_NEWG", VCP_DOOM));
 			Work->Flags |= MSWF_NOSELECT;
 			
-			// Nice new game picture
+			// Nice skill picture
 			Work = MS_SMCreateImage(Root, 54, 38, V_ImageFindA("M_SKILL", VCP_DOOM));
 			Work->Flags |= MSWF_NOSELECT;
 			
@@ -2007,6 +2023,43 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Start on HMP
 			Root->CursorOn = 4;
+			break;
+		
+			// Episode Select
+		case MSM_EPISELECTUDOOM:
+		case MSM_EPISELECTDOOM:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Use skull cursor instead
+			Root->DCursor = MS_MainMenu_DCursor;
+			
+			// Nice episode choosing picture
+			Work = MS_SMCreateImage(Root, 54, 38, V_ImageFindA("M_EPISOD", VCP_DOOM));
+			Work->Flags |= MSWF_NOSELECT;
+			
+			// Episode Select
+			Work = MS_SMCreateImage(Root, 48, 63, V_ImageFindA("M_EPI1", VCP_DOOM));
+			Work->Option = 1;
+			Work->FSelect = MS_NewGameEpi_FSelect;
+			
+			Work = MS_SMCreateImage(Root, 48, 79, V_ImageFindA("M_EPI2", VCP_DOOM));
+			Work->Option = 2;
+			Work->FSelect = MS_NewGameEpi_FSelect;
+			
+			Work = MS_SMCreateImage(Root, 48, 95, V_ImageFindA("M_EPI3", VCP_DOOM));
+			Work->Option = 3;
+			Work->FSelect = MS_NewGameEpi_FSelect;
+			
+			if (a_MenuID == MSM_EPISELECTUDOOM)
+			{
+				Work = MS_SMCreateImage(Root, 48, 111, V_ImageFindA("M_EPI4", VCP_DOOM));
+				Work->Option = 4;
+				Work->FSelect = MS_NewGameEpi_FSelect;
+			}
+			
+			// Start on Episode
+			Root->CursorOn = 1;
 			break;
 		
 			// Unknown
