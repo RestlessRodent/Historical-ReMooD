@@ -443,8 +443,8 @@ typedef struct line_s
 typedef struct subsector_s
 {
 	sector_t* sector;
-	int16_t numlines;
-	int16_t firstline;
+	int32_t numlines;
+	int32_t firstline;
 	// floorsplat_t list
 	void* splats;
 	//Hurdler: added for optimized mlook in hw mode

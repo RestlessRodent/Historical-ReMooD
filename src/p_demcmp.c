@@ -1676,12 +1676,12 @@ void NG_FromCLine(void)
 	/* Options */
 	// Deathmatch
 	if (M_CheckParm("-deathmatch"))
-		if (NG_SetRules("dm"))
+		if (NG_SetRules(false, "dm"))
 			l_NGAutoStart = true;
 	
 	// Alt Deathmatch
 	if (M_CheckParm("-altdeath"))
-		if (NG_SetRules("dm2"))
+		if (NG_SetRules(false, "dm2"))
 			l_NGAutoStart = true;
 	
 	// Rules
@@ -1690,7 +1690,7 @@ void NG_FromCLine(void)
 		{
 			p = M_GetNextParm();
 			
-			if (NG_SetRules(p))
+			if (NG_SetRules(false, p))
 				l_NGAutoStart = true;
 		}
 	
@@ -1826,7 +1826,7 @@ bool_t NG_IsAutoStart(void)
 }
 
 /* NG_SetRules() -- Set next game from rules */
-bool_t NG_SetRules(const char* const a_Name)
+bool_t NG_SetRules(const bool_t a_Master, const char* const a_Name)
 {
 	const WL_WADEntry_t* Rules;
 	WL_ES_t* Stream;
@@ -1872,7 +1872,10 @@ bool_t NG_SetRules(const char* const a_Name)
 			
 			// As long as it is legal
 			if (Bit > PGS_NOTHINGHERE && Bit < PEXGSNUMBITIDS)
-				NG_SetVarValueStr(Bit, Val);
+				if (a_Master)
+					P_XGSSetValueStr(true, Bit, Val);
+				else
+					NG_SetVarValueStr(Bit, Val);
 		}
 		
 		// End reading lines

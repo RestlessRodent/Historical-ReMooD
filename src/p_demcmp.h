@@ -345,7 +345,7 @@ void NG_WarpMap(void);
 void NG_SetAutoStart(const bool_t a_Value);
 bool_t NG_IsAutoStart(void);
 
-bool_t NG_SetRules(const char* const a_Name);
+bool_t NG_SetRules(const bool_t a_Master, const char* const a_Name);
 
 int32_t NG_SetVarValueStr(const P_XGSBitID_t a_Bit, const char* const a_NewVal);
 int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal);

@@ -696,7 +696,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	mapthing_t* ThingP;
 	int32_t i, j, k, l;
 	char Buf[BUFSIZE];
-	int16_t TempShort;
+	int32_t TempLong;
 	bool_t Flipped;
 	int32_t* pp;
 
@@ -1143,13 +1143,17 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 					CONL_LoadingScreenIncrSub();
 				
 				// Load in
-				TempShort = WL_Srli16(Stream);
+				TempLong = WL_Srlu16(Stream);
 				
-				// Keep -1, but drop everything else
-				if (TempShort == -1)
+				if (TempLong == UINT32_C(0xFFFF))
 					blockmap[i] = -1;
 				else
-					blockmap[i] = ((int32_t)TempShort) & 0xFFFF;
+				{
+					/*if (TempLong >= UINT32_C(0) && TempLong <= UINT32_C(0x7FFF))*/
+						blockmap[i] = TempLong;
+					/*else
+						blockmap[i] = (~TempLong) & UINT32_C(0xFFFF);*/
+				}
 			}
 			
 			// Flip Blockmap?
