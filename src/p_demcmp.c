@@ -38,6 +38,7 @@
 #include "g_game.h"
 #include "p_inter.h"
 #include "m_argv.h"
+#include "t_ini.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***
@@ -873,6 +874,24 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 };
 
 /*** FUNCTIONS ***/
+
+/* P_XGSBitForName() -- Finds */
+P_XGSBitID_t P_XGSBitForName(const char* const a_Name)
+{
+	P_XGSBitID_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return PGS_NOTHINGHERE;
+	
+	/* Check all names */
+	for (i = 1; i < PEXGSNUMBITIDS; i++)
+		if (!strcasecmp(a_Name, l_GSVars[i].Name))
+			return i;
+	
+	/* Not Found */
+	return PGS_NOTHINGHERE;
+}
 
 /* P_XGSVarForBit() -- Get variable for bit */
 P_XGSVariable_t* P_XGSVarForBit(const P_XGSBitID_t a_Bit)
@@ -1809,7 +1828,63 @@ bool_t NG_IsAutoStart(void)
 /* NG_SetRules() -- Set next game from rules */
 bool_t NG_SetRules(const char* const a_Name)
 {
-	return false;
+	const WL_WADEntry_t* Rules;
+	WL_ES_t* Stream;
+	TINI_Section_t* CurSect;
+	TINI_ConfigLine_t* ConfLine;
+	char* Opt, *Val;
+	P_XGSBitID_t Bit;
+	
+	/* Find rules entry */
+	Rules = WL_FindEntry(NULL, 0, "RMD_RULE");
+	
+	// No rules?
+	if (!Rules)
+		return false;
+	
+	/* Read stream data */
+	Stream = WL_StreamOpen(Rules);
+	
+	// Failed?
+	if (!Stream)
+		return false;
+	
+	/* Read INI Sections */
+	// Check for unicode
+	WL_StreamCheckUnicode(Stream);
+	
+	// Read all sections for the right one
+	CurSect = NULL;
+	while ((CurSect = TINI_FindNextSection(CurSect, Stream)))
+	{
+		// Section name matches?
+		if (!strcasecmp(CurSect->Name, a_Name))
+			continue;
+		
+		// Begin reading lines
+		ConfLine = TINI_BeginRead(CurSect);
+		
+		// Read all lines and process their values as such
+		while (TINI_ReadLine(ConfLine, &Opt, &Val))
+		{
+			// Get option for string
+			Bit = P_XGSBitForName(Opt);
+			
+			// As long as it is legal
+			if (Bit > PGS_NOTHINGHERE && Bit < PEXGSNUMBITIDS)
+				NG_SetVarValueStr(Bit, Val);
+		}
+		
+		// End reading lines
+		TINI_EndRead(ConfLine);
+	}
+	
+	// Clear sections
+	TINI_ClearSections(CurSect);
+	
+	/* Close Stream */
+	WL_StreamClose(Stream);
+	return true;
 }
 
 /* NG_SetVarValueStr() -- Sets value as string */
