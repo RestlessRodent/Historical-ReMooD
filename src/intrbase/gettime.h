@@ -11,7 +11,7 @@ uint32_t I_GetTimeMS(void)
 	gettimeofday(&TV, NULL);
 	
 	/* Obtain the current time */
-	NowTime = (Spec.tv_sec * UINT32_C(1000)) + (Spec.tv_usec / UINT32_C(1000));
+	NowTime = (TV.tv_sec * UINT32_C(1000)) + (TV.tv_usec / UINT32_C(1000));
 	
 	// No last time?
 	if (!BaseTime)
