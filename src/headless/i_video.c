@@ -101,7 +101,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false);
 	
 	/* Success */
 	return true;
