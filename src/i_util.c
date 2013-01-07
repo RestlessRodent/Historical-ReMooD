@@ -39,6 +39,7 @@
 		#include <unistd.h>				// Standard Stuff
 		#include <dirent.h>
 		#include <libgen.h>
+		#include <sys/time.h>
 	#endif
 
 	// On Windows include windows.h

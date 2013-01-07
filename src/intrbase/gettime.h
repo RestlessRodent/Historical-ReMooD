@@ -1,4 +1,27 @@
-#if _POSIX_C_SOURCE >= 199309L
+#if defined(__unix__)
+
+/* I_GetTimeMS() -- Returns time since the game started (in MS) */
+uint32_t I_GetTimeMS(void)
+{
+	struct timeval TV;
+	static uint32_t BaseTime;
+	uint32_t NowTime;
+	
+	/* Get the current time */
+	gettimeofday(&TV, NULL);
+	
+	/* Obtain the current time */
+	NowTime = (Spec.tv_sec * UINT32_C(1000)) + (Spec.tv_usec / UINT32_C(1000));
+	
+	// No last time?
+	if (!BaseTime)
+		BaseTime = NowTime;
+	
+	/* Return difference */
+	return NowTime - BaseTime;
+}
+
+#elif _POSIX_C_SOURCE >= 199309L
 
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
 uint32_t I_GetTimeMS(void)
