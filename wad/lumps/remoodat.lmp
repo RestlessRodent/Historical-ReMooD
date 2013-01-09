@@ -33119,7 +33119,7 @@ MapWeapon "Fist"
 	
 	BotMetric "Melee";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -33129,11 +33129,11 @@ MapWeapon "Fist"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -33143,11 +33143,11 @@ MapWeapon "Fist"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -33157,11 +33157,11 @@ MapWeapon "Fist"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -33212,7 +33212,7 @@ MapWeapon "Fist"
 			Tics "5";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
@@ -33237,7 +33237,7 @@ MapWeapon "Pistol"
 	
 	BotMetric "MidRange";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -33247,11 +33247,11 @@ MapWeapon "Pistol"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -33261,11 +33261,11 @@ MapWeapon "Pistol"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -33275,11 +33275,11 @@ MapWeapon "Pistol"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -33320,12 +33320,12 @@ MapWeapon "Pistol"
 			Tics "5";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -33370,7 +33370,7 @@ MapWeapon "Shotgun"
 	
 	BotMetric "MidRange";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -33380,11 +33380,11 @@ MapWeapon "Shotgun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -33394,11 +33394,11 @@ MapWeapon "Shotgun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -33408,11 +33408,11 @@ MapWeapon "Shotgun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -33503,12 +33503,12 @@ MapWeapon "Shotgun"
 			Tics "7";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -33565,7 +33565,7 @@ MapWeapon "Chaingun"
 	
 	BotMetric "MidRange";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -33575,11 +33575,11 @@ MapWeapon "Chaingun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -33589,11 +33589,11 @@ MapWeapon "Chaingun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -33603,11 +33603,11 @@ MapWeapon "Chaingun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -33639,12 +33639,12 @@ MapWeapon "Chaingun"
 			Tics "0";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -33702,7 +33702,7 @@ MapWeapon "RocketLauncher"
 	
 	BotMetric "LayDown";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -33712,11 +33712,11 @@ MapWeapon "RocketLauncher"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -33726,11 +33726,11 @@ MapWeapon "RocketLauncher"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -33740,11 +33740,11 @@ MapWeapon "RocketLauncher"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -33776,12 +33776,12 @@ MapWeapon "RocketLauncher"
 			Tics "0";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -33862,7 +33862,7 @@ MapWeapon "PlasmaRifle"
 	
 	BotMetric "SprayPlasma";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -33872,11 +33872,11 @@ MapWeapon "PlasmaRifle"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -33886,11 +33886,11 @@ MapWeapon "PlasmaRifle"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -33900,11 +33900,11 @@ MapWeapon "PlasmaRifle"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -33925,12 +33925,12 @@ MapWeapon "PlasmaRifle"
 			Tics "20";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -33990,7 +33990,7 @@ MapWeapon "BFGNineK"
 	
 	BotMetric "BFG";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -34000,11 +34000,11 @@ MapWeapon "BFGNineK"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -34014,11 +34014,11 @@ MapWeapon "BFGNineK"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -34028,11 +34028,11 @@ MapWeapon "BFGNineK"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -34075,11 +34075,11 @@ MapWeapon "BFGNineK"
 			Tics "20";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -34141,7 +34141,7 @@ MapWeapon "Chainsaw"
 	
 	BotMetric "Melee";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -34151,11 +34151,11 @@ MapWeapon "Chainsaw"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -34165,11 +34165,11 @@ MapWeapon "Chainsaw"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -34190,11 +34190,11 @@ MapWeapon "Chainsaw"
 			Tics "4";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -34226,7 +34226,7 @@ MapWeapon "Chainsaw"
 			Tics "0";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
@@ -34251,7 +34251,7 @@ MapWeapon "SuperShotgun"
 	
 	BotMetric "SSGDance";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -34261,11 +34261,11 @@ MapWeapon "SuperShotgun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -34275,11 +34275,11 @@ MapWeapon "SuperShotgun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -34289,11 +34289,11 @@ MapWeapon "SuperShotgun"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -34398,12 +34398,12 @@ MapWeapon "SuperShotgun"
 			Tics "5";
 			ViewPriority "Weapons";
 			Function "ReFire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 		
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -34462,7 +34462,7 @@ MapWeapon "BetaBFG"
 	
 	BotMetric "SprayPlasma";
 	
-	State "UpState"
+	State "PrimaryBringUpState"
 	{
 		Frame "1"
 		{
@@ -34471,11 +34471,11 @@ MapWeapon "BetaBFG"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Raise";
-			Goto "UpState";
+			Goto "PrimaryBringUpState";
 		}
 	}
 	
-	State "DownState"
+	State "PrimaryPutDownState"
 	{
 		Frame "1"
 		{
@@ -34484,11 +34484,11 @@ MapWeapon "BetaBFG"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "Lower";
-			Goto "DownState";
+			Goto "PrimaryPutDownState";
 		}
 	}
 	
-	State "ReadyState"
+	State "PrimaryReadyState"
 	{
 		Frame "1"
 		{
@@ -34497,11 +34497,11 @@ MapWeapon "BetaBFG"
 			Tics "1";
 			ViewPriority "Weapons";
 			Function "WeaponReady";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FireState"
+	State "PrimaryFireState"
 	{
 		Frame "1"
 		{
@@ -34930,11 +34930,11 @@ MapWeapon "BetaBFG"
 			Tics "20";
 			ViewPriority "Weapons";
 			Function "Refire";
-			Goto "ReadyState";
+			Goto "PrimaryReadyState";
 		}
 	}
 	
-	State "FlashState"
+	State "PrimaryFlashState"
 	{
 		Frame "1"
 		{
@@ -34966,2331 +34966,6 @@ MapWeapon "BetaBFG"
 			ViewPriority "WeaponFlash";
 			Function "Light0";
 			Next "0";
-		}
-	}
-}
-
-///// HERETIC WEAPONS
-
-// Weapon -- Staff
-MapWeapon "Staff"
-{
-	NiceName "Staff";
-	SecIdleNoise "stfcrk";
-	PickupAmmo "0";
-	RandomIdleSound "true";
-	IsStartingWeapon "true";
-	SlotNum "1";
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "238";
-			OldName "S_STAFFUP";
-			Sprite "STFF";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "237";
-			OldName "S_STAFFDOWN";
-			Sprite "STFF";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "236";
-			OldName "S_STAFFREADY";
-			Sprite "STFF";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "244";
-			OldName "S_STAFFATK1_1";
-			Sprite "STFF";
-			Frame "1";
-			Tics "6";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "245";
-			OldName "S_STAFFATK1_2";
-			Sprite "STFF";
-			Frame "2";
-			Tics "8";
-			Function "StaffAttackPL1";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "246";
-			OldName "S_STAFFATK1_3";
-			Sprite "STFF";
-			Frame "1";
-			Tics "8";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "244";
-			OldName "S_STAFFATK1_1";
-			Sprite "STFF";
-			Frame "1";
-			Tics "6";
-			Goto "AttackState:2";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "238";
-			OldName "S_STAFFUP";
-			Sprite "STFF";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "242";
-			OldName "S_STAFFDOWN2";
-			Sprite "STFF";
-			Frame "3";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "239";
-			OldName "S_STAFFREADY2_1";
-			Sprite "STFF";
-			Frame "3";
-			Tics "4";
-			Function "WeaponReady";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "240";
-			OldName "S_STAFFREADY2_2";
-			Sprite "STFF";
-			Frame "4";
-			Tics "4";
-			Function "WeaponReady";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "241";
-			OldName "S_STAFFREADY2_3";
-			Sprite "STFF";
-			Frame "5";
-			Tics "4";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "247";
-			OldName "S_STAFFATK2_1";
-			Sprite "STFF";
-			Frame "6";
-			Tics "6";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "248";
-			OldName "S_STAFFATK2_2";
-			Sprite "STFF";
-			Frame "7";
-			Tics "8";
-			Function "StaffAttackPL2";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "249";
-			OldName "S_STAFFATK2_3";
-			Sprite "STFF";
-			Frame "6";
-			Tics "8";
-			Function "ReFire";
-			Goto "SecReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "247";
-			OldName "S_STAFFATK2_1";
-			Sprite "STFF";
-			Frame "6";
-			Tics "6";
-			Goto "SecAttackState:2";
-		}
-	}
-}
-
-// Weapon -- 0xb08dc0
-MapWeapon "0xb08dc0"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "450";
-			OldName "S_GOLDWANDUP";
-			Sprite "GWND";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "449";
-			OldName "S_GOLDWANDDOWN";
-			Sprite "GWND";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "448";
-			OldName "S_GOLDWANDREADY";
-			Sprite "GWND";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "451";
-			OldName "S_GOLDWANDATK1_1";
-			Sprite "GWND";
-			Frame "1";
-			Tics "3";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "452";
-			OldName "S_GOLDWANDATK1_2";
-			Sprite "GWND";
-			Frame "2";
-			Tics "5";
-			Function "FireGoldWandPL1";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "453";
-			OldName "S_GOLDWANDATK1_3";
-			Sprite "GWND";
-			Frame "3";
-			Tics "3";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "454";
-			OldName "S_GOLDWANDATK1_4";
-			Sprite "GWND";
-			Frame "3";
-			Tics "0";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "451";
-			OldName "S_GOLDWANDATK1_1";
-			Sprite "GWND";
-			Frame "1";
-			Tics "3";
-			Goto "AttackState:2";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "450";
-			OldName "S_GOLDWANDUP";
-			Sprite "GWND";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "449";
-			OldName "S_GOLDWANDDOWN";
-			Sprite "GWND";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "448";
-			OldName "S_GOLDWANDREADY";
-			Sprite "GWND";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "455";
-			OldName "S_GOLDWANDATK2_1";
-			Sprite "GWND";
-			Frame "1";
-			Tics "3";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "456";
-			OldName "S_GOLDWANDATK2_2";
-			Sprite "GWND";
-			Frame "2";
-			Tics "4";
-			Function "FireGoldWandPL2";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "457";
-			OldName "S_GOLDWANDATK2_3";
-			Sprite "GWND";
-			Frame "3";
-			Tics "3";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "458";
-			OldName "S_GOLDWANDATK2_4";
-			Sprite "GWND";
-			Frame "3";
-			Tics "0";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "455";
-			OldName "S_GOLDWANDATK2_1";
-			Sprite "GWND";
-			Frame "1";
-			Tics "3";
-			Goto "SecAttackState:2";
-		}
-	}
-}
-
-// Weapon -- 0xb08e80
-MapWeapon "0xb08e80"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "534";
-			OldName "S_CRBOWUP";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "533";
-			OldName "S_CRBOWDOWN";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "515";
-			OldName "S_CRBOW1";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "516";
-			OldName "S_CRBOW2";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "517";
-			OldName "S_CRBOW3";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "518";
-			OldName "S_CRBOW4";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "519";
-			OldName "S_CRBOW5";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "520";
-			OldName "S_CRBOW6";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "521";
-			OldName "S_CRBOW7";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "1";
-			Function "WeaponReady";
-			Next "8";
-		}
-		
-		Frame "8"
-		{
-			HereHackEdNum "522";
-			OldName "S_CRBOW8";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "1";
-			Function "WeaponReady";
-			Next "9";
-		}
-		
-		Frame "9"
-		{
-			HereHackEdNum "523";
-			OldName "S_CRBOW9";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "1";
-			Function "WeaponReady";
-			Next "10";
-		}
-		
-		Frame "10"
-		{
-			HereHackEdNum "524";
-			OldName "S_CRBOW10";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "1";
-			Function "WeaponReady";
-			Next "11";
-		}
-		
-		Frame "11"
-		{
-			HereHackEdNum "525";
-			OldName "S_CRBOW11";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "1";
-			Function "WeaponReady";
-			Next "12";
-		}
-		
-		Frame "12"
-		{
-			HereHackEdNum "526";
-			OldName "S_CRBOW12";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "1";
-			Function "WeaponReady";
-			Next "13";
-		}
-		
-		Frame "13"
-		{
-			HereHackEdNum "527";
-			OldName "S_CRBOW13";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "1";
-			Function "WeaponReady";
-			Next "14";
-		}
-		
-		Frame "14"
-		{
-			HereHackEdNum "528";
-			OldName "S_CRBOW14";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "1";
-			Function "WeaponReady";
-			Next "15";
-		}
-		
-		Frame "15"
-		{
-			HereHackEdNum "529";
-			OldName "S_CRBOW15";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "1";
-			Function "WeaponReady";
-			Next "16";
-		}
-		
-		Frame "16"
-		{
-			HereHackEdNum "530";
-			OldName "S_CRBOW16";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "1";
-			Function "WeaponReady";
-			Next "17";
-		}
-		
-		Frame "17"
-		{
-			HereHackEdNum "531";
-			OldName "S_CRBOW17";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "1";
-			Function "WeaponReady";
-			Next "18";
-		}
-		
-		Frame "18"
-		{
-			HereHackEdNum "532";
-			OldName "S_CRBOW18";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "535";
-			OldName "S_CRBOWATK1_1";
-			Sprite "CRBW";
-			Frame "3";
-			Tics "6";
-			Function "FireCrossbowPL1";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "536";
-			OldName "S_CRBOWATK1_2";
-			Sprite "CRBW";
-			Frame "4";
-			Tics "3";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "537";
-			OldName "S_CRBOWATK1_3";
-			Sprite "CRBW";
-			Frame "5";
-			Tics "3";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "538";
-			OldName "S_CRBOWATK1_4";
-			Sprite "CRBW";
-			Frame "6";
-			Tics "3";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "539";
-			OldName "S_CRBOWATK1_5";
-			Sprite "CRBW";
-			Frame "7";
-			Tics "3";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "540";
-			OldName "S_CRBOWATK1_6";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "4";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "541";
-			OldName "S_CRBOWATK1_7";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "4";
-			Next "8";
-		}
-		
-		Frame "8"
-		{
-			HereHackEdNum "542";
-			OldName "S_CRBOWATK1_8";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "5";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "535";
-			OldName "S_CRBOWATK1_1";
-			Sprite "CRBW";
-			Frame "3";
-			Tics "6";
-			Function "FireCrossbowPL1";
-			Goto "AttackState:2";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "534";
-			OldName "S_CRBOWUP";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "533";
-			OldName "S_CRBOWDOWN";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "515";
-			OldName "S_CRBOW1";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Goto "ReadyState:2";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "543";
-			OldName "S_CRBOWATK2_1";
-			Sprite "CRBW";
-			Frame "3";
-			Tics "5";
-			Function "FireCrossbowPL2";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "544";
-			OldName "S_CRBOWATK2_2";
-			Sprite "CRBW";
-			Frame "4";
-			Tics "3";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "545";
-			OldName "S_CRBOWATK2_3";
-			Sprite "CRBW";
-			Frame "5";
-			Tics "2";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "546";
-			OldName "S_CRBOWATK2_4";
-			Sprite "CRBW";
-			Frame "6";
-			Tics "3";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "547";
-			OldName "S_CRBOWATK2_5";
-			Sprite "CRBW";
-			Frame "7";
-			Tics "2";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "548";
-			OldName "S_CRBOWATK2_6";
-			Sprite "CRBW";
-			Frame "0";
-			Tics "3";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "549";
-			OldName "S_CRBOWATK2_7";
-			Sprite "CRBW";
-			Frame "1";
-			Tics "3";
-			Next "8";
-		}
-		
-		Frame "8"
-		{
-			HereHackEdNum "550";
-			OldName "S_CRBOWATK2_8";
-			Sprite "CRBW";
-			Frame "2";
-			Tics "4";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "543";
-			OldName "S_CRBOWATK2_1";
-			Sprite "CRBW";
-			Frame "3";
-			Tics "5";
-			Function "FireCrossbowPL2";
-			Goto "SecAttackState:2";
-		}
-	}
-}
-
-// Weapon -- 0xb08f40
-MapWeapon "0xb08f40"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "299";
-			OldName "S_BLASTERUP";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "298";
-			OldName "S_BLASTERDOWN";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "297";
-			OldName "S_BLASTERREADY";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "300";
-			OldName "S_BLASTERATK1_1";
-			Sprite "BLSR";
-			Frame "1";
-			Tics "3";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "301";
-			OldName "S_BLASTERATK1_2";
-			Sprite "BLSR";
-			Frame "2";
-			Tics "3";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "302";
-			OldName "S_BLASTERATK1_3";
-			Sprite "BLSR";
-			Frame "3";
-			Tics "2";
-			Function "FireBlasterPL1";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "303";
-			OldName "S_BLASTERATK1_4";
-			Sprite "BLSR";
-			Frame "2";
-			Tics "2";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "304";
-			OldName "S_BLASTERATK1_5";
-			Sprite "BLSR";
-			Frame "1";
-			Tics "2";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "305";
-			OldName "S_BLASTERATK1_6";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "0";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "302";
-			OldName "S_BLASTERATK1_3";
-			Sprite "BLSR";
-			Frame "3";
-			Tics "2";
-			Function "FireBlasterPL1";
-			Goto "AttackState:4";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "299";
-			OldName "S_BLASTERUP";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "298";
-			OldName "S_BLASTERDOWN";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "297";
-			OldName "S_BLASTERREADY";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "306";
-			OldName "S_BLASTERATK2_1";
-			Sprite "BLSR";
-			Frame "1";
-			Tics "0";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "307";
-			OldName "S_BLASTERATK2_2";
-			Sprite "BLSR";
-			Frame "2";
-			Tics "0";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "308";
-			OldName "S_BLASTERATK2_3";
-			Sprite "BLSR";
-			Frame "3";
-			Tics "3";
-			Function "FireBlasterPL2";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "309";
-			OldName "S_BLASTERATK2_4";
-			Sprite "BLSR";
-			Frame "2";
-			Tics "4";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "310";
-			OldName "S_BLASTERATK2_5";
-			Sprite "BLSR";
-			Frame "1";
-			Tics "4";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "311";
-			OldName "S_BLASTERATK2_6";
-			Sprite "BLSR";
-			Frame "0";
-			Tics "0";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "308";
-			OldName "S_BLASTERATK2_3";
-			Sprite "BLSR";
-			Frame "3";
-			Tics "3";
-			Function "FireBlasterPL2";
-			Goto "SecAttackState:4";
-		}
-	}
-}
-
-// Weapon -- 0xb09000
-MapWeapon "0xb09000"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "379";
-			OldName "S_HORNRODUP";
-			Sprite "HROD";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "378";
-			OldName "S_HORNRODDOWN";
-			Sprite "HROD";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "377";
-			OldName "S_HORNRODREADY";
-			Sprite "HROD";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "380";
-			OldName "S_HORNRODATK1_1";
-			Sprite "HROD";
-			Frame "0";
-			Tics "4";
-			Function "FireSkullRodPL1";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "381";
-			OldName "S_HORNRODATK1_2";
-			Sprite "HROD";
-			Frame "1";
-			Tics "4";
-			Function "FireSkullRodPL1";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "382";
-			OldName "S_HORNRODATK1_3";
-			Sprite "HROD";
-			Frame "1";
-			Tics "0";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "380";
-			OldName "S_HORNRODATK1_1";
-			Sprite "HROD";
-			Frame "0";
-			Tics "4";
-			Function "FireSkullRodPL1";
-			Goto "AttackState:2";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "379";
-			OldName "S_HORNRODUP";
-			Sprite "HROD";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "378";
-			OldName "S_HORNRODDOWN";
-			Sprite "HROD";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "377";
-			OldName "S_HORNRODREADY";
-			Sprite "HROD";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "383";
-			OldName "S_HORNRODATK2_1";
-			Sprite "HROD";
-			Frame "2";
-			Tics "2";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "384";
-			OldName "S_HORNRODATK2_2";
-			Sprite "HROD";
-			Frame "3";
-			Tics "3";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "385";
-			OldName "S_HORNRODATK2_3";
-			Sprite "HROD";
-			Frame "4";
-			Tics "2";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "386";
-			OldName "S_HORNRODATK2_4";
-			Sprite "HROD";
-			Frame "5";
-			Tics "3";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "387";
-			OldName "S_HORNRODATK2_5";
-			Sprite "HROD";
-			Frame "6";
-			Tics "4";
-			Function "FireSkullRodPL2";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "388";
-			OldName "S_HORNRODATK2_6";
-			Sprite "HROD";
-			Frame "5";
-			Tics "2";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "389";
-			OldName "S_HORNRODATK2_7";
-			Sprite "HROD";
-			Frame "4";
-			Tics "3";
-			Next "8";
-		}
-		
-		Frame "8"
-		{
-			HereHackEdNum "390";
-			OldName "S_HORNRODATK2_8";
-			Sprite "HROD";
-			Frame "3";
-			Tics "2";
-			Next "9";
-		}
-		
-		Frame "9"
-		{
-			HereHackEdNum "391";
-			OldName "S_HORNRODATK2_9";
-			Sprite "HROD";
-			Frame "2";
-			Tics "2";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "383";
-			OldName "S_HORNRODATK2_1";
-			Sprite "HROD";
-			Frame "2";
-			Tics "2";
-			Goto "SecAttackState:2";
-		}
-	}
-}
-
-// Weapon -- 0xb090c0
-MapWeapon "0xb090c0"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "475";
-			OldName "S_PHOENIXUP";
-			Sprite "PHNX";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "474";
-			OldName "S_PHOENIXDOWN";
-			Sprite "PHNX";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "473";
-			OldName "S_PHOENIXREADY";
-			Sprite "PHNX";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "476";
-			OldName "S_PHOENIXATK1_1";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "5";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "477";
-			OldName "S_PHOENIXATK1_2";
-			Sprite "PHNX";
-			Frame "2";
-			Tics "7";
-			Function "FirePhoenixPL1";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "478";
-			OldName "S_PHOENIXATK1_3";
-			Sprite "PHNX";
-			Frame "3";
-			Tics "4";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "479";
-			OldName "S_PHOENIXATK1_4";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "4";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "480";
-			OldName "S_PHOENIXATK1_5";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "0";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "476";
-			OldName "S_PHOENIXATK1_1";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "5";
-			Goto "AttackState:2";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "475";
-			OldName "S_PHOENIXUP";
-			Sprite "PHNX";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "474";
-			OldName "S_PHOENIXDOWN";
-			Sprite "PHNX";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "473";
-			OldName "S_PHOENIXREADY";
-			Sprite "PHNX";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "481";
-			OldName "S_PHOENIXATK2_1";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "3";
-			Function "InitPhoenixPL2";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "482";
-			OldName "S_PHOENIXATK2_2";
-			Sprite "PHNX";
-			Frame "3";
-			Tics "1";
-			FullBright "true";
-			Function "FirePhoenixPL2";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "483";
-			OldName "S_PHOENIXATK2_3";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "4";
-			Function "ReFire";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "484";
-			OldName "S_PHOENIXATK2_4";
-			Sprite "PHNX";
-			Frame "1";
-			Tics "4";
-			Function "ShutdownPhoenixPL2";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "482";
-			OldName "S_PHOENIXATK2_2";
-			Sprite "PHNX";
-			Frame "3";
-			Tics "1";
-			FullBright "true";
-			Function "FirePhoenixPL2";
-			Goto "SecAttackState:3";
-		}
-	}
-}
-
-// Weapon -- 0xb09180
-MapWeapon "0xb09180"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "347";
-			OldName "S_MACEUP";
-			Sprite "MACE";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "346";
-			OldName "S_MACEDOWN";
-			Sprite "MACE";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "345";
-			OldName "S_MACEREADY";
-			Sprite "MACE";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "348";
-			OldName "S_MACEATK1_1";
-			Sprite "MACE";
-			Frame "1";
-			Tics "4";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "349";
-			OldName "S_MACEATK1_2";
-			Sprite "MACE";
-			Frame "2";
-			Tics "3";
-			Function "FireMacePL1";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "350";
-			OldName "S_MACEATK1_3";
-			Sprite "MACE";
-			Frame "3";
-			Tics "3";
-			Function "FireMacePL1";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "351";
-			OldName "S_MACEATK1_4";
-			Sprite "MACE";
-			Frame "4";
-			Tics "3";
-			Function "FireMacePL1";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "352";
-			OldName "S_MACEATK1_5";
-			Sprite "MACE";
-			Frame "5";
-			Tics "3";
-			Function "FireMacePL1";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "353";
-			OldName "S_MACEATK1_6";
-			Sprite "MACE";
-			Frame "2";
-			Tics "4";
-			Function "ReFire";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "354";
-			OldName "S_MACEATK1_7";
-			Sprite "MACE";
-			Frame "3";
-			Tics "4";
-			Next "8";
-		}
-		
-		Frame "8"
-		{
-			HereHackEdNum "355";
-			OldName "S_MACEATK1_8";
-			Sprite "MACE";
-			Frame "4";
-			Tics "4";
-			Next "9";
-		}
-		
-		Frame "9"
-		{
-			HereHackEdNum "356";
-			OldName "S_MACEATK1_9";
-			Sprite "MACE";
-			Frame "5";
-			Tics "4";
-			Next "10";
-		}
-		
-		Frame "10"
-		{
-			HereHackEdNum "357";
-			OldName "S_MACEATK1_10";
-			Sprite "MACE";
-			Frame "1";
-			Tics "4";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "349";
-			OldName "S_MACEATK1_2";
-			Sprite "MACE";
-			Frame "2";
-			Tics "3";
-			Function "FireMacePL1";
-			Goto "AttackState:3";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "347";
-			OldName "S_MACEUP";
-			Sprite "MACE";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "346";
-			OldName "S_MACEDOWN";
-			Sprite "MACE";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "345";
-			OldName "S_MACEREADY";
-			Sprite "MACE";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "358";
-			OldName "S_MACEATK2_1";
-			Sprite "MACE";
-			Frame "1";
-			Tics "4";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "359";
-			OldName "S_MACEATK2_2";
-			Sprite "MACE";
-			Frame "3";
-			Tics "4";
-			Function "FireMacePL2";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "360";
-			OldName "S_MACEATK2_3";
-			Sprite "MACE";
-			Frame "1";
-			Tics "4";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "361";
-			OldName "S_MACEATK2_4";
-			Sprite "MACE";
-			Frame "0";
-			Tics "8";
-			Function "ReFire";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "358";
-			OldName "S_MACEATK2_1";
-			Sprite "MACE";
-			Frame "1";
-			Tics "4";
-			Goto "SecAttackState:2";
-		}
-	}
-}
-
-// Weapon -- 0xb09240
-MapWeapon "0xb09240"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "268";
-			OldName "S_GAUNTLETUP";
-			Sprite "GAUN";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "267";
-			OldName "S_GAUNTLETDOWN";
-			Sprite "GAUN";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "266";
-			OldName "S_GAUNTLETREADY";
-			Sprite "GAUN";
-			Frame "0";
-			Tics "1";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "274";
-			OldName "S_GAUNTLETATK1_1";
-			Sprite "GAUN";
-			Frame "1";
-			Tics "4";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "275";
-			OldName "S_GAUNTLETATK1_2";
-			Sprite "GAUN";
-			Frame "2";
-			Tics "4";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "276";
-			OldName "S_GAUNTLETATK1_3";
-			Sprite "GAUN";
-			Frame "4";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "277";
-			OldName "S_GAUNTLETATK1_4";
-			Sprite "GAUN";
-			Frame "5";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "278";
-			OldName "S_GAUNTLETATK1_5";
-			Sprite "GAUN";
-			Frame "6";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "279";
-			OldName "S_GAUNTLETATK1_6";
-			Sprite "GAUN";
-			Frame "2";
-			Tics "4";
-			Function "ReFire";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "280";
-			OldName "S_GAUNTLETATK1_7";
-			Sprite "GAUN";
-			Frame "1";
-			Tics "4";
-			Function "Light0";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "276";
-			OldName "S_GAUNTLETATK1_3";
-			Sprite "GAUN";
-			Frame "4";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Goto "AttackState:4";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "268";
-			OldName "S_GAUNTLETUP";
-			Sprite "GAUN";
-			Frame "0";
-			Tics "1";
-			Function "Raise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "272";
-			OldName "S_GAUNTLETDOWN2";
-			Sprite "GAUN";
-			Frame "6";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "269";
-			OldName "S_GAUNTLETREADY2_1";
-			Sprite "GAUN";
-			Frame "6";
-			Tics "4";
-			Function "WeaponReady";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "270";
-			OldName "S_GAUNTLETREADY2_2";
-			Sprite "GAUN";
-			Frame "7";
-			Tics "4";
-			Function "WeaponReady";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "271";
-			OldName "S_GAUNTLETREADY2_3";
-			Sprite "GAUN";
-			Frame "8";
-			Tics "4";
-			Function "WeaponReady";
-			Next "1";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "281";
-			OldName "S_GAUNTLETATK2_1";
-			Sprite "GAUN";
-			Frame "9";
-			Tics "4";
-			Next "2";
-		}
-		
-		Frame "2"
-		{
-			HereHackEdNum "282";
-			OldName "S_GAUNTLETATK2_2";
-			Sprite "GAUN";
-			Frame "10";
-			Tics "4";
-			Next "3";
-		}
-		
-		Frame "3"
-		{
-			HereHackEdNum "283";
-			OldName "S_GAUNTLETATK2_3";
-			Sprite "GAUN";
-			Frame "12";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Next "4";
-		}
-		
-		Frame "4"
-		{
-			HereHackEdNum "284";
-			OldName "S_GAUNTLETATK2_4";
-			Sprite "GAUN";
-			Frame "13";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Next "5";
-		}
-		
-		Frame "5"
-		{
-			HereHackEdNum "285";
-			OldName "S_GAUNTLETATK2_5";
-			Sprite "GAUN";
-			Frame "14";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Next "6";
-		}
-		
-		Frame "6"
-		{
-			HereHackEdNum "286";
-			OldName "S_GAUNTLETATK2_6";
-			Sprite "GAUN";
-			Frame "10";
-			Tics "4";
-			Function "ReFire";
-			Next "7";
-		}
-		
-		Frame "7"
-		{
-			HereHackEdNum "287";
-			OldName "S_GAUNTLETATK2_7";
-			Sprite "GAUN";
-			Frame "9";
-			Tics "4";
-			Function "Light0";
-			Goto "SecReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "283";
-			OldName "S_GAUNTLETATK2_3";
-			Sprite "GAUN";
-			Frame "12";
-			Tics "4";
-			FullBright "true";
-			Function "GauntletAttack";
-			Goto "SecAttackState:4";
-		}
-	}
-}
-
-// Weapon -- 0xb09300
-MapWeapon "0xb09300"
-{
-	
-	State "UpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "262";
-			OldName "S_BEAKUP";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "1";
-			Function "BeakRaise";
-			Next "1";
-		}
-	}
-	
-	State "DownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "261";
-			OldName "S_BEAKDOWN";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Next "1";
-		}
-	}
-	
-	State "ReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "260";
-			OldName "S_BEAKREADY";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "1";
-			Function "BeakReady";
-			Next "1";
-		}
-	}
-	
-	State "AttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "263";
-			OldName "S_BEAKATK1_1";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "18";
-			Function "BeakAttackPL1";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "HoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "263";
-			OldName "S_BEAKATK1_1";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "18";
-			Function "BeakAttackPL1";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecUpState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "262";
-			OldName "S_BEAKUP";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "1";
-			Function "BeakRaise";
-			Goto "UpState";
-		}
-	}
-	
-	State "SecDownState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "261";
-			OldName "S_BEAKDOWN";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "1";
-			Function "Lower";
-			Goto "DownState";
-		}
-	}
-	
-	State "SecReadyState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "260";
-			OldName "S_BEAKREADY";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "1";
-			Function "BeakReady";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecAttackState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "264";
-			OldName "S_BEAKATK2_1";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "12";
-			Function "BeakAttackPL2";
-			Goto "ReadyState";
-		}
-	}
-	
-	State "SecHoldState"
-	{
-		Frame "1"
-		{
-			HereHackEdNum "264";
-			OldName "S_BEAKATK2_1";
-			Sprite "BEAK";
-			Frame "0";
-			Tics "12";
-			Function "BeakAttackPL2";
-			Goto "ReadyState";
 		}
 	}
 }

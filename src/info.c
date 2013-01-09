@@ -134,7 +134,8 @@ void A_GenericMonsterMissile();
 
 /*****************************************************************************/
 
-PI_wep_t** g_PIWeps = NULL;
+PI_wep_t** wpnlev1info = NULL;
+PI_wep_t** wpnlev2info = NULL;
 size_t NUMWEAPONS = 0;
 
 PI_ammo_t** ammoinfo = NULL;
@@ -406,18 +407,12 @@ static const struct
 	{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(PI_mobj_t,RBrainExplodeState)},
 	{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(PI_mobj_t,RMeleePuffState)},
 	
-	{1, PWSG_UP, "UpState", offsetof(PI_wep_t, upstate[0])},
-	{1, PWSG_DOWN, "DownState", offsetof(PI_wep_t, downstate[0])},
-	{1, PWSG_READY, "ReadyState", offsetof(PI_wep_t, readystate[0])},
-	{1, PWSG_ATTACK, "FireState", offsetof(PI_wep_t, atkstate[0])},
-	{1, PWSG_HOLDATTACK, "HoldState", offsetof(PI_wep_t, holdatkstate[0])},
-	{1, PWSG_FLASH, "FlashState", offsetof(PI_wep_t, flashstate[0])},
-	{1, PWSG_SECUP, "SecUpState", offsetof(PI_wep_t, upstate[1])},
-	{1, PWSG_SECDOWN, "SecDownState", offsetof(PI_wep_t, downstate[1])},
-	{1, PWSG_SECREADY, "SecReadyState", offsetof(PI_wep_t, readystate[1])},
-	{1, PWSG_SECATTACK, "SecFireState", offsetof(PI_wep_t, atkstate[1])},
-	{1, PWSG_SECHOLDATTACK, "SecHoldState", offsetof(PI_wep_t, holdatkstate[1])},
-	{1, PWSG_SECFLASH, "SecFlashState", offsetof(PI_wep_t, flashstate[1])},
+	{1, PWSG_UP, "PrimaryBringUpState", offsetof(PI_wep_t, upstate)},
+	{1, PWSG_DOWN, "PrimaryPutDownState", offsetof(PI_wep_t, downstate)},
+	{1, PWSG_READY, "PrimaryReadyState", offsetof(PI_wep_t, readystate)},
+	{1, PWSG_ATTACK, "PrimaryFireState", offsetof(PI_wep_t, atkstate)},
+	{1, PWSG_HOLDATTACK, "PrimaryFireHeldState", offsetof(PI_wep_t, holdatkstate)},
+	{1, PWSG_FLASH, "PrimaryFlashState", offsetof(PI_wep_t, flashstate)},
 };
 
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
@@ -834,15 +829,15 @@ void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Found? */
 	if (Type < NUMWEAPONS)
-		Ptr = g_PIWeps[Type];
+		Ptr = wpnlev1info[Type];
 	
 	/* Not Found */
 	else
 	{
-		Z_ResizeArray((void**)&g_PIWeps, sizeof(*g_PIWeps),
+		Z_ResizeArray((void**)&wpnlev1info, sizeof(*wpnlev1info),
 			NUMWEAPONS, NUMWEAPONS + 1);
-		Ptr = g_PIWeps[(Type = NUMWEAPONS++)] = Z_Malloc(sizeof(**g_PIWeps), PU_REMOODAT, NULL);
-		Z_ChangeTag(g_PIWeps, PU_REMOODAT);
+		Ptr = wpnlev1info[(Type = NUMWEAPONS++)] = Z_Malloc(sizeof(**wpnlev1info), PU_REMOODAT, NULL);
+		Z_ChangeTag(wpnlev1info, PU_REMOODAT);
 		
 		// Initialize
 		Ptr->WeaponID = ~(Type + 1);
@@ -1127,7 +1122,6 @@ void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 		{WF_SUPERWEAPON, "IsSuperWeapon"}, 
 		{WF_NONOISEALERT, "NoNoiseAlert"},
 		{WF_ISMELEE, "IsMelee"},
-		{WF_RANDOMIDLESOUND, "RandomIdleSound"},
 		
 		{0, NULL},
 	};
@@ -1634,7 +1628,8 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			NUMSPRITES = 0;
 			states = NULL;
 			NUMSTATES = 0;
-			g_PIWeps = 0;
+			wpnlev1info = 0;
+			wpnlev2info = 0;
 			NUMWEAPONS = 0;
 			ammoinfo = NULL;
 			NUMAMMO = 0;
@@ -1659,10 +1654,11 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			INFO_StateNormalize(0, NUMSTATES);
 			
 			// Weapons
+			wpnlev2info = wpnlev1info;
 			for (i = 0; i < NUMWEAPONS; i++)
 			{
 				// Get
-				ThisWep = g_PIWeps[i];
+				ThisWep = wpnlev1info[i];
 				
 				// Missing?
 				if (!ThisWep)
@@ -2744,7 +2740,7 @@ PI_wepid_t INFO_GetWeaponByName(const char* const a_Name)
 	
 	/* Loop */
 	for (i = 0; i < NUMWEAPONS; i++)
-		if (strcasecmp(a_Name, g_PIWeps[i]->ClassName) == 0)
+		if (strcasecmp(a_Name, wpnlev1info[i]->ClassName) == 0)
 			return i;
 	
 	/* Failed */

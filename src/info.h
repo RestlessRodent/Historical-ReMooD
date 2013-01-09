@@ -165,12 +165,6 @@ typedef enum INFO_ObjectStateGroup_e
 	PWSG_ATTACK,
 	PWSG_HOLDATTACK,
 	PWSG_FLASH,
-	PWSG_SECUP,
-	PWSG_SECDOWN,
-	PWSG_SECREADY,
-	PWSG_SECATTACK,
-	PWSG_SECHOLDATTACK,
-	PWSG_SECFLASH,
 	
 	NUMPWEAPONSTATEGROUPS,
 	
@@ -344,23 +338,19 @@ typedef enum WeaponFlags_e
 	WF_SUPERWEAPON				= 0x00004000,	// Is a Super Weapon
 	WF_NONOISEALERT				= 0x00008000,	// Does not alert to noise
 	WF_ISMELEE					= 0x00010000,	// Melee Weapon
-	
-	WF_RANDOMIDLESOUND			= 0x00020000,	// Random Idle Sound
 } WeaponFlags_t;
-
-#define MAXWEAPONMODES 2
 
 // Weapon info: sprite frames, ammunition use.
 typedef struct
 {
 	PI_ammoid_t ammo;
 	int32_t ammopershoot;
-	PI_stateid_t upstate[MAXWEAPONMODES];
-	PI_stateid_t downstate[MAXWEAPONMODES];
-	PI_stateid_t readystate[MAXWEAPONMODES];
-	PI_stateid_t atkstate[MAXWEAPONMODES];
-	PI_stateid_t holdatkstate[MAXWEAPONMODES];
-	PI_stateid_t flashstate[MAXWEAPONMODES];
+	PI_stateid_t upstate;
+	PI_stateid_t downstate;
+	PI_stateid_t readystate;
+	PI_stateid_t atkstate;
+	PI_stateid_t holdatkstate;
+	PI_stateid_t flashstate;
 	
 	// ReMooD Extended
 	int32_t DEHId;								// DeHackEd ID
@@ -386,11 +376,12 @@ typedef struct
 	INFO_BotObjMetric_t BotMetric;				// Bot Metric
 	
 	// State References
-	PI_stateid_t* FlashStates[MAXWEAPONMODES];	// Weapon flash states
-	size_t NumFlashStates[MAXWEAPONMODES];		// Number of flash states
+	PI_stateid_t* FlashStates;					// Weapon flash states
+	size_t NumFlashStates;						// Number of flash states
 } PI_wep_t;
 
-extern PI_wep_t** g_PIWeps;
+extern PI_wep_t** wpnlev1info;
+extern PI_wep_t** wpnlev2info;
 extern size_t NUMWEAPONS;
 
 /* KEYS */
