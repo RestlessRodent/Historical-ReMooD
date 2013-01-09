@@ -73,13 +73,45 @@ typedef struct MobjInfo_s
 	char* FlagsTwo;
 } MobjInfo_t;
 
-static const struct
+/* WepInfo_t -- Weapon Info */
+typedef struct WepInfo_s
+{
+	char* UpState;
+	uint32_t UpStateID;
+	char* DownState;
+	uint32_t DownStateID;
+	char* ReadyState;
+	uint32_t ReadyStateID;
+	char* AttackState;
+	uint32_t AttackStateID;
+	char* HoldState;
+	uint32_t HoldStateID;
+	char* FlashState;
+	uint32_t FlashStateID;
+	char* SecUpState;
+	uint32_t SecUpStateID;
+	char* SecDownState;
+	uint32_t SecDownStateID;
+	char* SecReadyState;
+	uint32_t SecReadyStateID;
+	char* SecAttackState;
+	uint32_t SecAttackStateID;
+	char* SecHoldState;
+	uint32_t SecHoldStateID;
+	char* SecFlashState;
+	uint32_t SecFlashStateID;
+} WepInfo_t;
+
+typedef struct StateReader_s
 {
 	int32_t ID;									// ID of group
 	const char* Name;							// Name of group
 	size_t StrOff;								// String offset
 	size_t IntOff;								// Integer Offset
-} c_StateReaders[] =
+} StateReader_t;
+
+// c_StateReaders -- For map objects
+static const StateReader_t c_StateReaders[] =
 {
 	{0, "SpawnState", offsetof(MobjInfo_t, SpawnState), offsetof(MobjInfo_t, SpawnStateID)},
 	{1, "ActiveState", offsetof(MobjInfo_t, WakeState), offsetof(MobjInfo_t, WakeStateID)},
@@ -94,12 +126,34 @@ static const struct
 	{-1, NULL, 0, 0}
 };
 
+// c_WeaponReaders -- Weapons for Heretic
+static const StateReader_t c_WeaponReaders[] =
+{
+	{0, "UpState", offsetof(WepInfo_t, UpState), offsetof(WepInfo_t, UpStateID)},
+	{1, "DownState", offsetof(WepInfo_t, DownState), offsetof(WepInfo_t, DownStateID)},
+	{2, "ReadyState", offsetof(WepInfo_t, ReadyState), offsetof(WepInfo_t, ReadyStateID)},
+	{3, "AttackState", offsetof(WepInfo_t, AttackState), offsetof(WepInfo_t, AttackStateID)},
+	{4, "HoldState", offsetof(WepInfo_t, HoldState), offsetof(WepInfo_t, HoldStateID)},
+	{5, "FlashState", offsetof(WepInfo_t, FlashState), offsetof(WepInfo_t, FlashStateID)},
+	
+	{6, "SecUpState", offsetof(WepInfo_t, SecUpState), offsetof(WepInfo_t, UpStateID)},
+	{7, "SecDownState", offsetof(WepInfo_t, SecDownState), offsetof(WepInfo_t, SecDownStateID)},
+	{8, "SecReadyState", offsetof(WepInfo_t, SecReadyState), offsetof(WepInfo_t, SecReadyStateID)},
+	{9, "SecAttackState", offsetof(WepInfo_t, SecAttackState), offsetof(WepInfo_t, SecAttackStateID)},
+	{10, "SecHoldState", offsetof(WepInfo_t, SecHoldState), offsetof(WepInfo_t, SecHoldStateID)},
+	{11, "SecFlashState", offsetof(WepInfo_t, SecFlashState), offsetof(WepInfo_t, SecFlashStateID)},
+	
+	{-1, NULL, 0, 0}
+};
+
 static StateInfo_t* l_States;					// State List
 static size_t l_NumStates;
 
 static MobjInfo_t* l_Infos;						// Objects
 static size_t l_NumInfos;
 
+static WepInfo_t* l_Weps;						// Objects
+static size_t l_NumWeps;
 
 /* INFO_FlagInfo_t -- Flag Information */
 typedef struct INFO_FlagInfo_s
@@ -185,6 +239,123 @@ uint32_t StateForName(const char* const a_Name)
 	return 0;
 }
 
+/* DumpStates() -- Dump states */
+void DumpStates(uintptr_t a_BaseP, const StateReader_t* a_Readers, size_t j)
+{
+	char** pStateStr;
+	uint32_t* pStateID, FrameID;
+	bool_t NewLined;
+	
+	StateInfo_t* SRover;
+	
+	// Obtain state string and ID
+	pStateStr = (void*)((uintptr_t)a_BaseP + a_Readers[j].StrOff);
+	pStateID = (void*)((uintptr_t)a_BaseP + a_Readers[j].IntOff);
+	
+	// Missing?
+	if (!*pStateID)
+		return;
+		
+	// Spacing Line
+	fprintf(stdout, "\t\n");
+	
+	// Create marker for it
+	fprintf(stdout, "\tState \"%s\"\n", a_Readers[j].Name);
+	fprintf(stdout, "\t{\n");
+	
+	// State Roving Loop
+	for (FrameID = 1, SRover = &l_States[*pStateID]; SRover; FrameID++)
+	{
+		// Clear newlinded ness
+		NewLined = false;
+		
+		// If current frame has no pass ID or group, set it now
+		if (SRover->PassID == -1)
+		{
+			SRover->GroupID = j;
+			SRover->PassID = FrameID;
+		}
+		
+		// Print current state landed on
+		fprintf(stdout, "\t\tFrame \"%u\"\n", FrameID);
+		fprintf(stdout, "\t\t{\n");
+		
+		// Print details
+		fprintf(stdout, "\t\t\tHereHackEdNum \"%u\";\n", SRover->DEHId);
+		fprintf(stdout, "\t\t\tOldName \"%s\";\n", SRover->DEHName);
+		fprintf(stdout, "\t\t\tSprite \"%s\";\n", SRover->Sprite);
+		fprintf(stdout, "\t\t\tFrame \"%u\";\n", SRover->Frame);
+		fprintf(stdout, "\t\t\tTics \"%i\";\n", SRover->Tics);
+		
+		// Fullbright?
+		if (SRover->FullBright)
+			fprintf(stdout, "\t\t\tFullBright \"true\";\n");
+		
+		// Not null func
+		if (SRover->Func)
+			if (strcasecmp(SRover->Func, "NULL"))
+				fprintf(stdout, "\t\t\tFunction \"%s\";\n", SRover->Func);
+		
+		// Next is zero, S_NULL
+		if (SRover->NextID == 0)
+		{
+			fprintf(stdout, "\t\t\tNext \"0\";\n");
+			SRover = NULL;	// Bye!
+		}
+		
+		// Otherwise, determine if it is a next or a goto
+		else
+		{
+			// Next has no ID set, claim it as the next frame
+			if (SRover->Next->PassID == -1)
+			{
+				fprintf(stdout, "\t\t\tNext \"%i\";\n", FrameID + 1);
+				SRover = SRover->Next;
+				NewLined = true;	// For pretty output
+			}
+			
+			// It has an ID set, which means it was claimed
+			else
+			{
+				// If no group (ouch), or same group, use next and break
+				if (SRover->Next->GroupID == -1 ||
+						SRover->Next->GroupID == j)
+				{
+					fprintf(stdout, "\t\t\tNext \"%i\";\n", SRover->Next->PassID);
+					SRover = NULL;
+				}
+				
+				// If a group was set, then use a goto and break
+				else
+				{
+					// Target frame is not one, use an offset frame
+					if (SRover->Next->PassID != 1)
+						fprintf(stdout, "\t\t\tGoto \"%s:%i\";\n", a_Readers[SRover->Next->GroupID].Name, SRover->Next->PassID);
+					
+					// Otherwise mean frame 1
+					else
+						fprintf(stdout, "\t\t\tGoto \"%s\";\n", a_Readers[SRover->Next->GroupID].Name);
+					SRover = NULL;
+				}
+			}
+		}
+		
+		// End
+		fprintf(stdout, "\t\t}\n");
+		
+		// Newline?
+		if (NewLined)
+			fprintf(stdout, "\t\t\n");
+		
+		// Dead?
+		if (!SRover)
+			break;
+	}
+	
+	// Done
+	fprintf(stdout, "\t}\n");
+}
+
 /* main() -- Main entry point */
 int main(int argc, char** argv)
 {
@@ -200,11 +371,10 @@ int main(int argc, char** argv)
 	MobjInfo_t* CurInfo;
 	size_t CurInfoNum;
 	
-	char** pStateStr;
-	uint32_t* pStateID, FrameID;
-	bool_t NewLined;
+	WepInfo_t* WepInfo;
+	size_t WepInfoNum;
 	
-	StateInfo_t* SRover;
+	bool_t NewLined;
 	
 	/* Load State Tables */
 	inST = fopen("her_stt.tsv", "rt");
@@ -558,198 +728,97 @@ int main(int argc, char** argv)
 		// State Building Loop
 		for (j = 0; j < 9; j++)
 		{
-			// Obtain state string and ID
-			pStateStr = (void*)((uintptr_t)CurInfo + c_StateReaders[j].StrOff);
-			pStateID = (void*)((uintptr_t)CurInfo + c_StateReaders[j].IntOff);
-			
-			// Missing?
-			if (!*pStateID)
-				continue;
-				
-			// Spacing Line
-			fprintf(stdout, "\t\n");
-			
-			// Create marker for it
-			fprintf(stdout, "\tState \"%s\"\n", c_StateReaders[j].Name);
-			fprintf(stdout, "\t{\n");
-			
-			// State Roving Loop
-			for (FrameID = 1, SRover = &l_States[*pStateID]; SRover; FrameID++)
-			{
-				// Clear newlinded ness
-				NewLined = false;
-				
-				// If current frame has no pass ID or group, set it now
-				if (SRover->PassID == -1)
-				{
-					SRover->GroupID = j;
-					SRover->PassID = FrameID;
-				}
-				
-				// Print current state landed on
-				fprintf(stdout, "\t\tFrame \"%u\"\n", FrameID);
-				fprintf(stdout, "\t\t{\n");
-				
-				// Print details
-				fprintf(stdout, "\t\t\tHereHackEdNum \"%u\";\n", SRover->DEHId);
-				fprintf(stdout, "\t\t\tOldName \"%s\";\n", SRover->DEHName);
-				fprintf(stdout, "\t\t\tSprite \"%s\";\n", SRover->Sprite);
-				fprintf(stdout, "\t\t\tFrame \"%u\";\n", SRover->Frame);
-				fprintf(stdout, "\t\t\tTics \"%i\";\n", SRover->Tics);
-				
-				// Fullbright?
-				if (SRover->FullBright)
-					fprintf(stdout, "\t\t\tFullBright \"true\";\n");
-				
-				// Not null func
-				if (SRover->Func)
-					if (strcasecmp(SRover->Func, "NULL"))
-						fprintf(stdout, "\t\t\tFunction \"%s\";\n", SRover->Func);
-				
-				// Next is zero, S_NULL
-				if (SRover->NextID == 0)
-				{
-					fprintf(stdout, "\t\t\tNext \"0\";\n");
-					SRover = NULL;	// Bye!
-				}
-				
-				// Otherwise, determine if it is a next or a goto
-				else
-				{
-					// Next has no ID set, claim it as the next frame
-					if (SRover->Next->PassID == -1)
-					{
-						fprintf(stdout, "\t\t\tNext \"%i\";\n", FrameID + 1);
-						SRover = SRover->Next;
-						NewLined = true;	// For pretty output
-					}
-					
-					// It has an ID set, which means it was claimed
-					else
-					{
-						// If no group (ouch), or same group, use next and break
-						if (SRover->Next->GroupID == -1 ||
-								SRover->Next->GroupID == j)
-						{
-							fprintf(stdout, "\t\t\tNext \"%i\";\n", SRover->Next->PassID);
-							SRover = NULL;
-						}
-						
-						// If a group was set, then use a goto and break
-						else
-						{
-							// Target frame is not one, use an offset frame
-							if (SRover->Next->PassID != 1)
-								fprintf(stdout, "\t\t\tGoto \"%s:%i\";\n", c_StateReaders[SRover->Next->GroupID].Name, SRover->Next->PassID);
-							
-							// Otherwise mean frame 1
-							else
-								fprintf(stdout, "\t\t\tGoto \"%s\";\n", c_StateReaders[SRover->Next->GroupID].Name);
-							SRover = NULL;
-						}
-					}
-				}
-				
-				// End
-				fprintf(stdout, "\t\t}\n");
-				
-				// Newline?
-				if (NewLined)
-					fprintf(stdout, "\t\t\n");
-				
-				// Dead?
-				if (!SRover)
-					break;
-			}
-			
-			// Done
-			fprintf(stdout, "\t}\n");
-#if 0
-/* StateInfo_t -- Single State */
-typedef struct StateInfo_s
-{
-	int32_t GroupID;							// State Group ID
-	int32_t PassID;								// For Repetition Pass
-	
-	uint32_t DEHId;
-	char* DEHName;
-	char* Sprite;
-	char* NextState;
-	uint32_t NextID;
-	char* Func;
-	uint32_t Frame;
-	uint32_t Tics;
-	FullBright
-	
-	struct StateInfo_s* Next;
-} StateInfo_t;
-
-static const struct
-{
-	int32_t ID;									// ID of group
-	const char* Name;							// Name of group
-	size_t StrOff;								// String offset
-	size_t IntOff;								// Integer Offset
-} c_StateReaders[] =
-#endif
+			DumpStates((uintptr_t)CurInfo, c_StateReaders, j);
 		}
-		
-		// Reference states
-#if 0/* StateInfo_t -- Single State */
-typedef struct StateInfo_s
-{
-	int32_t GroupID;							// State Group ID
-	int32_t PassID;								// For Repetition Pass
-	
-	uint32_t DEHId;
-	char* DEHName;
-	char* Sprite;
-	char* NextState;
-	uint32_t NextID;
-	char* Func;
-	uint32_t Frame;
-	uint32_t Tics;
-	
-	struct StateInfo_s* Next;
-} StateInfo_t;
-SpawnStateID
-WakeStateID
-PainStateID
-MeleeStateID
-MissileStateID
-CrashStateID
-DeathStateID
-XDeathStateID
-RaiseStateID
-#endif
-		
-	int32_t ReactionTime;
-	char* PainState;
-	uint32_t PainStateID;
-	int32_t PainChance;
-	char* MeleeState;
-	uint32_t MeleeStateID;
-	char* MissileState;
-	uint32_t MissileStateID;
-	char* CrashState;
-	uint32_t CrashStateID;
-	char* DeathState;
-	uint32_t DeathStateID;
-	char* XDeathState;
-	uint32_t XDeathStateID;
-	int32_t Speed;
-	int32_t Radius;
-	int32_t Height;
-	int32_t Mass;
-	int32_t Damage;
-	char* Flags;
-	char* RaiseState;
-	uint32_t RaiseStateID;
-	char* FlagsTwo;
 		
 		// Footer
 		fprintf(stdout, "}\n\n");
 	}
+	
+	/* Run through object tables */
+	if (inMI)
+		inMI = NULL;
+	
+	inMI = fopen("here-wep.tsv", "rt");
+	
+	// Handle
+	if (inMI)
+	{
+		fprintf(stderr, "Parsing weapons");
+		
+		// Constantly read
+		while (!feof(inMI))
+		{
+			// Read string
+			fgets(Buf, BUFSIZE, inMI);
+			
+			// Print
+			fprintf(stderr, ".", Buf);
+			
+			// Resize
+			l_Weps = realloc(l_Weps, sizeof(*l_Weps) * (l_NumWeps + 2));
+			WepInfo = &l_Weps[WepInfoNum = l_NumWeps++];
+			memset(WepInfo, 0, sizeof(*WepInfo));
+			
+			// Tokenize
+			ReadNum = 0;
+			for (Tok = strtok(Buf, TOKSYMS); Tok; Tok = strtok(NULL, TOKSYMS))
+				switch (ReadNum++)
+				{
+#define __QUICKHACK(num,name) case num: WepInfo->name = strdup(Tok); WepInfo->name##ID = StateForName(WepInfo->name); break;
+
+					__QUICKHACK(0, UpState)	
+					__QUICKHACK(1, DownState)
+					__QUICKHACK(2, ReadyState)
+					__QUICKHACK(3, AttackState)
+					__QUICKHACK(4, HoldState)
+					__QUICKHACK(5, FlashState)
+					__QUICKHACK(6, SecUpState)	
+					__QUICKHACK(7, SecDownState)
+					__QUICKHACK(8, SecReadyState)
+					__QUICKHACK(9, SecAttackState)
+					__QUICKHACK(10, SecHoldState)
+					__QUICKHACK(11, SecFlashState)
+					
+						// Unknown
+					default:
+						break;
+				}
+		}
+	}
+	
+	/* Cleanup */
+	fprintf(stderr, "done!\n");
+	
+	/* Dump REMOODAT */
+	// Weapons
+	for (i = 0; i < l_NumWeps; i++)
+	{
+		// Clear thing passes
+		for (j = 0; j < l_NumStates; j++)
+		{
+			l_States[j].GroupID = -1;
+			l_States[j].PassID = -1;
+		}
+		
+		// Get Current
+		WepInfo = &l_Weps[i];
+		
+		// Header
+		fprintf(stdout, "// Weapon -- %p\n", WepInfo);
+		fprintf(stdout, "MapWeapon \"%p\"\n", WepInfo);
+		fprintf(stdout, "{\n");
+		
+		// State Building Loop
+		for (j = 0; j < 12; j++)
+		{
+			DumpStates((uintptr_t)WepInfo, c_WeaponReaders, j);
+		}
+		
+		// Footer
+		fprintf(stdout, "}\n\n");
+	}
+	
 	
 	/* Done */
 	return EXIT_SUCCESS;

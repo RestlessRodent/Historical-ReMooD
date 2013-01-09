@@ -312,17 +312,28 @@ void P_DropWeapon(player_t* player)
 //
 void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-
+	bool_t MakeSound;
+	
 	// get out of attack state
 	if (player->mo->state == states[player->mo->info->RPlayerRangedAttackState] || player->mo->state == states[player->mo->info->RPlayerMeleeAttackState])
-	{
 		P_SetMobjState(player->mo, player->mo->info->spawnstate);
-	}
 	
 	// GhostlyDeath <April 14, 2012> -- Chainsaw buzzing
 	if (player->weaponinfo[player->readyweapon]->IdleNoise)
 		if (psp->state == states[player->weaponinfo[player->readyweapon]->readystate])
-			S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->readyweapon]->IdleNoise));
+		{
+			// Make sound by default
+			MakeSound = true;	
+			
+			// Random idle sound?
+			if (player->weaponinfo[player->readyweapon]->WeaponFlags & WF_RANDOMIDLESOUND)
+				if (P_Random() >= 128)
+					MakeSound = false;
+			
+			// Make the sound
+			if (MakeSound)
+				S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->readyweapon]->IdleNoise));
+		}
 	
 	// check for change
 	//  if player is dead, put the weapon away
