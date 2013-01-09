@@ -38,8 +38,12 @@
 	#if defined(__unix__) || defined(__APPLE__)
 		#include <unistd.h>				// Standard Stuff
 		#include <dirent.h>
-		#include <libgen.h>
 		#include <sys/time.h>
+		
+		// DJGPP has dirname in unistd.h
+		#if !defined(__DJGPP__)
+			#include <libgen.h>
+		#endif
 	#endif
 
 	// On Windows include windows.h
