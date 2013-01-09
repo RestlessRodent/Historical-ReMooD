@@ -144,8 +144,8 @@ char mapdir[1024];				// directory of development maps
 bool_t dedicated;
 
 /* FPS */
-static int l_FPSFrameFPGS = 0;
-static int l_FPSTimePerGS = 0;
+static int l_FPSRealTics = 0;
+static int l_FPSGameTicRatio = 0;
 static int l_FPSTrueFPS = 0;
 static int l_FPSRanFPS = 0;
 
@@ -438,32 +438,33 @@ void D_Display(void)
 	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
 	if (l_VIDDrawFPS.Value->Int)
 	{
+//#if 0
 		// GhostlyDeath <july 8, 2009> -- Draw FPS
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 1000) % 10), 320 - 80, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 70, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 10) % 10), 320 - 60, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, '.', 320 - 50, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 1000) % 10), 320 - 70, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 60, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 10) % 10), 320 - 50, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, '0' + (l_FPSTrueFPS % 10), 320 - 40, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, 'F', 320 - 30, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, 'P', 320 - 20, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, 'S', 320 - 10, 0);
 		
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSFrameFPGS / 10) % 10), 320 - 48, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSFrameFPGS % 10), 320 - 40, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'F', 320 - 32, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'P', 320 - 24, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 16, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSRealTics / 10) % 10), 320 - 48, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSRealTics % 10), 320 - 40, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'T', 320 - 32, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'I', 320 - 24, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'C', 320 - 16, 15);
 		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 15);
 		
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 1000) % 10), 320 - 72, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSGameTicRatio / 1000) % 10), 320 - 72, 24);
 		V_DrawCharacterA(VFONT_OEM, 0, '.', 320 - 64, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 100) % 10), 320 - 56, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 10) % 10), 320 - 48, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSTimePerGS % 10), 320 - 40, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 32, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, ':', 320 - 24, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 16, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSGameTicRatio / 100) % 10), 320 - 56, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSGameTicRatio / 10) % 10), 320 - 48, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSGameTicRatio % 10), 320 - 40, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 32, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 24, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '/', 320 - 16, 24);
 		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 24);
+//#endif
 	}
 	
 	//I_BeginProfile();
@@ -562,6 +563,22 @@ void D_DoomLoop(void)
 	tic_t oldentertics, entertic, realtics, rendertimeout = -1;
 	uint32_t FPSNowTime, FPSLastTime, FPSLastTic = 0;
 	int32_t MissedRenders = 0;
+	
+	// GhostlyDeath <January 29, 2013> -- No timing logic
+	uint32_t EnterTime, LogicTime, LeaveTime;
+	uint32_t FrameStart, DiffTime, LogicBase, RenderTime;
+	tic_t TicRunCount, LastRenderTic;
+	bool_t DoRender, Once, FrameSkip, DidRender;
+	
+	uint32_t FPSLogics, FPSRenders, FPSVTicLogic;
+	
+	/* Initialize Time Codes */
+	TicRunCount = 0;
+	FrameStart = LogicBase = RenderTime = 0;
+	FPSRenders = FPSLogics = FPSVTicLogic = 0;
+	Once = true;
+	FrameSkip = false;
+	DidRender = false;
 		
 	// user settings
 	//COM_BufAddText("exec autoexec.cfg\n");
@@ -578,7 +595,6 @@ void D_DoomLoop(void)
 	   #endif */
 	
 	oldentertics = I_GetTime();
-	
 	FPSLastTime = I_GetTimeMS();
 	
 	// Playing any demos?
@@ -621,28 +637,95 @@ void D_DoomLoop(void)
 		// UNUSED for the moment (18/12/98)
 		I_StartFrame();
 		
-		// process tics (but maybe not if realtic==0)
-		TryRunTics(realtics);
+		// Time before logic
+		EnterTime = I_GetTimeMS();
 		
-		if (singletics || gametic > rendergametic)
+		// Recount FPS?
+		if (EnterTime - FrameStart >= UINT32_C(1000))
 		{
-			l_FPSRanFPS++;
+			// Set FPS Counter locals
+			l_FPSRealTics = FPSLogics;
+			l_FPSTrueFPS = FPSRenders;
 			
-			rendergametic = gametic;
-			rendertimeout = entertic + TICRATE / 17;
+			// Cap?
+			if (l_FPSTrueFPS > 999)
+				l_FPSTrueFPS = 999;
 			
-			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			
-			// Update display, next frame, with current state.
-			D_Display();
-			supdate = false;
+			// Reset
+			FrameStart = EnterTime;
+			FPSLogics = 0;
+			FPSRenders = 0;
+			LastRenderTic = 0;		// Force 1FPS always
+			Once = true;
 		}
-		else if (gamestate == GS_DEMOSCREEN || gamestate == GS_WAITFORJOINWINDOW || rendertimeout < entertic)	// in case the server hang or netsplit
+		
+		// process tics (but maybe not if realtic==0)
+		TryRunTics(realtics, &TicRunCount);
+		FPSLogics += TicRunCount;
+		FPSVTicLogic += TicRunCount;
+		
+		// Time when logic completed
+		LogicTime = I_GetTimeMS();
+		
+		// Calculate logical seconds being passed
+		while (FPSVTicLogic >= TICRATE)
 		{
-			l_FPSRanFPS++;
-			if (gamestate == GS_DEMOSCREEN || gamestate == GS_WAITFORJOINWINDOW)
-				l_FPSPanic = false;	// Don't panic on titlescreen!
+			// Ratio of game seconds to wall seconds
+			l_FPSGameTicRatio = (LogicTime - LogicBase);
+			
+			// Processed this amount of time
+			FPSVTicLogic -= TICRATE;
+			LogicBase = LogicTime;
+		}
+		
+		// Calculate difference 
+		DiffTime = LogicTime - EnterTime;
+		
+		// Determine if game should be rendererd
+		DoRender = false;
+		
+		// Single Tics? Draw every frame
+		if (singletics)
+			DoRender = true;
+		else
+		{
+			// Force 1FPS
+			if (Once)
+			{
+				DoRender = true;
+				Once = false;
+			}
+			
+			// Frame Skipping?
+			else if (FrameSkip)
+				FrameSkip = false;
+			
+			// Not frameskipping
+			else
+			{
+				// Rendered enough already?
+				if (RenderTime - LogicTime < TICSPERMS)
+				{
+					// Did a render?
+					if (DidRender)
+						DidRender = false;
+				}
+				
+				// Enough time to render?
+				else if (DiffTime < TICSPERMS)
+					DoRender = true;
+			}
+		}
+		
+		// Draw the screen
+		if (DoRender)
+		{
+			// Render Game
+			FPSRenders++;
 			D_Display();
+			
+			// Set as rendered
+			DidRender = true;
 		}
 		
 		// GhostlyDeath <June 22, 2012> -- Update sounds always, as long as the FPS
@@ -663,26 +746,28 @@ void D_DoomLoop(void)
 		// check for media change, loop music..
 		I_UpdateCD();
 		
-		// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-		if (gametic % TICRATE == 0 && FPSLastTic != gametic)
+		// Time when all done
+		LeaveTime = I_GetTimeMS();
+		
+		// Remember time since last render
+		if (DoRender)
 		{
-			FPSNowTime = I_GetTimeMS();
+			RenderTime = LeaveTime;
 			
-			l_FPSTimePerGS = FPSNowTime - FPSLastTime;
-			l_FPSFrameFPGS = TICRATE - ((l_FPSRanFPS) % TICRATE);
-			// GhostlyDeath <July 9, 2009> -- Floating point is more accurate but fixed may be faster
-			l_FPSTrueFPS =		//((double)l_FPSFrameFPGS / ((double)l_FPSTimePerGS / 1000.0)) * 10.0;
-			    FixedMul(FixedDiv(l_FPSFrameFPGS << FRACBITS, FixedDiv(l_FPSTimePerGS << FRACBITS, 1000 << FRACBITS)), 10 << FRACBITS) >> FRACBITS;
-			    
-			l_FPSRanFPS = 0;
-			FPSLastTime = FPSNowTime;
+			// Took too long to render?
+			if (LeaveTime - LogicTime >= TICSPERMS)
+				FrameSkip = true;
+		}
+		
+		// Sleep
+		if (!singletics)
+		{
+			// Calculate Difference for entire frame
+			DiffTime = LeaveTime - EnterTime;
 			
-			FPSLastTic = gametic;
-			
-			if (l_FPSTrueFPS > 9999)
-				l_FPSTrueFPS = 9999;
-			else if (l_FPSTrueFPS < 0)
-				l_FPSTrueFPS = 0;	// This can happen with fixed point numbers
+			// Enough time to sleep?
+			if (DiffTime < TICSPERMS)
+				I_WaitVBL(TICSPERMS - DiffTime);
 		}
 	}
 }

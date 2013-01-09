@@ -47,7 +47,7 @@ extern bool_t server;
 void NetUpdate(void);			// Create any new ticcmds and broadcast to other players.
 bool_t Playing(void);			// is there a game running
 void D_QuitNetGame(void);		// Broadcasts special packets to other players to notify of game exit
-void TryRunTics(tic_t realtic);	// how many ticks to run
+void TryRunTics(tic_t realtic, tic_t* const a_TicRunCount);	// how many ticks to run
 
 #endif
 

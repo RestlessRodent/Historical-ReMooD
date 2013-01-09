@@ -1979,6 +1979,8 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 				// More advanced settings
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CREATEGAME));
+			Work->FSelect = MS_SubMenu_FSelect;
+			Work->SubMenu = MSM_ADVANCEDCREATEGAME;
 			
 				// Server List: Name
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SORTFLAGS, DS_GetStringRef(DSTR_MENUGENERAL_SVNAME));
@@ -2060,6 +2062,12 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Start on Episode
 			Root->CursorOn = 1;
+			break;
+			
+			// Advanced Game Creation Menu
+		case MSM_ADVANCEDCREATEGAME:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			break;
 		
 			// Unknown

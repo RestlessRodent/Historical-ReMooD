@@ -122,7 +122,7 @@ extern bool_t advancedemo;
 static int load;
 
 /* TryRunTics() -- Attempts to run a single tic */
-void TryRunTics(tic_t realtics)
+void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 {
 	static tic_t LastTic;
 	static int64_t LastMS;
@@ -240,6 +240,11 @@ void TryRunTics(tic_t realtics)
 	else
 		XXSNAR = D_XNetTicsToRun();
 	
+	/* Set tics that were run */
+	if (a_TicRunCount)
+		*a_TicRunCount = XXSNAR;
+	
+	/* Count Down Loops */
 	if (XXSNAR > 0)
 	{
 		// Run tick loops
@@ -261,6 +266,7 @@ void TryRunTics(tic_t realtics)
 	// Not behind so sleep
 	else if (!singletics)
 	{
+#if 0
 		// Get time difference
 		DiffMS = ThisMS - LastMS;
 		
@@ -272,6 +278,7 @@ void TryRunTics(tic_t realtics)
 			I_WaitVBL(DiffMS - (TICSPERMS >> 2));
 		
 		//I_WaitVBL(20);
+#endif
 	}
 }
 
