@@ -1127,7 +1127,7 @@ void D_DoAdvanceDemo(void)
 		case 2:
 			pagetic = 200;
 			gamestate = GS_DEMOSCREEN;
-			pagename = (g_CoreGame == COREGAME_HERETIC ? "RMD_CR_H" : "RMD_CR_D");
+			pagename = (g_CoreGame == CG_HERETIC ? "RMD_CR_H" : "RMD_CR_D");
 			break;
 		case 3:
 			pagetic = 9999999;
@@ -1243,7 +1243,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		14604584,
 		2919,
 		
-		COREGAME_DOOM,
+		CG_DOOM,
 		false,
 		"MI_DOOM2",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
@@ -1265,7 +1265,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		14604584,
 		3101,
 		
-		COREGAME_DOOM,
+		CG_DOOM,
 		false,
 		"MI_TNT",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
@@ -1287,7 +1287,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		17373080,
 		2984,
 		
-		COREGAME_DOOM,
+		CG_DOOM,
 		false,
 		"MI_PLUT",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
@@ -1309,7 +1309,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		12408292,
 		2306,
 		
-		COREGAME_DOOM,
+		CG_DOOM,
 		false,
 		"MI_DOOM1",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_DOUBLEWARP,
@@ -1331,7 +1331,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		11124736,
 		2194,
 		
-		COREGAME_DOOM,
+		CG_DOOM,
 		false,
 		"MI_DOOM1",
 		CIF_CANFILE | CIF_REGISTERED | CIF_DOUBLEWARP,
@@ -1353,7 +1353,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		4196020,
 		1264,
 		
-		COREGAME_DOOM,
+		CG_DOOM,
 		true,
 		"MI_DOOM1",
 		CIF_SHAREWARE | CIF_DOWNLOADABLE | CIF_DOUBLEWARP,
@@ -1375,7 +1375,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		0,//12408292,
 		2633,//2306,
 		
-		COREGAME_HERETIC,
+		CG_HERETIC,
 		false,
 		"MI_HERTC",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_DOUBLEWARP,
@@ -1394,7 +1394,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Hexen Shareware
 
 	/* Last */
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, "", 0}
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, 0, "", 0}
 };
 
 // l_BlockSums -- Checksums to disallow downloading from
@@ -1488,7 +1488,7 @@ const char* const l_BlockSums[] =
 
 /*** GLOBALS ***/
 
-CoreGame_t g_CoreGame = COREGAME_UNKNOWN;		// Core game mode
+CoreGame_t g_CoreGame = CG_UNKNOWN;		// Core game mode
 const void* g_ReMooDPtr = NULL;					// Pointer to remood.wad
 const char* g_IWADMapInfoName = NULL;			// Name of IWAD MAPINFO
 uint32_t g_IWADFlags = 0;						// IWAD Flags
@@ -1599,7 +1599,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	{
 		if (devparm)
 			CONL_PrintF("DS_DetectGameMode: Stack empty, there is no game.\n");
-		g_CoreGame = COREGAME_UNKNOWN;
+		g_CoreGame = CG_UNKNOWN;
 		return true;
 	}
 	
@@ -1609,12 +1609,12 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 		{
 			if (devparm)
 				CONL_PrintF("DS_DetectGameMode: IWAD Signature Changed.\n");
-			g_CoreGame = COREGAME_UNKNOWN;
+			g_CoreGame = CG_UNKNOWN;
 			break;
 		}
 	
 	// Is the stack already placed?
-	if (g_CoreGame != COREGAME_UNKNOWN)
+	if (g_CoreGame != CG_UNKNOWN)
 	{
 		if (devparm)
 			CONL_PrintF("DS_DetectGameMode: Already detected, no need to detect.\n");
@@ -1762,7 +1762,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	switch (g_CoreGame)
 	{
 			// Doom
-		case COREGAME_DOOM:
+		case CG_DOOM:
 			S_sfx[sfx_generic_switchon].link = &S_sfx[sfx_swtchn];
 			S_sfx[sfx_generic_switchoff].link = &S_sfx[sfx_swtchx];
 			S_sfx[sfx_generic_menupress].link = &S_sfx[sfx_pistol];
@@ -1772,7 +1772,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			break;
 			
 			// Heretic
-		case COREGAME_HERETIC:
+		case CG_HERETIC:
 			S_sfx[sfx_generic_switchon].link = &S_sfx[sfx_dorcls];
 			S_sfx[sfx_generic_switchoff].link = &S_sfx[sfx_keyup];
 			S_sfx[sfx_generic_menupress].link = &S_sfx[sfx_dorcls];

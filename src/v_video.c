@@ -915,9 +915,9 @@ void V_InitializeColormaps(void)
 	l_LifeBarColors = Z_Malloc(sizeof(*l_LifeBarColors) * 200, PU_STATIC, NULL);
 	
 	// Which?
-	if (g_CoreGame == COREGAME_DOOM)
+	if (g_CoreGame == CG_DOOM)
 		CMAPName = "RMD_PLBD";
-	else if (g_CoreGame == COREGAME_HERETIC)
+	else if (g_CoreGame == CG_HERETIC)
 		CMAPName = "RMD_PLBH";
 	else
 		CMAPName = NULL;
@@ -952,9 +952,9 @@ void V_InitializeColormaps(void)
 	
 	/* Obtain maps */
 	// Which?
-	if (g_CoreGame == COREGAME_DOOM)
+	if (g_CoreGame == CG_DOOM)
 		CMAPName = "RMD_CMAP";
-	else if (g_CoreGame == COREGAME_HERETIC)
+	else if (g_CoreGame == CG_HERETIC)
 		CMAPName = "RMD_CMAQ";
 	else
 		CMAPName = NULL;
@@ -2363,7 +2363,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	
 	// However based on the current detected game mode...
 		// Heretic?
-	if (g_CoreGame == COREGAME_HERETIC)
+	if (g_CoreGame == CG_HERETIC)
 	{
 		l_FontRemap[VFONT_SMALL] = VFONT_SMALL_HERETIC;
 		l_FontRemap[VFONT_LARGE] = VFONT_LARGE_HERETIC;
@@ -3159,7 +3159,7 @@ uint8_t* VS_GetPalMap(V_Image_t* const a_Image)
 	}
 	
 	/* Check */
-	if (!a_Image || g_CoreGame == COREGAME_UNKNOWN)
+	if (!a_Image || g_CoreGame == CG_UNKNOWN)
 		return l_VSPalMap[0];		// Return 1:1 Map
 	
 	/* Wrong Game? */
@@ -3174,7 +3174,7 @@ uint8_t* VS_GetPalMap(V_Image_t* const a_Image)
 			}
 		
 		// Maps for Doom
-		if (g_CoreGame == COREGAME_DOOM)
+		if (g_CoreGame == CG_DOOM)
 		{
 			OneOne = VCP_DOOM;
 			TransA = VCP_HERETIC;
@@ -3182,7 +3182,7 @@ uint8_t* VS_GetPalMap(V_Image_t* const a_Image)
 		}
 		
 		// Maps for Heretic
-		else if (g_CoreGame == COREGAME_HERETIC)
+		else if (g_CoreGame == CG_HERETIC)
 		{
 			OneOne = VCP_HERETIC;
 			TransA = VCP_DOOM;

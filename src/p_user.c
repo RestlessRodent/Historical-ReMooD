@@ -772,19 +772,19 @@ bool_t P_WeaponIsUnlocked(const PI_wepid_t a_Weapon)
 	
 	/* Wrong Game? */
 	// Playing Doom but weapon doesn't belong in Doom
-	if (g_CoreGame == COREGAME_DOOM && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISDOOM))
+	if (g_CoreGame == CG_DOOM && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISDOOM))
 		return false;
 		
 	// Playing Heretic but weapon doesn't belong in Heretic
-	if (g_CoreGame == COREGAME_HERETIC && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISHERETIC))
+	if (g_CoreGame == CG_HERETIC && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISHERETIC))
 		return false;
 		
 	// Playing Hexen but weapon doesn't belong in Hexen
-	if (g_CoreGame == COREGAME_HEXEN && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISHEXEN))
+	if (g_CoreGame == CG_HEXEN && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISHEXEN))
 		return false;
 		
 	// Playing Strife but weapon doesn't belong in Strife
-	if (g_CoreGame == COREGAME_STRIFE && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISSTRIFE))
+	if (g_CoreGame == CG_STRIFE && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISSTRIFE))
 		return false;
 	
 	/* Specific Modes */

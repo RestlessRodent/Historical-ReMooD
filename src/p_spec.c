@@ -3476,11 +3476,11 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							// Check for game compatibilities
 							if (strcasecmp(TokStr, "ALL") != 0)
 								if (
-									(strcasecmp(TokStr, "DOOMHERETIC") == 0 && !(g_CoreGame == COREGAME_DOOM || g_CoreGame == COREGAME_HERETIC)) ||
-									(strcasecmp(TokStr, "DOOM") == 0 && g_CoreGame != COREGAME_DOOM) ||
-									(strcasecmp(TokStr, "HERETIC") == 0 && g_CoreGame != COREGAME_HERETIC) ||
-									(strcasecmp(TokStr, "HEXEN") == 0 && g_CoreGame != COREGAME_HEXEN) ||
-									(strcasecmp(TokStr, "STRIFE") == 0 && g_CoreGame != COREGAME_STRIFE))
+									(strcasecmp(TokStr, "DOOMHERETIC") == 0 && !(g_CoreGame == CG_DOOM || g_CoreGame == CG_HERETIC)) ||
+									(strcasecmp(TokStr, "DOOM") == 0 && g_CoreGame != CG_DOOM) ||
+									(strcasecmp(TokStr, "HERETIC") == 0 && g_CoreGame != CG_HERETIC) ||
+									(strcasecmp(TokStr, "HEXEN") == 0 && g_CoreGame != CG_HEXEN) ||
+									(strcasecmp(TokStr, "STRIFE") == 0 && g_CoreGame != CG_STRIFE))
 									break;
 							
 							// Next token

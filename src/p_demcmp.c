@@ -1314,10 +1314,10 @@ bool_t P_XGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level)
 			continue;
 		
 		// Wrong Game?
-		if ((g_CoreGame == COREGAME_DOOM && !(l_GSVars[i].GameFlags & PEXGSGM_DOOM)) ||
-			(g_CoreGame == COREGAME_HERETIC && !(l_GSVars[i].GameFlags & PEXGSGM_HERETIC)) ||
-			(g_CoreGame == COREGAME_HEXEN && !(l_GSVars[i].GameFlags & PEXGSGM_HEXEN)) ||
-			(g_CoreGame == COREGAME_STRIFE && !(l_GSVars[i].GameFlags & PEXGSGM_STRIFE)))
+		if ((g_CoreGame == CG_DOOM && !(l_GSVars[i].GameFlags & PEXGSGM_DOOM)) ||
+			(g_CoreGame == CG_HERETIC && !(l_GSVars[i].GameFlags & PEXGSGM_HERETIC)) ||
+			(g_CoreGame == CG_HEXEN && !(l_GSVars[i].GameFlags & PEXGSGM_HEXEN)) ||
+			(g_CoreGame == CG_STRIFE && !(l_GSVars[i].GameFlags & PEXGSGM_STRIFE)))
 			IsTrue = false;
 			
 		// Which comparison?

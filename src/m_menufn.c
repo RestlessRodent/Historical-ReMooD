@@ -834,12 +834,12 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 			i = 0;
 		
 		// Doom
-		if (g_CoreGame == COREGAME_DOOM)
+		if (g_CoreGame == CG_DOOM)
 			return !!M_ExPushMenu(i,
 				M_ExMakeMenu(M_ExMenuIDByName("classicskilldoom"), NULL));
 		
 		// Heretic
-		else if (g_CoreGame == COREGAME_HERETIC)
+		else if (g_CoreGame == CG_HERETIC)
 			return !!M_ExPushMenu(i,
 				M_ExMakeMenu(M_ExMenuIDByName("classicskillheretic"), NULL));
 		
@@ -862,7 +862,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 			j = strtol(a_ArgV[2], NULL, 10);
 		
 		// Doom, Episodes or straight game?
-		if (g_CoreGame == COREGAME_DOOM)
+		if (g_CoreGame == CG_DOOM)
 			// Doom II
 			if (g_IWADFlags & CIF_COMMERCIAL)
 			{
@@ -886,7 +886,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 					M_ExMakeMenu(M_ExMenuIDByName("episdoomsw"), NULL));
 		
 		// Heretic
-		else if (g_CoreGame == COREGAME_HERETIC)
+		else if (g_CoreGame == CG_HERETIC)
 			// Shadow of the Serpent Riders
 			if (g_IWADFlags & CIF_EXTENDED)
 				return !!M_ExPushMenu(i,

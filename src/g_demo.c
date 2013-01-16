@@ -101,7 +101,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			Players[i] = WL_Sru8(a_Current->WLStream);
 		
 		// Hack Version ID
-		if (g_CoreGame == COREGAME_DOOM)
+		if (g_CoreGame == CG_DOOM)
 			VerMarker = 102;
 		else
 			VerMarker = 103;

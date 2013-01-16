@@ -239,7 +239,7 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 	for (i = 0; i < NUMVEXTRANSPARENCIES; i++)
 	{
 		// Load lump data
-		Entry = WL_FindEntry(NULL, 0, (g_CoreGame == COREGAME_HERETIC ? TransLumps[i].HereticName : TransLumps[i].Name));
+		Entry = WL_FindEntry(NULL, 0, (g_CoreGame == CG_HERETIC ? TransLumps[i].HereticName : TransLumps[i].Name));
 		p = transtables + (0x10000 * i);
 		
 		// Found?
@@ -293,7 +293,7 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 	translationtables = Z_Malloc(256 * ((MAXSKINCOLORS * 3) - 1), PU_STATIC, NULL);
 	
 	// Load lump
-	Entry = WL_FindEntry(NULL, 0, (g_CoreGame == COREGAME_HERETIC ? "RMD_PMAQ" : "RMD_PMAP"));
+	Entry = WL_FindEntry(NULL, 0, (g_CoreGame == CG_HERETIC ? "RMD_PMAQ" : "RMD_PMAP"));
 	
 	// Found?
 	if (Entry)

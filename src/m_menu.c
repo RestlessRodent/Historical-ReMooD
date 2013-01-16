@@ -1835,7 +1835,7 @@ static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
 	NG_ResetVars();
 	
 	/* Doom */
-	if (g_CoreGame == COREGAME_DOOM)
+	if (g_CoreGame == CG_DOOM)
 	{
 		// Doom II
 		if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL))
@@ -1878,7 +1878,7 @@ static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
 	}
 	
 	/* Heretic */
-	else if (g_CoreGame == COREGAME_HERETIC)
+	else if (g_CoreGame == CG_HERETIC)
 	{
 	}
 	

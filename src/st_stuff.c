@@ -544,7 +544,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	{
 		BigLetters = true;
 		
-		if (g_CoreGame == COREGAME_HERETIC)
+		if (g_CoreGame == CG_HERETIC)
 			Font = VFONT_LARGE_HERETIC;
 		else
 			Font = VFONT_STATUSBARLARGE;

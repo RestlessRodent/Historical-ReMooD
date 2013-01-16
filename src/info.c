@@ -429,11 +429,11 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 {
 	{"-", IRVT_STRING, offsetof(PI_mobj_t, RClassName)},
-	{"DoomEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_DOOM])},
-	{"HereticEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HERETIC])},
-	{"HexenEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HEXEN])},
-	{"StrifeEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_STRIFE])},
-	{"DeHackEdNum", IRVT_INT32, offsetof(PI_mobj_t, RDehackEdID[COREGAME_DOOM])},
+	{"DoomEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_DOOM])},
+	{"HereticEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_HERETIC])},
+	{"HexenEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_HEXEN])},
+	{"StrifeEdNum", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_STRIFE])},
+	{"DeHackEdNum", IRVT_INT32, offsetof(PI_mobj_t, RDehackEdID[CG_DOOM])},
 	
 	{"DropsClass", IRVT_STRING, offsetof(PI_mobj_t, RDropClass)},
 	{"BrainExplodeClass", IRVT_STRING, offsetof(PI_mobj_t, RBrainExplodeThing)},
@@ -576,7 +576,7 @@ void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEn
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 {
-	{"DeHackEdNum", IRVT_INT32, offsetof(PI_state_t, DehackEdID[COREGAME_DOOM])},
+	{"DeHackEdNum", IRVT_INT32, offsetof(PI_state_t, DehackEdID[CG_DOOM])},
 	
 	{"Tics", IRVT_INT32, offsetof(PI_state_t, tics)},
 	{"FastTics", IRVT_INT32, offsetof(PI_state_t, RMODFastTics)},
@@ -1857,10 +1857,10 @@ static void PIS_SomeMoFrame(char* const a_Field, char* const a_Value, void* cons
 /* c_DEHCTThings -- Change table for things */
 static const PI_DEHChangeTable_t c_DEHCTThings[] =
 {
-	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_DOOM]), NULL},
-	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HERETIC]), NULL},
-	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_HEXEN]), NULL},
-	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[COREGAME_STRIFE]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_DOOM]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_HERETIC]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_HEXEN]), NULL},
+	{"ID #", IRVT_INT32, offsetof(PI_mobj_t, EdNum[CG_STRIFE]), NULL},
 	{"Hit points", IRVT_INT32, offsetof(PI_mobj_t, spawnhealth), NULL},
 	{"Speed", IRVT_INT32, offsetof(PI_mobj_t, speed), NULL},
 	{"Mass", IRVT_INT32, offsetof(PI_mobj_t, mass), NULL},

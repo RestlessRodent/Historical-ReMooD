@@ -246,11 +246,11 @@ typedef enum CoreIWADFlags_e
 /* CoreGame_t -- Game being played... */
 typedef enum CoreGame_e
 {
-	COREGAME_UNKNOWN,							// Unknown game
-	COREGAME_DOOM,								// Doom is being played
-	COREGAME_HERETIC,							// Heretic is being played
-	COREGAME_HEXEN,								// Hexen is being played
-	COREGAME_STRIFE,							// Strife is being played
+	CG_UNKNOWN,									// Unknown game
+	CG_DOOM		= UINT32_C(0x01),				// Doom is being played
+	CG_HERETIC	= UINT32_C(0x02),				// Heretic is being played
+	CG_HEXEN	= UINT32_C(0x04),				// Hexen is being played
+	CG_STRIFE	= UINT32_C(0x08),				// Strife is being played
 	
 	NUMCOREGAMES
 } CoreGame_t;
