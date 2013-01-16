@@ -53,6 +53,7 @@
 #include "d_rmod.h"
 //#include "r_sky.h" // Portals
 #include "p_demcmp.h"
+#include "p_nwline.h"
 
 //SoM: Enable Boom features?
 int boomsupport = 1;
@@ -971,7 +972,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (EV_TryGenTrigger(line, side, thing, EVTGT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
+	if (EV_NLTrigger(line, side, thing, EVTGT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
 		if (!UseAgain)
 			line->special = 0;
 	return;	
@@ -1826,7 +1827,7 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (EV_TryGenTrigger(line, -1, thing, EVTGT_SHOOT, 0, &UseAgain))
+	if (EV_NLTrigger(line, -1, thing, EVTGT_SHOOT, 0, &UseAgain))
 		P_ChangeSwitchTexture(line, UseAgain);
 	return;
 
@@ -2415,7 +2416,7 @@ void P_SpawnSpecials(void)
 			continue;
 		
 		// Execute any map start specials
-		if (EV_TryGenTrigger(&lines[i], -1, NULL, EVTGT_MAPSTART, 0, NULL))
+		if (EV_NLTrigger(&lines[i], -1, NULL, EVTGT_MAPSTART, 0, NULL))
 			lines[i].special = 0;	// Clear special
 	}
 }

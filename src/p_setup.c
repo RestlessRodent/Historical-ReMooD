@@ -335,7 +335,9 @@ static void PS_ExSectorInit(sector_t* const a_Sector)
 		return;
 		
 	/* Re-Map Specials */
-	//a_Sector->special = EV_DoomToGenTrigger(true, a_Sector->special);
+#if 0
+	a_Sector->special = EV_DoomToGenTrigger(true, a_Sector->special);
+#endif
 	
 	/* Set default fields */
 	a_Sector->nextsec = -1;
@@ -463,12 +465,14 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 	}
 	
 	/* Calculate the real line special (generalized) */
+#if 0
 	// Hexen
 	if (a_LineDef->HexenSpecial)
 		a_LineDef->special = HEXENSPECIALLINE;
 	// Doom
 	else
 		a_LineDef->special = EV_DoomToGenTrigger(false, a_LineDef->special);
+#endif
 	
 	/* Set side special from linedef */
 	//if (ld->sidenum[0] != -1 && ld->special)
