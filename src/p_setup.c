@@ -335,7 +335,7 @@ static void PS_ExSectorInit(sector_t* const a_Sector)
 		return;
 		
 	/* Re-Map Specials */
-	a_Sector->special = EV_DoomToGenTrigger(true, a_Sector->special);
+	//a_Sector->special = EV_DoomToGenTrigger(true, a_Sector->special);
 	
 	/* Set default fields */
 	a_Sector->nextsec = -1;

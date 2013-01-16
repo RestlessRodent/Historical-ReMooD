@@ -191,6 +191,7 @@ static const struct
 	QUICKDS(AutoRun, PDST_BOOL),
 	QUICKDS(SlowTurn, PDST_BOOL),
 	QUICKDS(LookSpring, PDST_BOOL),
+	QUICKDS(JoyAutoRun, PDST_BOOL),
 	
 	{"", 0, 0},
 #undef QUICKDS
@@ -282,6 +283,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY;
 	New->SlowTurnTime = 6;
 	New->SlowTurn = true;
+	New->JoyAutoRun = true;
 	
 	// Default Controls (First Time)
 	if (!l_DefaultCtrlsMapped)
@@ -292,6 +294,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 #define SETJOYMORE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOYP | ((b) - 1)
 #define SETMOUSE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_MOUSE | ((b) - 1)
 #define SETDBLMOUSE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_DMOUSE | ((b) - 1)
+#define SETKEYMORE(x,c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_KEYP | (SETKEY_M(IKBK_,k))
 		
 		// Default Controls
 		if (g_ModelMode == DMM_DEFAULT)
@@ -390,20 +393,35 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 			
 			SETKEY(0, ATTACK, SPACE);
 			SETKEY(0, USE, CTRL);
-			SETKEY(0, MOVEMENT, ALT);
+			//SETKEY(0, MOVEMENT, ALT);
+			SETKEY(0, MORESTUFF, ALT);
 			SETKEY(0, SPEED, SHIFT);
 		
 			SETKEY(0, STRAFELEFT, TAB);
 			SETKEY(0, STRAFERIGHT, BACKSPACE);
 			
-			SETKEY(0, NEXTWEAPON, PAUSE);
-			
 			SETKEY(0, QUICKMENU, RETURN);
+			
+			// More Stuff
+			SETKEYMORE(2, LOOKUP, UP);
+			SETKEYMORE(2, LOOKDOWN, DOWN);
+			SETKEYMORE(2, TURNLEFT, LEFT);
+			SETKEYMORE(2, TURNRIGHT, RIGHT);
+			
+			SETKEYMORE(2, ATTACK, SPACE);
+			SETKEYMORE(2, USE, CTRL);
+			SETKEYMORE(2, SPEED, SHIFT);
+		
+			SETKEYMORE(2, STRAFELEFT, TAB);
+			SETKEYMORE(2, STRAFERIGHT, BACKSPACE);
+			
+			SETKEYMORE(2, QUICKMENU, RETURN);
 		}
 		
 #undef SETJOY
 #undef SETKEY_M
 #undef SETKEY
+#undef SETKEYMORE
 #undef SETMOUSE
 #undef SETDBLMOUSE
 #undef SETJOY

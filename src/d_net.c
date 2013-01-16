@@ -2431,7 +2431,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 					case DPEXCMA_MOVEX:
 					case DPEXCMA_MOVEY:
 						// Movement is fractionally based
-						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
+						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[(Profile->JoyAutoRun ? 1 : MoveSpeed)]);
 						TargetMove *= NegMod;
 					
 						// Now which action really?
@@ -2447,7 +2447,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 						NegMod = -1;
 						
 					case DPEXCMA_LOOKX:
-						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
+						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[(Profile->JoyAutoRun ? 1 : TurnSpeed)]);
 						TargetMove *= NegMod;
 						IsTurning = true;
 						BaseAT -= TargetMove;

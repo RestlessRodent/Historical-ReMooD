@@ -1554,21 +1554,6 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 	
 	/* Activated */
 	return Ret;
-#if 0
-		
-		switch (type)
-		{
-				break;
-				
-				
-				
-			default:
-				break;
-		}
-		P_AddActivePlat(plat);
-	}
-	return rtn;
-#endif
 }
 
 /****************************************************************************/

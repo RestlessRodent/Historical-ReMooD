@@ -675,6 +675,11 @@ void G_Ticker(void)
 	tic_t ThisTime;
 	ticcmd_t GlobalCmd;
 	
+	/* Save game on first tic while recording */
+	if (demorecording)
+		if (gametic == 0)
+			G_EncodeSaveGame();
+	
 	/* Reduce Menu */
 	if (g_ResumeMenu > 0)
 		g_ResumeMenu--;
