@@ -239,7 +239,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (EV_NLTrigger(line, side, thing, EVTGT_SWITCH, 0, &UseAgain))
+	if (P_NLTrigger(line, side, thing, EVTGT_SWITCH, 0, &UseAgain))
 	{
 		P_ChangeSwitchTexture(line, (UseAgain ? 1 : 0));
 		return true;
@@ -621,7 +621,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						
 					case 162:
 						// Moving floor min n to max n
-						if (EV_DoPlat(line, perpetualRaise, 0))
+						if (EV_DoPlat(line, PPT_PERPRAISE, 0))
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
@@ -800,7 +800,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						
 					case 181:
 						// Moving floor min n to max n
-						EV_DoPlat(line, perpetualRaise, 0);
+						EV_DoPlat(line, PPT_PERPRAISE, 0);
 						P_ChangeSwitchTexture(line, 1);
 						break;
 						

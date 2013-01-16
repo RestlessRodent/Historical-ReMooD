@@ -168,7 +168,7 @@ int EV_DoPlat(line_t* line, plattype_e type, int amount)
 	//  Activate all <type> plats that are in_stasis
 	switch (type)
 	{
-		case perpetualRaise:
+		case PPT_PERPRAISE:
 			P_ActivateInStasis(line->tag);
 			break;
 			
@@ -255,7 +255,7 @@ int EV_DoPlat(line_t* line, plattype_e type, int amount)
 				S_StartSound((mobj_t*)&sec->soundorg, sfx_pstart);
 				break;
 				
-			case perpetualRaise:
+			case PPT_PERPRAISE:
 				plat->speed = PLATSPEED;
 				plat->low = P_FindLowestFloorSurrounding(sec);
 				

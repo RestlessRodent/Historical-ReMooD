@@ -972,7 +972,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (EV_NLTrigger(line, side, thing, EVTGT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
+	if (P_NLTrigger(line, side, thing, EVTGT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
 		if (!UseAgain)
 			line->special = 0;
 	return;	
@@ -1266,7 +1266,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			
 		case 53:
 			// Perpetual Platform Raise
-			if (EV_DoPlat(line, perpetualRaise, 0) || !boomsupport)
+			if (EV_DoPlat(line, PPT_PERPRAISE, 0) || !boomsupport)
 				line->special = 0;
 			break;
 			
@@ -1458,7 +1458,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			
 		case 87:
 			// Perpetual Platform Raise
-			EV_DoPlat(line, perpetualRaise, 0);
+			EV_DoPlat(line, PPT_PERPRAISE, 0);
 			break;
 			
 		case 88:
@@ -1827,7 +1827,7 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (EV_NLTrigger(line, -1, thing, EVTGT_SHOOT, 0, &UseAgain))
+	if (P_NLTrigger(line, -1, thing, EVTGT_SHOOT, 0, &UseAgain))
 		P_ChangeSwitchTexture(line, UseAgain);
 	return;
 
@@ -2416,7 +2416,7 @@ void P_SpawnSpecials(void)
 			continue;
 		
 		// Execute any map start specials
-		if (EV_NLTrigger(&lines[i], -1, NULL, EVTGT_MAPSTART, 0, NULL))
+		if (P_NLTrigger(&lines[i], -1, NULL, EVTGT_MAPSTART, 0, NULL))
 			lines[i].special = 0;	// Clear special
 	}
 }

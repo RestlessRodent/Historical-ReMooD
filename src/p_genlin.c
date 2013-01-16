@@ -1463,7 +1463,7 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 			// Perpetual Lift
 		if (HEFType == EVGHEPLATT_LHFPERP)
 		{
-			NewPlat->type = perpetualRaise;
+			NewPlat->type = PPT_PERPRAISE;
 			
 			// Lower Area
 			NewPlat->low = P_FindLowestFloorSurrounding(CurSec);
