@@ -4072,12 +4072,7 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize, const
 //  * Make it more secure (prevent overflows)
 //  * Make it faster in some respects (use memcpy when drawing raw images)
 void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap, uint8_t* const a_DestBuffer, const uint32_t a_DestPitch, const uint32_t a_DestWidth, const uint32_t a_DestHeight, const fixed_t a_VidXScaleX, const fixed_t a_VidXScaleY, const double a_VidFScaleX, const double a_VidFScaleY)
-{	/*** DEDICATED SERVER ***/
-#if defined(__REMOOD_DEDICATED)
-	return;
-	
-	/*** STANDARD CLIENT ***/
-#else
+{
 
 //#define __REMOOD_OLDDRAW
 #define __REMOOD_ONESHORT
@@ -4373,7 +4368,6 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 		// No longer need image, so mark it as cache
 		Z_ChangeTag(a_Image->dRaw, PU_CACHE);
 	}
-#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageDrawScaled() -- Draws the image with specific scaling */
@@ -4450,11 +4444,14 @@ void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t
 	// Scale to screen
 	else
 	{
+#if 0
 		// Fixed point scalar
 		if (a_Flags & VEX_NOFLOATSCALE)
 		{
+#endif
 			xScale = vid.fxdupx;
 			yScale = vid.fxdupy;
+#if 0
 		}
 		
 		// Floating point scalar
@@ -4463,6 +4460,7 @@ void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t
 			xScale = FLOAT_TO_FIXED(vid.fdupx);
 			yScale = FLOAT_TO_FIXED(vid.fdupy);
 		}
+#endif
 	}
 	
 	/* That is basically everything */
