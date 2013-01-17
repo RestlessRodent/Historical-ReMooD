@@ -507,21 +507,16 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		
 	// Send pickup color
 	Color = 0;
-	if (Prof)
-	{
-		if (a_Type == PPM_PICKUP)
-			Color = Prof->ColorPickup;
-		else if (a_Type == PPM_SECRET)
-			Color = Prof->ColorSecret;
-	}
 	
-	// Default Colors
-	else
+	switch (a_Type)
 	{
-		if (a_Type == PPM_PICKUP)
-			Color = VEX_MAP_WHITE;
-		else if (a_Type == PPM_SECRET)
-			Color = VEX_MAP_BRIGHTWHITE;
+		case PPM_PICKUP: Color = (Prof ? Prof->ColorPickup : VEX_MAP_WHITE); break;
+		case PPM_SECRET: Color = (Prof ? Prof->ColorSecret : VEX_MAP_BRIGHTWHITE); break;
+		case PPM_REDLOCK: Color = (Prof ? Prof->ColorLock[0] : VEX_MAP_RED); break;
+		case PPM_YELLOWLOCK: Color = (Prof ? Prof->ColorLock[1] : VEX_MAP_YELLOW); break;
+		case PPM_BLUELOCK: Color = (Prof ? Prof->ColorLock[2] : VEX_MAP_BLUE); break;
+		case PPM_GENLOCK: Color = (Prof ? Prof->ColorLock[3] : VEX_MAP_GRAY); break;
+		default: break;
 	}
 	
 	// Print Color

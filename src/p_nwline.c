@@ -35,6 +35,10 @@
 
 #include "p_nwline.h"
 #include "r_local.h"
+#include "dstrings.h"
+#include "p_local.h"
+#include "p_inter.h"
+#include "p_demcmp.h"
 
 /*****************
 *** STRUCTURES ***
@@ -46,6 +50,8 @@ typedef struct P_NLTrig_s
 	uint32_t Length;							// Lines to consider (<=)
 	EV_TryGenType_t TrigType;					// Trigger Type
 	bool_t ReTrig;								// Retrigger
+	bool_t NeedsTag;							// Needs a tag
+	bool_t CanMonster;							// Monster can activate
 	
 	P_NLTrigFunc_t TrigFunc;					// Trigger Function
 	uint32_t ArgC;								// Argument Count
@@ -60,60 +66,76 @@ typedef struct P_NLTrig_s
 
 
 /* EV_VerticalDoor() -- open a door manually, no tag value */
+//  1: Rebound Door
+//  2: Door Sound
+//  3: Door Type
+//  4: Speed
+//  5: Lock
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
 {
 	player_t* player;
 	int secnum;
 	sector_t* sec;
 	vldoor_t* door;
+	P_PMType_t MsgType;
+	const char** MsgRef;
 	
 	/* Check */
 	if (!a_Object)
 		return false;
 	
-	//  Check for locks
+	/* Check for locked door */
 	player = a_Object->player;
 	
-	switch (a_Line->special)
+	if (a_ArgC >= 5 && a_ArgV[4])
 	{
-		case 26:				// Blue Lock
-		case 32:
-			if (!player)
-				return 0;
-			if (((!(player->cards & it_bluecard) && !(player->cards & it_blueskull))))
-			{
-				//player->message = PD_BLUEK;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/2000: Killough's idea
-				return 0;
-			}
-			break;
+		// Not a player?
+		if (!player)
+			return false;
+		
+		// Check if player has lacks keys
+		if (((player->KeyCards[0] | player->KeyCards[1]) & a_ArgV[4]) != a_ArgV[4])
+		{
+			// Off sound on door
+			S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 			
-		case 27:				// Yellow Lock
-		case 34:
-			if (!player)
-				return 0;
-				
-			if (((!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
+			// Setup Message Info
+				// Red
+			if (a_ArgV[4] & INFO_REDKEYCOMPAT)
 			{
-				//player->message = PD_YELLOWK;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/2000: Killough's idea
-				return 0;
+				MsgType = PPM_REDLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_REDK);
 			}
-			break;
+				
+				// Yellow
+			else if (a_ArgV[4] & INFO_YELLOWKEYCOMPAT)
+			{
+				MsgType = PPM_YELLOWLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_YELLOWK);
+			}
+				
+				// Blue
+			else if (a_ArgV[4] & INFO_YELLOWKEYCOMPAT)
+			{
+				MsgType = PPM_YELLOWLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_YELLOWK);
+			}
+				
+				// Unknown
+			else
+			{
+				MsgType = PPM_GENLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DNWLINE_LOCKEDDOOR);
+			}
 			
-		case 28:				// Red Lock
-		case 33:
-			if (!player)
-				return 0;
-				
-			if (((!(player->cards & it_redcard) && !(player->cards & it_redskull))))
-			{
-				//player->message = PD_REDK;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/2000: Killough's idea
-				return 0;
-			}
-			break;
+			// Send message to player
+			P_PlayerMessage(MsgType, a_Object, NULL, MsgRef);
+			
+			// Do nothing
+			return false;
+		}
 	}
+	
 	//SoM: 3/6/2000
 	// if the wrong side of door is pushed, give oof sound
 	if (a_Line->sidenum[1] == -1)	// killough
@@ -121,49 +143,41 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 		S_StartSound(&player->mo->NoiseThinker, sfx_oof);	// killough 3/20/98
 		return 0;
 	}
+	
 	// if the sector has an active thinker, use it
 	sec = sides[a_Line->sidenum[1]].sector;
 	secnum = sec - sectors;
 	
+	/* Rebound Door? */
 	if (sec->ceilingdata)		//SoM: 3/6/2000
 	{
 		door = sec->ceilingdata;	//SoM: 3/6/2000
-		switch (a_Line->special)
+		
+		// Reboundable?
+		if (a_ArgC >= 1 && a_ArgV[0])
 		{
-			case 1:			// ONLY FOR "RAISE" DOORS, NOT "OPEN"s
-			case 26:
-			case 27:
-			case 28:
-			case 117:
-				if (door->direction == -1)
-					door->direction = 1;	// go back up
-				else
-				{
-					if (!a_Object->player)
-						return 0;	// JDC: bad guys never close doors
-						
-					door->direction = -1;	// start going down immediately
-				}
-				return 1;
+			// go back up
+			if (door->direction == -1)
+				door->direction = 1;
+			
+			// start going down immediately
+			else
+			{
+				if (!a_Object->player)
+					return false;	// JDC: bad guys never close doors
+					
+				door->direction = -1;
+			}
+			
+			return true;
 		}
 	}
-	// for proper sound
-	switch (a_Line->special)
-	{
-		case 117:				// BLAZING DOOR RAISE
-		case 118:				// BLAZING DOOR OPEN
-			S_StartSound((mobj_t*)&sec->soundorg, sfx_bdopn);
-			break;
-			
-		case 1:				// NORMAL DOOR SOUND
-		case 31:
-			S_StartSound((mobj_t*)&sec->soundorg, sfx_doropn);
-			break;
-			
-		default:				// LOCKED DOOR SOUND
-			S_StartSound((mobj_t*)&sec->soundorg, sfx_doropn);
-			break;
-	}
+	
+	/* Play Door Sound */
+	if (a_ArgC >= 2 && a_ArgV[1] != sfx_None)
+		S_StartSound((mobj_t*)&sec->soundorg, a_ArgV[1]);
+	else
+		S_StartSound((mobj_t*)&sec->soundorg, sfx_doropn);
 	
 	// new door thinker
 	door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
@@ -178,41 +192,17 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 	
 	/* Set door properties */
 	// Type of door
-	if (a_ArgC >= 1)
-		door->type = a_ArgV[0];
+	if (a_ArgC >= 3)
+		door->type = a_ArgV[2];
 	
-	switch (a_Line->special)
-	{
-		case 1:
-		case 26:
-		case 27:
-		case 28:
-			door->type = normalDoor;
-			break;
-			
-		case 31:
-		case 32:
-		case 33:
-		case 34:
-			door->type = dooropen;
-			a_Line->special = 0;
-			break;
-			
-		case 117:				// blazing door raise
-			door->type = blazeRaise;
-			door->speed = VDOORSPEED * 4;
-			break;
-		case 118:				// blazing door open
-			door->type = blazeOpen;
-			a_Line->special = 0;
-			door->speed = VDOORSPEED * 4;
-			break;
-	}
+	// Speed of door
+	if (a_ArgC >= 4 && a_ArgV[3])
+		door->speed = a_ArgV[3];
 	
 	// find the top and bottom of the movement range
 	door->topheight = P_FindLowestCeilingSurrounding(sec);
 	door->topheight -= 4 * FRACUNIT;
-	return 1;
+	return true;
 }
 
 /*****************************************************************************/
@@ -220,12 +210,33 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 // c_LineTrigs -- Static line triggers
 static const P_NLTrig_t c_LineTrigs[] =
 {
-	// Standard Doom Doors
-	{1, 0, EVTGT_SWITCH, true, EV_VerticalDoor, 2, {normalDoor, VDOORSPEED}},
+	// Manual Doors
+	{1, 0, EVTGT_SWITCH, true, false, true, EV_VerticalDoor, 5,
+		{1, sfx_doropn, normalDoor, 0, 0}},
+	{26, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+		{1, sfx_None, normalDoor, 0, INFO_BLUEKEYCOMPAT}},
+	{27, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+		{1, sfx_None, normalDoor, 0, INFO_YELLOWKEYCOMPAT}},
+	{28, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+		{1, sfx_None, normalDoor, 0, INFO_REDKEYCOMPAT}},
+	{31, 0, EVTGT_SWITCH, false, false, false, EV_VerticalDoor, 5,	// *1
+		{0, sfx_doropn, dooropen, 0, 0}},
+	{32, 0, EVTGT_SWITCH, false, false, true, EV_VerticalDoor, 5,	// *1
+		{0, sfx_None, dooropen, 0, INFO_BLUEKEYCOMPAT}},
+	{33, 0, EVTGT_SWITCH, false, false, true, EV_VerticalDoor, 5,	// *1
+		{0, sfx_None, dooropen, 0, INFO_REDKEYCOMPAT}},
+	{34, 0, EVTGT_SWITCH, false, false, true, EV_VerticalDoor, 5,	// *1
+		{0, sfx_None, dooropen, 0, INFO_YELLOWKEYCOMPAT}},
+	{117, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+		{1, sfx_bdopn, blazeRaise, VDOORSPEED * 4, 0}},
+	{118, 0, EVTGT_SWITCH, false, false, false, EV_VerticalDoor, 5,	// *1
+		{0, sfx_bdopn, blazeOpen, VDOORSPEED * 4, 0}},
 	
 	// End
-	{0, 0, 0, false, NULL, 0, {0}},
+	{0},
 };
+
+// *1 = a_Line->special set to zero in code, but makes no difference
 
 /* P_NLTrigger() -- Triggers a line */
 bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
@@ -249,6 +260,25 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			if (a_Type != c_LineTrigs[i].TrigType)
 				continue;
 			
+			// Monster cannot activate?
+			if (!a_Object->player)
+			{
+				// Secret lines cannot be activated
+				if (a_Line->flags & ML_SECRET)
+					continue;
+				
+				// Disabled in line
+				if (!c_LineTrigs[i].CanMonster)
+					continue;
+			}
+			
+			// Requires Tag?
+			if (P_XGSVal(PGS_COBOOMSUPPORT))
+				if (a_Type == EVTGT_SWITCH || a_Type == EVTGT_WALK || a_Type == EVTGT_SHOOT)
+					if (c_LineTrigs[i].NeedsTag)
+						if (!a_Line->tag)
+							continue;
+			
 			// Call function
 			if (c_LineTrigs[i].TrigFunc(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, c_LineTrigs[i].ArgC, c_LineTrigs[i].ArgV))
 			{
@@ -256,7 +286,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 				if (a_UseAgain)
 					*a_UseAgain = c_LineTrigs[i].ReTrig;
 				
-				// Now set as succesful
+				// Now set as successful
 				return true;
 			}
 			

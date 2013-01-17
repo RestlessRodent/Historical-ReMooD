@@ -1030,6 +1030,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** D_BLOCK.C ***/
 	{		 "DBLOCKC_ZLIBINFLATEERR", "ZLib inflation error $1."},
 	
+	/*** D_NWLINE.C ***/
+	{			 "DNWLINE_LOCKEDDOOR", "This door is locked."},
+	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},
 	{               "D_PGS_NOTHINGHERE", "Nothing is here"},

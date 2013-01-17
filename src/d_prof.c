@@ -177,6 +177,10 @@ static const struct
 	QUICKDS(AutoGrabJoy, PDST_INT32),
 	QUICKDS(ColorPickup, PDST_UINT8),
 	QUICKDS(ColorSecret, PDST_UINT8),
+	QUICKDS(ColorLock[0], PDST_UINT8),
+	QUICKDS(ColorLock[1], PDST_UINT8),
+	QUICKDS(ColorLock[2], PDST_UINT8),
+	QUICKDS(ColorLock[3], PDST_UINT8),
 	QUICKDS(SoundSecret, PDST_STRING),
 	QUICKDS(DrawPSprites, PDST_BOOL),
 	QUICKDS(BobMode, PDST_UINT8),
@@ -466,6 +470,10 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	// Default Colors
 	New->ColorPickup = VEX_MAP_WHITE;
 	New->ColorSecret = VEX_MAP_BRIGHTWHITE;
+	New->ColorLock[0] = VEX_MAP_RED;
+	New->ColorLock[1] = VEX_MAP_YELLOW;
+	New->ColorLock[2] = VEX_MAP_BLUE;
+	New->ColorLock[3] = VEX_MAP_GRAY;
 	
 	// Default Sounds
 	strncpy(New->SoundSecret, "secret", MAXPLAYERNAME - 1);

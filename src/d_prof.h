@@ -234,6 +234,7 @@ typedef struct D_ProfileEx_s
 	bool_t SlowTurn;							// Perform slow turning
 	bool_t LookSpring;							// Spring back to center on move
 	bool_t JoyAutoRun;							// Joystick auto-run
+	uint8_t ColorLock[4];						// Door Lock Colors
 } D_ProfileEx_t;
 
 /*** GLOBALS ***/

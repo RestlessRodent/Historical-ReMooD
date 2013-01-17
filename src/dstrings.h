@@ -1029,6 +1029,9 @@ typedef enum UnicodeStringID_e
 	/* d_block.c */
 	DSTR_DBLOCKC_ZLIBINFLATEERR,
 	
+	/* d_nwline.c */
+	DSTR_DNWLINE_LOCKEDDOOR,
+	
 	/* p_demcmp.c */
 	DSTR_M_PGS_NOTHINGHERE,
 	DSTR_D_PGS_NOTHINGHERE,

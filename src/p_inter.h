@@ -49,6 +49,10 @@ typedef enum P_PMType_e
 	PPM_UNKNOWN,								// Unknown
 	PPM_PICKUP, 								// Object Picked up
 	PPM_SECRET,									// Found a secret
+	PPM_REDLOCK,								// Red Door
+	PPM_YELLOWLOCK,								// Yellow Door
+	PPM_BLUELOCK,								// Blue Door
+	PPM_GENLOCK,								// General Locked Door
 	
 	NUMPPMTYPES
 } P_PMType_t;
