@@ -115,10 +115,10 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 			}
 				
 				// Blue
-			else if (a_ArgV[4] & INFO_YELLOWKEYCOMPAT)
+			else if (a_ArgV[4] & INFO_BLUEKEYCOMPAT)
 			{
-				MsgType = PPM_YELLOWLOCK;
-				MsgRef = DS_GetStringRef(DSTR_DEP_PD_YELLOWK);
+				MsgType = PPM_BLUELOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_BLUEK);
 			}
 				
 				// Unknown
@@ -128,8 +128,9 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 				MsgRef = DS_GetStringRef(DSTR_DNWLINE_LOCKEDDOOR);
 			}
 			
-			// Send message to player
+			// Send message to player and flash in status bar
 			P_PlayerMessage(MsgType, a_Object, NULL, MsgRef);
+			P_FlashKeys(player, true, a_ArgV[4], a_ArgV[4]);
 			
 			// Do nothing
 			return false;
@@ -254,22 +255,22 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 		{
 			// No function?
 			if (!c_LineTrigs[i].TrigFunc)
-				continue;
+				return false;
 			
 			// Check trigger compatibility
 			if (a_Type != c_LineTrigs[i].TrigType)
-				continue;
+				return false;
 			
 			// Monster cannot activate?
 			if (!a_Object->player)
 			{
 				// Secret lines cannot be activated
 				if (a_Line->flags & ML_SECRET)
-					continue;
+					return false;
 				
 				// Disabled in line
 				if (!c_LineTrigs[i].CanMonster)
-					continue;
+					return false;
 			}
 			
 			// Requires Tag?
@@ -277,7 +278,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 				if (a_Type == EVTGT_SWITCH || a_Type == EVTGT_WALK || a_Type == EVTGT_SHOOT)
 					if (c_LineTrigs[i].NeedsTag)
 						if (!a_Line->tag)
-							continue;
+							return false;
 			
 			// Call function
 			if (c_LineTrigs[i].TrigFunc(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, c_LineTrigs[i].ArgC, c_LineTrigs[i].ArgV))

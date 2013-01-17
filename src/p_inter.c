@@ -464,11 +464,45 @@ int mega_health = 200;
 
 // eof Boris
 
+/* P_FlashKeys() -- Flashes keycards needed by player */
+void P_FlashKeys(player_t* const a_Player, const bool_t a_WildCard, const uint32_t a_SetA, const uint32_t a_SetB)
+{
+	uint32_t Bits, m, s;
+	uint32_t TimeBase;
+	
+	/* Check */
+	if (!a_Player || (!a_SetA && !a_SetB))
+		return;
+	
+	/* Init */
+	// Timebase is the initial tics to show a key icon for
+	TimeBase = 0x10 * 4;
+	
+	/* Loop */
+	for (m = 0; m < 2; m++)
+	{
+		// Init Bits
+		Bits = (m ? a_SetB : a_SetA);
+		
+		// Handle each bit
+		for (s = 0; s < 32; s++)
+			if (Bits & (1 << s))
+			{
+				// Set time to base
+				a_Player->KeyFlash[m][s] = TimeBase;
+				
+				// Create a scroll like effect when wildcarding
+				if (a_WildCard)
+					TimeBase += 0x8;
+			}
+	}
+}
+
 /* P_PlayerMessage() -- Handles player messages */
 void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef)
 {
 #define BUFSIZE 128
-	int LocalPlayer, i;
+	int32_t LocalPlayer, i, s;
 	char Buf[BUFSIZE];
 	D_ProfileEx_t* Prof;
 	uint8_t Color;
@@ -484,47 +518,48 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 	/* If the object picking it up is not a player... */
 	if (!a_Picker->player)
 		return;
-		
-	/* Find player that is picking this up */
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (g_Splits[i].Active && playeringame[g_Splits[i].Display] && &players[g_Splits[i].Display] == a_Picker->player)
-			break;
-			
-	// Nobody on these screens
-	if (i == MAXSPLITSCREENPLAYERS)
-		return;
 	
-	/* Get Profile */
-	Prof = a_Picker->player->ProfileEx;
-		
-	/* Find message to print */
-	memset(Buf, 0, sizeof(Buf));
-	strncpy(Buf, *a_MessageRef, BUFSIZE);
-		
-	/* Print to console (to that player only) */
-	if (i >= 1)
-		CONL_PrintF("%c", 4 + (i - 1));
-		
-	// Send pickup color
-	Color = 0;
-	
-	switch (a_Type)
+	/* Handle Message for everyone (multiple screens) */
+	// This is so that if multiple players are viewing the same player, they get
+	// the same pickup messages rather than the first one.
+	for (s = 0; s < MAXSPLITSCREEN; s++)
 	{
-		case PPM_PICKUP: Color = (Prof ? Prof->ColorPickup : VEX_MAP_WHITE); break;
-		case PPM_SECRET: Color = (Prof ? Prof->ColorSecret : VEX_MAP_BRIGHTWHITE); break;
-		case PPM_REDLOCK: Color = (Prof ? Prof->ColorLock[0] : VEX_MAP_RED); break;
-		case PPM_YELLOWLOCK: Color = (Prof ? Prof->ColorLock[1] : VEX_MAP_YELLOW); break;
-		case PPM_BLUELOCK: Color = (Prof ? Prof->ColorLock[2] : VEX_MAP_BLUE); break;
-		case PPM_GENLOCK: Color = (Prof ? Prof->ColorLock[3] : VEX_MAP_GRAY); break;
-		default: break;
+		// Not POV player?
+		if (P_SpecGetPOV(s) != a_Picker->player)
+			continue;
+	
+		// Get Profile
+		Prof = a_Picker->player->ProfileEx;
+		
+		// Find message to print
+		memset(Buf, 0, sizeof(Buf));
+		strncpy(Buf, *a_MessageRef, BUFSIZE);
+		
+		// Print to console (to that player only)
+		if (s >= 1)
+			CONL_PrintF("%c", 4 + (s - 1));
+		
+		// Send pickup color
+		Color = 0;
+	
+		switch (a_Type)
+		{
+			case PPM_PICKUP: Color = (Prof ? Prof->ColorPickup : VEX_MAP_WHITE); break;
+			case PPM_SECRET: Color = (Prof ? Prof->ColorSecret : VEX_MAP_BRIGHTWHITE); break;
+			case PPM_REDLOCK: Color = (Prof ? Prof->ColorLock[0] : VEX_MAP_RED); break;
+			case PPM_YELLOWLOCK: Color = (Prof ? Prof->ColorLock[1] : VEX_MAP_YELLOW); break;
+			case PPM_BLUELOCK: Color = (Prof ? Prof->ColorLock[2] : VEX_MAP_BLUE); break;
+			case PPM_GENLOCK: Color = (Prof ? Prof->ColorLock[3] : VEX_MAP_GRAY); break;
+			default: break;
+		}
+	
+		// Print Color
+		if (Color >= 0 && Color < NUMVEXCOLORS)
+			CONL_PrintF("{%c", (Color < 10 ? '0' + Color : 'a' + (Color - 10)));
+	
+		// Send actual message
+		CONL_PrintF("%s{z\n", Buf);
 	}
-	
-	// Print Color
-	if (Color >= 0 && Color < NUMVEXCOLORS)
-		CONL_PrintF("{%c", (Color < 10 ? '0' + Color : 'a' + (Color - 10)));
-	
-	// Send actual message
-	CONL_PrintF("%s{z\n", Buf);
 #undef BUFSIZE
 }
 

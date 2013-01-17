@@ -839,9 +839,30 @@ void P_PlayerThink(player_t* player)
 	int waterz;
 	int i, j, k, l;
 	angle_t delta;
+	int32_t Screen;
 	
 	bool_t GunInSlot;
 	PI_wepid_t SlotList[MAXWEAPONSLOTS];
+	
+	/* Find screen for this player */
+	// This is the display player that is
+	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
+		if (P_SpecGetPOV(Screen) == player)
+			break;
+	
+	/* Handle keycard flashing */
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < 32; j++)
+			if (player->KeyFlash[i][j])
+			{
+				// Play sound every half second or so
+				if (Screen >= 0 && Screen < MAXSPLITSCREEN)
+					if ((player->KeyFlash[i][j] & 0xF) == 0)
+						S_StartSound(NULL, sfx_itemup);
+				
+				// Remove some time
+				player->KeyFlash[i][j]--;
+			}
 
 	// GhostlyDeath <May 17, 2012> -- Instead of crashing, spawn a player
 	if (!player->mo)

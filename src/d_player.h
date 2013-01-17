@@ -264,6 +264,7 @@ typedef struct player_s
 	
 	// Key Cards
 	uint32_t KeyCards[2];						// Cards and Skulls
+	uint8_t KeyFlash[2][32];					// Flashing of keys
 } player_t;
 
 //

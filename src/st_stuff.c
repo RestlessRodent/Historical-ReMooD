@@ -528,7 +528,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	PI_ammoid_t AmmoType;
 	bool_t BigLetters, IsMonster;
 	D_XPlayer_t* XPlay;
-	bool_t IsFake;
+	bool_t IsFake, OK;
 	uint32_t i, j;
 	PI_key_t* DrawKey;
 	int32_t Right;
@@ -698,7 +698,23 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		Right = 8;
 		for (i = 0; i < 2; i++)
 			for (j = 0; j < 32; j++)
+			{
+				OK = false;
+				
+				// We actually own the key
 				if (DisplayP->KeyCards[i] & (UINT32_C(1) << j))
+					OK = true;
+				
+				// Do not own key, see if flashing
+				else
+				{
+					// Flash about every half second
+					if (DisplayP->KeyFlash[i][j] & 0x10)
+						OK = true;
+				}
+				
+				// OK to draw?
+				if (OK)
 				{
 					// Too many keys in view?
 					if (Right > 300)
@@ -728,6 +744,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 						Right += vi->Width + 1;
 					}
 				}
+			}
 	}
 	
 	/* Classic Doom */

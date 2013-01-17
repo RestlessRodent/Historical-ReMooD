@@ -57,6 +57,7 @@ typedef enum P_PMType_e
 	NUMPPMTYPES
 } P_PMType_t;
 
+void P_FlashKeys(player_t* const a_Player, const bool_t a_WildCard, const uint32_t a_SetA, const uint32_t a_SetB);
 void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef);
 
 //added:28-02-98: boooring handling of thing(s) on top of thing(s)
