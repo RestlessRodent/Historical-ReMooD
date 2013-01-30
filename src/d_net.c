@@ -3184,7 +3184,7 @@ void D_XNetUpdate(void)
 			if (!XPlay->Profile)
 			{
 				// Not in level
-				if (gamestate != GS_LEVEL)
+				if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
 					continue;
 				
 				// Set as needing a profile

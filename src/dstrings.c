@@ -1035,6 +1035,15 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** P_SPEC.C ***/
 	{		"PSPECC_TIMELIMITREACHED", "Time limit reached."},
+	{		"PSPECC_FIVEMINLEFT", "5 minutes left!"},
+	{		"PSPECC_ONEMINLEFT", "1 minute left!"},
+	{		"PSPECC_THIRTYSECLEFT", "30 seconds left!"},
+	{		"PSPECC_TENSECLEFT", "10 seconds left!"},
+	{		"PSPECC_FIVESECLEFT", "5 seconds left!"},
+	{		"PSPECC_FOURSECLEFT", "4 seconds left!"},
+	{		"PSPECC_THREESECLEFT", "3 seconds left!"},
+	{		"PSPECC_TWOSECLEFT", "2 seconds left!"},
+	{		"PSPECC_ONESECLEFT", "1 second left!"},
 	
 	/*** p_INTER.c ***/
 	{	   "PINTERC_FRAGLIMITREACHED", "Frag limit reached."},

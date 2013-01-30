@@ -2066,6 +2066,25 @@ void P_PlayerInSpecialSector(player_t* player)
 	P_ProcessSpecialSectorEx(LAT_WALK, player->mo, player, sector, instantdamage);
 }
 
+// c_TLInfo -- Time Left Indicators
+static const struct
+{
+	tic_t Time;
+	uint32_t Str;
+} c_TLInfo[] =
+{
+	{10500, DSTR_PSPECC_FIVEMINLEFT},
+	{2100, DSTR_PSPECC_ONEMINLEFT},
+	{1050, DSTR_PSPECC_THIRTYSECLEFT},
+	{350, DSTR_PSPECC_TENSECLEFT},
+	{175, DSTR_PSPECC_FIVESECLEFT},
+	{140, DSTR_PSPECC_FOURSECLEFT},
+	{105, DSTR_PSPECC_THREESECLEFT},
+	{70, DSTR_PSPECC_TWOSECLEFT},
+	{35, DSTR_PSPECC_ONESECLEFT},
+	{0, 0},
+};
+
 //
 // P_UpdateSpecials
 // Animate planes, scroll walls, etc.
@@ -2076,12 +2095,36 @@ void P_UpdateSpecials(void)
 	anim_t* anim;
 	int i;
 	int pic;					//SoM: 3/8/2000
+	tic_t TimeLimit, TimeLeft;
 	
 	levelflat_t* foundflats;	// for flat animation
 	
-	//  LEVEL TIMER
-	if (P_XGSVal(PGS_GAMETIMELIMIT) && (((uint32_t)P_XGSVal(PGS_GAMETIMELIMIT)) * (TICRATE * 60)) < leveltime)
-		G_ExitLevel(false, NULL, DS_GetString(DSTR_PSPECC_TIMELIMITREACHED));
+	/* Check time limit */
+	TimeLimit = (((tic_t)P_XGSVal(PGS_GAMETIMELIMIT)) * (TICRATE * 60));
+	if (TimeLimit > 0)
+	{
+		// Get time remaining
+		TimeLeft = TimeLimit - leveltime;
+		
+		// End level after exit
+		if (leveltime > TimeLimit)
+			G_ExitLevel(false, NULL, DS_GetString(DSTR_PSPECC_TIMELIMITREACHED));
+		
+		// At other times
+		else if (TimeLeft <= (5 * 60 * TICRATE) && (TimeLeft % TICRATE) == 0)
+			for (i = 0; c_TLInfo[i].Time; i++)
+				if (TimeLeft == c_TLInfo[i].Time)
+				{
+					// Print Message
+					P_BroadcastMessage(DS_GetString(c_TLInfo[i].Str));
+					
+					// Play Sound
+						// TODO
+					
+					// Done here
+					break;
+				}
+	}
 		
 	//  ANIMATE TEXTURES
 	for (anim = anims; anim < lastanim; anim++)

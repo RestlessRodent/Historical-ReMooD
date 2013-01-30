@@ -1259,6 +1259,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 /* P_BroadcastMessage() -- Broadcasts message to all players */
 void P_BroadcastMessage(const char* const a_Message)
 {
+	CONL_PrintF("\x7{z%s\n", a_Message);
 }
 
 /* P_ExitMessage() -- Player exited the level */

@@ -1843,8 +1843,10 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	/* Initialize Stats */
 	if (P_XGSVal(PGS_GAMEDEATHMATCH))
 		WI_initDeathmatchStats();
+	
 	else if (P_XGSVal(PGS_COMULTIPLAYER))
 		WI_initNetgameStats();
+	
 	else
 		WI_initStats();
 }
