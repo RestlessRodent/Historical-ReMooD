@@ -529,7 +529,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	bool_t BigLetters, IsMonster;
 	D_XPlayer_t* XPlay;
 	bool_t IsFake, OK;
-	uint32_t i, j;
+	uint32_t i, j, k;
 	PI_key_t* DrawKey;
 	int32_t Right;
 	
@@ -696,55 +696,56 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		
 		//// KEYS
 		Right = 8;
-		for (i = 0; i < 2; i++)
-			for (j = 0; j < 32; j++)
-			{
-				OK = false;
-				
-				// We actually own the key
-				if (DisplayP->KeyCards[i] & (UINT32_C(1) << j))
-					OK = true;
-				
-				// Do not own key, see if flashing
-				else
+		for (k = 0; k < 2; k++)
+			for (i = 0; i < 2; i++)
+				for (j = 0; j < 32; j++)
 				{
-					// Flash about every half second
-					if (DisplayP->KeyFlash[i][j] & 0x10)
+					OK = false;
+				
+					// We actually own the key
+					if (!k && (DisplayP->KeyCards[i] & (UINT32_C(1) << j)))
 						OK = true;
-				}
 				
-				// OK to draw?
-				if (OK)
-				{
-					// Too many keys in view?
-					if (Right > 300)
-						break;
-					
-					// Try to find the key
-					DrawKey = INFO_KeyByGroupBit(i, j);
-					
-					// No key exists here?
-					if (!DrawKey)
-						continue;
-					
-					// No image supplied?
-					if (!DrawKey->ImageName)
-						vi = V_ImageFindA("RMD_UKEY", VCP_DOOM);
-					
-					// Otherwise, use the key image possibly
-					else
-						vi = V_ImageFindA(DrawKey->ImageName, VCP_NONE);
-					
-					// Draw the key
-					if (vi)
+					// Do not own key, see if flashing
+					else if (k == 1)
 					{
-						V_ImageDraw(0, vi, a_X + STS_SBX(Profile, Right, a_W, a_H), a_Y + STS_SBY(Profile, 165, a_W, a_H), NULL);
+						// Flash about every half second
+						if (DisplayP->KeyFlash[i][j] & 0x10)
+							OK = true;
+					}
+				
+					// OK to draw?
+					if (OK)
+					{
+						// Too many keys in view?
+						if (Right > 300)
+							break;
 					
-						// Shift
-						Right += vi->Width + 1;
+						// Try to find the key
+						DrawKey = INFO_KeyByGroupBit(i, j);
+					
+						// No key exists here?
+						if (!DrawKey)
+							continue;
+					
+						// No image supplied?
+						if (!DrawKey->ImageName)
+							vi = V_ImageFindA("RMD_UKEY", VCP_DOOM);
+					
+						// Otherwise, use the key image possibly
+						else
+							vi = V_ImageFindA(DrawKey->ImageName, VCP_NONE);
+					
+						// Draw the key
+						if (vi)
+						{
+							V_ImageDraw(0, vi, a_X + STS_SBX(Profile, Right, a_W, a_H), a_Y + STS_SBY(Profile, 165, a_W, a_H), NULL);
+					
+							// Shift
+							Right += vi->Width + 1;
+						}
 					}
 				}
-			}
 	}
 	
 	/* Classic Doom */
