@@ -50,6 +50,8 @@ typedef enum P_NLFlags_e
 	PNLF_RETRIG			= UINT32_C(0x00000001),	// Retrigger lines
 	PNLF_USETAG			= UINT32_C(0x00000002),	// Requires tag to work
 	PNLF_MONSTER		= UINT32_C(0x00000004),	// Monster can activate
+	PNLF_BOOM			= UINT32_C(0x00000008),	// Boom Support Required
+	PNLF_CLEARNOTBOOM	= UINT32_C(0x00000010),	// Clear Special when not Boom
 } P_NLFlags_t;
 
 /*****************
@@ -73,17 +75,6 @@ typedef struct P_NLTrig_s
 ****************/
 
 /*****************************************************************************/
-
-/* EV_SpawnScroller() -- Spawns a floor scroller */
-bool_t EV_SpawnScroller(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
-{
-	/* Start of map and not scroll order? */
-	if (a_Type == LAT_MAPSTART && a_Side != PMSS_SCROLLERS)
-		return false;
-	
-	/* Always return true */
-	return true;
-}
 
 /* EV_VerticalDoor() -- open a door manually, no tag value */
 //  1: Rebound Door
@@ -226,6 +217,113 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 	return true;
 }
 
+/* EV_SpawnScroller() -- Spawns a floor scroller */
+// 1: scoll_t::type parameter
+// 2: Scrolling speed is static
+// 3: X Change
+// 4: Y Change
+// 5: Affectee is same line
+bool_t EV_SpawnScroller(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	scroll_t* Scroll;
+	
+	/* Start of map and not scroll order? */
+	if (a_Type == LAT_MAPSTART && a_Side != PMSS_SCROLLERS)
+		return false;
+	
+	/* Setup Thinker */
+	// Allocate
+	Scroll = Z_Malloc(sizeof(*Scroll), PU_LEVSPEC, NULL);
+	
+	// Initialize
+	Scroll->thinker.function.acp1 = (actionf_p1)T_Scroll;
+	
+	/* Add Thinker */
+	P_AddThinker(&Scroll->thinker, PTT_SCROLL);
+	
+	/* Always return true */
+	return true;
+}
+
+/* EV_DoDoor() -- Opens Door */
+// 1: Door Type
+// 2: Speed
+bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int secnum, rtn;
+	sector_t* sec;
+	vldoor_t* door;
+	
+	secnum = -1;
+	rtn = 0;
+	
+	while ((secnum = P_FindSectorFromLineTag(a_Line, secnum)) >= 0)
+	{
+		sec = &sectors[secnum];
+		if (P_SectorActive(ceiling_special, sec))	//SoM: 3/6/2000
+			continue;
+			
+		// new door thinker
+		rtn = 1;
+		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
+		P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
+		sec->ceilingdata = door;	//SoM: 3/6/2000
+		
+		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
+		door->sector = sec;
+		door->type = a_ArgV[0];
+		door->topwait = VDOORWAIT;
+		door->speed = a_ArgV[1];
+		door->line = a_Line;		//SoM: 3/6/2000: Remember the line that triggered the door.
+		
+		switch (a_ArgV[0])
+		{
+			case blazeClose:
+				door->topheight = P_FindLowestCeilingSurrounding(sec);
+				door->topheight -= 4 * FRACUNIT;
+				door->direction = -1;
+				S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdcls);
+				break;
+				
+			case doorclose:
+				door->topheight = P_FindLowestCeilingSurrounding(sec);
+				door->topheight -= 4 * FRACUNIT;
+				door->direction = -1;
+				S_StartSound((mobj_t*)&door->sector->soundorg, P_NLDefDoorCloseSnd());
+				break;
+				
+			case close30ThenOpen:
+				door->topheight = sec->ceilingheight;
+				door->direction = -1;
+				S_StartSound((mobj_t*)&door->sector->soundorg, P_NLDefDoorCloseSnd());
+				break;
+				
+			case blazeRaise:
+			case blazeOpen:
+				door->direction = 1;
+				door->topheight = P_FindLowestCeilingSurrounding(sec);
+				door->topheight -= 4 * FRACUNIT;
+				if (door->topheight != sec->ceilingheight)
+					S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdopn);
+				break;
+				
+			case normalDoor:
+			case dooropen:
+				door->direction = 1;
+				door->topheight = P_FindLowestCeilingSurrounding(sec);
+				door->topheight -= 4 * FRACUNIT;
+				if (door->topheight != sec->ceilingheight)
+					S_StartSound((mobj_t*)&door->sector->soundorg, sfx_doropn);
+				break;
+				
+			default:
+				break;
+		}
+		
+	}
+	return rtn;
+}
+
 /*****************************************************************************/
 
 // c_LineTrigs -- Static line triggers
@@ -253,9 +351,75 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{118, 0, LAT_SWITCH, 0, EV_VerticalDoor, 5,	// *1
 		{0, sfx_bdopn, blazeOpen, VDOORSPEED * 4, 0}},
 	
-	// Scrolly Specials
-	{48, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 0,
-		{0}},
+	// Standard Doors (EV_DoDoor)
+		// Walk
+	{2, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoDoor, 2,
+		{dooropen, VDOORSPEED}},
+	{3, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoDoor, 2,
+		{doorclose, VDOORSPEED}},
+	{4, 0, LAT_WALK, PNLF_CLEARNOTBOOM | PNLF_MONSTER, EV_DoDoor, 2,
+		{normalDoor, VDOORSPEED}},
+	{16, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoDoor, 2,
+		{close30ThenOpen, VDOORSPEED}},
+	{75, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{doorclose, VDOORSPEED}},
+	{76, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{close30ThenOpen, VDOORSPEED}},
+	{86, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{dooropen, VDOORSPEED}},
+	{90, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{normalDoor, VDOORSPEED}},
+	{105, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{blazeRaise, 4 * VDOORSPEED}},
+	{106, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{blazeOpen, 4 * VDOORSPEED}},
+	{107, 0, LAT_WALK, PNLF_RETRIG, EV_DoDoor, 2,
+		{blazeClose, 4 * VDOORSPEED}},
+	{108, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoDoor, 2,
+		{blazeRaise, 4 * VDOORSPEED}},
+	{109, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoDoor, 2,
+		{blazeOpen, 4 * VDOORSPEED}},
+	{110, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoDoor, 2,
+		{blazeClose, 4 * VDOORSPEED}},
+		
+		// Switch
+	{29, 0, LAT_SWITCH, 0, EV_DoDoor, 2,
+		{normalDoor, VDOORSPEED}},
+	{42, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoDoor, 2,
+		{doorclose, VDOORSPEED}},
+	{50, 0, LAT_SWITCH, 0, EV_DoDoor, 2,
+		{doorclose, VDOORSPEED}},
+	{61, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoDoor, 2,
+		{dooropen, VDOORSPEED}},
+	{63, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoDoor, 2,
+		{normalDoor, VDOORSPEED}},
+	{103, 0, LAT_SWITCH, 0, EV_DoDoor, 2,
+		{dooropen, VDOORSPEED}},
+	{111, 0, LAT_SWITCH, 0, EV_DoDoor, 2,
+		{blazeRaise, 4 * VDOORSPEED}},
+	{112, 0, LAT_SWITCH, 0, EV_DoDoor, 2,
+		{blazeOpen, 4 * VDOORSPEED}},
+	{113, 0, LAT_SWITCH, 0, EV_DoDoor, 2,
+		{blazeClose, 4 * VDOORSPEED}},
+	{114, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoDoor, 2,
+		{blazeRaise, 4 * VDOORSPEED}},
+	{115, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoDoor, 2,
+		{blazeOpen, 4 * VDOORSPEED}},
+	{116, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoDoor, 2,
+		{blazeClose, 4 * VDOORSPEED}},
+	{175, 0, LAT_SWITCH, PNLF_BOOM, EV_DoDoor, 2,
+		{close30ThenOpen, VDOORSPEED}},
+	{196, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoDoor, 2,
+		{close30ThenOpen, VDOORSPEED}},
+		
+	
+#if 0
+	// Scrollers (EV_SpawnScroller)
+	{48, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 5,
+		{sc_side, true, FRACUNIT, 0, true}},
+	{85, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 5,
+		{sc_side, true, -FRACUNIT, 0, true}},
+#endif
 	
 	// End
 	{0},
@@ -281,6 +445,11 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			if (a_Type != c_LineTrigs[i].TrigType)
 				return false;
 			
+			// Lacks Boom Support?
+			if (c_LineTrigs[i].Flags & PNLF_BOOM)
+				if (!P_XGSVal(PGS_COBOOMSUPPORT))
+					return false;
+			
 			// Monster cannot activate?
 			if (a_Type != LAT_MAPSTART)
 				if (!a_Object->player)
@@ -289,9 +458,10 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 					if (a_Line->flags & ML_SECRET)
 						return false;
 				
-					// Disabled in line
-					if (!(c_LineTrigs[i].Flags & PNLF_MONSTER))
-						return false;
+					// Disabled in line and not forced activation (ALLTRIGGER)
+					if (!(a_Flags & EVTGTF_FORCEUSE))
+						if (!(c_LineTrigs[i].Flags & PNLF_MONSTER))
+							return false;
 				}
 			
 			// Requires Tag?
@@ -315,11 +485,27 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 				return true;
 			}
 			
+			// Clear special regardless if trigger worked or not
+			if (c_LineTrigs[i].Flags & PNLF_CLEARNOTBOOM)
+				if (!P_XGSVal(PGS_COBOOMSUPPORT))
+				{
+					if (a_UseAgain)
+						*a_UseAgain = false;
+					
+					a_Line->special = 0;
+				}
+			
 			// Not triggered?
 			return false;
 		}
 	
 	/* Failed */
 	return false;
+}
+
+/* P_NLDefDoorCloseSnd() -- Returns the default door closing sound */
+int32_t P_NLDefDoorCloseSnd(void)
+{
+	return sfx_dorcls;
 }
 

@@ -374,9 +374,6 @@ typedef struct
 #define VDOORSPEED              (FRACUNIT*2)
 #define VDOORWAIT               150
 
-
-int EV_DoDoor(line_t* line, vldoor_e type, fixed_t speed);
-
 void EV_OpenDoor(int sectag, int speed, int wait_time);
 void EV_CloseDoor(int sectag, int speed);
 
@@ -1336,6 +1333,7 @@ void P_InitAmbientSound(void);
 /*****************************************************************************/
 
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 /*****************************************************************************/
 

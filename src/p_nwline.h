@@ -52,5 +52,7 @@ typedef bool_t (*P_NLTrigFunc_t)(line_t* const a_Line, const int a_Side, mobj_t*
 
 bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
 
+int32_t P_NLDefDoorCloseSnd(void);
+
 #endif /* __P_NEWLINE_H__ */
 

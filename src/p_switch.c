@@ -381,21 +381,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 	// do something
 	switch (line->special)
 	{
-			// MANUALS
-		case 1:				// Vertical Door
-		case 26:				// Blue Door/Locked
-		case 27:				// Yellow Door /Locked
-		case 28:				// Red Door /Locked
-		
-		case 31:				// Manual door open
-		case 32:				// Blue locked door open
-		case 33:				// Red locked door open
-		case 34:				// Yellow locked door open
-		
-		case 117:				// Blazing door raise
-		case 118:				// Blazing door open
-			EV_VerticalDoor(line, thing);
-			break;
 			
 			//UNUSED - Door Slide Open&Close
 			// case 124:
@@ -460,11 +445,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 29:
-			// Raise Door
-			if (EV_DoDoor(line, normalDoor, VDOORSPEED))
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
 		case 41:
 			// Lower Ceiling to Floor
@@ -481,12 +461,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 		case 49:
 			// Ceiling Crush And Raise
 			if (EV_DoCeiling(line, crushAndRaise))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 50:
-			// Close Door
-			if (EV_DoDoor(line, doorclose, VDOORSPEED))
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
@@ -511,30 +485,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 		case 102:
 			// Lower Floor to Surrounding floor height
 			if (EV_DoFloor(line, lowerFloor))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 103:
-			// Open Door
-			if (EV_DoDoor(line, dooropen, VDOORSPEED))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 111:
-			// Blazing Door Raise (faster than TURBO!)
-			if (EV_DoDoor(line, blazeRaise, 4 * VDOORSPEED))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 112:
-			// Blazing Door Open (faster than TURBO!)
-			if (EV_DoDoor(line, blazeOpen, 4 * VDOORSPEED))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 113:
-			// Blazing Door Close (faster than TURBO!)
-			if (EV_DoDoor(line, blazeClose, 4 * VDOORSPEED))
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
@@ -694,12 +644,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 					case 174:
 						// Teleport
 						if (EV_Teleport(line, side, thing))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 175:
-						// Close Door, Open in 30 secs
-						if (EV_DoDoor(line, close30ThenOpen, VDOORSPEED))
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
@@ -882,12 +826,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 196:
-						// Close Door, Open in 30 secs
-						if (EV_DoDoor(line, close30ThenOpen, VDOORSPEED))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
 					case 205:
 						// Lower ceiling to lowest surrounding ceiling
 						if (EV_DoCeiling(line, lowerToLowest))
@@ -954,12 +892,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			break;
 			
 			// BUTTONS
-		case 42:
-			// Close Door
-			if (EV_DoDoor(line, doorclose, VDOORSPEED))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
 		case 43:
 			// Lower Ceiling to Floor
 			if (EV_DoCeiling(line, lowerToFloor))
@@ -978,21 +910,9 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
-		case 61:
-			// Open Door
-			if (EV_DoDoor(line, dooropen, VDOORSPEED))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
 		case 62:
 			// PlatDownWaitUpStay
 			if (EV_DoPlat(line, downWaitUpStay, 1))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 63:
-			// Raise Door
-			if (EV_DoDoor(line, normalDoor, VDOORSPEED))
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
@@ -1035,24 +955,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 		case 70:
 			// Turbo Lower Floor
 			if (EV_DoFloor(line, turboLower))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 114:
-			// Blazing Door Raise (faster than TURBO!)
-			if (EV_DoDoor(line, blazeRaise, 4 * VDOORSPEED))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 115:
-			// Blazing Door Open (faster than TURBO!)
-			if (EV_DoDoor(line, blazeOpen, 4 * VDOORSPEED))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 116:
-			// Blazing Door Close (faster than TURBO!)
-			if (EV_DoDoor(line, blazeClose, 4 * VDOORSPEED))
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			

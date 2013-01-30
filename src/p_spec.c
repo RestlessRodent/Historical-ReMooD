@@ -1122,23 +1122,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 	{
 			// TRIGGERS.
 			// All from here to RETRIGGERS.
-		case 2:
-			// Open Door
-			if (EV_DoDoor(line, dooropen, VDOORSPEED) || !boomsupport)
-				line->special = 0;
-			break;
 			
-		case 3:
-			// Close Door
-			if (EV_DoDoor(line, doorclose, VDOORSPEED) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 4:
-			// Raise Door
-			if (EV_DoDoor(line, normalDoor, VDOORSPEED) || !boomsupport)
-				line->special = 0;
-			break;
 			
 		case 5:
 			// Raise Floor
@@ -1173,12 +1157,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 		case 13:
 			// Light Turn On 255
 			if (EV_LightTurnOn(line, 255) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 16:
-			// Close Door 30
-			if (EV_DoDoor(line, close30ThenOpen, VDOORSPEED) || !boomsupport)
 				line->special = 0;
 			break;
 			
@@ -1306,17 +1284,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 108:
-			// Blazing Door Raise (faster than TURBO!)
-			if (EV_DoDoor(line, blazeRaise, 4 * VDOORSPEED) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 109:
-			// Blazing Door Open (faster than TURBO!)
-			if (EV_DoDoor(line, blazeOpen, 4 * VDOORSPEED) || !boomsupport)
-				line->special = 0;
-			break;
 			
 		case 100:
 			// Build Stairs Turbo 16
@@ -1324,11 +1291,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 110:
-			// Blazing Door Close (faster than TURBO!)
-			if (EV_DoDoor(line, blazeClose, 4 * VDOORSPEED) || !boomsupport)
-				line->special = 0;
-			break;
 			
 		case 119:
 			// Raise floor to nearest surr. floor
@@ -1406,16 +1368,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_CeilingCrushStop(line);
 			break;
 			
-		case 75:
-			// Close Door
-			EV_DoDoor(line, doorclose, VDOORSPEED);
-			break;
-			
-		case 76:
-			// Close Door 30
-			EV_DoDoor(line, close30ThenOpen, VDOORSPEED);
-			break;
-			
 		case 77:
 			// Fast Ceiling Crush & Raise
 			EV_DoCeiling(line, fastCrushAndRaise);
@@ -1451,11 +1403,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_DoFloor(line, lowerAndChange);
 			break;
 			
-		case 86:
-			// Open Door
-			EV_DoDoor(line, dooropen, VDOORSPEED);
-			break;
-			
 		case 87:
 			// Perpetual Platform Raise
 			EV_DoPlat(line, PPT_PERPRAISE, 0);
@@ -1469,11 +1416,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 		case 89:
 			// Platform Stop
 			EV_StopPlat(line);
-			break;
-			
-		case 90:
-			// Raise Door
-			EV_DoDoor(line, normalDoor, VDOORSPEED);
 			break;
 			
 		case 91:
@@ -1518,20 +1460,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_DoFloor(line, turboLower);
 			break;
 			
-		case 105:
-			// Blazing Door Raise (faster than TURBO!)
-			EV_DoDoor(line, blazeRaise, 4 * VDOORSPEED);
-			break;
-			
-		case 106:
-			// Blazing Door Open (faster than TURBO!)
-			EV_DoDoor(line, blazeOpen, 4 * VDOORSPEED);
-			break;
-			
-		case 107:
-			// Blazing Door Close (faster than TURBO!)
-			EV_DoDoor(line, blazeClose, 4 * VDOORSPEED);
-			break;
 			
 		case 120:
 			// Blazing PlatDownWaitUpStay.
