@@ -40,6 +40,7 @@
 #include "w_wad.h"				//SoM: 3/22/2000
 #include "z_zone.h"
 #include "t_script.h"
+#include "p_nwline.h"
 
 //SoM: 3/22/2000: Switch limit removal
 //int             switchlist[MAXSWITCHES * 2];
@@ -400,30 +401,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 14:
-			// Raise Floor 32 and change texture
-			if (EV_DoPlat(line, raiseAndChange, 32))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 15:
-			// Raise Floor 24 and change texture
-			if (EV_DoPlat(line, raiseAndChange, 24))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 20:
-			// Raise Plat next highest floor and change texture
-			if (EV_DoPlat(line, raiseToNearestAndChange, 0))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 21:
-			// PlatDownWaitUpStay
-			if (EV_DoPlat(line, downWaitUpStay, 0))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
 			
 		case 41:
 			// Lower Ceiling to Floor
@@ -438,11 +415,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 122:
-			// Blazing PlatDownWaitUpStay
-			if (EV_DoPlat(line, blazeDWUS, 0))
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
 		case 127:
 			// Build Stairs Turbo 16
@@ -484,11 +456,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						// added linedef types to fill all functions out so that
 						// all possess SR, S1, WR, W1 types
 						
-					case 162:
-						// Moving floor min n to max n
-						if (EV_DoPlat(line, PPT_PERPRAISE, 0))
-							P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 163:
 						// Stop Moving floor
@@ -618,12 +585,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						break;
 						
 						
-					case 181:
-						// Moving floor min n to max n
-						EV_DoPlat(line, PPT_PERPRAISE, 0);
-						P_ChangeSwitchTexture(line, 1);
-						break;
-						
 					case 182:
 						// Stop Moving floor
 						EV_StopPlat(line);
@@ -715,12 +676,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 211:
-						// Toggle Floor Between C and F Instantly
-						if (EV_DoPlat(line, toggleUpDn, 0))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
 						
 					case 230:
 						// Raise elevator next floor
@@ -764,38 +719,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
-			
-		case 62:
-			// PlatDownWaitUpStay
-			if (EV_DoPlat(line, downWaitUpStay, 1))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 66:
-			// Raise Floor 24 and change texture
-			if (EV_DoPlat(line, raiseAndChange, 24))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 67:
-			// Raise Floor 32 and change texture
-			if (EV_DoPlat(line, raiseAndChange, 32))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-			
-		case 68:
-			// Raise Plat to next highest floor and change texture
-			if (EV_DoPlat(line, raiseToNearestAndChange, 0))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-			
-		case 123:
-			// Blazing PlatDownWaitUpStay
-			if (EV_DoPlat(line, blazeDWUS, 0))
-				P_ChangeSwitchTexture(line, 1);
-			break;
 			
 		case 138:
 			// Light Turn On

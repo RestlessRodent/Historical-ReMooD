@@ -52,6 +52,7 @@ typedef enum P_NLFlags_e
 	PNLF_MONSTER		= UINT32_C(0x00000004),	// Monster can activate
 	PNLF_BOOM			= UINT32_C(0x00000008),	// Boom Support Required
 	PNLF_CLEARNOTBOOM	= UINT32_C(0x00000010),	// Clear Special when not Boom
+	PNLF_ALWAYS			= UINT32_C(0x00000020),	// Always return true
 } P_NLFlags_t;
 
 /*****************
@@ -594,6 +595,147 @@ bool_t EV_DoCeilOrFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	}
 }
 
+/* EV_DoPlat() -- Moves platform */
+// 1: Platform Type
+// 2: Amount
+bool_t EV_DoPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	plat_t* plat;
+	int secnum;
+	int rtn;
+	sector_t* sec;
+	
+	secnum = -1;
+	rtn = 0;
+	
+	//  Activate all <type> plats that are in_stasis
+	switch (a_ArgV[0])
+	{
+		case PPT_PERPRAISE:
+			P_ActivateInStasis(a_Line->tag);
+			break;
+			
+		case toggleUpDn:
+			P_ActivateInStasis(a_Line->tag);
+			rtn = 1;
+			break;
+			
+		default:
+			break;
+	}
+	
+	while ((secnum = P_FindSectorFromLineTag(a_Line, secnum)) >= 0)
+	{
+		sec = &sectors[secnum];
+		
+		if (P_SectorActive(floor_special, sec))	//SoM: 3/7/2000:
+			continue;
+			
+		// Find lowest & highest floors around sector
+		rtn = 1;
+		plat = Z_Malloc(sizeof(*plat), PU_LEVSPEC, 0);
+		P_AddThinker(&plat->thinker, PTT_PLATRAISE);
+		
+		plat->type = a_ArgV[0];
+		plat->sector = sec;
+		plat->sector->floordata = plat;	//SoM: 3/7/2000
+		plat->thinker.function.acp1 = (actionf_p1) T_PlatRaise;
+		plat->crush = false;
+		plat->tag = a_Line->tag;
+		
+		//jff 1/26/98 Avoid raise plat bouncing a head off a ceiling and then
+		//going down forever -- default low to plat height when triggered
+		plat->low = sec->floorheight;
+		
+		switch (a_ArgV[0])
+		{
+			case raiseToNearestAndChange:
+				plat->speed = PLATSPEED / 2;
+				sec->floorpic = sides[a_Line->sidenum[0]].sector->floorpic;
+				plat->high = P_FindNextHighestFloor(sec, sec->floorheight);
+				plat->wait = 0;
+				plat->status = up;
+				// NO MORE DAMAGE, IF APPLICABLE
+				sec->special = 0;
+				sec->oldspecial = 0;	//SoM: 3/7/2000: Clear old field.
+				
+				S_StartSound((mobj_t*)&sec->soundorg, sfx_stnmov);
+				break;
+				
+			case raiseAndChange:
+				plat->speed = PLATSPEED / 2;
+				sec->floorpic = sides[a_Line->sidenum[0]].sector->floorpic;
+				plat->high = sec->floorheight + a_ArgV[1] * FRACUNIT;
+				plat->wait = 0;
+				plat->status = up;
+				
+				S_StartSound((mobj_t*)&sec->soundorg, sfx_stnmov);
+				break;
+				
+			case downWaitUpStay:
+				plat->speed = PLATSPEED * 4;
+				plat->low = P_FindLowestFloorSurrounding(sec);
+				
+				if (plat->low > sec->floorheight)
+					plat->low = sec->floorheight;
+					
+				plat->high = sec->floorheight;
+				plat->wait = 35 * PLATWAIT;
+				plat->status = down;
+				S_StartSound((mobj_t*)&sec->soundorg, sfx_pstart);
+				break;
+				
+			case blazeDWUS:
+				plat->speed = PLATSPEED * 8;
+				plat->low = P_FindLowestFloorSurrounding(sec);
+				
+				if (plat->low > sec->floorheight)
+					plat->low = sec->floorheight;
+					
+				plat->high = sec->floorheight;
+				plat->wait = 35 * PLATWAIT;
+				plat->status = down;
+				S_StartSound((mobj_t*)&sec->soundorg, sfx_pstart);
+				break;
+				
+			case PPT_PERPRAISE:
+				plat->speed = PLATSPEED;
+				plat->low = P_FindLowestFloorSurrounding(sec);
+				
+				if (plat->low > sec->floorheight)
+					plat->low = sec->floorheight;
+					
+				plat->high = P_FindHighestFloorSurrounding(sec);
+				
+				if (plat->high < sec->floorheight)
+					plat->high = sec->floorheight;
+					
+				plat->wait = 35 * PLATWAIT;
+				plat->status = P_Random() & 1;
+				
+				S_StartSound((mobj_t*)&sec->soundorg, sfx_pstart);
+				break;
+				
+			case toggleUpDn:	//SoM: 3/7/2000: Instant toggle.
+				plat->speed = PLATSPEED;
+				plat->wait = 35 * PLATWAIT;
+				plat->crush = true;
+				
+				// set up toggling between ceiling, floor inclusive
+				plat->low = sec->ceilingheight;
+				plat->high = sec->floorheight;
+				plat->status = down;
+				break;
+				
+			default:
+				break;
+		}
+		
+		P_AddActivePlat(plat);
+	}
+	return rtn;
+}
+
 /*****************************************************************************/
 
 // c_LineTrigs -- Static line triggers
@@ -832,6 +974,66 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{186, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeilOrFloor, 3,
 		{raiseToHighest, lowerFloorToLowest, false}},
 	
+	// Platforms (EV_DoPlat)
+		// Walk
+	{10, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
+		{downWaitUpStay, 0}},
+	{22, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
+		{raiseToNearestAndChange, 0}},
+	{53, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
+		{PPT_PERPRAISE, 0}},
+	{121, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
+		{blazeDWUS, 0}},
+	{87, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
+		{PPT_PERPRAISE, 0}},
+	{88, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
+		{downWaitUpStay, 0}},
+	{95, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
+		{raiseToNearestAndChange, 0}},
+	{120, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
+		{blazeDWUS, 0}},
+	{143, 0, LAT_WALK, PNLF_BOOM, EV_DoPlat, 2,
+		{raiseAndChange, 24}},
+	{144, 0, LAT_WALK, PNLF_BOOM, EV_DoPlat, 2,
+		{raiseAndChange, 32}},
+	{148, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoPlat, 2,
+		{raiseAndChange, 24}},
+	{149, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoPlat, 2,
+		{raiseAndChange, 32}},
+	{212, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoPlat, 2,
+		{toggleUpDn, 0}},
+		
+		// Gun
+	{47, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
+		{raiseToNearestAndChange, 0}},
+		
+		// Switch
+	{14, 0, LAT_SWITCH, 0, EV_DoPlat, 2,
+		{raiseAndChange, 32}},
+	{15, 0, LAT_SWITCH, 0, EV_DoPlat, 2,
+		{raiseAndChange, 24}},
+	{20, 0, LAT_SWITCH, 0, EV_DoPlat, 2,
+		{raiseToNearestAndChange, 0}},
+	{21, 0, LAT_SWITCH, 0, EV_DoPlat, 2,
+		{downWaitUpStay, 0}},
+	{122, 0, LAT_SWITCH, 0, EV_DoPlat, 2,
+		{blazeDWUS, 0}},
+	{162, 0, LAT_SWITCH, PNLF_BOOM, EV_DoPlat, 2,
+		{PPT_PERPRAISE, 0}},
+	{181, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG | PNLF_ALWAYS, EV_DoPlat, 2,
+		{PPT_PERPRAISE, 0}},
+	{211, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoPlat, 2,
+		{toggleUpDn, 0}},
+	{62, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoPlat, 2,
+		{downWaitUpStay, 1}},
+	{66, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoPlat, 2,
+		{raiseAndChange, 24}},
+	{67, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoPlat, 2,
+		{raiseAndChange, 32}},
+	{68, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoPlat, 2,
+		{raiseToNearestAndChange, 0}},
+	{123, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoPlat, 2,
+		{blazeDWUS, 0}},
 	
 #if 0
 	// Scrollers (EV_SpawnScroller)
@@ -914,6 +1116,10 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 					
 					a_Line->special = 0;
 				}
+			
+			// Always successful
+			if (c_LineTrigs[i].Flags & PNLF_ALWAYS)
+				return true;
 			
 			// Not triggered?
 			return false;

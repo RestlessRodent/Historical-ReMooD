@@ -1121,11 +1121,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 10:
-			// PlatDownWaitUp
-			if (EV_DoPlat(line, downWaitUpStay, 0) || !boomsupport)
-				line->special = 0;
-			break;
 			
 		case 12:
 			// Light Turn On - brightest near
@@ -1142,12 +1137,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 		case 17:
 			// Start Light Strobing
 			if (EV_StartLightStrobing(line) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 22:
-			// Raise floor to nearest height and change texture
-			if (EV_DoPlat(line, raiseToNearestAndChange, 0) || !boomsupport)
 				line->special = 0;
 			break;
 			
@@ -1177,12 +1166,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			break;
 			
 			
-		case 53:
-			// Perpetual Platform Raise
-			if (EV_DoPlat(line, PPT_PERPRAISE, 0) || !boomsupport)
-				line->special = 0;
-			break;
-			
 		case 54:
 			// Platform Stop
 			if (EV_StopPlat(line) || !boomsupport)
@@ -1208,11 +1191,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 121:
-			// Blazing PlatDownWaitUpStay
-			if (EV_DoPlat(line, blazeDWUS, 0) || !boomsupport)
-				line->special = 0;
-			break;
 			
 			
 		case 125:
@@ -1287,25 +1265,10 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_LightTurnOn(line, 255);
 			break;
 			
-		case 87:
-			// Perpetual Platform Raise
-			EV_DoPlat(line, PPT_PERPRAISE, 0);
-			break;
-			
-		case 88:
-			// PlatDownWaitUp
-			EV_DoPlat(line, downWaitUpStay, 0);
-			break;
 			
 		case 89:
 			// Platform Stop
 			EV_StopPlat(line);
-			break;
-			
-		case 95:
-			// Raise floor to nearest height
-			// and change texture.
-			EV_DoPlat(line, raiseToNearestAndChange, 0);
 			break;
 			
 		case 97:
@@ -1313,11 +1276,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_Teleport(line, side, thing);
 			break;
 			
-			
-		case 120:
-			// Blazing PlatDownWaitUpStay.
-			EV_DoPlat(line, blazeDWUS, 0);
-			break;
 			
 		case 126:
 			// TELEPORT MonsterONLY.
@@ -1333,18 +1291,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				{
 						//SoM: 3/4/2000:Boom Walk once triggers.
 						//SoM: 3/4/2000:Yes this is "copied" code! I just cleaned it up. Did you think I was going to retype all this?!
-						
-					case 143:
-						// Raise Floor 24 and change
-						if (EV_DoPlat(line, raiseAndChange, 24))
-							line->special = 0;
-						break;
-						
-					case 144:
-						// Raise Floor 32 and change
-						if (EV_DoPlat(line, raiseAndChange, 32))
-							line->special = 0;
-						break;
 						
 					case 145:
 						// Lower Ceiling to Floor
@@ -1437,16 +1383,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						
 						//Boom added lots of linedefs to fill in the gaps in trigger types
 						
-					case 148:
-						// Raise Floor 24 and Change
-						EV_DoPlat(line, raiseAndChange, 24);
-						break;
-						
-					case 149:
-						// Raise Floor 32 and Change
-						EV_DoPlat(line, raiseAndChange, 32);
-						break;
-						
 					case 150:
 						// Start slow silent crusher
 						EV_DoCeiling(line, silentCrushAndRaise);
@@ -1496,11 +1432,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 					case 208:
 						// WR silent teleporter (normal kind)
 						EV_SilentTeleport(line, side, thing);
-						break;
-						
-					case 212:
-						// Toggle floor between C and F instantly
-						EV_DoPlat(line, toggleUpDn, 0);
 						break;
 						
 					case 154:
@@ -1697,11 +1628,6 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 		
 	switch (line->special)
 	{
-		case 47:
-			// RAISE FLOOR NEAR AND CHANGE
-			if (EV_DoPlat(line, raiseToNearestAndChange, 0) || !boomsupport)
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
 			//SoM: FraggleScript
 		case 278:
