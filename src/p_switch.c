@@ -400,15 +400,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 11:
-			// Exit level
-			if (cv_allowexitlevel.value)
-			{
-				P_ChangeSwitchTexture(line, 0);
-				G_ExitLevel();
-			}
-			break;
-			
 		case 14:
 			// Raise Floor 32 and change texture
 			if (EV_DoPlat(line, raiseAndChange, 32))
@@ -464,11 +455,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 51:
-			// Secret EXIT
-			P_ChangeSwitchTexture(line, 0);
-			G_SecretExitLevel();
-			break;
 			
 		case 55:
 			// Raise Floor Crush

@@ -898,17 +898,6 @@ typedef enum EV_TryGenTypeFlags_e
 	EVTGTF_FORCEUSE					= 0x0001,	// Force trigger
 } EV_TryGenTypeFlags_t;
 
-/* EV_ReGenMap_t -- Re-Generalize Map */
-typedef struct EV_ReGenMap_s
-{
-	bool_t Sector;								// Applies to sector
-	uint32_t Source;							// Source Type
-	uint32_t Target;							// Target Type
-} EV_ReGenMap_t;
-
-extern EV_ReGenMap_t* g_ReGenMap;
-extern size_t g_NumReGenMap;
-
 //SoM: 3/9/2000: p_genlin
 
 int EV_DoGenFloor(line_t* line, mobj_t* const a_Object);
@@ -930,9 +919,6 @@ bool_t EV_DoHexenLine(line_t* const a_Line, const int a_Side, mobj_t* const a_Ob
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
 
 void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool_t a_InstaDamage);
-
-uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input);
-uint32_t EV_HexenToGenTrigger(const bool_t a_Sector, const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args);
 
 /****** EXTENDED HIGH GENERALIZATION ******/
 

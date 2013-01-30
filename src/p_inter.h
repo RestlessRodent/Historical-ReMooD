@@ -60,6 +60,11 @@ typedef enum P_PMType_e
 void P_FlashKeys(player_t* const a_Player, const bool_t a_WildCard, const uint32_t a_SetA, const uint32_t a_SetB);
 void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef);
 
+void P_BroadcastMessage(const char* const a_Message);
+void P_ExitMessage(mobj_t* const a_Exiter, const char* const a_Message);
+void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source);
+
+
 //added:28-02-98: boooring handling of thing(s) on top of thing(s)
 
 /* BUGGY CODE

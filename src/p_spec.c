@@ -849,67 +849,52 @@ int P_CheckTag(line_t* line)
 		
 	switch (line->special)
 	{
-		case 1:				// Manual door specials
-		case 26:
-		case 27:
-		case 28:
-		case 31:
-		case 32:
-		case 33:
-		case 34:
-		case 117:
-		case 118:
-		
-		case 139:				// Lighting specials
-		case 170:
-		case 79:
-		case 35:
-		case 138:
-		case 171:
-		case 81:
-		case 13:
-		case 192:
-		case 169:
-		case 80:
+		case 11:
 		case 12:
-		case 194:
-		case 173:
-		case 157:
-		case 104:
-		case 193:
-		case 172:
-		case 156:
+		case 13:
 		case 17:
-		
-		case 195:				// Thing teleporters
-		case 174:
-		case 97:
+		case 35:
 		case 39:
-		case 126:
-		case 125:
-		case 210:
-		case 209:
-		case 208:
-		case 207:
-		
-		case 11:				// Exits
-		case 52:
-		case 197:
+		case 48:
 		case 51:
-		case 124:
-		case 198:
-		
-		case 48:				// Scrolling walls
+		case 52:
+		case 79:
+		case 80:
+		case 81:
 		case 85:
-			// FraggleScript types!
-		case 272:				// WR
+		case 97:
+		case 104:
+		case 124:
+		case 125:
+		case 126:
+		case 138:
+		case 139:
+		case 156:
+		case 157:
+		case 169:
+		case 170:
+		case 171:
+		case 172:
+		case 173:
+		case 174:
+		case 192:
+		case 193:
+		case 194:
+		case 195:
+		case 197:
+		case 198:
+		case 207:
+		case 208:
+		case 209:
+		case 210:
+		case 272:
 		case 273:
-		case 274:				// W1
+		case 274:
 		case 275:
-		case 276:				// SR
-		case 277:				// S1
-		case 278:				// GR
-		case 279:				// G1
+		case 276:
+		case 277:
+		case 278:
+		case 279:
 			return 1;			// zero tag allowed
 			
 		default:
@@ -1233,14 +1218,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 52:
-			// EXIT!
-			if (cv_allowexitlevel.value)
-			{
-				G_ExitLevel();
-				line->special = 0;	// heretic have right
-			}
-			break;
 			
 		case 53:
 			// Perpetual Platform Raise
@@ -1304,11 +1281,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 124:
-			// Secret EXIT
-			if (cv_allowexitlevel.value)
-				G_SecretExitLevel();
-			break;
 			
 		case 125:
 			// TELEPORT MonsterONLY
@@ -1884,12 +1856,6 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 46:
-			// OPEN DOOR
-			if (EV_DoDoor(line, dooropen, VDOORSPEED) || !boomsupport)
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
 		case 47:
 			// RAISE FLOOR NEAR AND CHANGE
 			if (EV_DoPlat(line, raiseToNearestAndChange, 0) || !boomsupport)
@@ -1906,28 +1872,6 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 			break;
 			
 		default:
-			if (boomsupport)
-				switch (line->special)
-				{
-					case 197:
-						// Exit to next level
-						if (cv_allowexitlevel.value)
-						{
-							P_ChangeSwitchTexture(line, 0);
-							G_ExitLevel();
-						}
-						break;
-						
-					case 198:
-						// Exit to secret level
-						if (cv_allowexitlevel.value)
-						{
-							P_ChangeSwitchTexture(line, 0);
-							G_SecretExitLevel();
-						}
-						break;
-						//jff end addition of new gun linedefs
-				}
 			break;
 	}
 #endif
@@ -2137,7 +2081,7 @@ void P_UpdateSpecials(void)
 	
 	//  LEVEL TIMER
 	if (P_XGSVal(PGS_GAMETIMELIMIT) && (((uint32_t)P_XGSVal(PGS_GAMETIMELIMIT)) * (TICRATE * 60)) < leveltime)
-		G_ExitLevel();
+		G_ExitLevel(false, NULL, DS_GetString(DSTR_PSPECC_TIMELIMITREACHED));
 		
 	//  ANIMATE TEXTURES
 	for (anim = anims; anim < lastanim; anim++)
@@ -3114,43 +3058,13 @@ int P_GetThingFloorType(mobj_t* thing)
 ******************/
 
 /*** CONSTANTS ***/
-#define SPECMAXFIELDSZ						64	// Max field size
 
 /*** STRUCTURES ***/
 
-/* PS_SpecialMapSub_t -- Sub mapping */
-typedef struct PS_SpecialMapSub_s
-{
-	char EnumName[SPECMAXFIELDSZ];				// Enumeration Name
-	uint32_t Value;								// Value
-} PS_SpecialMapSub_t;
-
-/* PS_SpecialMapMinor_t -- Minor mapping */
-typedef struct PS_SpecialMapMinor_s
-{
-	char OptName[SPECMAXFIELDSZ];				// Option Name
-	uint32_t Shift;								// Shift value
-	uint32_t Mask;								// Mask for value
-	
-	PS_SpecialMapSub_t* Subs;					// Subs
-	size_t NumSubs;								// Number of subs
-} PS_SpecialMapMinor_t;
-
-/* PS_SpecialMapMajor_t -- Major mapping */
-typedef struct PS_SpecialMapMajor_s
-{
-	char TypeName[SPECMAXFIELDSZ];				// Name of major trigger type
-	uint32_t BaseInt;							// Base Integer
-	
-	PS_SpecialMapMinor_t* Minors;				// Minors
-	size_t NumMinors;							// Number of them
-} PS_SpecialMapMajor_t;
-
 /*** GLOBALS ***/
+
 P_BossSpitEntry_t* g_BossSpitList = NULL;		// List of things to spit out
 size_t g_NumBossSpitList = 0;					// Count of those things
-EV_ReGenMap_t* g_ReGenMap = NULL;				// List of generalization
-size_t g_NumReGenMap = 0;						// Number of them
 
 /*** FUNCTIONS ***/
 
@@ -3171,351 +3085,6 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	const char* EGxM;
 	const char* EGxL;
 	bool_t TargetSet, TypeSet;
-	
-	PS_SpecialMapSub_t* ThisSub;
-	PS_SpecialMapMinor_t* ThisMinor;
-	PS_SpecialMapMajor_t* ThisMajor;
-	PS_SpecialMapMajor_t* Majors;
-	size_t NumMajors;
-
-	/* Init */
-	Majors = ThisMajor = ThisMinor = ThisSub = NULL;
-	NumMajors = 0;
-	
-	/* Clear Regeneralized Map */
-	if (g_ReGenMap)
-		Z_Free(g_ReGenMap);
-	g_ReGenMap = NULL;
-	g_NumReGenMap = 0;
-	
-	/* Parse mappings data */
-	for (zzSpecType = 0; zzSpecType < 2; zzSpecType++)
-	{
-		// Lines
-		if (!zzSpecType)
-		{
-			EGxM = "RMD_EGLM";
-			EGxL = "RMD_EGLL";
-		}
-		
-		// Sectors
-		else
-		{
-			EGxM = "RMD_EGSM";
-			EGxL = "RMD_EGSL";
-		}
-		
-		// This makes it less static!
-		MapperEntry = WL_FindEntry(NULL, 0, EGxM);
-	
-		// Go through it
-		if (MapperEntry)
-		{
-			// Open stream
-			Stream = WL_StreamOpen(MapperEntry);
-		
-			// Did it work?
-			if (Stream)
-			{
-#define __REMOOD_MAPTOKEN " \t\r\n"
-				// Check unicode
-				WL_StreamCheckUnicode(Stream);
-			
-				// Init
-				ThisMajor = NULL;
-				Majors = NULL;
-				NumMajors = 0;
-			
-				// While there is no end
-				while (!WL_StreamEOF(Stream))
-				{
-					// Read into buffer
-					memset(Buf, 0, sizeof(Buf));
-					WL_Srl(Stream, Buf, BUFSIZE);
-				
-					// If it starts with a #, a comment
-					if (Buf[0] == '#')
-						continue;
-				
-					// Why not use strtok(), It is fun and on top of that! insecure!
-					TokStr = strtok(Buf, __REMOOD_MAPTOKEN);
-				
-					// No token
-					if (!TokStr)
-						continue;
-				
-					// Minor Definition
-					if (strcasecmp(TokStr, "@") == 0)
-					{
-						// No major? Skip
-						if (!ThisMajor)
-							continue;
-					
-						// Ignore indicator comment
-						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-						if (!TokStr)
-							continue;
-					
-						// Make sure [ is reached
-						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-						if (!TokStr || (TokStr && strcasecmp(TokStr, "[") != 0))
-							continue;
-					
-						// Create Minor
-						Z_ResizeArray((void**)&ThisMajor->Minors, sizeof(*ThisMajor->Minors),
-								ThisMajor->NumMinors, ThisMajor->NumMinors + 1);
-						ThisMinor = &ThisMajor->Minors[ThisMajor->NumMinors++];
-					
-						// Read Shift
-						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-						if (!TokStr)
-							continue;
-						ThisMinor->Shift = C_strtou32(TokStr, NULL, 10);
-					
-						// Read Mask
-						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-						if (!TokStr)
-							continue;
-						ThisMinor->Mask = C_strtou32(TokStr, NULL, 16);
-					
-						// Debug
-						//if (devparm)
-						//	CONL_PrintF(">>> = %i %x\n", ThisMinor->Shift, ThisMinor->Mask);
-					
-						// Clear initial value
-						Target = 0;
-					
-						// Read sub values now
-						for (;;)
-						{
-							// Get token
-							TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-							if (!TokStr || (TokStr && strcasecmp(TokStr, "]") == 0))
-								break;
-						
-							// Add to sub
-							Z_ResizeArray((void**)&ThisMinor->Subs, sizeof(*ThisMinor->Subs),
-									ThisMinor->NumSubs, ThisMinor->NumSubs + 1);
-							ThisSub = &ThisMinor->Subs[ThisMinor->NumSubs++];
-						
-							// Copy Values
-							strncat(ThisSub->EnumName, TokStr, SPECMAXFIELDSZ - 1);
-							ThisSub->Value = Target++;
-						
-							// Debug
-							//if (devparm)
-							//	CONL_PrintF(">>>> %s = %i\n", ThisSub->EnumName, ThisSub->Value);
-						}
-					}
-				
-					// Major Definition
-					else
-					{
-						// Make a new spot at the end
-						Z_ResizeArray((void**)&Majors, sizeof(*Majors), NumMajors, NumMajors + 1);
-						ThisMajor = &Majors[NumMajors++];
-					
-						// Copy into major
-						strncat(ThisMajor->TypeName, TokStr, SPECMAXFIELDSZ - 1);
-					
-						// Get name
-						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-					
-						// Missing?
-						if (!TokStr)
-						{
-							ThisMajor = NULL;
-							continue;
-						}
-					
-						// Set Value (from hex)
-						ThisMajor->BaseInt = C_strtou32(TokStr, NULL, 16);
-					
-						// Debug
-						//if (devparm)
-						//	CONL_PrintF(">> %s = %i\n", ThisMajor->TypeName, ThisMajor->BaseInt);
-					}
-				}
-#undef __REMOOD_MAPTOKEN
-			
-				// Close stream
-				WL_StreamClose(Stream);
-			}
-		}
-		
-		//// Parse Mappings
-		// Load from lump (if it exists)
-		Entry = WL_FindEntry(NULL, 0, EGxL);
-	
-		// Only if it was found, attempt to work with it
-		if (Entry)
-		{
-			// Open stream
-			Stream = WL_StreamOpen(Entry);
-		
-			// Did it work?
-			if (Stream)
-			{
-				// Check unicode
-				WL_StreamCheckUnicode(Stream);
-			
-				// While there is no end
-				while (!WL_StreamEOF(Stream))
-				{
-					// Read into buffer
-					memset(Buf, 0, sizeof(Buf));
-					WL_Srl(Stream, Buf, BUFSIZE);
-				
-					// If it starts with a #, a comment
-					if (Buf[0] == '#')
-						continue;
-				
-					// Reset
-					i = 0;
-					IgnoreTarg = TargetSet = TypeSet = false;
-					Source = Target = Type = 0;
-					ThisMajor = NULL;
-				
-					// Why not use strtok(), It is fun and on top of that! insecure!
-					TokStr = strtok(Buf, " ");
-				
-					// No token
-					if (!TokStr)
-						continue;
-				
-					// Parse loop
-					do
-					{
-						// Get Target Type?
-						if (i == 0)
-						{
-							// Get the type to translate from
-							Source = C_strtou32(TokStr, NULL, 0);
-						
-							// Bad number?
-							if (!Source/* || Source >= GenCrusherBase*/)
-								break;
-						
-							// Next token
-							i++;
-						}
-					
-						// Get appearence
-						else if (i == 1)
-						{
-							// Check for game compatibilities
-							if (strcasecmp(TokStr, "ALL") != 0)
-								if (
-									(strcasecmp(TokStr, "DOOMHERETIC") == 0 && !(g_CoreGame == CG_DOOM || g_CoreGame == CG_HERETIC)) ||
-									(strcasecmp(TokStr, "DOOM") == 0 && g_CoreGame != CG_DOOM) ||
-									(strcasecmp(TokStr, "HERETIC") == 0 && g_CoreGame != CG_HERETIC) ||
-									(strcasecmp(TokStr, "HEXEN") == 0 && g_CoreGame != CG_HEXEN) ||
-									(strcasecmp(TokStr, "STRIFE") == 0 && g_CoreGame != CG_STRIFE))
-									break;
-							
-							// Next token
-							i++;
-						}
-					
-						// Find Major Type
-						else if (i == 2)
-						{
-							// Next token
-							i++;
-						
-							// Find matching major
-							ThisMajor = NULL;
-							for (j = 0; j < NumMajors; j++)
-								if (strcasecmp(TokStr, Majors[j].TypeName) == 0)
-								{
-									ThisMajor = &Majors[j];
-									break;
-								}
-						
-							// No major found?
-							if (!ThisMajor)
-								continue;
-						
-							// Set target
-							Type = Target = ThisMajor->BaseInt;
-							TargetSet = true;
-							TypeSet = true;
-						}
-					
-						// Handle field enums
-						else
-						{
-							// No major found?
-							if (!ThisMajor)
-								continue;
-						
-							// Find matching enum
-							ThisSub = NULL;
-							for (j = 0; j < ThisMajor->NumMinors && !ThisSub; j++)
-							{
-								// Quick
-								ThisMinor = &ThisMajor->Minors[j];
-								ThisSub = NULL;
-							
-								// Loop
-								for (k = 0; k < ThisMinor->NumSubs; k++)
-									if (strcasecmp(TokStr, ThisMinor->Subs[k].EnumName) == 0)
-									{
-										ThisSub = &ThisMinor->Subs[k];
-										break;
-									}
-							
-								// Found?
-								if (ThisSub)
-									break;
-							}
-						
-							// Not found?
-							if (!ThisSub)
-								continue;
-						
-							// Clear old bits from target then set
-							Target &= ~ThisMinor->Mask;
-							Target |= (ThisSub->Value << ThisMinor->Shift) & ThisMinor->Mask;
-						}
-					} while ((TokStr = strtok(NULL, " ")));
-				
-					// OR target to type
-					Target |= Type;
-				
-					// Only if source, target, and type
-					if (Source && TargetSet && TypeSet)
-					{
-						Z_ResizeArray((void**)&g_ReGenMap, sizeof(*g_ReGenMap), g_NumReGenMap, g_NumReGenMap + 1);
-						g_ReGenMap[g_NumReGenMap].Sector = !!zzSpecType;
-						g_ReGenMap[g_NumReGenMap].Source = Source;
-						g_ReGenMap[g_NumReGenMap++].Target = Target;
-					
-						// Debug
-						//if (devparm)
-						//	CONL_PrintF("%s Mapped: %i -> %8x\n", (zzSpecType ? "Sector" : "Line"), Source, Target);
-					}
-				}
-			
-				// Close stream
-				WL_StreamClose(Stream);
-			}
-		}
-	
-		/* Free special mapping */
-		if (Majors)
-		{
-			for (i = 0; i < NumMajors; i++)
-				if (Majors[i].Minors)
-				{
-					for (j = 0; j < Majors[i].NumMinors; j++)
-						if (Majors[i].Minors[j].Subs)
-							Z_Free(Majors[i].Minors[j].Subs);
-					Z_Free(Majors[i].Minors);
-				}
-			Z_Free(Majors);
-		}
-	}
 	
 	/* Load boss spitters */
 	// The boss spitter list is for internal constant removal and is not really

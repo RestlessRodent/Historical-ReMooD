@@ -86,9 +86,11 @@ void G_DoLoadGame(int slot);	// Can be called by the startup code or M_Responder
 void G_DoSaveGame(int slot, char* description);	// Called by M_Responder.
 void G_SaveGame(int slot, char* description);	// Called by M_Responder.
 void G_DoneLevelLoad(void);
-void G_ExitLevel(void);
-void G_SecretExitLevel(void);
+
+void G_ExitLevel(const bool_t a_Secret, mobj_t* const a_Activator, const char* const a_Message);
+
 void G_NextLevel(void);
+
 void G_Ticker(void);
 bool_t G_Downgrade(int version);
 void G_PrepareDemoStuff(void);

@@ -2012,6 +2012,7 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	mobj_t* CheckMo;
 	uint32_t CheckFlags;
 	line_t junk;
+	int32_t Args[2];
 	
 	/* Check */
 	if (!mo)
@@ -2071,6 +2072,9 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 		}
 	}
 	
+	/* Clear junk line */
+	memset(&junk, 0, sizeof(junk));
+	
 	/* Everything with this flag is dead, so do the action */
 #define MULTISPECFLAGS (MFREXB_DOBARONSPECIAL | MFREXB_DOCYBERSPECIAL | MFREXB_DOSPIDERSPECIAL)
 	// Do MAP06 666/667 actions
@@ -2095,7 +2099,9 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	if (CheckFlags & MFREXB_DODOORSIXTHREEOPEN)
 	{
 		junk.tag = 666;
-		EV_DoDoor(&junk, dooropen, VDOORSPEED);
+		Args[0] = dooropen;
+		Args[1] = VDOORSPEED;
+		EV_DoDoor(&junk, -1, mo, LAT_SWITCH, 0, NULL, 2, Args);
 	}
 	
 	// Kill everything in the level
@@ -2125,7 +2131,9 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->OpenDoorOnSpecial)
 	{
 		junk.tag = 666;
-		EV_DoDoor(&junk, blazeOpen, 4 * VDOORSPEED);
+		Args[0] = blazeOpen;
+		Args[1] = 4 * VDOORSPEED;
+		EV_DoDoor(&junk, -1, mo, LAT_SWITCH, 0, NULL, 2, Args);
 	}
 	
 	// Lower floor
@@ -2139,7 +2147,7 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->ExitOnSpecial)
 	{
 		if (P_XGSVal(PGS_GAMEALLOWLEVELEXIT))
-			G_ExitLevel();
+			G_ExitLevel(false, mo->target, NULL);
 	}
 #undef MULTISPECFLAGS
 }
@@ -2315,7 +2323,7 @@ void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_Stat
 void A_BrainDie(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	if (P_XGSVal(PGS_GAMEALLOWLEVELEXIT))
-		G_ExitLevel();
+		G_ExitLevel(false, mo->target, NULL);
 }
 
 void A_BrainSpit(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)

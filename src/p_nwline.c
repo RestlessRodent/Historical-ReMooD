@@ -48,7 +48,7 @@
 typedef enum P_NLFlags_e
 {
 	PNLF_RETRIG			= UINT32_C(0x00000001),	// Retrigger lines
-	PNLF_USETAG			= UINT32_C(0x00000002),	// Requires tag to work
+	PNLF_IGNORETAG		= UINT32_C(0x00000002),	// Does not need a tag
 	PNLF_MONSTER		= UINT32_C(0x00000004),	// Monster can activate
 	PNLF_BOOM			= UINT32_C(0x00000008),	// Boom Support Required
 	PNLF_CLEARNOTBOOM	= UINT32_C(0x00000010),	// Clear Special when not Boom
@@ -324,31 +324,49 @@ bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object,
 	return rtn;
 }
 
+/* EV_ExitLevel() -- Exits the level */
+// 1: Secret Exit
+bool_t EV_ExitLevel(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	/* Check if exiting is not permitted */
+	if (!P_XGSVal(PGS_GAMEALLOWLEVELEXIT))
+		return false;
+	
+	/* Change switch texture */
+	// The game is rendered so this makes it so the button appears pressed
+	if (a_Type == LAT_SWITCH || a_Type == LAT_SHOOT)
+		P_ChangeSwitchTexture(a_Line, 0);
+	
+	/* Now exit the level */
+	G_ExitLevel(a_ArgV[0], a_Object, NULL);
+}
+
 /*****************************************************************************/
 
 // c_LineTrigs -- Static line triggers
 static const P_NLTrig_t c_LineTrigs[] =
 {
 	// Manual Doors (EV_VerticalDoor)
-	{1, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_MONSTER, EV_VerticalDoor, 5,
+		// Switch
+	{1, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,
 		{1, sfx_doropn, normalDoor, 0, 0}},
-	{26, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
+	{26, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
 		{1, sfx_None, normalDoor, 0, INFO_BLUEKEYCOMPAT}},
-	{27, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
+	{27, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
 		{1, sfx_None, normalDoor, 0, INFO_YELLOWKEYCOMPAT}},
-	{28, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
+	{28, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
 		{1, sfx_None, normalDoor, 0, INFO_REDKEYCOMPAT}},
-	{31, 0, LAT_SWITCH, 0, EV_VerticalDoor, 5,	// *1
+	{31, 0, LAT_SWITCH, PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
 		{0, sfx_doropn, dooropen, 0, 0}},
-	{32, 0, LAT_SWITCH, PNLF_MONSTER, EV_VerticalDoor, 5,	// *1
+	{32, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
 		{0, sfx_None, dooropen, 0, INFO_BLUEKEYCOMPAT}},
-	{33, 0, LAT_SWITCH, PNLF_MONSTER, EV_VerticalDoor, 5,	// *1
+	{33, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
 		{0, sfx_None, dooropen, 0, INFO_REDKEYCOMPAT}},
-	{34, 0, LAT_SWITCH, PNLF_MONSTER, EV_VerticalDoor, 5,	// *1
+	{34, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
 		{0, sfx_None, dooropen, 0, INFO_YELLOWKEYCOMPAT}},
-	{117, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
+	{117, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
 		{1, sfx_bdopn, blazeRaise, VDOORSPEED * 4, 0}},
-	{118, 0, LAT_SWITCH, 0, EV_VerticalDoor, 5,	// *1
+	{118, 0, LAT_SWITCH, PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
 		{0, sfx_bdopn, blazeOpen, VDOORSPEED * 4, 0}},
 	
 	// Standard Doors (EV_DoDoor)
@@ -412,6 +430,28 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{196, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoDoor, 2,
 		{close30ThenOpen, VDOORSPEED}},
 		
+		// Gun
+	{46, 0, LAT_SHOOT, PNLF_RETRIG | PNLF_CLEARNOTBOOM | PNLF_MONSTER, EV_DoDoor, 2,
+		{dooropen, VDOORSPEED}},
+	
+	// Level Exit
+		// Switch
+	{11, 0, LAT_SWITCH, PNLF_IGNORETAG, EV_ExitLevel, 1,
+		{false}},
+	{51, 0, LAT_SWITCH, PNLF_IGNORETAG, EV_ExitLevel, 1,
+		{true}},
+		
+		// Walk
+	{52, 0, LAT_WALK, PNLF_IGNORETAG, EV_ExitLevel, 1,
+		{false}},
+	{124, 0, LAT_WALK, PNLF_IGNORETAG, EV_ExitLevel, 1,
+		{true}},
+		
+		// Shoot
+	{197, 0, LAT_SHOOT, PNLF_BOOM | PNLF_IGNORETAG, EV_ExitLevel, 1,
+		{false}},
+	{198, 0, LAT_SHOOT, PNLF_BOOM | PNLF_IGNORETAG, EV_ExitLevel, 1,
+		{true}},
 	
 #if 0
 	// Scrollers (EV_SpawnScroller)
@@ -467,7 +507,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			// Requires Tag?
 			if (P_XGSVal(PGS_COBOOMSUPPORT))
 				if (a_Type == LAT_SWITCH || a_Type == LAT_WALK || a_Type == LAT_SHOOT)
-					if (c_LineTrigs[i].Flags & PNLF_USETAG)
+					if (!(c_LineTrigs[i].Flags & PNLF_IGNORETAG))
 						if (!a_Line->tag)
 							return false;
 			

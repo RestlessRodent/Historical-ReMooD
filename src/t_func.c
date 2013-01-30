@@ -276,7 +276,7 @@ void SF_Clock()
 
 void SF_ExitLevel()
 {
-	G_ExitLevel();
+	G_ExitLevel(false, NULL, "Script exit level");
 }
 
 // centremsg

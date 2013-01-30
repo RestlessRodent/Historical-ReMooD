@@ -1033,6 +1033,12 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** D_NWLINE.C ***/
 	{			 "DNWLINE_LOCKEDDOOR", "This door is locked."},
 	
+	/*** P_SPEC.C ***/
+	{		"PSPECC_TIMELIMITREACHED", "Time limit reached."},
+	
+	/*** p_INTER.c ***/
+	{	   "PINTERC_FRAGLIMITREACHED", "Frag limit reached."},
+	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},
 	{               "D_PGS_NOTHINGHERE", "Nothing is here"},

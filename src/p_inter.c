@@ -1256,8 +1256,34 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 	return NULL;
 }
 
+/* P_BroadcastMessage() -- Broadcasts message to all players */
+void P_BroadcastMessage(const char* const a_Message)
+{
+}
+
+/* P_ExitMessage() -- Player exited the level */
+void P_ExitMessage(mobj_t* const a_Exiter, const char* const a_Message)
+{
+	const char* eNoun;
+	
+	/* Object exited the level */
+	if (a_Exiter)
+	{
+		// Get name of the object that exited
+		eNoun = PS_GetMobjNoun(a_Exiter, NULL, false, a_Exiter);
+
+		CONL_PrintF("\x7{z%s{z exited the level.\n", eNoun);
+	}
+	
+	/* Normal message */
+	else if (a_Message)
+	{
+		CONL_PrintF("\x7{%s\n", a_Message);
+	}
+}
+
 /* P_DeathMessages() -- Display message of thing dying */
-static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
+void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 {
 #define BUFSIZE 128
 	char Message[BUFSIZE];
@@ -1349,12 +1375,12 @@ void P_CheckFragLimit(player_t* p)
 				fragteam += ST_PlayerFrags(i);
 				
 		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= fragteam)
-			G_ExitLevel();
+			G_ExitLevel(false, NULL, DS_GetString(DSTR_PINTERC_FRAGLIMITREACHED));
 	}
 	else
 	{
 		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= ST_PlayerFrags(p - players))
-			G_ExitLevel();
+			G_ExitLevel(false, NULL, DS_GetString(DSTR_PINTERC_FRAGLIMITREACHED));
 	}
 }
 

@@ -1032,6 +1032,12 @@ typedef enum UnicodeStringID_e
 	/* d_nwline.c */
 	DSTR_DNWLINE_LOCKEDDOOR,
 	
+	/* p_spec.c */
+	DSTR_PSPECC_TIMELIMITREACHED,
+	
+	/* p_inter.c */
+	DSTR_PINTERC_FRAGLIMITREACHED,
+	
 	/* p_demcmp.c */
 	DSTR_M_PGS_NOTHINGHERE,
 	DSTR_D_PGS_NOTHINGHERE,

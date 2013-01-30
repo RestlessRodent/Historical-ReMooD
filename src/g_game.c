@@ -1869,23 +1869,18 @@ void G_ResetPlayer(player_t* const a_Player)
 //
 bool_t secretexit;
 
-void G_ExitLevel(void)
+/* G_ExitLevel() -- Exits the level */
+void G_ExitLevel(const bool_t a_Secret, mobj_t* const a_Activator, const char* const a_Message)
 {
+	/* Do normal exiting routine */
 	if (gamestate == GS_LEVEL)
 	{
-		secretexit = false;
+		secretexit = a_Secret;
 		gameaction = ga_completed;
 	}
-}
-
-// Here's for the german edition.
-void G_SecretExitLevel(void)
-{
-	if (gamestate == GS_LEVEL)
-	{
-		secretexit = true;
-		gameaction = ga_completed;
-	}
+	
+	/* Print message to all players, the one who exited the level */
+	P_ExitMessage(a_Activator, a_Message);
 }
 
 void G_DoCompleted(void)
@@ -1900,14 +1895,16 @@ void G_DoCompleted(void)
 	
 	// GhostlyDeath <May 5, 2012> -- Secret Exit?
 	if (secretexit)
+	{
 		wminfo.next = 1;
+		
+		for (i = 0; i < MAXPLAYERS; i++)
+			players[i].didsecret = true;
+	}
 	else
 		wminfo.next = 0;
 	
 	// Did secret level?
-	for (i = 0; i < MAXPLAYERS; i++)
-		players[i].didsecret = true;
-	
 	if (!dedicated)
 		wminfo.didsecret = players[g_Splits[0].Console].didsecret;
 	wminfo.epsd = gameepisode - 1;
@@ -1946,62 +1943,32 @@ void G_DoCompleted(void)
 void G_NextLevel(void)
 {
 	gameaction = ga_worlddone;
-	
-	if (secretexit)
-		players[g_Splits[0].Console].didsecret = true;
 }
 
 void G_DoWorldDone(void)
 {
 	P_LevelInfoEx_t* NewInfo;
-
-#if 0
-	if (P_XGSVal(PGS_COLINEARMAPTRAVERSE))
-	{
-#endif
-		// Clear Info
-		NewInfo = NULL;
-		
-		// Secret Exit?
-		if (wminfo.next && g_CurrentLevelInfo->SecretNext)
-			NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->SecretNext, NULL);
-		
-		// Normal Exit?
-		if (!NewInfo && g_CurrentLevelInfo->NormalNext)
-			NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
-		
-		// Was able to find the level?
-		if (NewInfo)
-			P_ExLoadLevel(NewInfo, false);
-		// Otherwise it was a failure, try something else
-		else
-		{
-			// Back to the titlescreen!
-			gamestate = GS_DEMOSCREEN;
-		}
-#if 0
-	}
+	
+	// Clear Info
+	NewInfo = NULL;
+	
+	// Secret Exit?
+	if (wminfo.next && g_CurrentLevelInfo->SecretNext)
+		NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->SecretNext, NULL);
+	
+	// Normal Exit?
+	if (!NewInfo && g_CurrentLevelInfo->NormalNext)
+		NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
+	
+	// Was able to find the level?
+	if (NewInfo)
+		P_ExLoadLevel(NewInfo, false);
+	
+	// Otherwise it was a failure, try something else
+		// Just go back to the waiting for players screen
 	else
-	{
-		// not in demo because demo have the mapcommand on it
-		if (!demoplayback)
-		{
-			if (cv_deathmatch.value)
-				G_InitNew(gameskill, G_BuildMapName(gameepisode, wminfo.next + 1), 1);
-			else
-				G_InitNew(gameskill, G_BuildMapName(gameepisode, wminfo.next + 1), 0);
-			/*
-			   if (cv_deathmatch.value == 0)
-			   // don't reset player between maps
-			   COM_BufAddText(va
-			   ("map \"%s\" -noresetplayers\n",
-			   G_BuildMapName(gameepisode, wminfo.next + 1)));
-			   else
-			   // resetplayer in deathmatch for more equality
-			   COM_BufAddText(va("map \"%s\"\n", G_BuildMapName(gameepisode, wminfo.next + 1))); */
-		}
-#endif
-		
+		gamestate = GS_WAITINGPLAYERS;
+	
 	gameaction = ga_nothing;
 }
 

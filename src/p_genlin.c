@@ -1841,13 +1841,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			// Level Exit
 		else if (TypeBase == EVGHET_XEXIT)
 		{
-			// Secret?
-			if ((a_Line->special & EVGENGE_EXITSECRETMASK) >> EVGENGE_EXITSECRETSHIFT)
-				G_SecretExitLevel();
-			
-			// Normal
-			else
-				G_ExitLevel();
+			G_ExitLevel(!!(a_Line->special & EVGENGE_EXITSECRETMASK), a_Object, NULL);
 			
 			// Success!
 			return true;
@@ -2162,7 +2156,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			
 			// Enough Health
 			if (a_Mo->health <= 10)
-				G_ExitLevel();
+				G_ExitLevel(false, a_Player->mo, NULL);
 		}
 	}
 }
@@ -2226,24 +2220,4 @@ line_t* EV_SearchACSTags(const int32_t a_ID, int32_t* const a_SearchPoint)
 }
 
 /****************************************************************************/
-
-/* EV_DoomToGenTrigger() -- Translate old Doom Lines to generalized ones */
-uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input)
-{
-	size_t i;
-	
-	/* Inputs at generalization base are unchanged */
-	if (!a_Input || a_Input >= GenCrusherBase)
-		return a_Input;
-	
-	/* Check through list */
-	for (i = 0; i < g_NumReGenMap; i++)
-		if (g_ReGenMap[i].Sector == a_Sector)
-			if (g_ReGenMap[i].Source == a_Input)
-				return g_ReGenMap[i].Target;
-	
-	/* Otherwise return input */
-	return a_Input;
-}
-
 
