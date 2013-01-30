@@ -2084,14 +2084,16 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 		if (CheckFlags & MFREXB_DOMAPSEVENSPECA)
 		{
 			junk.tag = 666;
-			EV_DoFloor(&junk, lowerFloorToLowest);
+			Args[0] = lowerFloorToLowest;
+			EV_DoFloor(&junk, -1, mo, LAT_SWITCH, 0, NULL, 2, Args);
 		}
 		
 		// 667
 		if (CheckFlags & MFREXB_DOMAPSEVENSPECB)
 		{
 			junk.tag = 667;
-			EV_DoFloor(&junk, raiseToTexture);
+			Args[0] = raiseToTexture;
+			EV_DoFloor(&junk, -1, mo, LAT_SWITCH, 0, NULL, 2, Args);
 		}
 	}
 	
@@ -2140,7 +2142,8 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->LowerFloorOnSpecial)
 	{
 		junk.tag = 666;
-		EV_DoFloor(&junk, lowerFloorToLowest);
+		Args[0] = lowerFloorToLowest;
+		EV_DoFloor(&junk, -1, mo, LAT_SWITCH, 0, NULL, 2, Args);
 	}
 	
 	// Level Exiting Last
