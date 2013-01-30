@@ -1278,7 +1278,7 @@ void P_ExitMessage(mobj_t* const a_Exiter, const char* const a_Message)
 	/* Normal message */
 	else if (a_Message)
 	{
-		CONL_PrintF("\x7{%s\n", a_Message);
+		CONL_PrintF("\x7{z%s\n", a_Message);
 	}
 }
 
