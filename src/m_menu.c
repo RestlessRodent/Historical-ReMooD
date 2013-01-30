@@ -1907,6 +1907,14 @@ static bool_t MS_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
 {
 	NG_SetVarValue(PGS_GAMESKILL, a_Widget->Option);
 	
+	// I'm Too Young To Die
+	if (a_Widget->Option == 0)
+		NG_SetVarValue(PGS_PLHALFDAMAGE, 1);
+	
+	// I'm Too Young To Die/Nightmare
+	if (a_Widget->Option == 0 || a_Widget->Option == 4)
+		NG_SetVarValue(PGS_PLDOUBLEAMMO, 1);
+	
 	// Nightmare
 	if (a_Widget->Option == 4)
 	{
