@@ -1109,12 +1109,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			// All from here to RETRIGGERS.
 			
 			
-		case 5:
-			// Raise Floor
-			if (EV_DoFloor(line, raiseFloor) || !boomsupport)
-				line->special = 0;
-			break;
-			
 		case 6:
 			// Fast Ceiling Crush & Raise
 			if (EV_DoCeiling(line, fastCrushAndRaise) || !boomsupport)
@@ -1151,12 +1145,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 19:
-			// Lower Floor
-			if (EV_DoFloor(line, lowerFloor) || !boomsupport)
-				line->special = 0;
-			break;
-			
 		case 22:
 			// Raise floor to nearest height and change texture
 			if (EV_DoPlat(line, raiseToNearestAndChange, 0) || !boomsupport)
@@ -1169,34 +1157,9 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 30:
-			// Raise floor to shortest texture height
-			//  on either side of lines.
-			if (EV_DoFloor(line, raiseToTexture) || !boomsupport)
-				line->special = 0;
-			break;
-			
 		case 35:
 			// Lights Very Dark
 			if (EV_LightTurnOn(line, 35) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 36:
-			// Lower Floor (TURBO)
-			if (EV_DoFloor(line, turboLower) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 37:
-			// LowerAndChange
-			if (EV_DoFloor(line, lowerAndChange) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 38:
-			// Lower Floor To Lowest
-			if (EV_DoFloor(line, lowerFloorToLowest) || !boomsupport)
 				line->special = 0;
 			break;
 			
@@ -1206,11 +1169,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 40:
-			// RaiseCeilingLowerFloor
-			if (EV_DoCeiling(line, raiseToHighest) || EV_DoFloor(line, lowerFloorToLowest) || !boomsupport)
-				line->special = 0;
-			break;
 			
 		case 44:
 			// Ceiling Crush
@@ -1231,27 +1189,9 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 56:
-			// Raise Floor Crush
-			if (EV_DoFloor(line, raiseFloorCrush) || !boomsupport)
-				line->special = 0;
-			break;
-			
 		case 57:
 			// Ceiling Crush Stop
 			if (EV_CeilingCrushStop(line) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 58:
-			// Raise Floor 24
-			if (EV_DoFloor(line, raiseFloor24) || !boomsupport)
-				line->special = 0;
-			break;
-			
-		case 59:
-			// Raise Floor 24 And Change
-			if (EV_DoFloor(line, raiseFloor24AndChange) || !boomsupport)
 				line->special = 0;
 			break;
 			
@@ -1265,13 +1205,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 		case 100:
 			// Build Stairs Turbo 16
 			if (EV_BuildStairs(line, turbo16) || !boomsupport)
-				line->special = 0;
-			break;
-			
-			
-		case 119:
-			// Raise floor to nearest surr. floor
-			if (EV_DoFloor(line, raiseFloorToNearest) || !boomsupport)
 				line->special = 0;
 			break;
 			
@@ -1289,12 +1222,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				if (EV_Teleport(line, side, thing) || !boomsupport)
 					line->special = 0;
 			}
-			break;
-			
-		case 130:
-			// Raise Floor Turbo
-			if (EV_DoFloor(line, raiseFloorTurbo) || !boomsupport)
-				line->special = 0;
 			break;
 			
 		case 141:
@@ -1360,21 +1287,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_LightTurnOn(line, 255);
 			break;
 			
-		case 82:
-			// Lower Floor To Lowest
-			EV_DoFloor(line, lowerFloorToLowest);
-			break;
-			
-		case 83:
-			// Lower Floor
-			EV_DoFloor(line, lowerFloor);
-			break;
-			
-		case 84:
-			// LowerAndChange
-			EV_DoFloor(line, lowerAndChange);
-			break;
-			
 		case 87:
 			// Perpetual Platform Raise
 			EV_DoPlat(line, PPT_PERPRAISE, 0);
@@ -1390,46 +1302,15 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_StopPlat(line);
 			break;
 			
-		case 91:
-			// Raise Floor
-			EV_DoFloor(line, raiseFloor);
-			break;
-			
-		case 92:
-			// Raise Floor 24
-			EV_DoFloor(line, raiseFloor24);
-			break;
-			
-		case 93:
-			// Raise Floor 24 And Change
-			EV_DoFloor(line, raiseFloor24AndChange);
-			break;
-			
-		case 94:
-			// Raise Floor Crush
-			EV_DoFloor(line, raiseFloorCrush);
-			break;
-			
 		case 95:
 			// Raise floor to nearest height
 			// and change texture.
 			EV_DoPlat(line, raiseToNearestAndChange, 0);
 			break;
 			
-		case 96:
-			// Raise floor to shortest texture height
-			// on either side of lines.
-			EV_DoFloor(line, raiseToTexture);
-			break;
-			
 		case 97:
 			// TELEPORT!
 			EV_Teleport(line, side, thing);
-			break;
-			
-		case 98:
-			// Lower Floor (TURBO)
-			EV_DoFloor(line, turboLower);
 			break;
 			
 			
@@ -1444,16 +1325,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				EV_Teleport(line, side, thing);
 			break;
 			
-		case 128:
-			// Raise To Nearest Floor
-			EV_DoFloor(line, raiseFloorToNearest);
-			break;
-			
-		case 129:
-			// Raise Floor Turbo
-			EV_DoFloor(line, raiseFloorTurbo);
-			break;
-			
 			// SoM:3/4/2000: Extended Boom W* triggers.
 		default:
 			if (boomsupport)
@@ -1462,11 +1333,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				{
 						//SoM: 3/4/2000:Boom Walk once triggers.
 						//SoM: 3/4/2000:Yes this is "copied" code! I just cleaned it up. Did you think I was going to retype all this?!
-					case 142:
-						// Raise Floor 512
-						if (EV_DoFloor(line, raiseFloor512))
-							line->special = 0;
-						break;
 						
 					case 143:
 						// Raise Floor 24 and change
@@ -1522,11 +1388,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 							line->special = 0;
 						break;
 						
-					case 219:
-						// Lower floor to next lower neighbor
-						if (EV_DoFloor(line, lowerFloorToNearest))
-							line->special = 0;
-						break;
 						
 					case 227:
 						// Raise elevator next floor
@@ -1576,11 +1437,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						
 						//Boom added lots of linedefs to fill in the gaps in trigger types
 						
-					case 147:
-						// Raise Floor 512
-						EV_DoFloor(line, raiseFloor512);
-						break;
-						
 					case 148:
 						// Raise Floor 24 and Change
 						EV_DoPlat(line, raiseAndChange, 24);
@@ -1596,11 +1452,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						EV_DoCeiling(line, silentCrushAndRaise);
 						break;
 						
-					case 151:
-						// RaiseCeilingLowerFloor
-						EV_DoCeiling(line, raiseToHighest);
-						EV_DoFloor(line, lowerFloorToLowest);
-						break;
 						
 					case 152:
 						// Lower Ceiling to Floor
@@ -1662,10 +1513,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						EV_DoChange(line, numChangeOnly);
 						break;
 						
-					case 220:
-						// Lower floor to next lower neighbor
-						EV_DoFloor(line, lowerFloorToNearest);
-						break;
 						
 					case 228:
 						// Raise elevator next floor
@@ -1850,12 +1697,6 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 		
 	switch (line->special)
 	{
-		case 24:
-			// RAISE FLOOR
-			if (EV_DoFloor(line, raiseFloor) || !boomsupport)
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
 		case 47:
 			// RAISE FLOOR NEAR AND CHANGE
 			if (EV_DoPlat(line, raiseToNearestAndChange, 0) || !boomsupport)

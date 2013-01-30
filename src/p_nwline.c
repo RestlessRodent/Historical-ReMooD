@@ -341,6 +341,259 @@ bool_t EV_ExitLevel(line_t* const a_Line, const int a_Side, mobj_t* const a_Obje
 	G_ExitLevel(a_ArgV[0], a_Object, NULL);
 }
 
+/* EV_DoFloor() -- Moves floor */
+// 1: Floor Type
+bool_t EV_DoFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int secnum;
+	int rtn;
+	int i;
+	sector_t* sec;
+	floormove_t* floor;
+	
+	secnum = -1;
+	rtn = 0;
+	while ((secnum = P_FindSectorFromLineTag(a_Line, secnum)) >= 0)
+	{
+		sec = &sectors[secnum];
+		
+		// SoM: 3/6/2000: Boom has multiple thinkers per sector.
+		// Don't start a second thinker on the same floor
+		if (P_SectorActive(floor_special, sec))	//jff 2/23/98
+			continue;
+			
+		// new floor thinker
+		rtn = 1;
+		floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
+		sec->floordata = floor;	//SoM: 2/5/2000
+		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+		floor->type = a_ArgV[0];
+		floor->crush = false;
+		
+		switch (a_ArgV[0])
+		{
+			case lowerFloor:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = P_FindHighestFloorSurrounding(sec);
+				break;
+				
+				//jff 02/03/30 support lowering floor by 24 absolute
+			case lowerFloor24:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = floor->sector->floorheight + 24 * FRACUNIT;
+				break;
+				
+				//jff 02/03/30 support lowering floor by 32 absolute (fast)
+			case lowerFloor32Turbo:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED * 4;
+				floor->floordestheight = floor->sector->floorheight + 32 * FRACUNIT;
+				break;
+				
+			case lowerFloorToLowest:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = P_FindLowestFloorSurrounding(sec);
+				break;
+				
+				//jff 02/03/30 support lowering floor to next lowest floor
+			case lowerFloorToNearest:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = P_FindNextLowestFloor(sec, floor->sector->floorheight);
+				break;
+				
+			case turboLower:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED * 4;
+				floor->floordestheight = P_FindHighestFloorSurrounding(sec);
+				if (floor->floordestheight != sec->floorheight)
+					floor->floordestheight += 8 * FRACUNIT;
+				break;
+				
+			case raiseFloorCrush:
+				floor->crush = true;
+			case raiseFloor:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = P_FindLowestCeilingSurrounding(sec);
+				if (floor->floordestheight > sec->ceilingheight)
+					floor->floordestheight = sec->ceilingheight;
+				floor->floordestheight -= (8 * FRACUNIT) * (a_ArgV[0] == raiseFloorCrush);
+				break;
+				
+			case raiseFloorTurbo:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED * 4;
+				floor->floordestheight = P_FindNextHighestFloor(sec, sec->floorheight);
+				break;
+				
+			case raiseFloorToNearest:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = P_FindNextHighestFloor(sec, sec->floorheight);
+				break;
+				
+			case raiseFloor24:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = floor->sector->floorheight + 24 * FRACUNIT;
+				break;
+				
+				// SoM: 3/6/2000: support straight raise by 32 (fast)
+			case raiseFloor32Turbo:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED * 4;
+				floor->floordestheight = floor->sector->floorheight + 32 * FRACUNIT;
+				break;
+				
+			case raiseFloor512:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = floor->sector->floorheight + 512 * FRACUNIT;
+				break;
+				
+			case raiseFloor24AndChange:
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = floor->sector->floorheight + 24 * FRACUNIT;
+				sec->floorpic = a_Line->frontsector->floorpic;
+				sec->special = a_Line->frontsector->special;
+				sec->oldspecial = a_Line->frontsector->oldspecial;
+				break;
+				
+			case raiseToTexture:
+				{
+					int minsize = INT_MAX;
+					side_t* side;
+					
+					if (P_XGSVal(PGS_COBOOMSUPPORT))
+						minsize = 32000 << FRACBITS;	//SoM: 3/6/2000: ???
+					floor->direction = 1;
+					floor->sector = sec;
+					floor->speed = FLOORSPEED;
+					for (i = 0; i < sec->linecount; i++)
+					{
+						if (twoSided(secnum, i))
+						{
+							side = getSide(secnum, i, 0);
+							
+							// jff 8/14/98 don't scan texture 0, its not real
+							if (side->bottomtexture > 0 || (!P_XGSVal(PGS_COBOOMSUPPORT) && !side->bottomtexture))
+								if (textures[side->bottomtexture]->XHeight < minsize)
+									minsize = textures[side->bottomtexture]->XHeight;
+							side = getSide(secnum, i, 1);
+							
+							// jff 8/14/98 don't scan texture 0, its not real
+							if (side->bottomtexture > 0 || (!P_XGSVal(PGS_COBOOMSUPPORT) && !side->bottomtexture))
+								if (textures[side->bottomtexture]->XHeight < minsize)
+									minsize = textures[side->bottomtexture]->XHeight;
+						}
+					}
+					
+					if (!P_XGSVal(PGS_COBOOMSUPPORT))
+						floor->floordestheight = floor->sector->floorheight + minsize;
+					else
+					{
+						floor->floordestheight = (floor->sector->floorheight >> FRACBITS) + (minsize >> FRACBITS);
+						if (floor->floordestheight > 32000)
+							floor->floordestheight = 32000;	//jff 3/13/98 do not
+						floor->floordestheight <<= FRACBITS;	// allow height overflow
+					}
+					break;
+				}
+				
+				//SoM: 3/6/2000: Boom changed allot of stuff I guess, and this was one of 'em
+			case lowerAndChange:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = FLOORSPEED;
+				floor->floordestheight = P_FindLowestFloorSurrounding(sec);
+				floor->texture = sec->floorpic;
+				
+				// jff 1/24/98 make sure floor->newspecial gets initialized
+				// in case no surrounding sector is at floordestheight
+				// --> should not affect compatibility <--
+				floor->newspecial = sec->special;
+				//jff 3/14/98 transfer both old and new special
+				floor->oldspecial = sec->oldspecial;
+				
+				//jff 5/23/98 use model subroutine to unify fixes and handling
+				// BP: heretic have change something here
+				sec = P_FindModelFloorSector(floor->floordestheight, sec - sectors);
+				if (sec)
+				{
+					floor->texture = sec->floorpic;
+					floor->newspecial = sec->special;
+					//jff 3/14/98 transfer both old and new special
+					floor->oldspecial = sec->oldspecial;
+				}
+				break;
+				
+				// Instant Lower SSNTails 06-13-2002
+			case instantLower:
+				floor->direction = -1;
+				floor->sector = sec;
+				floor->speed = INT_MAX / 2;	// Go too fast and you'll cause problems...
+				floor->floordestheight = P_FindLowestFloorSurrounding(sec);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	return rtn;
+}
+
+/* EV_DoCeilOrFloor() -- Moves ceiling or floor */
+// 1: Ceiling Type
+// 2: Floor Tyoe
+// 3: Do Both
+bool_t EV_DoCeilOrFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	/* Either Or */
+	if (!a_ArgV[2])
+	{
+		// Do Ceiling
+		if (EV_DoCeiling(a_Line, a_ArgV[0]))
+			return true;
+	
+		// Do Floor
+		if (EV_DoFloor(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, 1, &a_ArgV[1]))
+			return true;
+		
+		// Nothing worked
+		return false;
+	}
+	
+	/* Both */
+	else
+	{
+		// Do ceiling then floor
+		EV_DoCeiling(a_Line, a_ArgV[0]);
+		EV_DoFloor(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, 1, &a_ArgV[1]);
+		
+		// Always succeed?
+		return true;
+	}
+}
+
 /*****************************************************************************/
 
 // c_LineTrigs -- Static line triggers
@@ -453,6 +706,133 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{198, 0, LAT_SHOOT, PNLF_BOOM | PNLF_IGNORETAG, EV_ExitLevel, 1,
 		{true}},
 	
+	// Floors (EV_DoFloor)
+		// Walk
+	{5, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloor}},
+	{19, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{lowerFloor}},
+	{30, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseToTexture}},
+	{36, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{turboLower}},
+	{37, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{lowerAndChange}},
+	{38, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{lowerFloorToLowest}},
+	{56, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloorCrush}},
+	{58, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloor24}},
+	{59, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloor24AndChange}},
+	{119, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloorToNearest}},
+	{130, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloorTurbo}},
+	{82, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerFloorToLowest}},
+	{83, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerFloor}},
+	{84, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerAndChange}},
+	{91, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor}},
+	{92, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor24}},
+	{93, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor24AndChange}},
+	{94, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloorCrush}},
+	{96, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseToTexture}},
+	{98, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{turboLower}},
+	{128, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloorToNearest}},
+	{129, 0, LAT_WALK, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloorTurbo}},
+	{142, 0, LAT_WALK, PNLF_BOOM, EV_DoFloor, 1,
+		{raiseFloor512}},
+	{219, 0, LAT_WALK, PNLF_BOOM, EV_DoFloor, 1,
+		{lowerFloorToNearest}},
+	{147, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor512}},
+	{220, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerFloorToNearest}},
+		
+		// Switch
+	{18, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{raiseFloorToNearest}},
+	{23, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{lowerFloorToLowest}},
+	{55, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{raiseFloorCrush}},
+	{71, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{turboLower}},
+	{101, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{raiseFloor}},
+	{102, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{lowerFloor}},
+	{131, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{raiseFloorTurbo}},
+	{140, 0, LAT_SWITCH, 0, EV_DoFloor, 1,
+		{raiseFloor512}},
+	{158, 0, LAT_SWITCH, PNLF_BOOM, EV_DoFloor, 1,
+		{raiseToTexture}},
+	{159, 0, LAT_SWITCH, PNLF_BOOM, EV_DoFloor, 1,
+		{lowerAndChange}},
+	{160, 0, LAT_SWITCH, PNLF_BOOM, EV_DoFloor, 1,
+		{raiseFloor24AndChange}},
+	{161, 0, LAT_SWITCH, PNLF_BOOM, EV_DoFloor, 1,
+		{raiseFloor24}},
+	{221, 0, LAT_SWITCH, PNLF_BOOM, EV_DoFloor, 1,
+		{lowerFloorToNearest}},
+	{176, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseToTexture}},
+	{177, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerAndChange}},
+	{178, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor512}},
+	{179, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor24AndChange}},
+	{180, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor24}},
+	{222, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerFloorToNearest}},
+	{45, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerFloor}},
+	{60, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{lowerFloorToLowest}},
+	{64, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloor}},
+	{65, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloorCrush}},
+	{69, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloorToNearest}},
+	{70, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{turboLower}},
+	{132, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoFloor, 1,
+		{raiseFloorTurbo}},
+		
+		// Gun
+	{24, 0, LAT_SHOOT, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
+		{raiseFloor}},
+	
+	// Raise Ceiling or lower floor (EV_DoCeilOrFloor)
+		// Walk
+	{40, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoCeilOrFloor, 3,
+		{raiseToHighest, lowerFloorToLowest, false}},
+	{151, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoCeilOrFloor, 3,
+		{raiseToHighest, lowerFloorToLowest, true}},
+		
+		// Switch
+	{166, 0, LAT_SWITCH, PNLF_BOOM, EV_DoCeilOrFloor, 3,
+		{raiseToHighest, lowerFloorToLowest, false}},
+	{186, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeilOrFloor, 3,
+		{raiseToHighest, lowerFloorToLowest, false}},
+	
+	
 #if 0
 	// Scrollers (EV_SpawnScroller)
 	{48, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 5,
@@ -515,7 +895,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			if (c_LineTrigs[i].TrigFunc(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, c_LineTrigs[i].ArgC, c_LineTrigs[i].ArgV))
 			{
 				if (devparm)
-					CONL_PrintF("{4Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : (a_Type == LAT_MAPSTART ? 'M' : 'S'))), a_Line->special);
+					CONL_PrintF("{4Trig %p by %p (side %+1i): Via %c, %8i\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : (a_Type == LAT_MAPSTART ? 'M' : 'S'))), a_Line->special);
 				
 				// Set use again as trigger type
 				if (a_UseAgain)
@@ -540,7 +920,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 		}
 	
 	if (devparm && a_Object && a_Object->player)
-		CONL_PrintF("{3Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : (a_Type == LAT_MAPSTART ? 'M' : 'S'))), a_Line->special);
+		CONL_PrintF("{3Trig %p by %p (side %+1i): Via %c, %8i\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : (a_Type == LAT_MAPSTART ? 'M' : 'S'))), a_Line->special);
 	
 	/* Failed */
 	return false;

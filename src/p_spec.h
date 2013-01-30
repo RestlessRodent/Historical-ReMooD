@@ -654,8 +654,6 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 
 int EV_BuildStairs(line_t* line, stair_e type);
 
-int EV_DoFloor(line_t* line, floor_e floortype);
-
 int EV_DoChange(line_t* line, change_e changetype);	//SoM: 3/16/2000
 
 void T_MoveFloor(floormove_t* floor);
@@ -1319,7 +1317,10 @@ void P_InitAmbientSound(void);
 /*****************************************************************************/
 
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
 bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_DoFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 /*****************************************************************************/
 

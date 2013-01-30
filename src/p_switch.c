@@ -412,12 +412,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 18:
-			// Raise Floor to next highest floor
-			if (EV_DoFloor(line, raiseFloorToNearest))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
 		case 20:
 			// Raise Plat next highest floor and change texture
 			if (EV_DoPlat(line, raiseToNearestAndChange, 0))
@@ -430,12 +424,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 23:
-			// Lower Floor to Lowest
-			if (EV_DoFloor(line, lowerFloorToLowest))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
 			
 		case 41:
 			// Lower Ceiling to Floor
@@ -443,34 +431,10 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 71:
-			// Turbo Lower Floor
-			if (EV_DoFloor(line, turboLower))
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
 		case 49:
 			// Ceiling Crush And Raise
 			if (EV_DoCeiling(line, crushAndRaise))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-			
-		case 55:
-			// Raise Floor Crush
-			if (EV_DoFloor(line, raiseFloorCrush))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 101:
-			// Raise Floor
-			if (EV_DoFloor(line, raiseFloor))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 102:
-			// Lower Floor to Surrounding floor height
-			if (EV_DoFloor(line, lowerFloor))
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
@@ -486,12 +450,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 131:
-			// Raise Floor Turbo
-			if (EV_DoFloor(line, raiseFloorTurbo))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
 		case 99:
 		
 		case 133:
@@ -504,11 +462,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 0);
 			break;
 			
-		case 140:
-			// Raise Floor 512
-			if (EV_DoFloor(line, raiseFloor512))
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
 			//SoM: FraggleScript!
 		case 276:
@@ -530,30 +483,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				{
 						// added linedef types to fill all functions out so that
 						// all possess SR, S1, WR, W1 types
-						
-					case 158:
-						// Raise Floor to shortest lower texture
-						if (EV_DoFloor(line, raiseToTexture))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 159:
-						// Raise Floor to shortest lower texture
-						if (EV_DoFloor(line, lowerAndChange))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 160:
-						// Raise Floor 24 and change
-						if (EV_DoFloor(line, raiseFloor24AndChange))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 161:
-						// Raise Floor 24
-						if (EV_DoFloor(line, raiseFloor24))
-							P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 162:
 						// Moving floor min n to max n
@@ -579,11 +508,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
-					case 166:
-						// Raise ceiling, Lower floor
-						if (EV_DoCeiling(line, raiseToHighest) || EV_DoFloor(line, lowerFloorToLowest))
-							P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 167:
 						// Lower floor and Crush
@@ -663,11 +587,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
-					case 221:
-						// Lower floor to next lowest floor
-						if (EV_DoFloor(line, lowerFloorToNearest))
-							P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 229:
 						// Raise elevator next floor
@@ -698,35 +617,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 176:
-						// Raise Floor to shortest lower texture
-						if (EV_DoFloor(line, raiseToTexture))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 177:
-						// Raise Floor to shortest lower texture
-						if (EV_DoFloor(line, lowerAndChange))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 178:
-						// Raise Floor 512
-						if (EV_DoFloor(line, raiseFloor512))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 179:
-						// Raise Floor 24 and change
-						if (EV_DoFloor(line, raiseFloor24AndChange))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 180:
-						// Raise Floor 24
-						if (EV_DoFloor(line, raiseFloor24))
-							P_ChangeSwitchTexture(line, 1);
-						break;
 						
 					case 181:
 						// Moving floor min n to max n
@@ -758,11 +648,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 186:
-						// Raise ceiling, Lower floor
-						if (EV_DoCeiling(line, raiseToHighest) || EV_DoFloor(line, lowerFloorToLowest))
-							P_ChangeSwitchTexture(line, 1);
-						break;
 						
 					case 187:
 						// Lower floor and Crush
@@ -836,11 +721,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 222:
-						// Lower floor to next lowest floor
-						if (EV_DoFloor(line, lowerFloorToNearest))
-							P_ChangeSwitchTexture(line, 1);
-						break;
 						
 					case 230:
 						// Raise elevator next floor
@@ -884,27 +764,10 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
-		case 45:
-			// Lower Floor to Surrounding floor height
-			if (EV_DoFloor(line, lowerFloor))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 60:
-			// Lower Floor to Lowest
-			if (EV_DoFloor(line, lowerFloorToLowest))
-				P_ChangeSwitchTexture(line, 1);
-			break;
 			
 		case 62:
 			// PlatDownWaitUpStay
 			if (EV_DoPlat(line, downWaitUpStay, 1))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 64:
-			// Raise Floor to ceiling
-			if (EV_DoFloor(line, raiseFloor))
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
@@ -920,11 +783,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
-		case 65:
-			// Raise Floor Crush
-			if (EV_DoFloor(line, raiseFloorCrush))
-				P_ChangeSwitchTexture(line, 1);
-			break;
 			
 		case 68:
 			// Raise Plat to next highest floor and change texture
@@ -932,27 +790,10 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
-		case 69:
-			// Raise Floor to next highest floor
-			if (EV_DoFloor(line, raiseFloorToNearest))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 70:
-			// Turbo Lower Floor
-			if (EV_DoFloor(line, turboLower))
-				P_ChangeSwitchTexture(line, 1);
-			break;
 			
 		case 123:
 			// Blazing PlatDownWaitUpStay
 			if (EV_DoPlat(line, blazeDWUS, 0))
-				P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 132:
-			// Raise Floor Turbo
-			if (EV_DoFloor(line, raiseFloorTurbo))
 				P_ChangeSwitchTexture(line, 1);
 			break;
 			
