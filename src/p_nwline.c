@@ -40,6 +40,18 @@
 #include "p_inter.h"
 #include "p_demcmp.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* P_NLFlags_t -- Flags for triggers */
+typedef enum P_NLFlags_e
+{
+	PNLF_RETRIG			= UINT32_C(0x00000001),	// Retrigger lines
+	PNLF_USETAG			= UINT32_C(0x00000002),	// Requires tag to work
+	PNLF_MONSTER		= UINT32_C(0x00000004),	// Monster can activate
+} P_NLFlags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -49,9 +61,7 @@ typedef struct P_NLTrig_s
 	uint32_t Start;								// Start of line (>=)
 	uint32_t Length;							// Lines to consider (<=)
 	EV_TryGenType_t TrigType;					// Trigger Type
-	bool_t ReTrig;								// Retrigger
-	bool_t NeedsTag;							// Needs a tag
-	bool_t CanMonster;							// Monster can activate
+	uint32_t Flags;								// Flags
 	
 	P_NLTrigFunc_t TrigFunc;					// Trigger Function
 	uint32_t ArgC;								// Argument Count
@@ -64,6 +74,16 @@ typedef struct P_NLTrig_s
 
 /*****************************************************************************/
 
+/* EV_SpawnScroller() -- Spawns a floor scroller */
+bool_t EV_SpawnScroller(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	/* Start of map and not scroll order? */
+	if (a_Type == LAT_MAPSTART && a_Side != PMSS_SCROLLERS)
+		return false;
+	
+	/* Always return true */
+	return true;
+}
 
 /* EV_VerticalDoor() -- open a door manually, no tag value */
 //  1: Rebound Door
@@ -211,27 +231,31 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 // c_LineTrigs -- Static line triggers
 static const P_NLTrig_t c_LineTrigs[] =
 {
-	// Manual Doors
-	{1, 0, EVTGT_SWITCH, true, false, true, EV_VerticalDoor, 5,
+	// Manual Doors (EV_VerticalDoor)
+	{1, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_MONSTER, EV_VerticalDoor, 5,
 		{1, sfx_doropn, normalDoor, 0, 0}},
-	{26, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+	{26, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
 		{1, sfx_None, normalDoor, 0, INFO_BLUEKEYCOMPAT}},
-	{27, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+	{27, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
 		{1, sfx_None, normalDoor, 0, INFO_YELLOWKEYCOMPAT}},
-	{28, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+	{28, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
 		{1, sfx_None, normalDoor, 0, INFO_REDKEYCOMPAT}},
-	{31, 0, EVTGT_SWITCH, false, false, false, EV_VerticalDoor, 5,	// *1
+	{31, 0, LAT_SWITCH, 0, EV_VerticalDoor, 5,	// *1
 		{0, sfx_doropn, dooropen, 0, 0}},
-	{32, 0, EVTGT_SWITCH, false, false, true, EV_VerticalDoor, 5,	// *1
+	{32, 0, LAT_SWITCH, PNLF_MONSTER, EV_VerticalDoor, 5,	// *1
 		{0, sfx_None, dooropen, 0, INFO_BLUEKEYCOMPAT}},
-	{33, 0, EVTGT_SWITCH, false, false, true, EV_VerticalDoor, 5,	// *1
+	{33, 0, LAT_SWITCH, PNLF_MONSTER, EV_VerticalDoor, 5,	// *1
 		{0, sfx_None, dooropen, 0, INFO_REDKEYCOMPAT}},
-	{34, 0, EVTGT_SWITCH, false, false, true, EV_VerticalDoor, 5,	// *1
+	{34, 0, LAT_SWITCH, PNLF_MONSTER, EV_VerticalDoor, 5,	// *1
 		{0, sfx_None, dooropen, 0, INFO_YELLOWKEYCOMPAT}},
-	{117, 0, EVTGT_SWITCH, true, false, false, EV_VerticalDoor, 5,
+	{117, 0, LAT_SWITCH, PNLF_RETRIG, EV_VerticalDoor, 5,
 		{1, sfx_bdopn, blazeRaise, VDOORSPEED * 4, 0}},
-	{118, 0, EVTGT_SWITCH, false, false, false, EV_VerticalDoor, 5,	// *1
+	{118, 0, LAT_SWITCH, 0, EV_VerticalDoor, 5,	// *1
 		{0, sfx_bdopn, blazeOpen, VDOORSPEED * 4, 0}},
+	
+	// Scrolly Specials
+	{48, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 0,
+		{0}},
 	
 	// End
 	{0},
@@ -243,10 +267,6 @@ static const P_NLTrig_t c_LineTrigs[] =
 bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
 {
 	uint32_t i;
-	
-	/* Debug */
-	if (devparm)
-		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->special);
 	
 	/* Look in funcs */
 	// For matching line trigger ID
@@ -262,30 +282,34 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 				return false;
 			
 			// Monster cannot activate?
-			if (!a_Object->player)
-			{
-				// Secret lines cannot be activated
-				if (a_Line->flags & ML_SECRET)
-					return false;
+			if (a_Type != LAT_MAPSTART)
+				if (!a_Object->player)
+				{
+					// Secret lines cannot be activated
+					if (a_Line->flags & ML_SECRET)
+						return false;
 				
-				// Disabled in line
-				if (!c_LineTrigs[i].CanMonster)
-					return false;
-			}
+					// Disabled in line
+					if (!(c_LineTrigs[i].Flags & PNLF_MONSTER))
+						return false;
+				}
 			
 			// Requires Tag?
 			if (P_XGSVal(PGS_COBOOMSUPPORT))
-				if (a_Type == EVTGT_SWITCH || a_Type == EVTGT_WALK || a_Type == EVTGT_SHOOT)
-					if (c_LineTrigs[i].NeedsTag)
+				if (a_Type == LAT_SWITCH || a_Type == LAT_WALK || a_Type == LAT_SHOOT)
+					if (c_LineTrigs[i].Flags & PNLF_USETAG)
 						if (!a_Line->tag)
 							return false;
 			
 			// Call function
 			if (c_LineTrigs[i].TrigFunc(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, c_LineTrigs[i].ArgC, c_LineTrigs[i].ArgV))
 			{
+				if (devparm)
+					CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : (a_Type == LAT_MAPSTART ? 'M' : 'S'))), a_Line->special);
+				
 				// Set use again as trigger type
 				if (a_UseAgain)
-					*a_UseAgain = c_LineTrigs[i].ReTrig;
+					*a_UseAgain = !!(c_LineTrigs[i].Flags & PNLF_RETRIG);
 				
 				// Now set as successful
 				return true;

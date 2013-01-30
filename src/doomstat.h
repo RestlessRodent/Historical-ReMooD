@@ -252,6 +252,9 @@ typedef enum CoreGame_e
 	CG_HEXEN	= UINT32_C(0x04),				// Hexen is being played
 	CG_STRIFE	= UINT32_C(0x08),				// Strife is being played
 	
+	CG_DOOMHER	= CG_DOOM | CG_HERETIC,
+	CG_ALL = CG_DOOM | CG_HERETIC | CG_HEXEN | CG_STRIFE,
+	
 	NUMCOREGAMES
 } CoreGame_t;
 

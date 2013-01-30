@@ -972,7 +972,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (P_NLTrigger(line, side, thing, EVTGT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
+	if (P_NLTrigger(line, side, thing, LAT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
 		if (!UseAgain)
 			line->special = 0;
 	return;	
@@ -1827,7 +1827,7 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (P_NLTrigger(line, -1, thing, EVTGT_SHOOT, 0, &UseAgain))
+	if (P_NLTrigger(line, -1, thing, LAT_SHOOT, 0, &UseAgain))
 		P_ChangeSwitchTexture(line, UseAgain);
 	return;
 
@@ -2150,7 +2150,7 @@ void P_PlayerOnSpecial3DFloor(player_t* player)
 			instantdamage = !(leveltime % (32));
 		}
 		
-		P_ProcessSpecialSectorEx(EVTGT_WALK, player->mo, player, rover->master->frontsector, instantdamage);
+		P_ProcessSpecialSectorEx(LAT_WALK, player->mo, player, rover->master->frontsector, instantdamage);
 	}
 }
 
@@ -2191,7 +2191,7 @@ void P_PlayerInSpecialSector(player_t* player)
 	else
 		instantdamage = !(leveltime % (32));
 		
-	P_ProcessSpecialSectorEx(EVTGT_WALK, player->mo, player, sector, instantdamage);
+	P_ProcessSpecialSectorEx(LAT_WALK, player->mo, player, sector, instantdamage);
 }
 
 //
@@ -2379,7 +2379,7 @@ void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 void P_SpawnSpecials(void)
 {
 	sector_t* sector;
-	int i;
+	int i, j;
 	int episode;
 	
 	episode = 1;
@@ -2401,24 +2401,25 @@ void P_SpawnSpecials(void)
 			continue;
 		
 		// Spawn Map Specials The Generalized Way
-		P_ProcessSpecialSectorEx(EVTGT_MAPSTART, NULL, NULL, sector, false);
+		P_ProcessSpecialSectorEx(LAT_MAPSTART, NULL, NULL, sector, false);
 	}
 	
-	P_SpawnScrollers();			//Add generalized scrollers
+	//P_SpawnScrollers();			//Add generalized scrollers
 	//P_SpawnFriction();			//New friction model using linedefs
 	//P_SpawnPushers();			//New pusher model using linedefs
 	
 	/* Go through all lines and spawn map specials */
-	for (i = 0; i < numlines; i++)
-	{
-		// Ignore special-less lines
-		if (!lines[i].special)
-			continue;
+	for (j = PMSS_BASE + 1; j <= PMSS_GENERAL; j++)
+		for (i = 0; i < numlines; i++)
+		{
+			// Ignore special-less lines
+			if (!lines[i].special)
+				continue;
 		
-		// Execute any map start specials
-		if (P_NLTrigger(&lines[i], -1, NULL, EVTGT_MAPSTART, 0, NULL))
-			lines[i].special = 0;	// Clear special
-	}
+			// Execute any map start specials
+			if (P_NLTrigger(&lines[i], j, NULL, LAT_MAPSTART, 0, NULL))
+				lines[i].special = 0;	// Clear special
+		}
 }
 
 /*

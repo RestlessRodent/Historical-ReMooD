@@ -875,13 +875,25 @@ typedef enum PGL_GenLockedDoorKind_e
 /* EV_TryGenType_t -- Trigger attempt type */
 typedef enum EV_TryGenType_e
 {
-	EVTGT_WALK,									// Attempt to walk through
-	EVTGT_SWITCH,								// Attempt to switch
-	EVTGT_SHOOT,								// Attempt to shoot
-	EVTGT_MAPSTART,								// Map Initialization
+	LAT_WALK,									// Attempt to walk through
+	LAT_SWITCH,								// Attempt to switch
+	LAT_SHOOT,								// Attempt to shoot
+	LAT_MAPSTART,								// Map Initialization
 		
 	NUMEVTRYGENTYPES
 } EV_TryGenType_t;
+
+/* EV_MapStartSides_t -- Side IDs for map start */
+typedef enum EV_MapStartSides_e
+{
+	PMSS_BASE = -5,								// Base	
+	
+	PMSS_SCROLLERS = -4,						// Line scrollers
+	PMSS_FRICTION = -3,							// Friction
+	PMSS_PUSHERS = -2,							// Pushers
+	
+	PMSS_GENERAL = -1,							// General Stuff
+} EV_MapStartSides_t;
 
 /* EV_TryGenTypeFlags_t -- Flags for TryGenType */
 typedef enum EV_TryGenTypeFlags_e

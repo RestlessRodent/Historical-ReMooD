@@ -776,17 +776,20 @@ int EV_DoFloor(line_t* line, floor_e floortype)
 						if (twoSided(secnum, i))
 						{
 							side = getSide(secnum, i, 0);
+							
 							// jff 8/14/98 don't scan texture 0, its not real
 							if (side->bottomtexture > 0 || (!P_XGSVal(PGS_COBOOMSUPPORT) && !side->bottomtexture))
 								if (textures[side->bottomtexture]->XHeight < minsize)
 									minsize = textures[side->bottomtexture]->XHeight;
 							side = getSide(secnum, i, 1);
+							
 							// jff 8/14/98 don't scan texture 0, its not real
 							if (side->bottomtexture > 0 || (!P_XGSVal(PGS_COBOOMSUPPORT) && !side->bottomtexture))
 								if (textures[side->bottomtexture]->XHeight < minsize)
 									minsize = textures[side->bottomtexture]->XHeight;
 						}
 					}
+					
 					if (!P_XGSVal(PGS_COBOOMSUPPORT))
 						floor->floordestheight = floor->sector->floorheight + minsize;
 					else

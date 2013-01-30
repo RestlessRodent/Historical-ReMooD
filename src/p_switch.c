@@ -239,7 +239,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 	/* Better Generalized Support */
 	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
 	UseAgain = false;
-	if (P_NLTrigger(line, side, thing, EVTGT_SWITCH, 0, &UseAgain))
+	if (P_NLTrigger(line, side, thing, LAT_SWITCH, 0, &UseAgain))
 	{
 		P_ChangeSwitchTexture(line, (UseAgain ? 1 : 0));
 		return true;

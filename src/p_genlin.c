@@ -1592,7 +1592,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	
 	/* Debug */
 	if (devparm)
-		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->special);
+		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : 'S')), a_Line->special);
 	
 	/* Hexen Types */
 	if (a_Line->special == HEXENSPECIALLINE)
@@ -1613,10 +1613,10 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		TrigMode &= ~1;
 		
 		// Determine trigger compatibility
-		if ((TrigMode == WalkOnce && a_Type != EVTGT_WALK) ||
-			((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != EVTGT_SWITCH) ||
-			(TrigMode == GunOnce && a_Type != EVTGT_SHOOT) ||
-			(a_Type == EVTGT_MAPSTART))
+		if ((TrigMode == WalkOnce && a_Type != LAT_WALK) ||
+			((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != LAT_SWITCH) ||
+			(TrigMode == GunOnce && a_Type != LAT_SHOOT) ||
+			(a_Type == LAT_MAPSTART))
 			return false;
 		
 		// Generic Floors
@@ -1775,10 +1775,10 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			TrigMode &= ~1;
 			
 			// Determine trigger compatibility
-			if ((TrigMode == WalkOnce && a_Type != EVTGT_WALK) ||
-				((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != EVTGT_SWITCH) ||
-				(TrigMode == GunOnce && a_Type != EVTGT_SHOOT) ||
-				(TrigMode == EVTGT_MAPSTART))
+			if ((TrigMode == WalkOnce && a_Type != LAT_WALK) ||
+				((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != LAT_SWITCH) ||
+				(TrigMode == GunOnce && a_Type != LAT_SHOOT) ||
+				(TrigMode == LAT_MAPSTART))
 				return false;
 			
 			// Player and not player triggered
@@ -1803,7 +1803,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else
 		{
 			// Not map start
-			if (a_Type != EVTGT_MAPSTART)
+			if (a_Type != LAT_MAPSTART)
 				return false;
 			
 			// Never use map starts again
@@ -2026,7 +2026,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 	};
 	
 	/* Only accept walk and start */
-	if (a_Type != EVTGT_WALK && a_Type != EVTGT_MAPSTART)
+	if (a_Type != LAT_WALK && a_Type != LAT_MAPSTART)
 		return;
 		
 	/* See if the ReMooD bit is set */
@@ -2043,7 +2043,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 	EffectMonster = false;
 	
 	/* Spawn Map Start Triggers */
-	if (a_Type == EVTGT_MAPSTART)
+	if (a_Type == LAT_MAPSTART)
 	{
 		// Spawn Light Specials?
 		Bits = (a_Sector->special & UINT32_C(0x1F));

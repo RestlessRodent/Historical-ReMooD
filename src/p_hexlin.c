@@ -329,7 +329,7 @@ bool_t EV_DoHexenLine(line_t* const a_Line, const int a_Side, mobj_t* const a_Ob
 {
 	/* Debug */
 	if (devparm)
-		CONL_PrintF("HexT %p by %p (side %+1i): Via %c, %3u [%02x, %02x, %02x, %02x, %02x]\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->HexenSpecial, a_Line->ACSArgs[0], a_Line->ACSArgs[1], a_Line->ACSArgs[2], a_Line->ACSArgs[3], a_Line->ACSArgs[4]);
+		CONL_PrintF("HexT %p by %p (side %+1i): Via %c, %3u [%02x, %02x, %02x, %02x, %02x]\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : 'S')), a_Line->HexenSpecial, a_Line->ACSArgs[0], a_Line->ACSArgs[1], a_Line->ACSArgs[2], a_Line->ACSArgs[3], a_Line->ACSArgs[4]);
 		
 	/* Out of range? */
 	if (a_Line->HexenSpecial < 0 || a_Line->HexenSpecial > 255)
@@ -340,8 +340,8 @@ bool_t EV_DoHexenLine(line_t* const a_Line, const int a_Side, mobj_t* const a_Ob
 		return false;
 	
 	/* Mismatch level start? */
-	if ((a_Type == EVTGT_MAPSTART && !c_HexenEVs[a_Line->HexenSpecial].StartOnly) ||
-		(a_Type != EVTGT_MAPSTART && c_HexenEVs[a_Line->HexenSpecial].StartOnly))
+	if ((a_Type == LAT_MAPSTART && !c_HexenEVs[a_Line->HexenSpecial].StartOnly) ||
+		(a_Type != LAT_MAPSTART && c_HexenEVs[a_Line->HexenSpecial].StartOnly))
 		return false;
 	
 	/* Call function */
