@@ -2111,7 +2111,7 @@ void P_UpdateSpecials(void)
 			G_ExitLevel(false, NULL, DS_GetString(DSTR_PSPECC_TIMELIMITREACHED));
 		
 		// At other times
-		else if (TimeLeft <= (5 * 60 * TICRATE) && (TimeLeft % TICRATE) == 0)
+		else if (leveltime > 0 && TimeLeft <= (5 * 60 * TICRATE) && (TimeLeft % TICRATE) == 0)
 			for (i = 0; c_TLInfo[i].Time; i++)
 				if (TimeLeft == c_TLInfo[i].Time)
 				{
