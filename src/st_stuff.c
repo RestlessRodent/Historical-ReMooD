@@ -703,8 +703,11 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 					OK = false;
 				
 					// We actually own the key
-					if (!k && (DisplayP->KeyCards[i] & (UINT32_C(1) << j)))
-						OK = true;
+					if (DisplayP->KeyCards[i] & (UINT32_C(1) << j))
+					{
+						if (!k)
+							OK = true;
+					}
 				
 					// Do not own key, see if flashing
 					else if (k == 1)
