@@ -2192,7 +2192,7 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 
 #define RBSPACKEDMAXWAITBLOCK			64		// Max blocks in queue
 #define RBSPACKEDMAXWAITBYTES			5120	// Max bytes in queue
-#define RBSPACKEDZLIBLEVEL				5		// Zlib compression level
+#define RBSPACKEDZLIBLEVEL				9		// Zlib compression level
 #define RBSPACKEDZLIBCHUNK		RBSPACKEDMAXWAITBYTES + 1024
 
 /* DS_RBSPackedData_t -- Reliable transport stream data */

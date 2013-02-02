@@ -1162,6 +1162,7 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 {
 	int32_t i;
+	P_XGSVariable_t* Var;
 	
 	/* Encode */
 	// Base
@@ -1182,6 +1183,36 @@ static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 	// Record
 	D_BSRecordBlock(a_Str);
 	
+	/* Write Vars */
+	for (i = 0; i <= PEXGSNUMBITIDS; i++)
+	{
+		D_BSBaseBlock(a_Str, "GVAR");
+		
+		// End of list
+		if (i == PEXGSNUMBITIDS)
+			D_BSwu8(a_Str, 0);
+		
+		// Encode single variable
+		else
+		{
+			Var = P_XGSVarForBit(i);
+			
+			// Illegal Var? Woops!
+			if (!Var)
+				D_BSwu8(a_Str, 2);
+			
+			// Write variable data
+			else
+			{
+				D_BSwu8(a_Str, 1);
+				D_BSwu32(a_Str, Var->BitID);
+				D_BSwi32(a_Str, (Var->WasSet ? Var->ActualVal : Var->DefaultVal));
+			}
+		}
+		
+		D_BSRecordBlock(a_Str);
+	}
+	
 	/* Success! */
 	return true;
 }
@@ -1190,6 +1221,7 @@ static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 {
 	int32_t i, n;
+	P_XGSVariable_t* Var;
 	
 	/* Expect "GSTT" */
 	if (!PS_Expect(a_Str, "GSTT"))
@@ -1206,6 +1238,36 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 	bodyqueslot = D_BSri32(a_Str);
 	for (i = 0; i < n; i++)
 		bodyque[i] = (void*)((intptr_t)D_BSri32(a_Str));
+	
+	/* Read Vars */
+	for (;;)
+	{
+		// Expect GVAR
+		if (!PS_Expect(a_Str, "GVAR"))
+			return false;
+		
+		// Read Var Code
+		i = D_BSru8(a_Str);
+		
+		// End of vars?
+		if (i == 0)
+			break;
+		
+		// Illegal?
+		else if (i == 2)
+			continue;
+		
+		// Standard var
+		else
+		{
+			i = D_BSru32(a_Str);
+			n = D_BSri32(a_Str);
+			
+			// Get var
+			Var = P_XGSVarForBit(n);
+			P_XGSSetValue(true, i, n);
+		}
+	}
 	
 	/* Success! */
 	return true;
