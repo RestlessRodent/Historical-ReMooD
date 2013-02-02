@@ -2324,12 +2324,19 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 				CmdP = &Data->NewCmds[p];
 				LastP = &Data->OldCmds[p];
 				
+#if 1
+				// Only record for players in the game
+				if (p != 0 && p != MAXPLAYERS)
+					if (!playeringame[p])
+						continue;
+#else
 				// In game?
 				u8 = D_BSru8(Data->CBs);
 				
 				// Do not read if there is no point
 				if (!u8)
 					continue;
+#endif
 		
 				// Read Control Type
 				u8 = D_BSru8(Data->CBs);
@@ -2446,6 +2453,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 	G_ReMooDDemoData_t* Data;
 	int32_t p, i;
 	uint8_t u8;
+	uint16_t u16;
 	ticcmd_t* CmdP, *LastP;
 	uint16_t DiffBits;
 	
@@ -2466,6 +2474,12 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 		CmdP = &Data->NewCmds[p];
 		LastP = &Data->OldCmds[p];
 		
+#if 1
+		// Do not write tics for players not playing
+		if (p != 0 && p != MAXPLAYERS)
+			if (!playeringame[p])
+				continue;
+#else
 		// In game?
 		if (p < MAXPLAYERS)
 			if (playeringame[p])
@@ -2481,6 +2495,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 		// Do not write if there is no point
 		if (!u8)
 			continue;
+#endif
 		
 		// Write Control Data
 		D_BSwu8(Data->CBs, CmdP->Ctrl.Type);
