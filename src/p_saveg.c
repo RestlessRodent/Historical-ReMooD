@@ -60,8 +60,8 @@
 *** FUNCTIONS ***
 ****************/
 
-bool_t P_SaveToStream(D_BS_t* const a_Str, const bool_t a_Compress);
-bool_t P_LoadFromStream(D_BS_t* const a_Str);
+bool_t P_SaveToStream(D_BS_t* const a_Str);
+bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay);
 
 /* CLC_SaveGame() -- Saves the game */
 static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
@@ -104,15 +104,27 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 {
 	bool_t OK = false;
 	D_BS_t* BS = D_BSCreateFileStream(ExtFileName, DRBSSF_OVERWRITE);
+	D_BS_t* CS;
 	
 	/* Failed? */
 	if (!BS)
 		return false;
 	
+	/* Create Compressed Stream */
+	CS = D_BSCreatePackedStream(BS);
+	
+	// Failed?
+	if (!CS)
+	{
+		D_BSCloseStream(BS);
+		return false;
+	}
+		
 	/* Save */
-	OK = P_SaveToStream(BS, true);
+	OK = P_SaveToStream(CS);
 	
 	// Close
+	D_BSCloseStream(CS);
 	D_BSCloseStream(BS);
 	
 	return OK;
@@ -123,15 +135,27 @@ bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFil
 {
 	bool_t OK = false;
 	D_BS_t* BS = D_BSCreateFileStream(ExtFileName, DRBSSF_READONLY);
+	D_BS_t* CS;
 	
 	/* Failed? */
 	if (!BS)
 		return false;
 	
+	/* Create Compressed Stream */
+	CS = D_BSCreatePackedStream(BS);
+	
+	// Failed?
+	if (!CS)
+	{
+		D_BSCloseStream(BS);
+		return false;
+	}
+		
 	/* Load */
-	OK = P_LoadFromStream(BS);
+	OK = P_LoadFromStream(BS, false);
 	
 	// Close
+	D_BSCloseStream(CS);
 	D_BSCloseStream(BS);
 	
 	return OK;
@@ -1096,29 +1120,13 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 /*****************************************************************************/
 
 /* P_SaveToStream() -- Save to stream */
-bool_t P_SaveToStream(D_BS_t* const a_Str, const bool_t a_Compress)
+bool_t P_SaveToStream(D_BS_t* const a_Str)
 {
-	bool_t OK;
-	D_BS_t* CB;
-	
-	/* Create Compressed Stream */
-	if (!a_Compress)
-		CB = a_Str;
-	else
-		CB = D_BSCreatePackedStream(a_Str);
-	
-	// Failed?
-	if (!CB)
-		return false;
-	
 	/* Network State */
-	PS_SaveDummy(CB, false);
-	PS_SaveNetState(CB);
-	PS_SavePlayers(CB);
-	PS_SaveDummy(CB, true);
-	
-	/* Close */
-	D_BSCloseStream(CB);
+	PS_SaveDummy(a_Str, false);
+	PS_SaveNetState(a_Str);
+	PS_SavePlayers(a_Str);
+	PS_SaveDummy(a_Str, true);
 	
 	// All done
 	return true;
@@ -1127,45 +1135,37 @@ bool_t P_SaveToStream(D_BS_t* const a_Str, const bool_t a_Compress)
 /*****************************************************************************/
 
 /* P_LoadFromStream() -- Load from stream */
-bool_t P_LoadFromStream(D_BS_t* const a_Str)
+bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 {
 	bool_t OK;
-	D_BS_t* CB;
 	
 	/* Determine how loading is to be handled */
 	// If we are the server or playing solo, we want to disconnect dropping all
 	// other players from the game. However, if we are a connecting client we
 	// do not want to disconnect.
-	if (
-		// Playing Demo or on Title Screen
-		(demoplayback || gamestate == GS_DEMOSCREEN) ||
+	// However, an option passed to the game can say to not disconnect, i.e.
+	// such as when playing a demo or joining a netgame.
+	if (!a_DemoPlay)
+		if (
+			// Playing Demo or on Title Screen
+			(demoplayback || gamestate == GS_DEMOSCREEN) ||
 		
-		// We are the server
-		(D_XNetIsServer())
-		)
-		D_XNetDisconnect(false);
+			// We are the server
+			(D_XNetIsServer())
+			)
+			D_XNetDisconnect(false);
 	
 	// Switch to the WFGS screen
 	gamestate = GS_WAITINGPLAYERS;
-	
-	/* Create Compressed Stream */
-	CB = D_BSCreatePackedStream(a_Str);
-	
-	// Failed?
-	if (!CB)
-		return false;
 	
 	/* Clear level before loading */
 	P_ExClearLevel();
 	
 	/* Network State */
-	PS_LoadDummy(CB, false);
-	PS_LoadNetState(CB);
-	PS_LoadPlayers(CB);
-	PS_LoadDummy(CB, true);
-	
-	/* Close */
-	D_BSCloseStream(CB);
+	PS_LoadDummy(a_Str, false);
+	PS_LoadNetState(a_Str);
+	PS_LoadPlayers(a_Str);
+	PS_LoadDummy(a_Str, true);
 	
 	/* Handle Reference Links (if any) */
 	

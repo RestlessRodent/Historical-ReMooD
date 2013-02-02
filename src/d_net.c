@@ -676,8 +676,8 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	R_ExecuteSetViewSize();
 	
 	/* Savegame into demo */
-	if (demorecording)
-		G_EncodeSaveGame();
+	//if (demorecording)
+	//	G_EncodeSaveGame();
 }
 
 /* D_XNetConnect() -- Connects to server */

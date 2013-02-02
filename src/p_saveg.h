@@ -60,8 +60,8 @@ bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, bool
 
 extern uint8_t* save_p;
 
-bool_t P_SaveToStream(D_BS_t* const a_Str, const bool_t a_Compress);
-bool_t P_LoadFromStream(D_BS_t* const a_Str);
+bool_t P_SaveToStream(D_BS_t* const a_Str);
+bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay);
 
 #endif
 

@@ -44,6 +44,7 @@
 #include "r_main.h"
 #include "d_main.h"
 #include "p_local.h"
+#include "p_saveg.h"
 
 /**************
 *** GLOBALS ***
@@ -2425,7 +2426,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 		
 		// Save Game Intro
 		else if (D_BSCompareHeader(Header, "DSAV"))
-			P_LoadFromStream(Data->CBs);
+			P_LoadFromStream(Data->CBs, true);
 		
 		// Unknown -- Report problem
 		else
@@ -3320,7 +3321,7 @@ void G_EncodeSaveGame(void)
 			
 			// Actually save game now
 				// Don't save compressed (demo is already compressed)
-			P_SaveToStream(l_RecDemo->BSs, false);
+			P_SaveToStream(l_RecDemo->BSs);
 		}
 }
 
