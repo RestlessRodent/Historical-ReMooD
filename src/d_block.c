@@ -2362,7 +2362,7 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	/* Recalculate needed size (in case of flush) */
 	SizeLeft = &PackData->OutBuf[PackData->TransSize] - PackData->OutAt;
 	
-	/* WAY to big to fit? */
+	/* WAY too big to fit? */
 	if (SizeNeeded >= SizeLeft)
 	{
 		// Clone block into destination

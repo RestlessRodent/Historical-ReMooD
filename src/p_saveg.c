@@ -60,7 +60,7 @@
 *** FUNCTIONS ***
 ****************/
 
-bool_t P_SaveToStream(D_BS_t* const a_Str);
+bool_t P_SaveToStream(D_BS_t* const a_Str, const bool_t a_Compress);
 bool_t P_LoadFromStream(D_BS_t* const a_Str);
 
 /* CLC_SaveGame() -- Saves the game */
@@ -110,7 +110,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 		return false;
 	
 	/* Save */
-	OK = P_SaveToStream(BS);
+	OK = P_SaveToStream(BS, true);
 	
 	// Close
 	D_BSCloseStream(BS);
@@ -417,10 +417,11 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 /*****************************************************************************/
 
 /* PS_SaveDummy() -- Saves dummy data */
-static void PS_SaveDummy(D_BS_t* const a_Str)
+// Save Header that is
+static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 {
 	/* Base */
-	D_BSBaseBlock(a_Str, "DUMY");
+	D_BSBaseBlock(a_Str, "SAVG");
 	
 	/* Encode */
 	
@@ -429,10 +430,11 @@ static void PS_SaveDummy(D_BS_t* const a_Str)
 }
 
 /* PS_LoadDummy() -- Loads dummy data */
-static bool_t PS_LoadDummy(D_BS_t* const a_Str)
+// Save Header that is
+static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 {	
 	/* Expect "NSTA" */
-	if (!PS_Expect(a_Str, "DUMY"))
+	if (!PS_Expect(a_Str, "SAVG"))
 		return false;
 	
 	/* Decode */
@@ -728,7 +730,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 /* PS_SavePlayers() -- Saves player data */
 static void PS_SavePlayers(D_BS_t* const a_Str)
 {
-	int32_t i, j;
+	int32_t i, j, k;
 	player_t* This;
 		
 	/* Encode */
@@ -777,8 +779,20 @@ static void PS_SavePlayers(D_BS_t* const a_Str)
 		for (j = 0; j < MAXPLAYERS; j++)
 			D_BSwu16(a_Str, This->frags[j]);
 		D_BSwi32(a_Str, This->readyweapon);
+		if (This->readyweapon >= 0)
+			D_BSws(a_Str, wpnlev1info[This->readyweapon]->ClassName);
+		else
+			D_BSwu8(a_Str, 0);
 		D_BSwi32(a_Str, This->pendingweapon);
+		if (This->pendingweapon >= 0)
+			D_BSws(a_Str, wpnlev1info[This->pendingweapon]->ClassName);
+		else
+			D_BSwu8(a_Str, 0);
 		D_BSwi32(a_Str, This->DeadWeapon);
+		if (This->DeadWeapon >= 0)
+			D_BSws(a_Str, wpnlev1info[This->DeadWeapon]->ClassName);
+		else
+			D_BSwu8(a_Str, 0);
 		D_BSwu32(a_Str, NUMWEAPONS);
 		D_BSwu32(a_Str, NUMAMMO);
 		for (j = 0; j < NUMWEAPONS; j++)
@@ -860,7 +874,12 @@ static void PS_SavePlayers(D_BS_t* const a_Str)
 		D_BSwu32(a_Str, This->FraggerID);
 		D_BSwcu64(a_Str, This->SuicideDelay);
 		for (j = 0; j < 2; j++)
+		{
 			D_BSwu32(a_Str, This->KeyCards[j]);
+			
+			for (k = 0; k < 32; k++)
+				D_BSwu8(a_Str, This->KeyFlash[j][k]);
+		}
 		
 		// Record
 		D_BSRecordBlock(a_Str);
@@ -926,9 +945,28 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 		This->addfrags = D_BSru16(a_Str);
 		for (j = 0; j < MAXPLAYERS; j++)
 			This->frags[j] = D_BSru16(a_Str);
+			
+		// Ready Weapon
 		This->readyweapon = D_BSri32(a_Str);
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		wi = INFO_GetWeaponByName(Buf);
+		if (wi < NUMWEAPONS)
+			This->readyweapon = wi;
+			
+		// Pending weapon
 		This->pendingweapon = D_BSri32(a_Str);
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		wi = INFO_GetWeaponByName(Buf);
+		if (wi < NUMWEAPONS)
+			This->pendingweapon = wi;
+		
+		// Dead weapon
 		This->DeadWeapon = D_BSri32(a_Str);
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		wi = INFO_GetWeaponByName(Buf);
+		if (wi < NUMWEAPONS)
+			This->DeadWeapon = wi;
+		
 		mw = D_BSru32(a_Str);
 		ma = D_BSru32(a_Str);
 		for (j = 0; j < mw; j++)
@@ -1025,7 +1063,11 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 		This->FraggerID = D_BSru32(a_Str);
 		This->SuicideDelay = D_BSrcu64(a_Str);
 		for (j = 0; j < 2; j++)
+		{
 			This->KeyCards[j] = D_BSru32(a_Str);
+			for (n = 0; n < 32; n++)
+				This->KeyFlash[j][n] = D_BSru8(a_Str);
+		}
 	}
 	
 	/* Success! */
@@ -1054,22 +1096,26 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 /*****************************************************************************/
 
 /* P_SaveToStream() -- Save to stream */
-bool_t P_SaveToStream(D_BS_t* const a_Str)
+bool_t P_SaveToStream(D_BS_t* const a_Str, const bool_t a_Compress)
 {
 	bool_t OK;
 	D_BS_t* CB;
 	
 	/* Create Compressed Stream */
-	CB = D_BSCreatePackedStream(a_Str);
+	if (!a_Compress)
+		CB = a_Str;
+	else
+		CB = D_BSCreatePackedStream(a_Str);
 	
 	// Failed?
 	if (!CB)
 		return false;
 	
 	/* Network State */
-	PS_SaveDummy(a_Str);
-	PS_SaveNetState(a_Str);
-	PS_SavePlayers(a_Str);
+	PS_SaveDummy(CB, false);
+	PS_SaveNetState(CB);
+	PS_SavePlayers(CB);
+	PS_SaveDummy(CB, true);
 	
 	/* Close */
 	D_BSCloseStream(CB);
@@ -1113,9 +1159,10 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str)
 	P_ExClearLevel();
 	
 	/* Network State */
-	PS_LoadDummy(a_Str);
-	PS_LoadNetState(a_Str);
-	PS_LoadPlayers(a_Str);
+	PS_LoadDummy(CB, false);
+	PS_LoadNetState(CB);
+	PS_LoadPlayers(CB);
+	PS_LoadDummy(CB, true);
 	
 	/* Close */
 	D_BSCloseStream(CB);

@@ -1806,6 +1806,8 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	/* Read DEMO block? */
 	memset(Header, 0, sizeof(Header));
 	D_BSPlayBlock(Data->CBs, Header);
+	
+	// Header
 	if (D_BSCompareHeader(Header, "REDM"))
 	{
 		// Read Host ID
@@ -2420,6 +2422,10 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 		// End of demo
 		else if (D_BSCompareHeader(Header, "EDMO"))
 			Data->EndDemo = true;
+		
+		// Save Game Intro
+		else if (D_BSCompareHeader(Header, "DSAV"))
+			P_LoadFromStream(Data->CBs);
 		
 		// Unknown -- Report problem
 		else
@@ -3304,5 +3310,17 @@ bool_t G_GetDemoExplicit(void)
 /* G_EncodeSaveGame() -- Encodes savegame into demo (to be loaded) */
 void G_EncodeSaveGame(void)
 {
+	/* Only if recording a demo with a block stream */
+	if (demorecording && l_RecDemo)
+		if (l_RecDemo->BSs)
+		{
+			// Save Marker
+			D_BSBaseBlock(l_RecDemo->BSs, "DSAV");
+			D_BSRecordBlock(l_RecDemo->BSs);
+			
+			// Actually save game now
+				// Don't save compressed (demo is already compressed)
+			P_SaveToStream(l_RecDemo->BSs, false);
+		}
 }
 
