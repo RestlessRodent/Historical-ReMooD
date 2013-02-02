@@ -375,8 +375,6 @@ typedef struct
 void EV_OpenDoor(int sectag, int speed, int wait_time);
 void EV_CloseDoor(int sectag, int speed);
 
-int EV_DoLockedDoor(line_t* line, vldoor_e type, mobj_t* thing, fixed_t speed);
-
 void T_VerticalDoor(vldoor_t* door);
 vldoor_t* P_SpawnDoorCloseIn(sector_t* sec, const uint32_t a_Tics, const uint32_t a_Type);
 void P_SpawnDoorCloseIn30(sector_t* sec);
@@ -1317,6 +1315,8 @@ void P_InitAmbientSound(void);
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_DoLockedDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_DoFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 

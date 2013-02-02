@@ -274,57 +274,6 @@ void T_VerticalDoor(vldoor_t* door)
 }
 
 //
-// EV_DoLockedDoor
-// Move a locked door up/down
-//
-// SoM: Removed the player checks at every different color door (checking to make sure 'p' is
-// not NULL) because you only need to do that once.
-int EV_DoLockedDoor(line_t* line, vldoor_e type, mobj_t* thing, fixed_t speed)
-{
-	player_t* p;
-	
-	p = thing->player;
-	
-	if (!p)
-		return 0;
-		
-	switch (line->special)
-	{
-		case 99:				// Blue Lock
-		case 133:
-			if (((!(p->cards & it_bluecard) && !(p->cards & it_blueskull))))
-			{
-				//p->message = PD_BLUEO;
-				S_StartSound(&p->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/200: killough's idea
-				return 0;
-			}
-			break;
-			
-		case 134:				// Red Lock
-		case 135:
-			if (((!(p->cards & it_redcard) && !(p->cards & it_redskull))))
-			{
-				//p->message = PD_REDO;
-				S_StartSound(&p->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/200: killough's idea
-				return 0;
-			}
-			break;
-			
-		case 136:				// Yellow Lock
-		case 137:
-			if (((!(p->cards & it_yellowcard) && !(p->cards & it_yellowskull))))
-			{
-				//p->message = PD_YELLOWO;
-				S_StartSound(&p->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/200: killough's idea
-				return 0;
-			}
-			break;
-	}
-	
-	return EV_DoDoor(line, type, speed);
-}
-
-//
 // EV_OpenDoor
 // Generic function to open a door (used by FraggleScript)
 

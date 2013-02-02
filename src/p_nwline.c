@@ -39,6 +39,7 @@
 #include "p_local.h"
 #include "p_inter.h"
 #include "p_demcmp.h"
+#include "m_random.h"
 
 /****************
 *** CONSTANTS ***
@@ -218,6 +219,7 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 	return true;
 }
 
+
 /* EV_SpawnScroller() -- Spawns a floor scroller */
 // 1: scoll_t::type parameter
 // 2: Scrolling speed is static
@@ -325,6 +327,76 @@ bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object,
 	return rtn;
 }
 
+/* EV_DoLockedDoor() -- Opens Locked Door */
+// 1: Lock
+// 2: Door Type
+// 3: Speed
+bool_t EV_DoLockedDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	player_t* player;
+	P_PMType_t MsgType;
+	const char** MsgRef;
+	
+	/* Check */
+	if (!a_Object)
+		return false;
+	
+	/* Check for locked door */
+	player = a_Object->player;
+	
+	if (a_ArgC >= 1 && a_ArgV[0])
+	{
+		// Not a player?
+		if (!player)
+			return false;
+		
+		// Check if player has lacks keys
+		if (((player->KeyCards[0] | player->KeyCards[1]) & a_ArgV[0]) != a_ArgV[0])
+		{
+			// Off sound on door
+			S_StartSound(&player->mo->NoiseThinker, sfx_oof);
+			
+			// Setup Message Info
+				// Red
+			if (a_ArgV[0] & INFO_REDKEYCOMPAT)
+			{
+				MsgType = PPM_REDLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_REDK);
+			}
+				
+				// Yellow
+			else if (a_ArgV[0] & INFO_YELLOWKEYCOMPAT)
+			{
+				MsgType = PPM_YELLOWLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_YELLOWK);
+			}
+				
+				// Blue
+			else if (a_ArgV[0] & INFO_BLUEKEYCOMPAT)
+			{
+				MsgType = PPM_BLUELOCK;
+				MsgRef = DS_GetStringRef(DSTR_DEP_PD_BLUEK);
+			}
+				
+				// Unknown
+			else
+			{
+				MsgType = PPM_GENLOCK;
+				MsgRef = DS_GetStringRef(DSTR_DNWLINE_LOCKEDDOOR);
+			}
+			
+			// Send message to player and flash in status bar
+			P_PlayerMessage(MsgType, a_Object, NULL, MsgRef);
+			P_FlashKeys(player, true, a_ArgV[0], a_ArgV[0]);
+			
+			// Do nothing
+			return false;
+		}
+	}
+	
+	return EV_DoDoor(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, a_ArgC - 1, a_ArgV + 1);
+}
+
 /* EV_ExitLevel() -- Exits the level */
 // 1: Secret Exit
 bool_t EV_ExitLevel(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
@@ -340,6 +412,9 @@ bool_t EV_ExitLevel(line_t* const a_Line, const int a_Side, mobj_t* const a_Obje
 	
 	/* Now exit the level */
 	G_ExitLevel(a_ArgV[0], a_Object, NULL);
+	
+	/* Line always works */
+	return true;
 }
 
 /* EV_DoFloor() -- Moves floor */
@@ -828,6 +903,21 @@ static const P_NLTrig_t c_LineTrigs[] =
 		// Gun
 	{46, 0, LAT_SHOOT, PNLF_RETRIG | PNLF_CLEARNOTBOOM | PNLF_MONSTER, EV_DoDoor, 2,
 		{dooropen, VDOORSPEED}},
+	
+	// Locked Doors (EV_DoLockedDoor)
+		// Switch
+	{99, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoLockedDoor, 5,
+		{INFO_BLUEKEYCOMPAT, blazeOpen, 4 * VDOORSPEED}},
+	{133, 0, LAT_SWITCH, 0, EV_DoLockedDoor, 5,
+		{INFO_BLUEKEYCOMPAT, blazeOpen, 4 * VDOORSPEED}},
+	{134, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoLockedDoor, 5,
+		{INFO_REDKEYCOMPAT, blazeOpen, 4 * VDOORSPEED}},
+	{135, 0, LAT_SWITCH, 0, EV_DoLockedDoor, 5,
+		{INFO_REDKEYCOMPAT, blazeOpen, 4 * VDOORSPEED}},
+	{136, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoLockedDoor, 5,
+		{INFO_YELLOWKEYCOMPAT, blazeOpen, 4 * VDOORSPEED}},
+	{137, 0, LAT_SWITCH, 0, EV_DoLockedDoor, 5,
+		{INFO_YELLOWKEYCOMPAT, blazeOpen, 4 * VDOORSPEED}},
 	
 	// Level Exit
 		// Switch
