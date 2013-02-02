@@ -196,6 +196,26 @@ static int32_t PS_GetThinkerID(thinker_t* const a_Thinker)
 	return -2;
 }
 
+/* PS_GetThinkerFromID() -- Returns thinker_t of ID */
+static thinker_t* PS_GetThinkerFromID(const int32_t a_ID)
+{
+	thinker_t* Rover;
+	int32_t i;
+	
+	/* Invalid or not in chain */
+	if (a_ID < 0)
+		return NULL;
+	
+	/* Thinker Loop */
+	for (i = 0, Rover = thinkercap.next; Rover != &thinkercap; Rover = Rover->next, i++)
+		// Is this one?
+		if (i == a_ID)
+			return Rover;
+	
+	/* Not found */
+	return NULL;
+}
+
 /* PS_LoadUnloadStateP() -- Saves/Restores Camera */
 static void PS_StateP(D_BS_t* const a_Str, const bool_t a_Write, PI_state_t** const a_StateP)
 {
@@ -448,6 +468,13 @@ static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 	D_BSBaseBlock(a_Str, "SAVG");
 	
 	/* Encode */
+	// Version
+	D_BSwu8(a_Str, VERSION);
+	D_BSwu8(a_Str, REMOOD_MAJORVERSION);
+	D_BSwu8(a_Str, REMOOD_MINORVERSION);
+	D_BSwu8(a_Str, REMOOD_RELEASEVERSION);
+	D_BSws(a_Str, REMOOD_VERSIONCODESTRING);
+	D_BSws(a_Str, REMOOD_URL);
 	
 	/* Record */
 	D_BSRecordBlock(a_Str);
@@ -456,15 +483,38 @@ static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 /* PS_LoadDummy() -- Loads dummy data */
 // Save Header that is
 static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
-{	
+{
+#define BUFSIZE 64
+	uint8_t Ver[4];
+	char Buf[BUFSIZE];
+	int i;
+	
 	/* Expect "NSTA" */
 	if (!PS_Expect(a_Str, "SAVG"))
 		return false;
 	
 	/* Decode */
+	// Only bother if not the tail
+	if (!a_Tail)
+	{
+		// Read Version
+		for (i = 0; i < 4; i++)
+			Ver[i] = D_BSru8(a_Str);
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		
+		// Print Version
+		CONL_PrintF("Loading %hhu.%hhu%c \"%s\" savegame.\n",
+				Ver[1], Ver[2], Ver[3], Buf
+			);
+		
+		// Read URL
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		CONL_PrintF("See: %s\n", Buf);
+	}
 	
 	/* Success! */
 	return true;
+#undef BUFSIZE
 }
 
 /*---------------------------------------------------------------------------*/
@@ -602,8 +652,15 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		
 		D_BSrs(a_Str, NameBuf, MAXPLAYERNAME);
 		
+		// Playing a demo back, do not assign to screen
+		if (demoplayback)
+		{
+			XPlay->Flags &= ~(DXPF_SERVER | DXPF_LOCAL);
+			XPlay->Flags |= DXPF_DEMO;
+		}
+		
 		// Client, and this is our XPlayer
-		if (OurHost != 0 && OurHost == XPlay->HostID)
+		else if (OurHost != 0 && OurHost == XPlay->HostID)
 		{
 			XPlay->Flags &= ~DXPF_SERVER;
 			XPlay->Flags |= DXPF_LOCAL;
@@ -922,7 +979,7 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 	PI_ammoid_t ai;
 	char Buf[BUFSIZE];
 	
-	/* Expect "NSTA" */
+	/* Expect "PLAY" */
 	if (!PS_Expect(a_Str, "PLAY"))
 		return false;
 	
@@ -1101,6 +1158,59 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 
 /*---------------------------------------------------------------------------*/
 
+/* PS_SaveGameState() -- Saves game state */
+static bool_t PS_SaveGameState(D_BS_t* const a_Str)
+{
+	int32_t i;
+	
+	/* Encode */
+	// Base
+	D_BSBaseBlock(a_Str, "GSTT");
+	
+	// Write
+	D_BSwi32(a_Str, gamestate);
+	D_BSwi32(a_Str, gameaction);
+	D_BSwu64(a_Str, gametic);
+	D_BSwu32(a_Str, g_CoreGame);
+	D_BSwu32(a_Str, g_IWADFlags);
+	
+	D_BSwu8(a_Str, BODYQUESIZE);
+	D_BSwi32(a_Str, bodyqueslot);
+	for (i = 0; i < BODYQUESIZE; i++)
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)bodyque[i]));
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Success! */
+	return true;
+}
+
+/* PS_LoadGameState() -- Loads the game state */
+static bool_t PS_LoadGameState(D_BS_t* const a_Str)
+{
+	int32_t i, n;
+	
+	/* Expect "GSTT" */
+	if (!PS_Expect(a_Str, "GSTT"))
+		return false;
+	
+	/* Read */
+	gamestate = D_BSri32(a_Str);
+	gameaction = D_BSri32(a_Str);
+	gametic = D_BSru64(a_Str);
+	g_CoreGame = D_BSru32(a_Str);
+	g_IWADFlags = D_BSru32(a_Str);
+	
+	n = D_BSru8(a_Str);
+	bodyqueslot = D_BSri32(a_Str);
+	for (i = 0; i < n; i++)
+		bodyque[i] = (void*)((intptr_t)D_BSri32(a_Str));
+	
+	/* Success! */
+	return true;
+}
+
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
@@ -1126,6 +1236,7 @@ bool_t P_SaveToStream(D_BS_t* const a_Str)
 	PS_SaveDummy(a_Str, false);
 	PS_SaveNetState(a_Str);
 	PS_SavePlayers(a_Str);
+	PS_SaveGameState(a_Str);
 	PS_SaveDummy(a_Str, true);
 	
 	// All done
@@ -1138,6 +1249,7 @@ bool_t P_SaveToStream(D_BS_t* const a_Str)
 bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 {
 	bool_t OK;
+	int32_t i;
 	
 	/* Determine how loading is to be handled */
 	// If we are the server or playing solo, we want to disconnect dropping all
@@ -1165,9 +1277,25 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	PS_LoadDummy(a_Str, false);
 	PS_LoadNetState(a_Str);
 	PS_LoadPlayers(a_Str);
+	PS_LoadGameState(a_Str);
 	PS_LoadDummy(a_Str, true);
 	
 	/* Handle Reference Links (if any) */
+	// Players
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+		{
+			players[i].mo = PS_GetThinkerFromID((intptr_t)players[i].mo);
+			players[i].attacker = PS_GetThinkerFromID((intptr_t)players[i].attacker);
+			players[i].rain1 = PS_GetThinkerFromID((intptr_t)players[i].rain1);
+			players[i].rain2 = PS_GetThinkerFromID((intptr_t)players[i].rain2);
+			players[i].LastBFGBall = PS_GetThinkerFromID((intptr_t)players[i].LastBFGBall);
+			players[i].Attackee = PS_GetThinkerFromID((intptr_t)players[i].Attackee);
+		}
+	
+	// Body Queue
+	for (i = 0; i < BODYQUESIZE; i++)
+		bodyque[i] = PS_GetThinkerFromID((intptr_t)bodyque[i]);
 	
 	/* Done! */
 	return OK;

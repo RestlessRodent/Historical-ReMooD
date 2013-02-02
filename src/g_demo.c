@@ -3041,6 +3041,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	G_CurrentDemo_t* Demo;
 	char* At;
 	const G_DemoFactory_t* Factory;
+	int i;
 	
 	/* Check */
 	if (!defdemoname)
@@ -3086,9 +3087,11 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	/* If not a server playing demos (demoplayback server) */
 	// We need to switch to a server state before demos can be played.
 	if (!l_DemoServer)
-	{
 		D_XNetDisconnect(true);
-	}
+	
+	/* Reset Spectating watchers */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		g_Splits[i].Console = g_Splits[i].Display = -1;
 	
 	/* Play demo in any factory */
 	Demo = G_DemoPlay(Stream, Factory);

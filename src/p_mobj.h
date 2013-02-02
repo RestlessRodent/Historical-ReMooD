@@ -516,13 +516,6 @@ typedef struct mobj_s
 	// WARNING : new field are not automaticely added to save game
 	struct ffloor_s* ChildFloor;
 	
-	/*** EXTENDED OBJECT DATA ***/
-	// Flags
-	uint32_t XFlagsA;
-	uint32_t XFlagsB;
-	uint32_t XFlagsC;
-	uint32_t XFlagsD;
-	
 	/*** RMOD EXTENDED SUPPORT ***/
 	// New Flags
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
