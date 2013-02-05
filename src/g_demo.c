@@ -1975,17 +1975,6 @@ bool_t G_DEMO_ReMooD_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd
 bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd)
 {
 	G_ReMooDDemoData_t* Data;
-#if 0
-	char Header[5];
-	ticcmd_t* Target;
-	
-	tic_t ThisTic, LastTic;
-	uint8_t PrIndex, RealPrIndex, u8;
-	uint16_t u16, DiffBits;
-	uint32_t PosMask, RealPosMask;
-	int i, j;
-	bool_t ReadOne;
-#endif
 	
 	/* Get Data */
 	Data = a_Current->Data;
@@ -1994,156 +1983,8 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	if (!Data)
 		return false;
 
-#if 0
-	/* Load New Commands? */
-	if (gametic != Data->LastTic)
-	{
-		// Load block from stream
-		memset(Header, 0, sizeof(Header));
-		ReadOne = false;
-		while (D_BSPlayBlock(Data->CBs, Header))
-		{
-			// Read something
-			ReadOne = true;
-			
-			// Demo Tic Commands
-			if (D_BSCompareHeader(Header, "DMTC"))
-			{
-				// Always clear commands
-				memset(&Data->NewCmds, 0, sizeof(Data->NewCmds));
-				
-				// Read Tic Info
-				ThisTic = D_BSru64(Data->CBs);
-				LastTic = D_BSru64(Data->CBs);
-				
-				if (ThisTic != gametic)
-					G_DemoProblem(false, DSTR_BADDEMO_SKIPPEDTIC, "%u%u\n", (uint32_t)ThisTic, (uint32_t)gametic);
-				
-				// Read consistency info
-				RealPrIndex = D_BSru8(Data->CBs);
-				PosMask = D_BSru32(Data->CBs);
-				
-				// Double check consistency
-				RealPrIndex = P_GetRandIndex();
-				for (RealPosMask = 0, i = 0; i < MAXPLAYERS; i++)
-					if (playeringame[i])
-						if (players[i].mo)
-							RealPosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
-				
-				// Mismatch?
-				if (PrIndex != RealPrIndex || PosMask != RealPosMask)
-				{
-					if (!Data->Desynced)
-						G_DemoProblem(false, DSTR_BADDEMO_DESYNC, "%u%u%u%08x%08x\n", (uint32_t)ThisTic, PrIndex, RealPrIndex, PosMask, RealPosMask);
-					Data->Desynced = true;
-				}
-				
-				// Read Global Commands
-				Target = &Data->NewCmds[MAXPLAYERS];
-				
-				Target->Ctrl.Type = 1;
-				u16 = D_BSru16(Data->CBs);
-				if (u16)
-					Target->Ext.DataSize = u16;
-
-				for (i = 0; i < u16; i++)
-				{
-					u8 = D_BSru8(Data->CBs);
-					if (i < MAXTCDATABUF)
-						Target->Ext.DataBuf[i] = u8;
-				}
-				
-				// Read Per Player Commands
-				for (i = 0; i < MAXPLAYERS; i++)
-				{
-					// Determine target
-					Target = &Data->NewCmds[i];
-		
-					// Get playeringame status
-					u8 = D_BSru8(Data->CBs);
-		
-					// Not in game, don't bother
-					if (!u8)
-						continue;
-					
-					// Read Timing Code
-					Target->Ctrl.ProgramTic = D_BSru64(Data->CBs);
-					Target->Ctrl.GameTic = D_BSru64(Data->CBs);
-					Target->Ctrl.Ping = D_BSru16(Data->CBs);
-		
-					// Read Diff Bits
-					DiffBits = D_BSru16(Data->CBs);
-		
-					if (DiffBits & DDB_FORWARD)
-						Target->Std.forwardmove = D_BSri8(Data->CBs);
-					if (DiffBits & DDB_SIDE)
-						Target->Std.sidemove = D_BSri8(Data->CBs);
-					if (DiffBits & DDB_ANGLE)
-						Target->Std.angleturn = D_BSri16(Data->CBs);
-					if (DiffBits & DDB_AIMING)
-						Target->Std.aiming = D_BSru16(Data->CBs);
-					if (DiffBits & DDB_BUTTONS)
-						Target->Std.buttons = D_BSru16(Data->CBs);
-					if (DiffBits & DDB_RESETAIM)
-						Target->Std.ResetAim = D_BSru8(Data->CBs);
-					if (DiffBits & DDB_INVENTORY)
-						Target->Std.InventoryBits = D_BSru8(Data->CBs);
-					if (DiffBits & DDB_STATFLAGS)
-						Target->Std.StatFlags = D_BSru32(Data->CBs);
-		
-					if (DiffBits & DDB_WEAPON)
-					{
-						j = 0;
-						do
-						{
-							u8 = D_BSru8(Data->CBs);
-							if (j < MAXTCWEAPNAME)
-								Target->Std.XSNewWeapon[j++] = u8;
-						} while (u8);
-					}
-		
-					// Data bits
-					u16 = D_BSru16(Data->CBs);
-					if (u16)
-						Target->Std.DataSize = u16;
-
-					for (j = 0; j < u16; j++)
-					{
-						u8 = D_BSru8(Data->CBs);
-						if (i < MAXTCDATABUF)
-							Target->Std.DataBuf[j] = u8;
-					}
-				}
-			}
-			
-			// Unknown Header
-			else
-			{
-				// Show error
-				G_DemoProblem(false, DSTR_BADDEMO_UNHANDLEDDATA, "%s\n", Header);
-				break;
-			}
-			
-			// Set new tic
-			Data->LastTic = gametic;
-			
-			// Done
-			break;
-		}
-		
-		// End of demo
-		if (!ReadOne)
-			Data->EndDemo = true;
-	}
-#endif
-	
 	/* Copy Global Commands */
 	memmove(a_Cmd, &Data->NewCmds[MAXPLAYERS], sizeof(ticcmd_t));
-	
-#if 0
-	// Erase global commands (they are not saved)
-	memset(&Data->NewCmds[MAXPLAYERS], 0, sizeof(Data->NewCmds[MAXPLAYERS]));
-#endif
 	
 	/* Success! */
 	return true;
@@ -2154,133 +1995,12 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 {
 	G_ReMooDDemoData_t* Data;
 	
-#if 0
-	uint16_t DiffBits;
-	int i, j;
-	uint32_t PosMask;
-	uint8_t PRi;
-	ticcmd_t* Old, *New;
-#endif
-	
 	/* Get Data */
 	Data = a_Current->Data;
 	
 	// Check
 	if (!Data)
 		return false;
-	
-#if 0
-	/* Tic Difference? */
-	if (gametic != Data->LastTic)
-	{
-		// Header
-		D_BSBaseBlock(Data->CBs, "DMTC");
-		
-		// Current Tics
-		D_BSwu64(Data->CBs, gametic);
-		D_BSwu64(Data->CBs, Data->LastTic);
-		
-		// Consistency Info
-		PRi = P_GetRandIndex();
-		for (PosMask = 0, i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i])
-				if (players[i].mo)
-					PosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
-		
-		// Write
-		D_BSwu8(Data->CBs, PRi);
-		D_BSwu32(Data->CBs, PosMask);
-		
-		// Global Commands
-		New = &Data->NewCmds[MAXPLAYERS];
-		D_BSwu16(Data->CBs, New->Ext.DataSize);
-		for (i = 0; i < New->Ext.DataSize; i++)
-			D_BSwu8(Data->CBs, New->Ext.DataBuf[i]);
-		
-		// For each player
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			// Write playeringame status
-			D_BSwu8(Data->CBs, playeringame[i]);
-		
-			// Don't write tics for players not in the game
-			if (!playeringame[i])
-				continue;
-			
-			// Get Bit Differences
-			New = &Data->NewCmds[i];
-			DiffBits = 0;
-			
-			// Write Timing Code
-			D_BSwu64(Data->CBs, New->Ctrl.ProgramTic);
-			D_BSwu64(Data->CBs, New->Ctrl.GameTic);
-			D_BSwu16(Data->CBs, New->Ctrl.Ping);
-		
-			// Calculate
-			if (New->Std.forwardmove)
-				DiffBits |= DDB_FORWARD;
-			if (New->Std.sidemove)
-				DiffBits |= DDB_SIDE;
-			if (New->Std.angleturn)
-				DiffBits |= DDB_ANGLE;
-			if (New->Std.aiming)
-				DiffBits |= DDB_AIMING;
-			if (New->Std.buttons)
-				DiffBits |= DDB_BUTTONS;
-			if (New->Std.BaseAngleTurn)
-				DiffBits |= DDB_BAT;
-			if (New->Std.BaseAiming)
-				DiffBits |= DDB_BAM;
-			if (New->Std.ResetAim)
-				DiffBits |= DDB_RESETAIM;
-			if (New->Std.InventoryBits)
-				DiffBits |= DDB_INVENTORY;
-			if (New->Std.StatFlags)
-				DiffBits |= DDB_STATFLAGS;
-		
-			// Always set weapon
-			DiffBits |= DDB_WEAPON;
-			
-			// Write bits
-			D_BSwu16(Data->CBs, DiffBits);
-	
-			if (DiffBits & DDB_FORWARD)
-				D_BSwi8(Data->CBs, New->Std.forwardmove);
-			if (DiffBits & DDB_SIDE)
-				D_BSwi8(Data->CBs, New->Std.sidemove);
-			if (DiffBits & DDB_ANGLE)
-				D_BSwi16(Data->CBs, New->Std.angleturn);
-			if (DiffBits & DDB_AIMING)
-				D_BSwu16(Data->CBs, New->Std.aiming);
-			if (DiffBits & DDB_BUTTONS)
-				D_BSwu16(Data->CBs, New->Std.buttons);
-			if (DiffBits & DDB_RESETAIM)
-				D_BSwu8(Data->CBs, New->Std.ResetAim);
-			if (DiffBits & DDB_INVENTORY)
-				D_BSwu8(Data->CBs, New->Std.InventoryBits);
-			if (DiffBits & DDB_STATFLAGS)
-				D_BSwu32(Data->CBs, New->Std.StatFlags);
-	
-			if (DiffBits & DDB_WEAPON)
-			{
-				for (j = 0; New->Std.XSNewWeapon[j] && j < MAXTCWEAPNAME; j++)
-					D_BSwu8(Data->CBs, New->Std.XSNewWeapon[j]);
-				D_BSwu8(Data->CBs, 0);
-			}
-	
-			// Data Bits
-			D_BSwu16(Data->CBs, New->Std.DataSize);
-			for (j = 0; j < New->Std.DataSize; j++)
-				D_BSwu8(Data->CBs, New->Std.DataBuf[j]);
-		}
-		
-		// Record
-		D_BSRecordBlock(Data->CBs);
-		
-		// Set new time
-		Data->LastTic = gametic;
-	}
-#endif
 	
 	/* Clone into now commands */
 	memmove(&Data->NewCmds[MAXPLAYERS], a_Cmd, sizeof(ticcmd_t));
@@ -2290,7 +2010,7 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 }
 
 /* G_DEMO_ReMooD_ReadStartTic() -- Read at start of tic */
-bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code)
 {
 	G_ReMooDDemoData_t* Data;
 	char Header[5];
@@ -2312,11 +2032,24 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 	
 	/* Constantly read headers */
 	Header[4] = 0;
-	while (D_BSPlayBlock(Data->CBs, Header))
+	for (;;)
 	{
+		// Read a single block, possibly, and end a demo possibly
+		if (!D_BSPlayBlock(Data->CBs, Header))
+		{
+			Data->EndDemo = true;
+			return true;
+		}
+		
 		// ReMooD Tic Command, opposite of write
 		if (D_BSCompareHeader(Header, "RTIC"))
 		{
+			// Read Sync Code
+			p = D_BSru32(Data->CBs);
+			
+			if (a_Code)
+				*a_Code = p;
+			
 			// Player Handling Loop
 			for (p = 0; p < MAXPLAYERS + 1; p++)
 			{
@@ -2351,9 +2084,11 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 				
 				// Read Timing Counts
 				CmdP->Ctrl.Type = u8;
+#if 0
 				CmdP->Ctrl.ProgramTic = D_BSrcu64(Data->CBs);
 				CmdP->Ctrl.GameTic = D_BSrcu64(Data->CBs);
 				CmdP->Ctrl.Ping = D_BSru16(Data->CBs);
+#endif
 				
 				// Command Only Buffer
 				if (CmdP->Ctrl.Type == 1)
@@ -2448,7 +2183,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_ReMooD_WriteEndTic() -- Written at end of tic */
-bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code)
 {
 	G_ReMooDDemoData_t* Data;
 	int32_t p, i;
@@ -2466,6 +2201,9 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 	
 	/* Begin new tic */
 	D_BSBaseBlock(Data->CBs, "RTIC");
+	
+	/* Write Sync Code */
+	D_BSwu32(Data->CBs, a_Code);
 	
 	/* Handle Command Differences */
 	for (p = 0; p < MAXPLAYERS + 1; p++)
@@ -2499,9 +2237,11 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current)
 		
 		// Write Control Data
 		D_BSwu8(Data->CBs, CmdP->Ctrl.Type);
+#if 0
 		D_BSwcu64(Data->CBs, CmdP->Ctrl.ProgramTic);
 		D_BSwcu64(Data->CBs, CmdP->Ctrl.GameTic);
 		D_BSwu16(Data->CBs, CmdP->Ctrl.Ping);
+#endif
 		
 		// Clear last on specials
 		if (CmdP->Ctrl.Type >= 1)
@@ -3160,7 +2900,7 @@ bool_t G_CheckDemoStatus(void)
 }
 
 /* G_ReadStartTic() -- Reads tic intro */
-void G_ReadStartTic(void)
+void G_ReadStartTic(uint32_t* const a_Code)
 {
 	/* Not Playing Demo? */
 	if (!demoplayback)
@@ -3169,11 +2909,11 @@ void G_ReadStartTic(void)
 	/* Playing Demo? */
 	if (l_PlayDemo)
 		if (l_PlayDemo->Factory->ReadStartTicFunc)
-			l_PlayDemo->Factory->ReadStartTicFunc(l_PlayDemo);
+			l_PlayDemo->Factory->ReadStartTicFunc(l_PlayDemo, a_Code);
 }
 
 /* G_WriteStartTic() -- Writes tic intro */
-void G_WriteStartTic(void)
+void G_WriteStartTic(const uint32_t a_Code)
 {
 	/* Not Recording Demo? */
 	if (!demorecording)
@@ -3182,11 +2922,11 @@ void G_WriteStartTic(void)
 	/* Recording Demo? */
 	if (l_RecDemo)
 		if (l_RecDemo->Factory->WriteStartTicFunc)
-			l_RecDemo->Factory->WriteStartTicFunc(l_RecDemo);
+			l_RecDemo->Factory->WriteStartTicFunc(l_RecDemo, a_Code);
 }
 
 /* G_ReadEndTic() -- Reads tic outro */
-void G_ReadEndTic(void)
+void G_ReadEndTic(uint32_t* const a_Code)
 {
 	/* Not Playing Demo? */
 	if (!demoplayback)
@@ -3195,11 +2935,11 @@ void G_ReadEndTic(void)
 	/* Playing Demo? */
 	if (l_PlayDemo)
 		if (l_PlayDemo->Factory->ReadEndTicFunc)
-			l_PlayDemo->Factory->ReadEndTicFunc(l_PlayDemo);
+			l_PlayDemo->Factory->ReadEndTicFunc(l_PlayDemo, a_Code);
 }
 
 /* G_WriteEndTic() -- Writes tic outro */
-void G_WriteEndTic(void)
+void G_WriteEndTic(const uint32_t a_Code)
 {
 	/* Not Recording Demo? */
 	if (!demorecording)
@@ -3208,7 +2948,7 @@ void G_WriteEndTic(void)
 	/* Recording Demo? */
 	if (l_RecDemo)
 		if (l_RecDemo->Factory->WriteEndTicFunc)
-			l_RecDemo->Factory->WriteEndTicFunc(l_RecDemo);
+			l_RecDemo->Factory->WriteEndTicFunc(l_RecDemo, a_Code);
 }
 
 /* G_ReadDemoGlobalTicCmd() -- Reads global tic command from demo */

@@ -663,6 +663,49 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 
 extern tic_t g_WatchTic;
 
+/* G_CalcSyncCode() -- Calculates the current sync code for the game */
+uint32_t G_CalcSyncCode(void)
+{
+	uint32_t i, Code;
+	
+	/* Init */
+	Code = 0;
+	
+	/* Base */
+	Code |= (uint32_t)(gametic & UINT32_C(0x7FFFFFFF));
+	i = (uint32_t)P_GetRandIndex();
+	Code ^= (i << UINT32_C(24)) | (i);
+	
+	/* Run through players */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Not playing? Ignore
+		if (!playeringame[i])
+			continue;
+		
+		// Flip single bit
+		Code ^= (UINT32_C(1) << (i & UINT32_C(31)));
+		
+		// Position, if object exists and playing
+		if (gamestate == GS_LEVEL)
+		{
+			if (players[i].mo)
+			{
+				Code ^= players[i].mo->x;
+				Code ^= players[i].mo->y;
+				Code ^= players[i].mo->z;
+			}
+		
+			// Otherwise, flip another bit
+			else
+				Code ^= (UINT32_C(1) << ((i + 1) & UINT32_C(31)));
+		}
+	}
+	
+	/* Return generated code */
+	return Code;
+}
+
 //
 // G_Ticker
 // Make ticcmd_ts for the players.
@@ -670,10 +713,10 @@ extern tic_t g_WatchTic;
 void G_Ticker(void)
 {
 	uint32_t i;
-	int buf;
 	ticcmd_t* cmd;
-	tic_t ThisTime;
 	ticcmd_t GlobalCmd;
+	
+	uint32_t NowCode, DemoCode;
 	
 	/* Save game on first tic while recording */
 	if (demorecording)
@@ -684,61 +727,28 @@ void G_Ticker(void)
 	if (g_ResumeMenu > 0)
 		g_ResumeMenu--;
 	
-	// do player reborns if needed
-	if (gamestate == GS_LEVEL)
+	/* Init Code */
+	NowCode = DemoCode = 0;
+		
+	/* Pre-Tic */
+	// Read start of tic before reborns and game actions, because ReadStarTic()
+	// might load a savegame where the action is going to take place.
+	if (demoplayback)
 	{
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (playeringame[i])
-			{
-				if (players[i].playerstate == PST_REBORN)
-				{
-					// Player is on monster's side
-					if (players[i].CounterOpPlayer)
-						P_ControlNewMonster(&players[i]);
-						
-					// Otherwise make player
-					else
-						G_DoReborn(i);
-				}
-				
-				if (players[i].st_inventoryTics)
-					players[i].st_inventoryTics--;
-			}
-		}
+		G_ReadStartTic(&DemoCode);
+		
+		// Check the status of the demo
+		G_CheckDemoStatus();
+		
+		// If there is no demo playing, then return from this func
+		// Otherwise, there will be a false demo desync at the very end of the
+		// demo.
+		if (!demoplayback)
+			return;
 	}
 	
-	// do things to change the game state
-	while (gameaction != ga_nothing)
-		switch (gameaction)
-		{
-			case ga_completed:
-				G_DoCompleted();
-				break;
-				
-			case ga_worlddone:
-				G_DoWorldDone();
-				break;
-				
-			case ga_nothing:
-				break;
-				
-			default:
-				I_Error("gameaction = %d\n", gameaction);
-		}
-		
-	buf = gametic % BACKUPTICS;
-	//buf = D_SyncNetMapTime() % BACKUPTICS;
-	
-	// read/write demo and check turbo cheat
-	ThisTime = gametic;//D_SyncNetMapTime();
-	
-	/* Pre-Tic */
-	if (demoplayback)
-		G_ReadStartTic();
-	
 	if (demorecording)
-		G_WriteStartTic();
+		G_WriteStartTic(NowCode);
 	
 	/* Global Commands */
 	// Clear
@@ -776,12 +786,67 @@ void G_Ticker(void)
 			D_XNetMultiTics(cmd, true, i);
 		}
 		
+	/* Calculate the current sync code */
+	NowCode = G_CalcSyncCode();
+		
 	/* Post-Tic */
 	if (demoplayback)
-		G_ReadEndTic();
+		G_ReadEndTic(&DemoCode);
 	
 	if (demorecording)
-		G_WriteEndTic();
+		G_WriteEndTic(NowCode);
+	
+	/* If playing a demo, check code comparison */
+	if (demoplayback)
+		if (NowCode != DemoCode)
+		{
+			CONL_PrintF("{2Demo desync! (%08x != %08x)\n", NowCode, DemoCode);
+			
+			// Show message, do warning, etc.
+		}
+	
+	/* Do reborns and such */
+	// This used to be between the start tic and end tic, but that would cause
+	// a problem of sync codes not being correct, etc.
+	
+	// Do reborns
+	if (gamestate == GS_LEVEL)
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+			{
+				if (players[i].playerstate == PST_REBORN)
+				{
+					// Player is on monster's side
+					if (players[i].CounterOpPlayer)
+						P_ControlNewMonster(&players[i]);
+						
+					// Otherwise make player
+					else
+						G_DoReborn(i);
+				}
+				
+				if (players[i].st_inventoryTics)
+					players[i].st_inventoryTics--;
+			}
+	
+	// Change game state
+	while (gameaction != ga_nothing)
+		switch (gameaction)
+		{
+			case ga_completed:
+				G_DoCompleted();
+				break;
+				
+			case ga_worlddone:
+				G_DoWorldDone();
+				break;
+				
+			case ga_nothing:
+				break;
+				
+			default:
+				I_Error("gameaction = %d\n", gameaction);
+		}
 	
 	/* Handle Commands */
 	// Process Global Commands
@@ -794,7 +859,7 @@ void G_Ticker(void)
 			GS_HandleExtraCommands(cmd, i);
 	
 	// Set new time
-	g_DemoTime = ThisTime;
+	g_DemoTime = gametic;
 	
 	// do main actions
 	switch (gamestate)

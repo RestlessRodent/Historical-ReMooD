@@ -1174,6 +1174,7 @@ static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 	D_BSwu64(a_Str, gametic);
 	D_BSwu32(a_Str, g_CoreGame);
 	D_BSwu32(a_Str, g_IWADFlags);
+	D_BSwu8(a_Str, P_GetRandIndex());
 	
 	D_BSwu8(a_Str, BODYQUESIZE);
 	D_BSwi32(a_Str, bodyqueslot);
@@ -1233,6 +1234,7 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 	gametic = D_BSru64(a_Str);
 	g_CoreGame = D_BSru32(a_Str);
 	g_IWADFlags = D_BSru32(a_Str);
+	P_SetRandIndex(D_BSru8(a_Str));
 	
 	n = D_BSru8(a_Str);
 	bodyqueslot = D_BSri32(a_Str);

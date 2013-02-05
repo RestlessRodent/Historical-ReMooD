@@ -91,6 +91,7 @@ void G_ExitLevel(const bool_t a_Secret, mobj_t* const a_Activator, const char* c
 
 void G_NextLevel(void);
 
+uint32_t G_CalcSyncCode(void);
 void G_Ticker(void);
 bool_t G_Downgrade(int version);
 void G_PrepareDemoStuff(void);
@@ -126,10 +127,10 @@ typedef bool_t (*G_DEMO_WriteGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, c
 typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 
-typedef bool_t (*G_DEMO_ReadStartTicType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_WriteStartTicType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_ReadEndTicType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_WriteEndTicType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_ReadStartTicType_t)(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code);
+typedef bool_t (*G_DEMO_WriteStartTicType_t)(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code);
+typedef bool_t (*G_DEMO_ReadEndTicType_t)(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code);
+typedef bool_t (*G_DEMO_WriteEndTicType_t)(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code);
 
 /* G_DemoFactory_t -- Demo Factory */
 typedef struct G_DemoFactory_s
@@ -184,10 +185,10 @@ bool_t G_CheckDemoStatus(void);
 bool_t G_GetDemoExplicit(void);
 void G_EncodeSaveGame(void);
 
-void G_ReadStartTic(void);
-void G_WriteStartTic(void);
-void G_ReadEndTic(void);
-void G_WriteEndTic(void);
+void G_ReadStartTic(uint32_t* const a_Code);
+void G_WriteStartTic(const uint32_t a_Code);
+void G_ReadEndTic(uint32_t* const a_Code);
+void G_WriteEndTic(const uint32_t a_Code);
 
 void G_ReadDemoGlobalTicCmd(ticcmd_t* const a_TicCmd);
 void G_WriteDemoGlobalTicCmd(ticcmd_t* const a_TicCmd);
