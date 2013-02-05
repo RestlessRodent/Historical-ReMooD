@@ -52,6 +52,67 @@
 
 static uint32_t l_DemoHostID = 0;				// Demo's HostID
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+struct G_CurrentDemo_s;
+
+typedef bool_t (*G_DEMO_StartPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_StopPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_StartRecordType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_StopRecordType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+
+typedef bool_t (*G_DEMO_ReadGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd);
+typedef bool_t (*G_DEMO_WriteGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd);
+
+typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
+
+typedef bool_t (*G_DEMO_ReadStartTicType_t)(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code);
+typedef bool_t (*G_DEMO_WriteStartTicType_t)(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code);
+typedef bool_t (*G_DEMO_ReadEndTicType_t)(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code);
+typedef bool_t (*G_DEMO_WriteEndTicType_t)(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code);
+
+/* G_DemoFactory_t -- Demo Factory */
+struct G_DemoFactory_s
+{
+	const char* FactoryName;					// Name of factory
+	bool_t DoesRBS;								// Does RBS Stream
+	bool_t UseSyncCode;							// Uses sync code
+	G_DEMO_StartPlayingType_t StartPlayingFunc;	// Starts playing demo
+	G_DEMO_StopPlayingType_t StopPlayingFunc;	// Stops playing demo
+	G_DEMO_StartRecordType_t StartRecordFunc;	// Starts recording demo
+	G_DEMO_StopRecordType_t StopRecordFunc;		// Stops recording demo
+	G_DEMO_CheckDemoType_t CheckDemoFunc;		// Check Demo's Status (quit)
+	G_DEMO_ReadTicCmdType_t ReadTicCmdFunc;		// Reads tic command
+	G_DEMO_WriteTicCmdType_t WriteTicCmdFunc;	// Writes tic command
+	G_DEMO_PreGTickCmdType_t PreGTickCmdFunc;	// Pre G_Ticker() Command
+	G_DEMO_PreGTickCmdType_t PostGTickCmdFunc;	// Post G_Ticker() Command
+	G_DEMO_ReadGlblCmdType_t ReadGlblCmdFunc;	// Read of global commands
+	G_DEMO_WriteGlblCmdType_t WriteGlblCmdFunc;	// Read of global commands
+	
+	G_DEMO_ReadStartTicType_t ReadStartTicFunc;	// Intro to tic
+	G_DEMO_WriteStartTicType_t WriteStartTicFunc;
+	G_DEMO_ReadEndTicType_t ReadEndTicFunc;		// Outro of tic
+	G_DEMO_WriteEndTicType_t WriteEndTicFunc;
+};
+
+/* G_CurrentDemo_t -- Current Demo Info */
+struct G_CurrentDemo_s
+{
+	bool_t Out;									// Demo is out (being written)
+	const G_DemoFactory_t* Factory;				// Factory for demo
+	void* CFile;								// CFile
+	WL_ES_t* WLStream;					// Demo Streamer (Raw)
+	D_BS_t* BSs;								// Block Streamer
+	void* Data;									// Internal Data
+};
+
+
 /**********************
 *** VANILLA FACTORY ***
 **********************/
@@ -2374,6 +2435,7 @@ static const G_DemoFactory_t c_DemoFactories[] =
 	{
 		"vanilla",
 		false,
+		false,
 		G_DEMO_Vanilla_StartPlaying,
 		G_DEMO_Vanilla_StopPlaying,
 		G_DEMO_Vanilla_StartRecord,
@@ -2396,6 +2458,7 @@ static const G_DemoFactory_t c_DemoFactories[] =
 	{
 		"legacy",
 		false,
+		false,
 		G_DEMO_Legacy_StartPlaying,
 		G_DEMO_Legacy_StopPlaying,
 		G_DEMO_Legacy_StartRecord,
@@ -2417,6 +2480,7 @@ static const G_DemoFactory_t c_DemoFactories[] =
 	// ReMooD Factory
 	{
 		"remood",
+		true,
 		true,
 		G_DEMO_ReMooD_StartPlaying,
 		G_DEMO_ReMooD_StopPlaying,
@@ -3081,5 +3145,17 @@ void G_EncodeSaveGame(void)
 				// Don't save compressed (demo is already compressed)
 			P_SaveToStream(l_RecDemo->BSs);
 		}
+}
+
+/* G_UseDemoSyncCode() -- Use demo sync code */
+bool_t G_UseDemoSyncCode(void)
+{
+	/* Playing Demo? */
+	if (demoplayback)
+		if (l_PlayDemo)
+			return l_PlayDemo->Factory->UseSyncCode;
+			
+	/* Not playing */
+	return false;
 }
 

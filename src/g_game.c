@@ -797,7 +797,9 @@ void G_Ticker(void)
 		G_WriteEndTic(NowCode);
 	
 	/* If playing a demo, check code comparison */
-	if (demoplayback)
+	// Also make sure the demo supports the ReMooD sync code, otherwise there
+	// will always be a false desync message.
+	if (demoplayback && G_UseDemoSyncCode())
 		if (NowCode != DemoCode)
 		{
 			CONL_PrintF("{2Demo desync! (%08x != %08x)\n", NowCode, DemoCode);

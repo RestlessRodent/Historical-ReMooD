@@ -476,6 +476,9 @@ static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 	D_BSws(a_Str, REMOOD_VERSIONCODESTRING);
 	D_BSws(a_Str, REMOOD_URL);
 	
+	// Sync
+	D_BSwu32(a_Str,  G_CalcSyncCode());
+	
 	/* Record */
 	D_BSRecordBlock(a_Str);
 }
@@ -487,6 +490,7 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 #define BUFSIZE 64
 	uint8_t Ver[4];
 	char Buf[BUFSIZE];
+	uint32_t u32;
 	int i;
 	
 	/* Expect "NSTA" */
@@ -510,6 +514,9 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 		// Read URL
 		D_BSrs(a_Str, Buf, BUFSIZE);
 		CONL_PrintF("See: %s\n", Buf);
+		
+		// Sync Code
+		u32 = D_BSru32(a_Str);
 	}
 	
 	/* Success! */
@@ -1277,6 +1284,61 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 
 /*---------------------------------------------------------------------------*/
 
+/* PS_SaveMapState() -- Saves map to savegame */
+static bool_t PS_SaveMapState(D_BS_t* const a_Str)
+{
+	/* Write Map Counts */
+	// This makes loading/restoring to/from buffers hell of alot easier!
+	D_BSBaseBlock(a_Str, "MCNT");
+	
+	// Write sizes of everything
+	D_BSwu32(a_Str, numvertexes);
+	D_BSwu32(a_Str, numsegs);
+	D_BSwu32(a_Str, numsectors);
+	D_BSwu32(a_Str, numsubsectors);
+	D_BSwu32(a_Str, numnodes);
+	D_BSwu32(a_Str, numlines);
+	D_BSwu32(a_Str, numsides);
+	D_BSwu32(a_Str, nummapthings);
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Success! */
+	return true;	
+}
+
+/* PS_LoadMapState() -- Loads map from savegame */
+static bool_t PS_LoadMapState(D_BS_t* const a_Str)
+{
+	/* Expect "MCNT" */
+	if (!PS_Expect(a_Str, "MCNT"))
+		return false;
+	
+	// Load counts
+	numvertexes = D_BSru32(a_Str);
+	numsegs = D_BSru32(a_Str);
+	numsectors = D_BSru32(a_Str);
+	numsubsectors = D_BSru32(a_Str);
+	numnodes = D_BSru32(a_Str);
+	numlines = D_BSru32(a_Str);
+	numsides = D_BSru32(a_Str);
+	nummapthings = D_BSru32(a_Str);
+	
+	// Allocate buffers for data
+	vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, (void**)&vertexes);
+	segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, (void**)&segs);
+	sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, (void**)&sectors);
+	subsectors = Z_Malloc(sizeof(*subsectors) * numsubsectors, PU_LEVEL, (void**)&subsectors);
+	nodes = Z_Malloc(sizeof(*nodes) * numnodes, PU_LEVEL, (void**)&nodes);
+	lines = Z_Malloc(sizeof(*lines) * numlines, PU_LEVEL, (void**)&lines);
+	sides = Z_Malloc(sizeof(*sides) * numsides, PU_LEVEL, (void**)&sides);
+	mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, (void**)&mapthings);
+	
+	/* Success! */
+	return true;
+}
+
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
@@ -1301,6 +1363,7 @@ bool_t P_SaveToStream(D_BS_t* const a_Str)
 	PS_SaveNetState(a_Str);
 	PS_SavePlayers(a_Str);
 	PS_SaveGameState(a_Str);
+	PS_SaveMapState(a_Str);
 	PS_SaveDummy(a_Str, true);
 	
 	// All done
@@ -1342,6 +1405,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	PS_LoadNetState(a_Str);
 	PS_LoadPlayers(a_Str);
 	PS_LoadGameState(a_Str);
+	PS_LoadMapState(a_Str);
 	PS_LoadDummy(a_Str, true);
 	
 	/* Handle Reference Links (if any) */
