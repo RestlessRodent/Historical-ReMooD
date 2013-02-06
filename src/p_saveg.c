@@ -54,7 +54,7 @@
 #include "d_net.h"
 #include "d_netcmd.h"
 #include "r_main.h"
-
+#include "r_sky.h"
 
 /****************
 *** FUNCTIONS ***
@@ -1183,11 +1183,6 @@ static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 	D_BSwu32(a_Str, g_IWADFlags);
 	D_BSwu8(a_Str, P_GetRandIndex());
 	
-	D_BSwu8(a_Str, BODYQUESIZE);
-	D_BSwi32(a_Str, bodyqueslot);
-	for (i = 0; i < BODYQUESIZE; i++)
-		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)bodyque[i]));
-	
 	// Record
 	D_BSRecordBlock(a_Str);
 	
@@ -1243,11 +1238,6 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 	g_IWADFlags = D_BSru32(a_Str);
 	P_SetRandIndex(D_BSru8(a_Str));
 	
-	n = D_BSru8(a_Str);
-	bodyqueslot = D_BSri32(a_Str);
-	for (i = 0; i < n; i++)
-		bodyque[i] = (void*)((intptr_t)D_BSri32(a_Str));
-	
 	/* Read Vars */
 	for (;;)
 	{
@@ -1284,22 +1274,119 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 
 /*---------------------------------------------------------------------------*/
 
+#define SECNODECOUNT 512
+
 /* PS_SaveMapState() -- Saves map to savegame */
 static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 {
-	/* Write Map Counts */
-	// This makes loading/restoring to/from buffers hell of alot easier!
-	D_BSBaseBlock(a_Str, "MCNT");
+	uint32_t i;
+	thinker_t* Thinker;
 	
-	// Write sizes of everything
-	D_BSwu32(a_Str, numvertexes);
-	D_BSwu32(a_Str, numsegs);
-	D_BSwu32(a_Str, numsectors);
-	D_BSwu32(a_Str, numsubsectors);
-	D_BSwu32(a_Str, numnodes);
-	D_BSwu32(a_Str, numlines);
-	D_BSwu32(a_Str, numsides);
-	D_BSwu32(a_Str, nummapthings);
+	/* If not in a level, then do not continue */
+	if (gamestate != GS_LEVEL)
+		return true;
+	
+	/* Save the current map that is being played */
+	D_BSBaseBlock(a_Str, "MLMP");
+	
+	// Write WAD and lump being played
+	D_BSws(a_Str, WL_GetWADName(g_CurrentLevelInfo->WAD, false));
+	D_BSws(a_Str, g_CurrentLevelInfo->LumpName);
+
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Sector Nodes */
+	// Save Count
+	D_BSBaseBlock(a_Str, "MSCC");
+	D_BSwi32(a_Str, g_NumMSecNodes);
+	D_BSRecordBlock(a_Str);
+	
+	// Save actual sector nodes
+	for (i = 0; i < g_NumMSecNodes; i++)
+	{
+		// New?
+		if ((i & (SECNODECOUNT - 1)) == 0)
+		{
+			if (i > 0)
+				D_BSRecordBlock(a_Str);
+			D_BSBaseBlock(a_Str, "MSCN");
+		}
+		
+		// Write Info here
+		D_BSwi32(a_Str, g_MSecNodes[i]->m_sector - sectors);
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)g_MSecNodes[i]->m_thing));
+		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tprev));
+		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tnext));
+		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_sprev));
+		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_snext));
+		D_BSwu8(a_Str, g_MSecNodes[i]->visited);
+	}
+	
+	// Record any remaining node blocks
+	if (g_NumMSecNodes > 0)
+		D_BSRecordBlock(a_Str);
+	
+	/* Save Thinkers */
+	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
+	{
+		// Base thinker
+		D_BSBaseBlock(a_Str, "THNK");
+		
+		// Write thinker type/function
+		D_BSwi8(a_Str, Thinker->Type);
+		D_BSwi8(a_Str, G_ThinkFuncToType(Thinker->function));
+		
+		// Encode specific data
+		switch (Thinker->Type)
+		{
+				// Map Object
+			case PTT_MOBJ:
+				
+				break;
+			
+				// Unknown
+			default:
+				break;
+		}
+		
+		// Record
+		D_BSRecordBlock(a_Str);
+	}
+	
+	// Write End of Thinkers
+	D_BSBaseBlock(a_Str, "THNK");
+	D_BSwi8(a_Str, -1);
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Other related variables */
+	D_BSBaseBlock(a_Str, "LMSC");
+	
+	// Body Queue
+	D_BSwu8(a_Str, BODYQUESIZE);
+	D_BSwi32(a_Str, bodyqueslot);
+	for (i = 0; i < BODYQUESIZE; i++)
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)bodyque[i]));
+	
+	// Coop Starts
+	D_BSwu8(a_Str, MAXPLAYERS);
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playerstarts[i])
+			D_BSwi32(a_Str, playerstarts[i] - mapthings);
+		else
+			D_BSwi32(a_Str, -1);
+	
+	// DM Starts
+	D_BSwi32(a_Str, numdmstarts);
+	for (i = 0; i < numdmstarts; i++)
+		if (i < MAX_DM_STARTS && deathmatchstarts[i])
+			D_BSwi32(a_Str, deathmatchstarts[i] - mapthings);
+		else
+			D_BSwi32(a_Str, -1);
+	
+	// Map Totals
+	for (i = 0; i < 5; i++)
+		D_BSwi32(a_Str, g_MapKIS[i]);
 	
 	// Record
 	D_BSRecordBlock(a_Str);
@@ -1311,32 +1398,154 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 /* PS_LoadMapState() -- Loads map from savegame */
 static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 {
-	/* Expect "MCNT" */
-	if (!PS_Expect(a_Str, "MCNT"))
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	P_LevelInfoEx_t* pli;
+	int32_t i, n, x;
+	thinker_t* Thinker;
+	
+	/* If not in a level, then do not continue */
+	if (gamestate != GS_LEVEL)
+		return true;
+	
+	/* Expect "MLMP" */
+	if (!PS_Expect(a_Str, "MLMP"))
 		return false;
 	
-	// Load counts
-	numvertexes = D_BSru32(a_Str);
-	numsegs = D_BSru32(a_Str);
-	numsectors = D_BSru32(a_Str);
-	numsubsectors = D_BSru32(a_Str);
-	numnodes = D_BSru32(a_Str);
-	numlines = D_BSru32(a_Str);
-	numsides = D_BSru32(a_Str);
-	nummapthings = D_BSru32(a_Str);
+	// Ignore WAD Name
+	D_BSrs(a_Str, Buf, BUFSIZE);
 	
-	// Allocate buffers for data
-	vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, (void**)&vertexes);
-	segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, (void**)&segs);
-	sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, (void**)&sectors);
-	subsectors = Z_Malloc(sizeof(*subsectors) * numsubsectors, PU_LEVEL, (void**)&subsectors);
-	nodes = Z_Malloc(sizeof(*nodes) * numnodes, PU_LEVEL, (void**)&nodes);
-	lines = Z_Malloc(sizeof(*lines) * numlines, PU_LEVEL, (void**)&lines);
-	sides = Z_Malloc(sizeof(*sides) * numsides, PU_LEVEL, (void**)&sides);
-	mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, (void**)&mapthings);
+	// Attempt to locate level being played
+	D_BSrs(a_Str, Buf, BUFSIZE);
+	pli = P_FindLevelByNameEx(Buf, NULL);
+	
+	// If not found, then fail
+	if (!pli)
+		return false;
+	
+	// Load level then
+	if (!P_ExLoadLevel(pli, PEXLL_FROMSAVE))
+		return false;
+	
+	/* Load Sector Nodes */
+	// Load Count
+	if (!PS_Expect(a_Str, "MSCC"))
+		return false;
+	
+	g_NumMSecNodes = D_BSri32(a_Str);
+	
+	// Allocate Buffers
+	g_MSecNodes = Z_Malloc(sizeof(*g_MSecNodes) * g_NumMSecNodes, PU_LEVEL, NULL);
+	for (i = 0; i < g_NumMSecNodes; i++)
+		g_MSecNodes[i] = Z_Malloc(sizeof(*g_MSecNodes[i]), PU_LEVEL, NULL);
+	
+	// Load individual nodes
+	for (i = 0; i < g_NumMSecNodes; i++)
+	{
+		// Load new data in
+		if ((i & (SECNODECOUNT - 1)) == 0)
+			if (!PS_Expect(a_Str, "MSCN"))
+				return false;
+		
+		// Load Data
+		g_MSecNodes[i]->m_sector = &sectors[D_BSri32(a_Str)];
+		g_MSecNodes[i]->m_thing = (void*)((intptr_t)D_BSri32(a_Str));
+		g_MSecNodes[i]->m_tprev = P_GetSecNodeFromID(D_BSri32(a_Str));
+		g_MSecNodes[i]->m_tnext = P_GetSecNodeFromID(D_BSri32(a_Str));
+		g_MSecNodes[i]->m_sprev = P_GetSecNodeFromID(D_BSri32(a_Str));
+		g_MSecNodes[i]->m_snext = P_GetSecNodeFromID(D_BSri32(a_Str));
+		g_MSecNodes[i]->visited = D_BSru8(a_Str);
+	}
+	
+	/* Load Thinkers */
+	for (;;)
+	{
+		// Expect Thinker
+		if (!PS_Expect(a_Str, "THNK"))
+			return false;
+		
+		// Read Type
+		i = D_BSri8(a_Str);
+		
+		// End of thinkers?
+		if (i < 0)
+			break;
+		
+		x = D_BSri8(a_Str);
+		
+		// Illegal Type?
+		if (i >= NUMPTHINKERTYPES || x < 0 || x >= NUMPTHINKERTYPES)
+			return false;
+		
+		// Allocate New Thinker
+		Thinker = Z_Malloc(g_ThinkerData[i].Size, PU_LEVEL, NULL);
+		Thinker->function = G_ThinkTypeToFunc(x);
+		P_AddThinker(Thinker, i);
+		
+		// Load data based on thinker type
+		switch (x)
+		{
+				// Map Object
+			case PTT_MOBJ:
+				break;
+			
+				// Unknown
+			default:
+				return false;
+		}
+	}
+	
+	// Restore sector node thinker IDs
+	for (i = 0; i < g_NumMSecNodes; i++)
+		g_MSecNodes[i]->m_thing = PS_GetThinkerFromID((intptr_t)g_MSecNodes[i]->m_thing);
+		
+	/* Expect "LMSC" */
+	if (!PS_Expect(a_Str, "LMSC"))
+		return false;
+	
+	// Body queue
+	n = D_BSru8(a_Str);
+	bodyqueslot = D_BSri32(a_Str);
+	for (i = 0; i < n; i++)
+		bodyque[i] = PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		
+	// Coop Starts
+	n = D_BSru8(a_Str);
+	for (i = 0; i < n; i++)
+	{
+		x = D_BSri32(a_Str);
+		
+		if (i >= MAXPLAYERS || x < 0 || x >= nummapthings)
+			playerstarts[i] = NULL;
+		else
+			playerstarts[i] = &mapthings[x];
+	}
+	
+	// DM Starts
+	n = D_BSri32(a_Str);
+	
+	if (n < MAX_DM_STARTS)
+		numdmstarts = n;
+	else
+		numdmstarts = MAX_DM_STARTS;
+	
+	for (i = 0; i < n; i++)
+	{
+		x = D_BSri32(a_Str);
+		
+		if (i >= MAX_DM_STARTS || x < 0 || x >= nummapthings)
+			deathmatchstarts[i] = NULL;
+		else
+			deathmatchstarts[i] = &mapthings[x];
+	}
+	
+	// Map Totals
+	for (i = 0; i < 5; i++)
+		g_MapKIS[i] = D_BSri32(a_Str);
 	
 	/* Success! */
 	return true;
+#undef BUFSIZE
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1420,10 +1629,25 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 			players[i].LastBFGBall = PS_GetThinkerFromID((intptr_t)players[i].LastBFGBall);
 			players[i].Attackee = PS_GetThinkerFromID((intptr_t)players[i].Attackee);
 		}
-	
-	// Body Queue
-	for (i = 0; i < BODYQUESIZE; i++)
-		bodyque[i] = PS_GetThinkerFromID((intptr_t)bodyque[i]);
+		
+	// Initialize Level Based Info
+	if (gamestate == GS_LEVEL)
+	{
+		// Initialize Spectators
+		P_SpecInit(-1);
+		
+		// Music
+		if (g_CurrentLevelInfo)
+			if (g_CurrentLevelInfo->Music)
+				S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
+		
+		// Sky
+		P_SetupLevelSky();
+		skyflatnum = R_GetFlatNumForName("F_SKY1");
+		
+		// Bot Nodes
+		B_InitNodes();
+	}
 	
 	/* Done! */
 	return OK;

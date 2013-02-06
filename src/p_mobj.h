@@ -513,9 +513,6 @@ typedef struct mobj_s
 	// This field valid only for MF_DROPPED ammo and weapn objects
 	int32_t dropped_ammo_count;
 	
-	// WARNING : new field are not automaticely added to save game
-	struct ffloor_s* ChildFloor;
-	
 	/*** RMOD EXTENDED SUPPORT ***/
 	// New Flags
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags

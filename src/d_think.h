@@ -107,6 +107,9 @@ typedef struct G_ThinkerInfo_s
 	actionf_t Func;
 } G_ThinkerInfo_t;
 
-extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES];				// Thinker Data
+extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES];	// Thinker Data
+
+actionf_t G_ThinkTypeToFunc(const P_ThinkerType_t a_Type);
+P_ThinkerType_t G_ThinkFuncToType(actionf_t a_Func);
 
 #endif

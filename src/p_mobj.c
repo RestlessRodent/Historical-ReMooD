@@ -2772,7 +2772,6 @@ void P_SetMobjToCrash(mobj_t* const a_Mo)
 	a_Mo->player = (void*)((uintptr_t)12);
 	a_Mo->tracer = (void*)((uintptr_t)13);
 	a_Mo->touching_sectorlist = (void*)((uintptr_t)14);
-	a_Mo->ChildFloor = (void*)((uintptr_t)15);
 	a_Mo->spawnpoint = (void*)((uintptr_t)16);
 }
 

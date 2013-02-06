@@ -192,8 +192,6 @@ void P_Ticker(void)
 	if (paused)
 		return;
 	
-	//fprintf(stderr, "Ran tic %lli / %lli.\n", LocalTic, SNAR);
-	
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 			P_PlayerThink(&players[i]);
@@ -209,5 +207,39 @@ void P_Ticker(void)
 	// SoM: Update FraggleScript...
 	T_DelayedScripts();
 #endif
+}
+
+/* G_ThinkTypeToFunc() -- Converts thinker type to function */
+actionf_t G_ThinkTypeToFunc(const P_ThinkerType_t a_Type)
+{
+	actionf_t Bad;
+	
+	/* Check */
+	if (a_Type < 0 || a_Type >= NUMPTHINKERTYPES)
+	{
+		Bad.acv = NULL;
+		return Bad;
+	}
+	
+	/* Return from table */
+	return g_ThinkerData[a_Type].Func;
+}
+
+/* G_ThinkFuncToType() -- Converts function to thinker type */
+P_ThinkerType_t G_ThinkFuncToType(actionf_t a_Func)
+{
+	int32_t i;
+	
+	/* Missing func? */
+	if (!a_Func.acv)
+		return 0;
+	
+	/* Find match */
+	for (i = 0; i < NUMPTHINKERTYPES; i++)
+		if (a_Func.acv == g_ThinkerData[i].Func.acv)
+			return i;
+	
+	/* Not found */
+	return 0;
 }
 

@@ -235,6 +235,8 @@ void P_DelSeclist(msecnode_t*);
 void P_CreateSecNodeList(mobj_t*, fixed_t, fixed_t);
 int P_GetMoveFactor(mobj_t* mo);
 void P_Initsecnode(void);
+int32_t P_GetIDFromSecNode(msecnode_t* const a_Node);
+msecnode_t* P_GetSecNodeFromID(const int32_t a_ID);
 
 extern mobj_t* linetarget;		// who got hit (or NULL)
 

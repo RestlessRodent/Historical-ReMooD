@@ -2762,6 +2762,7 @@ msecnode_t* P_GetSecnode()
 		node = headsecnode;
 		headsecnode = headsecnode->m_snext;
 	}
+	
 	else
 	{
 		node = Z_Malloc(sizeof(*node), PU_LEVEL, NULL);
@@ -2781,6 +2782,35 @@ msecnode_t* P_GetSecnode()
 	}
 	
 	return (node);
+}
+
+/* P_GetIDFromSecNode() -- Returns ID of sector node */
+int32_t P_GetIDFromSecNode(msecnode_t* const a_Node)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Node)
+		return -1;
+	
+	/* Go through list */
+	for (i = 0; i < g_NumMSecNodes; i++)
+		if (g_MSecNodes[i] == a_Node)
+			return i;
+	
+	/* Not found */
+	return -1;
+}
+
+/* P_GetSecNodeFromID() -- Returns sector node from ID */
+msecnode_t* P_GetSecNodeFromID(const int32_t a_ID)
+{
+	/* Check */
+	if (a_ID < 0 || a_ID >= g_NumMSecNodes)
+		return NULL;
+	
+	/* Return reference of it */
+	return g_MSecNodes[a_ID];
 }
 
 // P_PutSecnode() returns a node to the freelist.
