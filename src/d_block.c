@@ -639,6 +639,7 @@ typedef struct DS_RBSReliableData_s
 	uint32_t RR;								// Round rover
 	
 	D_BS_t* UnAuthBuf;							// Unauthorized buffer
+	bool_t IsAuth;								// Is packet authorized
 } DS_RBSReliableData_t;
 
 /* DS_RBSReliable_KillFlat() -- Kills a flat */
@@ -821,16 +822,11 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		// Spoofed Reliable from someone?
 		if (!CurFlat && z)
 		{
-			if (RelData->Debug)
-				CONL_PrintF("!AUTH RELY\n");
 		}
 		
 		// Reliable Packet and allowed client
 		else if (CurFlat && z)
 		{
-			if (RelData->Debug)
-				CONL_PrintF("AUTH RELY\n");
-			
 			// Read Header
 			inCode = D_BSru8(RelData->WrapStream);
 			inSlot = D_BSru16(RelData->WrapStream);
@@ -917,9 +913,6 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		// Un-Reliable Packet, but an allowed client
 		else if (CurFlat && !z)
 		{
-			if (RelData->Debug)
-				CONL_PrintF("AUTH !RELY\n");
-				
 			// Base Block
 			D_BSBaseBlock(CurFlat->inStore, RelData->WrapStream->BlkHeader);
 			
@@ -936,9 +929,6 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		// Not reliable, and not trusted either
 		else if (!CurFlat && !z)
 		{
-			if (RelData->Debug)
-				CONL_PrintF("!AUTH !RELY\n");
-			
 			// Base Block
 			D_BSBaseBlock(RelData->UnAuthBuf, RelData->WrapStream->BlkHeader);
 			
@@ -1155,6 +1145,9 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	if (!RelData->NumFlats)
 		SkipFlats = true;
 	
+	/* Always clear auth */
+	RelData->IsAuth = false;
+	
 	/* Setup stop point */
 	if (!SkipFlats)
 	{
@@ -1191,6 +1184,9 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 			
 				// Copy Address
 				memmove(a_Host, &CurFlat->Address, sizeof(I_HostAddress_t));
+				
+				// Set as authentic
+				RelData->IsAuth = true;
 			
 				// Something was played, so return
 				return true;
@@ -1206,6 +1202,9 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 		
 		// Write chunk, the entire lo data
 		D_BSWriteChunk(a_Stream, RelData->UnAuthBuf->BlkData, RelData->UnAuthBuf->BlkSize);
+		
+		// Set as unauthentic
+		RelData->IsAuth = false;
 		
 		// Something was played, so return
 		return true;
@@ -1278,6 +1277,11 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 			DS_RBSReliable_Reset(RelData);
 			break;
 			
+			// Authenticated Packet?
+		case DRBSIOCTL_ISAUTH:
+			*((bool_t*)a_DataP) = RelData->IsAuth;
+			break;
+			
 			// Unknown
 		default:
 			return false;
@@ -1288,8 +1292,8 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 *** PACKED STREAM ***
 ********************/
 
-#define RBSPACKEDMAXWAITBLOCK			64		// Max blocks in queue
-#define RBSPACKEDMAXWAITBYTES			5120	// Max bytes in queue
+#define RBSPACKEDMAXWAITBLOCK			128		// Max blocks in queue
+#define RBSPACKEDMAXWAITBYTES			10240	// Max bytes in queue
 #define RBSPACKEDZLIBLEVEL				9		// Zlib compression level
 #define RBSPACKEDZLIBCHUNK		RBSPACKEDMAXWAITBYTES + 1024
 
@@ -1318,6 +1322,7 @@ typedef struct DS_RBSPackedData_s
 /* DS_RBSPacked_FlushF() -- Flushes stream */
 bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 {
+#define BUFSIZE 256
 	DS_RBSPackedData_t* PackData;
 	uint8_t* Seek;
 	uint8_t Header[5];
@@ -1325,6 +1330,7 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 	uint32_t Size;
 	bool_t RetVal;
 	mz_stream ZStream;
+	uint8_t ZBuf[BUFSIZE];
 	
 	/* Get Data */
 	RetVal = false;
@@ -1336,7 +1342,7 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 	
 	/* Initialize Compression */
 	memset(&ZStream, 0, sizeof(ZStream));
-	if (true)//(mz_deflateInit(&ZStream, RBSPACKEDZLIBLEVEL) != MZ_OK)
+	if (mz_deflateInit(&ZStream, RBSPACKEDZLIBLEVEL) != MZ_OK)
 	{
 		// Well this REALLY sucks, need to write all the blocks all over again!
 		Seek = PackData->OutBuf;
@@ -1372,11 +1378,43 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 		return false;
 	}
 	
-	/* End deflation */
+	/* Deflation Loop */
+	// Initialize
+	ZStream.avail_in = PackData->OutAt - PackData->OutBuf;
+	ZStream.next_in = PackData->OutBuf;
+	D_BSBaseBlock(PackData->WrapStream, "ZLIB");
+	
+	// Do the loop
+	do
+	{
+		// Set next buffer output
+		memset(ZBuf, 0, sizeof(ZBuf));
+		ZStream.avail_out = BUFSIZE;
+		ZStream.next_out = ZBuf;
+		
+		// Deflate into stream and hope for the best
+		if (mz_deflate(&ZStream, MZ_FINISH) != MZ_STREAM_ERROR)
+			D_BSWriteChunk(PackData->WrapStream, ZBuf, BUFSIZE - ZStream.avail_out);
+	}
+	while (ZStream.avail_in > 0);
+	
+	// End deflation
 	mz_deflateEnd(&ZStream);
+	
+	// Record
+	D_BSRecordNetBlock(PackData->WrapStream, (PackData->HasAddr ? &PackData->CurAddr : NULL));
+	
+	// Flush destination stream
+	D_BSFlushStream(PackData->WrapStream);
+	
+	// Full reset
+	memset(PackData->OutBuf, 0, sizeof(PackData->OutBuf));
+	PackData->OutAt = PackData->OutBuf;
+	PackData->HasAddr = false;
 	
 	// Return success!
 	return true;
+#undef BUFSIZE
 }
 
 /* DS_RBSPacked_NetRecordF() -- Records to stream */
@@ -1400,6 +1438,7 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	
 	/* Change of address? Too small? */
 	if ((SizeNeeded >= SizeLeft) ||				// Too small
+		(SizeLeft < 6) ||						// No Space Left
 		(a_Host && !PackData->HasAddr) ||		// Adds address
 		(!a_Host && PackData->HasAddr) ||		// Loses address
 		(a_Host && PackData->HasAddr &&			// Address mismatch
@@ -1415,7 +1454,7 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	if (SizeNeeded >= SizeLeft)
 	{
 		// Clone block into destination
-		D_BSBaseBlock(PackData->WrapStream, PackData->WrapStream->BlkHeader);
+		D_BSBaseBlock(PackData->WrapStream, a_Stream->BlkHeader);
 		D_BSWriteChunk(PackData->WrapStream, a_Stream->BlkData, a_Stream->BlkSize);
 		D_BSRecordNetBlock(PackData->WrapStream, a_Host);
 		
@@ -1455,15 +1494,17 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 	I_HostAddress_t Addr;
 	char Header[5];
 	mz_stream ZStream;
-	int ZRet;
+	int32_t ZRet, i;
 	int32_t Size;
 	
 	/* Get Data */
 	PackData = a_Stream->Data;
 	
 	/* No input data? Read more! */
-	if (PackData->InAt >= PackData->InEnd)
+	if (PackData->InAt + 6 >= PackData->InEnd)
 	{
+		CONL_PrintF("New Read!\n");
+		
 		// Init
 		memset(&Addr, 0, sizeof(Addr));
 		
@@ -1501,6 +1542,18 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 			ZStream.avail_out = RBSPACKEDMAXWAITBYTES;
 			ZStream.next_out = PackData->InBuf;
 			
+			ZStream.avail_in = PackData->WrapStream->BlkSize;
+			ZStream.next_in = PackData->WrapStream->BlkData;
+			
+			if ((ZRet = mz_inflateInit(&ZStream)) != MZ_OK)
+			{
+				if (devparm)
+					CONL_OutputUT(CT_NETWORK, DSTR_DBLOCKC_ZLIBINFLATEERR,
+						"%i", ZRet * -1);
+				I_Error("Real Bad");
+				return false;
+			}
+			
 			// Inflate as much as possible
 			ZRet = mz_inflate(&ZStream, MZ_FINISH);
 			
@@ -1510,6 +1563,7 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 				if (devparm)
 					CONL_OutputUT(CT_NETWORK, DSTR_DBLOCKC_ZLIBINFLATEERR,
 						"%i", ZRet);
+				I_Error("Bad");
 				return false;
 			}
 			
@@ -1521,6 +1575,39 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 			// Cleanup ZLib Stuff
 			mz_inflateEnd(&ZStream);
 		}
+	}
+	
+	/* Maybe try reading again */
+	CONL_PrintF("%p [%p] < %p (%x)\n", PackData->InAt, PackData->InAt + 6, PackData->InEnd, PackData->InEnd - PackData->InAt);
+	if (PackData->InAt + 6 < PackData->InEnd)
+	{
+		// Read Header
+		for (i = 0; i < 4; i++)
+			Header[i] = *(PackData->InAt++);
+		Header[i] = 0;
+		
+		// Read Size
+		Size = ((uint32_t)(*(PackData->InAt++))) << UINT32_C(8);
+		Size |= *(PackData->InAt++);
+		
+		// Size exceeds bounds?
+		if (PackData->InAt + Size > PackData->InEnd)
+			Size = PackData->InEnd - PackData->InAt;
+		
+		// Base a block
+		D_BSBaseBlock(a_Stream, Header);
+		D_BSWriteChunk(a_Stream, PackData->InAt, Size);
+		PackData->InAt += Size;
+		
+		// Copy address, if any
+		if (a_Host)
+			if (PackData->HasAddr)
+				memmove(a_Host, &PackData->HasAddr, sizeof(*a_Host));
+			else
+				memset(a_Host, 0, sizeof(*a_Host));
+		
+		// Something was read
+		return true;
 	}
 	
 	return false;

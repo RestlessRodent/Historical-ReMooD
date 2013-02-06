@@ -506,6 +506,9 @@ static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
 static IP_Conn_t** l_XNetConns;					// Protocol connections
 static size_t l_NumXNetConns;					// Number of connections
 
+static uint32_t l_LocalHostID;					// ID of localhost
+static bool_t l_PreppedSave;					// Prepped Savegame
+
 /*** FUNCTIONS ***/
 
 /* D_XNetDisconnect() -- Disconnect from server/self server */
@@ -557,6 +560,7 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// Revert back to solo networking
 	l_SoloNet = true;
 	l_IsConnected = false;	// Set disconnected
+	l_LocalHostID = 0;
 	
 	// Reset time to now
 	l_XNLastPTic = g_ProgramTic;
@@ -765,9 +769,13 @@ bool_t D_XNetGetHostID(void)
 				return g_XPlays[i]->HostID;
 	
 	/* If we are connecting (loading the save) then return the mapped ID */
-	
-	/* Fell through */
-	return 0;
+	return l_LocalHostID;
+}
+
+/* D_XNetSetHostID() -- Sets the local host ID */
+void D_XNetSetHostID(const uint32_t a_NewID)
+{
+	l_LocalHostID = a_NewID;
 }
 
 /* D_XNetPlayerByID() -- Finds player by ID */
@@ -3184,7 +3192,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 void D_XNetUpdate(void)
 {
 	int32_t i, a, j, ScrID;
-	D_XPlayer_t* XPlay;
+	D_XPlayer_t* XPlay, *XOrig;
 	ticcmd_t* TicCmdP;
 	M_UIMenu_t* ProfMenu;
 	static tic_t LastSpecTic;
@@ -3474,6 +3482,44 @@ void D_XNetUpdate(void)
 	for (i = 0; i < l_NumXNetConns; i++)
 		if (l_XNetConns[i])
 			IP_ConnRun(l_XNetConns[i]);
+	
+	/* Handle remote player related things */
+	if (D_XNetIsServer())
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			XPlay = g_XPlays[i];
+		
+			// Missing?
+			if (!XPlay)
+				continue;
+			
+			// Get origin XPlayer
+			XOrig = D_XNetPlayerByHostID(XPlay->HostID);
+			
+			// No origin!?
+			if (!XOrig)
+				continue;
+			
+			// Local? Then ignore
+			if (XOrig->Flags & DXPF_LOCAL)
+				continue;
+			
+			// No save game sent?
+			if (!XOrig->SaveSent)
+			{
+				// Save game needs preparing
+				if (!l_PreppedSave)
+				{
+					P_SaveGameEx("Network Save", "netsave0.tmp", NULL, NULL, NULL);
+					l_PreppedSave = true;
+				}
+			}
+			
+			// Save Game Sent
+			else
+			{
+			}
+		}
 }
 
 /* D_XNetInitialServer() -- Create Initial Server */

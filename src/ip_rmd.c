@@ -155,6 +155,18 @@ static void IPRS_SCON(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddr
 	D_BSRecordNetBlock(a_BS, a_Addr);
 }
 
+/* IPRS_SCOK() -- Simple Connect, Authorized */
+static void IPRS_SCOK(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
+{
+	CONL_PrintF("Connected!");	
+	
+	/* Set to the specified host ID */
+	D_XNetSetHostID(D_BSru32(a_BS));
+	
+	/* Set as connected */
+	a_Data->IsConnected = true;
+}
+
 /* c_RMDProtoHeads -- Protocol headers */
 static const struct
 {
@@ -165,6 +177,7 @@ static const struct
 {
 	{"RINF", IPRS_RINF, IPRF_SERVER},
 	{"SCON", IPRS_SCON, IPRF_SERVER},
+	{"SCOK", IPRS_SCOK, IPRF_CLIENT | IPRF_AUTH},
 	
 	// Done
 	{""},
@@ -316,6 +329,7 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 	char Header[5];
 	IP_RmdData_t* Data;
 	register int i;
+	bool_t Auth;
 	
 	/* Check */
 	if (!a_Proto || !a_Conn)
@@ -337,6 +351,13 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 				
 				// Not client and needs client?
 				if ((c_RMDProtoHeads[i].Flags & (IPRF_SERVER | IPRF_CLIENT)) == IPRF_CLIENT && (a_Conn->Flags & IPF_INPUT))
+					continue;
+				
+				// Packet authentic?
+				Auth = false;
+				D_BSStreamIOCtl(Data->BS, DRBSIOCTL_ISAUTH, (void*)&Auth);
+				
+				if ((c_RMDProtoHeads[i].Flags & IPRF_AUTH) && !Auth)
 					continue;
 				
 				c_RMDProtoHeads[i].Func(Data, Data->BS, &RemAddr);

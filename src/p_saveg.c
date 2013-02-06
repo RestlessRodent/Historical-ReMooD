@@ -87,7 +87,7 @@ static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
 			return 0;
 	}
 	
-	/* Return success always */
+	/* Return failure otherwise */
 	return 1;
 }
 
@@ -152,7 +152,7 @@ bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFil
 	}
 		
 	/* Load */
-	OK = P_LoadFromStream(BS, false);
+	OK = P_LoadFromStream(CS, false);
 	
 	// Close
 	D_BSCloseStream(CS);
@@ -173,7 +173,14 @@ static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 		return false;
 	
 	/* Compare */
-	return D_BSCompareHeader(a_Header, Header);
+	if (!D_BSCompareHeader(a_Header, Header))
+	{
+		CONL_PrintF("Expected \"%s\" but got \"%s\"\n", a_Header, Header);
+		return false;
+	}
+	
+	// Was OK
+	return true;
 }
 
 /* PS_GetThinkerID() -- Returns ID of thinker */
@@ -612,7 +619,7 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 	uint32_t u32;
 	int i;
 	
-	/* Expect "NSTA" */
+	/* Expect "SAVG" */
 	if (!PS_Expect(a_Str, "SAVG"))
 		return false;
 	

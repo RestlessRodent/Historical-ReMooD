@@ -198,6 +198,7 @@ typedef struct D_XPlayer_s
 	// Prevent Multiple Joins
 	bool_t TriedToJoin;							// Tried to join already
 	bool_t DidConnectTrans;						// Did connect transport
+	bool_t SaveSent;
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -236,6 +237,7 @@ void D_XNetConnect(const char* const a_URI);
 bool_t D_XNetIsServer(void);
 bool_t D_XNetIsConnected(void);
 uint32_t D_XNetGetHostID(void);
+void D_XNetSetHostID(const uint32_t a_NewID);
 
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID);
