@@ -1,14 +1,27 @@
 [dm]
+co_multiplayer=1
 game_spawnmultiplayer=1
 game_deathmatch=1
 item_keepweapons=1
 item_respawnitems=0
-co_multiplayer=1
 
 [dm2]
+co_multiplayer=1
 game_spawnmultiplayer=1
 game_deathmatch=1
 item_keepweapons=0
 item_respawnitems=1
+
+[dm3]
 co_multiplayer=1
+game_spawnmultiplayer=1
+game_deathmatch=1
+item_keepweapons=1
+item_respawnitems=1
+
+[coop]
+co_multiplayer=1
+game_spawnmultiplayer=1
+item_keepweapons=1
+game_deathmatch=0
 

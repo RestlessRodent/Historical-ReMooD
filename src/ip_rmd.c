@@ -52,6 +52,7 @@ typedef struct IP_RmdData_s
 	I_NetSocket_t* Socket;						// Socket to server
 	D_BS_t* BS;									// Block Stream
 	
+	bool_t IsConnected;							// Connected To Server
 	
 } IP_RmdData_t;
 

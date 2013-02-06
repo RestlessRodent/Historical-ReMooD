@@ -1617,6 +1617,12 @@ void NG_FromCLine(void)
 {
 	int32_t a, b, i;
 	char* p;
+	bool_t Multi;
+	
+	/* Multiplayer? */
+	Multi = false;
+	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated"))
+		Multi = true;
 	
 	/* Force automatic start? */
 	if (M_CheckParm("-autostart"))
@@ -1676,13 +1682,31 @@ void NG_FromCLine(void)
 	/* Options */
 	// Deathmatch
 	if (M_CheckParm("-deathmatch"))
+	{
 		if (NG_SetRules(false, "dm"))
 			l_NGAutoStart = true;
+	}
 	
 	// Alt Deathmatch
-	if (M_CheckParm("-altdeath"))
+	else if (M_CheckParm("-altdeath") || M_CheckParm("-dm2"))
+	{
 		if (NG_SetRules(false, "dm2"))
 			l_NGAutoStart = true;
+	}
+	
+	// New Deathmatch
+	else if (M_CheckParm("-newdeath") || M_CheckParm("-dm3"))
+	{
+		if (NG_SetRules(false, "dm3"))
+			l_NGAutoStart = true;
+	}
+	
+	// Coop (If multi-player mode)
+	else if (Multi)
+	{
+		if (NG_SetRules(false, "coop"))
+			l_NGAutoStart = true;
+	}
 	
 	// Rules
 	if (M_CheckParm("-rules"))
@@ -1857,8 +1881,8 @@ bool_t NG_SetRules(const bool_t a_Master, const char* const a_Name)
 	CurSect = NULL;
 	while ((CurSect = TINI_FindNextSection(CurSect, Stream)))
 	{
-		// Section name matches?
-		if (!strcasecmp(CurSect->Name, a_Name))
+		// Section name mismatch?
+		if (strcasecmp(CurSect->Name, a_Name))
 			continue;
 		
 		// Begin reading lines

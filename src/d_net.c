@@ -3344,6 +3344,7 @@ void D_XNetInitialServer(void)
 		NG_SetAutoStart(true);
 		
 		// Also set multiplayer
+		NG_SetVarValue(PGS_COMULTIPLAYER, 1);
 		NG_SetVarValue(PGS_GAMESPAWNMULTIPLAYER, 1);
 		
 		// Dedicated Server?
