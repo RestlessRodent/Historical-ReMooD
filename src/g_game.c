@@ -802,7 +802,7 @@ void G_Ticker(void)
 	if (demoplayback && G_UseDemoSyncCode())
 		if (NowCode != DemoCode)
 		{
-			CONL_PrintF("{2Demo desync! (%08x != %08x)\n", NowCode, DemoCode);
+			CONL_PrintF("{2Demo desync! (tic %u, %08x != %08x)\n", (unsigned int)gametic, NowCode, DemoCode);
 			
 			// Show message, do warning, etc.
 		}
