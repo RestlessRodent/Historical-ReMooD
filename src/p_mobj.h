@@ -558,13 +558,6 @@ typedef struct mobj_s
 	
 	// GhostlyDeath <June 22, 2012> -- Interpolation
 	fixed_t DrawPos[3];							// Interpolated Draw Position
-	
-	// Owners
-#if 0
-	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)
-	struct mobj_s* Owner;		// Owner of this object
-	KidList_t* Kids;			// Kid objects
-#endif
 } mobj_t;
 
 /* Converts natural flags to/from extended flags */

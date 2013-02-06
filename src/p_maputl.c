@@ -612,8 +612,7 @@ bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void
 	// GhostlyDeath <May 5, 2012> -- Infinite Loop aversion
 	CheckNum = ++BaseCheckNum;
 	
-	//added:15-02-98: check interaction (ligne de tir, ...)
-	//                avec les objets dans le blocmap
+	//added:15-02-98: interaction check (firing line, ...) with the objects in the blockmap
 	for (NextMo = NULL, mobj = blocklinks[y * bmapwidth + x]; mobj; mobj = NextMo)
 	{
 		// GhostlyDeath <April 24, 2012> -- Remember the next object, because with

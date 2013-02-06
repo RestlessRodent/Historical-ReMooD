@@ -458,6 +458,125 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 	}
 }
 
+/* PS_LoadUnloadNoiseThinker() -- Saves/Restores Noise Thinker (sound origin) */
+static void PS_LoadUnloadNoiseThinker(D_BS_t* const a_Str, const bool_t a_Write, S_NoiseThinker_t* const a_NT)
+{
+	/* Saving */
+	if (a_Write)
+	{
+		D_BSwu32(a_Str, a_NT->Flags);
+		D_BSwi32(a_Str, a_NT->x);
+		D_BSwi32(a_Str, a_NT->y);
+		D_BSwi32(a_Str, a_NT->z);
+		D_BSwi32(a_Str, a_NT->momx);
+		D_BSwi32(a_Str, a_NT->momy);
+		D_BSwi32(a_Str, a_NT->momz);
+		D_BSwi32(a_Str, a_NT->Pitch);
+		D_BSwi32(a_Str, a_NT->Volume);
+		D_BSwu32(a_Str, a_NT->Angle);
+	}
+	
+	/* Loading */
+	else
+	{
+		a_NT->Flags = D_BSru32(a_Str);
+		a_NT->x = D_BSri32(a_Str);
+		a_NT->y = D_BSri32(a_Str);
+		a_NT->z = D_BSri32(a_Str);
+		a_NT->momx = D_BSri32(a_Str);
+		a_NT->momy = D_BSri32(a_Str);
+		a_NT->momz = D_BSri32(a_Str);
+		a_NT->Pitch = D_BSri32(a_Str);
+		a_NT->Volume = D_BSri32(a_Str);
+		a_NT->Angle = D_BSru32(a_Str);
+	}
+}
+
+/* PS_LUMapObjRef() -- Loads/Unloads a map object reference */
+static void PS_LUMapObjRef(D_BS_t* const a_Str, const bool_t a_Write, void** const a_Ref)
+{
+	uint8_t IDType;
+	uint32_t RefNum;	
+	
+	/* Saving */
+	if (a_Write)
+	{
+#define __DEF(id,ref) {IDType = (id); RefNum = (ref);}
+
+		// Vertex
+		if (*a_Ref >= vertexes && *a_Ref < &vertexes[numvertexes])
+			__DEF(1, ((vertex_t*)*a_Ref) - vertexes)
+			
+		// Segs
+		else if (*a_Ref >= segs && *a_Ref < &segs[numsegs])
+			__DEF(2, ((seg_t*)*a_Ref) - segs)
+			
+		// Sectors
+		else if (*a_Ref >= sectors && *a_Ref < &sectors[numsectors])
+			__DEF(3, ((sector_t*)*a_Ref) - sectors)
+			
+		// SubSectors
+		else if (*a_Ref >= subsectors && *a_Ref < &subsectors[numsubsectors])
+			__DEF(4, ((subsector_t*)*a_Ref) - subsectors)
+			
+		// Nodes
+		else if (*a_Ref >= nodes && *a_Ref < &nodes[numnodes])
+			__DEF(5, ((node_t*)*a_Ref) - nodes)
+			
+		// Lines
+		else if (*a_Ref >= lines && *a_Ref < &lines[numlines])
+			__DEF(6, ((line_t*)*a_Ref) - lines)
+			
+		// Sides
+		else if (*a_Ref >= sides && *a_Ref < &sides[numsides])
+			__DEF(7, ((side_t*)*a_Ref) - sides)
+		
+		// Map Things
+		else if (*a_Ref >= mapthings && *a_Ref < &mapthings[nummapthings])
+			__DEF(8, ((mapthing_t*)*a_Ref) - mapthings)
+		
+		// NULL or invalid
+		else
+		{
+			IDType = 0;
+			RefNum = 0;
+		}
+		
+		// Write it
+		D_BSwu8(a_Str, IDType);
+		D_BSwu32(a_Str, RefNum);
+#undef __DEF
+	}
+	
+	/* Loading */
+	else
+	{
+		// Read Type and reference number
+		IDType = D_BSru8(a_Str);
+		RefNum = D_BSru32(a_Str);
+		
+		// Which Type?
+		switch (IDType)
+		{
+#define __CHK(b,rng) *a_Ref = ((RefNum >= 0 && RefNum < (rng)) ? (&((b)[RefNum])) : NULL)
+			case 1: __CHK(vertexes, numvertexes); break;
+			case 2: __CHK(segs, numsegs); break;
+			case 3: __CHK(sectors, numsectors); break;
+			case 4: __CHK(subsectors, numsubsectors); break;
+			case 5: __CHK(nodes, numnodes); break;
+			case 6: __CHK(lines, numlines); break;
+			case 7: __CHK(sides, numsides); break;
+			case 8: __CHK(mapthings, nummapthings); break;
+			
+				// NULL or invalid
+			default:
+				*a_Ref = NULL;
+				break;
+		}
+#undef __CHK
+	}
+}
+
 /*****************************************************************************/
 
 /* PS_SaveDummy() -- Saves dummy data */
@@ -1045,7 +1164,9 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 		This->pendingweapon = D_BSri32(a_Str);
 		D_BSrs(a_Str, Buf, BUFSIZE);
 		wi = INFO_GetWeaponByName(Buf);
-		if (wi < NUMWEAPONS)
+		if (This->pendingweapon < 0)
+			This->pendingweapon = wp_nochange;
+		else if (wi < NUMWEAPONS)
 			This->pendingweapon = wi;
 		
 		// Dead weapon
@@ -1070,7 +1191,7 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 			if (Buf[0])
 			{
 				wi = INFO_GetWeaponByName(Buf);
-				if (wi < NUMWEAPONS)
+				if (wi >= 0 && wi < NUMWEAPONS)
 					This->weaponowned[wi] = true;
 			}
 		}
@@ -1275,12 +1396,14 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 /*---------------------------------------------------------------------------*/
 
 #define SECNODECOUNT 512
+#define SECTORCOUNT 128
 
 /* PS_SaveMapState() -- Saves map to savegame */
 static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 {
-	uint32_t i;
+	uint32_t i, j;
 	thinker_t* Thinker;
+	mobj_t* mo;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1314,7 +1437,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		}
 		
 		// Write Info here
-		D_BSwi32(a_Str, g_MSecNodes[i]->m_sector - sectors);
+		PS_LUMapObjRef(a_Str, true, &g_MSecNodes[i]->m_sector);
 		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)g_MSecNodes[i]->m_thing));
 		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tprev));
 		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tnext));
@@ -1342,7 +1465,120 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		{
 				// Map Object
 			case PTT_MOBJ:
+				mo = Thinker;
 				
+				PS_LoadUnloadNoiseThinker(a_Str, true, &mo->NoiseThinker);
+				D_BSwi32(a_Str, mo->x);
+				D_BSwi32(a_Str, mo->y);
+				D_BSwi32(a_Str, mo->z);
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->snext));
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->sprev));
+				D_BSwu32(a_Str, mo->angle);
+				D_BSwi32(a_Str, mo->sprite);
+				D_BSwi32(a_Str, mo->frame);
+				D_BSwi32(a_Str, mo->skin);
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->bnext));
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->bprev));
+				PS_LUMapObjRef(a_Str, true, &mo->subsector);
+				D_BSwi32(a_Str, mo->floorz);
+				D_BSwi32(a_Str, mo->ceilingz);
+				D_BSwi32(a_Str, mo->radius);
+				D_BSwi32(a_Str, mo->height);
+				D_BSwi32(a_Str, mo->momx);
+				D_BSwi32(a_Str, mo->momy);
+				D_BSwi32(a_Str, mo->momz);
+				D_BSws(a_Str, mo->info->RClassName);
+				D_BSwi32(a_Str, mo->tics);
+				PS_StateP(a_Str, true, &mo->state);
+				D_BSwi32(a_Str, mo->flags);
+				D_BSwi32(a_Str, mo->eflags);
+				D_BSwi32(a_Str, mo->flags2);
+				D_BSwi32(a_Str, mo->special1);
+				D_BSwi32(a_Str, mo->special2);
+				D_BSwi32(a_Str, mo->health);
+				D_BSwi32(a_Str, mo->movedir);
+				D_BSwi32(a_Str, mo->movecount);
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->target));
+				D_BSwi32(a_Str, mo->reactiontime);
+				D_BSwi32(a_Str, mo->threshold);
+				if (mo->player)
+					D_BSwi32(a_Str, mo->player - players);
+				else
+					D_BSwi32(a_Str, -1);
+				D_BSwi32(a_Str, mo->lastlook);
+				
+				// Spawn point (might be script created)
+				PS_LUMapObjRef(a_Str, true, &mo->spawnpoint);
+				D_BSwu8(a_Str, !!mo->spawnpoint);
+				if (mo->spawnpoint)
+				{
+					D_BSwi16(a_Str, mo->spawnpoint->x);
+					D_BSwi16(a_Str, mo->spawnpoint->y);
+					D_BSwi16(a_Str, mo->spawnpoint->z);
+					D_BSwi16(a_Str, mo->spawnpoint->angle);
+					D_BSwi16(a_Str, mo->spawnpoint->type);
+					D_BSwi16(a_Str, mo->spawnpoint->options);
+					D_BSwu8(a_Str, mo->spawnpoint->IsHexen);
+					D_BSwi16(a_Str, mo->spawnpoint->HeightOffset);
+					D_BSwu16(a_Str, mo->spawnpoint->ID);
+					D_BSwu8(a_Str, mo->spawnpoint->Special);
+					for (i = 0; i < 5; i++)
+						D_BSwu8(a_Str, mo->spawnpoint->Args[i]);
+					D_BSws(a_Str, mobjinfo[mo->spawnpoint->MoType]->RClassName);
+					D_BSwu8(a_Str, mo->spawnpoint->MarkedWeapon);
+				}
+				
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->tracer));
+				D_BSwi32(a_Str, mo->friction);
+				D_BSwi32(a_Str, mo->movefactor);
+				D_BSwi32(a_Str, P_GetIDFromSecNode(mo->touching_sectorlist));
+				D_BSwi32(a_Str, mo->dropped_ammo_count);
+				
+				for (i = 0; i < NUMINFORXFIELDS; i++)
+					D_BSwu32(a_Str, mo->RXFlags[i]);
+				
+				if (mo->RXShotWithWeapon >= 0 && mo->RXShotWithWeapon < NUMWEAPONS)
+					D_BSws(a_Str, wpnlev1info[mo->RXShotWithWeapon]->ClassName);
+				else
+					D_BSwu8(a_Str, 0);
+				D_BSwi32(a_Str, mo->RXAttackAttackType);
+				D_BSwu8(a_Str, mo->RemoveMo);
+				D_BSws(a_Str, mobjinfo[mo->RemType]->RClassName);
+				D_BSwi32(a_Str, mo->MaxZObtained);
+				D_BSwu32(a_Str, mo->SpawnOrder);
+				D_BSwi32(a_Str, mo->SkinTeamColor);
+				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->FollowPlayer));
+				
+				for (i = 0; i < 2; i++)
+				{
+					D_BSwu32(a_Str, mo->TimeThinking[i]);
+					D_BSwu32(a_Str, mo->TimeFromDead[i]);
+				};
+				
+				D_BSwi32(a_Str, mo->KillerPlayer);
+				D_BSwu32(a_Str, mo->FraggerID);
+				
+				for (i = 0; i < 3; i++)
+					D_BSwi32(a_Str, mo->DrawPos[i]);
+				
+				// Object on object count
+				for (i = 0; i < 2; i++)
+				{
+					D_BSwu32(a_Str, mo->MoOnCount[i]);
+					
+					for (j = 0; j < mo->MoOnCount[i]; j++)
+						D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->MoOn[i][j]));
+				}
+				
+				// References
+				for (i = 0; i < NUMPMOBJREFTYPES; i++)
+				{
+					D_BSwu32(a_Str, mo->RefCount[i]);
+					D_BSwu32(a_Str, mo->RefListSz[i]);
+					
+					for (j = 0; j < mo->RefListSz[i]; j++)
+						D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->RefList[i][j]));
+				}
 				break;
 			
 				// Unknown
@@ -1357,6 +1593,29 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Write End of Thinkers
 	D_BSBaseBlock(a_Str, "THNK");
 	D_BSwi8(a_Str, -1);
+	D_BSRecordBlock(a_Str);
+	
+	/* Save BlockLinks */
+	D_BSBaseBlock(a_Str, "BKLN");
+	
+	// Write links
+	D_BSwu32(a_Str, (bmapwidth * bmapheight));
+	for (i = 0; i < (bmapwidth * bmapheight); i++)
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)blocklinks[i]));
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Sector Data */
+	
+	/* Save Map Thing References */
+	D_BSBaseBlock(a_Str, "MTRF");
+	
+	// Write it all
+	for (i = 0; i < nummapthings; i++)
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mapthings[i].mobj));
+	
+	// Record
 	D_BSRecordBlock(a_Str);
 	
 	/* Save Other related variables */
@@ -1401,8 +1660,9 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
 	P_LevelInfoEx_t* pli;
-	int32_t i, n, x;
+	int32_t i, j, n, x;
 	thinker_t* Thinker;
+	mobj_t* mo;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1448,7 +1708,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				return false;
 		
 		// Load Data
-		g_MSecNodes[i]->m_sector = &sectors[D_BSri32(a_Str)];
+		PS_LUMapObjRef(a_Str, false, &g_MSecNodes[i]->m_sector);
 		g_MSecNodes[i]->m_thing = (void*)((intptr_t)D_BSri32(a_Str));
 		g_MSecNodes[i]->m_tprev = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->m_tnext = P_GetSecNodeFromID(D_BSri32(a_Str));
@@ -1487,6 +1747,159 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		{
 				// Map Object
 			case PTT_MOBJ:
+				mo = (void*)Thinker;
+				
+				PS_LoadUnloadNoiseThinker(a_Str, false, &mo->NoiseThinker);
+				mo->x = D_BSri32(a_Str);
+				mo->y = D_BSri32(a_Str);
+				mo->z = D_BSri32(a_Str);
+				mo->snext = (void*)((intptr_t)D_BSri32(a_Str));
+				mo->sprev = (void*)((intptr_t)D_BSri32(a_Str));
+				mo->angle = D_BSru32(a_Str);
+				mo->sprite = D_BSri32(a_Str);
+				mo->frame = D_BSri32(a_Str);
+				mo->skin = D_BSri32(a_Str);
+				mo->bnext = (void*)((intptr_t)D_BSri32(a_Str));
+				mo->bprev = (void*)((intptr_t)D_BSri32(a_Str));
+				PS_LUMapObjRef(a_Str, false, &mo->subsector);
+				mo->floorz = D_BSri32(a_Str);
+				mo->ceilingz = D_BSri32(a_Str);
+				mo->radius = D_BSri32(a_Str);
+				mo->height = D_BSri32(a_Str);
+				mo->momx = D_BSri32(a_Str);
+				mo->momy = D_BSri32(a_Str);
+				mo->momz = D_BSri32(a_Str);
+				
+				D_BSrs(a_Str, Buf, BUFSIZE);
+				mo->type = INFO_GetTypeByName(Buf);
+				mo->info = mobjinfo[mo->type];
+				
+				mo->tics = D_BSri32(a_Str);
+				PS_StateP(a_Str, false, &mo->state);
+				mo->flags = D_BSri32(a_Str);
+				mo->eflags = D_BSri32(a_Str);
+				mo->flags2 = D_BSri32(a_Str);
+				mo->special1 = D_BSri32(a_Str);
+				mo->special2 = D_BSri32(a_Str);
+				mo->health = D_BSri32(a_Str);
+				mo->movedir = D_BSri32(a_Str);
+				mo->movecount = D_BSri32(a_Str);
+				mo->target = (void*)((intptr_t)D_BSri32(a_Str));
+				mo->reactiontime = D_BSri32(a_Str);
+				mo->threshold = D_BSri32(a_Str);
+				
+				x = D_BSri32(a_Str);
+				if (x < 0 || x >= MAXPLAYERS)
+					mo->player = NULL;
+				else
+					mo->player = &players[x];
+				
+				mo->lastlook = D_BSri32(a_Str);
+
+				// Spawn point (might be script created)
+				PS_LUMapObjRef(a_Str, false, &mo->spawnpoint);
+				n = !!mo->spawnpoint;
+				x = D_BSru8(a_Str);
+				
+				if (x)
+					if (!n)
+					{
+						mo->spawnpoint = Z_Malloc(sizeof(*mo->spawnpoint), PU_LEVEL, NULL);
+						
+						mo->spawnpoint->x = D_BSri16(a_Str);
+						mo->spawnpoint->y = D_BSri16(a_Str);
+						mo->spawnpoint->z = D_BSri16(a_Str);
+						mo->spawnpoint->angle = D_BSri16(a_Str);
+						mo->spawnpoint->type = D_BSri16(a_Str);
+						mo->spawnpoint->options = D_BSri16(a_Str);
+						mo->spawnpoint->IsHexen = D_BSru8(a_Str);
+						mo->spawnpoint->HeightOffset = D_BSri16(a_Str);
+						mo->spawnpoint->ID = D_BSru16(a_Str);
+						mo->spawnpoint->Special = D_BSru8(a_Str);
+						for (i = 0; i < 5; i++)
+							mo->spawnpoint->Args[i] = D_BSru8(a_Str);
+						
+						D_BSrs(a_Str, Buf, BUFSIZE);
+						mo->spawnpoint->MoType = INFO_GetTypeByName(Buf);
+						
+						mo->spawnpoint->MarkedWeapon = D_BSru8(a_Str);
+					}
+					
+					else
+					{
+						D_BSri16(a_Str);
+						D_BSri16(a_Str);
+						D_BSri16(a_Str);
+						D_BSri16(a_Str);
+						D_BSri16(a_Str);
+						D_BSri16(a_Str);
+						D_BSru8(a_Str);
+						D_BSri16(a_Str);
+						D_BSru16(a_Str);
+						D_BSru8(a_Str);
+						for (i = 0; i < 5; i++)
+							D_BSru8(a_Str);
+						D_BSrs(a_Str, Buf, BUFSIZE);
+						D_BSru8(a_Str);
+					}
+
+				mo->tracer = (void*)((intptr_t)D_BSri32(a_Str));
+				mo->friction = D_BSri32(a_Str);
+				mo->movefactor = D_BSri32(a_Str);
+				mo->touching_sectorlist = P_GetSecNodeFromID(D_BSri32(a_Str));
+				mo->dropped_ammo_count = D_BSri32(a_Str);
+
+				for (i = 0; i < NUMINFORXFIELDS; i++)
+					mo->RXFlags[i] = D_BSru32(a_Str);
+				
+				D_BSrs(a_Str, Buf, BUFSIZE);
+				mo->RXShotWithWeapon = INFO_GetWeaponByName(Buf);
+				
+				mo->RXAttackAttackType = D_BSri32(a_Str);
+				mo->RemoveMo = D_BSru8(a_Str);
+				
+				D_BSrs(a_Str, Buf, BUFSIZE);
+				mo->RemType = INFO_GetTypeByName(Buf);
+				
+				mo->MaxZObtained = D_BSri32(a_Str);
+				mo->SpawnOrder = D_BSru32(a_Str);
+				mo->SkinTeamColor = D_BSri32(a_Str);
+				mo->FollowPlayer = (void*)((intptr_t)D_BSri32(a_Str));
+
+				for (i = 0; i < 2; i++)
+				{
+					mo->TimeThinking[i] = D_BSru32(a_Str);
+					mo->TimeFromDead[i] = D_BSru32(a_Str);
+				};
+
+				mo->KillerPlayer = D_BSri32(a_Str);
+				mo->FraggerID = D_BSru32(a_Str);
+
+				for (i = 0; i < 3; i++)
+					mo->DrawPos[i] = D_BSri32(a_Str);
+
+				// Object on object count
+				for (i = 0; i < 2; i++)
+				{
+					mo->MoOnCount[i] = D_BSru32(a_Str);
+					
+					mo->MoOn[i] = Z_Malloc(sizeof(*mo->MoOn[i]) * mo->MoOnCount[i], PU_LEVEL, NULL);
+	
+					for (j = 0; j < mo->MoOnCount[i]; j++)
+						mo->MoOn[i][j] = (void*)((intptr_t)D_BSri32(a_Str));
+				}
+
+				// References
+				for (i = 0; i < NUMPMOBJREFTYPES; i++)
+				{
+					mo->RefCount[i] = D_BSru32(a_Str);
+					mo->RefListSz[i] = D_BSru32(a_Str);
+					
+					mo->RefList[i] = Z_Malloc(sizeof(*mo->RefList[i]) * mo->RefListSz[i], PU_LEVEL, NULL);
+	
+					for (j = 0; j < mo->RefListSz[i]; j++)
+						mo->RefList[i][j] = (void*)((intptr_t)D_BSri32(a_Str));
+				}
 				break;
 			
 				// Unknown
@@ -1495,9 +1908,64 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		}
 	}
 	
+	// Restore thinker references from thinkers
+	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
+		switch (Thinker->Type)
+		{
+				// Map Object
+			case PTT_MOBJ:
+				mo = Thinker;
+				
+				mo->snext = (void*)PS_GetThinkerFromID((intptr_t)mo->snext);
+				mo->sprev = (void*)PS_GetThinkerFromID((intptr_t)mo->sprev);
+				mo->bnext = (void*)PS_GetThinkerFromID((intptr_t)mo->bnext);
+				mo->bprev = (void*)PS_GetThinkerFromID((intptr_t)mo->bprev);
+				mo->target = (void*)PS_GetThinkerFromID((intptr_t)mo->target);
+				mo->tracer = (void*)PS_GetThinkerFromID((intptr_t)mo->tracer);
+				mo->FollowPlayer = (void*)PS_GetThinkerFromID((intptr_t)mo->FollowPlayer);
+				
+				for (i = 0; i < NUMPMOBJREFTYPES; i++)
+					for (x = 0; x < mo->RefListSz[i]; x++)
+						mo->RefList[i][x] = (void*)PS_GetThinkerFromID((intptr_t)mo->RefList[i][x]);
+				
+				for (i = 0; i < 2; i++)
+					for (x = 0; x < mo->MoOnCount[i]; x++)
+						mo->MoOn[i][x] = (void*)PS_GetThinkerFromID((intptr_t)mo->MoOn[i][x]);
+				break;
+				
+				// Unknown
+			default:
+				break;
+		}
+	
 	// Restore sector node thinker IDs
 	for (i = 0; i < g_NumMSecNodes; i++)
-		g_MSecNodes[i]->m_thing = PS_GetThinkerFromID((intptr_t)g_MSecNodes[i]->m_thing);
+		g_MSecNodes[i]->m_thing = (void*)PS_GetThinkerFromID((intptr_t)g_MSecNodes[i]->m_thing);
+		
+	/* Restore BlockLinks */
+	if (!PS_Expect(a_Str, "BKLN"))
+		return false;
+	
+	// Read Links
+	j = (bmapwidth * bmapheight);
+	n = D_BSru32(a_Str);
+	for (i = 0; i < n; i++)
+		if (i < j)
+			blocklinks[i] = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		else
+			D_BSri32(a_Str);
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Restore Sector Info */
+	
+	/* Restore Map Thing References */
+	if (!PS_Expect(a_Str, "MTRF"))
+		return false;
+	
+	for (i = 0; i < nummapthings; i++)
+		mapthings[i].mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
 		
 	/* Expect "LMSC" */
 	if (!PS_Expect(a_Str, "LMSC"))
@@ -1507,7 +1975,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	n = D_BSru8(a_Str);
 	bodyqueslot = D_BSri32(a_Str);
 	for (i = 0; i < n; i++)
-		bodyque[i] = PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		bodyque[i] = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
 		
 	// Coop Starts
 	n = D_BSru8(a_Str);
@@ -1622,12 +2090,12 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 		{
-			players[i].mo = PS_GetThinkerFromID((intptr_t)players[i].mo);
-			players[i].attacker = PS_GetThinkerFromID((intptr_t)players[i].attacker);
-			players[i].rain1 = PS_GetThinkerFromID((intptr_t)players[i].rain1);
-			players[i].rain2 = PS_GetThinkerFromID((intptr_t)players[i].rain2);
-			players[i].LastBFGBall = PS_GetThinkerFromID((intptr_t)players[i].LastBFGBall);
-			players[i].Attackee = PS_GetThinkerFromID((intptr_t)players[i].Attackee);
+			players[i].mo = (void*)PS_GetThinkerFromID((intptr_t)players[i].mo);
+			players[i].attacker = (void*)PS_GetThinkerFromID((intptr_t)players[i].attacker);
+			players[i].rain1 = (void*)PS_GetThinkerFromID((intptr_t)players[i].rain1);
+			players[i].rain2 = (void*)PS_GetThinkerFromID((intptr_t)players[i].rain2);
+			players[i].LastBFGBall = (void*)PS_GetThinkerFromID((intptr_t)players[i].LastBFGBall);
+			players[i].Attackee = (void*)PS_GetThinkerFromID((intptr_t)players[i].Attackee);
 		}
 		
 	// Initialize Level Based Info
