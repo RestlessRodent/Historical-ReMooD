@@ -65,6 +65,7 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		IP_RMD_CreateF,
 		IP_RMD_RunConnF,
 		IP_RMD_DeleteConnF,
+		IP_RMD_ConnTrashIPF,
 	},
 	
 	// Odamex
@@ -75,6 +76,7 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		IP_ODA_CreateF,
 		IP_ODA_RunConnF,
 		IP_ODA_DeleteConnF,
+		NULL,
 	},
 };
 
@@ -352,5 +354,17 @@ void IP_ConnRun(struct IP_Conn_s* const a_Conn)
 	
 	/* Run it */
 	a_Conn->Handler->RunConnF(a_Conn->Handler, a_Conn);
+}
+
+/* IP_ConnTrashIP() -- Trash address */
+void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr)
+{
+	/* Check */
+	if (!a_Conn)
+		return;
+	
+	/* Run it */
+	if (a_Conn->Handler->ConnTrashF)
+		a_Conn->Handler->ConnTrashF(a_Conn->Handler, a_Conn, a_Addr);
 }
 

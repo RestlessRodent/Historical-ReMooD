@@ -53,6 +53,7 @@ typedef enum IP_RmdFlags_e
 {
 	IPRF_SERVER			= UINT32_C(0x00000001),	// Requires being server
 	IPRF_CLIENT			= UINT32_C(0x00000002),	// Requires being client
+	IPRF_AUTH			= UINT32_C(0x00000004),	// Authorized
 } IP_RmdFlags_t;
 
 /*****************
@@ -133,10 +134,7 @@ static void IPRS_SCON(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddr
 	
 	// He is connected!
 	if (XPlay)
-	{
-		CONL_PrintF("Connected already!\n");
 		return;
-	}
 	
 	/* Init Info */
 	memset(&Info, 0, sizeof(Info));
@@ -146,6 +144,15 @@ static void IPRS_SCON(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddr
 	
 	/* Create a new XPlayer */
 	XPlay = D_XNetAddPlayer(IPRS_SCONBaseXPlay, &Info, false);
+	
+	/* Send information to client */
+	D_BSBaseBlock(a_BS, "SCOK");
+	
+	// Tell the remote client, their host ID
+	D_BSwu32(a_BS, XPlay->HostID);
+	
+	// Send away
+	D_BSRecordNetBlock(a_BS, a_Addr);
 }
 
 /* c_RMDProtoHeads -- Protocol headers */
@@ -379,6 +386,22 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 	/* Flush stream */
 	// This is so packets are sent, etc.
 	D_BSFlushStream(Data->BS);
+}
+
+/* IP_RMD_ConnTrashIPF() -- Trash IP Address */
+void IP_RMD_ConnTrashIPF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr)
+{
+	IP_RmdData_t* Data;
+	
+	/* Check */
+	if (!a_Proto || !a_Conn)
+		return;
+	
+	/* Get Data */
+	Data = a_Conn->Data;
+	
+	/* Trash IP */
+	D_BSStreamIOCtl(Data->BS, DRBSIOCTL_DROPHOST, a_Addr);
 }
 
 /*****************************************************************************/

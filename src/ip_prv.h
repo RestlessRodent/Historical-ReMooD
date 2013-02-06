@@ -47,6 +47,7 @@ bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host
 struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
 void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
 void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
+void IP_RMD_ConnTrashIPF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr);
 
 /* Odamex Protocol */
 bool_t IP_ODA_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);

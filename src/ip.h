@@ -70,6 +70,7 @@ typedef bool_t (*IP_VerifyF_t)(const struct IP_Proto_s* a_Proto, const char* con
 typedef struct IP_Conn_s* (*IP_CreateF_t)(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
 typedef void (*IP_RunConnF_t)(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
 typedef void (*IP_DeleteConnF_t)(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
+typedef void (*IP_ConnTrashIPF_t)(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr);
 
 /* IP_Proto_t -- Protocol Handler */
 typedef struct IP_Proto_s
@@ -80,6 +81,7 @@ typedef struct IP_Proto_s
 	IP_CreateF_t CreateF;						// Create Connection
 	IP_RunConnF_t RunConnF;						// Run Connection
 	IP_DeleteConnF_t DeleteConnF;				// Delete Connection
+	IP_ConnTrashIPF_t ConnTrashF;				// Connection Trash
 } IP_Proto_t;
 
 /* IP_Addr_t -- Standard Address */
@@ -124,9 +126,14 @@ void IP_Destroy(struct IP_Conn_s* const a_Conn);
 struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID);
 
 void IP_ConnRun(struct IP_Conn_s* const a_Conn);
+void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr);
 
 void IP_XFaceMaster(void);
 void IP_RunXFace(void);
+
+/*****************************************************************************/
+
+
 
 #endif /* __IP_H__ */
 

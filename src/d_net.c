@@ -1069,6 +1069,10 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 	/* Remove from slot */
 	//g_XPlays[Slot] = NULL;
 	
+	/* If there is a connection, nuke the reliable connection */
+	if (a_Player->IPConn)
+		IP_ConnTrashIP(a_Player->IPConn, &a_Player->Address);
+	
 	/* Mark Defunct */
 	a_Player->Flags |= DXPF_DEFUNCT;
 	
