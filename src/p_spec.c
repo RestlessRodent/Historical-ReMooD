@@ -2005,8 +2005,8 @@ int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor)
 	return -1;
 }
 
-/* P_GetFFLoorFromID() -- Gets the floor from the ID */
-ffloor* P_GetFFLoorFromID(const int32_t a_ID)
+/* P_GetFFloorFromID() -- Gets the floor from the ID */
+ffloor_t* P_GetFFloorFromID(const int32_t a_ID)
 {
 	return NULL;
 }

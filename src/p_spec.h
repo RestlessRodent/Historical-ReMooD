@@ -1316,7 +1316,7 @@ extern ffloor_t** g_PFakeFloors;				// Fake Floors
 extern size_t g_NumPFakeFloors;					// Number of them
 
 int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor);
-ffloor* P_GetFFLoorFromID(const int32_t a_ID);
+ffloor_t* P_GetFFloorFromID(const int32_t a_ID);
 
 /*****************************************************************************/
 

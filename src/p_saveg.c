@@ -596,7 +596,7 @@ static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 	D_BSws(a_Str, REMOOD_URL);
 	
 	// Sync
-	D_BSwu32(a_Str,  G_CalcSyncCode());
+	D_BSwu32(a_Str,  G_CalcSyncCode(false));
 	
 	/* Record */
 	D_BSRecordBlock(a_Str);
@@ -636,6 +636,12 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 		
 		// Sync Code
 		u32 = D_BSru32(a_Str);
+	}
+	
+	// Print Notice
+	else
+	{
+		CONL_PrintF("Loaded savegame.\n");
 	}
 	
 	/* Success! */
@@ -2309,13 +2315,35 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	/* Clear level before loading */
 	P_ExClearLevel();
 	
+	/* Set OK */
+	OK = true;
+	
 	/* Network State */
-	PS_LoadDummy(a_Str, false);
-	PS_LoadNetState(a_Str);
-	PS_LoadPlayers(a_Str);
-	PS_LoadGameState(a_Str);
-	PS_LoadMapState(a_Str);
-	PS_LoadDummy(a_Str, true);
+	if (OK)
+		OK = PS_LoadDummy(a_Str, false);
+	
+	if (OK)
+		OK = PS_LoadNetState(a_Str);
+		
+	if (OK)
+		OK = PS_LoadPlayers(a_Str);
+		
+	if (OK)
+		OK = PS_LoadGameState(a_Str);
+		
+	if (OK)
+		OK = PS_LoadMapState(a_Str);
+		
+	if (OK)
+		OK = PS_LoadDummy(a_Str, true);
+	
+	// Did not worked
+	if (!OK)
+	{
+		P_ExClearLevel();
+		D_XNetDisconnect(false);
+		return false;
+	}
 	
 	/* Handle Reference Links (if any) */
 	// Players
