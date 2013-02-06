@@ -535,7 +535,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Setup clone
 				memset(&Clone, 0, sizeof(Clone));
 				
-				XPlayer->Flags |= u32[4] | DXPF_DEMO;
+				XPlayer->Flags |= u32[4] | (demoplayback ? DXPF_DEMO : 0);
 				XPlayer->ID = u32[0];
 				XPlayer->HostID = u32[1];
 				XPlayer->ClProcessID = u32[2];
@@ -544,7 +544,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				
 				// Add it
 				if (j)
-					D_XNetAddPlayer(GS_XAddPlayerCB, XPlayer);
+					D_XNetAddPlayer(GS_XAddPlayerCB, XPlayer, true);
 				break;
 				
 				// Kick Player
@@ -568,6 +568,8 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 					if (Mo)
 						Mo->player = NULL;
 					players[u16[0]].mo = NULL;
+					players[u16[0]].XPlayer = NULL;
+					players[u16[0]].ProfileEx = NULL;
 				
 					// Set the player as not in game
 					playeringame[u16[0]] = false;
@@ -580,7 +582,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				
 				// Kick player from game (network wise)
 				if (XPlayer)
-					D_XNetKickPlayer(XPlayer, AltBuf);
+					D_XNetKickPlayer(XPlayer, AltBuf, true);
 					
 				// Verify Coop Spy
 				P_VerifyCoopSpy();
@@ -879,6 +881,9 @@ void G_Ticker(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if ((playeringame[i] || i == 0) && !dedicated)
 			GS_HandleExtraCommands(cmd, i);
+	
+	/* Remove defunct XPlayer */
+	D_XNetClearDefunct();
 	
 	// Set new time
 	g_DemoTime = gametic;

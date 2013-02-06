@@ -1878,11 +1878,10 @@ bool_t NG_SetRules(const bool_t a_Master, const char* const a_Name)
 	WL_StreamCheckUnicode(Stream);
 	
 	// Read all sections for the right one
-	CurSect = NULL;
-	while ((CurSect = TINI_FindNextSection(CurSect, Stream)))
+	for (CurSect = TINI_FindNextSection(CurSect, Stream); CurSect; CurSect = CurSect->Next)
 	{
 		// Section name mismatch?
-		if (strcasecmp(CurSect->Name, a_Name))
+		if (strcasecmp(CurSect->Name, a_Name) != 0)
 			continue;
 		
 		// Begin reading lines
@@ -1934,6 +1933,7 @@ int32_t NG_SetVarValue(const P_XGSBitID_t a_Bit, const int32_t a_NewVal)
 	
 	/* Cap and return value */
 	l_NGValues[a_Bit].Value = PS_XGSCapValue(a_Bit, a_NewVal, &l_NGValues[a_Bit].IsSet);
+	
 	return l_NGValues[a_Bit].Value;
 }
 

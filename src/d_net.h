@@ -102,6 +102,7 @@ typedef enum D_XPlayerStatBits_e
 	DXPSB_LBOVERFLOW	= UINT32_C(0x0000001),	// Local buffer overflowing
 	DXPSB_NEEDSPROFILE	= UINT32_C(0x0000002),	// Needs profile loaded
 	DXPSB_MISSINGTICS	= UINT32_C(0x0000004),	// Missing Tics
+	DXPSB_CAUSEOFLAG	= UINT32_C(0x0000008),	// Is Causing the lag
 } D_XPlayerStatBits_t;
 
 /*** STRUCTURES ***/
@@ -184,9 +185,19 @@ typedef struct D_XPlayer_s
 	bool_t Turned180;							// Did 180 degre turn
 	
 	// Connection Socket
-	IP_Conn_t* IPTo;							// Connection To Player
-	IP_Conn_t* IPFrom;							// Connection From Player (Secure)
+	IP_Conn_t* IPConn;							// Connection Of Player
 	IP_Addr_t* IPAddr;							// Address of Player
+	bool_t TransSave;							// Save game transmitted and loaded
+	
+	// Start of Lag
+	tic_t LagStart;								// Start of lag
+	tic_t LagKill;								// Kill at this lag time
+	tic_t LagThreshold;							// Threshold of lag
+	tic_t LagThreshExpire;						// Time when threshold expires
+	
+	// Prevent Multiple Joins
+	bool_t TriedToJoin;							// Tried to join already
+	bool_t DidConnectTrans;						// Did connect transport
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -227,12 +238,15 @@ bool_t D_XNetIsConnected(void);
 uint32_t D_XNetGetHostID(void);
 
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
+D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str);
+D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr);
 
 void D_XNetDelSocket(D_XSocket_t* const a_Socket);
-D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);
-void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
+D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data, const bool_t a_FromGTicker);
+void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, const bool_t a_FromGTicker);
+void D_XNetClearDefunct(void);
 void D_XNetSpectate(const int32_t a_PlayerID);
 void D_XNetSendQuit(void);
 void D_XNetPartLocal(D_XPlayer_t* const a_Player);

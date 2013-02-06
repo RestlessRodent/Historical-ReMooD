@@ -40,6 +40,20 @@
 #include "ip_prv.h"
 #include "console.h"
 #include "dstrings.h"
+#include "m_argv.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+#define CONNRETRYDELAY (TICRATE)
+#define SERVERADDR(x) ((I_HostAddress_t*)(&((x)->Conn->RemAddr.Private)))
+
+typedef enum IP_RmdFlags_e
+{
+	IPRF_SERVER			= UINT32_C(0x00000001),	// Requires being server
+	IPRF_CLIENT			= UINT32_C(0x00000002),	// Requires being client
+} IP_RmdFlags_t;
 
 /*****************
 *** STRUCTURES ***
@@ -50,11 +64,21 @@ typedef struct IP_RmdData_s
 {
 	struct IP_Conn_s* Conn;						// Connection
 	I_NetSocket_t* Socket;						// Socket to server
+	
 	D_BS_t* BS;									// Block Stream
+	D_BS_t* BSnet;								// Net Stream
 	
 	bool_t IsConnected;							// Connected To Server
-	
+	tic_t LastConnectTry;						// Last time connection was tried
 } IP_RmdData_t;
+
+/* IP_RmdConnInfo_t -- Connection Info */
+typedef struct IP_RmdConnInfo_s
+{
+	I_HostAddress_t* Addr;						// Address connecting from
+	uint32_t BootClProcessID;					// Initial process ID
+	IP_RmdData_t* Data;
+} IP_RmdConnInfo_t;
 
 /****************
 *** FUNCTIONS ***
@@ -68,14 +92,72 @@ static void IPRS_RINF(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddr
 	CONL_PrintF("Info request\n");
 }
 
+/* IPRS_SCONBaseXPlay() -- Basic XPlayer for SCON Connect */
+static void IPRS_SCONBaseXPlay(D_XPlayer_t* const a_Player, void* const a_Data)
+{
+	IP_RmdConnInfo_t* InfoP;
+	uint32_t ID;
+	
+	/* Grab Info */
+	InfoP = a_Data;
+	
+	/* Setup internals based on Info */
+	memmove(&a_Player->Address, InfoP->Addr, sizeof(a_Player->Address));
+	a_Player->ClProcessID = InfoP->BootClProcessID;
+	a_Player->IPConn = InfoP->Data->Conn;
+	
+	/* Set unique host ID */
+	if (!a_Player->HostID)
+	{
+		do
+		{
+			ID = D_CMakePureRandom();
+		} while (!ID || D_XNetPlayerByHostID(ID));
+
+		// Set ID, is hopefully really random
+		a_Player->HostID = ID;
+	}
+}
+
+/* IPRS_SCON() -- Simple Connect */
+static void IPRS_SCON(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
+{
+	int32_t i;
+	D_XPlayer_t* XPlay;
+	IP_RmdConnInfo_t Info;
+	
+	CONL_PrintF("Simple connect request\n");
+	
+	/* See if the client has already connected... */
+	XPlay = D_XNetPlayerByAddr(a_Addr);
+	
+	// He is connected!
+	if (XPlay)
+	{
+		CONL_PrintF("Connected already!\n");
+		return;
+	}
+	
+	/* Init Info */
+	memset(&Info, 0, sizeof(Info));
+	Info.Addr = a_Addr;
+	Info.BootClProcessID = D_BSru32(a_BS);
+	Info.Data = a_Data;
+	
+	/* Create a new XPlayer */
+	XPlay = D_XNetAddPlayer(IPRS_SCONBaseXPlay, &Info, false);
+}
+
 /* c_RMDProtoHeads -- Protocol headers */
 static const struct
 {
 	char Header[5];								// Header
 	IPR_HandleType_t Func;						// handler func
+	uint32_t Flags;								// Flags for Handling
 } c_RMDProtoHeads[] =
 {
-	{"RINF", IPRS_RINF},
+	{"RINF", IPRS_RINF, IPRF_SERVER},
+	{"SCON", IPRS_SCON, IPRF_SERVER},
 	
 	// Done
 	{""},
@@ -186,10 +268,38 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	// Set Data
 	Data->Socket = Socket;
 	Data->Conn = New;
-	Data->BS = D_BSCreateNetStream(Data->Socket);
+	Data->BSnet = D_BSCreateNetStream(Data->Socket);
+	Data->BS = D_BSCreateReliableStream(Data->BSnet);
+	
+	// If a client, make sure the server gets a permitted connection
+	if (!(a_Flags & IPF_INPUT))
+		D_BSStreamIOCtl(Data->BS, DRBSIOCTL_ADDHOST, &Addr.Private);
 	
 	/* Return it */
 	return New;
+}
+
+/* IP_RMD_DeleteConnF() -- Deletes connection */
+void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+{
+	IP_RmdData_t* Data;
+	
+	/* Check */
+	if (!a_Proto || !a_Conn)
+		return;
+	
+	/* Get Data */
+	Data = a_Conn->Data;
+	
+	/* Close Streams */
+	D_BSCloseStream(Data->BS);
+	D_BSCloseStream(Data->BSnet);
+	
+	/* Close Socket */
+	I_NetCloseSocket(Data->Socket);
+	
+	/* Clear Data */
+	Z_Free(Data);
 }
 
 /* IP_RMD_RunConnF() -- Runs connection */
@@ -214,6 +324,14 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 		for (i = 0; c_RMDProtoHeads[i].Header[0]; i++)
 			if (D_BSCompareHeader(Header, c_RMDProtoHeads[i].Header))
 			{
+				// Not server and needs server?
+				if ((c_RMDProtoHeads[i].Flags & (IPRF_SERVER | IPRF_CLIENT)) == IPRF_SERVER && !(a_Conn->Flags & IPF_INPUT))
+					continue;
+				
+				// Not client and needs client?
+				if ((c_RMDProtoHeads[i].Flags & (IPRF_SERVER | IPRF_CLIENT)) == IPRF_CLIENT && (a_Conn->Flags & IPF_INPUT))
+					continue;
+				
 				c_RMDProtoHeads[i].Func(Data, Data->BS, &RemAddr);
 				break;
 			}
@@ -233,15 +351,34 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 	// We are a client
 	else
 	{
+		// If not connected, attempt connect
+		if (!Data->IsConnected)
+		{
+			// Expired connect attempt
+			if (!Data->LastConnectTry || g_ProgramTic >= Data->LastConnectTry)
+			{
+				// Set new timeout to now
+				Data->LastConnectTry = g_ProgramTic + CONNRETRYDELAY;
+				
+				// Print Message
+				CONL_PrintF("{zConnecting to {9%s{z...\n", IP_AddrToString(&Data->Conn->RemAddr));
+				
+				// Send simple connection packet to the server
+				D_BSBaseBlock(Data->BSnet, "SCON");
+				D_BSwu32(Data->BSnet, g_Splits[0].ProcessID);
+				D_BSRecordNetBlock(Data->BSnet, SERVERADDR(Data));
+			}
+		}
+		
+		// We are connected
+		else
+		{
+		}
 	}
-}
-
-/* IP_RMD_DeleteConnF() -- Deletes connection */
-void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
-{
-	/* Check */
-	if (!a_Proto || !a_Conn)
-		return;
+	
+	/* Flush stream */
+	// This is so packets are sent, etc.
+	D_BSFlushStream(Data->BS);
 }
 
 /*****************************************************************************/

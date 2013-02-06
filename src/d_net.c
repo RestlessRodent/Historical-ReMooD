@@ -203,11 +203,19 @@ CONL_StaticVar_t l_SVMaxClients =
 	NULL
 };
 
-// sv_readyby -- Name of Server
+// sv_readyby -- Time to be catchup from lag
 CONL_StaticVar_t l_SVReadyBy =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
-	"sv_readyby", DSTR_CVHINT_SVREADYBY, CLVVT_INTEGER, "2000",
+	"sv_readyby", DSTR_CVHINT_SVREADYBY, CLVVT_INTEGER, "30",
+	NULL
+};
+
+// sv_readyby -- Time to be catchup from lag
+CONL_StaticVar_t l_SVLagThreshExpire =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_lagthreshexpire", DSTR_CVHINT_SVLAGTHRESHEXPIRE, CLVVT_INTEGER, "60",
 	NULL
 };
 
@@ -285,6 +293,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVJoinPassword);
 	CONL_VarRegister(&l_SVMaxClients);
 	CONL_VarRegister(&l_SVReadyBy);
+	CONL_VarRegister(&l_SVLagThreshExpire);
 	CONL_VarRegister(&l_SVMaxCatchup);
 	CONL_VarRegister(&l_SVMaxDemoCatchup);
 	
@@ -517,7 +526,7 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	/* Disconnect all players */
 	for (i = 0; i < g_NumXPlays; i++)
 		if (g_XPlays[i])
-			D_XNetKickPlayer(g_XPlays[i], DS_GetString(DSTR_NET_SERVERDISCON));
+			D_XNetKickPlayer(g_XPlays[i], DS_GetString(DSTR_NET_SERVERDISCON), false);
 	
 	/* Remove all sockets */
 	for (i = 0; i < g_NumXSocks; i++)
@@ -630,7 +639,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 		} while (!ProcessID || D_XNetPlayerByID(ProcessID) || D_NCSFindSplitByProcess(ProcessID) >= 0);
 	
 	/* Create a starting spectator (the host) */
-	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)&ProcessID);
+	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)&ProcessID, false);
 	
 	// Set server infos
 	l_IsConnected = true;	// Connected to self!
@@ -659,7 +668,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 			// Create initial player for server, but not for P1
 				// P1 already has one
 			if (i)
-				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)g_Splits[i].ProcessID);
+				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)g_Splits[i].ProcessID, false);
 			
 			// Assign player
 			g_Splits[i].XPlayer = SPlay;
@@ -780,6 +789,25 @@ D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID)
 	return NULL;
 }
 
+/* D_XNetPlayerByHostID() -- Finds player by host ID */
+D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_ID)
+		return NULL;
+	
+	/* Search players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->HostID == a_ID)
+				return g_XPlays[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* D_XNetLocalPlayerByPID() -- Finds local player by process ID */
 D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID)
 {
@@ -852,13 +880,32 @@ D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str)
 	return NULL;
 }
 
+/* D_XNetPlayerByAddr() -- Finds player by address */
+D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Addr)
+		return NULL;
+	
+	/* Search players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (I_NetCompareHost(a_Addr, &g_XPlays[i]->Address))
+				return g_XPlays[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* D_XNetDelSocket() -- Deletes Socket */
 void D_XNetDelSocket(D_XSocket_t* const a_Socket)
 {
 }
 
 /* D_XNetAddPlayer() -- Adds new player */
-D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data)
+D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data, const bool_t a_FromGTicker)
 {
 	D_XPlayer_t* New, *Other;
 	uint32_t ID, OurHID;
@@ -890,6 +937,12 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 		Z_Free(New);
 		return NULL;
 	}
+	
+	/* Other already exists */
+	// But is defunct
+	if (Other)
+		if (Other->Flags & DXPF_DEFUNCT)
+			return NULL;
 	
 	/* Create ID for the player */
 	// If it does not exist!
@@ -946,7 +999,8 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 				}
 	
 	/* Send player creation packet (if server) */
-	if (D_XNetIsServer())
+	// But only if it was not created by a G_Ticker() call
+	if (D_XNetIsServer() && !a_FromGTicker)
 	{
 		// Grab global command
 		Placement = DS_GrabGlobal(DTCT_XADDPLAYER, c_TCDataSize[DTCT_XADDPLAYER], &Wp);
@@ -984,7 +1038,7 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 }
 
 /* D_XNetKickPlayer() -- Kicks player for some reason */
-void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
+void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, const bool_t a_FromGTicker)
 {
 	size_t Slot;
 	int32_t i, j;
@@ -994,6 +1048,10 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	
 	/* Check */
 	if (!a_Player)
+		return;
+	
+	/* Already defunct? */
+	if (a_Player->Flags & DXPF_DEFUNCT)
 		return;
 		
 	/* Get our host ID */
@@ -1009,7 +1067,10 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		return;
 	
 	/* Remove from slot */
-	g_XPlays[Slot] = NULL;
+	//g_XPlays[Slot] = NULL;
+	
+	/* Mark Defunct */
+	a_Player->Flags |= DXPF_DEFUNCT;
 	
 	/* Local Player */
 	if (a_Player->Flags & DXPF_LOCAL)
@@ -1058,7 +1119,7 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	// So if a player is dropping and everyone is stuck on a WFP screen and the
 	// player is removed, they will still be "in" the game until the tic command
 	// removes them.
-	if (D_XNetIsServer())
+	if (D_XNetIsServer() && !a_FromGTicker)
 	{
 		// Grab global command
 		Placement = DS_GrabGlobal(DTCT_XKICKPLAYER, c_TCDataSize[DTCT_XKICKPLAYER], &Wp);
@@ -1093,10 +1154,34 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		);
 	
 	/* Free associated data */
-	Z_Free(a_Player);
+	//Z_Free(a_Player);
 	
 	/* Update Scores */
 	P_UpdateScores();
+}
+
+/* D_XNetClearDefunct() -- Deletes any defunct XPlayers */
+void D_XNetClearDefunct(void)
+{
+	int32_t i;
+	D_XPlayer_t* XPlay;
+	
+	/* Loop */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Nothing?
+		if (!XPlay)
+			continue;
+		
+		// Player is defunct
+		if (XPlay->Flags & DXPF_DEFUNCT)
+		{
+			g_XPlays[i] = NULL;
+			Z_Free(XPlay);
+		}
+	}
 }
 
 /* D_XNetSpectate() -- Forces player to spectate */
@@ -1168,7 +1253,7 @@ void D_XNetPartLocal(D_XPlayer_t* const a_Player)
 	if (D_XNetIsServer())
 	{
 		// Standard kick takes care of everything
-		D_XNetKickPlayer(a_Player, "Left the game.");
+		D_XNetKickPlayer(a_Player, "Left the game.", false);
 	}
 	
 	/* Otherwise, inform the server */
@@ -1308,9 +1393,21 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 	if (a_Player->Player)
 		return;
 	
+	/* Already tried to join? */
+	if (a_Player->TriedToJoin)
+		return;
+	
+	// Set tried to join
+	a_Player->TriedToJoin = true;
+	
 	/* If we are the server and this is ourself, join ourself */
 	if (D_XNetIsServer())
 	{
+		// If non-local, check settings first
+		if (!(a_Player->Flags & DXPF_LOCAL))
+		{
+		}
+		
 		// Grab global command
 		Placement = DS_GrabGlobal(DTCT_XJOINPLAYER, c_TCDataSize[DTCT_XJOINPLAYER], &Wp);
 		
@@ -1413,6 +1510,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	/* Setup XPlayer */
 	XPlay->InGameID = k;
 	XPlay->ClProcessID = a_JoinData->ProcessID;
+	XPlay->TriedToJoin = false;	// can join again?
 	
 	/* Setup Game Player */
 	XPlay->Player = Player = G_AddPlayer(k);
@@ -1652,6 +1750,7 @@ tic_t D_XNetTicsToRun(void)
 	bool_t Lagging, NonLocal;
 	int32_t i;
 	D_XPlayer_t* XPlay;
+	static tic_t LastSpecTic;
 	
 	/* Get current tic */
 	ThisTic = I_GetTime();
@@ -1704,9 +1803,70 @@ tic_t D_XNetTicsToRun(void)
 			if (!XPlay)
 				continue;
 			
+			// Ignore defunct players
+			if (XPlay->Flags & DXPF_DEFUNCT)
+				continue;
+			
+			// Clear not cause of lag
+			XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
+			
 			// Non-Local
 			if ((XPlay->Flags & DXPF_LOCAL) == 0)
+			{
 				NonLocal = true;
+				
+				// Save game not transmitted?
+				if (!XPlay->TransSave)
+				{
+					Lagging = true;
+					XPlay->StatusBits |= DXPSB_CAUSEOFLAG;
+				}
+			}
+			
+			// Check lag stop/start
+			if (XPlay->StatusBits & DXPSB_CAUSEOFLAG)
+			{
+				// Set initial timer
+				if (!XPlay->LagStart)
+				{
+					XPlay->LagStart = g_ProgramTic;
+					
+					// Threshold prevents lag abuse
+					if (XPlay->LagThreshold)
+						XPlay->LagKill = XPlay->LagThreshold;
+					
+					else
+						XPlay->LagKill = XPlay->LagStart + (l_SVReadyBy.Value->Int * TICRATE);
+				}
+				
+				// If lag timer is past the threshold, kick
+				else if (g_ProgramTic >= XPlay->LagKill)
+				{
+					D_XNetKickPlayer(XPlay, "Timed out.", false);
+				}
+			}
+			
+			// If not lagging, clear indicators
+			else
+			{
+				// If we were lagging, then set the threshold
+				if (XPlay->LagStart)
+				{
+					XPlay->LagThreshExpire = g_ProgramTic + (l_SVLagThreshExpire.Value->Int * TICRATE);
+					XPlay->LagThreshold = XPlay->LagKill;
+					XPlay->LagKill = 0;
+				}
+				
+				XPlay->LagStart = 0;
+				XPlay->LagKill = 0;
+				
+				// Threshold expires?
+				if (g_ProgramTic >= XPlay->LagThreshExpire)
+				{
+					XPlay->LagThreshExpire = 0;
+					XPlay->LagThreshold = 0;
+				}
+			}
 		}
 		
 		// If dedicated, always NonLocal
@@ -1732,6 +1892,13 @@ tic_t D_XNetTicsToRun(void)
 		// Clients need to catchup
 		if (Lagging)
 		{
+			// Tic spectators, so you can move when lagging
+			if (g_ProgramTic != LastSpecTic)
+			{
+				P_SpecTicker();
+				LastSpecTic = g_ProgramTic;
+			}
+			
 			l_XNLastPTic = ThisTic;
 			return 0;
 		}
@@ -1886,7 +2053,7 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 			return 1;
 		
 		// Kick player
-		D_XNetKickPlayer(XPlay, (a_ArgC > 3 ? a_ArgV[4] : DS_GetString(DSTR_NET_KICKED)));
+		D_XNetKickPlayer(XPlay, (a_ArgC > 3 ? a_ArgV[4] : DS_GetString(DSTR_NET_KICKED)), false);
 		return 0;
 	}
 	
@@ -1907,7 +2074,7 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 			BotTemp = B_GHOST_RandomTemplate();
 		
 		// Add Player
-		D_XNetAddPlayer(DS_PBAddBot, BotTemp);
+		D_XNetAddPlayer(DS_PBAddBot, BotTemp, false);
 		
 		// Success?
 		return 0;
@@ -3148,7 +3315,7 @@ void D_XNetUpdate(void)
 			if (D_XNetIsServer())
 			{
 				// Send with process ID
-				g_Splits[i].XPlayer = D_XNetAddPlayer(DS_XNetMakeServPB, &g_Splits[i].ProcessID);
+				g_Splits[i].XPlayer = D_XNetAddPlayer(DS_XNetMakeServPB, &g_Splits[i].ProcessID, false);
 				
 				// Set screen
 				g_Splits[i].XPlayer->ScreenID = i;
@@ -3282,7 +3449,7 @@ void D_XNetUpdate(void)
 			else if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
 			{
 				// Modify the fake spectator camera
-				if (gametic != LastSpecTic)
+				if (g_ProgramTic/*gametic*/ != LastSpecTic)
 				{
 					// Merge tics
 					memset(&MergeTrunk, 0, sizeof(MergeTrunk));
@@ -3342,10 +3509,6 @@ void D_XNetInitialServer(void)
 		
 		// Also always auto start, so we don't get stuck a the title screen
 		NG_SetAutoStart(true);
-		
-		// Also set multiplayer
-		NG_SetVarValue(PGS_COMULTIPLAYER, 1);
-		NG_SetVarValue(PGS_GAMESPAWNMULTIPLAYER, 1);
 		
 		// Dedicated Server?
 		if (M_CheckParm("-dedicated"))

@@ -238,6 +238,7 @@ typedef struct DS_RBSLoopBackHold_s
 	char Header[5];								// Header
 	uint8_t* Data;								// Data
 	size_t Size;								// Size
+	I_HostAddress_t Addr;						// Address
 } DS_RBSLoopBackHold_t;
 
 /* DS_RBSLoopBackData_t -- Loop back device */
@@ -278,8 +279,8 @@ static void DS_RBSLoopBack_DeleteF(struct D_BS_s* const a_Stream)
 	Z_Free(LoopData);
 }
 
-/* DS_RBSLoopBack_RecordF() -- Records a block */
-size_t DS_RBSLoopBack_RecordF(struct D_BS_s* const a_Stream)
+/* DS_RBSLoopBack_NetRecordF() -- Records a block */
+size_t DS_RBSLoopBack_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	size_t i;
 	DS_RBSLoopBackData_t* LoopData;
@@ -323,14 +324,16 @@ size_t DS_RBSLoopBack_RecordF(struct D_BS_s* const a_Stream)
 	Hold->Size = a_Stream->BlkSize;
 	Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
 	memmove(Hold->Data, a_Stream->BlkData, Hold->Size);
+	if (a_Host)
+		memmove(&Hold->Addr, a_Host, sizeof(Hold->Addr));
 	Hold->FlushID = LoopData->FlushID + 1;
 	
 	/* Return value does not matter */
 	return 1;
 }
 
-/* DS_RBSLoopBack_PlayF() -- Backs a block back */
-bool_t DS_RBSLoopBack_PlayF(struct D_BS_s* const a_Stream)
+/* DS_RBSLoopBack_NetPlayF() -- Backs a block back */
+bool_t DS_RBSLoopBack_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	DS_RBSLoopBackData_t* LoopData;
 	DS_RBSLoopBackHold_t* Hold;
@@ -367,6 +370,10 @@ bool_t DS_RBSLoopBack_PlayF(struct D_BS_s* const a_Stream)
 	
 	// Write all our data in it
 	D_BSWriteChunk(a_Stream, Hold->Data, Hold->Size);
+	
+	// Copy addr
+	if (a_Host)
+		memmove(a_Host, &Hold->Addr, sizeof(Hold->Addr));
 	
 	/* Free Hold */
 	if (Hold->Data)
@@ -534,7 +541,7 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 	
 	/* Read data from socket */
 	memset(NetData->ReadBuf, 0, IRBSNETSOCKBUFSIZE);
-	if ((RetVal = I_NetRecv(Socket, a_Host, NetData->ReadBuf, IRBSNETSOCKBUFSIZE)) < 8)
+	if ((RetVal = I_NetRecv(Socket, a_Host, NetData->ReadBuf, IRBSNETSOCKBUFSIZE)) < 6)
 		return false;
 	
 	/* Extract information */
@@ -629,7 +636,9 @@ typedef struct DS_RBSReliableData_s
 	
 	DS_ReliableFlat_t** Flats;					// Flats (per-host data)
 	size_t NumFlats;							// Number of flats
-	uint32_t RR;						// Round rover
+	uint32_t RR;								// Round rover
+	
+	D_BS_t* UnAuthBuf;							// Unauthorized buffer
 } DS_RBSReliableData_t;
 
 /* DS_RBSReliable_KillFlat() -- Kills a flat */
@@ -802,11 +811,26 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		memset(inHeader, 0, sizeof(inHeader));
 		
 		// Get current flat
-		CurFlat = DS_RBSReliable_FlatByHost(RelData, &Addr, true);
+		CurFlat = DS_RBSReliable_FlatByHost(RelData, &Addr, false);
 		
-		// Reliable Packet?
+		// Is of the reliable type?
+		z = 0;
 		if (D_BSCompareHeader(Header, "RELY"))
+			z = 1;
+		
+		// Spoofed Reliable from someone?
+		if (!CurFlat && z)
 		{
+			if (RelData->Debug)
+				CONL_PrintF("!AUTH RELY\n");
+		}
+		
+		// Reliable Packet and allowed client
+		else if (CurFlat && z)
+		{
+			if (RelData->Debug)
+				CONL_PrintF("AUTH RELY\n");
+			
 			// Read Header
 			inCode = D_BSru8(RelData->WrapStream);
 			inSlot = D_BSru16(RelData->WrapStream);
@@ -890,9 +914,12 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			}
 		}
 		
-		// Un-Reliable Packet
-		else
+		// Un-Reliable Packet, but an allowed client
+		else if (CurFlat && !z)
 		{
+			if (RelData->Debug)
+				CONL_PrintF("AUTH !RELY\n");
+				
 			// Base Block
 			D_BSBaseBlock(CurFlat->inStore, RelData->WrapStream->BlkHeader);
 			
@@ -904,6 +931,25 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		
 			// Flush
 			D_BSFlushStream(CurFlat->inStore);
+		}
+		
+		// Not reliable, and not trusted either
+		else if (!CurFlat && !z)
+		{
+			if (RelData->Debug)
+				CONL_PrintF("!AUTH !RELY\n");
+			
+			// Base Block
+			D_BSBaseBlock(RelData->UnAuthBuf, RelData->WrapStream->BlkHeader);
+			
+			// Write Data 1:1
+			D_BSWriteChunk(RelData->UnAuthBuf, RelData->WrapStream->BlkData, RelData->WrapStream->BlkSize);
+			
+			// Record it
+			D_BSRecordNetBlock(RelData->UnAuthBuf, &Addr);
+		
+			// Flush
+			D_BSFlushStream(RelData->UnAuthBuf);		
 		}
 		
 		// Clear address for another cycle
@@ -1095,6 +1141,7 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	bool_t Blipped;
 	DS_ReliableFlat_t* CurFlat;
 	char Header[5];
+	bool_t SkipFlats;
 	
 	/* Get Data */
 	RelData = a_Stream->Data;
@@ -1103,45 +1150,65 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	if (!RelData)
 		return false;
 	
-	/* No communications performed, ever */
+	/* No communications performed, ever? */
+	SkipFlats = false;
 	if (!RelData->NumFlats)
-		return false;
+		SkipFlats = true;
 	
 	/* Setup stop point */
-	Stop = RelData->RR % RelData->NumFlats;
-	memset(Header, 0, sizeof(Header));
+	if (!SkipFlats)
+	{
+		Stop = RelData->RR % RelData->NumFlats;
+		memset(Header, 0, sizeof(Header));
+	}
 	
 	/* Go through all the rounds */
-	Blipped = false;
-	for (RelData->RR = RelData->RR % RelData->NumFlats;
-			!Blipped || (Blipped && Stop != RelData->RR);
-			RelData->RR = (RelData->RR + 1) % RelData->NumFlats, Blipped = true)
+	if (!SkipFlats)
 	{
-		// Get current flat
-		CurFlat = RelData->Flats[RelData->RR];
-		
-		// Nothing here?
-		if (!CurFlat)
-			continue;
-		
-		// Flush
-		D_BSFlushStream(CurFlat->inStore);
-		
-		// Try playing back something
-		if (D_BSPlayBlock(CurFlat->inStore, Header))
+		Blipped = false;
+		for (RelData->RR = RelData->RR % RelData->NumFlats;
+				!Blipped || (Blipped && Stop != RelData->RR);
+				RelData->RR = (RelData->RR + 1) % RelData->NumFlats, Blipped = true)
 		{
-			// Current base
-			D_BSBaseBlock(a_Stream, Header);
+			// Get current flat
+			CurFlat = RelData->Flats[RelData->RR];
+		
+			// Nothing here?
+			if (!CurFlat)
+				continue;
+		
+			// Flush
+			D_BSFlushStream(CurFlat->inStore);
+		
+			// Try playing back something
+			if (D_BSPlayBlock(CurFlat->inStore, Header))
+			{
+				// Current base
+				D_BSBaseBlock(a_Stream, Header);
 			
-			// Write chunk, the entire lo data
-			D_BSWriteChunk(a_Stream, CurFlat->inStore->BlkData, CurFlat->inStore->BlkSize);
+				// Write chunk, the entire lo data
+				D_BSWriteChunk(a_Stream, CurFlat->inStore->BlkData, CurFlat->inStore->BlkSize);
 			
-			// Copy Address
-			memmove(a_Host, &CurFlat->Address, sizeof(I_HostAddress_t));
+				// Copy Address
+				memmove(a_Host, &CurFlat->Address, sizeof(I_HostAddress_t));
 			
-			// Something was played, so return
-			return true;
+				// Something was played, so return
+				return true;
+			}
 		}
+	}
+	
+	/* Try playing back something in the unauthed buf */
+	if (D_BSPlayNetBlock(RelData->UnAuthBuf, Header, a_Host))
+	{
+		// Current base
+		D_BSBaseBlock(a_Stream, Header);
+		
+		// Write chunk, the entire lo data
+		D_BSWriteChunk(a_Stream, RelData->UnAuthBuf->BlkData, RelData->UnAuthBuf->BlkSize);
+		
+		// Something was played, so return
+		return true;
 	}
 	
 	/* Nothing was played back */
@@ -1166,6 +1233,9 @@ void DS_RBSReliable_DeleteF(struct D_BS_s* const a_Stream)
 	/* Finish it off */
 	if (RelData->Flats)
 		Z_Free(RelData->Flats);
+	
+	/* Close unauth lo */
+	D_BSCloseStream(RelData->UnAuthBuf);
 }
 
 /* DS_RBSReliable_IOCtlF() -- Advanced I/O Control */
@@ -1191,6 +1261,11 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 			// Max supported transport
 		case DRBSIOCTL_MAXTRANSPORT:
 			*a_DataP = RelData->TransSize - 32;
+			return true;
+			
+			// Adds a single host
+		case DRBSIOCTL_ADDHOST:
+			DS_RBSReliable_FlatByHost(RelData, a_DataP, true);
 			return true;
 			
 			// Drop a single host
@@ -1505,8 +1580,8 @@ D_BS_t* D_BSCreateLoopBackStream(void)
 	
 	/* Set Functions */
 	New->Data = Z_Malloc(sizeof(DS_RBSLoopBackData_t), PU_BLOCKSTREAM, NULL);
-	New->RecordF = DS_RBSLoopBack_RecordF;
-	New->PlayF = DS_RBSLoopBack_PlayF;
+	New->NetRecordF = DS_RBSLoopBack_NetRecordF;
+	New->NetPlayF = DS_RBSLoopBack_NetPlayF;
 	New->FlushF = DS_RBSLoopBack_FlushF;
 	New->DeleteF = DS_RBSLoopBack_DeleteF;
 	
@@ -1623,6 +1698,9 @@ D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped)
 		Data->TransSize = Trans;
 	else
 		Data->TransSize = RBSPACKEDMAXWAITBYTES;
+	
+	// Unauth buffer
+	Data->UnAuthBuf = D_BSCreateLoopBackStream();
 	
 	// Debug?
 	if (M_CheckParm("-reliabledev"))

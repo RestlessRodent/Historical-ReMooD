@@ -88,3 +88,29 @@ bool_t IP_UDPResolveHost(const struct IP_Proto_s* a_Proto, IP_Addr_t* const a_De
 	return true;
 }
 
+/* IP_AddrToString() -- Converts address to string */
+char* IP_AddrToString(IP_Addr_t* const a_Addr)
+{
+#define BUFSIZE 128
+	static char Buf[BUFSIZE];
+	
+	/* Clear Buffer */
+	memset(Buf, 0, sizeof(Buf));
+	
+	/* Illegal Address */
+	if (!a_Addr)
+		snprintf(Buf, BUFSIZE - 1, "unknown://");
+	
+	/* Legal */
+	else
+	{
+		strncat(Buf, a_Addr->Handler->Name, BUFSIZE - 1);
+		strncat(Buf, "://", BUFSIZE - 1);
+		strncat(Buf, a_Addr->HostName, BUFSIZE - 1);
+	}
+	
+	/* Always return the buffer */
+	return Buf;	
+#undef BUFSIZE
+}
+

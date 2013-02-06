@@ -56,6 +56,7 @@ void IP_ODA_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* cons
 
 /* UDP Baseline */
 bool_t IP_UDPResolveHost(const struct IP_Proto_s* a_Proto, IP_Addr_t* const a_Dest, const char* const a_Name, const uint32_t a_Port);
+char* IP_AddrToString(IP_Addr_t* const a_Addr);
 
 #endif /* __IP_PRV_H__ */
 

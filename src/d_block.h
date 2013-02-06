@@ -58,8 +58,10 @@ typedef enum D_BSStreamIOCtl_e
 {
 	DRBSIOCTL_ISPERFECT,						// Read: Is perfect?
 	DRBSIOCTL_MAXTRANSPORT,						// Read/Write: Max transport size
+	
 	DRBSIOCTL_DROPHOST,							// Drops a host (reliable)
 	DRBSIOCTL_RELRESET,							// Resets reliable state to normal
+	DRBSIOCTL_ADDHOST,							// Adds a host (reliable)
 	
 	NUMDRBSSTREAMIOCTL
 } D_BSStreamIOCtl_t;
