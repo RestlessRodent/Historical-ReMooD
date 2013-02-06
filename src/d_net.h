@@ -223,6 +223,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort);
 void D_XNetConnect(const char* const a_URI);
 
 bool_t D_XNetIsServer(void);
+bool_t D_XNetIsConnected(void);
 uint32_t D_XNetGetHostID(void);
 
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);

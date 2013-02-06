@@ -68,6 +68,7 @@ static tic_t l_LocalTime = 0;					// Local Time
 static bool_t l_ConsistencyFailed = false;		// Consistency failed
 static bool_t l_SoloNet = true;					// Solo Network
 static bool_t l_IsConnected = false;			// Connected to server
+static bool_t l_IsDedicated = false;			// Dedicated Server
 
 /****************
 *** FUNCTIONS ***
@@ -646,6 +647,10 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	if (!demoplayback)
 		NG_ApplyVars();
 	
+	/* If dedicated, no need to continue */
+	if (l_IsDedicated)
+		return;
+	
 	/* Initialize screens */
 	// Only give players to screens that have occupents
 	for (i = 0; i < MAXSPLITSCREEN; i++)
@@ -674,10 +679,6 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
-	
-	/* Savegame into demo */
-	//if (demorecording)
-	//	G_EncodeSaveGame();
 }
 
 /* D_XNetConnect() -- Connects to server */
@@ -729,8 +730,18 @@ bool_t D_XNetIsServer(void)
 			if (g_XPlays[i]->Flags & DXPF_LOCAL)
 				return !!(g_XPlays[i]->Flags & DXPF_SERVER);
 	
+	/* If Dedicated, return true */
+	if (l_IsDedicated)
+		return true;
+	
 	/* Fell through */
 	return false;
+}
+
+/* D_XNetIsConnected() -- Is connected to server */
+bool_t D_XNetIsConnected(void)
+{
+	return l_IsConnected | D_XNetIsServer();
 }
 
 /* D_XNetGetHostID() -- Gets our host ID */
@@ -1697,6 +1708,16 @@ tic_t D_XNetTicsToRun(void)
 			if ((XPlay->Flags & DXPF_LOCAL) == 0)
 				NonLocal = true;
 		}
+		
+		// If dedicated, always NonLocal
+		if (l_IsDedicated)
+			NonLocal = true;
+		
+		// See if we are acting as a internet server
+		for (i = 0; i < l_NumXNetConns; i++)
+			if (l_XNetConns[i])
+				if (l_XNetConns[i]->Flags & IPF_INPUT)
+					NonLocal = true;
 		
 		// No other clients in game?
 		if (!NonLocal)
@@ -3321,6 +3342,13 @@ void D_XNetInitialServer(void)
 		
 		// Also always auto start, so we don't get stuck a the title screen
 		NG_SetAutoStart(true);
+		
+		// Also set multiplayer
+		NG_SetVarValue(PGS_GAMESPAWNMULTIPLAYER, 1);
+		
+		// Dedicated Server?
+		if (M_CheckParm("-dedicated"))
+			l_IsDedicated = true;
 	}
 	
 	// Client?
@@ -3335,6 +3363,10 @@ void D_XNetInitialServer(void)
 		
 		// Also always auto start, so we don't get stuck a the title screen
 		NG_SetAutoStart(true);
+		
+		// Set as connected, even though one might not be!
+		l_IsConnected = true;
+		gamestate = GS_WAITFORJOINWINDOW;
 		return;
 	}
 	

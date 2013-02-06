@@ -51,6 +51,8 @@ typedef struct IP_RmdData_s
 	struct IP_Conn_s* Conn;						// Connection
 	I_NetSocket_t* Socket;						// Socket to server
 	D_BS_t* BS;									// Block Stream
+	
+	
 } IP_RmdData_t;
 
 /****************
@@ -219,6 +221,17 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 		if (devparm)
 			if (!c_RMDProtoHeads[i].Header[0])
 				CONL_PrintF("Unknown block \"%s\"\n", Header);
+	}
+	
+	/* Do Client/Server Actions */
+	// We are a server
+	if (a_Conn->Flags & IPF_INPUT)
+	{
+	}
+	
+	// We are a client
+	else
+	{
 	}
 }
 
