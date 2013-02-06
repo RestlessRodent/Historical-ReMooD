@@ -139,10 +139,13 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 /* FixedMul() -- Multiply two fixed numbers */
 static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 {
-#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(__POWERPC__) || defined(_M_PPC) || defined(__palmos__)
+#if 1 || defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(__POWERPC__) || defined(_M_PPC) || defined(__palmos__)
 	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
 	
 #else
+	// The following code has issues probably related to rounding:
+	//  * FixedMul(-16384, 65535) returns -16383, when it should return -16384
+	
 	// Copyright (C) 2010-2013 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t w, x, y, z;
 	register uint32_t Af, Ai, Bf, Bi;
@@ -170,7 +173,7 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 	}
 	
 	// Multiply portions
-	w = (Af * Bf) >> _FIXED_FRACBITS;
+	w = ((Af * Bf))) >> _FIXED_FRACBITS;
 	x = Ai * Bf;
 	y = Af * Bi;
 	z = (Ai * Bi) << _FIXED_FRACBITS;
