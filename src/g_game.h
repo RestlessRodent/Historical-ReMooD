@@ -91,7 +91,7 @@ void G_ExitLevel(const bool_t a_Secret, mobj_t* const a_Activator, const char* c
 
 void G_NextLevel(void);
 
-uint32_t G_CalcSyncCode(void);
+uint32_t G_CalcSyncCode(const bool_t a_Debug);
 void G_Ticker(void);
 bool_t G_Downgrade(int version);
 void G_PrepareDemoStuff(void);

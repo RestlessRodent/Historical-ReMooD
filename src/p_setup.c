@@ -349,7 +349,6 @@ static void PS_ExSectorInit(sector_t* const a_Sector)
 	a_Sector->midmap = -1;
 	a_Sector->topmap = -1;
 	a_Sector->moved = true;
-	a_Sector->lineoutLength = -1.0;
 	
 	/* Clear bounding box */
 	M_ClearBox(a_Sector->BBox);

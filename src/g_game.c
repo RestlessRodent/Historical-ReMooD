@@ -664,7 +664,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 extern tic_t g_WatchTic;
 
 /* G_CalcSyncCode() -- Calculates the current sync code for the game */
-uint32_t G_CalcSyncCode(void)
+uint32_t G_CalcSyncCode(const bool_t a_Debug)
 {
 	uint32_t i, Code;
 	
@@ -676,6 +676,13 @@ uint32_t G_CalcSyncCode(void)
 	i = (uint32_t)P_GetRandIndex();
 	Code ^= (i << UINT32_C(24)) | (i);
 	
+	// Debugging
+	if (a_Debug)
+	{
+		CONL_PrintF("gametic = %u\n", (unsigned)gametic);
+		CONL_PrintF("prandex = %u\n", P_GetRandIndex());
+	}
+	
 	/* Run through players */
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -686,6 +693,9 @@ uint32_t G_CalcSyncCode(void)
 		// Flip single bit
 		Code ^= (UINT32_C(1) << (i & UINT32_C(31)));
 		
+		if (a_Debug)
+			CONL_PrintF("pig[%02i] = %i\n", i, playeringame[i]);
+		
 		// Position, if object exists and playing
 		if (gamestate == GS_LEVEL)
 		{
@@ -694,6 +704,13 @@ uint32_t G_CalcSyncCode(void)
 				Code ^= players[i].mo->x;
 				Code ^= players[i].mo->y;
 				Code ^= players[i].mo->z;
+				
+				if (a_Debug)
+				{
+					CONL_PrintF("p[%02i].x = %f (%08x)\n", i, FIXED_TO_FLOAT(players[i].mo->x), players[i].mo->x);
+					CONL_PrintF("p[%02i].y = %f (%08x)\n", i, FIXED_TO_FLOAT(players[i].mo->y), players[i].mo->y);
+					CONL_PrintF("p[%02i].z = %f (%08x)\n", i, FIXED_TO_FLOAT(players[i].mo->z), players[i].mo->z);
+				}
 			}
 		
 			// Otherwise, flip another bit
@@ -787,7 +804,7 @@ void G_Ticker(void)
 		}
 		
 	/* Calculate the current sync code */
-	NowCode = G_CalcSyncCode();
+	NowCode = G_CalcSyncCode(false);
 		
 	/* Post-Tic */
 	if (demoplayback)
@@ -803,6 +820,9 @@ void G_Ticker(void)
 		if (NowCode != DemoCode)
 		{
 			CONL_PrintF("{2Demo desync! (tic %u, %08x != %08x)\n", (unsigned int)gametic, NowCode, DemoCode);
+			
+			if (devparm)
+				G_CalcSyncCode(true);
 			
 			// Show message, do warning, etc.
 		}

@@ -237,7 +237,7 @@ typedef struct sector_s
 	uint32_t special;
 	uint32_t oldspecial;			//SoM: 3/6/2000: Remember if a sector was secret (for automap)
 	int16_t tag;
-	int nexttag, firsttag;		//SoM: 3/6/2000: by killough: improves searches for tags.
+	int32_t nexttag, firsttag;		//SoM: 3/6/2000: by killough: improves searches for tags.
 	
 	// 0 = untraversed, 1,2 = sndlines -1
 	int16_t soundtraversed;
@@ -247,13 +247,13 @@ typedef struct sector_s
 	mobj_t* soundtarget;
 	
 	// mapblock bounding box for height changes
-	int blockbox[4];
+	int32_t blockbox[4];
 	
 	// origin for any sounds played by the sector
 	S_NoiseThinker_t soundorg;
 	
 	// if == validcount, already checked
-	int validcount;
+	int32_t validcount;
 	
 	// list of mobjs in sector
 	mobj_t* thinglist;
@@ -265,57 +265,46 @@ typedef struct sector_s
 	void* lightingdata;			// independent of one another
 	
 	// lockout machinery for stairbuilding
-	int stairlock;				// -2 on first locked -1 after thinker done 0 normally
-	int prevsec;				// -1 or number of sector for previous step
-	int nextsec;				// -1 or number of next step sector
+	int32_t stairlock;				// -2 on first locked -1 after thinker done 0 normally
+	int32_t prevsec;				// -1 or number of sector for previous step
+	int32_t nextsec;				// -1 or number of next step sector
 	
 	// floor and ceiling texture offsets
 	fixed_t floor_xoffs, floor_yoffs;
 	fixed_t ceiling_xoffs, ceiling_yoffs;
 	
-	int heightsec;				// other sector, or -1 if no other sector
-	int altheightsec;			// Use old boom model? 1 for no 0 for yes.
+	int32_t heightsec;				// other sector, or -1 if no other sector
+	int32_t altheightsec;			// Use old boom model? 1 for no 0 for yes.
 	
-	int floorlightsec, ceilinglightsec;
-	int teamstartsec;
+	int32_t floorlightsec, ceilinglightsec;
+	int32_t teamstartsec;
 	
-	int bottommap, midmap, topmap;	// dynamic colormaps
+	int32_t bottommap, midmap, topmap;	// dynamic colormaps
 	
 	// list of mobjs that are at least partially in the sector
 	// thinglist is a subset of touching_thinglist
 	struct msecnode_s* touching_thinglist;	// phares 3/14/98
 	//SoM: 3/6/2000: end stuff...
 	
-	int linecount;
+	int32_t linecount;
 	struct line_s** lines;		// [linecount] size
 	
 	//SoM: 2/23/2000: Improved fake floor hack
 	ffloor_t* ffloors;
-	int* attached;
-	int numattached;
+	int32_t* attached;
+	int32_t numattached;
 	
 	bool_t LLSelf;								// True if lightlist is Z_Malloc()
 	lightlist_t* lightlist;
-	int numlights;
+	int32_t numlights;
 	
 	bool_t moved;
 	
-	int validsort;				//if == validsort allready been sorted
+	int32_t validsort;				//if == validsort allready been sorted
 	bool_t added;
 	
 	// SoM: 4/3/2000: per-sector colormaps!
 	extracolormap_t* extra_colormap;
-	
-	// ----- for special tricks with HW renderer -----
-	bool_t pseudoSector;
-	bool_t virtualFloor;
-	fixed_t virtualFloorheight;
-	bool_t virtualCeiling;
-	fixed_t virtualCeilingheight;
-	linechain_t* sectorLines;
-	struct sector_s** stackList;
-	double lineoutLength;
-	// ----- end special tricks -----
 	
 	// ReMooD Additions
 	char* FloorTexture;							// Name of floor texture
@@ -418,7 +407,7 @@ typedef struct line_s
 	//SoM: 3/6/2000
 	int tranlump;				// translucency filter, -1 == none
 	// (Will have to fix to use with Legacy's Translucency?)
-	int firsttag, nexttag;		// improves searches for tags.
+	int32_t firsttag, nexttag;		// improves searches for tags.
 	
 	int ecolormap;				// SoM: Used for 282 linedefs
 	

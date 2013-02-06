@@ -1999,6 +1999,18 @@ void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags)
 ffloor_t** g_PFakeFloors = NULL;				// Fake Floors
 size_t g_NumPFakeFloors = 0;					// Number of them
 
+/* P_GetIDFromFFloor() -- Gets the ID of a fake floor */
+int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor)
+{
+	return -1;
+}
+
+/* P_GetFFLoorFromID() -- Gets the floor from the ID */
+ffloor* P_GetFFLoorFromID(const int32_t a_ID)
+{
+	return NULL;
+}
+
 /* P_AddFFloor() -- Adds new 3D floor */
 void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 {

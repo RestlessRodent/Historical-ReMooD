@@ -1397,6 +1397,7 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 
 #define SECNODECOUNT 512
 #define SECTORCOUNT 128
+#define LINECOUNT 128
 
 /* PS_SaveMapState() -- Saves map to savegame */
 static bool_t PS_SaveMapState(D_BS_t* const a_Str)
@@ -1404,6 +1405,8 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	uint32_t i, j;
 	thinker_t* Thinker;
 	mobj_t* mo;
+	sector_t* sect;
+	line_t* line;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1606,7 +1609,123 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Record
 	D_BSRecordBlock(a_Str);
 	
+	/* Save FFloors */
+	// TODO
+	
+	/* Save Line Data */
+	for (i = 0 ; i < numlines; i++)
+	{
+		line = &lines[i];
+		
+		// New?
+		if ((i & (LINECOUNT - 1)) == 0)
+		{
+			if (i > 0)
+				D_BSRecordBlock(a_Str);
+			D_BSBaseBlock(a_Str, "LINE");
+		}
+		
+		// Dump Info
+	}
+	
+	if (numlines > 0)
+		D_BSRecordBlock(a_Str);
+	
 	/* Save Sector Data */
+	for (i = 0 ; i < numsectors; i++)
+	{
+		sect = &sectors[i];
+		
+		// New?
+		if ((i & (SECTORCOUNT - 1)) == 0)
+		{
+			if (i > 0)
+				D_BSRecordBlock(a_Str);
+			D_BSBaseBlock(a_Str, "SECT");
+		}
+		
+		// Dump Info
+		D_BSwi32(a_Str, sect->floorheight);
+		D_BSwi32(a_Str, sect->ceilingheight);
+		D_BSwi16(a_Str, sect->floorpic);
+		D_BSwi16(a_Str, sect->ceilingpic);
+		D_BSwi16(a_Str, sect->lightlevel);
+		D_BSwu32(a_Str, sect->special);
+		D_BSwu32(a_Str, sect->oldspecial);
+		D_BSwi16(a_Str, sect->tag);
+		D_BSwi32(a_Str, sect->nexttag);
+		D_BSwi32(a_Str, sect->firsttag);
+		D_BSwi16(a_Str, sect->soundtraversed);
+		D_BSwi16(a_Str, sect->floortype);
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)sect->soundtarget));
+		
+		for (j = 0; j < 4; j++)
+			D_BSwi32(a_Str, sect->blockbox[j]);
+		
+		PS_LoadUnloadNoiseThinker(a_Str, true, &sect->soundorg);
+		
+		D_BSwi32(a_Str, sect->validcount);
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)sect->thinglist));
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)sect->floordata));
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)sect->ceilingdata));
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)sect->lightingdata));
+		
+		D_BSwi32(a_Str, sect->stairlock);
+		D_BSwi32(a_Str, sect->prevsec);
+		D_BSwi32(a_Str, sect->nextsec);
+		D_BSwi32(a_Str, sect->floor_xoffs);
+		D_BSwi32(a_Str, sect->floor_yoffs);
+		D_BSwi32(a_Str, sect->ceiling_xoffs);
+		D_BSwi32(a_Str, sect->ceiling_yoffs);
+		D_BSwi32(a_Str, sect->heightsec);
+		D_BSwi32(a_Str, sect->altheightsec);
+		D_BSwi32(a_Str, sect->floorlightsec);
+		D_BSwi32(a_Str, sect->ceilinglightsec);
+		D_BSwi32(a_Str, sect->teamstartsec);
+		D_BSwi32(a_Str, sect->bottommap);
+		D_BSwi32(a_Str, sect->midmap);
+		D_BSwi32(a_Str, sect->topmap);
+		D_BSwi32(a_Str, P_GetIDFromSecNode(sect->touching_thinglist));
+		
+		D_BSwi32(a_Str, P_GetIDFromFFloor(sect->ffloors));
+		
+		D_BSwu32(a_Str, sect->linecount);
+		for (j = 0; j < sect->linecount; j++)
+			PS_LUMapObjRef(a_Str, true, &sect->lines[j]);
+		
+		D_BSwu32(a_Str, sect->numattached);
+		for (j = 0; j < sect->numattached; j++)
+			D_BSwi32(a_Str, sect->attached[j]);
+		
+		D_BSwu8(a_Str, sect->LLSelf);
+		// TODO: Light Lists
+		// lightlist_t* lightlist;
+		// int32_t numlights;
+		
+		D_BSwu8(a_Str, sect->moved);
+		D_BSwi32(a_Str, sect->validsort);
+		D_BSwu8(a_Str, sect->added);
+		
+		// TODO: Colormap
+		// extracolormap_t* extra_colormap;
+		
+		D_BSws(a_Str, sect->FloorTexture);
+		D_BSws(a_Str, sect->CeilingTexture);
+		
+		for (j = 0; j < 4; j++)
+			D_BSwi32(a_Str, sect->BBox[j]);
+		
+		D_BSwu32(a_Str, sect->SoundSecRef);
+		D_BSwi32(a_Str, sect->AltSkyTexture);
+		D_BSwu8(a_Str, sect->AltSkyFlipped);
+		
+		D_BSwu32(a_Str, sect->NumAdj);
+		for (j = 0; j < sect->NumAdj; j++)
+			PS_LUMapObjRef(a_Str, true, &sect->Adj[j]);
+	}
+	
+	if (numsectors > 0)
+		D_BSRecordBlock(a_Str);
 	
 	/* Save Map Thing References */
 	D_BSBaseBlock(a_Str, "MTRF");
@@ -1663,6 +1782,8 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	int32_t i, j, n, x;
 	thinker_t* Thinker;
 	mobj_t* mo;
+	sector_t* sect;
+	line_t* line;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1958,7 +2079,118 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	// Record
 	D_BSRecordBlock(a_Str);
 	
-	/* Restore Sector Info */
+	/* Restore FFloors */
+	// TODO
+	
+	/* Restore Line Data */
+	for (i = 0 ; i < numlines; i++)
+	{
+		line = &lines[i];
+		
+		// New?
+		if ((i & (LINECOUNT - 1)) == 0)
+			if (!PS_Expect(a_Str, "LINE"))
+				return false;
+		
+		// Load Info
+	}
+	
+	/* Restore Sector Data */
+	for (i = 0 ; i < numsectors; i++)
+	{
+		sect = &sectors[i];
+		
+		// New?
+		if ((i & (SECTORCOUNT - 1)) == 0)
+			if (!PS_Expect(a_Str, "SECT"))
+				return false;
+		
+		// Load Info
+		sect->floorheight = D_BSri32(a_Str);
+		sect->ceilingheight = D_BSri32(a_Str);
+		sect->floorpic = D_BSri16(a_Str);
+		sect->ceilingpic = D_BSri16(a_Str);
+		sect->lightlevel = D_BSri16(a_Str);
+		sect->special = D_BSru32(a_Str);
+		sect->oldspecial = D_BSru32(a_Str);
+		sect->tag = D_BSri16(a_Str);
+		sect->nexttag = D_BSri32(a_Str);
+		sect->firsttag = D_BSri32(a_Str);
+		sect->soundtraversed = D_BSri16(a_Str);
+		sect->floortype = D_BSri16(a_Str);
+		
+		sect->soundtarget = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		
+		for (j = 0; j < 4; j++)
+			sect->blockbox[j] = D_BSri32(a_Str);
+
+		PS_LoadUnloadNoiseThinker(a_Str, false, &sect->soundorg);
+
+		sect->validcount = D_BSri32(a_Str);
+		sect->thinglist = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		sect->floordata = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		sect->ceilingdata = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+		sect->lightingdata = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+
+		sect->stairlock = D_BSri32(a_Str);
+		sect->prevsec = D_BSri32(a_Str);
+		sect->nextsec = D_BSri32(a_Str);
+		sect->floor_xoffs = D_BSri32(a_Str);
+		sect->floor_yoffs = D_BSri32(a_Str);
+		sect->ceiling_xoffs = D_BSri32(a_Str);
+		sect->ceiling_yoffs = D_BSri32(a_Str);
+		sect->heightsec = D_BSri32(a_Str);
+		sect->altheightsec = D_BSri32(a_Str);
+		sect->floorlightsec = D_BSri32(a_Str);
+		sect->ceilinglightsec = D_BSri32(a_Str);
+		sect->teamstartsec = D_BSri32(a_Str);
+		sect->bottommap = D_BSri32(a_Str);
+		sect->midmap = D_BSri32(a_Str);
+		sect->topmap = D_BSri32(a_Str);
+		sect->touching_thinglist = P_GetSecNodeFromID(D_BSri32(a_Str));
+
+		sect->ffloors = P_GetFFloorFromID(D_BSri32(a_Str));
+
+		sect->linecount = D_BSru32(a_Str);
+		sect->lines = Z_Malloc(sizeof(*sect->lines) * sect->linecount, PU_LEVEL, NULL);
+		for (j = 0; j < sect->linecount; j++)
+			PS_LUMapObjRef(a_Str, false, &sect->lines[j]);
+
+		sect->numattached = D_BSru32(a_Str);
+		sect->attached = Z_Malloc(sizeof(*sect->attached) * sect->numattached, PU_LEVEL, NULL);
+		for (j = 0; j < sect->numattached; j++)
+			sect->attached[j] = D_BSri32(a_Str);
+
+		sect->LLSelf = D_BSru8(a_Str);
+		// TODO: Light Lists
+		// lightlist_t* lightlist;
+		// int32_t numlights;
+
+		sect->moved = D_BSru8(a_Str);
+		sect->validsort = D_BSri32(a_Str);
+		sect->added = D_BSru8(a_Str);
+
+		// TODO: Colormap
+		// extracolormap_t* extra_colormap;
+		
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		sect->FloorTexture = Z_StrDup(Buf, PU_LEVEL, NULL);
+		
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		sect->CeilingTexture = Z_StrDup(Buf, PU_LEVEL, NULL);
+		
+		for (j = 0; j < 4; j++)
+			sect->BBox[j] = D_BSri32(a_Str);
+
+		sect->SoundSecRef = D_BSru32(a_Str);
+		sect->AltSkyTexture = D_BSri32(a_Str);
+		sect->AltSkyFlipped = D_BSru8(a_Str);
+
+		sect->NumAdj = D_BSru32(a_Str);
+		sect->Adj = Z_Malloc(sizeof(*sect->Adj) * sect->NumAdj, PU_LEVEL, NULL);
+		for (j = 0; j < sect->NumAdj; j++)
+			PS_LUMapObjRef(a_Str, false, &sect->Adj[j]);
+	}
 	
 	/* Restore Map Thing References */
 	if (!PS_Expect(a_Str, "MTRF"))

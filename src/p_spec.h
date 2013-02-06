@@ -1312,6 +1312,14 @@ void P_InitAmbientSound(void);
 
 /*****************************************************************************/
 
+extern ffloor_t** g_PFakeFloors;				// Fake Floors
+extern size_t g_NumPFakeFloors;					// Number of them
+
+int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor);
+ffloor* P_GetFFLoorFromID(const int32_t a_ID);
+
+/*****************************************************************************/
+
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_DoDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
