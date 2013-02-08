@@ -127,6 +127,7 @@ struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID);
 
 void IP_ConnRun(struct IP_Conn_s* const a_Conn);
 void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr);
+void IP_ConnSendFile(struct IP_Conn_s* const a_Conn, const char* const a_FileName);
 
 void IP_XFaceMaster(void);
 void IP_RunXFace(void);

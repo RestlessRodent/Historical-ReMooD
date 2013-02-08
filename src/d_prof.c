@@ -961,7 +961,7 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Set UUID if preformed
 		if (BufB[0])
-			strncpy(New->UUID, BufB, MAXPROFILEUUID);
+			strncpy(New->UUID, BufB, MAXUUIDLENGTH);
 		
 		// Done
 		return true;

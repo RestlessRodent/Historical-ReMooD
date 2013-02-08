@@ -172,7 +172,9 @@ typedef enum D_ProfileExCtrlMA_e
 #define MAXMOUSEAXIS	2
 #define MAXJOYAXIS		8
 
-#define MAXPROFILEUUID (MAXPLAYERNAME * 2)
+#if !defined(MAXUUIDLENGTH)
+	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
+#endif
 
 /* Key bits for profiles */
 // This gives extra keys and such for each action performed
@@ -201,7 +203,7 @@ typedef struct D_ProfileEx_s
 	char AccountName[MAXPLAYERNAME];			// Local account name (selection limited)
 	uint8_t Color;								// Color
 	uint8_t JoyControl;							// Which joystick player controls
-	char UUID[MAXPROFILEUUID + 1];				// Player Unique ID
+	char UUID[MAXUUIDLENGTH + 1];				// Player Unique ID
 	tic_t SlowTurnTime;							// Time to slow turn
 	uint32_t InstanceID;						// Instance ID
 	

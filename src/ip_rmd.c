@@ -228,7 +228,7 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 			// Random port for client
 			if (!(a_Flags & IPF_INPUT))
 			{
-				Port = D_CMakePureRandom() & UINT32_C(0xFFFF);
+				Port = D_CMakePureRandom() & UINT32_C(0x7FFF);
 				Port |= UINT32_C(0x8000);
 			}
 			

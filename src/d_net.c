@@ -509,7 +509,12 @@ static size_t l_NumXNetConns;					// Number of connections
 static uint32_t l_LocalHostID;					// ID of localhost
 static bool_t l_PreppedSave;					// Prepped Savegame
 
+static bool_t l_ForceLag;						// Forces Lagging
+
 /*** FUNCTIONS ***/
+
+extern int demosequence;
+extern int pagetic;
 
 /* D_XNetDisconnect() -- Disconnect from server/self server */
 // Replaces D_NCDisconnect()
@@ -601,6 +606,12 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	
 	/* Go back to the title screen */
 	gamestate = GS_DEMOSCREEN;
+	
+	if (!a_FromDemo)
+	{
+		demosequence = -1;
+		pagetic = -1;
+	}
 	
 	/* Done disconnecting */
 	DoingDiscon = false;
@@ -1369,7 +1380,7 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 		g_Splits[a_ScreenID].XPlayer->Player->ProfileEx = a_Profile;
 	
 	// Copy UUID to XPlayer
-	strncpy(g_Splits[a_ScreenID].XPlayer->ProfileUUID, a_Profile->UUID, MAXPLAYERNAME);
+	strncpy(g_Splits[a_ScreenID].XPlayer->ProfileUUID, a_Profile->UUID, MAXUUIDLENGTH);
 	
 	/* Auto-Grab Joystick? */
 	// Only if it isn't grabbed by someone else
@@ -1819,6 +1830,10 @@ tic_t D_XNetTicsToRun(void)
 			if (XPlay->Flags & DXPF_DEFUNCT)
 				continue;
 			
+			// Ignore Bots
+			if (XPlay->Flags & DXPF_BOT)
+				continue;
+			
 			// Clear not cause of lag
 			XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
 			
@@ -1901,6 +1916,13 @@ tic_t D_XNetTicsToRun(void)
 					|| (l_CONPauseGame.Value->Int && CONL_IsActive())))
 				Lagging = true;
 		
+		// Force Lagging?
+		if (l_ForceLag)
+		{
+			Lagging = true;
+			l_ForceLag = false;
+		}
+		
 		// Clients need to catchup
 		if (Lagging)
 		{
@@ -1946,6 +1968,12 @@ tic_t D_XNetTicsToRun(void)
 	
 	/* Fell through? */
 	return 0;
+}
+
+/* D_XNetForceLag() -- Forces lag to the server */
+void D_XNetForceLag(void)
+{
+	l_ForceLag = true;
 }
 
 /* DS_PBAddBot() -- Adds a bot */

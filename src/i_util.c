@@ -2352,3 +2352,113 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 	return false;
 }
 
+/* I_FileOpen() -- Opens file */
+I_File_t* I_FileOpen(const char* const a_Path, const uint32_t a_Modes)
+{
+#define BUFSIZE 8
+	char Buf[BUFSIZE];
+	
+	/* Check */
+	if (!a_Path || ((a_Modes & (IFM_READ | IFM_WRITE)) == 0))
+		return NULL;
+	
+	/* Create C compatible modes */
+	memset(Buf, 0, sizeof(Buf));
+	
+	if ((a_Modes & (IFM_READ | IFM_WRITE | IFM_TRUNCATE)) == (IFM_READ))
+		strncpy(Buf, "r", BUFSIZE - 1);
+	
+	else if ((a_Modes & (IFM_READ | IFM_WRITE | IFM_TRUNCATE)) == (IFM_READ | IFM_WRITE))
+		strncpy(Buf, "r+", BUFSIZE - 1);
+	
+	else if ((a_Modes & (IFM_READ | IFM_WRITE | IFM_TRUNCATE)) == (IFM_WRITE))
+		return NULL;
+	
+	else if ((a_Modes & (IFM_READ | IFM_WRITE | IFM_TRUNCATE)) == (IFM_WRITE | IFM_TRUNCATE))
+		strncpy(Buf, "w", BUFSIZE - 1);
+	
+	else if ((a_Modes & (IFM_READ | IFM_WRITE | IFM_TRUNCATE)) == (IFM_READ | IFM_WRITE | IFM_TRUNCATE))
+		strncpy(Buf, "w+", BUFSIZE - 1);
+	
+	// Text file?
+	if (a_Modes & IFM_TEXT)
+		strncat(Buf, "t", BUFSIZE - 1);
+	
+	/* Open it */
+	return (I_File_t*)fopen(a_Path, Buf);
+#undef BUFSIZE
+}
+
+/* I_FileClose() -- Closes File */
+void I_FileClose(I_File_t* const a_File)
+{
+	/* Check */
+	if (!a_File)
+		return;
+	
+	/* Close */
+	fclose((FILE*)a_File);
+}
+
+/* I_FileSeek() -- Seeks to new position */
+uint64_t I_FileSeek(I_File_t* const a_File, const uint64_t a_Offset, const bool_t a_End)
+{
+	/* Check */
+	if (!a_File)
+		return 0;
+	
+	/* Seek */
+	fseek((FILE*)a_File, a_Offset, (a_End ? SEEK_END : SEEK_SET));
+
+	/* Return told position */
+	return I_FileTell(a_File);
+}
+
+/* I_FileTell() -- Return position in file */
+uint64_t I_FileTell(I_File_t* const a_File)
+{
+	/* Check */
+	if (!a_File)
+		return 0;
+	
+	/* Return position */
+	return ftell((FILE*)a_File);
+}
+
+/* I_FileRead() -- Reads part of a file */
+uint64_t I_FileRead(I_File_t* const a_File, void* const a_Dest, const uint64_t a_Len)
+{
+	/* Check */
+	if (!a_File || !a_Dest || !a_Len)
+		return 0;
+	
+	/* Read */
+	return fread(a_Dest, 1, a_Len, (FILE*)a_File);
+}
+
+/* I_FileWrite() -- Writes part of a file */
+uint64_t I_FileWrite(I_File_t* const a_File, const void* const a_Src, const uint64_t a_Len)
+{
+	/* Check */
+	if (!a_File || !a_Src || !a_Len)
+		return 0;
+		
+	/* Wwrite */
+	return fwrite(a_Src, 1, a_Len, (FILE*)a_File);
+}
+
+/* I_FileEOF() -- Returns EOF status */
+bool_t I_FileEOF(I_File_t* const a_File)
+{
+	/* Check */
+	if (!a_File)
+		return true;
+	
+	/* Is EOF? */
+	if (feof((FILE*)a_File))
+		return true;
+	
+	/* Is not */
+	return false;
+}
+

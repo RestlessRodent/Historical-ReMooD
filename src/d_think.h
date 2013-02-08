@@ -84,6 +84,7 @@ typedef enum P_ThinkerType_e
 	PTT_FRICTION,								// T_Friction/friction_t
 	PTT_PUSHER,									// T_Pusher/pusher_t
 	PTT_MOBJ,									// P_MobjThinker/mobj_t
+	PTT_DEFUNCT,								// Defunct Object
 	
 	NUMPTHINKERTYPES
 } P_ThinkerType_t; 

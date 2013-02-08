@@ -68,7 +68,11 @@ bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 /*** CONSTANTS ***/
 
 #define MAXXSOCKTEXTSIZE				64		// Max size of text fields
-#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)		// Length of UUIDs
+
+#if !defined(MAXUUIDLENGTH)
+	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
+#endif
+
 #define MAXLBTSIZE						16		// Max tics in local buffer
 
 /* D_NCStreamPath_t -- Communication Paths */
@@ -145,7 +149,7 @@ typedef struct D_XPlayer_s
 	uint32_t ClProcessID;						// Client's Process ID
 	char AccountName[MAXPLAYERNAME];			// Player's Account Name
 	char DisplayName[MAXPLAYERNAME];			// Player's Display Name
-	char ProfileUUID[MAXPLAYERNAME];			// Player's Profile UUID
+	char ProfileUUID[MAXUUIDLENGTH];			// Player's Profile UUID
 	char LoginUUID[MAXUUIDLENGTH];				// UUID used for login (cookie rather)
 	
 	// Socket
@@ -266,6 +270,7 @@ void D_XNetDelConn(struct IP_Conn_s* a_Conn);
 void D_XNetInit(void);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
+void D_XNetForceLag(void);
 void D_XNetUpdate(void);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 

@@ -74,7 +74,7 @@ typedef struct Z_MHCInfo_s
 *** LOCALS ***
 *************/
 
-static Z_MHCInfo_t* l_ZChains[NUMZTAGS];
+static Z_MHCInfo_t* l_ZChains[NUMZTAGS + 1];
 
 /****************
 *** FUNCTIONS ***

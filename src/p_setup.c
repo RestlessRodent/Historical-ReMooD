@@ -707,6 +707,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	if (!a_Info)
 		return false;
 	
+	/* Force Lag */
+	D_XNetForceLag();
+	
 	/* Flipped Levels? */
 	Flipped = false;
 	if (P_XGSVal(PGS_FUNFLIPLEVELS))

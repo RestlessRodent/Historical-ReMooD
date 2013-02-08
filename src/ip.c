@@ -368,3 +368,8 @@ void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Add
 		a_Conn->Handler->ConnTrashF(a_Conn->Handler, a_Conn, a_Addr);
 }
 
+/* IP_ConnSendFile() -- Sends file to remote host */
+void IP_ConnSendFile(struct IP_Conn_s* const a_Conn, const char* const a_FileName)
+{
+}
+

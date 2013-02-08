@@ -71,6 +71,7 @@ extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES] =
 	{sizeof(friction_t), {T_Friction}},			// PTT_FRICTION
 	{sizeof(pusher_t), {T_Pusher}},				// PTT_PUSHER
 	{sizeof(mobj_t), {P_MobjThinker}},			// PTT_MOBJ
+	{sizeof(thinker_t), {NULL}},				// PTT_DEFUNCT
 };
 
 

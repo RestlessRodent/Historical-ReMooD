@@ -1322,7 +1322,7 @@ typedef struct DS_RBSPackedData_s
 /* DS_RBSPacked_FlushF() -- Flushes stream */
 bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 {
-#define BUFSIZE 256
+#define BUFSIZE RBSPACKEDZLIBCHUNK//63
 	DS_RBSPackedData_t* PackData;
 	uint8_t* Seek;
 	uint8_t Header[5];
@@ -1331,6 +1331,7 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 	bool_t RetVal;
 	mz_stream ZStream;
 	uint8_t ZBuf[BUFSIZE];
+	int ZRet;
 	
 	/* Get Data */
 	RetVal = false;
@@ -1341,8 +1342,13 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 		return true;
 	
 	/* Initialize Compression */
+	// Initialize Stream
 	memset(&ZStream, 0, sizeof(ZStream));
-	if (mz_deflateInit(&ZStream, RBSPACKEDZLIBLEVEL) != MZ_OK)
+	ZStream.avail_in = PackData->OutAt - &PackData->OutBuf[0];
+	ZStream.next_in = PackData->OutBuf;
+	
+	// Attempt to initialize deflation
+	if ((ZRet = mz_deflateInit(&ZStream, RBSPACKEDZLIBLEVEL)) != MZ_OK)
 	{
 		// Well this REALLY sucks, need to write all the blocks all over again!
 		Seek = PackData->OutBuf;
@@ -1380,23 +1386,17 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 	
 	/* Deflation Loop */
 	// Initialize
-	ZStream.avail_in = PackData->OutAt - PackData->OutBuf;
-	ZStream.next_in = PackData->OutBuf;
 	D_BSBaseBlock(PackData->WrapStream, "ZLIB");
+	D_BSwu16(PackData->WrapStream, ZStream.avail_in);
 	
-	// Do the loop
-	do
-	{
-		// Set next buffer output
-		memset(ZBuf, 0, sizeof(ZBuf));
-		ZStream.avail_out = BUFSIZE;
-		ZStream.next_out = ZBuf;
-		
-		// Deflate into stream and hope for the best
-		if (mz_deflate(&ZStream, MZ_FINISH) != MZ_STREAM_ERROR)
-			D_BSWriteChunk(PackData->WrapStream, ZBuf, BUFSIZE - ZStream.avail_out);
-	}
-	while (ZStream.avail_in > 0);
+	// Finish off whatever is possible
+	memset(ZBuf, 0, sizeof(ZBuf));
+	ZStream.avail_out = BUFSIZE;
+	ZStream.next_out = ZBuf;
+	
+	// Deflate into stream and hope for the best
+	if ((ZRet = mz_deflate(&ZStream, MZ_FINISH)) == MZ_STREAM_END)
+		D_BSWriteChunk(PackData->WrapStream, ZBuf, BUFSIZE - ZStream.avail_out);
 	
 	// End deflation
 	mz_deflateEnd(&ZStream);
@@ -1495,16 +1495,15 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 	char Header[5];
 	mz_stream ZStream;
 	int32_t ZRet, i;
-	int32_t Size;
+	int32_t Size, PackSize;
+	bool_t zl;
 	
 	/* Get Data */
 	PackData = a_Stream->Data;
 	
 	/* No input data? Read more! */
-	if (PackData->InAt + 6 >= PackData->InEnd)
+	while (PackData->InAt + 6 > PackData->InEnd)
 	{
-		CONL_PrintF("New Read!\n");
-		
 		// Init
 		memset(&Addr, 0, sizeof(Addr));
 		
@@ -1512,18 +1511,11 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 		if (!D_BSPlayNetBlock(PackData->WrapStream, Header, &Addr))
 			return false;	// No data at all!
 		
-		// If we are about to trash our address, flush it (to prevent multiple
-		// host mishaps with compression streams).
-		if (PackData->HasAddr && !I_NetCompareHost(&PackData->CurAddr, &Addr))
-			DS_RBSPacked_FlushF(a_Stream);
-		
-		// Replace new host
-		PackData->HasAddr = true;
-		memmove(&PackData->CurAddr, &Addr, sizeof(Addr));
-		
 		// Non compressed block data?
 		if (!D_BSCompareHeader(Header, "ZLIB"))
 		{
+			zl = false;
+			
 			// Clone it
 			D_BSBaseBlock(a_Stream, Header);
 			D_BSWriteChunk(a_Stream, PackData->WrapStream->BlkData, PackData->WrapStream->BlkSize);
@@ -1531,19 +1523,29 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 			// Send host, if any
 			if (a_Host)
 				memmove(a_Host, &Addr, sizeof(Addr));
-			return true;
 		}
 		
 		// Compressed block data
 		else
 		{
+			zl = true;
+			
+			// Read Packed Size
+			PackSize = D_BSru16(PackData->WrapStream);
+			if (PackSize > RBSPACKEDMAXWAITBYTES)
+				PackSize = RBSPACKEDMAXWAITBYTES;
+			
+			// Nothing packed?
+			if (!PackSize)
+				continue;
+			
 			// Initialize decompression
 			memset(&ZStream, 0, sizeof(ZStream));
-			ZStream.avail_out = RBSPACKEDMAXWAITBYTES;
+			ZStream.avail_out = PackSize;
 			ZStream.next_out = PackData->InBuf;
 			
-			ZStream.avail_in = PackData->WrapStream->BlkSize;
-			ZStream.next_in = PackData->WrapStream->BlkData;
+			ZStream.avail_in = PackData->WrapStream->BlkSize - 2;
+			ZStream.next_in = PackData->WrapStream->BlkData + 2;
 			
 			if ((ZRet = mz_inflateInit(&ZStream)) != MZ_OK)
 			{
@@ -1568,18 +1570,31 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 			}
 			
 			// End stream write and calculate input pointers
-			Size = RBSPACKEDMAXWAITBYTES - ZStream.avail_out;
-			PackData->InAt = PackData->InBuf;
+			Size = PackSize;//RBSPACKEDMAXWAITBYTES - ZStream.avail_out;
+			PackData->InAt = &PackData->InBuf[0];
 			PackData->InEnd = &PackData->InBuf[Size];
 			
 			// Cleanup ZLib Stuff
 			mz_inflateEnd(&ZStream);
 		}
+		
+#if 0
+		// If we are about to trash our address, flush it (to prevent multiple
+		// host mishaps with compression streams).
+		if (PackData->HasAddr && !I_NetCompareHost(&PackData->CurAddr, &Addr))
+			DS_RBSPacked_FlushF(a_Stream);
+#endif
+		
+		// Replace new host
+		PackData->HasAddr = true;
+		memmove(&PackData->CurAddr, &Addr, sizeof(Addr));
+		
+		if (!zl)
+			return true;
 	}
 	
 	/* Maybe try reading again */
-	CONL_PrintF("%p [%p] < %p (%x)\n", PackData->InAt, PackData->InAt + 6, PackData->InEnd, PackData->InEnd - PackData->InAt);
-	if (PackData->InAt + 6 < PackData->InEnd)
+	if (PackData->InAt + 6 <= PackData->InEnd)
 	{
 		// Read Header
 		for (i = 0; i < 4; i++)
@@ -1588,7 +1603,7 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 		
 		// Read Size
 		Size = ((uint32_t)(*(PackData->InAt++))) << UINT32_C(8);
-		Size |= *(PackData->InAt++);
+		Size |= ((uint32_t)(*(PackData->InAt++)));
 		
 		// Size exceeds bounds?
 		if (PackData->InAt + Size > PackData->InEnd)
@@ -1918,7 +1933,10 @@ bool_t D_BSCompareHeader(const char* const a_A, const char* const a_B)
 		return false;
 	
 	/* Compare */
-	if (strcasecmp(a_A, a_B) == 0)
+	if (tolower(a_A[0]) == tolower(a_B[0]) &&
+		tolower(a_A[1]) == tolower(a_B[1]) &&
+		tolower(a_A[2]) == tolower(a_B[2]) &&
+		tolower(a_A[3]) == tolower(a_B[3]))
 		return true;
 	
 	/* No match */

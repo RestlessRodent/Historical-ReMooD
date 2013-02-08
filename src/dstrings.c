@@ -1046,8 +1046,16 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		"PSPECC_TWOSECLEFT", "2 seconds left!"},
 	{		"PSPECC_ONESECLEFT", "1 second left!"},
 	
-	/*** p_INTER.c ***/
+	/*** P_INTER.c ***/
 	{	   "PINTERC_FRAGLIMITREACHED", "Frag limit reached."},
+	
+	/*** P_SAVEG.C ***/
+	{			"PSAVEGC_ENDOFSTREAM", "End of stream reached too early."},
+	{			"PSAVEGC_WRONGHEADER", "Incorrect header."},
+	{		   "PSAVEGC_UNKNOWNLEVEL", "The level the game was saved on is not currently known."},
+	{		  "PSAVEGC_LEVELLOADFAIL", "The level failed to load correctly."},
+	{		 "PSAVEGC_ILLEGALTHINKER", "An illegal thinker exists."},
+	{	   "PSAVEGC_UNHANDLEDTHINKER", "A valid thinker is not currently handled."},
 	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},

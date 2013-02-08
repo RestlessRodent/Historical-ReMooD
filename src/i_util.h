@@ -439,6 +439,19 @@ typedef enum I_LocateFileFlags_e
 	ILFF_DIRSEARCH		= UINT32_C(0x00000002),	// Directory searching (caseless)
 } I_LocateFileFlags_t;
 
+typedef struct I_File_s I_File_t;
+
+/* I_FileMode_t -- File modes */
+typedef enum I_FileMode_e
+{
+	IFM_TEXT			= UINT32_C(0x01),		// Open as text
+	IFM_READ			= UINT32_C(0x02),		// Readable
+	IFM_WRITE			= UINT32_C(0x04),		// Writable
+	IFM_TRUNCATE		= UINT32_C(0x08),		// Truncate File
+	
+	IFM_RWT = IFM_READ | IFM_WRITE | IFM_TRUNCATE,
+} I_FileMode_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -514,6 +527,14 @@ void I_CloseDir(void);
 
 typedef bool_t (*I_LFCheckFunc_t)(char* const a_OutPath, const size_t a_OutSize, void* const a_Data);
 bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char* const* const a_List, const size_t a_Count, char* const a_OutPath, const size_t a_OutSize, const I_LFCheckFunc_t a_CheckFunc, void* const a_CheckData);
+
+I_File_t* I_FileOpen(const char* const a_Path, const uint32_t a_Modes);
+void I_FileClose(I_File_t* const a_File);
+uint64_t I_FileSeek(I_File_t* const a_File, const uint64_t a_Offset, const bool_t a_End);
+uint64_t I_FileTell(I_File_t* const a_File);
+uint64_t I_FileRead(I_File_t* const a_File, void* const a_Dest, const uint64_t a_Len);
+uint64_t I_FileWrite(I_File_t* const a_File, const void* const a_Src, const uint64_t a_Len);
+bool_t I_FileEOF(I_File_t* const a_File);
 
 /*** i_utlnet.c ***/
 bool_t I_InitNetwork(void);

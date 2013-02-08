@@ -163,6 +163,13 @@ bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFil
 
 /*****************************************************************************/
 
+/* PS_IllegalSave() -- Savegame is illegal */
+static bool_t PS_IllegalSave(const int32_t a_Reason)
+{
+	CONL_PrintF("Illegal savegame: %s\n", DS_GetString(a_Reason));
+	return false;
+}
+
 /* PS_Expect() -- Expect header */
 static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 {
@@ -170,14 +177,11 @@ static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 	
 	/* Play Block */
 	if (!D_BSPlayBlock(a_Str, Header))
-		return false;
+		return PS_IllegalSave(DSTR_PSAVEGC_ENDOFSTREAM);
 	
 	/* Compare */
 	if (!D_BSCompareHeader(a_Header, Header))
-	{
-		CONL_PrintF("Expected \"%s\" but got \"%s\"\n", a_Header, Header);
-		return false;
-	}
+		return PS_IllegalSave(DSTR_PSAVEGC_WRONGHEADER);
 	
 	// Was OK
 	return true;
@@ -565,7 +569,7 @@ static void PS_LUMapObjRef(D_BS_t* const a_Str, const bool_t a_Write, void** con
 		// Which Type?
 		switch (IDType)
 		{
-#define __CHK(b,rng) *a_Ref = ((RefNum >= 0 && RefNum < (rng)) ? (&((b)[RefNum])) : NULL)
+#define __CHK(b,rng) if (a_Ref) *a_Ref = ((RefNum >= 0 && RefNum < (rng)) ? (&((b)[RefNum])) : NULL)
 			case 1: __CHK(vertexes, numvertexes); break;
 			case 2: __CHK(segs, numsegs); break;
 			case 3: __CHK(sectors, numsectors); break;
@@ -779,7 +783,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		
 		D_BSrs(a_Str, XPlay->AccountName, MAXPLAYERNAME);
 		D_BSrs(a_Str, XPlay->DisplayName, MAXPLAYERNAME);
-		D_BSrs(a_Str, XPlay->ProfileUUID, MAXPLAYERNAME);
+		D_BSrs(a_Str, XPlay->ProfileUUID, MAXUUIDLENGTH);
 		D_BSrs(a_Str, XPlay->LoginUUID, MAXUUIDLENGTH);
 		D_BSrs(a_Str, XPlay->AccountServer, MAXXSOCKTEXTSIZE);
 		D_BSrs(a_Str, XPlay->AccountCookie, MAXPLAYERNAME);
@@ -790,6 +794,10 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		XPlay->StatusBits = D_BSru32(a_Str);
 		
 		D_BSrs(a_Str, NameBuf, MAXPLAYERNAME);
+		
+		// Assign profile, if any
+		if (!XPlay->Profile)
+			XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
 		
 		// Playing a demo back, do not assign to screen
 		if (demoplayback)
@@ -834,7 +842,8 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				else
 				{
 					// Use said profile
-					XPlay->Profile = g_Splits[i].Profile;
+					if (g_Splits[i].Profile)
+						XPlay->Profile = g_Splits[i].Profile;
 				}
 				
 				// Set common stuff
@@ -923,10 +932,18 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			}
 		}
 		
-		// Assign local profile if missing
+		// See if we can obtain the profile used by the player
 		if (XPlay->Flags & DXPF_LOCAL)
+		{
+			// Assign profile, if any
 			if (!XPlay->Profile)
 				XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
+			
+			// Set screen profile
+			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+				if (!g_Splits[XPlay->ScreenID].Profile)
+					g_Splits[XPlay->ScreenID].Profile = XPlay->Profile;
+		}
 		
 		// If the player is in game, assign it
 		if (XPlay->InGameID >= 0 && XPlay->InGameID < MAXPLAYERS)
@@ -1408,9 +1425,11 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 
 /*---------------------------------------------------------------------------*/
 
-#define SECNODECOUNT 512
-#define SECTORCOUNT 128
-#define LINECOUNT 128
+#define SECNODECOUNT 64
+#define SECTORCOUNT 4
+#define LINECOUNT 4
+#define MAPTHINGCOUNT 16
+#define BMAPCOUNT 256
 
 /* PS_SaveMapState() -- Saves map to savegame */
 static bool_t PS_SaveMapState(D_BS_t* const a_Str)
@@ -1540,8 +1559,12 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 					D_BSwu8(a_Str, mo->spawnpoint->Special);
 					for (i = 0; i < 5; i++)
 						D_BSwu8(a_Str, mo->spawnpoint->Args[i]);
-					D_BSws(a_Str, mobjinfo[mo->spawnpoint->MoType]->RClassName);
+					if (mo->spawnpoint->MoType >= 0 && mo->spawnpoint->MoType < NUMMOBJTYPES)
+						D_BSws(a_Str, mobjinfo[mo->spawnpoint->MoType]->RClassName);
+					else
+						D_BSwu8(a_Str, 0);
 					D_BSwu8(a_Str, mo->spawnpoint->MarkedWeapon);
+					D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->spawnpoint->mobj));
 				}
 				
 				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->tracer));
@@ -1612,15 +1635,26 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	D_BSRecordBlock(a_Str);
 	
 	/* Save BlockLinks */
-	D_BSBaseBlock(a_Str, "BKLN");
-	
 	// Write links
-	D_BSwu32(a_Str, (bmapwidth * bmapheight));
 	for (i = 0; i < (bmapwidth * bmapheight); i++)
+	{
+		// New?
+		if ((i & (BMAPCOUNT - 1)) == 0)
+		{
+			if (i > 0)
+				D_BSRecordBlock(a_Str);
+			D_BSBaseBlock(a_Str, "BKLN");
+			
+			if (i == 0)
+				D_BSwu32(a_Str, (bmapwidth * bmapheight));
+		}
+		
 		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)blocklinks[i]));
+	}
 	
 	// Record
-	D_BSRecordBlock(a_Str);
+	if (i > 0)
+		D_BSRecordBlock(a_Str);
 	
 	/* Save FFloors */
 	// TODO
@@ -1741,11 +1775,65 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		D_BSRecordBlock(a_Str);
 	
 	/* Save Map Thing References */
-	D_BSBaseBlock(a_Str, "MTRF");
-	
 	// Write it all
 	for (i = 0; i < nummapthings; i++)
+	{
+		if ((i & (MAPTHINGCOUNT - 1)) == 0)
+		{
+			if (i > 0)
+				D_BSRecordBlock(a_Str);
+			D_BSBaseBlock(a_Str, "MTRF");
+		}
+		
+		D_BSwu8(a_Str, mapthings[i].MarkedWeapon);
+		if (mapthings[i].MoType >= 0 && mapthings[i].MoType < NUMMOBJTYPES)
+			D_BSws(a_Str, mobjinfo[mapthings[i].MoType]->RClassName);
+		else
+			D_BSwu8(a_Str, 0);
 		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mapthings[i].mobj));
+	}
+	
+	// Record
+	if (nummapthings > 0)
+		D_BSRecordBlock(a_Str);
+	
+	/* Save Respawn Queue */
+	D_BSBaseBlock(a_Str, "IQUE");
+	
+	// Save entire queue
+	D_BSwi32(a_Str, ITEMQUESIZE);
+	D_BSwi32(a_Str, iquehead);
+	D_BSwi32(a_Str, iquetail);
+	
+	for (i = 0; i < ITEMQUESIZE; i++)
+	{
+		D_BSwu8(a_Str, !!itemrespawnque[i]);
+		PS_LUMapObjRef(a_Str, true, &itemrespawnque[i]);
+		D_BSwcu64(a_Str, itemrespawntime[i]);
+		
+		// In case of script spawned things
+		if (itemrespawnque[i])
+		{
+			D_BSwi16(a_Str, itemrespawnque[i]->x);
+			D_BSwi16(a_Str, itemrespawnque[i]->y);
+			D_BSwi16(a_Str, itemrespawnque[i]->z);
+			D_BSwi16(a_Str, itemrespawnque[i]->angle);
+			D_BSwi16(a_Str, itemrespawnque[i]->type);
+			D_BSwi16(a_Str, itemrespawnque[i]->options);
+			D_BSwu8(a_Str, itemrespawnque[i]->IsHexen);
+			D_BSwi16(a_Str, itemrespawnque[i]->HeightOffset);
+			D_BSwu16(a_Str, itemrespawnque[i]->ID);
+			D_BSwu8(a_Str, itemrespawnque[i]->Special);
+			for (j = 0; j < 5; j++)
+				D_BSwu8(a_Str, itemrespawnque[i]->Args[j]);
+			if (itemrespawnque[i]->MoType >= 0 && itemrespawnque[i]->MoType < NUMMOBJTYPES)
+				D_BSws(a_Str, mobjinfo[itemrespawnque[i]->MoType]->RClassName);
+			else
+				D_BSwu8(a_Str, 0);
+			D_BSwu8(a_Str, itemrespawnque[i]->MarkedWeapon);
+			D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)itemrespawnque[i]->mobj));
+		}
+	}
 	
 	// Record
 	D_BSRecordBlock(a_Str);
@@ -1778,6 +1866,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Map Totals
 	for (i = 0; i < 5; i++)
 		D_BSwi32(a_Str, g_MapKIS[i]);
+	D_BSwi32(a_Str, totalkills);
+	D_BSwi32(a_Str, totalitems);
+	D_BSwi32(a_Str, totalsecret);
 	
 	// Record
 	D_BSRecordBlock(a_Str);
@@ -1797,6 +1888,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	mobj_t* mo;
 	sector_t* sect;
 	line_t* line;
+	tic_t Tic;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1815,11 +1907,11 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 	// If not found, then fail
 	if (!pli)
-		return false;
+		return PS_IllegalSave(DSTR_PSAVEGC_UNKNOWNLEVEL);
 	
 	// Load level then
 	if (!P_ExLoadLevel(pli, PEXLL_FROMSAVE))
-		return false;
+		return PS_IllegalSave(DSTR_PSAVEGC_LEVELLOADFAIL);
 	
 	/* Load Sector Nodes */
 	// Load Count
@@ -1869,7 +1961,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		
 		// Illegal Type?
 		if (i >= NUMPTHINKERTYPES || x < 0 || x >= NUMPTHINKERTYPES)
-			return false;
+			return PS_IllegalSave(DSTR_PSAVEGC_ILLEGALTHINKER);
 		
 		// Allocate New Thinker
 		Thinker = Z_Malloc(g_ThinkerData[i].Size, PU_LEVEL, NULL);
@@ -1879,6 +1971,14 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		// Load data based on thinker type
 		switch (x)
 		{
+				// Cap
+			case PTT_CAP:
+				break;
+			
+				// Defunct
+			case PTT_DEFUNCT:
+				break;
+				
 				// Map Object
 			case PTT_MOBJ:
 				mo = (void*)Thinker;
@@ -1957,6 +2057,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 						mo->spawnpoint->MoType = INFO_GetTypeByName(Buf);
 						
 						mo->spawnpoint->MarkedWeapon = D_BSru8(a_Str);
+						mo->spawnpoint->mobj = (void*)((intptr_t)D_BSri32(a_Str));
 					}
 					
 					else
@@ -1975,6 +2076,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 							D_BSru8(a_Str);
 						D_BSrs(a_Str, Buf, BUFSIZE);
 						D_BSru8(a_Str);
+						D_BSri32(a_Str);
 					}
 
 				mo->tracer = (void*)((intptr_t)D_BSri32(a_Str));
@@ -2038,59 +2140,41 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			
 				// Unknown
 			default:
-				return false;
+				return PS_IllegalSave(DSTR_PSAVEGC_UNHANDLEDTHINKER);
 		}
 	}
-	
-	// Restore thinker references from thinkers
-	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
-		switch (Thinker->Type)
-		{
-				// Map Object
-			case PTT_MOBJ:
-				mo = Thinker;
-				
-				mo->snext = (void*)PS_GetThinkerFromID((intptr_t)mo->snext);
-				mo->sprev = (void*)PS_GetThinkerFromID((intptr_t)mo->sprev);
-				mo->bnext = (void*)PS_GetThinkerFromID((intptr_t)mo->bnext);
-				mo->bprev = (void*)PS_GetThinkerFromID((intptr_t)mo->bprev);
-				mo->target = (void*)PS_GetThinkerFromID((intptr_t)mo->target);
-				mo->tracer = (void*)PS_GetThinkerFromID((intptr_t)mo->tracer);
-				mo->FollowPlayer = (void*)PS_GetThinkerFromID((intptr_t)mo->FollowPlayer);
-				
-				for (i = 0; i < NUMPMOBJREFTYPES; i++)
-					for (x = 0; x < mo->RefListSz[i]; x++)
-						mo->RefList[i][x] = (void*)PS_GetThinkerFromID((intptr_t)mo->RefList[i][x]);
-				
-				for (i = 0; i < 2; i++)
-					for (x = 0; x < mo->MoOnCount[i]; x++)
-						mo->MoOn[i][x] = (void*)PS_GetThinkerFromID((intptr_t)mo->MoOn[i][x]);
-				break;
-				
-				// Unknown
-			default:
-				break;
-		}
 	
 	// Restore sector node thinker IDs
 	for (i = 0; i < g_NumMSecNodes; i++)
 		g_MSecNodes[i]->m_thing = (void*)PS_GetThinkerFromID((intptr_t)g_MSecNodes[i]->m_thing);
 		
 	/* Restore BlockLinks */
-	if (!PS_Expect(a_Str, "BKLN"))
-		return false;
-	
 	// Read Links
 	j = (bmapwidth * bmapheight);
-	n = D_BSru32(a_Str);
-	for (i = 0; i < n; i++)
-		if (i < j)
-			blocklinks[i] = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
-		else
-			D_BSri32(a_Str);
-	
-	// Record
-	D_BSRecordBlock(a_Str);
+	n = 0;
+	for (i = 0; i < j; i++)
+	{
+		// New block group?
+		if ((i & (BMAPCOUNT - 1)) == 0)
+		{
+			// Expect start of group
+			if (!PS_Expect(a_Str, "BKLN"))
+				return false;
+			
+			// If this is the first block, then read the count
+			if (i == 0)
+				n = D_BSru32(a_Str);
+		}
+		
+		// Read only if it is valid
+		if (i < n)
+		{
+			x = D_BSri32(a_Str);
+			
+			if (i < j)
+				blocklinks[i] = (void*)PS_GetThinkerFromID(((intptr_t)x));
+		}
+	}
 	
 	/* Restore FFloors */
 	// TODO
@@ -2206,11 +2290,118 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	}
 	
 	/* Restore Map Thing References */
-	if (!PS_Expect(a_Str, "MTRF"))
+	for (i = 0; i < nummapthings; i++)
+	{
+		if ((i & (MAPTHINGCOUNT - 1)) == 0)
+			if (!PS_Expect(a_Str, "MTRF"))
+				return false;
+			
+		mapthings[i].MarkedWeapon = D_BSru8(a_Str);
+		
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		mapthings[i].MoType = INFO_GetTypeByName(Buf);
+		
+		mapthings[i].mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+	}
+	
+	// Restore thinker references from thinkers
+	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
+		switch (Thinker->Type)
+		{
+				// Map Object
+			case PTT_MOBJ:
+				mo = Thinker;
+				
+				mo->snext = (void*)PS_GetThinkerFromID((intptr_t)mo->snext);
+				mo->sprev = (void*)PS_GetThinkerFromID((intptr_t)mo->sprev);
+				mo->bnext = (void*)PS_GetThinkerFromID((intptr_t)mo->bnext);
+				mo->bprev = (void*)PS_GetThinkerFromID((intptr_t)mo->bprev);
+				mo->target = (void*)PS_GetThinkerFromID((intptr_t)mo->target);
+				mo->tracer = (void*)PS_GetThinkerFromID((intptr_t)mo->tracer);
+				mo->FollowPlayer = (void*)PS_GetThinkerFromID((intptr_t)mo->FollowPlayer);
+				
+				for (i = 0; i < NUMPMOBJREFTYPES; i++)
+					for (x = 0; x < mo->RefListSz[i]; x++)
+						mo->RefList[i][x] = (void*)PS_GetThinkerFromID((intptr_t)mo->RefList[i][x]);
+				
+				for (i = 0; i < 2; i++)
+					for (x = 0; x < mo->MoOnCount[i]; x++)
+						mo->MoOn[i][x] = (void*)PS_GetThinkerFromID((intptr_t)mo->MoOn[i][x]);
+				
+				if (mo->spawnpoint)
+					if (mo->spawnpoint < &mapthings[0] || mo->spawnpoint >= &mapthings[nummapthings])
+						mo->spawnpoint->mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(mo->spawnpoint->mobj)));
+				break;
+				
+				// Unknown
+			default:
+				break;
+		}
+	
+	/* Restore Respawn Queue */
+	if (!PS_Expect(a_Str, "IQUE"))
 		return false;
 	
-	for (i = 0; i < nummapthings; i++)
-		mapthings[i].mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+	// Save entire queue
+	n = D_BSri32(a_Str);
+	iquehead = D_BSri32(a_Str);
+	iquetail = D_BSri32(a_Str);
+	
+	for (i = 0; i < n; i++)
+	{
+		x = D_BSru8(a_Str);
+		PS_LUMapObjRef(a_Str, false, (i < ITEMQUESIZE ? &itemrespawnque[i] : NULL));
+		Tic = D_BSrcu64(a_Str);
+		
+		if (i < ITEMQUESIZE)
+			itemrespawntime[i] = Tic;
+		
+		if (x)
+			// References script spawned object
+			if (!itemrespawnque[i])
+			{
+				itemrespawnque[i] = Z_Malloc(sizeof(*itemrespawnque[i]), PU_LEVEL, NULL);
+				
+				itemrespawnque[i]->x = D_BSri16(a_Str);
+				itemrespawnque[i]->y = D_BSri16(a_Str);
+				itemrespawnque[i]->z = D_BSri16(a_Str);
+				itemrespawnque[i]->angle = D_BSri16(a_Str);
+				itemrespawnque[i]->type = D_BSri16(a_Str);
+				itemrespawnque[i]->options = D_BSri16(a_Str);
+				itemrespawnque[i]->IsHexen = D_BSru8(a_Str);
+				itemrespawnque[i]->HeightOffset = D_BSri16(a_Str);
+				itemrespawnque[i]->ID = D_BSru16(a_Str);
+				itemrespawnque[i]->Special = D_BSru8(a_Str);
+				for (j = 0; j < 5; j++)
+					itemrespawnque[i]->Args[j] = D_BSru8(a_Str);
+				
+				D_BSrs(a_Str, Buf, BUFSIZE);
+				itemrespawnque[i]->MoType = INFO_GetTypeByName(Buf);
+				
+				itemrespawnque[i]->MarkedWeapon = D_BSru8(a_Str);
+				itemrespawnque[i]->mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+			}
+			
+			// Saved anyway, but discard due to thing match
+			else
+			{
+				D_BSri16(a_Str);
+				D_BSri16(a_Str);
+				D_BSri16(a_Str);
+				D_BSri16(a_Str);
+				D_BSri16(a_Str);
+				D_BSri16(a_Str);
+				D_BSru8(a_Str);
+				D_BSri16(a_Str);
+				D_BSru16(a_Str);
+				D_BSru8(a_Str);
+				for (j = 0; j < 5; j++)
+					D_BSru8(a_Str);
+				D_BSrs(a_Str, Buf, BUFSIZE);
+				D_BSru8(a_Str);
+				D_BSri32(a_Str);
+			}
+	}
 		
 	/* Expect "LMSC" */
 	if (!PS_Expect(a_Str, "LMSC"))
@@ -2255,6 +2446,9 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	// Map Totals
 	for (i = 0; i < 5; i++)
 		g_MapKIS[i] = D_BSri32(a_Str);
+	totalkills = D_BSri32(a_Str);
+	totalitems = D_BSri32(a_Str);
+	totalsecret = D_BSri32(a_Str);
 	
 	/* Success! */
 	return true;
@@ -2280,6 +2474,9 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 /* P_SaveToStream() -- Save to stream */
 bool_t P_SaveToStream(D_BS_t* const a_Str)
 {
+	/* Force Lag */
+	D_XNetForceLag();
+	
 	/* Network State */
 	PS_SaveDummy(a_Str, false);
 	PS_SaveNetState(a_Str);
@@ -2299,6 +2496,9 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 {
 	bool_t OK;
 	int32_t i;
+	
+	/* Force Lag */
+	D_XNetForceLag();
 	
 	/* Determine how loading is to be handled */
 	// If we are the server or playing solo, we want to disconnect dropping all
@@ -2382,6 +2582,23 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		
 		// Bot Nodes
 		B_InitNodes();
+		
+		// Correct player angles
+			// This is so you are still facing the desired angle when you load
+			// the game and not some random angle previously used.
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+		{
+			if (!D_ScrSplitHasPlayer(i))
+				continue;
+			
+			if (!(g_Splits[i].Console >= 0 && g_Splits[i].Console < MAXPLAYERS))
+				continue;
+			
+			localaiming[i] = players[g_Splits[i].Console].aiming;
+			
+			if (players[g_Splits[i].Console].mo)
+				localangle[i] = players[g_Splits[i].Console].mo->angle;
+		}
 	}
 	
 	/* Done! */
