@@ -1619,7 +1619,59 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 						D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->RefList[i][j]));
 				}
 				break;
-			
+
+				// Vertical Door
+			case PTT_VERTICALDOOR:
+				break;
+	
+				// Light Source
+			case PTT_FIREFLICKER:
+				break;
+	
+				// Light Source
+			case PTT_LIGHTFLASH:
+				break;
+	
+				// Light Source
+			case PTT_STROBEFLASH:
+				break;
+	
+				// Light Source
+			case PTT_GLOW:
+				break;
+	
+				// Light Source
+			case PTT_LIGHTFADE:
+				break;
+	
+				// Moving Surface
+			case PTT_MOVEFLOOR:
+				break;
+	
+				// Moving Surface
+			case PTT_MOVECEILING:
+				break;
+	
+				// Moving Surface
+			case PTT_PLATRAISE:
+				break;
+	
+				// Moving Surface
+			case PTT_MOVEELEVATOR:
+				break;
+	
+				// Scrolling Line
+			case PTT_SCROLL:
+				break;
+	
+				// Friction
+			case PTT_FRICTION:
+				break;
+	
+				// Puller
+			case PTT_PUSHER:
+				break;
+	
 				// Unknown
 			default:
 				break;
@@ -2137,6 +2189,58 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 						mo->RefList[i][j] = (void*)((intptr_t)D_BSri32(a_Str));
 				}
 				break;
+				
+				// Vertical Door
+			case PTT_VERTICALDOOR:
+				break;
+	
+				// Light Source
+			case PTT_FIREFLICKER:
+				break;
+	
+				// Light Source
+			case PTT_LIGHTFLASH:
+				break;
+	
+				// Light Source
+			case PTT_STROBEFLASH:
+				break;
+	
+				// Light Source
+			case PTT_GLOW:
+				break;
+	
+				// Light Source
+			case PTT_LIGHTFADE:
+				break;
+	
+				// Moving Surface
+			case PTT_MOVEFLOOR:
+				break;
+	
+				// Moving Surface
+			case PTT_MOVECEILING:
+				break;
+	
+				// Moving Surface
+			case PTT_PLATRAISE:
+				break;
+	
+				// Moving Surface
+			case PTT_MOVEELEVATOR:
+				break;
+	
+				// Scrolling Line
+			case PTT_SCROLL:
+				break;
+	
+				// Friction
+			case PTT_FRICTION:
+				break;
+	
+				// Puller
+			case PTT_PUSHER:
+				break;
 			
 				// Unknown
 			default:
@@ -2599,6 +2703,9 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 			if (players[g_Splits[i].Console].mo)
 				localangle[i] = players[g_Splits[i].Console].mo->angle;
 		}
+		
+		// Update Scores
+		P_UpdateScores();
 	}
 	
 	/* Done! */
