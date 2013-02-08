@@ -75,7 +75,6 @@ bool_t SN_InitLevel(void)
 	WAD = g_CurrentLevelInfo->WAD;
 	
 	// PWAD to look for
-	
 
 	// Look for attached GWA (hopefuly)
 	for (GWA = NULL, i = 0; i < WAD->NumAttached; i++)

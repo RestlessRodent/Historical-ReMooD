@@ -654,6 +654,12 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	return New;
 }
 
+/* B_GHOST_PolygonSplitLevel() -- Splits level into polygons */
+bool_t B_GHOST_PolygonSplitLevel(const node_t* const a_Node)
+{
+	return false;
+}
+
 /* B_GHOST_RecursiveSplitMap() -- Recursively split the map */
 // Normally this would have been for subsector shapes, but that is too much
 // of a pain in the ass to do. I cannot seem to get it working at all, so i'm
@@ -955,8 +961,15 @@ void B_GHOST_Ticker(void)
 	/* Build SubSector Mesh Map */
 	if (!l_SSMCreated)
 	{
+#if 1
+		// Polygonize the level
+		SN_PolygonizeLevel();
+		
+		// Map nodes from polygons
+#else
 		// Recursive map generation
 		B_GHOST_RecursiveSplitMap(&nodes[numnodes - 1]);
+#endif
 		
 		// Don't do anything else
 		l_SSMCreated = true;

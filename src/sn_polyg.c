@@ -53,8 +53,12 @@
 	
 #else
 	typedef fixed_t polyf_t;
-
 #endif
+
+/* SN_Poly_t -- Polygon */
+typedef struct SN_Poly_s
+{
+} SN_Poly_t;
 
 /**************
 *** GLOBALS ***
@@ -71,6 +75,8 @@
 /* SN_PolygonizeLevel() -- Polygonizes the level */
 void SN_PolygonizeLevel(void)
 {
+	
+	g_GlobalBoundBox
 }
 
 
