@@ -814,7 +814,7 @@ void ST_DrawPlayerBarsEx(void)
 			// Get players to draw for
 			if (!g_Splits[p].XPlayer)
 			{
-				if (g_Splits[p].Console >= 0)
+				if (g_Splits[p].Console >= 0 && playeringame[g_Splits[p].Console])
 					ConsoleP = &players[g_Splits[p].Console];
 				else
 					ConsoleP = NULL;

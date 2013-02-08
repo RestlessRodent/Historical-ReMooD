@@ -1568,8 +1568,7 @@ void P_RemoveMobj(mobj_t* mobj)
 	memmove(&mobj->thinker, &Hold, sizeof(thinker_t));
 	
 	// Set to crash
-	mobj->thinker.Type = PTT_DEFUNCT;
-	mobj->thinker.function.acv = 0;
+	mobj->thinker.Type = PTT_DELETEME;
 	P_SetMobjToCrash(mobj);
 }
 

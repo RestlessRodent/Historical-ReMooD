@@ -110,6 +110,8 @@ typedef struct B_BotTemplate_s
 	uint32_t Flags;								// Flags for bot
 } B_BotTemplate_t;
 
+typedef struct B_ShoreNode_s B_ShoreNode_t;
+
 /* B_GhostBot_t -- GhostlyBots information */
 struct B_GhostBot_s
 {
@@ -130,6 +132,10 @@ struct B_GhostBot_s
 	bool_t IsPlayer;							// Bot is a player
 	tic_t MonsterForceTic;						// Force attack/move timeout
 	bool_t MonsterForce;						// Force attack/move
+	
+	B_ShoreNode_t** Shore;						// Shore Nodes
+	uint32_t NumShore;							// Number of shore nodes
+	uint32_t ShoreIt;							// Current shore iterator
 	
 	struct
 	{

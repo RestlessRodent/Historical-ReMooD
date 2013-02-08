@@ -1415,11 +1415,11 @@ void P_SpecInit(const int32_t a_PlayerNum)
 	
 	/* All */
 	// This is called on a new level, possibly
-	if (a_PlayerNum == -1)
+	if (a_PlayerNum < 0)
 	{
 		// If the map did not change, do not reset (so specs don't get jerked
-		// all the time)
-		if (LastSpecLevel == g_CurrentLevelInfo && LastFlipped == P_XGSVal(PGS_FUNFLIPLEVELS))
+		// all the time). However -2 forces it, in case of savegames
+		if (a_PlayerNum != -2 && LastSpecLevel == g_CurrentLevelInfo && LastFlipped == P_XGSVal(PGS_FUNFLIPLEVELS))
 			return;
 		
 		LastSpecLevel = g_CurrentLevelInfo;
@@ -1690,6 +1690,10 @@ void P_SpecTicker(void)
 			// No object?
 			if (!CamMo)
 				continue;
+			
+			// No XPlayer? Correct
+			if (!Mod->XPlayer)
+				Mod->XPlayer = g_Splits[i].XPlayer;
 			
 			// Flying
 			CamMo->momz = Mod->flyheight << 16;

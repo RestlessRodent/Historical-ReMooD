@@ -72,6 +72,7 @@ extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES] =
 	{sizeof(pusher_t), {T_Pusher}},				// PTT_PUSHER
 	{sizeof(mobj_t), {P_MobjThinker}},			// PTT_MOBJ
 	{sizeof(thinker_t), {NULL}},				// PTT_DEFUNCT
+	{sizeof(thinker_t), {NULL}},				// PTT_DELETEME
 };
 
 
@@ -158,7 +159,9 @@ void P_RunThinkers(void)
 		if (!currentthinker)
 			break;
 		
-		if (currentthinker->function.acv == (actionf_v) (-1))
+		if (currentthinker->function.acv == (actionf_v)(-1) ||
+			currentthinker->Type == PTT_DELETEME ||
+			currentthinker->Type == PTT_DEFUNCT)
 		{
 			// time to remove it
 			currentthinker->next->prev = currentthinker->prev;
@@ -222,6 +225,13 @@ actionf_t G_ThinkTypeToFunc(const P_ThinkerType_t a_Type)
 		return Bad;
 	}
 	
+	/* Delete? */
+	if (a_Type == PTT_DELETEME)
+	{
+		Bad.acv = (actionf_v)(-1);
+		return Bad;
+	}
+	
 	/* Return from table */
 	return g_ThinkerData[a_Type].Func;
 }
@@ -234,6 +244,10 @@ P_ThinkerType_t G_ThinkFuncToType(actionf_t a_Func)
 	/* Missing func? */
 	if (!a_Func.acv)
 		return 0;
+	
+	/* Delete? */
+	if (a_Func.acv == (actionf_v)(-1))
+		return PTT_DELETEME;
 	
 	/* Find match */
 	for (i = 0; i < NUMPTHINKERTYPES; i++)

@@ -2023,12 +2023,10 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		// Load data based on thinker type
 		switch (x)
 		{
-				// Cap
+				// Junk
 			case PTT_CAP:
-				break;
-			
-				// Defunct
 			case PTT_DEFUNCT:
+			case PTT_DELETEME:
 				break;
 				
 				// Map Object
@@ -2673,7 +2671,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	if (gamestate == GS_LEVEL)
 	{
 		// Initialize Spectators
-		P_SpecInit(-1);
+		P_SpecInit(-2);
 		
 		// Music
 		if (g_CurrentLevelInfo)

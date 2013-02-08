@@ -82,6 +82,8 @@ typedef struct B_GhostNode_s
 		struct B_GhostNode_s* Node;				// Node connected to
 		fixed_t Dist;							// Distance to node
 	} Links[3][3];								// Chain Links
+	
+	struct B_GhostNode_s* Next;					// Next in link
 } B_GhostNode_t;
 
 /* B_Unimatrix_t -- A large grid portion of the map */
@@ -145,6 +147,8 @@ static int32_t l_SSBuildChain = 0;				// Final Stage Chaining
 
 static B_BotTemplate_t** l_BotTemplates = NULL;	// Templates
 static size_t l_NumBotTemplates = 0;			// Number of them
+
+static B_GhostNode_t* l_HeadNode;				// Head Node
 
 /****************
 *** FUNCTIONS ***
@@ -231,6 +235,125 @@ static int BS_Random(B_GhostBot_t* const a_Bot)
 static uint16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
 {
 	return R_PointToAngle2(a_x1, a_y1, a_x2, a_y2) >> 16;
+}
+
+/* BS_LinkAngleDir() -- Gets link angle for this angle */
+static void BS_LinkAngleDir(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t a_Angle)
+{
+	/* Determine link angle */
+	// East
+	if (a_Angle >= ANGLEX(337) || a_Angle < ANGLEX(23))
+	{
+		*a_OutX = 1;
+		*a_OutY = 0;
+	}
+	
+	// North East
+	else if (a_Angle >= ANGLEX(23) && a_Angle < ANGLEX(67))
+	{
+		*a_OutX = 1;
+		*a_OutY = 1;
+	}
+	
+	// North
+	else if (a_Angle >= ANGLEX(67) && a_Angle < ANGLEX(113))
+	{
+		*a_OutX = 0;
+		*a_OutY = 1;
+	}
+	
+	// North West
+	else if (a_Angle >= ANGLEX(113) && a_Angle < ANGLEX(158))
+	{
+		*a_OutX = -1;
+		*a_OutY = 1;
+	}
+	
+	// West
+	else if (a_Angle >= ANGLEX(158) && a_Angle < ANGLEX(202))
+	{
+		*a_OutX = -1;
+		*a_OutY = 0;
+	}
+	
+	// South West
+	else if (a_Angle >= ANGLEX(202) && a_Angle < ANGLEX(248))
+	{
+		*a_OutX = -1;
+		*a_OutY = -1;
+	}
+	
+	// South
+	else if (a_Angle >= ANGLEX(248) && a_Angle < ANGLEX(293))
+	{
+		*a_OutX = 0;
+		*a_OutY = -1;
+	}
+	
+	// South East
+	else if (a_Angle >= ANGLEX(293) && a_Angle < ANGLEX(337))
+	{
+		*a_OutX = 1;
+		*a_OutY = -1;
+	}
+	
+	// Oops
+	else
+	{
+		*a_OutX = 0;
+		*a_OutY = 0;
+	}
+}
+
+/* BS_LinkDirection() -- Determines the link direction from these points */
+static void BS_LinkDirection(int32_t* const a_OutX, int32_t* const a_OutY, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const a_Y2)
+{
+	BS_LinkAngleDir(a_OutX, a_OutY, R_PointToAngle2(a_X1, a_Y1, a_X2, a_Y2));
+}
+
+/* BS_NearLinkDir() -- Determines if link directions are near enough */
+// i.e north east is near to east, but not to south east
+static bool_t BS_NearLinkDir(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2)
+{
+	static const struct
+	{
+		int32_t SetA[2];
+		int32_t SetB[2];
+		int32_t Pts[2];
+	} c_NM[9] =
+	{
+		{{-1,  0}, { 0, -1}, {-1, -1}},
+		{{-1, -1}, { 1, -1}, { 0, -1}},
+		{{ 0, -1}, { 1,  0}, { 1, -1}},
+		{{-1,  1}, {-1, -1}, {-1,  0}},
+		{{ 0,  0}, { 0,  0}, { 0,  0}},
+		{{ 1, -1}, { 1,  1}, { 1,  0}},
+		{{-1,  0}, { 0,  1}, {-1,  1}},
+		{{-1,  1}, { 1,  1}, { 0,  1}},
+		{{ 0,  1}, { 1,  0}, { 1,  1}},
+	};
+	
+	int32_t i;
+	
+	/* Do not allow (0,0) */
+	if ((a_X1 == 0 && a_Y1 == 0) || (a_X2 == 0 && a_Y2 == 0))
+		return false;
+	
+	/* Look in list */
+	for (i = 0; i < 9; i++)
+		if (a_X1 == c_NM[i].Pts[0] && a_Y1 == c_NM[i].Pts[1])
+		{
+			// Matches set a?
+			if (a_X2 == c_NM[i].SetA[0] && a_Y2 == c_NM[i].SetA[1])
+				return true;
+			
+			// Matches set b?
+			if (a_X2 == c_NM[i].SetB[0] && a_Y2 == c_NM[i].SetB[1])
+				return true;
+		}
+	
+	/* Presume not a match */
+	return false;
 }
 
 /* BS_MoveToAndAimAtFrom() -- Aim at target and move to one at the same time */
@@ -409,8 +532,10 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	RealY = a_Y;
 	
 	/* Truncate the coordinates to a 32-grid */
-	RealX &= ~2097151;//~1048575;
-	RealY &= ~2097151;//~1048575;
+	//RealX &= ~2097151;//~1048575;
+	//RealY &= ~2097151;//~1048575;
+	RealX &= ~0xFFFF;
+	RealY &= ~0xFFFF;
 	
 	/* See if there is a subsector here */
 	// Because this spot could be in the middle of nowhere
@@ -515,7 +640,16 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	Z_ResizeArray((void**)&ThisMatrix->Nodes, sizeof(*ThisMatrix->Nodes),
 			ThisMatrix->NumNodes, ThisMatrix->NumNodes + 1);
 	ThisMatrix->Nodes[ThisMatrix->NumNodes++] = New;
-		
+	
+	/* Add to master chain */
+	if (!l_HeadNode)
+		l_HeadNode = New;
+	else
+	{
+		New->Next = l_HeadNode;
+		l_HeadNode = New;
+	}
+	
 	/* Return the new node */
 	return New;
 }
@@ -531,7 +665,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 // but on some very curvy levels, maybe not so much.
 bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
 {
-	int8_t Side, i, j;
+	int32_t Side, i, j, k;
 	fixed_t x1, y1, x2, y2;
 	
 	fixed_t* px, *py;
@@ -565,6 +699,24 @@ bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
 			// Create a node there
 			B_GHOST_CreateNodeAtPos(cx, cy);
 			
+#if 0
+#define MESHNESS 8
+			// Create nodes in a 4x4 pattern scaled within the bo
+			cx = (x2 - x1) / (MESHNESS + 2);
+			cy = (y2 - y1) / (MESHNESS + 2);
+			
+			for (j = 1; j <= MESHNESS; j++)
+			{
+				dx = x1 + (cx * j);
+				
+				for (k = 1; k <= MESHNESS; k++)
+				{
+					dy = y1 + (cy * j);
+					
+					B_GHOST_CreateNodeAtPos(dx, dy);
+				}
+			}
+#else
 			// Go through each 4 corners and midpoint that and the center
 			// this creates a web of sorts
 			for (j = 0; j < 4; j++)
@@ -586,6 +738,7 @@ bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
 				// Create node there
 				B_GHOST_CreateNodeAtPos(dx, dy);
 			}
+#endif
 		}
 		
 		// Side is another node
@@ -837,49 +990,81 @@ void B_GHOST_Ticker(void)
 							// Zero?
 							if (x == 0 || y == 0)
 								continue;
-								
-							// Project
-							dx = CurrentNode->x + (BOTMINNODEDIST * x);
-							dy = CurrentNode->y + (BOTMINNODEDIST * y);
 							
-							// Try and locate nearby nodes
-							NearNode = B_GHOST_NodeNearPos(dx, dy, CurrentNode->FloorZ, true);
+							// Determine lox
+							lox = x + 1;
+							loy = y + 1;
 							
-							// Self? Unref
-							if (NearNode == CurrentNode)
-								NearNode = NULL;
-					
-							// No node?
-							if (!NearNode)
+							// If a node is already here, ignore
+							if (CurrentNode->Links[lox][loy].Node)
+								continue;
+							
+							// Setup loop
+							NearNode = NULL;
+							dx = CurrentNode->x;
+							dy = CurrentNode->y;
+							j = 0;
+							
+							// Node searching loop
+							while (!NearNode && ++j < 10)
 							{
-								// Try a deeper reach
-								dx = dx + (BOTMINNODEDIST * x);
-								dy = dy + (BOTMINNODEDIST * y);
+								// Add coordinate
+								dx += (BOTMINNODEDIST * x);
+								dy += (BOTMINNODEDIST * y);
 								
-								// Try again
-								NearNode = B_GHOST_NodeNearPos(dx, dy, CurrentNode->FloorZ, true);
+								// Try and locate nearby nodes
+								NearNode = B_GHOST_NodeNearPos(dx, dy, CurrentNode->FloorZ, !!j);
 								
-								// Self? Unref
-								if (NearNode == CurrentNode)
-									NearNode = NULL;
-								
-								// Still nothing
+								// No Node found?
 								if (!NearNode)
 									continue;
+									
+								// If node is self, ignore
+								if (NearNode == CurrentNode)
+								{
+									NearNode = NULL;
+									continue;
+								}
+							
+								// Get link angle between targets
+									// This will determine whether or not this node
+									// in said direction is compatible for this dir.
+									// If this check is not done, then a node that
+									// should face west might really be east.
+									// This fixes problems where the bot wants to
+									// move east, but moves west instead.
+								BS_LinkDirection(&uX, &uY, CurrentNode->x, CurrentNode->y, NearNode->x, NearNode->y);
+							
+								if (!BS_NearLinkDir(x, y, uX, uY))
+								{
+									NearNode = NULL;
+									continue;
+								}
+							
+								// Check to see if path can be traversed
+								if (!BS_CheckNodeToNode(NULL, CurrentNode, NearNode, true))
+								{
+									NearNode = NULL;
+									continue;
+								}
 							}
 							
-							// Check to see if path can be traversed
-							if (!BS_CheckNodeToNode(NULL, CurrentNode, NearNode, true))
+							// Completely failed?
+							if (!NearNode || j >= 10)
 								continue;
 							
 							// Movement to node is possible, link it
-							lox = x + 1;
-							loy = y + 1;
 							CurrentNode->Links[lox][loy].Node = NearNode;
 							CurrentNode->Links[lox][loy].Dist = P_AproxDistance(
 									dx - CurrentNode->x, dy - CurrentNode->y);
-							NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Node = CurrentNode;
-							NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Dist = CurrentNode->Links[lox][loy].Dist;
+							
+							// Set back reference, but only if the near node has
+							// nothing already
+							if (!NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Node)
+							{
+								NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Node = CurrentNode;
+								NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Dist = CurrentNode->Links[lox][loy].Dist;
+							}
 						}
 				}
 			}
@@ -914,6 +1099,9 @@ void B_ClearNodes(void)
 	l_SSMCreated = false;
 	l_SSBuildChain = 0;
 	
+	/* Clear node list */
+	l_HeadNode = 0;
+	
 	/* Clear anything extra there may be */
 	Z_FreeTags(PU_BOTS, PU_BOTS);
 	
@@ -921,10 +1109,20 @@ void B_ClearNodes(void)
 	g_GotBots = false;
 }
 
+int CLC_DumpNodes(const uint32_t a_ArgC, const char** const a_ArgV);
+
 /* B_InitNodes() -- Initializes level */
 void B_InitNodes(void)
 {
 	int i;
+	static bool_t AddedCLC;
+	
+	/* Need to add command? */
+	if (!AddedCLC)
+	{
+		CONL_AddCommand("dumpnodes", CLC_DumpNodes);
+		AddedCLC = true;
+	}
 	
 	/* Clear old data */
 	B_ClearNodes();
@@ -969,6 +1167,80 @@ void B_InitNodes(void)
 	if (g_GotBots)
 		SN_PolygonizeLevel();
 }
+
+/*****************************************************************************/
+
+/* B_ShoreType_t -- Type of shore node */
+typedef enum B_ShoreType_e
+{
+	BST_HEAD,									// Head Node
+	BST_NODE,									// Standard in between node
+	BST_TAIL,									// Tail Node
+} B_ShoreType_t;
+
+/* B_ShoreNode_t -- Shore navigation node */
+struct B_ShoreNode_s
+{
+	B_ShoreType_t Type;							// Type of node
+	fixed_t Pos[3];								// Position in world
+	subsector_t* SubS;							// Subsector
+	B_Unimatrix_t* UniM;						// Unimatrix
+	B_GhostNode_t* BotNode;						// Bot Node
+};
+
+/* BS_GHOST_AddNode() -- Adds a shore node */
+static B_ShoreNode_t* BS_GHOST_AddNode(struct B_GhostBot_s* a_Bot, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+{
+	B_ShoreNode_t* New;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_BOTS, NULL);
+	
+	/* Initialize */
+	New->Type = a_Type;
+	New->Pos[0] = a_X;
+	New->Pos[1] = a_Y;
+	New->Pos[2] = a_Z;
+	New->SubS = R_IsPointInSubsector(a_X, a_Y);
+	New->UniM = BS_UnimatrixAtPos(a_X, a_Y);
+	
+	// On the floor?
+	if (a_Z == ONFLOORZ)
+		if (New->SubS)
+			New->Pos[2] = New->SubS->sector->floorheight;
+		else
+			New->Pos[2] = 0;
+	
+	New->BotNode = B_GHOST_NodeNearPos(a_X, a_Y, New->Pos[2], true);
+	
+	/* Add to list */
+	
+	/* Return New node */
+	return New;
+}
+
+/* BS_GHOST_ShoreFromTo() -- Builds a path from point 1 to point 2 */
+static bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
+{
+	uint32_t i;
+	B_ShoreNode_t* Node;
+	
+	/* Remove old shore nodes if they exist */	
+	if (a_Bot->Shore)
+	{
+		for (i = 0; i < a_Bot->NumShore; i++)
+			if (a_Bot->Shore[i])
+				Z_Free(a_Bot->Shore[i]);
+		
+		Z_Free(a_Bot->Shore);
+	}
+	
+	a_Bot->Shore = NULL;
+	a_Bot->NumShore = a_Bot->ShoreIt = 0;
+	
+}
+
+/*****************************************************************************/
 
 /* BS_GHOST_JOB_RandomNav() -- Random navigation */
 static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
@@ -1332,6 +1604,8 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 	return true;
 #undef MAXGUNSWITCHERS
 }
+
+/*****************************************************************************/
 
 /*---------------------------------------------------------------------------*/
 
@@ -1840,5 +2114,76 @@ void B_InitBotCodes(void)
 	/* Bot OCCB */
 	if (!WL_RegisterOCCB(B_BotCodeOCCB, WLDCO_BOTSTUFF))
 		I_Error("Failed to register Bot OCCB.");
+}
+
+/* CLC_DumpNodes() -- Dump nodes to file */
+int CLC_DumpNodes(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+#define BUFSIZE 128
+	B_GhostNode_t* Rover, *Link;
+	I_File_t* File;
+	char Buf[BUFSIZE];
+	int x, y;
+	
+	/* Open File */
+	File = I_FileOpen("bnodes", IFM_RWT);
+	
+	// Failed?
+	if (!File)
+		return 1;
+	
+	/* Start at head */
+	for (Rover = l_HeadNode; Rover; Rover = Rover->Next)
+		for (x = 0; x < 3; x++)
+			for (y = 0; y < 3; y++)
+			{
+				Link = Rover->Links[x][y].Node;
+				
+				// No link?
+				if (!Link)
+					continue;
+				
+				// Move to base position
+				snprintf(Buf, BUFSIZE - 1, "move %i.0 %i.0\n",
+						Rover->x >> 16, Rover->y >> 16
+					);
+				I_FileWrite(File, Buf, strlen(Buf));
+				
+				// Line to link position
+				snprintf(Buf, BUFSIZE - 1, "%i.0 %i.0\n",
+						Link->x >> 16, Link->y >> 16
+					);
+				I_FileWrite(File, Buf, strlen(Buf));
+			}
+	
+	/* Dump map lines that are solid */
+	// This is to help determine the contour of the level
+	snprintf(Buf, BUFSIZE - 1, "lines");
+	
+	for (x = 0; x < numlines; x++)
+	{
+		// Not a blocking line?
+		if (!(lines[x].flags & ML_BLOCKING))
+			continue;
+		
+		// Move to base position
+		snprintf(Buf, BUFSIZE - 1, "move %i.0 %i.0\n",
+				lines[x].v1->x >> 16, lines[x].v1->y >> 16
+			);
+		I_FileWrite(File, Buf, strlen(Buf));
+		
+		// Line to end position
+		snprintf(Buf, BUFSIZE - 1, "%i.0 %i.0\n",
+				lines[x].v2->x >> 16, lines[x].v2->y >> 16
+			);
+		I_FileWrite(File, Buf, strlen(Buf));
+	}
+	
+	/* Close File */
+	I_FileClose(File);
+	
+	/* Suppose it worked */
+	return 0;
+#undef BUFSIZE
 }
 

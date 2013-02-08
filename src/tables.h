@@ -69,6 +69,8 @@ extern fixed_t finetangent[FINEANGLES / 2];
 #define ANGLE_1     (ANGLE_45/45)
 #define ANGLE_60    (ANGLE_180/3)
 
+#define ANGLEX(x) ((angle_t)(((angle_t)ANGLE_1) * ((angle_t)(x))))
+
 typedef unsigned angle_t;
 
 // to get a global angle from cartesian coordinates, the coordinates are

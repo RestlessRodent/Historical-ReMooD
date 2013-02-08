@@ -298,6 +298,10 @@ bool_t P_ExClearLevel(void)
 	nummapthings = numvertexes = numsegs = numsectors = numsubsectors = numnodes = numlines = numsides = 0;
 	mapthings = vertexes = segs = sectors = subsectors = nodes = lines = sides = NULL;
 	
+	// Starts
+	memset(deathmatchstarts, 0, sizeof(deathmatchstarts));
+	memset(playerstarts, 0, sizeof(playerstarts));
+	
 	// 3D Floors
 	g_PFakeFloors = NULL;
 	g_NumPFakeFloors = 0;
