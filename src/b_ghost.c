@@ -2842,7 +2842,7 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 			{
 				a_BotData->IsDead = true;
 				a_BotData->DeathTime = gametic;
-				a_BotData->RespawnDelay = ((((tic_t)BS_Random(a_BotData)) % 5) + 1) * TICRATE;
+				a_BotData->RespawnDelay = ((((tic_t)BS_Random(a_BotData)) % 2) + 1) * TICRATE;
 				
 				// Clear things
 				BS_GHOST_ClearShore(a_BotData, false);
