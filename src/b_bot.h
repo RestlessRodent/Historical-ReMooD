@@ -112,6 +112,17 @@ typedef struct B_BotTemplate_s
 
 typedef struct B_ShoreNode_s B_ShoreNode_t;
 
+/* B_BotTarget_t -- Target of a bot */
+typedef struct B_BotTarget_s
+{
+	bool_t IsSet;							// Target Set
+	bool_t MoveTarget;						// Movement target
+	tic_t ExpireTic;						// Action expires at this time
+	int32_t Priority;						// Priority
+	fixed_t x, y;							// X/Y Target
+	uintptr_t Key;							// Key
+} B_BotTarget_t;
+
 /* B_GhostBot_t -- GhostlyBots information */
 struct B_GhostBot_s
 {
@@ -137,15 +148,15 @@ struct B_GhostBot_s
 	uint32_t NumShore;							// Number of shore nodes
 	uint32_t ShoreIt;							// Current shore iterator
 	
-	struct
-	{
-		bool_t IsSet;							// Target Set
-		bool_t MoveTarget;						// Movement target
-		uint32_t ExpireTic;						// Action expires at this time
-		int32_t Priority;						// Priority
-		fixed_t x, y;							// X/Y Target
-		uintptr_t Key;							// Key
-	} Targets[MAXBOTTARGETS];					// Bot target
+	B_ShoreNode_t** Work;						// Shore Nodes (Working)
+	uint32_t NumWork;							// Number of shore nodes (Working)
+	uint32_t WorkIt;							// Current shore iterator (Working)
+	
+	bool_t (*ConfirmDesireF)(struct B_GhostBot_s* a_Bot);
+	int32_t DesireType;							// Type being desired
+	mobj_t* DesireMo;							// Object being desired
+	
+	B_BotTarget_t Targets[MAXBOTTARGETS];		// Bot targets
 	
 	struct
 	{
@@ -197,6 +208,7 @@ B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
 B_BotTemplate_t* B_GHOST_RandomTemplate(void);
 
 void B_XDestroyBot(B_GhostBot_t* const a_BotData);
+void B_RemoveThinker(thinker_t* const a_Thinker);
 
 #endif /* __B_BOT_H__ */
 

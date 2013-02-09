@@ -527,6 +527,10 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		// Not POV player?
 		if (P_SpecGetPOV(s) != a_Picker->player)
 			continue;
+		
+		// Invisible split?
+		if (s > g_SplitScreen)
+			continue;
 	
 		// Get Profile
 		Prof = a_Picker->player->ProfileEx;

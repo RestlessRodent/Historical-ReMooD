@@ -51,13 +51,26 @@
 #if defined(__REMOOD_DOUBLEPOLY)
 	typedef double polyf_t;
 	
+	#define FIXEDTOPOLYF(x) ((polyf_t)(FIXED_TO_FLOAT(x)))
+	#define POLYFTOFIXED(x) ((fixed_t)(FLOAT_TO_FIXED(x)))
 #else
 	typedef fixed_t polyf_t;
+	
+	#define FIXEDTOPOLYF(x) (x)
+	#define POLYFTOFIXED(x) (x)
 #endif
+
+/* SN_Point_t -- Standard point */
+typedef struct SN_Point_s
+{
+	polyf_t v[2];
+} SN_Point_t;
 
 /* SN_Poly_t -- Polygon */
 typedef struct SN_Poly_s
 {
+	SN_Point_t** Pts;
+	uint32_t NumPts;
 } SN_Poly_t;
 
 /**************
@@ -72,11 +85,27 @@ typedef struct SN_Poly_s
 *** FUNCTIONS ***
 ****************/
 
+/* SN_PolyAddPoint() -- Adds point to polygon */
+SN_Poly_t* SN_PolyAddPoint(SN_Poly_t* const a_Poly, const polyf_t a_X, const polyf_t a_Y)
+{
+}
+
 /* SN_PolygonizeLevel() -- Polygonizes the level */
 void SN_PolygonizeLevel(void)
 {
+	SN_Poly_t* RootPoly;
 	
-	g_GlobalBoundBox
+	/* Create box around entire level */
+	RootPoly = SN_PolyAddPoint(NULL,
+				g_GlobalBoundBox[BOXLEFT], g_GlobalBoundBox[BOXTOP]);
+	RootPoly = SN_PolyAddPoint(RootPoly,
+				g_GlobalBoundBox[BOXRIGHT], g_GlobalBoundBox[BOXTOP]);
+	RootPoly = SN_PolyAddPoint(RootPoly,
+				g_GlobalBoundBox[BOXRIGHT], g_GlobalBoundBox[BOXBOTTOM]);
+	RootPoly = SN_PolyAddPoint(RootPoly,
+				g_GlobalBoundBox[BOXLEFT], g_GlobalBoundBox[BOXBOTTOM]);
+	
+	//g_GlobalBoundBox
 }
 
 

@@ -1449,6 +1449,9 @@ void P_RemoveMobj(mobj_t* mobj)
 	
 	if (!mobj)
 		return;
+		
+	/* Remove object from bots */
+	B_RemoveThinker(mobj);
 	
 	// GhostlyDeath <May 8, 2012> -- Remove from queue
 	P_RemoveFromBodyQueue(mobj);
