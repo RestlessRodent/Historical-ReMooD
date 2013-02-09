@@ -189,6 +189,33 @@ void SN_DumpPoly(SN_Poly_t* const a_Poly, const char a_Code, const int32_t a_Num
 #undef BUFSIZE
 }
 
+/* SN_PolyCenter() -- Finds center of polygon */
+// Uses 64-bit due to number limitations
+SN_Point_t SN_PolyCenter(SN_Poly_t* const a_Poly)
+{
+	SN_Point_t RetVal;
+	int64_t bX, bY;
+	int32_t i;
+	
+	/* Init */
+	memset(&RetVal, 0, sizeof(RetVal));
+	
+	/* Add all points */
+	bX = bY = 0;
+	for (i = 0; i < a_Poly->NumPts; i++)
+	{
+		bX += POLYFTOFIXED(a_Poly->Pts[i]->v[0]);
+		bY += POLYFTOFIXED(a_Poly->Pts[i]->v[1]);
+	}
+	
+	/* Center is the average of all the points */
+	RetVal.v[0] = FIXEDTOPOLYF(bX / (int64_t)a_Poly->NumPts);
+	RetVal.v[1] = FIXEDTOPOLYF(bY / (int64_t)a_Poly->NumPts);
+	
+	/* Return Center */
+	return RetVal;
+}
+
 /* SN_PolyAddPoint() -- Adds point to polygon */
 SN_Poly_t* SN_PolyAddPoint(SN_Poly_t* const a_Poly, const polyf_t a_X, const polyf_t a_Y)
 {
@@ -218,6 +245,47 @@ SN_Poly_t* SN_PolyAddPoint(SN_Poly_t* const a_Poly, const polyf_t a_X, const pol
 	return Poly;
 }
 
+/* SN_DiscardPoly() -- Discards a polygon */
+void SN_DiscardPoly(SN_Poly_t* const a_Poly)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Poly)
+		return;
+	
+	/* Destroy All Points */
+	if (a_Poly->Pts)
+	{
+		for (i = 0; i < a_Poly->NumPts; i++)
+			if (a_Poly->Pts[i])
+				Z_Free(a_Poly->Pts[i]);
+		
+		Z_Free(a_Poly->Pts);
+	}
+	
+	// Clear final poly holder
+	Z_Free(a_Poly);
+}
+
+/* SN_ClonePoly() -- Clones a polygon */
+SN_Poly_t* SN_ClonePoly(SN_Poly_t* const a_Poly)
+{
+	int32_t i;
+	SN_Poly_t* New;
+	
+	/* Check */
+	if (!a_Poly)
+		return NULL;
+	
+	/* Start clone */
+	for (New = NULL, i = 0; i < a_Poly->NumPts; i++)
+		New = SN_PolyAddPoint(New, a_Poly->Pts[i]->v[0], a_Poly->Pts[i]->v[1]);
+	
+	/* Return new polygon */
+	return New;
+}
+
 /* SN_GetIntercept() -- Gets the interception point of two lines */
 bool_t SN_GetIntercept(SN_Point_t* const a_Out, SN_Point_t* const a_Aa, SN_Point_t* const a_Ab, SN_Point_t* const a_Ba, SN_Point_t* const a_Bb)
 {
@@ -234,8 +302,6 @@ bool_t SN_GetIntercept(SN_Point_t* const a_Out, SN_Point_t* const a_Aa, SN_Point
 	/* If the first line is vertical */
 	else if (a_Ab->v[0] - a_Aa->v[0] == POLYFT_C(0))
 	{
-		CONL_PrintF("A is vert\n");
-		
 		// Get slope of B
 		mB = POLYFDIV(a_Bb->v[1] - a_Ba->v[1], a_Bb->v[0] - a_Ba->v[0]);
 		
@@ -253,8 +319,6 @@ bool_t SN_GetIntercept(SN_Point_t* const a_Out, SN_Point_t* const a_Aa, SN_Point
 	/* If the second line is vertical */
 	else if (a_Bb->v[0] - a_Ba->v[0] == POLYFT_C(0))
 	{
-		CONL_PrintF("B is vert\n");
-		
 		// Get slope of A
 		mA = POLYFDIV(a_Ab->v[1] - a_Aa->v[1], a_Ab->v[0] - a_Aa->v[0]);
 		
@@ -285,12 +349,22 @@ bool_t SN_GetIntercept(SN_Point_t* const a_Out, SN_Point_t* const a_Aa, SN_Point
 		bB = a_Ba->v[1] - POLYFMUL(mB, a_Ba->v[0]);
 		
 		// Calculate X of one line
+		// The slope of a line might be zero, so...
 			// ((y - b) / m) = x
-		a_Out->v[0] = POLYFDIV(a_Aa->v[1] - bA, mA);
-		
-		// Now calculate the Y
 			// y = mx + b
-		a_Out->v[1] = POLYFMUL(mB, a_Out->v[0]) + bB;
+		if (mA == POLYFT_C(0))
+		{
+			a_Out->v[0] = POLYFDIV(a_Ba->v[1] - bB, mB);
+			a_Out->v[1] = POLYFMUL(mA, a_Out->v[0]) + bA;
+		}
+		else
+		{
+			a_Out->v[0] = POLYFDIV(a_Aa->v[1] - bA, mA);
+			a_Out->v[1] = POLYFMUL(mB, a_Out->v[0]) + bB;
+		}
+		
+		if (isnan(a_Out->v[0]) || isnan(a_Out->v[1]))
+			I_Error("Nan!");
 		
 		// They intercept, at some point
 		return true;
@@ -343,8 +417,6 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 			(lA->v[1] > lB->v[1] &&
 					ICept.v[1] < lA->v[1] && ICept.v[1] > lB->v[1]))))
 			continue;
-		
-		CONL_PrintF("X/Y OK!\n");
 		
 		// Add to cross list
 		if (s < 2)
@@ -403,12 +475,95 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 	*a_SideB = SN_PolyAddPoint(*a_SideB, CPts[0].v[0], CPts[0].v[1]);
 }
 
+/* SN_PolySplitSubS() -- Split polygon by subsector */
+void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
+{
+	int32_t i, sA, sB;
+	SN_Poly_t* A, *B;
+	SN_Poly_t* Keeper;
+	SN_Point_t Str, End, cA, cB;
+	
+	/* Setup base polygon to keep */
+	Keeper = SN_ClonePoly(a_BasePoly);
+	
+	/* Split subsector by all the seg lines */
+	for (i = a_SubS->firstline; i < (a_SubS->firstline + a_SubS->numlines); i++)
+	{
+		// Init
+		A = B = NULL;
+		memset(&Str, 0, sizeof(Str));
+		memset(&End, 0, sizeof(End));
+		
+		// Get seg line to split with
+		Str.v[0] = FIXEDTOPOLYF(segs[i].v1->x);
+		Str.v[1] = FIXEDTOPOLYF(segs[i].v1->y);
+		End.v[0] = FIXEDTOPOLYF(segs[i].v2->x);
+		End.v[1] = FIXEDTOPOLYF(segs[i].v2->y);
+		
+		// Split
+		SN_PolySplit(Keeper, &A, &B, &Str, &End);
+		
+		// Bad split?
+		if (!A || !B)
+		{
+			if (A)
+				SN_DiscardPoly(A);
+			if (B)
+				SN_DiscardPoly(B);
+			continue;
+		}
+		
+		// Get center of both polygons
+		cA = SN_PolyCenter(A);
+		cB = SN_PolyCenter(B);
+		
+		// Get seg side of polygons
+		sA = R_PointOnSegSide(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), &segs[i]);
+		sB = R_PointOnSegSide(POLYFTOFIXED(cB.v[0]), POLYFTOFIXED(cB.v[1]), &segs[i]);
+		
+		// On same side?
+		if (sA == sB)
+		{
+			CONL_PrintF("On same side as seg!\n");
+			
+			if (A)
+				SN_DiscardPoly(A);
+			if (B)
+				SN_DiscardPoly(B);
+			continue;
+		}
+		
+		// Only take the one on the front side
+		else
+		{
+			// Lose the keeper polygon, not needed anymore
+			SN_DiscardPoly(Keeper);
+			
+			if (sA == 0)
+			{
+				Keeper = A;
+				SN_DiscardPoly(B);
+			}
+			
+			else
+			{
+				Keeper = B;
+				SN_DiscardPoly(A);
+			}
+		}
+	}
+	
+	/* Dump the polygon that was split, hopefully correctly */
+	if (devparm)
+		SN_DumpPoly(Keeper, 's', a_SubS - subsectors);
+}
+
 /* SN_PolySplitNode() -- Split Polygon By Node */
 void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 {
 	SN_Poly_t* A, *B, *C;
-	SN_Point_t Str, End;
-	int32_t i;
+	SN_Point_t Str, End, cA, cB;
+	int32_t i, sA, sB;
 	
 	/* Dump the polygon that needs splitting */
 	if (devparm)
@@ -446,18 +601,48 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 	// A will be children[0]
 	// B will be children[1]
 	
+	// Get center of both polygons
+	cA = SN_PolyCenter(A);
+	cB = SN_PolyCenter(B);
+	
+	// Get sides from the center
+	sA = R_PointOnSide(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), a_Node);
+	sB = R_PointOnSide(POLYFTOFIXED(cB.v[0]), POLYFTOFIXED(cB.v[1]), a_Node);
+	
+	// Points on same side?
+	if (sA == sB)
+	{
+		CONL_PrintF("Points on same side!?\n");
+		
+		// To prevent a fail case, discard both subpolies and use the base
+		SN_DiscardPoly(A);
+		SN_DiscardPoly(B);
+		
+		A = SN_ClonePoly(a_BasePoly);
+		B = SN_ClonePoly(a_BasePoly);
+	}
+	
+	// Need to swap polygon?
+	else if (sA == 1 || sB == 0)
+	{
+		C = A;
+		A = B;
+		B = C;
+	}
+	
 	/* Continue splitting */
 	for (i = 0; i < 2; i++)
 	{
 		// Is a subsector, split by segs
 		if (a_Node->children[i] & NF_SUBSECTOR)
-		{
-			SN_DumpPoly(A, 's', a_Node->children[i] & NF_SUBSECTOR);
-		}
+			SN_PolySplitSubS((!i ? A : B), &subsectors[(a_Node->children[i] & ~NF_SUBSECTOR)]);
 		
 		// Is another node, traverse
 		else
 			SN_PolySplitNode((!i ? A : B), &nodes[a_Node->children[i]]);
+		
+		// Discard polygon side
+		SN_DiscardPoly((!i ? A : B));
 	}
 }
 
@@ -489,6 +674,7 @@ void SN_PolygonizeLevel(void)
 	
 	/* Split entire level by the nodes */
 	SN_PolySplitNode(RootPoly, &nodes[numnodes - 1]);
+	SN_DiscardPoly(RootPoly);
 }
 
 
