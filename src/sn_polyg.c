@@ -283,6 +283,17 @@ bool_t SN_GetIntercept(SN_Point_t* const a_Out, SN_Point_t* const a_Aa, SN_Point
 		// Get Y Intercepts of A and B
 		bA = a_Aa->v[1] - POLYFMUL(mA, a_Aa->v[0]);
 		bB = a_Ba->v[1] - POLYFMUL(mB, a_Ba->v[0]);
+		
+		// Calculate X of one line
+			// ((y - b) / m) = x
+		a_Out->v[0] = POLYFDIV(a_Aa->v[1] - bA, mA);
+		
+		// Now calculate the Y
+			// y = mx + b
+		a_Out->v[1] = POLYFMUL(mB, a_Out->v[0]) + bB;
+		
+		// They intercept, at some point
+		return true;
 	}
 	
 	/* Presume they never met? */
