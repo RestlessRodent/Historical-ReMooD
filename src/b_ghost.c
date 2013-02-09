@@ -1764,8 +1764,10 @@ static bool_t BS_GHOST_JOB_ShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_
 	This = a_Bot->Shore[a_Bot->ShoreIt];
 	
 	/* If the current node is a head or tail... */
+#if 0
 	if (This->Type == BST_HEAD || This->Type == BST_TAIL)
 	{
+#endif
 		// Set position to this target
 		ShoreTarg->x = This->Pos[0];
 		ShoreTarg->y = This->Pos[1];
@@ -1775,6 +1777,7 @@ static bool_t BS_GHOST_JOB_ShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_
 		
 		if (Dist < FIXEDT_C(24))
 			a_Bot->ShoreIt++;
+#if 0
 	}
 	
 	/* Otherwise, it is a standard node */
@@ -1788,8 +1791,7 @@ static bool_t BS_GHOST_JOB_ShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_
 		if (a_Bot->AtNode == This->BotNode)
 			a_Bot->ShoreIt++;
 	}
-	
-	//P_SpawnMobj(ShoreTarg->x, ShoreTarg->y, ONFLOORZ, INFO_GetTypeByName("ItemFog"));
+#endif
 	
 	/* Continue */
 	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
@@ -1838,6 +1840,17 @@ static bool_t BS_GHOST_CDF_Armor(struct B_GhostBot_s* a_Bot)
 {
 	/* Enough points */
 	if (a_Bot->Player->armorpoints >= a_Bot->Player->MaxArmor[0])
+		return false;
+	
+	/* Otherwise, still want */
+	return true;
+}
+
+/* BS_GHOST_CDF_Health() -- Still wants Health */
+static bool_t BS_GHOST_CDF_Health(struct B_GhostBot_s* a_Bot)
+{
+	/* Enough points */
+	if (a_Bot->Player->health >= a_Bot->Player->MaxHealth[0])
 		return false;
 	
 	/* Otherwise, still want */
@@ -1907,19 +1920,24 @@ static bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t 
 	}
 	
 	// Need Health?
+	if (Player->health < (Player->MaxHealth[0] >> 1))
+		if (DesIt < MAXDESIRE)
+		{
+			Desires[DesIt].IsHealth = true;
+			Desires[DesIt].SpecID = (Player->MaxHealth[0] >> 1);
+			DesIt++;
+		}
 	
 	// Need Ammo?
 	
 	// Need Armor?
 	if (Player->armorpoints < (Player->MaxArmor[0] >> 1))
-	{
 		if (DesIt < MAXDESIRE)
 		{
 			Desires[DesIt].IsArmor = true;
 			Desires[DesIt].SpecID = (Player->MaxArmor[0] >> 1);
 			DesIt++;
 		}
-	}
 	
 	/* Nothing is desired? */
 	if (!DesIt)
@@ -1940,6 +1958,10 @@ static bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t 
 		
 		// Not pickupable?
 		if (!(Rover->flags & MF_SPECIAL))
+			continue;
+		
+		// Cannot fit where this object is
+		if (Rover->subsector->sector->ceilingheight - Rover->subsector->sector->floorheight < a_Bot->Mo->height)
 			continue;
 		
 		// Go through touch specials for this thing
@@ -1975,6 +1997,14 @@ static bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t 
 				{
 					OK = true;
 					Desires[i].SpecID = TSpec->ArmorAmount;
+				}
+			
+			// Matching Health
+			if (Desires[i].IsHealth)
+				if (TSpec->HealthAmount > 0)
+				{
+					OK = true;
+					Desires[i].SpecID = TSpec->HealthAmount;
 				}
 			
 			// Object is fine?
@@ -2034,6 +2064,13 @@ static bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t 
 		{
 			a_Bot->DesireType = Want->SpecID;
 			a_Bot->ConfirmDesireF = BS_GHOST_CDF_Armor;
+		}
+		
+		// Health
+		else if (Want->IsHealth)
+		{
+			a_Bot->DesireType = Want->SpecID;
+			a_Bot->ConfirmDesireF = BS_GHOST_CDF_Health;
 		}
 		
 		// Move to destination
@@ -2805,7 +2842,7 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 			{
 				a_BotData->IsDead = true;
 				a_BotData->DeathTime = gametic;
-				a_BotData->RespawnDelay = ((((tic_t)BS_Random(a_BotData)) % 10) + 1) * TICRATE;
+				a_BotData->RespawnDelay = ((((tic_t)BS_Random(a_BotData)) % 5) + 1) * TICRATE;
 				
 				// Clear things
 				BS_GHOST_ClearShore(a_BotData, false);
