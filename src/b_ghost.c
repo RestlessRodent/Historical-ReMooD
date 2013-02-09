@@ -855,6 +855,107 @@ static bool_t BS_CheckNodeToNode(B_GhostBot_t* const a_Bot, B_GhostNode_t* const
 	}
 }
 
+/* BS_GHOST_BuildLinks() -- Builds links for the specified subsector */
+void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
+{
+	int32_t s, dX, dY, aR;
+	B_GhostNode_t* ThisNode, *OtherNode;
+	subsector_t* SubS, *OtherSS;
+	fixed_t Dist;
+	
+	struct
+	{
+		B_GhostNode_t* Node;
+		fixed_t Dist;
+	} Best[9];
+	
+	/* Debug */
+	if (g_BotDebug)
+		CONL_PrintF("Building links for subs %i (total runs %i)\n", a_SubSNum, numsubsectors * numsubsectors);
+	
+	/* Get info for this subsector */
+	// Refernece
+	SubS = &subsectors[a_SubSNum];
+	
+	// Invalid polygon?
+	if (!SubS->PolyValid)
+		return;
+	
+	// Obtain the remaining info
+	ThisNode = B_GHOST_NodeNearPos(SubS->CenterX, SubS->CenterY, ONFLOORZ, true);
+	
+	// No node?
+	if (!ThisNode)
+		return;
+	
+	/* Initialize */
+	memset(Best, 0, sizeof(Best));
+	
+	/* Go through other subsectors */
+	for (s = 0; s < numsubsectors; s++)
+	{
+		OtherSS = &subsectors[s];
+		
+		// Ignore the same subsector
+		if (s == a_SubSNum)
+			continue;
+		
+		// Ignore invalid polygons
+		if (!OtherSS->PolyValid)
+			continue;
+		
+		// Get node for that subsector
+		OtherNode = B_GHOST_NodeNearPos(OtherSS->CenterX, OtherSS->CenterY, ONFLOORZ, true);
+		
+		// No Node?
+		if (!OtherNode)
+			continue;
+		
+		// See if traversal is possible
+		if (!BS_CheckNodeToNode(NULL, ThisNode, OtherNode, true))
+			continue;
+		
+		// It is, so obtain the logical direction to that node
+		dX = dY = 0;
+		BS_LinkDirection(&dX, &dY, ThisNode->x, ThisNode->y, OtherNode->x, OtherNode->y);
+		
+		// Ignore (0,0)
+		if (dX == 0 && dY == 0)
+			continue;
+		
+		// Make it array referenceable
+		dX += 1;
+		dY += 1;
+		aR = (dY * 3) + dX;
+		
+		// Get distance to target
+		Dist = P_AproxDistance(ThisNode->x - OtherNode->x, ThisNode->y - OtherNode->y);
+		
+		// Better connection?
+		if (!Best[aR].Node || (Best[aR].Node && Dist < Best[aR].Dist))
+		{
+			Best[aR].Node = OtherNode;
+			Best[aR].Dist = Dist;
+		}
+	}
+	
+	/* Hopefully obtained all the best links */
+	for (s = 0; s < 9; s++)
+	{
+		// Ignore if no node set
+		if (!Best[s].Node)
+			continue;
+		
+		// Convert from array base back to double ref
+		dX = s % 3;
+		dY = s / 3;
+		
+		// Set link to that node
+		ThisNode->Links[dX][dY].Node = Best[s].Node;
+		ThisNode->Links[dX][dY].Dist = Best[s].Dist;
+	}
+}
+
 /* B_GHOST_Ticker() -- Bot Ticker */
 void B_GHOST_Ticker(void)
 {
@@ -878,6 +979,10 @@ void B_GHOST_Ticker(void)
 		
 	/* Do not build bot data if not the server */
 	if (!D_XNetIsServer())
+		return;
+		
+	/* If everything is done, don't bother */
+	if (l_SSAllDone)
 		return;
 	
 	/* Adjanceny chains not yet complete? */
@@ -972,7 +1077,7 @@ void B_GHOST_Ticker(void)
 	/* Build SubSector Mesh Map */
 	if (!l_SSMCreated)
 	{
-#if 0
+#if 1
 		// Polygonize the level
 		SN_PolygonizeLevel();
 		
@@ -997,6 +1102,22 @@ void B_GHOST_Ticker(void)
 	}
 	
 	/* Build node links */
+	if (l_SSBuildChain < numsubsectors)
+	{
+		// Build links for 5 subsectors at a time
+		zz = l_SSBuildChain + 5;
+		
+		if (zz >= numsubsectors)
+			zz = numsubsectors;
+		
+		for (; l_SSBuildChain < zz; l_SSBuildChain++)
+			BS_GHOST_BuildLinks(l_SSBuildChain);
+		
+		// Continue next time
+		return;
+	}
+	
+#if 0
 	if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
 	{
 		// Debug
@@ -1105,6 +1226,7 @@ void B_GHOST_Ticker(void)
 		// For next time
 		return;
 	}
+#endif
 	
 	// All done!
 	l_SSAllDone = true;
@@ -1209,10 +1331,6 @@ void B_InitNodes(void)
 			if (g_XPlays[i])
 				if ((g_XPlays[i]->Flags & (DXPF_LOCAL | DXPF_BOT)) == (DXPF_LOCAL | DXPF_BOT))
 					g_GotBots = true;
-	
-	/* Build nodes? */
-	if (g_GotBots)
-		SN_PolygonizeLevel();
 }
 
 /*****************************************************************************/

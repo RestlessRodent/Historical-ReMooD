@@ -403,8 +403,6 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 		// No intercept detected
 		if (!OK)
 			continue;
-			
-		CONL_PrintF("Cross Detected (%f, %f)...\n", ICept.v[0], ICept.v[1]);
 		
 		// See if the interception point exceeds the line bounds
 			// Only one of these should meet
@@ -428,18 +426,12 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 		
 		// Bug?
 		else
-		{
 			s++;
-			CONL_PrintF("Concave polygon detected!\n");
-		}
 	}
 	
 	/* Not enough crosses? */
 	if (s < 2)
-	{
-		CONL_PrintF("Only %i crosses.\n", s);
 		return;
-	}
 	
 	/* Rebuild the first polygon */
 	// Add all points before the first interception, including the start point
@@ -474,6 +466,9 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 		// Second point
 	*a_SideB = SN_PolyAddPoint(*a_SideB, CPts[0].v[0], CPts[0].v[1]);
 }
+
+typedef struct B_GhostNode_s* B_GhostNode_t;
+B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y);
 
 /* SN_PolySplitSubS() -- Split polygon by subsector */
 void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
@@ -522,10 +517,9 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 		sB = R_PointOnSegSide(POLYFTOFIXED(cB.v[0]), POLYFTOFIXED(cB.v[1]), &segs[i]);
 		
 		// On same side?
+			// TODO FIXME
 		if (sA == sB)
 		{
-			CONL_PrintF("On same side as seg!\n");
-			
 			if (A)
 				SN_DiscardPoly(A);
 			if (B)
@@ -554,8 +548,20 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 	}
 	
 	/* Dump the polygon that was split, hopefully correctly */
-	if (devparm)
+	if (g_SnowBug)
 		SN_DumpPoly(Keeper, 's', a_SubS - subsectors);
+	
+	/* Do bot stuff */
+	// Get Center
+	cA = SN_PolyCenter(Keeper);
+	
+	// Set subsector center
+	a_SubS->PolyValid = true;
+	a_SubS->CenterX = POLYFTOFIXED(cA.v[0]);
+	a_SubS->CenterY = POLYFTOFIXED(cA.v[1]);
+	
+	// Add node there
+	B_GHOST_CreateNodeAtPos(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]));
 }
 
 /* SN_PolySplitNode() -- Split Polygon By Node */
@@ -566,7 +572,7 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 	int32_t i, sA, sB;
 	
 	/* Dump the polygon that needs splitting */
-	if (devparm)
+	if (g_SnowBug)
 		SN_DumpPoly(a_BasePoly, 'n', a_Node - nodes);
 	
 	/* Init */
@@ -585,13 +591,10 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 	
 	// Failed to split?
 	if (!A || !B)
-	{
-		CONL_PrintF("Unable to split polygon\n");
 		return;
-	}
 	
 	/* Debug */
-	if (devparm)
+	if (g_SnowBug)
 	{
 		SN_DumpPoly(A, 'a', a_Node - nodes);
 		SN_DumpPoly(B, 'b', a_Node - nodes);
@@ -610,10 +613,9 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 	sB = R_PointOnSide(POLYFTOFIXED(cB.v[0]), POLYFTOFIXED(cB.v[1]), a_Node);
 	
 	// Points on same side?
+		// TODO FIXME
 	if (sA == sB)
 	{
-		CONL_PrintF("Points on same side!?\n");
-		
 		// To prevent a fail case, discard both subpolies and use the base
 		SN_DiscardPoly(A);
 		SN_DiscardPoly(B);
@@ -669,7 +671,7 @@ void SN_PolygonizeLevel(void)
 				FIXEDTOPOLYF(g_GlobalBoundBox[BOXLEFT]), FIXEDTOPOLYF(g_GlobalBoundBox[BOXBOTTOM]));
 	
 	// Debug
-	if (devparm)
+	if (g_SnowBug)
 		SN_DumpLevel();
 	
 	/* Split entire level by the nodes */

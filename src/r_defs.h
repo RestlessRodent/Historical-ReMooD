@@ -446,6 +446,10 @@ typedef struct subsector_s
 	
 	void** GhostNodes;
 	size_t NumGhostNodes;
+	
+	// GhostlyDeath <Feburary 9, 2013> -- Bots
+	bool_t PolyValid;							// Polygon is valid
+	fixed_t CenterX, CenterY;
 } subsector_t;
 
 // SoM: 3/6/200
