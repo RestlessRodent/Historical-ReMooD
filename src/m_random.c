@@ -135,7 +135,12 @@ uint8_t M_Random(void)
 	if (g_RandomData)
 	{
 		// Get
-		RetVal = g_RandomData[++rndindex];
+		RetVal = g_RandomData[rndindex];
+		
+		// Move random index at random
+		rndindex += 1;
+		rndindex += I_GetTimeMS() & 3;
+		rndindex += (I_GetCurrentPID() & 1);
 	
 		// Limit
 		if (rndindex >= g_RandomDataSize)

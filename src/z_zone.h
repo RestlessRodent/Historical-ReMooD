@@ -74,6 +74,7 @@ typedef enum Z_MemoryTag_e
 	
 	PU_MENUDAT,					// Menu Data
 	PU_SIMPLEMENU,								// Simple Menus
+	PU_POLYGON,									// Polygons
 	
 	/* Cache */
 	PU_PURGELEVEL = 100,		// Freed when needed
