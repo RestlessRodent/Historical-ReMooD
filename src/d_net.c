@@ -57,6 +57,7 @@
 #include "p_local.h"
 #include "p_spec.h"
 #include "ip.h"
+#include "p_saveg.h"
 
 /*************
 *** LOCALS ***
@@ -1411,6 +1412,7 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 	ticcmd_t* Placement;
 	void* Wp;
 	int32_t i;
+	uint32_t Flags;
 	
 	/* Already playing? */
 	if (a_Player->Player)
@@ -1426,6 +1428,12 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 	/* If we are the server and this is ourself, join ourself */
 	if (D_XNetIsServer())
 	{
+		// Check Flags
+		Flags = 0;
+		
+		if (a_Player->CounterOp)
+			Flags |= DTCJF_MONSTERTEAM;
+		
 		// If non-local, check settings first
 		if (!(a_Player->Flags & DXPF_LOCAL))
 		{
@@ -1447,7 +1455,7 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ID);
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ClProcessID);
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
-				LittleWriteUInt32((uint32_t**)&Wp, DTCJF_ISBOT);
+				LittleWriteUInt32((uint32_t**)&Wp, DTCJF_ISBOT | Flags);
 				WriteUInt8((uint8_t**)&Wp, BotTemplate->SkinColor);
 				WriteUInt8((uint8_t**)&Wp, 0);
 				LittleWriteUInt32((uint32_t**)&Wp, 0);
@@ -1469,7 +1477,7 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ID);
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ClProcessID);
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
-				LittleWriteUInt32((uint32_t**)&Wp, 0);
+				LittleWriteUInt32((uint32_t**)&Wp, Flags);
 				WriteUInt8((uint8_t**)&Wp, Profile->Color);
 				WriteUInt8((uint8_t**)&Wp, 0);
 				LittleWriteUInt32((uint32_t**)&Wp, 0);
@@ -1976,24 +1984,31 @@ void D_XNetForceLag(void)
 	l_ForceLag = true;
 }
 
+/* DS_PBABOpt_t -- Options for bot addition */
+typedef struct DS_PBABOpt_s
+{
+	B_BotTemplate_t* BotTemp;
+	bool_t CounterOp;
+} DS_PBABOpt_t;
+
 /* DS_PBAddBot() -- Adds a bot */
 static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 {
-	B_BotTemplate_t* BotTemp;
+	DS_PBABOpt_t* Opts = a_Data;
 	
 	/* Set Initial Data */
 	// Flags
 	a_Player->Flags |= DXPF_BOT | DXPF_NOLOGIN | DXPF_LOCAL;
 	
 	/* Init Bot */
-	BotTemp = a_Data;
-	a_Player->BotData = B_InitBot(BotTemp);
+	a_Player->BotData = B_InitBot(Opts->BotTemp);
+	a_Player->CounterOp = Opts->CounterOp;
 	
 	// If template exists
-	if (BotTemp)
+	if (Opts->BotTemp)
 	{
-		strncpy(a_Player->AccountName, BotTemp->AccountName, MAXPLAYERNAME);
-		strncpy(a_Player->DisplayName, BotTemp->DisplayName, MAXPLAYERNAME);
+		strncpy(a_Player->AccountName, Opts->BotTemp->AccountName, MAXPLAYERNAME);
+		strncpy(a_Player->DisplayName, Opts->BotTemp->DisplayName, MAXPLAYERNAME);
 	}
 	
 	// Missing Stuff?
@@ -2018,12 +2033,12 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
-	B_BotTemplate_t* BotTemp;
 	D_XPlayer_t* XPlay;
 	int32_t i;
 	bool_t Flag;
 	struct IP_Conn_s* Conn;
 	I_HostAddress_t Addr;
+	DS_PBABOpt_t BotOpt;
 	
 	/* Not enough args? */
 	if (a_ArgC < 2)
@@ -2104,17 +2119,27 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (!D_XNetIsServer())
 			return 1;
 		
+		// Clear
+		memset(&BotOpt, 0, sizeof(BotOpt));
+		
 		// Use Bot Template?
-		BotTemp = NULL;
 		if (a_ArgC >= 3)
-			BotTemp = B_GHOST_FindTemplate(a_ArgV[2]);
+			BotOpt.BotTemp = B_GHOST_FindTemplate(a_ArgV[2]);
 		
 		// Random?
-		if (!BotTemp)
-			BotTemp = B_GHOST_RandomTemplate();
+		if (!BotOpt.BotTemp)
+			BotOpt.BotTemp = B_GHOST_RandomTemplate();
+		
+		// Extra arguments?
+		for (i = 3; i < a_ArgC; i++)
+		{
+			// Counter-Op Player?
+			if (!strcasecmp(a_ArgV[i], "counter"))
+				BotOpt.CounterOp = true;
+		}
 		
 		// Add Player
-		D_XNetAddPlayer(DS_PBAddBot, BotTemp, false);
+		D_XNetAddPlayer(DS_PBAddBot, &BotOpt, false);
 		
 		// Success?
 		return 0;

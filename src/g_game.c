@@ -459,6 +459,13 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 					{
 						XPlayer->InGameID = -1;
 						XPlayer->Player = NULL;
+						
+						if (XPlayer->Flags & DXPF_LOCAL)
+							if (XPlayer->ScreenID >= 0)
+							{
+								g_Splits[XPlayer->ScreenID].Console = -1;
+								g_Splits[XPlayer->ScreenID].Display = -1;
+							}
 					}
 					
 					// Verify Coop Spy

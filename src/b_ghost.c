@@ -1110,10 +1110,20 @@ void B_GHOST_Ticker(void)
 	l_SSAllDone = true;
 }
 
+static void BS_GHOST_ClearShore(struct B_GhostBot_s* a_Bot, const bool_t a_Work);
+
 /* B_ClearNodes() -- Clears level */
 void B_ClearNodes(void)
 {
 	size_t i, j;
+	
+	/* Free all bot shore nodes */
+	for (i = 0; i < l_NumLocalBots; i++)
+		if (l_LocalBots[i])
+		{
+			BS_GHOST_ClearShore(l_LocalBots[i], false);
+			BS_GHOST_ClearShore(l_LocalBots[i], true);
+		}
 	
 	/* Wipe adjacent sector data */
 	if (l_BAdj && l_BNumAdj)
@@ -1403,7 +1413,7 @@ static bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_F
 	// Traversal loop
 	while (RoverNode != DestNode && Fails < MAXFAILS)
 	{
-		CONL_PrintF("@%p, F=%i\n", RoverNode, Fails);
+		//CONL_PrintF("@%p, F=%i\n", RoverNode, Fails);
 		
 		// Get direction from current node position to destination
 		DirX = DirY = 0;
@@ -1466,7 +1476,7 @@ static bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_F
 		// If the best path has been determined
 		if (b != -1)
 		{
-			CONL_PrintF(">%p [%i/%i]\n", DirChoice[b].Node, b, x);
+			//CONL_PrintF(">%p [%i/%i]\n", DirChoice[b].Node, b, x);
 			
 			// Drop a shore node here
 			RoverNode = DirChoice[b].Node;
@@ -1495,7 +1505,7 @@ static bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_F
 				RoverNode = SNode->BotNode;
 			}
 			
-			CONL_PrintF("<%p [%i/%i]\n", RoverNode, b, x);
+			//CONL_PrintF("<%p [%i/%i]\n", RoverNode, b, x);
 		}
 	}
 	
@@ -1661,7 +1671,7 @@ static bool_t BS_GHOST_JOB_ShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_
 			a_Bot->ShoreIt++;
 	}
 	
-	P_SpawnMobj(ShoreTarg->x, ShoreTarg->y, ONFLOORZ, INFO_GetTypeByName("ItemFog"));
+	//P_SpawnMobj(ShoreTarg->x, ShoreTarg->y, ONFLOORZ, INFO_GetTypeByName("ItemFog"));
 	
 	/* Continue */
 	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
@@ -1732,7 +1742,8 @@ static bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t 
 	B_Desire_t* Want;
 	
 	/* If a path already exists, take that instead */
-	if (a_Bot->NumShore)
+	// or if the bot is not a player.
+	if (a_Bot->NumShore || !a_Bot->IsPlayer)
 	{
 		a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 2);
 		return true;
@@ -2085,7 +2096,7 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 			{
 				slope = P_AimLineAttack(a_GhostBot->Mo, a_GhostBot->Mo->angle, MISSILERANGE, NULL);
 			
-				if (linetarget && P_MobjOnSameTeam(a_GhostBot->Mo, linetarget))
+				if (linetarget && linetarget != a_GhostBot->Mo && P_MobjOnSameTeam(a_GhostBot->Mo, linetarget))
 					continue;
 			}
 			
@@ -2498,7 +2509,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// Aim at target
 		else if (MoveTarg == -1 && AttackTarg != -1)
 		{
-			if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
+			//if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
 				a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 			a_GhostBot->TicCmdPtr->Std.angleturn =
 				BS_PointsToAngleTurn(

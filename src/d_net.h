@@ -180,29 +180,24 @@ typedef struct D_XPlayer_s
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
 	
-	// Game/Profile Stuff
+	// Game Stuff
 	tic_t LastJoinAttempt;						// Last join attempt
 	tic_t CoopSpyTime;							// Time to wait to respy
 	tic_t TurnHeld;								// Time turning is held
 	int32_t Scores;								// Scoreboard showing
 	ticcmd_t BackupTicCmd;						// Backup Tic Command
 	bool_t Turned180;							// Did 180 degre turn
-	
-	// Connection Socket
 	IP_Conn_t* IPConn;							// Connection Of Player
 	IP_Addr_t* IPAddr;							// Address of Player
 	bool_t TransSave;							// Save game transmitted and loaded
-	
-	// Start of Lag
 	tic_t LagStart;								// Start of lag
 	tic_t LagKill;								// Kill at this lag time
 	tic_t LagThreshold;							// Threshold of lag
 	tic_t LagThreshExpire;						// Time when threshold expires
-	
-	// Prevent Multiple Joins
 	bool_t TriedToJoin;							// Tried to join already
 	bool_t DidConnectTrans;						// Did connect transport
-	bool_t SaveSent;
+	bool_t SaveSent;							// Was Sent savegame
+	bool_t CounterOp;							// On Counterop Team
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
