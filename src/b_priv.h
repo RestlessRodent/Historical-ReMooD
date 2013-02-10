@@ -123,7 +123,7 @@ typedef struct B_BotGOA_s
 {
 } B_BotGOA_t;
 
-/* B_GhostBot_t -- GhostlyBots information */
+/* B_Bot_t -- GhostlyBots information */
 struct B_GhostBot_s
 {
 	uint8_t Junk;								// Junk Data
@@ -164,7 +164,7 @@ struct B_GhostBot_s
 	struct
 	{
 		bool_t JobHere;							// A Job is here
-		bool_t (*JobFunc)(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
+		bool_t (*JobFunc)(struct B_GhostBot_s* a_Bot, const size_t a_JobID);
 		int32_t Priority;						// Job Priority
 		uint32_t Sleep;							// Job Sleeping (wait until tic happens)
 	} Jobs[MAXBOTJOBS];							// Bot's Jobs
@@ -253,7 +253,7 @@ extern size_t l_NumBotTemplates;				// Number of them
 
 extern B_GhostNode_t* l_HeadNode;				// Head Node
 
-extern B_GhostBot_t** l_LocalBots;				// Bots in game
+extern B_Bot_t** l_LocalBots;				// Bots in game
 extern size_t l_NumLocalBots;					// Number of them
 
 /****************
@@ -261,7 +261,7 @@ extern size_t l_NumLocalBots;					// Number of them
 ****************/
 
 /*** B_GHOST.C ***/
-int B_Random(B_GhostBot_t* const a_Bot);
+int B_Random(B_Bot_t* const a_Bot);
 
 /*** B_NODE.C ***/
 uint16_t B_NodePtoAT(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2);
@@ -269,20 +269,20 @@ void B_NodeLAD(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t a_Ang
 void B_NodeLD(int32_t* const a_OutX, int32_t* const a_OutY, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const fixed_t a_Y2);
 bool_t B_NodeNLD(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2);
 void B_NodeMoveAim(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side);
-bool_t B_NodeNtoN(B_GhostBot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime);
+bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime);
 
-void B_ShoreClear(struct B_GhostBot_s* a_Bot, const bool_t a_Work);
-B_ShoreNode_t* B_ShorePop(struct B_GhostBot_s* a_Bot, const bool_t a_Work);
-B_ShoreNode_t* B_ShoreAdd(struct B_GhostBot_s* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
-void B_ShoreApprove(struct B_GhostBot_s* a_Bot);
-bool_t B_ShorePath(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY);
+void B_ShoreClear(B_Bot_t* a_Bot, const bool_t a_Work);
+B_ShoreNode_t* B_ShorePop(B_Bot_t* a_Bot, const bool_t a_Work);
+B_ShoreNode_t* B_ShoreAdd(B_Bot_t* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
+void B_ShoreApprove(B_Bot_t* a_Bot);
+bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY);
 
 /*** B_WORK.C ***/
-bool_t B_WorkShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_JobID);
-bool_t B_WorkFindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID);
-bool_t B_WorkRandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
-bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
-bool_t B_WorkGunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
+bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID);
+bool_t B_WorkFindGoodies(B_Bot_t* a_Bot, const size_t a_JobID);
+bool_t B_WorkRandomNav(B_Bot_t* a_Bot, const size_t a_JobID);
+bool_t B_WorkShootStuff(B_Bot_t* a_Bot, const size_t a_JobID);
+bool_t B_WorkGunControl(B_Bot_t* a_Bot, const size_t a_JobID);
 
 
 #endif /* __B_PRIV_H__ */

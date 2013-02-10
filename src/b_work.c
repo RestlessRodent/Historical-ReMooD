@@ -40,7 +40,7 @@
 ****************/
 
 /* B_WorkShoreMove() -- Utilize shore movement */
-bool_t B_WorkShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
+bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 	B_BotTarget_t* FFree, *ShoreTarg;
 	B_ShoreNode_t* This;
@@ -165,7 +165,7 @@ typedef struct B_Desire_s
 } B_Desire_t;
 
 /* BS_GHOST_CDF_Weapon() -- Confirm that we want the weapon still */
-static bool_t BS_GHOST_CDF_Weapon(struct B_GhostBot_s* a_Bot)
+static bool_t BS_GHOST_CDF_Weapon(B_Bot_t* a_Bot)
 {
 	/* Illegal type? */
 	if (a_Bot->DesireType < 0 || a_Bot->DesireType >= NUMWEAPONS)
@@ -186,7 +186,7 @@ static bool_t BS_GHOST_CDF_Weapon(struct B_GhostBot_s* a_Bot)
 }
 
 /* BS_GHOST_CDF_Armor() -- Still wants armor */
-static bool_t BS_GHOST_CDF_Armor(struct B_GhostBot_s* a_Bot)
+static bool_t BS_GHOST_CDF_Armor(B_Bot_t* a_Bot)
 {
 	/* Enough points */
 	if (a_Bot->Player->armorpoints >= a_Bot->Player->MaxArmor[0])
@@ -197,7 +197,7 @@ static bool_t BS_GHOST_CDF_Armor(struct B_GhostBot_s* a_Bot)
 }
 
 /* BS_GHOST_CDF_Health() -- Still wants Health */
-static bool_t BS_GHOST_CDF_Health(struct B_GhostBot_s* a_Bot)
+static bool_t BS_GHOST_CDF_Health(B_Bot_t* a_Bot)
 {
 	/* Enough points */
 	if (a_Bot->Player->health >= a_Bot->Player->MaxHealth[0])
@@ -208,7 +208,7 @@ static bool_t BS_GHOST_CDF_Health(struct B_GhostBot_s* a_Bot)
 }
 
 /* B_WorkFindGoodies() -- Finds Goodies */
-bool_t B_WorkFindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
+bool_t B_WorkFindGoodies(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 #define MAXDESIRE 16
 	player_t* Player;
@@ -437,32 +437,32 @@ bool_t B_WorkFindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
 /*****************************************************************************/
 
 /* B_WorkRandomNav() -- Random navigation */
-bool_t B_WorkRandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+bool_t B_WorkRandomNav(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 	B_GhostNode_t* ThisNode;
 	B_GhostNode_t* TargetNode;
 	int32_t lox, loy, i;
 	
 	/* Check */
-	if (!a_GhostBot)
+	if (!a_Bot)
 		return false;
 	
 	/* Find node in random direction, and move to it */
-	while (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
+	while (!a_Bot->RoamX && !a_Bot->RoamY)
 	{
-		a_GhostBot->RoamX = B_Random(a_GhostBot) % 3;
-		a_GhostBot->RoamY = B_Random(a_GhostBot) % 3;
-		a_GhostBot->RoamX -= 1;
-		a_GhostBot->RoamY -= 1;
+		a_Bot->RoamX = B_Random(a_Bot) % 3;
+		a_Bot->RoamY = B_Random(a_Bot) % 3;
+		a_Bot->RoamX -= 1;
+		a_Bot->RoamY -= 1;
 	}
 	
 	/* Get link operation */
-	lox = a_GhostBot->RoamX + 1;
-	loy = a_GhostBot->RoamY + 1;
+	lox = a_Bot->RoamX + 1;
+	loy = a_Bot->RoamY + 1;
 	
 	/* See if there is a target there */
 	// Get current node
-	ThisNode = (B_GhostNode_t*)a_GhostBot->AtNode;
+	ThisNode = (B_GhostNode_t*)a_Bot->AtNode;
 	
 	// No current node?
 	if (!ThisNode)
@@ -473,28 +473,28 @@ bool_t B_WorkRandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	
 	// Try traversing to that node there
 	if (TargetNode)
-		if (!B_NodeNtoN(a_GhostBot, ThisNode, TargetNode, false))
+		if (!B_NodeNtoN(a_Bot, ThisNode, TargetNode, false))
 			TargetNode = NULL;
 	
 	// No node there? Or we are at that node
-	if (!TargetNode || TargetNode == a_GhostBot->AtNode)
+	if (!TargetNode || TargetNode == a_Bot->AtNode)
 	{
 		// Increase X pos
-		a_GhostBot->RoamX++;
+		a_Bot->RoamX++;
 		
 		// Increase Y pos
-		if (a_GhostBot->RoamX > 1)
+		if (a_Bot->RoamX > 1)
 		{
-			a_GhostBot->RoamX = -1;
-			a_GhostBot->RoamY++;
+			a_Bot->RoamX = -1;
+			a_Bot->RoamY++;
 			
-			if (a_GhostBot->RoamY > 1)
-				a_GhostBot->RoamY = -1;
+			if (a_Bot->RoamY > 1)
+				a_Bot->RoamY = -1;
 		}
 		
 		// Hit zero zero?
-		if (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
-			a_GhostBot->RoamX++;
+		if (!a_Bot->RoamX && !a_Bot->RoamY)
+			a_Bot->RoamX++;
 		
 		// Keep this job
 		return true;
@@ -502,19 +502,19 @@ bool_t B_WorkRandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	
 	/* Set Destination There */
 	for (i = 0; i < MAXBOTTARGETS; i++)
-		if (!a_GhostBot->Targets[i].IsSet)
+		if (!a_Bot->Targets[i].IsSet)
 		{
-			a_GhostBot->Targets[i].IsSet = true;
-			a_GhostBot->Targets[i].MoveTarget = true;
-			a_GhostBot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
-			a_GhostBot->Targets[i].Priority = 25;
-			a_GhostBot->Targets[i].x = TargetNode->x;
-			a_GhostBot->Targets[i].y = TargetNode->y;
+			a_Bot->Targets[i].IsSet = true;
+			a_Bot->Targets[i].MoveTarget = true;
+			a_Bot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
+			a_Bot->Targets[i].Priority = 25;
+			a_Bot->Targets[i].x = TargetNode->x;
+			a_Bot->Targets[i].y = TargetNode->y;
 			break;
 		}
 	
 	/* Sleep Job */
-	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
+	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
 	
 	/* Keep random navigation */
 	return true;
@@ -523,7 +523,7 @@ bool_t B_WorkRandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 /*****************************************************************************/
 
 /* B_WorkShootStuff() -- Shoot Nearby Stuff */
-bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+bool_t B_WorkShootStuff(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 #define CLOSEMOS 8
 	int32_t s, i, m, BigTarg;
@@ -535,7 +535,7 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	fixed_t Mod;
 	
 	/* Sleep Job */
-	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
+	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
 	
 	/* Clear object list */
 	memset(ListMos, 0, sizeof(ListMos));
@@ -543,14 +543,14 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	
 	/* Get metric of current gun */
 	// Player
-	if (a_GhostBot->IsPlayer)
-		GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
+	if (a_Bot->IsPlayer)
+		GunMetric = a_Bot->Player->weaponinfo[a_Bot->Player->readyweapon]->BotMetric;
 	
 	// Monster
 	else
 	{
 		// Only Melee Attack
-		if (!a_GhostBot->Mo->info->missilestate && a_GhostBot->Mo->info->meleestate)
+		if (!a_Bot->Mo->info->missilestate && a_Bot->Mo->info->meleestate)
 			GunMetric = INFOBM_WEAPONMELEE;
 		
 		// Other kinds of attack
@@ -560,7 +560,7 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	
 	/* Go through adjacent sectors */
 	// Get current sector
-	s = a_GhostBot->Mo->subsector->sector - sectors;
+	s = a_Bot->Mo->subsector->sector - sectors;
 	
 	// Start Roving
 	for (i = 0; i < l_BNumAdj[s]; i++)
@@ -576,7 +576,7 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 		for (Mo = CurSec->thinglist; Mo; Mo = Mo->snext)
 		{
 			// Object is ourself!
-			if (Mo == a_GhostBot->Mo)
+			if (Mo == a_Bot->Mo)
 				continue;
 			
 			// Object is missing some flags?
@@ -592,20 +592,20 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 				continue;
 			
 			// Object on same team
-			if (P_MobjOnSameTeam(a_GhostBot->Mo, Mo))
+			if (P_MobjOnSameTeam(a_Bot->Mo, Mo))
 				continue;
 			
 			// Object is not seen?
-			if (!P_CheckSight(a_GhostBot->Mo, Mo))
+			if (!P_CheckSight(a_Bot->Mo, Mo))
 				continue;
 			
 			// See if autoaim acquires a friendly target, but do not perform
 			// this check if shoot allies is enabled.
-			if (!(a_GhostBot->BotTemplate.Flags & BGBF_SHOOTALLIES))
+			if (!(a_Bot->BotTemplate.Flags & BGBF_SHOOTALLIES))
 			{
-				slope = P_AimLineAttack(a_GhostBot->Mo, a_GhostBot->Mo->angle, MISSILERANGE, NULL);
+				slope = P_AimLineAttack(a_Bot->Mo, a_Bot->Mo->angle, MISSILERANGE, NULL);
 			
-				if (linetarget && linetarget != a_GhostBot->Mo && P_MobjOnSameTeam(a_GhostBot->Mo, linetarget))
+				if (linetarget && linetarget != a_Bot->Mo && P_MobjOnSameTeam(a_Bot->Mo, linetarget))
 					continue;
 			}
 			
@@ -628,71 +628,71 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	
 	/* Go through objects and update pre-existings */
 	for (i = 0; i < MAXBOTTARGETS; i++)
-		if (a_GhostBot->Targets[i].IsSet)
+		if (a_Bot->Targets[i].IsSet)
 			for (s = 0; s < m; s++)
-				if (ListMos[s] && a_GhostBot->Targets[i].Key == (uintptr_t)ListMos[s])
+				if (ListMos[s] && a_Bot->Targets[i].Key == (uintptr_t)ListMos[s])
 				{
 					// Update This
-					a_GhostBot->Targets[i].ExpireTic += (TICRATE >> 1);
-					a_GhostBot->Targets[i].Priority += 10;	// Make it a bit more important
-					a_GhostBot->Targets[i].x = ListMos[s]->x;
-					a_GhostBot->Targets[i].y = ListMos[s]->y;
-					a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
+					a_Bot->Targets[i].ExpireTic += (TICRATE >> 1);
+					a_Bot->Targets[i].Priority += 10;	// Make it a bit more important
+					a_Bot->Targets[i].x = ListMos[s]->x;
+					a_Bot->Targets[i].y = ListMos[s]->y;
+					a_Bot->Targets[i].Key = (uintptr_t)ListMos[s];
 					
 					// Based on metric, possibly move target location
 					if (GunMetric == INFOBM_SPRAYPLASMA)
 					{
 						// Modify X Value
-						Mod = B_Random(a_GhostBot) - 128;
+						Mod = B_Random(a_Bot) - 128;
 						Mod = FixedMul(Mod << FRACBITS, INT32_C(1024));
 						Mod = FixedMul(Mod, FIXEDT_C(64));
-						a_GhostBot->Targets[i].x += Mod;
+						a_Bot->Targets[i].x += Mod;
 						
 						// Modify Y Value
-						Mod = B_Random(a_GhostBot) - 128;
+						Mod = B_Random(a_Bot) - 128;
 						Mod = FixedMul(Mod << FRACBITS, INT32_C(1024));
 						Mod = FixedMul(Mod, FIXEDT_C(48));
-						a_GhostBot->Targets[i].y += Mod;
+						a_Bot->Targets[i].y += Mod;
 					}
 					
 					// Force Attacking
-					if (a_GhostBot->IsPlayer)
-						if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
-							a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+					if (a_Bot->IsPlayer)
+						if (a_Bot->Player->pendingweapon < 0 || a_Bot->Player->pendingweapon >= NUMWEAPONS)
+							a_Bot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 					
 					// Clear from current
 					ListMos[s] = NULL;
 					
 					// Big time target?
 					if (BigTarg == -1 ||
-						a_GhostBot->Targets[i].Priority >
-							a_GhostBot->Targets[BigTarg].Priority)
+						a_Bot->Targets[i].Priority >
+							a_Bot->Targets[BigTarg].Priority)
 						BigTarg = i;
 				}
 	
 	/* Put objects into the target list */
 	for (s = 0, i = 0; s < m && i < MAXBOTTARGETS; i++)
 		if (ListMos[s])
-			if (!a_GhostBot->Targets[i].IsSet)
+			if (!a_Bot->Targets[i].IsSet)
 			{
 				// Setup
-				a_GhostBot->Targets[i].IsSet = true;
-				a_GhostBot->Targets[i].MoveTarget = false;
-				a_GhostBot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
-				a_GhostBot->Targets[i].Priority = (-ListMos[s]->health) + 100;
-				a_GhostBot->Targets[i].x = ListMos[s]->x;
-				a_GhostBot->Targets[i].y = ListMos[s]->y;
-				a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
+				a_Bot->Targets[i].IsSet = true;
+				a_Bot->Targets[i].MoveTarget = false;
+				a_Bot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
+				a_Bot->Targets[i].Priority = (-ListMos[s]->health) + 100;
+				a_Bot->Targets[i].x = ListMos[s]->x;
+				a_Bot->Targets[i].y = ListMos[s]->y;
+				a_Bot->Targets[i].Key = (uintptr_t)ListMos[s];
 				
 				// Force Attacking
-				if (a_GhostBot->IsPlayer)
-					if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
-						a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+				if (a_Bot->IsPlayer)
+					if (a_Bot->Player->pendingweapon < 0 || a_Bot->Player->pendingweapon >= NUMWEAPONS)
+						a_Bot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 				
 				// Big time target?
 				if (BigTarg == -1 ||
-					a_GhostBot->Targets[i].Priority >
-						a_GhostBot->Targets[BigTarg].Priority)
+					a_Bot->Targets[i].Priority >
+						a_Bot->Targets[BigTarg].Priority)
 					BigTarg = i;
 				
 				// Update List
@@ -708,14 +708,14 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 			case INFOBM_WEAPONMELEE:
 				// Make a movement target at the target spot
 				for (i = 0; i < MAXBOTTARGETS; i++)
-					if (!a_GhostBot->Targets[i].IsSet)
+					if (!a_Bot->Targets[i].IsSet)
 					{
 						// Clone directly
-						a_GhostBot->Targets[i] = a_GhostBot->Targets[BigTarg];
+						a_Bot->Targets[i] = a_Bot->Targets[BigTarg];
 						
 						// Increase Priority and make it a move target
-						a_GhostBot->Targets[i].MoveTarget = true;
-						a_GhostBot->Targets[i].Priority = (a_GhostBot->Targets[i].Priority / 2) + 10;
+						a_Bot->Targets[i].MoveTarget = true;
+						a_Bot->Targets[i].Priority = (a_Bot->Targets[i].Priority / 2) + 10;
 					}
 				break;
 				
@@ -735,7 +735,7 @@ bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 /*****************************************************************************/
 
 /* B_WorkGunControl() -- Determine weapon changing */
-bool_t B_WorkGunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+bool_t B_WorkGunControl(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 #define MAXGUNSWITCHERS 32
 	int32_t i, b;
@@ -745,34 +745,34 @@ bool_t B_WorkGunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 	PI_wepid_t FavoriteGun;
 	
 	/* Sleep Job */
-	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 10);
+	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 10);
 	
 	// If not a player, then don't mess with our guns
-	if (!a_GhostBot->IsPlayer)
+	if (!a_Bot->IsPlayer)
 		return true;
 	
 	/* Get Our Favorite Gun */
-	FavoriteGun = P_PlayerBestWeapon(a_GhostBot->Player);
+	FavoriteGun = P_PlayerBestWeapon(a_Bot->Player);
 	
 	/* Determine guns to switch to */
 	for (i = 0; i < MAXGUNSWITCHERS && i < NUMWEAPONS; i++)
 	{
 		// Not owned?
-		if (!a_GhostBot->Player->weaponowned[i])
+		if (!a_Bot->Player->weaponowned[i])
 		{
 			SwitchChance[i] = -1000;
 			continue;
 		}
 		
 		// Base chance is weapon power
-		SwitchChance[i] = a_GhostBot->Player->weaponinfo[i]->SwitchOrder;
+		SwitchChance[i] = a_Bot->Player->weaponinfo[i]->SwitchOrder;
 		
 		// Get ammo amount
-		AmmoType = a_GhostBot->Player->weaponinfo[i]->ammo;
+		AmmoType = a_Bot->Player->weaponinfo[i]->ammo;
 		
 		if (AmmoType >= 0 && AmmoType < NUMAMMO)
-			AmmoCount = FixedDiv(a_GhostBot->Player->ammo[AmmoType] << FRACBITS,
-					a_GhostBot->Player->maxammo[AmmoType] << FRACBITS);
+			AmmoCount = FixedDiv(a_Bot->Player->ammo[AmmoType] << FRACBITS,
+					a_Bot->Player->maxammo[AmmoType] << FRACBITS);
 		else
 			AmmoCount = 32768;
 		
@@ -792,10 +792,10 @@ bool_t B_WorkGunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 		
 	/* Not using this gun? */
 	// Switch to that gun
-	if (a_GhostBot->Player->readyweapon != b && a_GhostBot->Player->pendingweapon != b)
+	if (a_Bot->Player->readyweapon != b && a_Bot->Player->pendingweapon != b)
 	{
-		a_GhostBot->TicCmdPtr->Std.buttons |= BT_CHANGE;
-		D_TicCmdFillWeapon(a_GhostBot->TicCmdPtr, b);
+		a_Bot->TicCmdPtr->Std.buttons |= BT_CHANGE;
+		D_TicCmdFillWeapon(a_Bot->TicCmdPtr, b);
 	}
 	
 	/* Always keep this job */

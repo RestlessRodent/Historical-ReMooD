@@ -71,7 +71,7 @@ size_t l_NumBotTemplates = 0;					// Number of them
 
 B_GhostNode_t* l_HeadNode = NULL;				// Head Node
 
-B_GhostBot_t** l_LocalBots = NULL;				// Bots in game
+B_Bot_t** l_LocalBots = NULL;				// Bots in game
 size_t l_NumLocalBots = 0;						// Number of them
 
 /****************
@@ -150,13 +150,13 @@ B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 }
 
 /* B_Random() -- Random Number */
-int B_Random(B_GhostBot_t* const a_Bot)
+int B_Random(B_Bot_t* const a_Bot)
 {
 	return M_Random();
 }
 
 /* B_GHOST_Think() -- Bot thinker routine */
-void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
+void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 {
 	size_t J, i, j;
 	int32_t MoveTarg, AttackTarg;
@@ -165,44 +165,44 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	fixed_t TargOff[2], TargDist;
 	
 	/* Check */
-	if (!a_GhostBot || !a_TicCmd)
+	if (!a_Bot || !a_TicCmd)
 		return;
 	
 	/* Clear tic command */
 	memset(a_TicCmd, 0, sizeof(*a_TicCmd));
 	
 	/* Bot needs initialization? */
-	if (!a_GhostBot->Initted)
+	if (!a_Bot->Initted)
 	{
 		// Add Random Navigation
-		a_GhostBot->Jobs[0].JobHere = true;
-		a_GhostBot->Jobs[0].JobFunc = B_WorkRandomNav;
+		a_Bot->Jobs[0].JobHere = true;
+		a_Bot->Jobs[0].JobFunc = B_WorkRandomNav;
 		
 		// Add Shooting things
-		a_GhostBot->Jobs[1].JobHere = true;
-		a_GhostBot->Jobs[1].JobFunc = B_WorkShootStuff;
+		a_Bot->Jobs[1].JobHere = true;
+		a_Bot->Jobs[1].JobFunc = B_WorkShootStuff;
 		
 		// Gun Control
-		a_GhostBot->Jobs[2].JobHere = true;
-		a_GhostBot->Jobs[2].JobFunc = B_WorkGunControl;
+		a_Bot->Jobs[2].JobHere = true;
+		a_Bot->Jobs[2].JobFunc = B_WorkGunControl;
 		
 		// Finds Goodies
-		a_GhostBot->Jobs[3].JobHere = true;
-		a_GhostBot->Jobs[3].JobFunc = B_WorkFindGoodies;
+		a_Bot->Jobs[3].JobHere = true;
+		a_Bot->Jobs[3].JobFunc = B_WorkFindGoodies;
 		
 		// Utilize shore paths
-		a_GhostBot->Jobs[4].JobHere = true;
-		a_GhostBot->Jobs[4].JobFunc = B_WorkShoreMove;
+		a_Bot->Jobs[4].JobHere = true;
+		a_Bot->Jobs[4].JobFunc = B_WorkShoreMove;
 		
 		// Set as initialized
-		a_GhostBot->Initted = true;
+		a_Bot->Initted = true;
 	}
 	
 	/* A spectating bot? */
-	if (a_GhostBot->XPlayer)
+	if (a_Bot->XPlayer)
 	{
 		// If there is no player, they are spectating
-		if (!a_GhostBot->XPlayer->Player)
+		if (!a_Bot->XPlayer->Player)
 		{
 			if ((gametic & 63) == 0)
 				a_TicCmd->Std.buttons |= BT_USE;
@@ -211,46 +211,46 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	}
 	
 	/* Init */
-	a_GhostBot->TicCmdPtr = a_TicCmd;
-	a_GhostBot->AtNode = B_GHOST_NodeNearPos(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Mo->z, true);
-	a_GhostBot->IsPlayer = false;
-	if (a_GhostBot->Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
-		a_GhostBot->IsPlayer = true;
+	a_Bot->TicCmdPtr = a_TicCmd;
+	a_Bot->AtNode = B_GHOST_NodeNearPos(a_Bot->Mo->x, a_Bot->Mo->y, a_Bot->Mo->z, true);
+	a_Bot->IsPlayer = false;
+	if (a_Bot->Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		a_Bot->IsPlayer = true;
 	
 	// At new location?
 	Blip = false;
-	if (a_GhostBot->AtNode != a_GhostBot->OldNode)
+	if (a_Bot->AtNode != a_Bot->OldNode)
 	{
-		a_GhostBot->OldNode = a_GhostBot->AtNode;
+		a_Bot->OldNode = a_Bot->AtNode;
 		Blip = true;
 	}
 	
 	/* Go through targets and expire any of them */
 	for (i = 0; i < MAXBOTTARGETS; i++)
-		if (a_GhostBot->Targets[i].IsSet)
+		if (a_Bot->Targets[i].IsSet)
 		{
 			// Expired?
-			if (gametic > a_GhostBot->Targets[i].ExpireTic)
-				memset(&a_GhostBot->Targets[i], 0, sizeof(a_GhostBot->Targets[i]));
+			if (gametic > a_Bot->Targets[i].ExpireTic)
+				memset(&a_Bot->Targets[i], 0, sizeof(a_Bot->Targets[i]));
 		}
 	
 	/* Go through jobs and execute them */
 	for (J = 0; J < MAXBOTJOBS; J++)
-		if (a_GhostBot->Jobs[J].JobHere)
+		if (a_Bot->Jobs[J].JobHere)
 		{
 			// Sleeping job?
-			if (gametic < a_GhostBot->Jobs[J].Sleep)
+			if (gametic < a_Bot->Jobs[J].Sleep)
 				continue;
 			
 			// Execute
-			if (a_GhostBot->Jobs[J].JobFunc)
-				if (!a_GhostBot->Jobs[J].JobFunc(a_GhostBot, J))
+			if (a_Bot->Jobs[J].JobFunc)
+				if (!a_Bot->Jobs[J].JobFunc(a_Bot, J))
 				{
 					// Delete job
-					a_GhostBot->Jobs[J].JobHere = false;
-					a_GhostBot->Jobs[J].Priority = 0;
-					a_GhostBot->Jobs[J].Sleep = 0;
-					a_GhostBot->Jobs[J].JobFunc = NULL;
+					a_Bot->Jobs[J].JobHere = false;
+					a_Bot->Jobs[J].Priority = 0;
+					a_Bot->Jobs[J].Sleep = 0;
+					a_Bot->Jobs[J].JobFunc = NULL;
 				}
 		}
 	
@@ -260,14 +260,14 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	
 	// Go through them all
 	for (i = 0; i < MAXBOTTARGETS; i++)
-		if (a_GhostBot->Targets[i].IsSet)
+		if (a_Bot->Targets[i].IsSet)
 		{
 			// Move target?
-			if (a_GhostBot->Targets[i].MoveTarget)
+			if (a_Bot->Targets[i].MoveTarget)
 			{
 				if ((MoveTarg == -1) ||
-					(MoveTarg >= 0 && a_GhostBot->Targets[i].Priority >
-						a_GhostBot->Targets[MoveTarg].Priority))
+					(MoveTarg >= 0 && a_Bot->Targets[i].Priority >
+						a_Bot->Targets[MoveTarg].Priority))
 					MoveTarg = i;
 			}
 			
@@ -275,8 +275,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 			else
 			{
 				if ((AttackTarg == -1) ||
-					(AttackTarg >= 0 && a_GhostBot->Targets[i].Priority >
-						a_GhostBot->Targets[AttackTarg].Priority))
+					(AttackTarg >= 0 && a_Bot->Targets[i].Priority >
+						a_Bot->Targets[AttackTarg].Priority))
 					AttackTarg = i;
 			}
 		}
@@ -284,23 +284,23 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 			
 	/* Get metric of current gun */
 	GunMetric = 0;
-	if (a_GhostBot->IsPlayer)
-		GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
+	if (a_Bot->IsPlayer)
+		GunMetric = a_Bot->Player->weaponinfo[a_Bot->Player->readyweapon]->BotMetric;
 	TargOff[0] = TargOff[1] = 0;
 	
 	// If we are a monster, then either only attack or move
-	if (!a_GhostBot->IsPlayer)
+	if (!a_Bot->IsPlayer)
 		if (MoveTarg != -1 && AttackTarg != -1)
 		{
 			// Timed out?
-			if (gametic >= a_GhostBot->MonsterForceTic)
+			if (gametic >= a_Bot->MonsterForceTic)
 			{
-				a_GhostBot->MonsterForceTic = gametic + (TICRATE * 4);
-				a_GhostBot->MonsterForce = !a_GhostBot->MonsterForce;
+				a_Bot->MonsterForceTic = gametic + (TICRATE * 4);
+				a_Bot->MonsterForce = !a_Bot->MonsterForce;
 			}
 			
 			// Move or attack?
-			if (a_GhostBot->MonsterForce)
+			if (a_Bot->MonsterForce)
 				MoveTarg = -1;
 			else
 				AttackTarg = -1;
@@ -311,8 +311,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	{
 		// Distance to target
 		TargDist = P_AproxDistance(
-				a_GhostBot->Player->mo->x - a_GhostBot->Targets[AttackTarg].x,
-				a_GhostBot->Player->mo->y - a_GhostBot->Targets[AttackTarg].y
+				a_Bot->Player->mo->x - a_Bot->Targets[AttackTarg].x,
+				a_Bot->Player->mo->y - a_Bot->Targets[AttackTarg].y
 			);
 		
 		// Based on metric
@@ -324,7 +324,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 				if (TargDist >= FIXEDT_C(192))
 					for (i = 0; i < 2; i++)
 						{
-							TargOff[i] = B_Random(a_GhostBot) - 128;
+							TargOff[i] = B_Random(a_Bot) - 128;
 							TargOff[i] = FixedMul(TargOff[i] << FRACBITS, INT32_C(1024));
 							TargOff[i] = FixedMul(TargOff[i], FIXEDT_C(48));
 						}
@@ -341,8 +341,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	{
 		// Distance to target
 		TargDist = P_AproxDistance(
-				a_GhostBot->Player->mo->x - a_GhostBot->Targets[MoveTarg].x,
-				a_GhostBot->Player->mo->y - a_GhostBot->Targets[MoveTarg].y
+				a_Bot->Player->mo->x - a_Bot->Targets[MoveTarg].x,
+				a_Bot->Player->mo->y - a_Bot->Targets[MoveTarg].y
 			);
 			
 		// So close that we are in stopping distance
@@ -356,36 +356,36 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// Move to target
 		if (MoveTarg != -1 && AttackTarg == -1)
 		{
-			a_GhostBot->TicCmdPtr->Std.forwardmove = c_forwardmove[1];
-			a_GhostBot->TicCmdPtr->Std.angleturn = B_NodePtoAT(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
+			a_Bot->TicCmdPtr->Std.forwardmove = c_forwardmove[1];
+			a_Bot->TicCmdPtr->Std.angleturn = B_NodePtoAT(a_Bot->Mo->x, a_Bot->Mo->y, a_Bot->Targets[MoveTarg].x, a_Bot->Targets[MoveTarg].y);
 		}
 		
 		// Aim at target
 		else if (MoveTarg == -1 && AttackTarg != -1)
 		{
-			//if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
-				a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
-			a_GhostBot->TicCmdPtr->Std.angleturn =
+			//if (a_Bot->Player->pendingweapon < 0 || a_Bot->Player->pendingweapon >= NUMWEAPONS)
+				a_Bot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+			a_Bot->TicCmdPtr->Std.angleturn =
 				B_NodePtoAT(
-						a_GhostBot->Mo->x,
-						a_GhostBot->Mo->y,
-						a_GhostBot->Targets[AttackTarg].x + TargOff[0],
-						a_GhostBot->Targets[AttackTarg].y + TargOff[1]
+						a_Bot->Mo->x,
+						a_Bot->Mo->y,
+						a_Bot->Targets[AttackTarg].x + TargOff[0],
+						a_Bot->Targets[AttackTarg].y + TargOff[1]
 					);
 		}
 		
 		// Dual movement
 		else
 		{
-			a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+			a_Bot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 			B_NodeMoveAim(
-					a_GhostBot->Mo->x, a_GhostBot->Mo->y,
-					a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y,
-					a_GhostBot->Targets[AttackTarg].x + TargOff[0],
-					a_GhostBot->Targets[AttackTarg].y + TargOff[1],
-					&a_GhostBot->TicCmdPtr->Std.angleturn,
-					&a_GhostBot->TicCmdPtr->Std.forwardmove,
-					&a_GhostBot->TicCmdPtr->Std.sidemove
+					a_Bot->Mo->x, a_Bot->Mo->y,
+					a_Bot->Targets[MoveTarg].x, a_Bot->Targets[MoveTarg].y,
+					a_Bot->Targets[AttackTarg].x + TargOff[0],
+					a_Bot->Targets[AttackTarg].y + TargOff[1],
+					&a_Bot->TicCmdPtr->Std.angleturn,
+					&a_Bot->TicCmdPtr->Std.forwardmove,
+					&a_Bot->TicCmdPtr->Std.sidemove
 				);
 		}
 	}
@@ -406,7 +406,7 @@ void B_RemoveThinker(thinker_t* const a_Thinker)
 }
 
 /* B_XDestroyBot() -- Destroys Bot */
-void B_XDestroyBot(B_GhostBot_t* const a_BotData)
+void B_XDestroyBot(B_Bot_t* const a_BotData)
 {
 	int32_t i;
 	
@@ -432,9 +432,9 @@ void B_XDestroyBot(B_GhostBot_t* const a_BotData)
 }
 
 /* B_InitBot() -- Initializes Bot */
-B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template)
+B_Bot_t* B_InitBot(const B_BotTemplate_t* a_Template)
 {
-	B_GhostBot_t* New;
+	B_Bot_t* New;
 	thinker_t* currentthinker;
 	mobj_t* mo;
 	int32_t i;
@@ -473,7 +473,7 @@ B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template)
 }
 
 /* B_BotGetTemplateDataPtr() -- Get template by pointer */
-B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
+B_BotTemplate_t* B_BotGetTemplateDataPtr(B_Bot_t* const a_BotData)
 {
 	/* Check */
 	if (!a_BotData)
@@ -484,7 +484,7 @@ B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData)
 }
 
 /* B_BuildBotTicCmd() -- Builds tic command for bot */
-void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a_BotData, ticcmd_t* const a_TicCmd)
+void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_Bot_t* const a_BotData, ticcmd_t* const a_TicCmd)
 {
 	size_t i;
 	player_t* Player;

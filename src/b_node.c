@@ -615,7 +615,7 @@ static bool_t B_NodeFirstTrav(intercept_t* in, void* const a_Data)
 }
 
 /* B_NodeNtoN() -- Checks whether a node can be traveled to */
-bool_t B_NodeNtoN(B_GhostBot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime)
+bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime)
 {
 	/* Check */
 	if (!a_Start || !a_End || (!a_FirstTime && !a_Bot))
@@ -764,7 +764,6 @@ void B_GHOST_Ticker(void)
 {
 	int32_t i, j, k, zz;
 	sector_t* CurSec;
-	bool_t DoOK, DoStop;
 	sector_t* (*BAdj)[MAXBGADJDEPTH] = NULL;
 	sector_t* SecRoverA, *SecRoverB;
 	size_t* BNumAdj = NULL;
@@ -1136,7 +1135,7 @@ void B_InitNodes(void)
 /*****************************************************************************/
 
 /* B_ShorePop() -- Pops a shore node */
-B_ShoreNode_t* B_ShorePop(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
+B_ShoreNode_t* B_ShorePop(B_Bot_t* a_Bot, const bool_t a_Work)
 {
 	/* Work? */
 	if (a_Work)
@@ -1162,7 +1161,7 @@ B_ShoreNode_t* B_ShorePop(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
 }
 
 /* B_ShoreAdd() -- Adds a shore node */
-B_ShoreNode_t* B_ShoreAdd(struct B_GhostBot_s* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+B_ShoreNode_t* B_ShoreAdd(B_Bot_t* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
 {
 	B_ShoreNode_t* New;
 	
@@ -1206,7 +1205,7 @@ B_ShoreNode_t* B_ShoreAdd(struct B_GhostBot_s* a_Bot, const bool_t a_Work, const
 }
 
 /* B_ShoreClear() -- Clears shore path */
-void B_ShoreClear(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
+void B_ShoreClear(B_Bot_t* a_Bot, const bool_t a_Work)
 {
 	uint32_t i;
 	
@@ -1250,7 +1249,7 @@ void B_ShoreClear(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
 }
 
 /* B_ShoreApprove() -- Moves work to shore */
-void B_ShoreApprove(struct B_GhostBot_s* a_Bot)
+void B_ShoreApprove(B_Bot_t* a_Bot)
 {
 	/* Free shore, if any */
 	B_ShoreClear(a_Bot, false);
@@ -1267,7 +1266,7 @@ void B_ShoreApprove(struct B_GhostBot_s* a_Bot)
 
 /* B_ShorePath() -- Builds a path from point 1 to point 2 */
 // Returns false, if not possible
-bool_t B_ShorePath(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
+bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
 {
 #define BUFSIZE 128
 #define MAXFAILS 128
