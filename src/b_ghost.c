@@ -1991,20 +1991,20 @@ static bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t 
 					if (Desires[i].SpecID == TSpec->ActGiveWeapon)
 						OK = true;
 			
-			// Matching armor?
-			if (Desires[i].IsArmor)
-				if (TSpec->ArmorAmount > 0)
-				{
-					OK = true;
-					Desires[i].SpecID = TSpec->ArmorAmount;
-				}
-			
 			// Matching Health
 			if (Desires[i].IsHealth)
 				if (TSpec->HealthAmount > 0)
 				{
 					OK = true;
 					Desires[i].SpecID = TSpec->HealthAmount;
+				}
+			
+			// Matching armor?
+			if (Desires[i].IsArmor)
+				if (TSpec->ArmorAmount > 0)
+				{
+					OK = true;
+					Desires[i].SpecID = TSpec->ArmorAmount;
 				}
 			
 			// Object is fine?
