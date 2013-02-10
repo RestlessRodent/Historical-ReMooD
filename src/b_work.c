@@ -39,8 +39,8 @@
 *** FUNCTIONS ***
 ****************/
 
-/* BS_GHOST_JOB_ShoreMove() -- Utilize shore movement */
-bool_t BS_GHOST_JOB_ShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
+/* B_WorkShoreMove() -- Utilize shore movement */
+bool_t B_WorkShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
 {
 	B_BotTarget_t* FFree, *ShoreTarg;
 	B_ShoreNode_t* This;
@@ -63,7 +63,7 @@ bool_t BS_GHOST_JOB_ShoreMove(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
 	// Also check if we still even desire this thing we are moving twords
 	if ((a_Bot->ConfirmDesireF && !a_Bot->ConfirmDesireF(a_Bot)) || a_Bot->ShoreIt >= a_Bot->NumShore)
 	{
-		BS_GHOST_ClearShore(a_Bot, true);
+		B_ShoreClear(a_Bot, true);
 		a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE);
 		return true;
 	}
@@ -207,8 +207,8 @@ static bool_t BS_GHOST_CDF_Health(struct B_GhostBot_s* a_Bot)
 	return true;
 }
 
-/* BS_GHOST_JOB_FindGoodies() -- Finds Goodies */
-bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
+/* B_WorkFindGoodies() -- Finds Goodies */
+bool_t B_WorkFindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID)
 {
 #define MAXDESIRE 16
 	player_t* Player;
@@ -424,8 +424,8 @@ bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID
 		}
 		
 		// Move to destination
-		if (BS_GHOST_ShoreFromTo(a_Bot, Mo->x, Mo->y, PickupTarget->x, PickupTarget->y))
-			BS_GHOST_WorkToShore(a_Bot);
+		if (B_ShorePath(a_Bot, Mo->x, Mo->y, PickupTarget->x, PickupTarget->y))
+			B_ShoreApprove(a_Bot);
 	}
 	
 	/* Done with job, probably */
@@ -436,8 +436,8 @@ bool_t BS_GHOST_JOB_FindGoodies(struct B_GhostBot_s* a_Bot, const size_t a_JobID
 
 /*****************************************************************************/
 
-/* BS_GHOST_JOB_RandomNav() -- Random navigation */
-bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+/* B_WorkRandomNav() -- Random navigation */
+bool_t B_WorkRandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 {
 	B_GhostNode_t* ThisNode;
 	B_GhostNode_t* TargetNode;
@@ -450,8 +450,8 @@ bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_Jo
 	/* Find node in random direction, and move to it */
 	while (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
 	{
-		a_GhostBot->RoamX = BS_Random(a_GhostBot) % 3;
-		a_GhostBot->RoamY = BS_Random(a_GhostBot) % 3;
+		a_GhostBot->RoamX = B_Random(a_GhostBot) % 3;
+		a_GhostBot->RoamY = B_Random(a_GhostBot) % 3;
 		a_GhostBot->RoamX -= 1;
 		a_GhostBot->RoamY -= 1;
 	}
@@ -473,7 +473,7 @@ bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_Jo
 	
 	// Try traversing to that node there
 	if (TargetNode)
-		if (!BS_CheckNodeToNode(a_GhostBot, ThisNode, TargetNode, false))
+		if (!B_NodeNtoN(a_GhostBot, ThisNode, TargetNode, false))
 			TargetNode = NULL;
 	
 	// No node there? Or we are at that node
@@ -522,8 +522,8 @@ bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_Jo
 
 /*****************************************************************************/
 
-/* BS_GHOST_JOB_ShootStuff() -- Shoot Nearby Stuff */
-bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+/* B_WorkShootStuff() -- Shoot Nearby Stuff */
+bool_t B_WorkShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 {
 #define CLOSEMOS 8
 	int32_t s, i, m, BigTarg;
@@ -643,13 +643,13 @@ bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_J
 					if (GunMetric == INFOBM_SPRAYPLASMA)
 					{
 						// Modify X Value
-						Mod = BS_Random(a_GhostBot) - 128;
+						Mod = B_Random(a_GhostBot) - 128;
 						Mod = FixedMul(Mod << FRACBITS, INT32_C(1024));
 						Mod = FixedMul(Mod, FIXEDT_C(64));
 						a_GhostBot->Targets[i].x += Mod;
 						
 						// Modify Y Value
-						Mod = BS_Random(a_GhostBot) - 128;
+						Mod = B_Random(a_GhostBot) - 128;
 						Mod = FixedMul(Mod << FRACBITS, INT32_C(1024));
 						Mod = FixedMul(Mod, FIXEDT_C(48));
 						a_GhostBot->Targets[i].y += Mod;
@@ -734,8 +734,8 @@ bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_J
 
 /*****************************************************************************/
 
-/* BS_GHOST_JOB_GunControl() -- Determine weapon changing */
-bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+/* B_WorkGunControl() -- Determine weapon changing */
+bool_t B_WorkGunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 {
 #define MAXGUNSWITCHERS 32
 	int32_t i, b;

@@ -149,8 +149,8 @@ B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 	return NULL;
 }
 
-/* BS_Random() -- Random Number */
-int BS_Random(B_GhostBot_t* const a_Bot)
+/* B_Random() -- Random Number */
+int B_Random(B_GhostBot_t* const a_Bot)
 {
 	return M_Random();
 }
@@ -176,23 +176,23 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	{
 		// Add Random Navigation
 		a_GhostBot->Jobs[0].JobHere = true;
-		a_GhostBot->Jobs[0].JobFunc = BS_GHOST_JOB_RandomNav;
+		a_GhostBot->Jobs[0].JobFunc = B_WorkRandomNav;
 		
 		// Add Shooting things
 		a_GhostBot->Jobs[1].JobHere = true;
-		a_GhostBot->Jobs[1].JobFunc = BS_GHOST_JOB_ShootStuff;
+		a_GhostBot->Jobs[1].JobFunc = B_WorkShootStuff;
 		
 		// Gun Control
 		a_GhostBot->Jobs[2].JobHere = true;
-		a_GhostBot->Jobs[2].JobFunc = BS_GHOST_JOB_GunControl;
+		a_GhostBot->Jobs[2].JobFunc = B_WorkGunControl;
 		
 		// Finds Goodies
 		a_GhostBot->Jobs[3].JobHere = true;
-		a_GhostBot->Jobs[3].JobFunc = BS_GHOST_JOB_FindGoodies;
+		a_GhostBot->Jobs[3].JobFunc = B_WorkFindGoodies;
 		
 		// Utilize shore paths
 		a_GhostBot->Jobs[4].JobHere = true;
-		a_GhostBot->Jobs[4].JobFunc = BS_GHOST_JOB_ShoreMove;
+		a_GhostBot->Jobs[4].JobFunc = B_WorkShoreMove;
 		
 		// Set as initialized
 		a_GhostBot->Initted = true;
@@ -324,7 +324,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 				if (TargDist >= FIXEDT_C(192))
 					for (i = 0; i < 2; i++)
 						{
-							TargOff[i] = BS_Random(a_GhostBot) - 128;
+							TargOff[i] = B_Random(a_GhostBot) - 128;
 							TargOff[i] = FixedMul(TargOff[i] << FRACBITS, INT32_C(1024));
 							TargOff[i] = FixedMul(TargOff[i], FIXEDT_C(48));
 						}
@@ -357,7 +357,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		if (MoveTarg != -1 && AttackTarg == -1)
 		{
 			a_GhostBot->TicCmdPtr->Std.forwardmove = c_forwardmove[1];
-			a_GhostBot->TicCmdPtr->Std.angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
+			a_GhostBot->TicCmdPtr->Std.angleturn = B_NodePtoAT(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
 		}
 		
 		// Aim at target
@@ -366,7 +366,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 			//if (a_GhostBot->Player->pendingweapon < 0 || a_GhostBot->Player->pendingweapon >= NUMWEAPONS)
 				a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 			a_GhostBot->TicCmdPtr->Std.angleturn =
-				BS_PointsToAngleTurn(
+				B_NodePtoAT(
 						a_GhostBot->Mo->x,
 						a_GhostBot->Mo->y,
 						a_GhostBot->Targets[AttackTarg].x + TargOff[0],
@@ -378,7 +378,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		else
 		{
 			a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
-			BS_MoveToAndAimAtFrom(
+			B_NodeMoveAim(
 					a_GhostBot->Mo->x, a_GhostBot->Mo->y,
 					a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y,
 					a_GhostBot->Targets[AttackTarg].x + TargOff[0],
@@ -415,8 +415,8 @@ void B_XDestroyBot(B_GhostBot_t* const a_BotData)
 		return;
 	
 	/* Clear Shore, if any */
-	BS_GHOST_ClearShore(a_BotData, false);
-	BS_GHOST_ClearShore(a_BotData, true);
+	B_ShoreClear(a_BotData, false);
+	B_ShoreClear(a_BotData, true);
 	
 	/* Remove from XPlayer */
 	if (a_BotData->XPlayer)
@@ -541,11 +541,11 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_GhostBot_t* const a
 			{
 				a_BotData->IsDead = true;
 				a_BotData->DeathTime = gametic;
-				a_BotData->RespawnDelay = ((((tic_t)BS_Random(a_BotData)) % 2) + 1) * TICRATE;
+				a_BotData->RespawnDelay = ((((tic_t)B_Random(a_BotData)) % 2) + 1) * TICRATE;
 				
 				// Clear things
-				BS_GHOST_ClearShore(a_BotData, false);
-				BS_GHOST_ClearShore(a_BotData, true);
+				B_ShoreClear(a_BotData, false);
+				B_ShoreClear(a_BotData, true);
 			}
 			
 			// Is still dead, wait some seconds to respawn

@@ -40,14 +40,14 @@
 *** FUNCTIONS ***
 ****************/
 
-/* BS_PointsToAngleTurn() -- Convert points to angle turn */
-uint16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
+/* B_NodePtoAT() -- Convert points to angle turn */
+uint16_t B_NodePtoAT(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
 {
 	return R_PointToAngle2(a_x1, a_y1, a_x2, a_y2) >> 16;
 }
 
-/* BS_LinkAngleDir() -- Gets link angle for this angle */
-void BS_LinkAngleDir(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t a_Angle)
+/* B_NodeLAD() -- Gets link angle for this angle */
+void B_NodeLAD(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t a_Angle)
 {
 	/* Determine link angle */
 	// East
@@ -114,15 +114,15 @@ void BS_LinkAngleDir(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t
 	}
 }
 
-/* BS_LinkDirection() -- Determines the link direction from these points */
-void BS_LinkDirection(int32_t* const a_OutX, int32_t* const a_OutY, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const fixed_t a_Y2)
+/* B_NodeLD() -- Determines the link direction from these points */
+void B_NodeLD(int32_t* const a_OutX, int32_t* const a_OutY, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const fixed_t a_Y2)
 {
-	BS_LinkAngleDir(a_OutX, a_OutY, R_PointToAngle2(a_X1, a_Y1, a_X2, a_Y2));
+	B_NodeLAD(a_OutX, a_OutY, R_PointToAngle2(a_X1, a_Y1, a_X2, a_Y2));
 }
 
-/* BS_NearLinkDir() -- Determines if link directions are near enough */
+/* B_NodeNLD() -- Determines if link directions are near enough */
 // i.e north east is near to east, but not to south east
-bool_t BS_NearLinkDir(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2)
+bool_t B_NodeNLD(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2)
 {
 	static const struct
 	{
@@ -165,8 +165,8 @@ bool_t BS_NearLinkDir(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2
 	return false;
 }
 
-/* BS_MoveToAndAimAtFrom() -- Aim at target and move to one at the same time */
-void BS_MoveToAndAimAtFrom(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side)
+/* B_NodeMoveAim() -- Aim at target and move to one at the same time */
+void B_NodeMoveAim(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side)
 {
 	angle_t AimAng;
 	angle_t MoveAng, DiffAng;
@@ -218,8 +218,8 @@ B_Unimatrix_t* BS_UnimatrixAtPos(const fixed_t a_X, const fixed_t a_Y)
 	return &l_UMGrid[Location];
 }
 
-/* BS_GHOSTCheckNodeTrav() -- Checks whether the node is in a "good" spot */
-bool_t BS_GHOSTCheckNodeTrav(intercept_t* in, void* const a_Data)
+/* B_NodeTrav() -- Checks whether the node is in a "good" spot */
+static bool_t B_NodeTrav(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
 	mobj_t* mo;
@@ -391,7 +391,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 				RealX + (BOTMINNODEDIST >> 1),
 				RealY + (BOTMINNODEDIST >> 1),
 				PT_ADDLINES,
-				BS_GHOSTCheckNodeTrav,
+				B_NodeTrav,
 				NULL
 			))
 		Failed = true;
@@ -403,7 +403,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 				RealX + (BOTMINNODEDIST >> 1),
 				RealY - (BOTMINNODEDIST >> 1),
 				PT_ADDLINES,
-				BS_GHOSTCheckNodeTrav,
+				B_NodeTrav,
 				NULL
 			))
 		Failed = true;
@@ -573,10 +573,10 @@ bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
 	return true;
 }
 
-/* BS_GhostNTNPFirst() -- Helps determine whether point is reachable */
+/* B_NodeFirstTrav() -- Helps determine whether point is reachable */
 // This is done for the initial node creation and as such it also determines
 // if a switch or line trigger is needed for activation.
-bool_t BS_GhostNTNPFirst(intercept_t* in, void* const a_Data)
+static bool_t B_NodeFirstTrav(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
 	
@@ -614,8 +614,8 @@ bool_t BS_GhostNTNPFirst(intercept_t* in, void* const a_Data)
 	}
 }
 
-/* BS_CheckNodeToNode() -- Checks whether a node can be traveled to */
-bool_t BS_CheckNodeToNode(B_GhostBot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime)
+/* B_NodeNtoN() -- Checks whether a node can be traveled to */
+bool_t B_NodeNtoN(B_GhostBot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime)
 {
 	/* Check */
 	if (!a_Start || !a_End || (!a_FirstTime && !a_Bot))
@@ -642,7 +642,7 @@ bool_t BS_CheckNodeToNode(B_GhostBot_t* const a_Bot, B_GhostNode_t* const a_Star
 				a_End->x,
 				a_End->y,
 				PT_ADDLINES,
-				BS_GhostNTNPFirst,
+				B_NodeFirstTrav,
 				NULL
 			))
 			return false;
@@ -715,12 +715,12 @@ void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 			continue;
 		
 		// See if traversal is possible
-		if (!BS_CheckNodeToNode(NULL, ThisNode, OtherNode, true))
+		if (!B_NodeNtoN(NULL, ThisNode, OtherNode, true))
 			continue;
 		
 		// It is, so obtain the logical direction to that node
 		dX = dY = 0;
-		BS_LinkDirection(&dX, &dY, ThisNode->x, ThisNode->y, OtherNode->x, OtherNode->y);
+		B_NodeLD(&dX, &dY, ThisNode->x, ThisNode->y, OtherNode->x, OtherNode->y);
 		
 		// Ignore (0,0)
 		if (dX == 0 && dY == 0)
@@ -989,16 +989,16 @@ void B_GHOST_Ticker(void)
 									// should face west might really be east.
 									// This fixes problems where the bot wants to
 									// move east, but moves west instead.
-								BS_LinkDirection(&uX, &uY, CurrentNode->x, CurrentNode->y, NearNode->x, NearNode->y);
+								B_NodeLD(&uX, &uY, CurrentNode->x, CurrentNode->y, NearNode->x, NearNode->y);
 							
-								if (!BS_NearLinkDir(x, y, uX, uY))
+								if (!B_NodeNLD(x, y, uX, uY))
 								{
 									NearNode = NULL;
 									continue;
 								}
 							
 								// Check to see if path can be traversed
-								if (!BS_CheckNodeToNode(NULL, CurrentNode, NearNode, true))
+								if (!B_NodeNtoN(NULL, CurrentNode, NearNode, true))
 								{
 									NearNode = NULL;
 									continue;
@@ -1043,8 +1043,8 @@ void B_ClearNodes(void)
 	for (i = 0; i < l_NumLocalBots; i++)
 		if (l_LocalBots[i])
 		{
-			BS_GHOST_ClearShore(l_LocalBots[i], false);
-			BS_GHOST_ClearShore(l_LocalBots[i], true);
+			B_ShoreClear(l_LocalBots[i], false);
+			B_ShoreClear(l_LocalBots[i], true);
 		}
 	
 	/* Wipe adjacent sector data */
@@ -1135,8 +1135,8 @@ void B_InitNodes(void)
 
 /*****************************************************************************/
 
-/* BS_GHOST_PopNode() -- Pops a shore node */
-B_ShoreNode_t* BS_GHOST_PopNode(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
+/* B_ShorePop() -- Pops a shore node */
+B_ShoreNode_t* B_ShorePop(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
 {
 	/* Work? */
 	if (a_Work)
@@ -1161,8 +1161,8 @@ B_ShoreNode_t* BS_GHOST_PopNode(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
 	}
 }
 
-/* BS_GHOST_AddNode() -- Adds a shore node */
-B_ShoreNode_t* BS_GHOST_AddNode(struct B_GhostBot_s* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
+/* B_ShoreAdd() -- Adds a shore node */
+B_ShoreNode_t* B_ShoreAdd(struct B_GhostBot_s* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
 {
 	B_ShoreNode_t* New;
 	
@@ -1205,8 +1205,8 @@ B_ShoreNode_t* BS_GHOST_AddNode(struct B_GhostBot_s* a_Bot, const bool_t a_Work,
 	return New;
 }
 
-/* BS_GHOST_ClearShore() -- Clears shore path */
-void BS_GHOST_ClearShore(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
+/* B_ShoreClear() -- Clears shore path */
+void B_ShoreClear(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
 {
 	uint32_t i;
 	
@@ -1249,11 +1249,11 @@ void BS_GHOST_ClearShore(struct B_GhostBot_s* a_Bot, const bool_t a_Work)
 					memset(&a_Bot->Targets[i], 0, sizeof(a_Bot->Targets[i]));
 }
 
-/* BS_GHOST_WorkToShore() -- Moves work to shore */
-void BS_GHOST_WorkToShore(struct B_GhostBot_s* a_Bot)
+/* B_ShoreApprove() -- Moves work to shore */
+void B_ShoreApprove(struct B_GhostBot_s* a_Bot)
 {
 	/* Free shore, if any */
-	BS_GHOST_ClearShore(a_Bot, false);
+	B_ShoreClear(a_Bot, false);
 	
 	/* Move pointers over */
 	a_Bot->Shore = a_Bot->Work;
@@ -1265,9 +1265,9 @@ void BS_GHOST_WorkToShore(struct B_GhostBot_s* a_Bot)
 	a_Bot->NumWork = a_Bot->WorkIt = 0;
 }
 
-/* BS_GHOST_ShoreFromTo() -- Builds a path from point 1 to point 2 */
+/* B_ShorePath() -- Builds a path from point 1 to point 2 */
 // Returns false, if not possible
-bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
+bool_t B_ShorePath(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
 {
 #define BUFSIZE 128
 #define MAXFAILS 128
@@ -1291,10 +1291,10 @@ bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, c
 	CheckID += 1;
 	
 	/* Clear old path */
-	BS_GHOST_ClearShore(a_Bot, true);
+	B_ShoreClear(a_Bot, true);
 	
 	/* Add Head Position */
-	SNode = BS_GHOST_AddNode(a_Bot, true, BST_HEAD, a_FromX, a_FromY, ONFLOORZ);
+	SNode = B_ShoreAdd(a_Bot, true, BST_HEAD, a_FromX, a_FromY, ONFLOORZ);
 	
 	/* Generate Path to Target */
 	// This is A* like, I do not have the internet currently but I do have
@@ -1315,7 +1315,7 @@ bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, c
 		
 		// Get direction from current node position to destination
 		DirX = DirY = 0;
-		BS_LinkDirection(&DirX, &DirY, RoverNode->x, RoverNode->y, DestNode->x, DestNode->y);
+		B_NodeLD(&DirX, &DirY, RoverNode->x, RoverNode->y, DestNode->x, DestNode->y);
 		
 		// Get array directions
 		ArrX = DirX + 1;
@@ -1335,7 +1335,7 @@ bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, c
 				// also, if it is traversable to
 			if (Near && Near->CheckID != CheckID)
 				// See if traversal is possible
-				if (BS_CheckNodeToNode(a_Bot, RoverNode, Near, false))
+				if (B_NodeNtoN(a_Bot, RoverNode, Near, false))
 				{
 					DirChoice[x].OK = true;
 					DirChoice[x].DistToGoal =
@@ -1378,7 +1378,7 @@ bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, c
 			
 			// Drop a shore node here
 			RoverNode = DirChoice[b].Node;
-			SNode = BS_GHOST_AddNode(a_Bot, true, BST_NODE, RoverNode->x, RoverNode->y, ONFLOORZ);
+			SNode = B_ShoreAdd(a_Bot, true, BST_NODE, RoverNode->x, RoverNode->y, ONFLOORZ);
 			
 			// Set the node as checked
 			RoverNode->CheckID = CheckID;
@@ -1397,7 +1397,7 @@ bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, c
 			// Otherwise, try the node before
 			else
 			{
-				SNode = BS_GHOST_PopNode(a_Bot, true);
+				SNode = B_ShorePop(a_Bot, true);
 			
 				// Go back there then
 				RoverNode = SNode->BotNode;
@@ -1408,7 +1408,7 @@ bool_t BS_GHOST_ShoreFromTo(struct B_GhostBot_s* a_Bot, const fixed_t a_FromX, c
 	}
 	
 	/* Add Tail Position */
-	SNode = BS_GHOST_AddNode(a_Bot, true, BST_TAIL, a_ToX, a_ToY, ONFLOORZ);
+	SNode = B_ShoreAdd(a_Bot, true, BST_TAIL, a_ToX, a_ToY, ONFLOORZ);
 	
 	/* Debug Dump */
 	if (g_BotDebug)
