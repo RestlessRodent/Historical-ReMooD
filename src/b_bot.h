@@ -51,42 +51,6 @@
 *** CONSTANTS ***
 ****************/
 
-#define MAXBOTJOBS							32	// Maximum Jobs
-
-#define MAXBOTTARGETS						16	// Max target designated
-
-/* B_GhostCoopMode_t -- Coop Mode */
-typedef enum B_GhostCoopMode_e
-{
-	BGCM_DONTCARE,								// Don't care
-	BGCM_MAXKILLS,								// 100% Kills
-	BGCM_UVMAX,									// 100% Kills and Secrets
-	BGCM_UVALLMAX,								// 100% Kills, Items, Secrets
-	BGCM_MAXSECRETS,							// 100% Secrets
-	BGCM_MAXITEMS,								// 100% Items
-	BGCM_EXITRUN,								// Exit Running
-	BGCM_MAXKILLSITEMS,							// 100% Kills, Items
-	
-	NUMBGHOSTCOOPMODES
-} B_GhostCoopMode_t;
-
-/* B_GhostAtkPosture_t -- Attack posture for bot */
-typedef enum B_GhostAtkPosture_e
-{
-	BGAP_DONTCARE,								// Don't Care
-	BGAP_DEFENSE,								// Lean twords Defense
-	BGAP_MIDDLE,								// Neither offensive or defensive
-	BGAP_OFFENSE,								// Lean twords Offence	
-		
-	NUMBGHOSTATKPOSTURE
-} B_GhostAtkPosture_t;
-
-/* B_GhostBotFlags_t -- Flags for bots */
-typedef enum B_GhostBotFlags_e
-{
-	BGBF_SHOOTALLIES	= UINT32_C(0x00000001),	// Shoot through allies
-} B_GhostBotFlags_t;
-
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -102,76 +66,11 @@ typedef struct B_BotTemplate_s
 	uint8_t SkinColor;							// Skin Color
 	uint8_t RGBSkinColor[3];					// Skin Color in RGB
 	const char* WeaponOrder;					// Weapon Order
-	B_GhostAtkPosture_t Posture;				// Posture
-	B_GhostCoopMode_t CoopMode;					// Coop Mode
 	char HexenClass[MAXPLAYERNAME];				// Favorite Hexen Class
 	
 	uint32_t Count;								// Usage Count
 	uint32_t Flags;								// Flags for bot
 } B_BotTemplate_t;
-
-typedef struct B_ShoreNode_s B_ShoreNode_t;
-
-/* B_BotTarget_t -- Target of a bot */
-typedef struct B_BotTarget_s
-{
-	bool_t IsSet;							// Target Set
-	bool_t MoveTarget;						// Movement target
-	tic_t ExpireTic;						// Action expires at this time
-	int32_t Priority;						// Priority
-	fixed_t x, y;							// X/Y Target
-	uintptr_t Key;							// Key
-} B_BotTarget_t;
-
-/* B_GhostBot_t -- GhostlyBots information */
-struct B_GhostBot_s
-{
-	uint8_t Junk;								// Junk Data
-	ticcmd_t* TicCmdPtr;						// Pointer to tic command
-	bool_t Initted;								// Initialized
-	void* AtNode;								// At node
-	void* OldNode;								// Old node
-	player_t* Player;							// Player
-	mobj_t* Mo;									// Mo
-	B_BotTemplate_t BotTemplate;				// Template Copy
-	struct D_XPlayer_s* XPlayer;				// Bot's XPlayer
-	bool_t IsDead;								// Bot is dead?
-	tic_t DeathTime;							// Time Died
-	int32_t RoamX, RoamY;						// Roaming X/Y
-	tic_t RespawnDelay;							// Respawn Delay
-	int32_t Lemmings;							// Lemmings Player
-	bool_t IsPlayer;							// Bot is a player
-	tic_t MonsterForceTic;						// Force attack/move timeout
-	bool_t MonsterForce;						// Force attack/move
-	
-	B_ShoreNode_t** Shore;						// Shore Nodes
-	uint32_t NumShore;							// Number of shore nodes
-	uint32_t ShoreIt;							// Current shore iterator
-	
-	B_ShoreNode_t** Work;						// Shore Nodes (Working)
-	uint32_t NumWork;							// Number of shore nodes (Working)
-	uint32_t WorkIt;							// Current shore iterator (Working)
-	
-	bool_t (*ConfirmDesireF)(struct B_GhostBot_s* a_Bot);
-	int32_t DesireType;							// Type being desired
-	mobj_t* DesireMo;							// Object being desired
-	
-	B_BotTarget_t Targets[MAXBOTTARGETS];		// Bot targets
-	
-	struct
-	{
-		bool_t JobHere;							// A Job is here
-		bool_t (*JobFunc)(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
-		int32_t Priority;						// Job Priority
-		uint32_t Sleep;							// Job Sleeping (wait until tic happens)
-	} Jobs[MAXBOTJOBS];							// Bot's Jobs
-	
-	struct
-	{
-		B_GhostAtkPosture_t Posture;			// Bot Posture
-		B_GhostCoopMode_t CoopMode;				// Coop Mode
-	} AISpec;									// AI Specification
-};
 
 /**************
 *** GLOBALS ***
@@ -190,7 +89,10 @@ extern bool_t g_GotBots;						// Got a bot?
 /*** B_BOT.C ***/
 B_GhostBot_t* B_InitBot(const B_BotTemplate_t* a_Template);
 B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
+
 B_BotTemplate_t* B_BotGetTemplateDataPtr(B_GhostBot_t* const a_BotData);
+struct D_XPlayer_s* B_BotGetXPlayer(B_GhostBot_t* const a_BotData);
+
 void B_InitNodes(void);
 void B_ClearNodes(void);
 

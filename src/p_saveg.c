@@ -713,7 +713,7 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 		// Try obtaining bot template
 		BotTemp = NULL;
 		if (XPlay->BotData)
-			BotTemp = &XPlay->BotData->BotTemplate;
+			BotTemp = B_BotGetTemplateDataPtr(XPlay->BotData);
 		
 		if (BotTemp)
 			D_BSws(a_Str, BotTemp->AccountName);
@@ -881,7 +881,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				
 				// Initialize bot at this player
 				XPlay->BotData = B_InitBot(BotTemp);
-				XPlay->BotData->XPlayer = XPlay;
+				//XPlay->BotData->XPlayer = XPlay;
 			}
 			
 			// Server player
@@ -949,10 +949,6 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		if (XPlay->InGameID >= 0 && XPlay->InGameID < MAXPLAYERS)
 		{
 			XPlay->Player = &players[XPlay->InGameID];
-			
-			if (XPlay->BotData)
-				XPlay->BotData->Player = XPlay->Player;
-			
 			XPlay->Player->XPlayer = XPlay;
 			XPlay->Player->ProfileEx = XPlay->Profile;
 		}
