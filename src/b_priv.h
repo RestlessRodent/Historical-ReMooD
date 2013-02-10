@@ -170,7 +170,7 @@ struct B_GhostBot_s
 	} Jobs[MAXBOTJOBS];							// Bot's Jobs
 };
 
-/* B_GhostNode_t -- A Node */
+/* B_Node_t -- A Node */
 typedef struct B_GhostNode_s
 {
 	fixed_t x;									// X Position
@@ -190,7 +190,7 @@ typedef struct B_GhostNode_s
 	} Links[3][3];								// Chain Links
 	
 	struct B_GhostNode_s* Next;					// Next in link
-} B_GhostNode_t;
+} B_Node_t;
 
 /* B_Unimatrix_t -- A large grid portion of the map */
 typedef struct B_Unimatrix_s
@@ -204,7 +204,7 @@ typedef struct B_Unimatrix_s
 	sector_t** Sectors;							// Sectors inside unimatrix
 	size_t NumSectors;							// Number of sectors in it
 	
-	B_GhostNode_t** Nodes;						// Nodes in unimatrix
+	B_Node_t** Nodes;						// Nodes in unimatrix
 	size_t NumNodes;							// Number of those nodes
 } B_Unimatrix_t;
 
@@ -223,7 +223,7 @@ struct B_ShoreNode_s
 	fixed_t Pos[3];								// Position in world
 	subsector_t* SubS;							// Subsector
 	B_Unimatrix_t* UniM;						// Unimatrix
-	B_GhostNode_t* BotNode;						// Bot Node
+	B_Node_t* BotNode;						// Bot Node
 };
 
 /*************
@@ -251,7 +251,7 @@ extern bool_t l_SSAllDone;						// Everything is done
 extern B_BotTemplate_t** l_BotTemplates;		// Templates
 extern size_t l_NumBotTemplates;				// Number of them
 
-extern B_GhostNode_t* l_HeadNode;				// Head Node
+extern B_Node_t* l_HeadNode;				// Head Node
 
 extern B_Bot_t** l_LocalBots;				// Bots in game
 extern size_t l_NumLocalBots;					// Number of them
@@ -269,7 +269,8 @@ void B_NodeLAD(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t a_Ang
 void B_NodeLD(int32_t* const a_OutX, int32_t* const a_OutY, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const fixed_t a_Y2);
 bool_t B_NodeNLD(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2);
 void B_NodeMoveAim(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side);
-bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime);
+bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const a_End, const bool_t a_FirstTime);
+B_Node_t* B_NodeAtPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, const bool_t a_Any);
 
 void B_ShoreClear(B_Bot_t* a_Bot, const bool_t a_Work);
 B_ShoreNode_t* B_ShorePop(B_Bot_t* a_Bot, const bool_t a_Work);

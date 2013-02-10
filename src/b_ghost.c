@@ -35,6 +35,7 @@
 
 #include "doomtype.h"
 #include "b_priv.h"
+#include "m_argv.h"
 
 /**************
 *** GLOBALS ***
@@ -69,7 +70,7 @@ bool_t l_SSAllDone = false;						// Everything is done
 B_BotTemplate_t** l_BotTemplates = NULL;		// Templates
 size_t l_NumBotTemplates = 0;					// Number of them
 
-B_GhostNode_t* l_HeadNode = NULL;				// Head Node
+B_Node_t* l_HeadNode = NULL;				// Head Node
 
 B_Bot_t** l_LocalBots = NULL;				// Bots in game
 size_t l_NumLocalBots = 0;						// Number of them
@@ -129,6 +130,7 @@ B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 	for (i = 0; i < l_NumBotTemplates; i++)
 		if (l_BotTemplates[i])
 			if (l_BotTemplates[i]->Count == LowCount)
+			{
 				if (Hit == 0)
 				{
 					l_BotTemplates[i]->Count++;
@@ -136,6 +138,7 @@ B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 				}
 				else
 					Hit--;
+			}
 	
 	/* Failure? */
 	for (i = 0; i < l_NumBotTemplates; i++)
@@ -158,9 +161,8 @@ int B_Random(B_Bot_t* const a_Bot)
 /* B_GHOST_Think() -- Bot thinker routine */
 void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 {
-	size_t J, i, j;
+	size_t J, i;
 	int32_t MoveTarg, AttackTarg;
-	bool_t Blip;
 	INFO_BotObjMetric_t GunMetric;
 	fixed_t TargOff[2], TargDist;
 	
@@ -212,18 +214,14 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 	
 	/* Init */
 	a_Bot->TicCmdPtr = a_TicCmd;
-	a_Bot->AtNode = B_GHOST_NodeNearPos(a_Bot->Mo->x, a_Bot->Mo->y, a_Bot->Mo->z, true);
+	a_Bot->AtNode = B_NodeAtPos(a_Bot->Mo->x, a_Bot->Mo->y, a_Bot->Mo->z, true);
 	a_Bot->IsPlayer = false;
 	if (a_Bot->Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
 		a_Bot->IsPlayer = true;
 	
 	// At new location?
-	Blip = false;
 	if (a_Bot->AtNode != a_Bot->OldNode)
-	{
 		a_Bot->OldNode = a_Bot->AtNode;
-		Blip = true;
-	}
 	
 	/* Go through targets and expire any of them */
 	for (i = 0; i < MAXBOTTARGETS; i++)
@@ -400,7 +398,7 @@ void B_RemoveThinker(thinker_t* const a_Thinker)
 	for (i = 0; i < l_NumLocalBots; i++)
 		if (l_LocalBots[i])
 		{
-			if (l_LocalBots[i]->DesireMo == a_Thinker)
+			if ((thinker_t*)l_LocalBots[i]->DesireMo == a_Thinker)
 				l_LocalBots[i]->DesireMo = NULL;
 		}
 }
@@ -435,8 +433,6 @@ void B_XDestroyBot(B_Bot_t* const a_BotData)
 B_Bot_t* B_InitBot(const B_BotTemplate_t* a_Template)
 {
 	B_Bot_t* New;
-	thinker_t* currentthinker;
-	mobj_t* mo;
 	int32_t i;
 	
 	/* Debugging? */
@@ -724,7 +720,7 @@ void B_InitBotCodes(void)
 int CLC_DumpNodes(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 128
-	B_GhostNode_t* Rover, *Link;
+	B_Node_t* Rover, *Link;
 	I_File_t* File;
 	char Buf[BUFSIZE];
 	int x, y;

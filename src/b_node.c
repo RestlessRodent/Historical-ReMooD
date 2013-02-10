@@ -218,8 +218,8 @@ B_Unimatrix_t* BS_UnimatrixAtPos(const fixed_t a_X, const fixed_t a_Y)
 	return &l_UMGrid[Location];
 }
 
-/* B_NodeTrav() -- Checks whether the node is in a "good" spot */
-static bool_t B_NodeTrav(intercept_t* in, void* const a_Data)
+/* B_NodePosTrav() -- Checks whether the node is in a "good" spot */
+static bool_t B_NodePosTrav(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
 	mobj_t* mo;
@@ -271,12 +271,12 @@ static bool_t B_NodeTrav(intercept_t* in, void* const a_Data)
 	}
 }
 
-/* B_GHOST_NodeNearPos() -- Get node near position */
-B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, const bool_t a_Any)
+/* B_NodeAtPos() -- Get node near position */
+B_Node_t* B_NodeAtPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, const bool_t a_Any)
 {
 	B_Unimatrix_t* UniMatrix;
-	B_GhostNode_t* CurrentNode, *Best;
-	fixed_t Dist, ZDist, BestDist, BestZDist;
+	B_Node_t* CurrentNode, *Best;
+	fixed_t Dist, BestDist;
 	size_t i;
 	fixed_t Z;
 	
@@ -332,16 +332,15 @@ B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y, const f
 }
 
 /* B_GHOST_CreateNodeAtPos() -- Creates node at point */
-B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
+B_Node_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 {
-	B_GhostNode_t* New;
+	B_Node_t* New;
 	subsector_t* SubS;
-	B_GhostNode_t* Rover;
 	size_t i;
-	fixed_t RealX, RealY, Dist;
+	fixed_t RealX, RealY;
 	bool_t Failed;
 	B_Unimatrix_t* ThisMatrix;
-	B_GhostNode_t* CurrentNode, *NearNode;
+	B_Node_t *NearNode;
 	
 	/* Init */
 	RealX = a_X;
@@ -362,7 +361,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 		return NULL;
 	
 	// Don't add any nodes that are close to this spot
-	NearNode = B_GHOST_NodeNearPos(RealX, RealY, SubS->sector->floorheight, false);
+	NearNode = B_NodeAtPos(RealX, RealY, SubS->sector->floorheight, false);
 	
 	// There was something close by
 	if (NearNode)
@@ -391,7 +390,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 				RealX + (BOTMINNODEDIST >> 1),
 				RealY + (BOTMINNODEDIST >> 1),
 				PT_ADDLINES,
-				B_NodeTrav,
+				B_NodePosTrav,
 				NULL
 			))
 		Failed = true;
@@ -403,7 +402,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 				RealX + (BOTMINNODEDIST >> 1),
 				RealY - (BOTMINNODEDIST >> 1),
 				PT_ADDLINES,
-				B_NodeTrav,
+				B_NodePosTrav,
 				NULL
 			))
 		Failed = true;
@@ -470,109 +469,6 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	return New;
 }
 
-/* B_GHOST_PolygonSplitLevel() -- Splits level into polygons */
-bool_t B_GHOST_PolygonSplitLevel(const node_t* const a_Node)
-{
-	return false;
-}
-
-/* B_GHOST_RecursiveSplitMap() -- Recursively split the map */
-// Normally this would have been for subsector shapes, but that is too much
-// of a pain in the ass to do. I cannot seem to get it working at all, so i'm
-// giving up on that and instead doing bounding boxes for navigation. It is
-// shittier and less precise but it is hell of alot easier to implement!
-// Although this is shitter, it is alot faster since people will probably not
-// want to wait 5 minutes for polygonal meshes to build. If the map isn't that
-// square it will be less accurate. So on levels such as MAP02 it can work good
-// but on some very curvy levels, maybe not so much.
-bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
-{
-	int32_t Side, i, j, k;
-	fixed_t x1, y1, x2, y2;
-	
-	fixed_t* px, *py;
-	fixed_t cx, cy, dx, dy, ex, ey;
-	subsector_t* SubS;
-	
-	/* Check */
-	if (!a_Node)
-		return false;
-	
-	/* Go through sides */
-	for (i = 0; i < 2; i++)
-	{
-		// Side is a subsector
-		if (a_Node->children[i] & NF_SUBSECTOR)
-		{
-			// Get bounds for subsector
-				// A bounding box consists of four short values (top, bottom,
-				// left and right) giving the upper and lower bounds of the y
-				// coordinate and the lower and upper bounds of the x coordinate
-				// (in that order).
-			x1 = a_Node->bbox[i][2];
-			y1 = a_Node->bbox[i][1];
-			x2 = a_Node->bbox[i][3];
-			y2 = a_Node->bbox[i][0];
-			
-			// Get the center of that box (easy to get)
-			cx = FixedDiv(x1 + x2, 2 << FRACBITS);
-			cy = FixedDiv(y1 + y2, 2 << FRACBITS);
-			
-			// Create a node there
-			B_GHOST_CreateNodeAtPos(cx, cy);
-			
-#define MESHNESS 4
-			// Create nodes in a 4x4 pattern scaled within the bo
-			cx = (x2 - x1) / (MESHNESS + 2);
-			cy = (y2 - y1) / (MESHNESS + 2);
-			
-			for (j = 1; j <= MESHNESS; j++)
-			{
-				dx = x1 + (cx * j);
-				
-				for (k = 1; k <= MESHNESS; k++)
-				{
-					dy = y1 + (cy * j);
-					
-					B_GHOST_CreateNodeAtPos(dx, dy);
-				}
-			}
-			
-			// Go through each 4 corners and midpoint that and the center
-			// this creates a web of sorts
-			for (j = 0; j < 4; j++)
-			{
-				// Which now?
-				if ((j & 1) == 0)
-					px = &x1;
-				else
-					px = &x2;
-				if (j < 2)
-					py = &y1;
-				else
-					py = &y2;
-				
-				// Get the midpoint of those between the center
-				dx = FixedDiv(*px + cx, 2 << FRACBITS);
-				dy = FixedDiv(*py + cy, 2 << FRACBITS);
-				
-				// Create node there
-				B_GHOST_CreateNodeAtPos(dx, dy);
-			}
-		}
-		
-		// Side is another node
-		else
-		{
-			// Just recourse into it
-			B_GHOST_RecursiveSplitMap(&nodes[a_Node->children[i]]);
-		}
-	}
-	
-	/* Success */
-	return true;
-}
-
 /* B_NodeFirstTrav() -- Helps determine whether point is reachable */
 // This is done for the initial node creation and as such it also determines
 // if a switch or line trigger is needed for activation.
@@ -615,7 +511,7 @@ static bool_t B_NodeFirstTrav(intercept_t* in, void* const a_Data)
 }
 
 /* B_NodeNtoN() -- Checks whether a node can be traveled to */
-bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime)
+bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const a_End, const bool_t a_FirstTime)
 {
 	/* Check */
 	if (!a_Start || !a_End || (!a_FirstTime && !a_Bot))
@@ -662,13 +558,13 @@ bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNod
 void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 {
 	int32_t s, dX, dY, aR;
-	B_GhostNode_t* ThisNode, *OtherNode;
+	B_Node_t* ThisNode, *OtherNode;
 	subsector_t* SubS, *OtherSS;
 	fixed_t Dist;
 	
 	struct
 	{
-		B_GhostNode_t* Node;
+		B_Node_t* Node;
 		fixed_t Dist;
 	} Best[9];
 	
@@ -685,7 +581,7 @@ void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 		return;
 	
 	// Obtain the remaining info
-	ThisNode = B_GHOST_NodeNearPos(SubS->CenterX, SubS->CenterY, ONFLOORZ, true);
+	ThisNode = B_NodeAtPos(SubS->CenterX, SubS->CenterY, ONFLOORZ, true);
 	
 	// No node?
 	if (!ThisNode)
@@ -708,7 +604,7 @@ void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 			continue;
 		
 		// Get node for that subsector
-		OtherNode = B_GHOST_NodeNearPos(OtherSS->CenterX, OtherSS->CenterY, ONFLOORZ, true);
+		OtherNode = B_NodeAtPos(OtherSS->CenterX, OtherSS->CenterY, ONFLOORZ, true);
 		
 		// No Node?
 		if (!OtherNode)
@@ -768,11 +664,7 @@ void B_GHOST_Ticker(void)
 	sector_t* SecRoverA, *SecRoverB;
 	size_t* BNumAdj = NULL;
 	B_Unimatrix_t* UniMatrix;
-	B_GhostNode_t* CurrentNode, *NearNode;
-	
-	fixed_t x, y, z, dx, dy;
 	int32_t uX, uY;
-	int8_t lox, loy;
 	
 	/* No Bots? */
 	if (!g_GotBots)
@@ -801,8 +693,6 @@ void B_GHOST_Ticker(void)
 		// Init
 		(*BAdj)[0] = CurSec;
 		(*BNumAdj) = 1;
-		DoStop = false;
-		DoOK = true;
 		k = 0;
 		
 		// Loop
@@ -810,10 +700,7 @@ void B_GHOST_Ticker(void)
 		{
 			// Go through the "last" check sector
 			SecRoverA = (*BAdj)[k++];
-	
-			// Reset
-			DoStop = true;
-	
+			
 			// Look in list
 			if (SecRoverA)
 				for (i = 0; i < SecRoverA->NumAdj; i++)
@@ -878,24 +765,8 @@ void B_GHOST_Ticker(void)
 	/* Build SubSector Mesh Map */
 	if (!l_SSMCreated)
 	{
-#if 1
 		// Polygonize the level
 		SN_PolygonizeLevel();
-		
-		// Map nodes from polygons
-#elif 0
-		// Brute force
-		for (x = g_GlobalBoundBox[BOXLEFT]; x < g_GlobalBoundBox[BOXRIGHT]; x += FIXEDT_C(32))
-		{
-			CONL_PrintF("%i of %i\n", (x - g_GlobalBoundBox[BOXLEFT]) >> 16, (g_GlobalBoundBox[BOXRIGHT] - g_GlobalBoundBox[BOXLEFT]) >> 16);	
-			
-			for (y = g_GlobalBoundBox[BOXBOTTOM]; y < g_GlobalBoundBox[BOXTOP]; y += FIXEDT_C(32))
-				B_GHOST_CreateNodeAtPos(x, y);
-		}
-#else
-		// Recursive map generation
-		B_GHOST_RecursiveSplitMap(&nodes[numnodes - 1]);
-#endif
 		
 		// Don't do anything else
 		l_SSMCreated = true;
@@ -968,7 +839,7 @@ void B_GHOST_Ticker(void)
 								dy += (BOTMINNODEDIST * y);
 								
 								// Try and locate nearby nodes
-								NearNode = B_GHOST_NodeNearPos(dx, dy, CurrentNode->FloorZ, !!j);
+								NearNode = B_NodeAtPos(dx, dy, CurrentNode->FloorZ, !!j);
 								
 								// No Node found?
 								if (!NearNode)
@@ -1036,7 +907,7 @@ void B_GHOST_Ticker(void)
 /* B_ClearNodes() -- Clears level */
 void B_ClearNodes(void)
 {
-	size_t i, j;
+	size_t i;
 	
 	/* Free all bot shore nodes */
 	for (i = 0; i < l_NumLocalBots; i++)
@@ -1178,12 +1049,14 @@ B_ShoreNode_t* B_ShoreAdd(B_Bot_t* a_Bot, const bool_t a_Work, const B_ShoreType
 	
 	// On the floor?
 	if (a_Z == ONFLOORZ)
+	{
 		if (New->SubS)
 			New->Pos[2] = New->SubS->sector->floorheight;
 		else
 			New->Pos[2] = a_Z;
+	}
 	
-	New->BotNode = B_GHOST_NodeNearPos(a_X, a_Y, New->Pos[2], true);
+	New->BotNode = B_NodeAtPos(a_X, a_Y, New->Pos[2], true);
 	
 	/* Add to list */
 	if (a_Work)
@@ -1269,10 +1142,10 @@ void B_ShoreApprove(B_Bot_t* a_Bot)
 bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
 {
 #define BUFSIZE 128
-#define MAXFAILS 128
-	int32_t i, x, b, Fails, Tries;
+#define MAXFAILS 64
+	int32_t i, x, b, Fails;
 	B_ShoreNode_t* SNode;
-	B_GhostNode_t* RoverNode, *DestNode, *Near;
+	B_Node_t* RoverNode, *DestNode, *Near;
 	I_File_t* File;
 	char Buf[BUFSIZE];
 	int32_t DirX, DirY, ArrX, ArrY;
@@ -1283,7 +1156,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 		bool_t OK;								// OK
 		fixed_t DistToGoal;						// Distance to goal
 		int32_t LoX, LoY;						// Link type
-		B_GhostNode_t* Node;					// Node Here
+		B_Node_t* Node;					// Node Here
 	} DirChoice[9];
 	
 	/* Increase CheckID */
@@ -1301,7 +1174,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 	
 	// Initialize
 	RoverNode = SNode->BotNode;		// Start at the starting point
-	DestNode = B_GHOST_NodeNearPos(a_ToX, a_ToY, ONFLOORZ, true);
+	DestNode = B_NodeAtPos(a_ToX, a_ToY, ONFLOORZ, true);
 	Fails = 0;
 	
 	// Check initial node we start at

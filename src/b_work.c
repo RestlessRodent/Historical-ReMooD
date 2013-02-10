@@ -44,7 +44,7 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 	B_BotTarget_t* FFree, *ShoreTarg;
 	B_ShoreNode_t* This;
-	B_GhostNode_t* Node;
+	B_Node_t* Node;
 	mobj_t* Mo;
 	int32_t i;
 	fixed_t Dist;
@@ -439,8 +439,8 @@ bool_t B_WorkFindGoodies(B_Bot_t* a_Bot, const size_t a_JobID)
 /* B_WorkRandomNav() -- Random navigation */
 bool_t B_WorkRandomNav(B_Bot_t* a_Bot, const size_t a_JobID)
 {
-	B_GhostNode_t* ThisNode;
-	B_GhostNode_t* TargetNode;
+	B_Node_t* ThisNode;
+	B_Node_t* TargetNode;
 	int32_t lox, loy, i;
 	
 	/* Check */
@@ -462,7 +462,7 @@ bool_t B_WorkRandomNav(B_Bot_t* a_Bot, const size_t a_JobID)
 	
 	/* See if there is a target there */
 	// Get current node
-	ThisNode = (B_GhostNode_t*)a_Bot->AtNode;
+	ThisNode = (B_Node_t*)a_Bot->AtNode;
 	
 	// No current node?
 	if (!ThisNode)
