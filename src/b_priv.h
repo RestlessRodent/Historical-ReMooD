@@ -54,7 +54,7 @@
 
 #define SHOREKEY UINT32_C(0xC007DEAD)
 
-#define MAXBOTJOBS							32	// Maximum Jobs
+#define MAXBOTJOBS							16	// Maximum Jobs
 
 #define MAXBOTTARGETS						16	// Max target designated
 
@@ -105,6 +105,40 @@ static const fixed_t c_forwardmove[2] = { 25, 50 };
 *** STRUCTURES ***
 *****************/
 
+/*****************************************************************************/
+
+#define MAXBOTGOA	64						// Max objects bot is aware of
+
+/* B_BotGOAType_t -- Type of GOA */
+typedef enum B_BotGOAType_e
+{
+	BBGOAT_PICKUP,							// Pickupable
+	BBGOAT_ENEMY,							// Enemy Target
+	BBGOAT_ALLY,							// Ally
+	BBGOAT_BARREL,							// Explosive Barrel
+} B_BotGOAType_t;
+
+/* B_BotGOA_t -- Bot's Global Object Awareness data */
+typedef struct B_BotGOA_s
+{
+	B_BotGOAType_t Type;					// Type of GOA
+	thinker_t* Thinker;						// Thinker Pointer
+	int32_t Priority;						// How important this thing is
+	tic_t FirstSeen;						// First time object noticed
+	tic_t ExpireSeen;						// When seeing this thing expires
+	bool_t Ignore;							// Ignore like it did not exist
+	fixed_t Dist;							// Distance to object (if applicable)
+	
+	union
+	{
+		struct
+		{
+		} Mo;								// Map Object Related
+	} Data;									// Thinker specific data
+} B_BotGOA_t;
+
+/*****************************************************************************/
+
 typedef struct B_ShoreNode_s B_ShoreNode_t;
 
 /* B_BotTarget_t -- Target of a bot */
@@ -117,11 +151,6 @@ typedef struct B_BotTarget_s
 	fixed_t x, y;							// X/Y Target
 	uintptr_t Key;							// Key
 } B_BotTarget_t;
-
-/* B_BotGOA_t -- Bot's Global Object Awareness data */
-typedef struct B_BotGOA_s
-{
-} B_BotGOA_t;
 
 /* B_Bot_t -- GhostlyBots information */
 struct B_GhostBot_s
@@ -152,8 +181,7 @@ struct B_GhostBot_s
 	uint32_t NumWork;							// Number of shore nodes (Working)
 	uint32_t WorkIt;							// Current shore iterator (Working)
 	
-	B_BotGOA_t** GOA;							// Awareness table
-	uint32_t NumGOA;							// Number in table
+	B_BotGOA_t GOA[MAXBOTGOA];					// Awareness Table
 	
 	bool_t (*ConfirmDesireF)(struct B_GhostBot_s* a_Bot);
 	int32_t DesireType;							// Type being desired
@@ -279,6 +307,9 @@ void B_ShoreApprove(B_Bot_t* a_Bot);
 bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY);
 
 /*** B_WORK.C ***/
+bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID);
+bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID);
+
 bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID);
 bool_t B_WorkFindGoodies(B_Bot_t* a_Bot, const size_t a_JobID);
 bool_t B_WorkRandomNav(B_Bot_t* a_Bot, const size_t a_JobID);

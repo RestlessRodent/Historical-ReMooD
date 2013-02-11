@@ -39,6 +39,79 @@
 *** FUNCTIONS ***
 ****************/
 
+/*****************************************************************************/
+
+/* B_CalcGOAPriority() -- Calculates Priority of object */
+int32_t B_CalcGOAPriority(B_Bot_t* a_Bot, mobj_t* const a_Mo, B_BotGOAType_t* const a_OutType)
+{
+	return 0;
+}
+
+/* B_WorkGOAAct() -- Act upon the GOA table */
+bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
+{
+	int32_t i;
+	B_BotGOA_t* GOA;
+	
+	/* If not in a level, don't bother */
+	if (gamestate != GS_LEVEL)
+		return true;
+	
+	/* Go through GOA list */
+	for (i = 0; i < MAXBOTGOA; i++)
+	{
+		GOA = &a_Bot->GOA[i];
+		
+		// No thinker? Not Important?
+		if (!GOA->Thinker || GOA->Priority <= 0)
+			continue;
+	}
+	
+	/* Always keep job */
+	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
+	return true;
+}
+
+/* B_WorkGOAUpdate() -- Updates the GOA table */
+bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
+{
+	thinker_t* Thinker;
+	mobj_t* Mo;
+	int32_t Priority;
+	B_BotGOAType_t Type;
+	
+	/* If not in a level, don't bother */
+	if (gamestate != GS_LEVEL)
+		return true;
+	
+	/* Go through the thinker table */
+	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
+	{
+		// Which object type is this?
+		switch (Thinker->Type)
+		{
+				// Map Object
+			case PTT_MOBJ:
+				Mo = (mobj_t*)Thinker;
+			
+				// Calculate Priority of object
+				if ((Priority = B_CalcGOAPriority(a_Bot, Mo, &Type)) <= 0)
+					continue;	// Not important enough
+				
+				break;
+			
+			default:
+				break;
+		}
+	}
+	
+	/* Always keep job */
+	a_Bot->Jobs[a_JobID].Sleep = gametic + TICRATE;
+	return true;
+}
+
+/*****************************************************************************/
+
 /* B_WorkShoreMove() -- Utilize shore movement */
 bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 {

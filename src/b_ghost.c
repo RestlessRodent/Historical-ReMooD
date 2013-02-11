@@ -180,6 +180,7 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 		a_Bot->Jobs[0].JobHere = true;
 		a_Bot->Jobs[0].JobFunc = B_WorkRandomNav;
 		
+#if 0
 		// Add Shooting things
 		a_Bot->Jobs[1].JobHere = true;
 		a_Bot->Jobs[1].JobFunc = B_WorkShootStuff;
@@ -191,10 +192,17 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 		// Finds Goodies
 		a_Bot->Jobs[3].JobHere = true;
 		a_Bot->Jobs[3].JobFunc = B_WorkFindGoodies;
+#endif
 		
 		// Utilize shore paths
 		a_Bot->Jobs[4].JobHere = true;
 		a_Bot->Jobs[4].JobFunc = B_WorkShoreMove;
+		
+		// GOA
+		a_Bot->Jobs[5].JobHere = true;
+		a_Bot->Jobs[5].JobFunc = B_WorkGOAUpdate;
+		a_Bot->Jobs[6].JobHere = true;
+		a_Bot->Jobs[6].JobFunc = B_WorkGOAAct;
 		
 		// Set as initialized
 		a_Bot->Initted = true;
