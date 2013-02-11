@@ -2904,6 +2904,21 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass)
 	P_SetThingPosition(a_Mo);
 }
 
+/* P_MobjIsPlayer() -- Object is player? */
+bool_t P_MobjIsPlayer(mobj_t* const a_Mo)
+{
+	/* Check */
+	if (!a_Mo)
+		return false;
+	
+	/* Is a player? */
+	if (a_Mo->player)
+		return true;
+	
+	/* Not one */
+	return false;
+}
+
 /* P_MobjOnSameFamily() -- Determines whether two objects are the same family */
 bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 {

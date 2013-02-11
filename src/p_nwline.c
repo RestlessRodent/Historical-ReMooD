@@ -98,7 +98,9 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 		return false;
 	
 	/* Check for locked door */
-	player = a_Object->player;
+	player = NULL;
+	if (P_MobjIsPlayer(a_Object))
+		player = a_Object->player;
 	
 	if (a_ArgC >= 5 && a_ArgV[4])
 	{
@@ -155,7 +157,7 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 	if (a_Line->sidenum[1] == -1)	// killough
 	{
 		S_StartSound(&player->mo->NoiseThinker, sfx_oof);	// killough 3/20/98
-		return 0;
+		return false;
 	}
 	
 	// if the sector has an active thinker, use it
@@ -177,7 +179,7 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 			// start going down immediately
 			else
 			{
-				if (!a_Object->player)
+				if (!P_MobjIsPlayer(a_Object))
 					return false;	// JDC: bad guys never close doors
 					
 				door->direction = -1;
@@ -342,7 +344,9 @@ bool_t EV_DoLockedDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 		return false;
 	
 	/* Check for locked door */
-	player = a_Object->player;
+	player = NULL;
+	if (P_MobjIsPlayer(a_Object))
+		player = a_Object->player;
 	
 	if (a_ArgC >= 1 && a_ArgV[0])
 	{
@@ -811,6 +815,317 @@ bool_t EV_DoPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Object,
 	return rtn;
 }
 
+/* EV_Teleport() -- Teleports a thing */
+// 0: Allow Player
+// 1: Allow Monster
+bool_t EV_Teleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int i;
+	int tag;
+	mobj_t* m;
+	thinker_t* thinker;
+	sector_t* sector;
+	
+	/* Allow Players/Monsters? */
+	if (P_MobjIsPlayer(a_Object))
+	{
+		if (!a_ArgV[0])
+			return false;
+	}
+	else
+	{
+		if (!a_ArgV[1])
+			return false;
+	}
+	
+	// don't teleport missiles
+	if (!(a_Object->RXFlags[0] & MFREXA_ALWAYSTELEPORT))
+		if (((a_Object->flags & MF_MISSILE)) || (a_Object->flags2 & MF2_NOTELEPORT))
+			return false;
+		
+	// Don't teleport if hit back of line,
+	//  so you can get out of teleporter.
+	if (a_Side)
+		return false;
+		
+	tag = a_Line->tag;
+	for (i = 0; i < numsectors; i++)
+	{
+		if (sectors[i].tag == tag)
+		{
+			thinker = thinkercap.next;
+			for (thinker = thinkercap.next; thinker != &thinkercap; thinker = thinker->next)
+			{
+				// not a mobj
+				if (thinker->function.acp1 != (actionf_p1)P_MobjThinker)
+					continue;
+					
+				m = (mobj_t*)thinker;
+				
+				// not a teleportman
+				if (!(m->RXFlags[0] & MFREXA_ISTELEPORTMAN))
+					continue;
+					
+				sector = m->subsector->sector;
+				// wrong sector
+				if (sector - sectors != i)
+					continue;
+					
+				return P_Teleport(a_Object, m->x, m->y, m->angle);
+			}
+		}
+	}
+	return false;
+}
+
+/*
+  SoM: 3/15/2000
+  Added new boom teleporting functions.
+*/
+/* EV_SilentTeleport() -- Same as teleport, but no fog */
+// 0: Allow Player
+// 1: Allow Monster
+bool_t EV_SilentTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int i;
+	mobj_t* m;
+	thinker_t* th;
+	fixed_t deltaviewheight;
+	player_t* player;
+	fixed_t z, momx, momy, s, c;
+	angle_t angle;
+	
+	/* Allow Players/Monsters? */
+	if (P_MobjIsPlayer(a_Object))
+	{
+		if (!a_ArgV[0])
+			return false;
+	}
+	else
+	{
+		if (!a_ArgV[1])
+			return false;
+	}
+	
+	// Don't teleport if hit back of line, so you can get out of teleporter.
+	if (a_Side)
+		return false;
+	
+	// don't teleport missiles
+	else if (!(a_Object->RXFlags[0] & MFREXA_ALWAYSTELEPORT))
+		if (a_Object->flags & MF_MISSILE)
+			return false;
+	
+	for (i = -1; (i = P_FindSectorFromLineTag(a_Line, i)) >= 0;)
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+			if (th->function.acp1 == (actionf_p1) P_MobjThinker && ((m = (mobj_t*)th)->RXFlags[0] & MFREXA_ISTELEPORTMAN) && m->subsector->sector - sectors == i)
+			{
+				// Height of thing above ground, in case of mid-air teleports:
+				z = a_Object->z - a_Object->floorz;
+				
+				// Get the angle between the exit thing and source linedef.
+				// Rotate 90 degrees, so that walking perpendicularly across
+				// teleporter linedef causes thing to exit in the direction
+				// indicated by the exit thing.
+				angle = R_PointToAngle2(0, 0, a_Line->dx,
+				                                a_Line->dy) - m->angle + ANG90;
+				                                
+				// Sine, cosine of angle adjustment
+				s = finesine[angle >> ANGLETOFINESHIFT];
+				c = finecosine[angle >> ANGLETOFINESHIFT];
+				
+				// Momentum of thing crossing teleporter linedef
+				momx = a_Object->momx;
+				momy = a_Object->momy;
+				
+				// Whether this is a player, and if so, a pointer to its player_t
+				player = NULL;
+				if (P_MobjIsPlayer(a_Object))
+					player = a_Object->player;
+				
+				// Attempt to teleport, aborting if blocked
+				if (!P_TeleportMove(a_Object, m->x, m->y))
+					return false;
+					
+				// Rotate thing according to difference in angles
+				a_Object->angle += angle;
+				
+				// Adjust z position to be same height above ground as before
+				a_Object->z = z + a_Object->floorz;
+				
+				// Rotate thing's momentum to come out of exit just like it entered
+				a_Object->momx = FixedMul(momx, c) - FixedMul(momy, s);
+				a_Object->momy = FixedMul(momy, c) + FixedMul(momx, s);
+				
+				// Adjust player's view, in case there has been a height change
+				// Voodoo dolls are excluded by making sure player->mo == thing.
+				if (player && player->mo == a_Object)
+				{
+					// Save the current deltaviewheight, used in stepping
+					deltaviewheight = player->deltaviewheight;
+					
+					// Clear deltaviewheight, since we don't want any changes
+					player->deltaviewheight = 0;
+					
+					// Set player's view according to the newly set parameters
+					P_CalcHeight(player);
+					
+					// Reset the delta to have the same dynamics as before
+					player->deltaviewheight = deltaviewheight;
+					
+					// SoM: 3/15/2000: move chasecam at new player location
+					if (a_Object->player->camera.chase)
+						P_ResetCamera(a_Object->player);
+						
+				}
+				
+				return true;
+			}
+	
+	return false;
+}
+
+/* EV_SilentLineTeleport() -- Silent linedef-based TELEPORTATION, by Lee Killough. Primarily for rooms-over-rooms etc. This is the complete player-preserving kind of teleporter. It has advantages over the teleporter with thing exits. */
+// 0: Allow Player
+// 1: Allow Monster
+// 2: Reverse Angle
+bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+#define FUDGEFACTOR 10	// maximum fixed_t units to move object to avoid hiccups
+	int i;
+	line_t* l;
+	fixed_t pos, x, y, s, c, z;
+	angle_t angle;
+	int32_t fudge, stepdown, side;
+	player_t* player;
+	
+	/* Allow Players/Monsters? */
+	if (P_MobjIsPlayer(a_Object))
+	{
+		if (!a_ArgV[0])
+			return false;
+	}
+	else
+	{
+		if (!a_ArgV[1])
+			return false;
+	}
+	
+	if (a_Side || a_Object->flags & MF_MISSILE)
+		return false;
+		
+	for (i = -1; (i = P_FindLineFromLineTag(a_Line, i)) >= 0;)
+		if ((l = lines + i) != a_Line && l->backsector)
+		{
+			// Get the thing's position along the source linedef
+			pos = abs(a_Line->dx) > abs(a_Line->dy) ? FixedDiv(a_Object->x - a_Line->v1->x, a_Line->dx) : FixedDiv(a_Object->y - a_Line->v1->y, a_Line->dy);
+			
+			// Get the angle between the two linedefs, for rotating
+			// orientation and momentum. Rotate 180 degrees, and flip
+			// the position across the exit linedef, if reversed.
+			angle = (a_ArgV[2] ? pos = FRACUNIT - pos, 0 : ANG180) + R_PointToAngle2(0, 0, l->dx, l->dy) - R_PointToAngle2(0, 0, a_Line->dx, a_Line->dy);
+			
+			// Interpolate position across the exit linedef
+			x = l->v2->x - FixedMul(pos, l->dx);
+			y = l->v2->y - FixedMul(pos, l->dy);
+			
+			// Sine, cosine of angle adjustment
+			s = finesine[angle >> ANGLETOFINESHIFT];
+			c = finecosine[angle >> ANGLETOFINESHIFT];
+			
+			// Maximum distance thing can be moved away from interpolated
+			// exit, to ensure that it is on the correct side of exit linedef
+			fudge = FUDGEFACTOR;
+			
+			// Whether this is a player, and if so, a pointer to its player_t.
+			// Voodoo dolls are excluded by making sure thing->player->mo==thing.
+			player = NULL;
+			if (P_MobjIsPlayer(player))
+				player = a_Object->player && a_Object->player->mo == a_Object ? a_Object->player : NULL;
+			
+			// Whether walking towards first side of exit linedef steps down
+			stepdown = l->frontsector->floorheight < l->backsector->floorheight;
+			
+			// Height of thing above ground
+			z = a_Object->z - a_Object->floorz;
+			
+			// Side to exit the linedef on positionally.
+			//
+			// Notes:
+			//
+			// This flag concerns exit position, not momentum. Due to
+			// roundoff error, the thing can land on either the left or
+			// the right side of the exit linedef, and steps must be
+			// taken to make sure it does not end up on the wrong side.
+			//
+			// Exit momentum is always towards side 1 in a reversed
+			// teleporter, and always towards side 0 otherwise.
+			//
+			// Exiting positionally on side 1 is always safe, as far
+			// as avoiding oscillations and stuck-in-wall problems,
+			// but may not be optimum for non-reversed teleporters.
+			//
+			// Exiting on side 0 can cause oscillations if momentum
+			// is towards side 1, as it is with reversed teleporters.
+			//
+			// Exiting on side 1 slightly improves player viewing
+			// when going down a step on a non-reversed teleporter.
+			
+			side = a_ArgV[2] || (player && stepdown);
+			
+			// Make sure we are on correct side of exit linedef.
+			while (P_PointOnLineSide(x, y, l) != side && --fudge >= 0)
+				if (abs(l->dx) > abs(l->dy))
+					y -= l->dx < 0 != side ? -1 : 1;
+				else
+					x += l->dy < 0 != side ? -1 : 1;
+					
+			// Attempt to teleport, aborting if blocked
+			if (!P_TeleportMove(a_Object, x, y))
+				return false;
+				
+			// Adjust z position to be same height above ground as before.
+			// Ground level at the exit is measured as the higher of the
+			// two floor heights at the exit linedef.
+			a_Object->z = z + sides[l->sidenum[stepdown]].sector->floorheight;
+			
+			// Rotate thing's orientation according to difference in linedef angles
+			a_Object->angle += angle;
+			
+			// Momentum of thing crossing teleporter linedef
+			x = a_Object->momx;
+			y = a_Object->momy;
+			
+			// Rotate thing's momentum to come out of exit just like it entered
+			a_Object->momx = FixedMul(x, c) - FixedMul(y, s);
+			a_Object->momy = FixedMul(y, c) + FixedMul(x, s);
+			
+			// Adjust a player's view, in case there has been a height change
+			if (player)
+			{
+				// Save the current deltaviewheight, used in stepping
+				fixed_t deltaviewheight = player->deltaviewheight;
+				
+				// Clear deltaviewheight, since we don't want any changes now
+				player->deltaviewheight = 0;
+				
+				// Set player's view according to the newly set parameters
+				P_CalcHeight(player);
+				
+				// Reset the delta to have the same dynamics as before
+				player->deltaviewheight = deltaviewheight;
+				
+				// SoM: 3/15/2000: move chasecam at new player location
+				if (a_Object->player->camera.chase)
+					P_ResetCamera(a_Object->player);
+			}
+			
+			return true;
+		}
+	
+	return false;
+}
+
 /*****************************************************************************/
 
 // c_LineTrigs -- Static line triggers
@@ -1125,6 +1440,60 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{123, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoPlat, 2,
 		{blazeDWUS, 0}},
 	
+	// Teleport
+		// Switch
+	{174, 0, LAT_SWITCH, PNLF_MONSTER, EV_Teleport, 2,
+		{true, true}},
+	{195, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_RETRIG, EV_Teleport, 2,
+		{true, true}},
+		
+		// Walk
+	{39, 0, LAT_WALK, PNLF_CLEARNOTBOOM | PNLF_MONSTER, EV_Teleport, 2,
+		{true, true}},
+	{125, 0, LAT_WALK, PNLF_CLEARNOTBOOM | PNLF_MONSTER, EV_Teleport, 2,
+		{false, true}},
+	{97, 0, LAT_WALK, PNLF_CLEARNOTBOOM | PNLF_MONSTER | PNLF_RETRIG, EV_Teleport, 2,
+		{true, true}},
+	{126, 0, LAT_WALK, PNLF_CLEARNOTBOOM | PNLF_MONSTER | PNLF_RETRIG, EV_Teleport, 2,
+		{false, true}},
+	
+	// Silent Teleport
+		// Switch
+	{209, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_BOOM, EV_SilentTeleport, 2,
+		{true, true}},
+	{210, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentTeleport, 2,
+		{true, true}},
+	
+		// Walk
+	{207, 0, LAT_WALK, PNLF_MONSTER | PNLF_BOOM, EV_SilentTeleport, 2,
+		{true, true}},
+	{268, 0, LAT_WALK, PNLF_MONSTER | PNLF_BOOM, EV_SilentTeleport, 2,
+		{false, true}},
+	{208, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentTeleport, 2,
+		{true, true}},
+	{269, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentTeleport, 2,
+		{false, true}},
+	
+	// Silent Line Teleport
+		// Walk
+	{243, 0, LAT_WALK, PNLF_MONSTER | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{true, true, false}},
+	{262, 0, LAT_WALK, PNLF_MONSTER | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{true, true, true}},
+	{264, 0, LAT_WALK, PNLF_MONSTER | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{false, true, true}},
+	{266, 0, LAT_WALK, PNLF_MONSTER | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{false, true, false}},
+	{244, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{true, true, false}},
+	{263, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{true, true, true}},
+	{265, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{false, true, true}},
+	{267, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentLineTeleport, 3,
+		{false, true, false}},
+		
+	
 #if 0
 	// Scrollers (EV_SpawnScroller)
 	{48, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 5,
@@ -1164,7 +1533,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			
 			// Monster cannot activate?
 			if (a_Type != LAT_MAPSTART)
-				if (!a_Object->player)
+				if (!P_MobjIsPlayer(a_Object))
 				{
 					// Secret lines cannot be activated
 					if (a_Line->flags & ML_SECRET)
@@ -1215,7 +1584,7 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			return false;
 		}
 	
-	if (devparm && a_Object && a_Object->player)
+	if (devparm && a_Object && P_MobjIsPlayer(a_Object))
 		CONL_PrintF("{3Trig %p by %p (side %+1i): Via %c, %8i\n", a_Line, a_Object, a_Side, (a_Type == LAT_WALK ? 'W' : (a_Type == LAT_SHOOT ? 'G' : (a_Type == LAT_MAPSTART ? 'M' : 'S'))), a_Line->special);
 	
 	/* Failed */

@@ -660,11 +660,9 @@ void T_MoveElevator(elevator_t* elevator);
 //
 // P_TELEPT
 //
-int EV_Teleport(line_t* line, int side, mobj_t* thing);
 
 //SoM: 3/15/2000: Boom silent teleport functions
-int EV_SilentTeleport(line_t* line, int side, mobj_t* thing);
-int EV_SilentLineTeleport(line_t* line, int side, mobj_t* thing, bool_t reverse);
+
 int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 
 /* SoM: 3/4/2000: This is a large section of copied code. Sorry if this offends people, but
@@ -1301,6 +1299,8 @@ bool_t PIT_PushThing(mobj_t* thing, void* a_Arg);
 void T_Pusher(pusher_t* p);
 mobj_t* P_GetPushThing(int s);
 
+bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle);
+
 //SoM: 3/16/2000
 void P_CalcHeight(player_t* player);
 
@@ -1329,6 +1329,12 @@ bool_t EV_DoLockedDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 bool_t EV_DoFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_DoPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_Teleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_SilentTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 /*****************************************************************************/
 

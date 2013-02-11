@@ -363,11 +363,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			case 32:			// MANUAL BLUE
 			case 33:			// MANUAL RED
 			case 34:			// MANUAL YELLOW
-				//SoM: 3/18/2000: add ability to use teleporters for monsters
-			case 195:			// switch teleporters
-			case 174:
-			case 210:			// silent switch teleporters
-			case 209:
 				break;
 				
 			default:
@@ -518,12 +513,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						P_ChangeSwitchTexture(line, 0);
 						break;
 						
-					case 174:
-						// Teleport
-						if (EV_Teleport(line, side, thing))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
 					case 189:	//create texture change no motion type
 						// Texture Change Only (Trigger)
 						if (EV_DoChange(line, trigChangeOnly))
@@ -542,11 +531,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
-					case 209:
-						// killough 1/31/98: silent teleporter
-						if (EV_SilentTeleport(line, side, thing))
-							P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 241:	//jff 3/15/98 create texture change no motion type
 						// Texture Change Only (Numeric)
@@ -652,12 +636,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 195:
-						// Teleport
-						if (EV_Teleport(line, side, thing))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
 					case 205:
 						// Lower ceiling to lowest surrounding ceiling
 						if (EV_DoCeiling(line, lowerToLowest))
@@ -667,12 +645,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 					case 206:
 						// Lower ceiling to highest surrounding floor
 						if (EV_DoCeiling(line, lowerToMaxFloor))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 210:
-						// Silent teleporter
-						if (EV_SilentTeleport(line, side, thing))
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						

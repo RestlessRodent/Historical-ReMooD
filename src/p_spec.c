@@ -1064,10 +1064,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 		
 		switch (line->special)
 		{
-			case 39:			// TELEPORT TRIGGER
-			case 97:			// TELEPORT RETRIGGER
-			case 125:			// TELEPORT MONSTERONLY TRIGGER
-			case 126:			// TELEPORT MONSTERONLY RETRIGGER
 			case 4:			// RAISE DOOR
 			case 10:			// PLAT DOWN-WAIT-UP-STAY TRIGGER
 			case 88:			// PLAT DOWN-WAIT-UP-STAY RETRIGGER
@@ -1075,21 +1071,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				break;
 				// SoM: 3/4/2000: Add boom compatibility for extra monster usable
 				// linedef types.
-			case 208:			//SoM: Silent thing teleporters
-			case 207:
-			case 243:			//Silent line to line teleporter
-			case 244:			//Same as above but trigger once.
-			case 262:			//Same as 243 but reversed
-			case 263:			//Same as 244 but reversed
-			case 264:			//Monster only, silent, trigger once, reversed
-			case 265:			//Same as 264 but repeatable
-			case 266:			//Monster only, silent, trigger once
-			case 267:			//Same as 266 bot repeatable
-			case 268:			//Monster only, silent, trigger once, set pos to thing
-			case 269:			//Monster only, silent, repeatable, set pos to thing
-				if (boomsupport)
-					ok = 1;
-				break;
+				
 		}
 		//SoM: Anything can trigger this line!
 		if (line->flags & ML_ALLTRIGGER)
@@ -1152,12 +1134,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 39:
-			// TELEPORT!
-			if (EV_Teleport(line, side, thing) || !boomsupport)
-				line->special = 0;
-			break;
-			
 			
 		case 44:
 			// Ceiling Crush
@@ -1191,16 +1167,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-			
-			
-		case 125:
-			// TELEPORT MonsterONLY
-			if (!thing->player)
-			{
-				if (EV_Teleport(line, side, thing) || !boomsupport)
-					line->special = 0;
-			}
-			break;
 			
 		case 141:
 			// Silent Ceiling Crush & Raise
@@ -1271,18 +1237,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			EV_StopPlat(line);
 			break;
 			
-		case 97:
-			// TELEPORT!
-			EV_Teleport(line, side, thing);
-			break;
-			
-			
-		case 126:
-			// TELEPORT MonsterONLY.
-			if (!thing->player)
-				EV_Teleport(line, side, thing);
-			break;
-			
 			// SoM:3/4/2000: Extended Boom W* triggers.
 		default:
 			if (boomsupport)
@@ -1316,11 +1270,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 							line->special = 0;
 						break;
 						
-					case 207:
-						// W1 silent teleporter (normal kind)
-						if (EV_SilentTeleport(line, side, thing))
-							line->special = 0;
-						break;
 						
 					case 153:
 						// Texture/Type Change Only (Trig)
@@ -1353,31 +1302,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 							line->special = 0;
 						break;
 						
-					case 243:
-						// W1 silent teleporter (linedef-linedef kind)
-						if (EV_SilentLineTeleport(line, side, thing, false))
-							line->special = 0;
-						break;
-						
-					case 262:
-						if (EV_SilentLineTeleport(line, side, thing, true))
-							line->special = 0;
-						break;
-						
-					case 264:
-						if (!thing->player && EV_SilentLineTeleport(line, side, thing, true))
-							line->special = 0;
-						break;
-						
-					case 266:
-						if (!thing->player && EV_SilentLineTeleport(line, side, thing, false))
-							line->special = 0;
-						break;
-						
-					case 268:
-						if (!thing->player && EV_SilentTeleport(line, side, thing))
-							line->special = 0;
-						break;
 						
 						// Extended walk many retriggerable
 						
@@ -1429,11 +1353,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						EV_DoCeiling(line, lowerToMaxFloor);
 						break;
 						
-					case 208:
-						// WR silent teleporter (normal kind)
-						EV_SilentTeleport(line, side, thing);
-						break;
-						
 					case 154:
 						// Texture/Type Change Only (Trigger)
 						EV_DoChange(line, trigChangeOnly);
@@ -1460,33 +1379,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						EV_DoElevator(line, elevateCurrent);
 						break;
 						
-					case 244:
-						// WR silent teleporter (linedef-linedef kind)
-						EV_SilentLineTeleport(line, side, thing, false);
-						break;
-						
-					case 263:
-						//Silent line-line reversed
-						EV_SilentLineTeleport(line, side, thing, true);
-						break;
-						
-					case 265:
-						//Monster-only silent line-line reversed
-						if (!thing->player)
-							EV_SilentLineTeleport(line, side, thing, true);
-						break;
-						
-					case 267:
-						//Monster-only silent line-line
-						if (!thing->player)
-							EV_SilentLineTeleport(line, side, thing, false);
-						break;
-						
-					case 269:
-						//Monster-only silent
-						if (!thing->player)
-							EV_SilentTeleport(line, side, thing);
-						break;
 				}
 			}
 	}
@@ -2873,6 +2765,77 @@ mobj_t LavaInflictor;
 int P_GetThingFloorType(mobj_t* thing)
 {
 	return thing->subsector->sector->floortype;
+}
+
+/* P_Teleport() -- Teleports an object */
+bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
+{
+	mobj_t* fog;
+	fixed_t oldx;
+	fixed_t oldy;
+	fixed_t oldz;
+	fixed_t aboveFloor, fogDelta;
+	unsigned an;
+	int i;
+	
+	oldx = thing->x;
+	oldy = thing->y;
+	oldz = thing->z;
+	fogDelta = 0;
+	aboveFloor = thing->z - thing->floorz;
+	
+	if (!P_TeleportMove(thing, x, y))
+		return 0;
+		
+	thing->z = thing->floorz;	//fixme: not needed?
+	if (thing->player)
+	{
+		// heretic code
+		player_t* player = thing->player;
+		
+		player->viewz = thing->z + player->viewheight;
+	}
+	else if (thing->flags & MF_MISSILE)	// heretic stuff
+	{
+		thing->z = thing->floorz + aboveFloor;
+		if (thing->z + thing->height > thing->ceilingz)
+			thing->z = thing->ceilingz - thing->height;
+	}
+	
+	// spawn teleport fog at source and destination
+	fog = P_SpawnMobj(oldx, oldy, oldz + fogDelta, INFO_GetTypeByName("TeleportFog"));
+	S_StartSound(&fog->NoiseThinker, sfx_telept);
+	an = angle >> ANGLETOFINESHIFT;
+	fog = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], thing->z + fogDelta, INFO_GetTypeByName("TeleportFog"));
+	
+	// emit sound, where?
+	S_StartSound(&fog->NoiseThinker, sfx_telept);
+	
+	// don't move for a bit
+	if (thing->player)
+	{
+		thing->reactiontime = 18;
+		
+		// added : absolute angle position
+		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+			if (playeringame[g_Splits[i].Console] && thing == players[g_Splits[i].Console].mo)
+				localangle[i] = angle;
+		
+		// move chasecam at new player location
+		if (thing->player->camera.chase)
+			P_ResetCamera(thing->player);
+	}
+	
+	thing->angle = angle;
+	if (thing->flags & MF_MISSILE)
+	{
+		thing->momx = FixedMul(__REMOOD_GETSPEEDMO(thing), finecosine[an]);
+		thing->momy = FixedMul(__REMOOD_GETSPEEDMO(thing), finesine[an]);
+	}
+	else
+		thing->momx = thing->momy = thing->momz = 0;
+		
+	return 1;
 }
 
 /******************
