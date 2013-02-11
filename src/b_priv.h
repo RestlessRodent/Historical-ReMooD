@@ -112,10 +112,12 @@ static const fixed_t c_forwardmove[2] = { 25, 50 };
 /* B_BotGOAType_t -- Type of GOA */
 typedef enum B_BotGOAType_e
 {
-	BBGOAT_PICKUP,							// Pickupable
-	BBGOAT_ENEMY,							// Enemy Target
-	BBGOAT_ALLY,							// Ally
 	BBGOAT_BARREL,							// Explosive Barrel
+	BBGOAT_PICKUP,							// Pickupable
+	BBGOAT_ALLY,							// Ally
+	BBGOAT_ENEMY,							// Enemy Target
+	
+	NUMBOTGOATYPES
 } B_BotGOAType_t;
 
 /* B_BotGOA_t -- Bot's Global Object Awareness data */
@@ -128,6 +130,7 @@ typedef struct B_BotGOA_s
 	tic_t ExpireSeen;						// When seeing this thing expires
 	bool_t Ignore;							// Ignore like it did not exist
 	fixed_t Dist;							// Distance to object (if applicable)
+	PI_touch_t* TouchSpec;					// Touch Special
 	
 	union
 	{
@@ -181,8 +184,6 @@ struct B_GhostBot_s
 	uint32_t NumWork;							// Number of shore nodes (Working)
 	uint32_t WorkIt;							// Current shore iterator (Working)
 	
-	B_BotGOA_t GOA[MAXBOTGOA];					// Awareness Table
-	
 	bool_t (*ConfirmDesireF)(struct B_GhostBot_s* a_Bot);
 	int32_t DesireType;							// Type being desired
 	mobj_t* DesireMo;							// Object being desired
@@ -196,6 +197,9 @@ struct B_GhostBot_s
 		int32_t Priority;						// Job Priority
 		uint32_t Sleep;							// Job Sleeping (wait until tic happens)
 	} Jobs[MAXBOTJOBS];							// Bot's Jobs
+	
+	B_BotGOA_t* ActGOA[NUMBOTGOATYPES];			// GOA acting upon
+	B_BotGOA_t GOA[MAXBOTGOA];					// Awareness Table
 };
 
 /* B_Node_t -- A Node */

@@ -41,9 +41,203 @@
 
 /*****************************************************************************/
 
+/* B_CalcMoVsMo() -- Calculates Object vs Object */
+int32_t B_CalcMoVsMo(mobj_t* const a_Red, mobj_t* const a_Blue, int32_t* const a_RedCount, int32_t* const a_BlueCount)
+{
+	player_t* RedPlayer, *BluePlayer;
+	int32_t RedC, BlueC;
+	PI_wep_t* RedWep, *BlueWep;
+	int32_t* PlayC, *MonC;
+	int32_t r, b;
+	mobj_t* MonMo;
+	
+	/* Check */
+	if (!a_Red || !a_Blue)
+	{
+		if (a_RedCount)
+			*a_RedCount = 0;
+		if (a_BlueCount)
+			*a_BlueCount = 0;
+		return 0;
+	}
+	
+	/* Get players, if any */
+	RedPlayer = BluePlayer = NULL;
+	if (P_MobjIsPlayer(a_Red))
+		RedPlayer = a_Red->player;
+	if (P_MobjIsPlayer(a_Blue))
+		BluePlayer = a_Blue->player;
+	
+	/* Initialize Counts */
+	RedC = BlueC = 0;
+	
+	/* Player vs Player */
+	if (RedPlayer && BluePlayer)
+	{
+		// Get current weapons
+		RedWep = RedPlayer->weaponinfo[RedPlayer->readyweapon];
+		BlueWep = BluePlayer->weaponinfo[BluePlayer->readyweapon];
+		
+		// Base is the switch order of the weapon
+			// But switch orders are in the hundreds, so make them count less
+		RedC = RedWep->SwitchOrder / 10;
+		BlueC = BlueWep->SwitchOrder / 10;
+		
+		// If the weapon is a super weapon, give 25% Bonus
+		if (RedWep->WeaponFlags & WF_SUPERWEAPON)
+			RedC += RedC >> 2;
+		if (BlueWep->WeaponFlags & WF_SUPERWEAPON)
+			BlueC += BlueC >> 2;
+		
+		// However, if the weapon is melee, cut in half, unless both players
+		// have a melee weapon
+		if ((RedWep->WeaponFlags & WF_ISMELEE) ^ (BlueWep->WeaponFlags & WF_ISMELEE))
+		{
+			if (RedWep->WeaponFlags & WF_ISMELEE)
+				RedC >>= 1;
+			if (BlueWep->WeaponFlags & WF_ISMELEE)
+				BlueC >>= 1;
+		}
+		
+		// Calculate the armor, not being that effective
+		r = RedPlayer->armorpoints >> 1;
+		b = BluePlayer->armorpoints >> 1;
+		
+		// Blue armor gives a 50% bonus
+		if (RedPlayer->armortype >= 2)
+			r += (r >> 1);
+		if (BluePlayer->armortype >= 2)
+			b += (b >> 1);
+		
+		// Add in armor points
+		RedC += r;
+		BlueC += b;
+		
+		// Add in health
+		RedC += RedPlayer->health;
+		BlueC += BluePlayer->health;
+		
+		// If a player has more health, give that player the difference
+		if (RedPlayer->health > BluePlayer->health)
+			RedC += RedPlayer->health - BluePlayer->health;
+		else
+			BlueC += BluePlayer->health - RedPlayer->health;
+	}
+	
+	/* Player vs Monster / Monster vs Player */
+	else if ((RedPlayer && !BluePlayer) || (!RedPlayer && BluePlayer))
+	{
+		// Calculates are the same, so to reduce code bloat
+			// Red side
+		if (RedPlayer)
+		{
+			PlayC = &RedC;
+			MonC = &BlueC;
+			MonMo = a_Blue;
+			RedPlayer = RedPlayer;
+		}
+		
+			// Blue side
+		else
+		{
+			PlayC = &BlueC;
+			MonC = &RedC;
+			MonMo = a_Red;
+			RedPlayer = BluePlayer;
+		}
+		
+		// Players get a bonus of 50
+		*PlayC += 50;
+		
+		// Monsters get their health by 10s
+		*MonC = MonMo->health / 10;
+		
+		// Players get their health by 5s
+		*PlayC += RedPlayer->health / 5;
+		
+		// And they get armor bonus by 10s
+		*PlayC += RedPlayer->armorpoints / 10;
+	}
+	
+	/* Monster vs Monster */
+	else
+	{
+	}
+	
+	/* Return totals */
+	if (a_RedCount)
+		*a_RedCount = RedC;
+	if (a_BlueCount)
+		*a_BlueCount = BlueC;
+	return RedC + BlueC;
+}
+
 /* B_CalcGOAPriority() -- Calculates Priority of object */
 int32_t B_CalcGOAPriority(B_Bot_t* a_Bot, mobj_t* const a_Mo, B_BotGOAType_t* const a_OutType)
 {
+	int32_t WorkPri, RedC, BlueC;
+	
+	/* Check */
+	if (!a_Mo || !a_OutType)
+		return 0;
+	
+	/* If Object lacks one any of these flags, ignore it */
+	if (!(a_Mo->flags & (MF_SPECIAL | MF_SHOOTABLE)))
+		return 0;
+	
+	/* Pickupable Objects */
+	if (a_Mo->flags & MF_SPECIAL)
+	{
+	}
+	
+	/* Shootable Things */
+	else if (a_Mo->flags & MF_SHOOTABLE)
+	{
+		// A barrel?
+		if (a_Mo->info->BotMetric == INFOBM_BARREL)
+		{
+			*a_OutType = BBGOAT_BARREL;
+			return 100;
+		}
+		
+		// Other shootable thing
+		else
+		{
+			// Dead?
+			if (a_Mo->health <= 0 || (a_Mo->flags & MF_CORPSE))
+				return 0;
+			
+			// If the object is not a player, ignore really far away ones
+			if (!P_MobjIsPlayer(a_Mo))
+				if (P_AproxDistance(a_Mo->x - a_Bot->Mo->x, a_Mo->y - a_Bot->Mo->y) >= (MISSILERANGE << 1))
+					return 0;
+			
+			// If on same team, make an ally
+			if (P_MobjOnSameTeam(a_Bot->Mo, a_Mo))
+				*a_OutType = BBGOAT_ALLY;
+			
+			else
+				*a_OutType = BBGOAT_ENEMY;
+			
+			// Priority is based on power of attack
+			RedC = BlueC = 0;
+			B_CalcMoVsMo(a_Bot->Mo, a_Mo, &RedC, &BlueC);
+			WorkPri = RedC;	// By default, our advantage over their
+			
+			// If object has twice our advantage, then make it more important
+			if (BlueC > (RedC << 1))
+				WorkPri >>= 1;
+			
+			// If object not visible, cut priority by half
+			if (!P_CheckSight(a_Bot->Mo, a_Mo))
+				WorkPri >>= 1;
+			
+			// Return given priority
+			return WorkPri;
+		}
+	}
+	
+	/* Probably not important */
 	return 0;
 }
 
@@ -87,6 +281,10 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 	/* Go through the thinker table */
 	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
 	{
+		// Ignore our own thinker
+		if (Thinker == (thinker_t*)a_Bot->Mo)
+			continue;
+		
 		// Which object type is this?
 		switch (Thinker->Type)
 		{
@@ -97,6 +295,8 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 				// Calculate Priority of object
 				if ((Priority = B_CalcGOAPriority(a_Bot, Mo, &Type)) <= 0)
 					continue;	// Not important enough
+				
+				CONL_PrintF("%p: Pri %i for %s\n", a_Bot, Priority, Mo->info->RClassName);
 				
 				break;
 			
