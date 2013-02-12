@@ -172,75 +172,6 @@ int32_t B_CalcMoVsMo(mobj_t* const a_Red, mobj_t* const a_Blue, int32_t* const a
 	return RedC + BlueC;
 }
 
-/* B_CalcGOAPriority() -- Calculates Priority of object */
-int32_t B_CalcGOAPriority(B_Bot_t* a_Bot, mobj_t* const a_Mo, B_BotGOAType_t* const a_OutType)
-{
-	int32_t WorkPri, RedC, BlueC;
-	
-	/* Check */
-	if (!a_Mo || !a_OutType)
-		return 0;
-	
-	/* If Object lacks one any of these flags, ignore it */
-	if (!(a_Mo->flags & (MF_SPECIAL | MF_SHOOTABLE)))
-		return 0;
-	
-	/* Pickupable Objects */
-	if (a_Mo->flags & MF_SPECIAL)
-	{
-	}
-	
-	/* Shootable Things */
-	else if (a_Mo->flags & MF_SHOOTABLE)
-	{
-		// A barrel?
-		if (a_Mo->info->BotMetric == INFOBM_BARREL)
-		{
-			*a_OutType = BBGOAT_BARREL;
-			return 100;
-		}
-		
-		// Other shootable thing
-		else
-		{
-			// Dead?
-			if (a_Mo->health <= 0 || (a_Mo->flags & MF_CORPSE))
-				return 0;
-			
-			// If the object is not a player, ignore really far away ones
-			if (!P_MobjIsPlayer(a_Mo))
-				if (P_AproxDistance(a_Mo->x - a_Bot->Mo->x, a_Mo->y - a_Bot->Mo->y) >= (MISSILERANGE << 1))
-					return 0;
-			
-			// If on same team, make an ally
-			if (P_MobjOnSameTeam(a_Bot->Mo, a_Mo))
-				*a_OutType = BBGOAT_ALLY;
-			
-			else
-				*a_OutType = BBGOAT_ENEMY;
-			
-			// Priority is based on power of attack
-			RedC = BlueC = 0;
-			B_CalcMoVsMo(a_Bot->Mo, a_Mo, &RedC, &BlueC);
-			WorkPri = RedC;	// By default, our advantage over their
-			
-			// If object has twice our advantage, then make it more important
-			if (BlueC > (RedC << 1))
-				WorkPri >>= 1;
-			
-			// If object not visible, cut priority by half
-			if (!P_CheckSight(a_Bot->Mo, a_Mo))
-				WorkPri >>= 1;
-			
-			// Return given priority
-			return WorkPri;
-		}
-	}
-	
-	/* Probably not important */
-	return 0;
-}
-
 /* B_FindGOASpot() -- Finds a GOA */
 static B_BotGOA_t* B_FindGOASpot(B_Bot_t* a_Bot, const B_BotGOAType_t a_Type, const fixed_t a_Distance, const int32_t a_Priority, thinker_t* const a_Thinker)
 {
@@ -261,26 +192,49 @@ static B_BotGOA_t* B_FindGOASpot(B_Bot_t* a_Bot, const B_BotGOAType_t a_Type, co
 		{
 			if (Worst)
 			{
-				if (a_Priority > Worst->Priority || a_Distance < Worst->Dist)
-					Worst = &a_Bot->GOA[i];
+				if (!a_Priority)
+				{
+					if (a_Bot->GOA[i].Dist >= Worst->Dist)
+						Worst = &a_Bot->GOA[i];
+				}
+				
+				else
+				{
+					if (a_Bot->GOA[i].Priority <= Worst->Priority)
+						Worst = &a_Bot->GOA[i];
+				}
 			}
 			
-			else
+			else if (a_Type == a_Bot->GOA[i].Type)
 			{
-				if (a_Type == a_Bot->GOA[i].Type)
-					Worst = &a_Bot->GOA[i];
+				if (!a_Priority)
+				{
+					if (a_Distance <= a_Bot->GOA[i].Dist)
+						Worst = &a_Bot->GOA[i];
+				}
+				
+				else
+				{
+					if (a_Priority >= a_Bot->GOA[i].Priority)
+						Worst = &a_Bot->GOA[i];
+				}
 			}
 		}
 		
 		// This thinker?
-		if (a_Bot->GOA[i].Thinker == a_Thinker)
-			return &a_Bot->GOA[i];
+		if (a_Thinker)
+			if (a_Bot->GOA[i].Thinker == a_Thinker)
+				return &a_Bot->GOA[i];
 	}
 	
 	/* Return free if any, if not, use worst */
 	if (Free)
 		return Free;
-	return Worst;
+	if (Worst)
+		return Worst;
+	
+	// Fail case, just in case?
+	return &a_Bot->GOA[(MAXBOTGOA - 1) - a_Type];
 }
 
 /* B_WorkGOAAct() -- Act upon the GOA table */
@@ -305,8 +259,11 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 		GOA = &a_Bot->GOA[i];
 		
 		// No thinker? Not Important?
-		if (!GOA->Thinker || GOA->Priority <= 0)
+		if (!GOA->Thinker || GOA->Priority <= 0 || (GOA->ExpireSeen && gametic >= GOA->ExpireSeen))
+		{
+			memset(GOA, 0, sizeof(*GOA));
 			continue;
+		}
 		
 		// Remove gone things
 		if (GOA->Type == BBGOAT_BARREL || GOA->Type == BBGOAT_ENEMY)
@@ -330,13 +287,22 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 					ShootAt = GOA;
 		}
 		
+		// Failed to shore, so it can never become an active GOA
+		if (gametic < GOA->ShoreFailWait)
+			continue;
+		
 		// If no action is assigned, then set it
 		// If one is assigned but the type is a mismatch
 		// Otherwise, choose the more important one
 		if (!a_Bot->ActGOA[GOA->Type] ||
 				a_Bot->ActGOA[GOA->Type]->Type != GOA->Type ||
-				GOA->Priority > a_Bot->ActGOA[GOA->Type]->Priority)
+				(GOA->Priority > a_Bot->ActGOA[GOA->Type]->Priority &&
+					GOA->Dist <= a_Bot->ActGOA[GOA->Type]->Dist))
+		{
+			if (GOA->Type == BBGOAT_ENEMY)
+				CONL_PrintF("Considering %s (%p)\n", ((mobj_t*)GOA->Thinker)->info->RClassName, (mobj_t*)GOA->Thinker);
 			a_Bot->ActGOA[GOA->Type] = GOA;
+		}
 	}
 	
 	/* Perform actions for each */
@@ -354,7 +320,7 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 			continue;
 		
 		// Lost Priority?
-		if (GOA->Priority <= 0)
+		if (GOA->Priority <= 0 || GOA->Ignore)
 		{
 			a_Bot->ActGOA[i] = NULL;
 			continue;
@@ -363,28 +329,42 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 		// Shore to this area? Actual shoring is done later
 		if (!GOA->ShoreFailWait || gametic >= GOA->ShoreFailWait)
 			if (GOA->Priority > 0 && GOA->XRef && GOA->YRef)
-				if (!ShoreHere || GOA->Priority > ShoreHere->Priority)
+				if (!ShoreHere || (GOA->Priority > ShoreHere->Priority && GOA->Dist <= ShoreHere->Dist))
+				{
+					// If an ally, don't bother them if they are fine
+					if (i == BBGOAT_ALLY)
+						continue;
+					
 					ShoreHere = GOA;
+				}
 	}
 	
 	/* Shoreing to an area */
 	// But not if there is an existing shore, however, unless the priority is
 	// really high!
-	if (ShoreHere && (a_Bot->ShoreIt >= a_Bot->NumShore || (ShoreHere->Priority >= (a_Bot->GOAShorePri << 1))))
+	if (ShoreHere && (a_Bot->ShoreIt >= a_Bot->NumShore || (a_Bot->GOAShorePri && ShoreHere->Priority >= (a_Bot->GOAShorePri << 1))))
 	{
+		CONL_PrintF("Shore to %s (%p) + %u/%u\n", ((mobj_t*)ShoreHere->Thinker)->info->RClassName, ShoreHere->Thinker, (unsigned)ShoreHere->ShoreFailWait, (unsigned)gametic);
+		
 		// Build Path to target
 		if (B_ShorePath(a_Bot, a_Bot->Mo->x, a_Bot->Mo->y, *ShoreHere->XRef, *ShoreHere->YRef))
 		{
+			CONL_PrintF("OK!\n");
 			B_ShoreApprove(a_Bot);
 			a_Bot->GOAShorePri = ShoreHere->Priority;
-			ShoreHere->ShoreFailWait = 0;
 		}
 		
 		// Failed?
 		else
 		{
-			// Wait 5 seconds before trying again
-			ShoreHere->ShoreFailWait = gametic + (TICRATE * 5);
+			CONL_PrintF("Fail!\n");
+			// Wait 60 seconds before trying again
+			ShoreHere->ShoreFailWait = gametic + (TICRATE * 60);
+			
+			// Clear from active, if it is
+			for (i = 0; i < NUMBOTGOATYPES; i++)
+				if (ShoreHere == a_Bot->ActGOA[i])
+					a_Bot->ActGOA[i] = NULL;
 		}
 	}
 	
@@ -536,11 +516,11 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 				
 				// If not a player, ignore far away objects
 				if (!P_MobjIsPlayer(Mo))
-					if (Dist >= FIXEDT_C(5120))
+					if (Dist >= FIXEDT_C(4096))
 						continue;
 				
 				// Find new slot
-				New = B_FindGOASpot(a_Bot, Type, Dist, Priority, (thinker_t*)Mo);
+				New = B_FindGOASpot(a_Bot, Type, Dist, 0/*Priority*/, (thinker_t*)Mo);
 				
 				// Failed?
 				if (!New)
@@ -552,10 +532,14 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 					memset(New, 0, sizeof(*New));
 					
 					New->FirstSeen = gametic;
-					New->ExpireSeen = New->FirstSeen + (TICRATE * 10);
+					New->ExpireSeen = New->FirstSeen + (TICRATE * 15);
 				}
 				else
-					New->ExpireSeen = gametic + (TICRATE * 10);
+				{
+					// Only update the timer if not ignoring
+					if (!New->Ignore)
+						New->ExpireSeen = gametic + (TICRATE * 15);
+				}
 				
 				New->Type = Type;
 				New->Thinker = (thinker_t*)Mo;
@@ -597,6 +581,7 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 	mobj_t* Mo;
 	int32_t i;
 	fixed_t Dist;
+	B_PTPData_t PDat;
 	
 	/* Get Object */
 	Mo = a_Bot->Mo;
@@ -661,6 +646,16 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 	
 	/* Get current iterated target */
 	This = a_Bot->Shore[a_Bot->ShoreIt];
+	
+	/* See if the node we are chasing at can be traversed to */
+	memset(&PDat, 0, sizeof(PDat));
+	if (!B_NodePtoP(a_Bot, &PDat, Mo->x, Mo->y, This->Pos[0], This->Pos[1]))
+	{
+		// It is not, so clear the path we made
+		B_ShoreClear(a_Bot, true);
+		a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE);
+		return true;
+	}
 	
 	/* If the current node is a head or tail... */
 #if 0

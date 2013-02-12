@@ -58,6 +58,12 @@ typedef struct
 		mobj_t* thing;
 		line_t* line;
 	} d;
+	
+	struct
+	{
+		fixed_t x, y;							// X/Y?
+		fixed_t dx, dy;							// Difference?
+	} Trace;									// Trace Data
 } intercept_t;
 
 /*#define MAXINTERCEPTS   128

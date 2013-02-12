@@ -474,12 +474,21 @@ B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y)
 	return New;
 }
 
+/* B_NFTData_t -- Node first traverse data */
+typedef struct B_NFTData_s
+{
+	fixed_t x, y;								// X/Y Data
+} B_NFTData_t;
+
 /* B_NodeFirstTrav() -- Helps determine whether point is reachable */
 // This is done for the initial node creation and as such it also determines
 // if a switch or line trigger is needed for activation.
 static bool_t B_NodeFirstTrav(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
+	B_NFTData_t* NFTp = a_Data;
+	int32_t Side;
+	sector_t* FromSec, *ToSec;
 	
 	/* A Line */
 	if (in->isaline)
@@ -495,12 +504,25 @@ static bool_t B_NodeFirstTrav(intercept_t* in, void* const a_Data)
 		if (li->flags & ML_BLOCKING)
 			return false;
 		
+		// Single sided?
+		if (li->sidenum[0] == -1 || li->sidenum[1] == -1)
+			return false;
+		
 		// Cannot fit inside of sector
 			// Front Side
 		if ((li->frontsector->ceilingheight - li->frontsector->floorheight) < (56 << FRACBITS))
 			return false;
 			// Back Side
 		if ((li->backsector->ceilingheight - li->backsector->floorheight) < (56 << FRACBITS))
+			return false;
+			
+		// Get Sides
+		Side = P_PointOnLineSide(NFTp->x, NFTp->y, li);
+		FromSec = (!Side ? li->frontsector : li->backsector);
+		ToSec = (!Side ? li->backsector : li->frontsector);
+		
+		// Too big a step up?
+		if (ToSec->floorheight - FromSec->floorheight > FIXEDT_C(24))
 			return false;
 		
 		// Everything seems OK
@@ -518,6 +540,8 @@ static bool_t B_NodeFirstTrav(intercept_t* in, void* const a_Data)
 /* B_NodeNtoN() -- Checks whether a node can be traveled to */
 bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const a_End, const bool_t a_FirstTime)
 {
+	B_NFTData_t NFT;	
+	
 	/* Check */
 	if (!a_Start || !a_End || (!a_FirstTime && !a_Bot))
 		return false;
@@ -536,6 +560,11 @@ bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const
 				(a_End->CeilingZ - a_Start->FloorZ < (56 << FRACBITS)))
 			return false;
 		
+		// Init
+		memset(&NFT, 0, sizeof(NFT));
+		NFT.x = a_Start->x;
+		NFT.y = a_Start->y;
+		
 		// Draw line to node (slower)
 		if (!P_PathTraverse(
 				a_Start->x,
@@ -544,7 +573,7 @@ bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const
 				a_End->y,
 				PT_ADDLINES,
 				B_NodeFirstTrav,
-				NULL
+				&NFT
 			))
 			return false;
 		
@@ -557,6 +586,78 @@ bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const
 	{
 		return true;
 	}
+}
+/* B_NodePtoPTrav() -- Determines whether a point is reachable */
+static bool_t B_NodePtoPTrav(intercept_t* in, void* const a_Data)
+{
+	B_PTPData_t* PathData = a_Data;
+	line_t* li;
+	int32_t Side;
+	sector_t* FromSec, *ToSec;
+	
+	/* A Line */
+	if (in->isaline)
+	{
+		// Get line
+		li = in->d.line;
+		
+		// Cannot cross two sided line
+		if (!(li->flags & ML_TWOSIDED))
+			return false;
+		
+		// Cannot cross impassible line
+		if (li->flags & ML_BLOCKING)
+			return false;
+			
+		// Single sided?
+		if (li->sidenum[0] == -1 || li->sidenum[1] == -1)
+			return false;
+			
+		// Get side tracing through
+		Side = P_PointOnLineSide(PathData->x, PathData->y, li);
+		FromSec = (!Side ? li->frontsector : li->backsector);
+		ToSec = (!Side ? li->backsector : li->frontsector);
+		
+		// Too big a step up?
+		if (ToSec->floorheight - FromSec->floorheight > FIXEDT_C(24))
+			return false;
+		
+		// Everything seems OK
+		return true;
+	}
+	
+	/* A Thing */
+	else
+	{
+		// Everything seems OK
+		return true;
+	}
+}
+
+/* B_NodePtoP() -- Checks whether position to position is possible */
+bool_t B_NodePtoP(B_Bot_t* const a_Bot, B_PTPData_t* const a_PathData, const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2)
+{
+	/* Initialize Data */
+	if (a_PathData)
+	{
+		a_PathData->x = a_X1;
+		a_PathData->y = a_Y1;
+	}
+	
+	/* Draw line to node, if that fails, drop out */
+	if (!P_PathTraverse(
+			a_X1,
+			a_Y1,
+			a_X2,
+			a_Y2,
+			PT_ADDLINES | PT_ADDTHINGS,
+			B_NodePtoPTrav,
+			a_PathData
+		))
+		return false;
+	
+	/* Suppose it worked */
+	return true;
 }
 
 /* BS_GHOST_BuildLinks() -- Builds links for the specified subsector */
@@ -901,6 +1002,9 @@ void B_ClearNodes(void)
 		{
 			B_ShoreClear(l_LocalBots[i], false);
 			B_ShoreClear(l_LocalBots[i], true);
+			
+			memset(l_LocalBots[i]->GOA, 0, sizeof(l_LocalBots[i]->GOA));
+			memset(l_LocalBots[i]->ActGOA, 0, sizeof(l_LocalBots[i]->ActGOA));
 		}
 	
 	/* Wipe adjacent sector data */
@@ -1137,6 +1241,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 	char Buf[BUFSIZE];
 	int32_t DirX, DirY, ArrX, ArrY;
 	static uint32_t CheckID;
+	B_PTPData_t PTP;
 	
 	struct
 	{
@@ -1197,8 +1302,12 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 			// Only if it exists and has never been checked
 				// also, if it is traversable to
 			if (Near && Near->CheckID != CheckID)
+			{
+				// Init
+				memset(&PTP, 0, sizeof(PTP));
+				
 				// See if traversal is possible
-				if (B_NodeNtoN(a_Bot, RoverNode, Near, false))
+				//if (B_NodePtoP(a_Bot, &PTP, RoverNode->x, RoverNode->y, Near->x, Near->y))
 				{
 					DirChoice[x].OK = true;
 					DirChoice[x].DistToGoal =
@@ -1211,6 +1320,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 					DirChoice[x].Node = Near;
 					x++;
 				}
+			}
 			
 			// Check more directions
 			ArrX++;

@@ -557,6 +557,13 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_Bot_t* const a_BotD
 				// Clear things
 				B_ShoreClear(a_BotData, false);
 				B_ShoreClear(a_BotData, true);
+				
+				// Clear GOA
+				memset(a_BotData->GOA, 0, sizeof(a_BotData->GOA));
+				memset(a_BotData->ActGOA, 0, sizeof(a_BotData->ActGOA));
+				
+				// Clear Targets
+				memset(a_BotData->Targets, 0, sizeof(a_BotData->Targets));
 			}
 			
 			// Is still dead, wait some seconds to respawn

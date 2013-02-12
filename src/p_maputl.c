@@ -713,6 +713,10 @@ bool_t PIT_AddLineIntercepts(line_t* ld, void* a_Arg)
 	intercept_p->frac = frac;
 	intercept_p->isaline = true;
 	intercept_p->d.line = ld;
+	intercept_p->Trace.x = trace.x;
+	intercept_p->Trace.y = trace.y;
+	intercept_p->Trace.dx = trace.dx;
+	intercept_p->Trace.dy = trace.dy;
 	intercept_p++;
 	
 	return true;				// continue
