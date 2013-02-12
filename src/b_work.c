@@ -358,8 +358,11 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 		else
 		{
 			CONL_PrintF("Fail!\n");
-			// Wait 60 seconds before trying again
-			ShoreHere->ShoreFailWait = gametic + (TICRATE * 60);
+			// Wait 60 seconds for monsters, 10 for players before trying again
+			if (!P_MobjIsPlayer((mobj_t*)ShoreHere->Thinker))
+				ShoreHere->ShoreFailWait = gametic + (TICRATE * 60);
+			else
+				ShoreHere->ShoreFailWait = gametic + (TICRATE * 10);
 			
 			// Clear from active, if it is
 			for (i = 0; i < NUMBOTGOATYPES; i++)
