@@ -241,6 +241,44 @@ int32_t B_CalcGOAPriority(B_Bot_t* a_Bot, mobj_t* const a_Mo, B_BotGOAType_t* co
 	return 0;
 }
 
+/* B_FindGOASpot() -- Finds a GOA */
+static B_BotGOA_t* B_FindGOASpot(B_Bot_t* a_Bot, const B_BotGOAType_t a_Type, const fixed_t a_Distance, const int32_t a_Priority, thinker_t* const a_Thinker)
+{
+	B_BotGOA_t* Free;
+	B_BotGOA_t* Worst;
+	int32_t i;
+	
+	/* Go through all */
+	Free = Worst = NULL;
+	for (i = 0; i < MAXBOTGOA; i++)
+	{
+		// Free?
+		if (a_Bot->GOA[i].Type == BBGOAT_NULL)
+			Free = &a_Bot->GOA[i];
+		
+		// Worse?
+		else
+		{
+			if (Worst)
+			{
+				if (a_Priority > Worst->Priority || a_Distance < Worst->Dist)
+					Worst = &a_Bot->GOA[i];
+			}
+			
+			else
+			{
+				if (a_Type == a_Bot->GOA[i].Type)
+					Worst = &a_Bot->GOA[i];
+			}
+		}
+	}
+	
+	/* Return free if any, if not, use worst */
+	if (Free)
+		return Free;
+	return Worst;
+}
+
 /* B_WorkGOAAct() -- Act upon the GOA table */
 bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 {
@@ -271,8 +309,10 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 	thinker_t* Thinker;
 	mobj_t* Mo;
-	int32_t Priority;
+	int32_t Priority, VsPro;
 	B_BotGOAType_t Type;
+	fixed_t Dist;
+	B_BotGOA_t* New;
 	
 	/* If not in a level, don't bother */
 	if (gamestate != GS_LEVEL)
@@ -285,18 +325,77 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 		if (Thinker == (thinker_t*)a_Bot->Mo)
 			continue;
 		
+		// Init
+		Type = BBGOAT_NULL;
+		Priority = 0;
+		
 		// Which object type is this?
 		switch (Thinker->Type)
 		{
 				// Map Object
 			case PTT_MOBJ:
 				Mo = (mobj_t*)Thinker;
-			
-				// Calculate Priority of object
-				if ((Priority = B_CalcGOAPriority(a_Bot, Mo, &Type)) <= 0)
-					continue;	// Not important enough
 				
-				CONL_PrintF("%p: Pri %i for %s\n", a_Bot, Priority, Mo->info->RClassName);
+				// Can be picked up
+				if (Mo->flags & MF_SPECIAL)
+				{
+					Type = BBGOAT_PICKUP;
+				}
+				
+				// Can be shot
+				else if (Mo->flags & MF_SHOOTABLE)
+				{
+					// Dead?
+					if (Mo->health <= 0 || (Mo->flags & MF_CORPSE))
+						continue;
+					
+					// A barrel?
+					if (Mo->info->BotMetric == INFOBM_BARREL)
+					{
+						Type = BBGOAT_BARREL;
+					}
+					
+					// Everything else
+					else
+					{
+						// On same team?
+						if (P_MobjOnSameTeam(a_Bot->Mo, Mo))
+						{
+							Type = BBGOAT_ALLY;
+							Priority = 50;
+						}
+			
+						// Enemy Team
+						else
+						{
+							Type = BBGOAT_ENEMY;
+							Priority = VsPro = 0;
+							B_CalcMoVsMo(a_Bot->Mo, Mo, &Priority, &VsPro);
+						}
+					}
+				}
+				
+				// Not Valid? Low Priority?
+				if (Type == BBGOAT_NULL || Priority <= 0)
+					continue;
+				
+				// Distance to object
+				Dist = P_AproxDistance(Mo->x - a_Bot->Mo->x, Mo->y - a_Bot->Mo->y);
+				
+				// If not a player, ignore far away objects
+				if (!P_MobjIsPlayer(Mo))
+					if (Dist >= FIXEDT_C(5120))
+						continue;
+				
+				// Find new slot
+				New = B_FindGOASpot(a_Bot, Type, Dist, Priority, Thinker);
+				
+				// Failed?
+				if (!New)
+					continue;
+				
+				// Debug
+				CONL_PrintF("Grab %s\n", Mo->info->RClassName);
 				
 				break;
 			

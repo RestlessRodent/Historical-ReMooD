@@ -112,6 +112,7 @@ static const fixed_t c_forwardmove[2] = { 25, 50 };
 /* B_BotGOAType_t -- Type of GOA */
 typedef enum B_BotGOAType_e
 {
+	BBGOAT_NULL,							// Nothing
 	BBGOAT_BARREL,							// Explosive Barrel
 	BBGOAT_PICKUP,							// Pickupable
 	BBGOAT_ALLY,							// Ally
@@ -136,6 +137,7 @@ typedef struct B_BotGOA_s
 	{
 		struct
 		{
+			int32_t TargetPower;			// Power of target
 		} Mo;								// Map Object Related
 	} Data;									// Thinker specific data
 } B_BotGOA_t;
