@@ -59,6 +59,8 @@
 
 #define MAXBOTTARGETS						16	// Max target designated
 
+#define MAXNODESPERSUBSEC					64	// subsector_t uses uint8_t
+
 /* B_GhostCoopMode_t -- Coop Mode */
 typedef enum B_GhostCoopMode_e
 {
@@ -211,7 +213,7 @@ struct B_GhostBot_s
 };
 
 /* B_Node_t -- A Node */
-typedef struct B_GhostNode_s
+typedef struct B_Node_s
 {
 	fixed_t x;									// X Position
 	fixed_t y;									// Y Position
@@ -225,11 +227,11 @@ typedef struct B_GhostNode_s
 	
 	struct
 	{
-		struct B_GhostNode_s* Node;				// Node connected to
+		struct B_Node_s* Node;					// Node connected to
 		fixed_t Dist;							// Distance to node
 	} Links[3][3];								// Chain Links
 	
-	struct B_GhostNode_s* Next;					// Next in link
+	struct B_Node_s* Next;						// Next in link
 } B_Node_t;
 
 /* B_Unimatrix_t -- A large grid portion of the map */

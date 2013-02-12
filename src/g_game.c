@@ -389,7 +389,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	char AltBuf[MAXTCCBUFSIZE + 1];
 	bool_t OK, LegalMove;
 	
-	B_GhostBot_t* NewBot;
+	B_Bot_t* NewBot;
 	
 	D_XPlayer_t* XPlayer;
 	D_XPlayer_t Clone;

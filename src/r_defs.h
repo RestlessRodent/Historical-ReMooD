@@ -439,17 +439,11 @@ typedef struct subsector_s
 	//Hurdler: added for optimized mlook in hw mode
 	int validcount;
 	
-	// GhostlyDeath <April 23, 2012> -- Bots
-	bool_t NodesInit;							// Subsector mapped
-	void** BotNodes;							// Node in subsector
-	size_t NumBotNodes;							// Number of nodes in this subsector
-	
-	void** GhostNodes;
-	size_t NumGhostNodes;
-	
 	// GhostlyDeath <Feburary 9, 2013> -- Bots
 	bool_t PolyValid;							// Polygon is valid
 	fixed_t CenterX, CenterY;
+	struct B_Node_s** BotNodes;					// Bot nodes in subsector
+	uint8_t NumBotNodes;							// Number of nodes
 } subsector_t;
 
 // SoM: 3/6/200

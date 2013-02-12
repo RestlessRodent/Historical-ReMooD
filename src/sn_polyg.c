@@ -468,7 +468,7 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 }
 
 typedef struct B_GhostNode_s* B_GhostNode_t;
-B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y);
+B_GhostNode_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y);
 
 /* SN_PolySplitSubS() -- Split polygon by subsector */
 void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
@@ -561,7 +561,7 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 	a_SubS->CenterY = POLYFTOFIXED(cA.v[1]);
 	
 	// Add node there
-	B_GHOST_CreateNodeAtPos(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]));
+	B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]));
 }
 
 /* SN_PolySplitNode() -- Split Polygon By Node */

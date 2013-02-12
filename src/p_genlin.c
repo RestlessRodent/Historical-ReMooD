@@ -1568,6 +1568,9 @@ void Add_Pusher(int type, int x_mag, int y_mag, mobj_t* source, int affectee);
 /* EV_TryGenTrigger() -- Tries to trigger a line */
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
 {
+#if 1
+	return false;
+#else
 	triggertype_e TrigMode;
 	uint32_t TypeBase;
 	uint32_t u32;
@@ -2001,6 +2004,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	
 	/* Failed */
 	return false;
+#endif
 }
 
 /* P_ProcessSpecialSectorEx() -- Handles object in special sector */

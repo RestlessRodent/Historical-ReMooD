@@ -331,8 +331,8 @@ B_Node_t* B_NodeAtPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, c
 		return NULL;
 }
 
-/* B_GHOST_CreateNodeAtPos() -- Creates node at point */
-B_Node_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
+/* B_NodeCreate() -- Creates node at point */
+B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y)
 {
 	B_Node_t* New;
 	subsector_t* SubS;
@@ -358,6 +358,10 @@ B_Node_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	
 	// If nothing is there, forget it
 	if (!SubS)
+		return NULL;
+	
+	// Too many nodes in subsector?
+	if (SubS->NumBotNodes >= MAXNODESPERSUBSEC)
 		return NULL;
 	
 	// Don't add any nodes that are close to this spot
@@ -421,11 +425,6 @@ B_Node_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	New->CeilingZ = l_GCeilingZ;
 	New->SubS = SubS;
 	
-	/* Add to subsector links */
-	Z_ResizeArray((void**)&SubS->GhostNodes, sizeof(*SubS->GhostNodes),
-		SubS->NumGhostNodes, SubS->NumGhostNodes + 1);
-	SubS->GhostNodes[SubS->NumGhostNodes++] = New;
-	
 	/* Add everything to the unimatrix */
 	// Add subsector to unimatrix
 	for (i = 0; i < ThisMatrix->NumSubSecs; i++)
@@ -464,6 +463,12 @@ B_Node_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 		New->Next = l_HeadNode;
 		l_HeadNode = New;
 	}
+	
+	/* Add to subsector list */
+	Z_ResizeArray((void**)&SubS->BotNodes, sizeof(*SubS->BotNodes),
+		SubS->NumBotNodes, SubS->NumBotNodes + 1);
+	SubS->BotNodes[SubS->NumBotNodes++] = New;
+	Z_ChangeTag(SubS->BotNodes, PU_LEVEL);
 	
 	/* Return the new node */
 	return New;
@@ -557,8 +562,7 @@ bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const
 /* BS_GHOST_BuildLinks() -- Builds links for the specified subsector */
 void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 {
-	int32_t s, dX, dY, aR;
-	B_Node_t* ThisNode, *OtherNode;
+	int32_t s, dX, dY, aR, m, t, q;
 	subsector_t* SubS, *OtherSS;
 	fixed_t Dist;
 	
@@ -568,90 +572,72 @@ void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 		fixed_t Dist;
 	} Best[9];
 	
-	/* Debug */
-	if (g_BotDebug)
-		CONL_PrintF("Building links for subs %i (total runs %i)\n", a_SubSNum, numsubsectors * numsubsectors);
-	
 	/* Get info for this subsector */
 	// Refernece
 	SubS = &subsectors[a_SubSNum];
 	
-	// Invalid polygon?
-	if (!SubS->PolyValid)
-		return;
-	
-	// Obtain the remaining info
-	ThisNode = B_NodeAtPos(SubS->CenterX, SubS->CenterY, ONFLOORZ, true);
-	
-	// No node?
-	if (!ThisNode)
-		return;
-	
-	/* Initialize */
-	memset(Best, 0, sizeof(Best));
-	
-	/* Go through other subsectors */
-	for (s = 0; s < numsubsectors; s++)
+	/* Find the best links for all the nodes in this subsector */
+	for (m = 0; m < SubS->NumBotNodes; m++)
 	{
-		OtherSS = &subsectors[s];
+		// Clear the best selections
+		memset(Best, 0, sizeof(Best));
 		
-		// Ignore the same subsector
-		if (s == a_SubSNum)
-			continue;
-		
-		// Ignore invalid polygons
-		if (!OtherSS->PolyValid)
-			continue;
-		
-		// Get node for that subsector
-		OtherNode = B_NodeAtPos(OtherSS->CenterX, OtherSS->CenterY, ONFLOORZ, true);
-		
-		// No Node?
-		if (!OtherNode)
-			continue;
-		
-		// See if traversal is possible
-		if (!B_NodeNtoN(NULL, ThisNode, OtherNode, true))
-			continue;
-		
-		// It is, so obtain the logical direction to that node
-		dX = dY = 0;
-		B_NodeLD(&dX, &dY, ThisNode->x, ThisNode->y, OtherNode->x, OtherNode->y);
-		
-		// Ignore (0,0)
-		if (dX == 0 && dY == 0)
-			continue;
-		
-		// Make it array referenceable
-		dX += 1;
-		dY += 1;
-		aR = (dY * 3) + dX;
-		
-		// Get distance to target
-		Dist = P_AproxDistance(ThisNode->x - OtherNode->x, ThisNode->y - OtherNode->y);
-		
-		// Better connection?
-		if (!Best[aR].Node || (Best[aR].Node && Dist < Best[aR].Dist))
+		// Go through all other subsectors
+		for (s = 0; s < numsubsectors; s++)
 		{
-			Best[aR].Node = OtherNode;
-			Best[aR].Dist = Dist;
+			OtherSS = &subsectors[s];
+		
+			// Find links for their nodes
+			for (t = 0; t < OtherSS->NumBotNodes; t++)
+			{
+				// Ignore the same node in this subsector
+				if (s == a_SubSNum && m == t)
+					continue;
+				
+				// See if traversal is possible
+				if (!B_NodeNtoN(NULL, SubS->BotNodes[m], OtherSS->BotNodes[t], true))
+					continue;
+		
+				// It is, so obtain the logical direction to that node
+				dX = dY = 0;
+				B_NodeLD(&dX, &dY, SubS->BotNodes[m]->x, SubS->BotNodes[m]->y, OtherSS->BotNodes[t]->x, OtherSS->BotNodes[t]->y);
+		
+				// Ignore (0,0)
+				if (dX == 0 && dY == 0)
+					continue;
+		
+				// Make it array referenceable
+				dX += 1;
+				dY += 1;
+				aR = (dY * 3) + dX;
+		
+				// Get distance to target
+				Dist = P_AproxDistance(SubS->BotNodes[m]->x - OtherSS->BotNodes[t]->x, SubS->BotNodes[m]->y - OtherSS->BotNodes[t]->y);
+		
+				// Better connection?
+				if (!Best[aR].Node || (Best[aR].Node && Dist < Best[aR].Dist))
+				{
+					Best[aR].Node = OtherSS->BotNodes[t];
+					Best[aR].Dist = Dist;
+				}
+			}
 		}
-	}
-	
-	/* Hopefully obtained all the best links */
-	for (s = 0; s < 9; s++)
-	{
-		// Ignore if no node set
-		if (!Best[s].Node)
-			continue;
 		
-		// Convert from array base back to double ref
-		dX = s % 3;
-		dY = s / 3;
-		
-		// Set link to that node
-		ThisNode->Links[dX][dY].Node = Best[s].Node;
-		ThisNode->Links[dX][dY].Dist = Best[s].Dist;
+		// Set the best, which hopefully is the best
+		for (q = 0; q < 9; q++)
+		{
+			// Ignore if no node set
+			if (!Best[q].Node)
+				continue;
+
+			// Convert from array base back to double ref
+			dX = q % 3;
+			dY = q / 3;
+
+			// Set link to that node
+			SubS->BotNodes[m]->Links[dX][dY].Node = Best[q].Node;
+			SubS->BotNodes[m]->Links[dX][dY].Dist = Best[q].Dist;
+		}
 	}
 }
 
