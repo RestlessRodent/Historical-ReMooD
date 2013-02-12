@@ -180,17 +180,21 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 		a_Bot->Jobs[0].JobHere = true;
 		a_Bot->Jobs[0].JobFunc = B_WorkRandomNav;
 		
+#if 0
 		// Add Shooting things
 		a_Bot->Jobs[1].JobHere = true;
 		a_Bot->Jobs[1].JobFunc = B_WorkShootStuff;
+#endif
 		
 		// Gun Control
 		a_Bot->Jobs[2].JobHere = true;
 		a_Bot->Jobs[2].JobFunc = B_WorkGunControl;
 		
+#if 0
 		// Finds Goodies
 		a_Bot->Jobs[3].JobHere = true;
 		a_Bot->Jobs[3].JobFunc = B_WorkFindGoodies;
+#endif
 		
 		// Utilize shore paths
 		a_Bot->Jobs[4].JobHere = true;
@@ -398,7 +402,7 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 /* B_RemoveThinker() -- Remove thinker from bot references */
 void B_RemoveThinker(thinker_t* const a_Thinker)
 {
-	int32_t i;
+	int32_t i, j;
 	
 	/* Go through list */
 	for (i = 0; i < l_NumLocalBots; i++)
@@ -406,6 +410,11 @@ void B_RemoveThinker(thinker_t* const a_Thinker)
 		{
 			if ((thinker_t*)l_LocalBots[i]->DesireMo == a_Thinker)
 				l_LocalBots[i]->DesireMo = NULL;
+			
+			for (j = 0; j < MAXBOTGOA; j++)
+				if (l_LocalBots[i]->GOA[j].Thinker)
+					if (l_LocalBots[i]->GOA[j].Thinker == a_Thinker)
+						memset(&l_LocalBots[i]->GOA[j], 0, sizeof(l_LocalBots[i]->GOA[j]));
 		}
 }
 

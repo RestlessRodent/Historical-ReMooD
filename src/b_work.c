@@ -271,6 +271,10 @@ static B_BotGOA_t* B_FindGOASpot(B_Bot_t* a_Bot, const B_BotGOAType_t a_Type, co
 					Worst = &a_Bot->GOA[i];
 			}
 		}
+		
+		// This thinker?
+		if (a_Bot->GOA[i].Thinker == a_Thinker)
+			return &a_Bot->GOA[i];
 	}
 	
 	/* Return free if any, if not, use worst */
@@ -283,11 +287,17 @@ static B_BotGOA_t* B_FindGOASpot(B_Bot_t* a_Bot, const B_BotGOAType_t a_Type, co
 bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 {
 	int32_t i;
-	B_BotGOA_t* GOA;
+	B_BotGOA_t* GOA, *ShoreHere, *ShootAt, *BarrelTarg;
+	B_BotTarget_t* Targ, *FreeTarg;
+	mobj_t* Mo;
 	
 	/* If not in a level, don't bother */
 	if (gamestate != GS_LEVEL)
 		return true;
+		
+	/* Init */
+	ShoreHere = ShootAt = BarrelTarg = NULL;
+	Targ = FreeTarg = NULL;
 	
 	/* Go through GOA list */
 	for (i = 0; i < MAXBOTGOA; i++)
@@ -297,6 +307,148 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 		// No thinker? Not Important?
 		if (!GOA->Thinker || GOA->Priority <= 0)
 			continue;
+		
+		// Remove gone things
+		if (GOA->Type == BBGOAT_BARREL || GOA->Type == BBGOAT_ENEMY)
+		{
+			Mo = (mobj_t*)GOA->Thinker;
+			
+			// If this thing is now dead, screw it
+			if (Mo->health <= 0 || (Mo->flags & MF_CORPSE))
+			{
+				memset(GOA, 0, sizeof(*GOA));
+				continue;
+			}
+		}
+		
+		// Possibly shoot at this thing
+		if (GOA->Type == BBGOAT_ENEMY)
+		{
+			// If we see it, shoot at it
+			if (GOA->Data.Mo.Seen || P_CheckSight(a_Bot->Mo, (mobj_t*)GOA->Thinker))
+				if (!ShootAt || GOA->Dist < ShootAt->Dist)
+					ShootAt = GOA;
+		}
+		
+		// If no action is assigned, then set it
+		// If one is assigned but the type is a mismatch
+		// Otherwise, choose the more important one
+		if (!a_Bot->ActGOA[GOA->Type] ||
+				a_Bot->ActGOA[GOA->Type]->Type != GOA->Type ||
+				GOA->Priority > a_Bot->ActGOA[GOA->Type]->Priority)
+			a_Bot->ActGOA[GOA->Type] = GOA;
+	}
+	
+	/* Perform actions for each */
+	for (i = 0; i < NUMBOTGOATYPES; i++)
+	{
+		// Get Ref
+		GOA = a_Bot->ActGOA[i];
+		
+		// Missing?
+		if (!GOA)
+			continue;
+		
+		// Ignore NULL and Barrels
+		if (i == BBGOAT_BARREL || i == BBGOAT_NULL)
+			continue;
+		
+		// Lost Priority?
+		if (GOA->Priority <= 0)
+		{
+			a_Bot->ActGOA[i] = NULL;
+			continue;
+		}
+		
+		// Shore to this area? Actual shoring is done later
+		if (!GOA->ShoreFailWait || gametic >= GOA->ShoreFailWait)
+			if (GOA->Priority > 0 && GOA->XRef && GOA->YRef)
+				if (!ShoreHere || GOA->Priority > ShoreHere->Priority)
+					ShoreHere = GOA;
+	}
+	
+	/* Shoreing to an area */
+	// But not if there is an existing shore, however, unless the priority is
+	// really high!
+	if (ShoreHere && (a_Bot->ShoreIt >= a_Bot->NumShore || (ShoreHere->Priority >= (a_Bot->GOAShorePri << 1))))
+	{
+		// Build Path to target
+		if (B_ShorePath(a_Bot, a_Bot->Mo->x, a_Bot->Mo->y, *ShoreHere->XRef, *ShoreHere->YRef))
+		{
+			B_ShoreApprove(a_Bot);
+			a_Bot->GOAShorePri = ShoreHere->Priority;
+			ShoreHere->ShoreFailWait = 0;
+		}
+		
+		// Failed?
+		else
+		{
+			// Wait 5 seconds before trying again
+			ShoreHere->ShoreFailWait = gametic + (TICRATE * 5);
+		}
+	}
+	
+	/* Shooting at thing? */
+	if (ShootAt)
+	{
+		// If there exists a barrel, try shooting at it if it is near...
+		if (a_Bot->ActGOA[BBGOAT_BARREL])
+			for (i = 0; i < NUMBOTGOATYPES; i++)
+				if (a_Bot->GOA[i].Type == BBGOAT_BARREL)
+				{
+					// See if it is in sight
+					if (!P_CheckSight(a_Bot->Mo, (mobj_t*)a_Bot->GOA[i].Thinker))
+						continue;
+					
+					// Has to be within 64 units from enemy
+					if (P_AproxDistance(*a_Bot->GOA[i].XRef - *ShootAt->XRef, *a_Bot->GOA[i].YRef - *ShootAt->YRef) >= FIXEDT_C(64))
+						continue;
+					
+					// Cool, set it
+					BarrelTarg = &a_Bot->GOA[i];
+				}
+		
+		// Go through targets and replace existing shoot target, if any
+		for (i = 0; i < MAXBOTTARGETS; i++)
+		{
+			Targ = &a_Bot->Targets[i];
+			
+			// Target not set? or this is a target previously acquired?
+			if ((!FreeTarg && !Targ->IsSet) || (Targ->IsSet && Targ->Key == GOASHOOTKEY))
+				FreeTarg = Targ; 
+		}
+		
+		// If free target was found
+		if (FreeTarg)
+		{
+			FreeTarg->IsSet = true;
+			FreeTarg->MoveTarget = false;
+			FreeTarg->ExpireTic = gametic + TICRATE;
+			FreeTarg->Priority = ShootAt->Priority;
+			FreeTarg->Key = GOASHOOTKEY;
+			
+			// Shooting at barrel?
+			if (BarrelTarg)
+			{
+				FreeTarg->x = *BarrelTarg->XRef;
+				FreeTarg->y = *BarrelTarg->YRef;
+			}
+			
+			// Shooting at object
+			else
+			{
+				FreeTarg->x = *ShootAt->XRef;
+				FreeTarg->y = *ShootAt->YRef;
+			}
+		}
+	}
+	
+	// Otherwise, do not shoot at anything, and clear existing target if any
+	else
+	{
+		for (i = 0; i < MAXBOTTARGETS; i++)
+			if (a_Bot->Targets[i].IsSet && a_Bot->Targets[i].Key == GOASHOOTKEY)
+				memset(&a_Bot->Targets[i], 0, sizeof(a_Bot->Targets[i]));
 	}
 	
 	/* Always keep job */
@@ -327,7 +479,7 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 		
 		// Init
 		Type = BBGOAT_NULL;
-		Priority = 0;
+		Priority = VsPro = 0;
 		
 		// Which object type is this?
 		switch (Thinker->Type)
@@ -388,15 +540,40 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 						continue;
 				
 				// Find new slot
-				New = B_FindGOASpot(a_Bot, Type, Dist, Priority, Thinker);
+				New = B_FindGOASpot(a_Bot, Type, Dist, Priority, (thinker_t*)Mo);
 				
 				// Failed?
 				if (!New)
 					continue;
 				
 				// Debug
-				CONL_PrintF("Grab %s\n", Mo->info->RClassName);
+				if (New->Thinker != (thinker_t*)Mo)
+				{
+					memset(New, 0, sizeof(*New));
+					
+					New->FirstSeen = gametic;
+					New->ExpireSeen = New->FirstSeen + (TICRATE * 10);
+				}
+				else
+					New->ExpireSeen = gametic + (TICRATE * 10);
 				
+				New->Type = Type;
+				New->Thinker = (thinker_t*)Mo;
+				New->Priority = Priority;
+				New->Dist = Dist;
+				New->Data.Mo.Seen = P_CheckSight(a_Bot->Mo, Mo);
+				New->XRef = &Mo->x;
+				New->YRef = &Mo->y;
+				
+				if (Type == BBGOAT_ENEMY)
+				{
+					New->Data.Mo.MyPower = Priority;
+					New->Data.Mo.TargetPower = VsPro;
+				}
+				
+				// If unseen, cut priority by 1/4
+				if (!New->Data.Mo.Seen)
+					New->Priority -= (New->Priority >> 2);
 				break;
 			
 			default:
@@ -516,7 +693,7 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 #endif
 	
 	/* Continue */
-	a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
+	a_Bot->Jobs[a_JobID].Sleep = gametic + 3;
 	return true;
 }
 

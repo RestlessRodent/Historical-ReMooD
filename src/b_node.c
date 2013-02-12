@@ -1111,14 +1111,15 @@ void B_ShoreClear(B_Bot_t* a_Bot, const bool_t a_Work)
 	
 		a_Bot->Shore = NULL;
 		a_Bot->NumShore = a_Bot->ShoreIt = 0;
-	}
-	
-	/* Remove any targets that are set */
-	if (!a_Work)
+		
+		// Reset GOA priority
+		a_Bot->GOAShorePri = 0;
+		
 		for (i = 0; i < MAXBOTTARGETS; i++)
 			if (a_Bot->Targets[i].IsSet && a_Bot->Targets[i].MoveTarget)
 				if (a_Bot->Targets[i].Key == SHOREKEY)
 					memset(&a_Bot->Targets[i], 0, sizeof(a_Bot->Targets[i]));
+	}
 }
 
 /* B_ShoreApprove() -- Moves work to shore */
@@ -1176,6 +1177,10 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 	RoverNode = SNode->BotNode;		// Start at the starting point
 	DestNode = B_NodeAtPos(a_ToX, a_ToY, ONFLOORZ, true);
 	Fails = 0;
+	
+	// If no target/source node, not pathable
+	if (!DestNode || !RoverNode)
+		return false;
 	
 	// Check initial node we start at
 	RoverNode->CheckID = CheckID;

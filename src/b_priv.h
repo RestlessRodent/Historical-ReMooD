@@ -53,6 +53,7 @@
 ****************/
 
 #define SHOREKEY UINT32_C(0xC007DEAD)
+#define GOASHOOTKEY UINT32_C(0x1337BEEF)
 
 #define MAXBOTJOBS							16	// Maximum Jobs
 
@@ -131,13 +132,17 @@ typedef struct B_BotGOA_s
 	tic_t ExpireSeen;						// When seeing this thing expires
 	bool_t Ignore;							// Ignore like it did not exist
 	fixed_t Dist;							// Distance to object (if applicable)
-	PI_touch_t* TouchSpec;					// Touch Special
+	tic_t ShoreFailWait;					// Time to wait if a shore fails here
+	fixed_t* XRef, *YRef;					// References to locations
 	
 	union
 	{
 		struct
 		{
+			int32_t MyPower;				// Power of myself
 			int32_t TargetPower;			// Power of target
+			PI_touch_t* TouchSpec;			// Touch Special
+			bool_t Seen;					// Is Seen
 		} Mo;								// Map Object Related
 	} Data;									// Thinker specific data
 } B_BotGOA_t;
@@ -202,6 +207,7 @@ struct B_GhostBot_s
 	
 	B_BotGOA_t* ActGOA[NUMBOTGOATYPES];			// GOA acting upon
 	B_BotGOA_t GOA[MAXBOTGOA];					// Awareness Table
+	int32_t GOAShorePri;						// Priority of the previous shore
 };
 
 /* B_Node_t -- A Node */
