@@ -1225,6 +1225,7 @@ void SF_Teleport()
 {
 	line_t line;				// dummy line for teleport function
 	mobj_t* mo;
+	int32_t Args[2] = {true, true};
 	
 	if (t_argc == 0)			// no arguments
 	{
@@ -1244,13 +1245,14 @@ void SF_Teleport()
 	}
 	
 	if (mo)
-		EV_Teleport(&line, 0, mo);
+		EV_Teleport(&line, 0, mo, LAT_SWITCH, 0, NULL, 2, Args);
 }
 
 void SF_SilentTeleport()
 {
 	line_t line;				// dummy line for teleport function
 	mobj_t* mo;
+	int32_t Args[2] = {true, true};
 	
 	if (t_argc == 0)			// no arguments
 	{
@@ -1270,7 +1272,7 @@ void SF_SilentTeleport()
 	}
 	
 	if (mo)
-		EV_SilentTeleport(&line, 0, mo);
+		EV_SilentTeleport(&line, 0, mo, LAT_SWITCH, 0, NULL, 2, Args);
 }
 
 void SF_DamageObj()
