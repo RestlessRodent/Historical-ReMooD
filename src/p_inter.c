@@ -516,7 +516,7 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		return;
 		
 	/* If the object picking it up is not a player... */
-	if (!a_Picker->player)
+	if (!P_MobjIsPlayer(a_Picker))
 		return;
 	
 	/* Handle Message for everyone (multiple screens) */
@@ -601,7 +601,10 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		return false;
 		
 	sound = sfx_itemup;
-	player = toucher->player;
+	
+	player = NULL;
+	if (P_MobjIsPlayer(toucher))
+		player = toucher->player;
 		
 	// FWF support
 	has_ammo_dropped = special->dropped_ammo_count;
@@ -1133,7 +1136,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 	else
 	{
 		// If the mobj is a player, use that player's name
-		if (a_Mobj->player && (a_Mobj->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		if (P_MobjIsPlayer(a_Mobj))
 		{
 			// Special
 			if (a_Special)
@@ -1180,7 +1183,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS)
 			{
 				// Check to see if there is a source player (use that name)
-				if (a_Source->player)
+				if (P_MobjIsPlayer(a_Source))
 					return a_Source->player->weaponinfo[a_Mobj->RXShotWithWeapon]->NiceName;
 				
 				// There is no player source, so use standard gun name
@@ -1319,10 +1322,10 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	{
 		// Source is on a team
 		if (source)
-			if (source->player || source->SkinTeamColor)
+			if (P_MobjIsPlayer(source) || source->SkinTeamColor)
 			{
 				SrcPrefix = "x7";
-				if (source->player)
+				if (P_MobjIsPlayer(source))
 					SrcColor = source->player->skincolor;
 				else
 					SrcColor = (source->SkinTeamColor - 1);
@@ -1335,10 +1338,10 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			
 		// Target is on a team
 		if (target)
-			if (target->player || target->SkinTeamColor)
+			if (P_MobjIsPlayer(target) || target->SkinTeamColor)
 			{
 				TargPrefix = "x7";
-				if (target->player)
+				if (P_MobjIsPlayer(target))
 					TargColor = target->player->skincolor;
 				else
 					TargColor = (target->SkinTeamColor - 1);
@@ -1417,7 +1420,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	int i, GibTarget;
 	
 	// GhostlyDeath <May 22, 2012> -- Death total
-	if (target->player)
+	if (P_MobjIsPlayer(target))
 	{
 		target->player->TotalDeaths++;
 		g_MapKIS[4]++;
@@ -1456,7 +1459,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	//                (source is passed from barrel to barrel also!)
 	//                (only for multiplayer fun, does not remember monsters)
 	// GhostlyDeath <March 6, 2012> -- Use flag here
-	if ((target->RXFlags[0] & MFREXA_CARRYKILLER) && source && source->player)
+	if ((target->RXFlags[0] & MFREXA_CARRYKILLER) && source && P_MobjIsPlayer(source))
 		P_RefMobj(PMRT_TARGET, target, source);
 	
 	// GhostlyDeath <April 8, 2012> -- If modifying corpses in A_Fall, then don't modify here
@@ -1476,7 +1479,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	// if killed by a player
 	target->KillerPlayer = NULL;
-	if (source && source->player)
+	if (source && P_MobjIsPlayer(source))
 	{
 		// count for intermission
 		if (target->flags & MF_COUNTKILL)
@@ -1489,7 +1492,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		}
 			
 		// count frags if player killed player
-		if (target->player)
+		if (P_MobjIsPlayer(target))
 		{
 			// Suicides count against you
 			if (target->player == source->player)
@@ -1523,8 +1526,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		if (P_XGSVal(PGS_MONKILLCOUNTMODE) == 1)
 			target->flags &= ~MF_COUNTKILL;
 	
-	// if a player avatar dies...
-	if (target->player)
+	/* if a player avatar dies... */
+	if (P_MobjIsPlayer(target))
 	{
 		// GhostlyDeath <June 6, 2012> -- Remember ready weapon
 		target->player->DeadWeapon = target->player->readyweapon;
@@ -1550,6 +1553,10 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 				localaiming[i] = 0;
 	}
 	
+	// Target is playing as a monster, needs to be dead for recontrol
+	else if (target->player)
+		target->player->playerstate = PST_DEAD;
+	
 	// Gib Target
 	GibTarget = target->info->spawnhealth;
 	if (P_XGSVal(PGS_GAMEHERETICGIBBING))
@@ -1573,7 +1580,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	item = NUMMOBJTYPES;
 	
 	// Drop weapons when player is killed (non-monster players only)
-	if (target->player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && P_XGSVal(PGS_PLDROPWEAPONS))
+	if (P_MobjIsPlayer(target) && P_XGSVal(PGS_PLDROPWEAPONS))
 	{
 		drop_ammo_count = P_AmmoInWeapon(target->player);
 		//if (!drop_ammo_count)
@@ -1651,7 +1658,9 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		target->momx = target->momy = target->momz = 0;
 	}
 	
-	player = target->player;
+	player = NULL;
+	if (P_MobjIsPlayer(target))
+		player = target->player;
 	
 	if (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
 		if (P_XGSVal(PGS_GAMESKILL) == sk_baby || P_XGSVal(PGS_PLHALFDAMAGE))
@@ -1671,7 +1680,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	// inflict thrust and push the victim out of reach,
 	// thus kick away unless using the chainsaw.
 	if (inflictor
-	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !(source->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST))))
+	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !(source->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(P_MobjIsPlayer(source) && (source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST))))
 	{
 		fixed_t amomx, amomy, amomz = 0;	//SoM: 3/28/2000
 		
@@ -1777,7 +1786,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		
 		player->attacker = source;
 		
-		if (source && source->player)
+		if (source && P_MobjIsPlayer(source))
 			source->player->Attackee = target;
 	}
 	else
@@ -1795,7 +1804,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_XGSVal(PGS_CODISABLETEAMPLAY) ||	// support old demo version
 		        P_XGSVal(PGS_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
-		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_XGSVal(PGS_GAMEDEATHMATCH) && (!P_XGSVal(PGS_GAMETEAMPLAY) || !P_MobjOnSameTeam(source->player->mo, player->mo))))
+		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(P_MobjIsPlayer(source) && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_XGSVal(PGS_GAMEDEATHMATCH) && (!P_XGSVal(PGS_GAMETEAMPLAY) || !P_MobjOnSameTeam(source->player->mo, player->mo))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)
@@ -1849,7 +1858,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				target->health = 0;
 			
 			// Set player's health to zero also
-			if (target->player)
+			if (P_MobjIsPlayer(target))
 				if (target->player->health > 0)
 					target->player->health = 0;
 			
@@ -1872,7 +1881,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	{
 		// If this is another player, do not target
 		if (P_XGSVal(PGS_FUNNOTARGETPLAYER))
-			if (source->player)
+			if (P_MobjIsPlayer(source))
 				return takedamage;
 		
 		// if not intent on another player,

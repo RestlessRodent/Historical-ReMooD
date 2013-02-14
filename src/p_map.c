@@ -122,7 +122,7 @@ static bool_t PIT_StompThing(mobj_t* thing, void* a_Arg)
 		return true;			// didn't hit it
 		
 	// monsters don't stomp things except on boss level
-	if (!tmthing->player && gamemap != 30)
+	if (!P_MobjIsPlayer(tmthing) && gamemap != 30)
 		return false;
 		
 	// Not allowed to stomp things
@@ -444,7 +444,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		// block only when jumping not high enough,
 		// (dont climb max. 24units while already in air)
 		// if not in air, let P_TryMove() decide if its not too high
-		if (tmthing->player && tmthing->z < topz && tmthing->z > tmthing->floorz)	// block while in air
+		if (P_MobjIsPlayer(tmthing) && tmthing->z < topz && tmthing->z > tmthing->floorz)	// block while in air
 			return false;
 			
 		if (topz > tmfloorz)
@@ -526,7 +526,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 			return false;		// explicitly blocking everything
 		
 		if (!(tmthing->RXFlags[1] & MFREXB_IGNOREBLOCKMONS))
-			if (!(tmthing->player && (tmthing->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) && ld->flags & ML_BLOCKMONSTERS)
+			if (!P_MobjIsPlayer(tmthing) && ld->flags & ML_BLOCKMONSTERS)
 				return false;		// block monsters only
 	}
 	// set openrange, opentop, openbottom
@@ -840,7 +840,7 @@ static bool_t PIT_CheckThingDet(mobj_t* thing, void* a_Arg)
 		// block only when jumping not high enough,
 		// (dont climb max. 24units while already in air)
 		// if not in air, let P_TryMove() decide if its not too high
-		if (tmthing->player && tmthing->z < topz && tmthing->z > tmthing->floorz)	// block while in air
+		if (P_MobjIsPlayer(tmthing) && tmthing->z < topz && tmthing->z > tmthing->floorz)	// block while in air
 			return false;
 			
 		if (topz > tmfloorz)
@@ -890,7 +890,7 @@ bool_t PIT_CheckLineDet(line_t* ld, void* a_Arg)
 			return false;		// explicitly blocking everything
 		
 		if (!(tmthing->RXFlags[1] & MFREXB_IGNOREBLOCKMONS))
-			if (!(tmthing->player && (tmthing->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) && ld->flags & ML_BLOCKMONSTERS)
+			if (!P_MobjIsPlayer(tmthing) && ld->flags & ML_BLOCKMONSTERS)
 				return false;		// block monsters only
 	}
 		
@@ -1019,7 +1019,7 @@ static void CheckMissileImpact(mobj_t* mobj, const uint32_t a_Flags)
 	if (P_XGSVal(PGS_CODISABLEMISSILEIMPACTCHECK) || !numspechit || !(mobj->flags & MF_MISSILE) || !mobj->target)
 		return;
 		
-	if (!mobj->target->player)
+	if (!P_MobjIsPlayer(mobj->target))
 		return;
 	
 	if (!(a_Flags & PCMIF_NOSHOOTLINE))
@@ -1143,11 +1143,9 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 	//added:28-02-98: gameplay hack : walk over a small wall while 	jumping
 	//                stop jumping it succeeded
 	// BP: removed in 1.28 because we can move in air now
-	if (P_XGSVal(PGS_COJUMPCHECK) && P_XGSVal(PGS_COOLDJUMPOVER) && thing->player && (thing->player->cheats & CF_JUMPOVER))
-	{
+	if (P_XGSVal(PGS_COJUMPCHECK) && P_XGSVal(PGS_COOLDJUMPOVER) && P_MobjIsPlayer(thing) && (thing->player->cheats & CF_JUMPOVER))
 		if (tmfloorz > thing->floorz + MAXSTEPMOVE)
 			thing->momz >>= 2;
-	}
 	
 	oldx = thing->x;
 	oldy = thing->y;
@@ -1775,7 +1773,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 	P_LineAtkArgs_t* Args = a_Data;
 	
 	/* Get Player */
-	if (shootthing && (shootthing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if (P_MobjIsPlayer(shootthing))
 		Player = shootthing->player;
 	else
 		Player = NULL;
@@ -2149,7 +2147,7 @@ fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance, P_AimLineAt
 	angle >>= ANGLETOFINESHIFT;
 	shootthing = t1;
 	
-	if (t1->player && P_XGSVal(PGS_CONEWAIMINGCODE))
+	if (P_MobjIsPlayer(t1) && P_XGSVal(PGS_CONEWAIMINGCODE))
 	{
 		fixed_t cosineaiming = finecosine[t1->player->aiming >> ANGLETOFINESHIFT];
 		int aiming = ((int)t1->player->aiming) >> ANGLETOFINESHIFT;
@@ -2217,7 +2215,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 	t1->RXAttackAttackType = PRXAT_RANGED;
 	
 	// player autoaimed attack,
-	if (!P_XGSVal(PGS_CONEWAIMINGCODE) || !t1->player)
+	if (!P_XGSVal(PGS_CONEWAIMINGCODE) || !P_MobjIsPlayer(t1))
 	{
 		x2 = t1->x + (distance >> FRACBITS) * finecosine[angle];
 		y2 = t1->y + (distance >> FRACBITS) * finesine[angle];
@@ -3096,10 +3094,9 @@ static void P_FakeZMovement(mobj_t* mo)
 				mo->z += FLOATSPEED;
 		}
 	}
-	if (mo->player && mo->flags2& MF2_FLY && !(mo->z <= mo->floorz) && leveltime & 2)
-	{
+	
+	if (P_MobjIsPlayer(mo) && mo->flags2& MF2_FLY && !(mo->z <= mo->floorz) && leveltime & 2)
 		mo->z += finesine[(FINEANGLES / 20 * leveltime >> 2) & FINEMASK];
-	}
 //
 // clip movement
 //

@@ -1206,7 +1206,7 @@ void P_PlayerThink(player_t* player)
 		if (!player->usedown)
 		{
 			// GhostlyDeath <May 8, 2012> -- Only allow players to use things
-			if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+			if (P_MobjIsPlayer(player->mo))
 				P_UseLines(player);
 			player->usedown = true;
 		}

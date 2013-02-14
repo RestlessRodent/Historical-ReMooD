@@ -1626,8 +1626,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		if (a_Line->special >= GenFloorBase)
 		{
 			// Check for Monster trigger
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 				if (((a_Line->special & FloorChange) || !(a_Line->special & FloorModel)) && !(a_Flags & EVTGTF_FORCEUSE))
 					return false;
 			
@@ -1643,8 +1642,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else if (a_Line->special >= GenCeilingBase)
 		{
 			// Check for monster
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 				if (((a_Line->special & CeilingChange) || !(a_Line->special & CeilingModel)) && !(a_Flags & EVTGTF_FORCEUSE))
 					return false;	// CeilingModel is "Allow Monsters" if CeilingChange is 0
 			
@@ -1659,8 +1657,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else if (a_Line->special >= GenDoorBase)
 		{
 			// Check for monster
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 			{
 				if (!(a_Line->special & DoorMonster) && !(a_Flags & EVTGTF_FORCEUSE))
 					return false;		// monsters disallowed from this door
@@ -1680,7 +1677,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else if (a_Line->special >= GenLockedBase)
 		{
 			// Players Only
-			if (!a_Object->player)
+			if (!P_MobjIsPlayer(a_Object))
 				return false;
 			
 			// No keys to unlock door?
@@ -1698,8 +1695,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else if (a_Line->special >= GenLiftBase)
 		{
 			// Check for Monster trigger
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 				if ((!(a_Line->special & LiftMonster)) && !(a_Flags & EVTGTF_FORCEUSE))
 					return false;
 			
@@ -1715,8 +1711,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else if (a_Line->special >= GenStairsBase)
 		{
 			// Check for Monster trigger
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 				if ((!(a_Line->special & StairMonster)) && !(a_Flags & EVTGTF_FORCEUSE))
 					return false;
 			
@@ -1732,8 +1727,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else if (a_Line->special >= GenCrusherBase)
 		{
 			// Check for Monster trigger
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 				if ((!(a_Line->special & CrusherMonster)) && !(a_Flags & EVTGTF_FORCEUSE))
 					return false;
 			
@@ -1785,13 +1779,12 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 				return false;
 			
 			// Player and not player triggered
-			if (a_Object->player)
+			if (P_MobjIsPlayer(a_Object))
 				if (!((a_Line->special & EVGENGE_PLAYERMASK) >> EVGENGE_PLAYERSHIFT))
 					return false;
 			
 			// Check Monster Trigger
-			if (!a_Object->player ||
-					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			if (!P_MobjIsPlayer(a_Object))
 				if (!((a_Line->special & EVGENGE_MONSTERMASK) >> EVGENGE_MONSTERSHIFT))
 					return false;
 			

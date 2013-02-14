@@ -238,7 +238,11 @@ void P_ThrustMobj(mobj_t* mo, angle_t angle, fixed_t move)
 void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 {
 	//valid only if player avatar
-	player_t* player = mo->player;
+	player_t* player;
+	
+	player = NULL;
+	if (P_MobjIsPlayer(mo))
+		player = mo->player;
 	
 	if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED && mo->momy > -STOPSPEED
 	        && mo->momy < STOPSPEED && (!player || (player->cmd.Std.forwardmove == 0 && player->cmd.Std.sidemove == 0)))
@@ -349,7 +353,9 @@ void P_XYMovement(mobj_t* mo)
 			P_ThrustMobj(mo, ANG45 * ((Special & REXS_DIRMASK) >> REXS_DIRSHIFT), windTab[(Special & REXS_SPEEDMASK) >> REXS_SPEEDSHIFT]);
 	}
 	
-	player = mo->player;		//valid only if player avatar
+	player = NULL;
+	if (P_MobjIsPlayer(mo))
+		player = mo->player;		//valid only if player avatar
 	
 	if (mo->momx > MAXMOVE)
 		mo->momx = MAXMOVE;
@@ -391,7 +397,7 @@ void P_XYMovement(mobj_t* mo)
 			//                  to jump over a small wall
 			//    (normally it can not 'walk' while in air)
 			// BP:1.28 no more use Cf_JUMPOVER, but i leave it for backward lmps compatibility
-			if (mo->player)
+			if (P_MobjIsPlayer(mo))
 			{
 				if (tmfloorz - mo->z > MAXSTEPMOVE)
 				{
@@ -454,7 +460,7 @@ void P_XYMovement(mobj_t* mo)
 		}
 		else
 			// hack for playability : walk in-air to jump over a small wall
-			if (mo->player)
+			if (P_MobjIsPlayer(mo))
 				mo->player->cheats &= ~CF_JUMPOVER;
 				
 	}
@@ -555,7 +561,7 @@ void P_ZMovement(mobj_t* mo)
 			}
 		}
 	
-	if (mo->player)
+	if (P_MobjIsPlayer(mo))
 	{
 		// check for smooth step up
 		if (mo->z < mo->floorz && !(mo->RXFlags[0] & MFREXA_NOSMOOTHSTEPUP))
@@ -591,10 +597,8 @@ void P_ZMovement(mobj_t* mo)
 		
 	}
 	
-	if (mo->player && mo->flags2& MF2_FLY && !(mo->z <= mo->floorz) && leveltime & 2)
-	{
+	if (P_MobjIsPlayer(mo) && mo->flags2& MF2_FLY && !(mo->z <= mo->floorz) && leveltime & 2)
 		mo->z += finesine[(FINEANGLES / 20 * leveltime >> 2) & FINEMASK];
-	}
 	// clip movement
 	
 	// Spawn splashes, etc.
@@ -658,7 +662,7 @@ void P_ZMovement(mobj_t* mo)
 		
 		if (mo->momz < 0)		// falling
 		{
-			if (mo->player && (mo->momz < -8 * FRACUNIT) && !(mo->flags2 & MF2_FLY))
+			if (P_MobjIsPlayer(mo) && (mo->momz < -8 * FRACUNIT) && !(mo->flags2 & MF2_FLY))
 			{
 				// Squat down.
 				// Decrease viewheight for a moment
@@ -725,7 +729,7 @@ void P_ZMovement(mobj_t* mo)
 		mo->z = mo->ceilingz - mo->height;
 		
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
-		if (mo->player && (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (P_XGSVal(PGS_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
+		if (P_MobjIsPlayer(mo) && (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (P_XGSVal(PGS_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
 			S_StartSound(&mo->NoiseThinker, sfx_ouch);
 		
 		if (mo->flags2 & MF2_BOUNCES)
@@ -1050,7 +1054,7 @@ void P_MobjThinker(mobj_t* mobj)
 	if (g_CheatFlags & MCF_FREEZETIME)
 	{
 		// Only players are not frozen
-		if (!mobj->player)
+		if (!P_MobjIsPlayer(mobj))
 			return;
 	}
 	
@@ -1082,7 +1086,7 @@ void P_MobjThinker(mobj_t* mobj)
 		mobj->TimeFromDead[0] = mobj->TimeFromDead[1] = 0;
 	
 	// Remove object that has been dead for a long time?
-	else if (!mobj->player && P_XGSVal(PGS_MONENABLECLEANUP))
+	else if (!P_MobjIsPlayer(mobj) && P_XGSVal(PGS_MONENABLECLEANUP))
 	{
 		// Get time base
 		if (mobj->info->raisestate)
@@ -1173,12 +1177,12 @@ void P_MobjThinker(mobj_t* mobj)
 				if (!onmo)
 				{
 					P_ZMovement(mobj);
-					if (mobj->player && mobj->flags & MF2_ONMOBJ)
+					if (P_MobjIsPlayer(mobj) && mobj->flags & MF2_ONMOBJ)
 						mobj->flags2 &= ~MF2_ONMOBJ;
 				}
 				else
 				{
-					if (mobj->player)
+					if (P_MobjIsPlayer(mobj))
 					{
 						if (mobj->momz < -8 * FRACUNIT && !(mobj->flags2 & MF2_FLY))
 						{
@@ -2550,8 +2554,9 @@ mobj_t* P_SPMAngle(mobj_t* source, PI_mobjid_t type, angle_t angle)
 	slope = P_CheckMissileSpawn(th);
 	
 	// GhostlyDeath <March 6, 2012> -- Set weapon fired with from player
-	if (source->player)
+	if (P_MobjIsPlayer(source))
 		th->RXShotWithWeapon = source->player->readyweapon;
+	
 	else	// Otherwise carry the original weapon
 		th->RXShotWithWeapon = source->RXShotWithWeapon;
 	
@@ -2912,7 +2917,7 @@ bool_t P_MobjIsPlayer(mobj_t* const a_Mo)
 		return false;
 	
 	/* Is a player? */
-	if (a_Mo->player)
+	if (a_Mo->player && (a_Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 		return true;
 	
 	/* Not one */

@@ -617,7 +617,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 				continue;
 		
 		// A player? and cannot target them?
-		if (P_XGSVal(PGS_FUNNOTARGETPLAYER) && mo->player)
+		if (P_XGSVal(PGS_FUNNOTARGETPLAYER) && P_MobjIsPlayer(mo))
 			continue;
 		
 		// Not Shootable?
@@ -700,7 +700,7 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 	
 	// Target is a player?
 	if (P_XGSVal(PGS_FUNNOTARGETPLAYER))
-		if (targ && targ->player)
+		if (targ && P_MobjIsPlayer(targ))
 			targ = NULL;
 	
 	// GhostlyDeath <June 6, 2012> -- Target is on your team
@@ -792,7 +792,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	if (actor->threshold)
 	{
 		// No target or target is dead
-		if (!P_XGSVal(PGS_HEREMONSTERTHRESH) && !actor->player && (!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
+		if (!P_XGSVal(PGS_HEREMONSTERTHRESH) && !P_MobjIsPlayer(actor) && (!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
 		{
 			actor->threshold = 0;
 		
@@ -1449,7 +1449,7 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 					P_RefMobj(PMRT_TARGET, corpsehit, NULL);
 					
 					// Target is player?
-					if (corpsehit->player)
+					if (P_MobjIsPlayer(corpsehit))
 					{
 						corpsehit->player->playerstate = PST_LIVE;
 						corpsehit->player->health = corpsehit->health;
@@ -1727,7 +1727,7 @@ void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_St
 		actor->flags |= MF_SKULLFLY;
 		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
 	
-		if (!actor->player && P_XGSVal(PGS_MONPREDICTMISSILES))	//added by AC for predmonsters
+		if (!P_MobjIsPlayer(actor) && P_XGSVal(PGS_MONPREDICTMISSILES))	//added by AC for predmonsters
 		{
 	
 			bool_t canHit;

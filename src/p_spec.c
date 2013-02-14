@@ -949,7 +949,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			forceuse = true;
 	
 	//  Triggers that other things can activate
-	if (!thing->player)
+	if (!P_MobjIsPlayer(thing))
 		// Things that should NOT trigger specials...
 		if (thing->RXFlags[0] & MFREXA_NOCROSSTRIGGER)
 			return;
@@ -2307,7 +2307,7 @@ void T_Friction(friction_t* f)
 	while (node)
 	{
 		thing = node->m_thing;
-		if (thing->player && !(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz)
+		if (P_MobjIsPlayer(thing) && !(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz)
 		{
 			if (foundfloor && thing->z == sec->floorheight);	// Skip
 			
@@ -2379,7 +2379,7 @@ pusher_t* tmpusher;				// pusher structure for blockmap searches
 
 bool_t PIT_PushThing(mobj_t* thing, void* a_Arg)
 {
-	if (thing->player && !(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
+	if (P_MobjIsPlayer(thing) && !(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 	{
 		angle_t pushangle;
 		int dist;
@@ -2518,7 +2518,7 @@ void T_Pusher(pusher_t* p)
 		for (; node; node = node->m_snext)
 		{
 			thing = node->m_thing;
-			if (!thing->player || (thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
+			if (!P_MobjIsPlayer(thing) || (thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 				continue;
 			if (p->type == p_wind)
 			{
@@ -2598,7 +2598,7 @@ void T_Pusher(pusher_t* p)
 		for (; node; node = node->m_snext)
 		{
 			thing = node->m_thing;
-			if (!thing->player || (thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
+			if (!P_MobjIsPlayer(thing) || (thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 				continue;
 				
 			// Find the area that the 'thing' is in
@@ -2788,7 +2788,7 @@ bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 		return 0;
 		
 	thing->z = thing->floorz;	//fixme: not needed?
-	if (thing->player)
+	if (P_MobjIsPlayer(thing))
 	{
 		// heretic code
 		player_t* player = thing->player;
@@ -2812,7 +2812,7 @@ bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 	S_StartSound(&fog->NoiseThinker, sfx_telept);
 	
 	// don't move for a bit
-	if (thing->player)
+	if (P_MobjIsPlayer(thing))
 	{
 		thing->reactiontime = 18;
 		
