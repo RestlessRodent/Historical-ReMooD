@@ -467,16 +467,111 @@ void SN_PolySplit(SN_Poly_t* const a_BasePoly, SN_Poly_t** const a_SideA, SN_Pol
 	*a_SideB = SN_PolyAddPoint(*a_SideB, CPts[0].v[0], CPts[0].v[1]);
 }
 
+/* SN_PolyFigureOutSide() -- Figures out the side of the polygon */
+void SN_PolyFigureOutSide(SN_Poly_t** const a_A, SN_Poly_t** const a_B, int32_t (*a_SideFunc)(SN_Point_t* const a_Point, void* const a_Data), void* const a_Data)
+{
+#define MAXSIDES 32
+	SN_Point_t Mids[2][MAXSIDES];
+	SN_Point_t Work;
+	SN_Poly_t* CheckPoly;
+	int32_t i, j, k, Sides[2][2], Weight[2];
+	
+	/* Check */
+	if (!a_A || !a_B || !a_SideFunc)
+		return;
+	
+	/* Init */
+	memset(Mids, 0, sizeof(Mids));
+	memset(Sides, 0, sizeof(Sides));
+	memset(Weight, 0, sizeof(Weight));
+	
+	/* Get mid points of both polygons */
+	// This will help determine the side the polygon belongs to
+	for (i = 0; i < 2; i++)
+	{
+		// Get which polygon to check
+		CheckPoly = (!i ? *a_A : *a_B);
+		
+		// Get mid points
+		for (j = 0; j < CheckPoly->NumPts && j < MAXSIDES; j++)
+		{
+			Mids[i][j].v[0] = POLYFDIV(CheckPoly->Pts[j]->v[0] + CheckPoly->Pts[(j + 1) % CheckPoly->NumPts]->v[0], POLYFT_C(2));
+			Mids[i][j].v[1] = POLYFDIV(CheckPoly->Pts[j]->v[1] + CheckPoly->Pts[(j + 1) % CheckPoly->NumPts]->v[1], POLYFT_C(2));
+		}
+	}
+	
+	/* Get mid points of the midpoints against the other midpoints */
+	for (i = 0; i < 2; i++)
+	{
+		// Get which polygon to check
+		CheckPoly = (!i ? *a_A : *a_B);
+		
+		// Check midpoint vs other midpoint
+		for (j = 0; j < CheckPoly->NumPts && j < MAXSIDES; j++)
+			for (k = 0; k < CheckPoly->NumPts && k < MAXSIDES; k++)
+			{
+				// Already checked this side, or is this side?
+				if (k <= j)
+					continue;
+				
+				// Calculate midpoint from these midpoints
+				Work.v[0] = POLYFDIV(Mids[i][j].v[0] + Mids[i][k].v[0], POLYFT_C(2));
+				Work.v[1] = POLYFDIV(Mids[i][j].v[1] + Mids[i][k].v[1], POLYFT_C(2));
+				
+				// Calculate side it is on and place in array
+				Sides[i][a_SideFunc(&Work, a_Data)]++;
+			}
+	}
+	
+	
+	/* Get weight of both polygons, to determine the side they are on */
+	for (i = 0; i < 2; i++)
+	{
+		// Front sides move positive, back sides move negative
+		Weight[i] += Sides[i][0];
+		Weight[i] -= Sides[i][1];
+	}
+		
+	CONL_PrintF("[%i, %i], [%i, %i]; w = %i, %i\n",
+			Sides[0][0], Sides[0][1],
+			Sides[1][0], Sides[1][1],
+			Weight[0], Weight[1]
+		);
+	
+	/* Move polygons based on weight */
+	// A heavier than B
+	if (Weight[0] > Weight[1])
+	{
+		// Nothing to be done here as side 0 relates to A already
+	}
+	
+	// B heavier than A
+		// This means that B is on the front side really (side 0)
+	else if (Weight[1] > Weight[0])
+	{
+		CheckPoly = *a_B;
+		*a_B = *a_A;
+		*a_A = CheckPoly;
+	}
+#undef MAXSIDES
+}
+
 typedef struct B_GhostNode_s* B_GhostNode_t;
 B_GhostNode_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y);
+
+/* SNS_SubSPointOnSide() -- which side point is on */
+static int32_t SNS_SubSPointOnSide(SN_Point_t* const a_Point, void* const a_Data)
+{
+	return R_PointOnSegSide(POLYFTOFIXED(a_Point->v[0]), POLYFTOFIXED(a_Point->v[1]), a_Data);
+}
 
 /* SN_PolySplitSubS() -- Split polygon by subsector */
 void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 {
-	int32_t i, sA, sB;
+	int32_t i;
 	SN_Poly_t* A, *B;
 	SN_Poly_t* Keeper;
-	SN_Point_t Str, End, cA, cB;
+	SN_Point_t Str, End, cA;
 	
 	/* Setup base polygon to keep */
 	Keeper = SN_ClonePoly(a_BasePoly);
@@ -508,43 +603,13 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 			continue;
 		}
 		
-		// Get center of both polygons
-		cA = SN_PolyCenter(A);
-		cB = SN_PolyCenter(B);
+		// Find out which polygons belong to which side
+		SN_PolyFigureOutSide(&A, &B, SNS_SubSPointOnSide, &segs[i]);
 		
-		// Get seg side of polygons
-		sA = R_PointOnSegSide(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), &segs[i]);
-		sB = R_PointOnSegSide(POLYFTOFIXED(cB.v[0]), POLYFTOFIXED(cB.v[1]), &segs[i]);
-		
-		// On same side?
-			// TODO FIXME
-		if (sA == sB)
-		{
-			if (A)
-				SN_DiscardPoly(A);
-			if (B)
-				SN_DiscardPoly(B);
-			continue;
-		}
-		
-		// Only take the one on the front side
-		else
-		{
-			// Lose the keeper polygon, not needed anymore
-			SN_DiscardPoly(Keeper);
-			
-			if (sA == 0)
-			{
-				Keeper = A;
-				SN_DiscardPoly(B);
-			}
-			
-			else
-			{
-				Keeper = B;
-				SN_DiscardPoly(A);
-			}
-		}
+		// Only keep the front side and trash the old poly
+		SN_DiscardPoly(B);
+		SN_DiscardPoly(Keeper);
+		Keeper = A;
 	}
 	
 	/* Dump the polygon that was split, hopefully correctly */
@@ -564,12 +629,18 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 	B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]));
 }
 
+/* SNS_NodePointOnSide() -- which side point is on */
+static int32_t SNS_NodePointOnSide(SN_Point_t* const a_Point, void* const a_Data)
+{
+	return R_PointOnSide(POLYFTOFIXED(a_Point->v[0]), POLYFTOFIXED(a_Point->v[1]), a_Data);
+}
+
 /* SN_PolySplitNode() -- Split Polygon By Node */
 void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 {
-	SN_Poly_t* A, *B, *C;
-	SN_Point_t Str, End, cA, cB;
-	int32_t i, sA, sB;
+	SN_Poly_t* A, *B;
+	SN_Point_t Str, End;
+	int32_t i;
 	
 	/* Dump the polygon that needs splitting */
 	if (g_SnowBug)
@@ -604,33 +675,8 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 	// A will be children[0]
 	// B will be children[1]
 	
-	// Get center of both polygons
-	cA = SN_PolyCenter(A);
-	cB = SN_PolyCenter(B);
-	
-	// Get sides from the center
-	sA = R_PointOnSide(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), a_Node);
-	sB = R_PointOnSide(POLYFTOFIXED(cB.v[0]), POLYFTOFIXED(cB.v[1]), a_Node);
-	
-	// Points on same side?
-		// TODO FIXME
-	if (sA == sB)
-	{
-		// To prevent a fail case, discard both subpolies and use the base
-		SN_DiscardPoly(A);
-		SN_DiscardPoly(B);
-		
-		A = SN_ClonePoly(a_BasePoly);
-		B = SN_ClonePoly(a_BasePoly);
-	}
-	
-	// Need to swap polygon?
-	else if (sA == 1 || sB == 0)
-	{
-		C = A;
-		A = B;
-		B = C;
-	}
+	// Find out which polygons belong to which side
+	SN_PolyFigureOutSide(&A, &B, SNS_NodePointOnSide, a_Node);
 	
 	/* Continue splitting */
 	for (i = 0; i < 2; i++)

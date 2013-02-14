@@ -652,8 +652,10 @@ static void WI_updateDeathmatchStats(void)
 	
 	if (paused)
 		return;
+	
 	if (cnt_pause > 0)
 		cnt_pause--;
+	
 	if (cnt_pause == 0)
 	{
 		S_StartSound(0, sfx_slop);
@@ -1682,7 +1684,12 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
 			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];
 			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
-			TempDP[NumTempDP].cntFragsPtr = &cnt_frags[i];
+			
+			// DM games in Legacy do not count up
+			if (P_XGSVal(PGS_GAMEDEATHMATCH))
+				TempDP[NumTempDP].cntFragsPtr = NULL;
+			else
+				TempDP[NumTempDP].cntFragsPtr = &cnt_frags[i];
 			
 			TempDP[NumTempDP++].Rank = i;
 		}

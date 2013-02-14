@@ -742,6 +742,8 @@ void BS_GHOST_BuildLinks(const int32_t a_SubSNum)
 	}
 }
 
+extern bool_t g_SnowBug;
+
 /* B_GHOST_Ticker() -- Bot Ticker */
 void B_GHOST_Ticker(void)
 {
@@ -852,6 +854,10 @@ void B_GHOST_Ticker(void)
 	/* Build SubSector Mesh Map */
 	if (!l_SSMCreated)
 	{
+		// Debug
+		if (M_CheckParm("-devsnow"))
+			g_SnowBug = true;
+		
 		// Polygonize the level
 		SN_PolygonizeLevel();
 		

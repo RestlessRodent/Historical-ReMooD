@@ -1840,6 +1840,11 @@ player_t* G_AddPlayer(int playernum)
 		p->FraggerID ^= M_Random();
 	}
 	
+	/* Remove frags from other players */
+	// this is so people rejoining do not get free kills! joy!
+	for (i = 0; i < MAXPLAYERS; i++)
+		players[i].frags[playernum] = 0;
+	
 	/* Initialize */
 	G_InitPlayer(p);
 	

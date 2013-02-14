@@ -1491,7 +1491,13 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		// count frags if player killed player
 		if (target->player)
 		{
-			source->player->TotalFrags++;
+			// Suicides count against you
+			if (target->player == source->player)
+				source->player->TotalFrags--;
+			
+			// Otherwise increase frags
+			else
+				source->player->TotalFrags++;
 			source->player->frags[target->player - players]++;
 			g_MapKIS[3]++;
 			P_UpdateScores();
