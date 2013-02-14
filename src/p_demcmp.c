@@ -1133,8 +1133,52 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Otherwise
 		else
-		{	
+		{
+			// Set version
 			P_XGSSetVersionLevel(false, atoi(a_ArgV[1]));
+		}
+		
+		// Success!
+		return 0;
+	}
+	
+	/* Dump Game Version Settings */
+	else if (!strcasecmp(a_ArgV[0], "dumpgameversion"))
+	{
+		// Only with devparm
+		if (!devparm)
+			return 1;
+		
+		// Missing argument?
+		if (a_ArgC < 2)
+		{
+			// Header
+			CONL_PrintF("Compatibility Levels:\n");
+			
+			// Print possible version numbers
+			for (i = 0; l_NiceVersions[i].NiceName || l_NiceVersions[i].VersionID; i++)
+			{
+				// Print
+				CONL_PrintF(" %3i = %s\n", l_NiceVersions[i].VersionID, l_NiceVersions[i].NiceName);
+			}
+		}
+		
+		// Otherwise
+		else
+		{
+			// Set all defaults, set version
+			P_XGSSetAllDefaults();
+			P_XGSSetVersionLevel(true, atoi(a_ArgV[1]));
+			
+			// Print All version infos
+			CONL_PrintF("[demo_%i]\n", a_ArgV[1]);
+			
+			for (i = 0; i < PEXGSNUMBITIDS; i++)
+				if (l_GSVars[i].WasSet)
+					if (l_GSVars[i].Type == PEXGST_FLOAT)
+						CONL_PrintF("%s=%g\n", l_GSVars[i].Name, FIXED_TO_FLOAT(P_XGSVal(i)));
+					else
+						CONL_PrintF("%s=%i\n", l_GSVars[i].Name, P_XGSVal(i));
 		}
 		
 		// Success!
@@ -1271,6 +1315,7 @@ bool_t P_XGSRegisterStuff(void)
 	CONL_AddCommand("menugamevar", PS_EXGSGeneralComm);
 	CONL_AddCommand("gamevar", PS_EXGSGeneralComm);
 	CONL_AddCommand("gameversion", PS_EXGSGeneralComm);
+	CONL_AddCommand("dumpgameversion", PS_EXGSGeneralComm);
 	
 	/* Always works! */
 	return true;
@@ -1973,5 +2018,35 @@ void NG_SetNextMap(const char* const a_Map)
 		strncpy(l_NGNewMap, a_Map, WLMAXENTRYNAME - 1);
 		l_NGNewMap[WLMAXENTRYNAME - 1] = 0;
 	}
+}
+
+
+/**************************
+*** GAME MODE OPERATION ***
+**************************/
+
+/* P_GMIsCoop() -- Single-Player/Coop */
+bool_t P_GMIsCoop(void)
+{
+}
+
+/* P_GMIsCounter() -- Is Counter-Op */
+bool_t P_GMIsCounter(void)
+{
+}
+
+/* P_GMIsDM() -- Is Deathmatch Mode */
+bool_t P_GMIsDM(void)
+{
+}
+
+/* P_GMIsTeam() -- Is Team Mode */
+bool_t P_GMIsTeam(void)
+{
+}
+
+/* P_GMIsCTF() -- Is CTF Mode */
+bool_t P_GMIsCTF(void)
+{
 }
 

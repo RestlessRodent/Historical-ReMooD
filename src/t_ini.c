@@ -96,7 +96,7 @@ TINI_Section_t* TINI_FindNextSection(TINI_Section_t* const a_Last, WL_ES_t* cons
 		while (*p == ' ' || *p == '\t')
 			p++;
 		
-		// Is a [?
+		// Is a [? Begins a block
 		if (*p == '[')
 		{
 			// Find ending ], if it exists

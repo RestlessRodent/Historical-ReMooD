@@ -498,6 +498,24 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	bool_t LoopOK;
 	int32_t MaxPlayers;
 	
+	/* Demo Compatibility Breaking, but no real break */
+	// The code here in 1.9 and such is incapable of handling situations where
+	// nobody is actually playing the game. So say that a player wants to
+	// record or experience a 1.09 game. This will allow the old logic to take
+	// effect.
+	if (P_XGSVal(PGS_COOLDLASTLOOKLOGIC))
+	{
+		// Count playing players
+		c = 0;
+		for (stop = 0; stop < MAXPLAYERS; stop++)
+			if (playeringame[stop])
+				c++;
+		
+		// If no players inside, return false
+		if (!c)
+			return false;
+	}
+	
 	/* Get Max Players */
 	// Demo Compat
 	MaxPlayers = P_XGSVal(PGS_COLASTLOOKMAXPLAYERS);

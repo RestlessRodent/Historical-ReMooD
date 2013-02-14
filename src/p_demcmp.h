@@ -353,5 +353,12 @@ int32_t NG_SetVarDefault(const P_XGSBitID_t a_Bit);
 int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right);
 void NG_SetNextMap(const char* const a_Map);
 
+// Game Mode Operation
+bool_t P_GMIsCoop(void);
+bool_t P_GMIsCounter(void);
+bool_t P_GMIsDM(void);
+bool_t P_GMIsTeam(void);
+bool_t P_GMIsCTF(void);
+
 #endif							/* __P_DEMCMP_H__ */
 

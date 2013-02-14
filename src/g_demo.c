@@ -107,11 +107,10 @@ struct G_CurrentDemo_s
 	bool_t Out;									// Demo is out (being written)
 	const G_DemoFactory_t* Factory;				// Factory for demo
 	void* CFile;								// CFile
-	WL_ES_t* WLStream;					// Demo Streamer (Raw)
+	WL_ES_t* WLStream;							// Demo Streamer (Raw)
 	D_BS_t* BSs;								// Block Streamer
 	void* Data;									// Internal Data
 };
-
 
 /**********************
 *** VANILLA FACTORY ***
@@ -142,6 +141,17 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	G_VanillaDemoData_t* Data;
 	const char* PlName;
 	const P_LevelInfoEx_t* LevelInfo;
+	
+	static const struct
+	{
+		uint8_t Ver;
+		const char* Str;
+	} c_VerRuleList[] =
+	{
+		{109, "demo_vanilla109"},
+		
+		{0, NULL}
+	};
 	
 	/* Check */
 	if (!a_Current)
@@ -238,7 +248,14 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Setup Game Rules */
 	P_XGSSetAllDefaults();
-	P_XGSSetVersionLevel(true, VerMarker);
+	
+	// Find rules to set
+	for (i = 0; c_VerRuleList[i].ID; i++)
+		if (c_VerRuleList[i].ID == VerMarker)
+		{
+			NG_SetRules(true, c_VerRuleList[i].Str);
+			break;
+		}
 	
 	// Options
 	P_XGSSetValue(true, PGS_GAMESKILL, Data->Skill);
