@@ -2135,7 +2135,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			a_Sector->special &= ~SECRET_MASK;
 			
 			// Secret Message
-			if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+			if (!P_GMIsDM())
 				P_PlayerMessage(PPM_SECRET, a_Mo, NULL, PTROFUNICODESTRING(DSTR_FOUNDSECRET));
 		}
 		

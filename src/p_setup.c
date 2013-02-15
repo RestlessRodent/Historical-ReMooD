@@ -168,6 +168,8 @@ int numdmstarts;
 //mapthing_t**    deathmatch_p;
 mapthing_t* playerstarts[MAXPLAYERS];
 
+mapthing_t* g_TeamStarts[MAXSKINCOLORS][MAXPLAYERS];
+
 int32_t g_MapKIS[5] = {0, 0, 0, 0, 0};
 
 void P_SetupLevelSky(void)
@@ -301,6 +303,7 @@ bool_t P_ExClearLevel(void)
 	// Starts
 	memset(deathmatchstarts, 0, sizeof(deathmatchstarts));
 	memset(playerstarts, 0, sizeof(playerstarts));
+	memset(g_TeamStarts, 0, sizeof(g_TeamStarts));
 	
 	// 3D Floors
 	g_PFakeFloors = NULL;
@@ -1338,7 +1341,7 @@ bool_t P_ExFinalizeLevel(void)
 			if (!players[i].CounterOpPlayer)
 			{
 				// Use cluster spawns
-				if (P_XGSVal(PGS_GAMEDEATHMATCH))
+				if (P_GMIsDM())
 					G_DeathMatchSpawnPlayer(i);
 				else
 					G_CoopSpawnPlayer(i);
@@ -1405,6 +1408,10 @@ bool_t P_ExFinalizeLevel(void)
 	
 	/* Initialize Fake Player */
 	P_SpecInit(-1);
+	
+	/* Initialize current game mode */
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+		P_InitGameMode(P_XGSVal(PGS_GAMEMODE));
 	
 	/* Success! */
 	return true;

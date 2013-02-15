@@ -129,8 +129,8 @@ void A_SmokeTrailerSkull();
 void A_FireOldBFG();
 void A_FireGenericProjectile();
 void A_NextFrameIfMoving();
-
 void A_GenericMonsterMissile();
+void A_CTFFlagCtrl();
 
 /*****************************************************************************/
 
@@ -470,6 +470,7 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 	
 	{"BotMetric", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	{"PainChance", IRVT_FUNC, 0, INFO_MiscObjectGF},
+	{"TranslationColor", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	{"?", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	
 	{NULL},
@@ -1034,6 +1035,13 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 	
 		// Multiply by 255 to get it
 		Obj->painchance = FixedMul(FIXEDT_C(255), FixedVal) >> FRACBITS;
+	}
+	
+	/* Translation Color */
+	else if (!strcasecmp(a_Field, "TranslationColor"))
+	{
+		Obj->flags &= ~MF_TRANSLATION;
+		Obj->flags |= (((uint32_t)INFO_ColorByName(a_Value)) << MF_TRANSSHIFT) & MF_TRANSLATION;
 	}
 	
 	/* Determine flag change */
@@ -2561,7 +2569,7 @@ uint32_t INFO_TransparencyByName(const char* const a_Name)
 		return VEX_TRANSFX1;
 	
 	/* Compare Number */
-	TransNum = atoi(a_Name);
+	TransNum = C_strtoi32(a_Name, NULL, 10);
 	
 	// Round up?
 	if ((TransNum % 10) >= 5)
@@ -2578,6 +2586,35 @@ uint32_t INFO_TransparencyByName(const char* const a_Name)
 	
 	// Return
 	return TransNum;
+}
+
+extern char* Color_Names[MAXSKINCOLORS];
+
+/* INFO_ColorByName() -- Returns color by name */
+uint32_t INFO_ColorByName(const char* const a_Name)
+{
+	int32_t ColorNum;
+	
+	/* Check */
+	if (!a_Name)
+		return 0;
+	
+	/* Check name first */
+	for (ColorNum = 0; ColorNum < MAXSKINCOLORS; ColorNum++)
+		if (!strcasecmp(a_Name, Color_Names[ColorNum]))
+			return ColorNum;
+	
+	/* Compare Number */
+	ColorNum = C_strtoi32(a_Name, NULL, 10);
+	
+	// Cap
+	if (ColorNum < 0)
+		ColorNum = 0;
+	else if (ColorNum >= MAXSKINCOLORS)
+		ColorNum = MAXSKINCOLORS - 1;
+	
+	// Return
+	return ColorNum;
 }
 
 /* INFO_BotMetricByName() -- Returns metric by name */

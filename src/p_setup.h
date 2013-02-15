@@ -39,11 +39,6 @@
 
 #include "p_info.h"
 
-// Player spawn spots for deathmatch.
-#define MAX_DM_STARTS   64
-extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
-extern int numdmstarts;
-
 //extern  mapthing_t**    deathmatch_p;
 
 extern int lastloadedmaplumpnum;	// for comparative savegame

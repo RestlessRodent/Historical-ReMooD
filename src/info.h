@@ -474,8 +474,14 @@ bool_t INFO_BoolFromString(const char* const a_String);
 PI_mobjid_t INFO_GetTypeByName(const char* const a_Name);
 PI_spriteid_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);
+
+
+	INFO_StateArgsNum_t ArgC;					// Argument Count
+	INFO_StateArgsParm_t* ArgV;					// Function Arguments
+
 uint8_t INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);
+uint32_t INFO_ColorByName(const char* const a_Name);
 INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 PI_touchid_t P_RMODTouchSpecialByString(const char* const a_String);
 PI_touch_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);

@@ -39,8 +39,7 @@
 
 #include "d_rmod.h"
 
-//      Define values for map objects
-#define MO_TELEPORTMAN          14
+void P_ExtraSpecialStuff(void);
 
 // at game start
 void P_InitPicAnims(void);
@@ -1340,23 +1339,26 @@ bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* con
 
 /*** CONSTANTS ***/
 
-/* P_EXSLineTrigger_t -- Trigger for line */
-typedef enum P_EXSLineTrigger_s
+typedef enum P_GameMode_e
 {
-	PWXSLT_WALK,								// Walk
-	PWXSLT_SWITCH,								// Press button
-	PWXSLT_GUN,									// Shoot
-	PWXSLT_PUSH,								// Push on it
-	PWXSLT_MAP,									// Done at map start
+	PGM_COOP,									// Cooperative
+	PGM_COUNTEROP,								// Counteroperative
+	PGM_DM,										// Deathmatch
+	PGM_CTF,									// CTF
+	PGM_FLAGTAG,								// Hold the Flag
+	PGM_KOTH,									// King of the Hill
+	PGM_POPACAP,								// Pop a Cap
+	PGM_LMS,									// Last Man Standing
+	PGM_SURVIVAL,								// Survival
 	
-	NUMPEXSLINETRIGGERS
-} P_EXSLineTrigger_t;
-
-/*** STRUCTURES ***/
+	PGM_CUSTOM,									// Custom Game Mode
+	
+	NUMPGAMEMODES
+} P_GameMode_t;
 
 /*** FUNCTIONS ***/
 
-void P_ExtraSpecialStuff(void);
+void P_InitGameMode(const P_GameMode_t a_Mode);
 
 /*****************************************************************************/
 

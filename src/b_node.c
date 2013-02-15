@@ -869,8 +869,8 @@ void B_GHOST_Ticker(void)
 	/* Build node links */
 	if (l_SSBuildChain < numsubsectors)
 	{
-		// Build links for 5 subsectors at a time
-		zz = l_SSBuildChain + 5;
+		// Build links for 2 subsectors at a time
+		zz = l_SSBuildChain + 2;
 		
 		if (zz >= numsubsectors)
 			zz = numsubsectors;

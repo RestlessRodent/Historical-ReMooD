@@ -123,8 +123,8 @@ void P_PlayerThink(player_t* player);
 void CL_ResetSpiritPosition(mobj_t* mobj);
 void P_MoveSpirit(player_t* p, ticcmd_t* cmd, int realtics);
 
-bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B);
 void P_UpdateScores(void);
+void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char** const a_Name);
 
 //
 // P_MOBJ

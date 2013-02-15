@@ -2963,5 +2963,14 @@ void P_ExtraSpecialStuff(void)
 
 /*****************************************************************************/
 
+/*** FUNCTIONS ***/
 
+/* P_InitGameMode() -- Initializes Game Mode */
+void P_InitGameMode(const P_GameMode_t a_Mode)
+{
+	
+	/* Update Scores */
+	// This shows the game mode change
+	P_UpdateScores();
+}
 

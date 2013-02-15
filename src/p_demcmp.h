@@ -283,6 +283,8 @@ typedef enum P_XGSBitID_e
 	PGS_PLREDUCEINVENTORY,						// Reduce inventory at end of level
 	PGS_CODISPLACESPAWN,						// Enables Displace Spawning
 	PGS_CORESPAWNCORPSESONLY,					// Only respawn dead bodies
+	PGS_CONEWGAMEMODES,							// New Game Modes
+	PGS_GAMEMODE,								// Current Game Mode
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

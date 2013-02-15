@@ -75,8 +75,9 @@ typedef struct S_SoundChannel_s
 	
 	// GhostlyDeath <September 21, 2011> -- Any sound length!
 	fixed_t RoveByte;			// Byte movement
-	uint32_t CurrentByte;		// Current byte playing
-	uint32_t StopByte;			// Byte to stop at
+	int32_t CurrentByte;		// Current byte playing
+	int32_t StartByte;			// Byte to play at
+	int32_t StopByte;			// Byte to stop at
 } S_SoundChannel_t;
 
 /**************
@@ -308,7 +309,7 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 }
 
 /* S_PlayEntryOnChannel() -- Plays a WAD entry on a channel */
-S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry)
+S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry, const bool_t a_Reverse)
 {
 	uint16_t* p;
 	void* Data;
@@ -347,12 +348,25 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
 	//l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t) Freq << FRACBITS, (fixed_t) l_Freq << FRACBITS);
-	l_DoomChannels[a_Channel].MoveRate = ((Freq << 15) / (l_Freq >> 1));
 	
-	/* Long sounds */
+	/* Support for long sounds */
 	l_DoomChannels[a_Channel].RoveByte = 0;
-	l_DoomChannels[a_Channel].CurrentByte = 8;
+	l_DoomChannels[a_Channel].StartByte = 8;
 	l_DoomChannels[a_Channel].StopByte = LumpLen - 9;
+	
+	// Playing normal
+	if (!a_Reverse)
+	{
+		l_DoomChannels[a_Channel].CurrentByte = l_DoomChannels[a_Channel].StartByte;
+		l_DoomChannels[a_Channel].MoveRate = ((Freq << 15) / (l_Freq >> 1));
+	}
+	
+	// Reversed
+	else
+	{
+		l_DoomChannels[a_Channel].CurrentByte = LumpLen - 10;
+		l_DoomChannels[a_Channel].MoveRate = -((Freq << 15) / (l_Freq >> 1));
+	}
 	
 	/* Return channel */
 	return &l_DoomChannels[a_Channel];
@@ -374,7 +388,7 @@ void S_ReservedChannelPlay(int sound_id, int volume, fixed_t MoveVal)
 	// Try direct name
 	if (!Entry)
 		Entry = WX_EntryForName(NULL, S_sfx[sound_id].name, false);
-	Target = S_PlayEntryOnChannel(l_NumDoomChannels - 1, Entry);
+	Target = S_PlayEntryOnChannel(l_NumDoomChannels - 1, Entry, false);
 	
 	/* Modify Target */
 	if (Target)
@@ -411,6 +425,7 @@ void S_StopChannel(const uint32_t a_Channel)
 	l_DoomChannels[a_Channel].BasePriority = 0;
 	l_DoomChannels[a_Channel].RoveByte = 0;
 	l_DoomChannels[a_Channel].CurrentByte = 0;
+	l_DoomChannels[a_Channel].StartByte = 0;
 	l_DoomChannels[a_Channel].StopByte = 0;
 	
 	for (i = 0; i < 16; i++)
@@ -452,7 +467,7 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, sfxid_t id)
 void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Listen, S_NoiseThinker_t* const a_Emit, const fixed_t a_Dist);
 
 /* S_StartSoundAtVolume() -- Starts playing a sound */
-void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume)
+void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume, const bool_t a_Reverse)
 {
 #define BUFSIZE 24
 	char Buf[BUFSIZE];
@@ -541,7 +556,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	// Try direct name
 	if (!Entry)
 		Entry = WX_EntryForName(NULL, S_sfx[RealID].name, false);
-	Target = S_PlayEntryOnChannel(OnChannel, Entry);
+	Target = S_PlayEntryOnChannel(OnChannel, Entry, a_Reverse);
 	
 	// Failed?
 	if (!Target)
@@ -598,7 +613,7 @@ void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
 		return;
 		
 	/* Just call other function */
-	S_StartSoundAtVolume(a_Origin, sound_id, 255);
+	S_StartSoundAtVolume(a_Origin, sound_id, 255, false);
 }
 
 /* S_StartSoundName() -- Start a sound based on name */
@@ -609,6 +624,27 @@ void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname)
 		return;
 	
 	S_StartSound(a_Origin, S_SoundIDForName(soundname));
+}
+
+/* S_StartSoundRev() -- Play a sound at full volume (reversed) */
+void S_StartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
+{
+	/* Check */
+	if (!l_SoundOK)
+		return;
+		
+	/* Just call other function */
+	S_StartSoundAtVolume(a_Origin, sound_id, 255, true);
+}
+
+/* S_StartSoundNameRev() -- Start a sound based on name (reversed) */
+void S_StartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname)
+{
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
+	S_StartSoundRev(a_Origin, S_SoundIDForName(soundname));
 }
 
 /* S_StopSound() -- Stop sound being played by this object */
@@ -1155,7 +1191,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 			
 		// Keep reading and mixing
 		ActualRate = FixedMul(l_DoomChannels[i].MoveRate, l_DoomChannels[i].RateAdjust);
-		for (; p < End && l_DoomChannels[i].CurrentByte < l_DoomChannels[i].StopByte; l_DoomChannels[i].RoveByte += ActualRate)
+		for (; p < End && l_DoomChannels[i].CurrentByte < l_DoomChannels[i].StopByte && l_DoomChannels[i].CurrentByte >= l_DoomChannels[i].StartByte; l_DoomChannels[i].RoveByte += ActualRate)
 		{
 			// Move byte ahead?
 			l_DoomChannels[i].CurrentByte += l_DoomChannels[i].RoveByte >> FRACBITS;
@@ -1170,7 +1206,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 		}
 		
 		// Did the sound stop?
-		if (l_DoomChannels[i].CurrentByte >= l_DoomChannels[i].StopByte)
+		if (l_DoomChannels[i].CurrentByte >= l_DoomChannels[i].StopByte || l_DoomChannels[i].CurrentByte < l_DoomChannels[i].StartByte)
 			S_StopChannel(i);
 	}
 	

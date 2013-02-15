@@ -1,31 +1,32 @@
 [dm]
+game_mode=dm
 co_multiplayer=1
 game_spawnmultiplayer=1
-game_deathmatch=1
 item_keepweapons=1
 item_respawnitems=0
 
 [dm2]
+game_mode=dm
 co_multiplayer=1
 game_spawnmultiplayer=1
-game_deathmatch=1
 item_keepweapons=0
 item_respawnitems=1
 
 [dm3]
+game_mode=dm
 co_multiplayer=1
 game_spawnmultiplayer=1
-game_deathmatch=1
 item_keepweapons=1
 item_respawnitems=1
 
 [coop]
+game_mode=coop
 co_multiplayer=1
 game_spawnmultiplayer=1
 item_keepweapons=1
-game_deathmatch=0
 
 [demo_vanilla109]
+co_newgamemodes=0
 co_enablebloodsplats=0
 co_randomlastlook=0
 co_unshiftvileraise=1

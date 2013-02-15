@@ -1911,6 +1911,16 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		else
 			D_BSwi32(a_Str, -1);
 	
+	// Team Starts
+	D_BSwu8(a_Str, MAXSKINCOLORS);
+	D_BSwu8(a_Str, MAXPLAYERS);
+	for (i = 0; i < MAXSKINCOLORS; i++)
+		for (j = 0; j < MAXPLAYERS; j++)
+			if (g_TeamStarts[i][j])
+				D_BSwi32(a_Str, g_TeamStarts[i][j] - mapthings);
+			else
+				D_BSwi32(a_Str, -1);
+	
 	// Map Totals
 	for (i = 0; i < 5; i++)
 		D_BSwi32(a_Str, g_MapKIS[i]);
@@ -1931,7 +1941,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
 	P_LevelInfoEx_t* pli;
-	int32_t i, j, n, x;
+	int32_t i, j, k, n, x;
 	thinker_t* Thinker;
 	mobj_t* mo;
 	sector_t* sect;
@@ -2540,6 +2550,22 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		else
 			deathmatchstarts[i] = &mapthings[x];
 	}
+	
+	// Team Starts
+	n = D_BSru8(a_Str);
+	k = D_BSru8(a_Str);
+	
+	for (i = 0; i < n; i++)
+		for (j = 0; j < k; j++)
+		{
+			// Read start ID
+			x = D_BSri32(a_Str);
+			
+			if (i >= MAXSKINCOLORS || j >= MAXPLAYERS || x < 0 || x >= nummapthings)
+				g_TeamStarts[i][j] = NULL;
+			else
+				g_TeamStarts[i][j] = &mapthings[x];
+		}
 	
 	// Map Totals
 	for (i = 0; i < 5; i++)

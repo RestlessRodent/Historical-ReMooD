@@ -743,11 +743,19 @@ void G_Ticker(void)
 	ticcmd_t GlobalCmd;
 	
 	uint32_t NowCode, DemoCode;
+	static bool_t DidPP;
 	
 	/* Save game on first tic while recording */
 	if (demorecording)
 		if (gametic == 0)
 			G_EncodeSaveGame();
+		
+	/* Process ++ args? */
+	if (!DidPP && gametic == 0)
+	{
+		M_PushSpecialPlusParameters();
+		DidPP = 1;
+	}
 	
 	/* Reduce Menu */
 	if (g_ResumeMenu > 0)
@@ -1004,7 +1012,7 @@ void G_PlayerReborn(int player)
 	D_XPlayer_t* XPl;
 	
 	//from Boris
-	int skincolor;
+	int32_t skincolor, VTeamColor;
 	//char favoritweapon[NUMWEAPONS];
 	bool_t originalweaponswitch;
 	bool_t autoaim;
@@ -1031,6 +1039,7 @@ void G_PlayerReborn(int player)
 	maxammo = players[player].maxammo;
 	
 	//from Boris
+	VTeamColor = players[player].VTeamColor;
 	skincolor = players[player].skincolor;
 	originalweaponswitch = players[player].originalweaponswitch;
 	//memcpy(favoritweapon, players[player].favoritweapon, NUMWEAPONS);
@@ -1070,6 +1079,7 @@ void G_PlayerReborn(int player)
 	players[player].maxammo = maxammo;
 	
 	// save player config truth reborn
+	players[player].VTeamColor = VTeamColor;
 	players[player].skincolor = skincolor;
 	players[player].originalweaponswitch = originalweaponswitch;
 	players[player].autoaim_toggle = autoaim;
@@ -1235,7 +1245,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	ss = R_PointInSubsector(x, y);
 	
 	// check for respawn in team-sector
-	if (!P_XGSVal(PGS_CODISABLETEAMPLAY))
+	if (!P_XGSVal(PGS_CONEWGAMEMODES) && P_GMIsTeam())
 		if (ss->sector->teamstartsec)
 		{
 			if (P_XGSVal(PGS_GAMETEAMPLAY) == 1)
@@ -1408,7 +1418,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	subsector_t* SubS;
 	bool_t RandomSpot;
 	bool_t* Tried;
-	bool_t PreDiamond, DMMode;
+	bool_t PreDiamond, DMMode, TeamMode;
 	
 	static const uint8_t SpawnDiamond[9][9] =
 	{
@@ -1428,11 +1438,25 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 		return false;
 	
 	/* Deathmatch mode? */
-	DMMode = P_XGSVal(PGS_GAMEDEATHMATCH);
+	DMMode = P_GMIsDM();
+	TeamMode = P_GMIsTeam() && P_XGSVal(PGS_CONEWGAMEMODES);
 	
 	/* Which spots to prefer? */
+	if (TeamMode && !a_CheckOp)
+	{
+		// Determine team player is on
+		i = players[PlayerID].VTeamColor;
+		
+		// Spawn at this location
+		PreDiamond = true;
+		RandomSpot = true;
+		Spots = g_TeamStarts[i];
+		NumSpots = MAXPLAYERS;
+		Tried = Z_Malloc(sizeof(*Tried) * NumSpots, PU_STATIC, NULL);
+	}
+	
 	// Deathmatch
-	if (DMMode || (!DMMode && a_CheckOp))
+	else if (DMMode || (!DMMode && a_CheckOp) || (TeamMode && a_CheckOp))
 	{
 		PreDiamond = false;
 		RandomSpot = true;
@@ -1580,8 +1604,8 @@ bool_t G_DisplaceSpawnPlayer(const int32_t a_PlayerID)
 	mapthing_t FakeSpot;
 	
 	/* Deathmatch mode? */
-	Teams = P_XGSVal(PGS_GAMETEAMPLAY) && !P_XGSVal(PGS_CODISABLETEAMPLAY);
-	DMMode = P_XGSVal(PGS_GAMEDEATHMATCH);
+	Teams = P_GMIsTeam();
+	DMMode = P_GMIsDM();
 	
 	// Non-team DM, always fail
 	if (DMMode && !Teams)
@@ -1658,10 +1682,30 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 		if (P_XGSVal(PGS_PLSPAWNCLUSTERING))
 			if (G_ClusterSpawnPlayer(playernum, false))
 				return true;
+				
+		// If displace spawning is enabled, try that
+		if (P_XGSVal(PGS_CODISPLACESPAWN))
+			if (G_DisplaceSpawnPlayer(playernum))
+				return true;
 		
-		// Otherwise we just get stuck in our player designated spot
-		P_SpawnPlayer(playerstarts[playernum]);
-		return false;
+		// Otherwise we just get stuck in our player designated spot (if it exists!)
+		if (playerstarts[playernum])
+			P_SpawnPlayer(playerstarts[playernum]);
+		
+		// If no spot exists, find another spot
+		else
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+				if (playerstarts[i])
+				{
+					playerstarts[i]->type = playernum + 1;
+					P_SpawnPlayer(playerstarts[i]);
+					playerstarts[i]->type = i + 1;
+					break;
+				}
+		}
+		
+		return true;
 	}
 	
 	if (P_XGSVal(PGS_COONLYTWENTYDMSPOTS))
@@ -1699,7 +1743,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	// This will place them next to an adjacent player
 	if (P_XGSVal(PGS_CODISPLACESPAWN))
 		if (G_DisplaceSpawnPlayer(playernum))
-			return;
+			return true;
 
 	/* no good spot, so the player will probably get stuck */
 	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS))
@@ -1711,6 +1755,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	return false;
 }
 
+/* G_CoopSpawnPlayer() -- Spawns player at a coop start */
 void G_CoopSpawnPlayer(int playernum)
 {
 	int i;
@@ -1775,6 +1820,28 @@ void G_CoopSpawnPlayer(int playernum)
 	}
 }
 
+/* G_TeamSpawnPlayer() -- Spawns player at team start */
+// Since Legacy never had real team spawning, use my cluster spawning here
+bool_t G_TeamSpawnPlayer(const int a_PlayerNum)
+{
+	/* Use Spawn Clustering */
+	// Try Team starts first
+	if (G_ClusterSpawnPlayer(a_PlayerNum, false))
+		return true;
+	
+	// Then try DM starts
+	if (G_ClusterSpawnPlayer(a_PlayerNum, true))
+		return true;
+	
+	/* Displace, if those failed */
+	if (P_XGSVal(PGS_CODISPLACESPAWN))
+		if (G_DisplaceSpawnPlayer(a_PlayerNum))
+			return true;
+	
+	/* If all those happened to fail, try normal DM Spawn */
+	return G_DeathMatchSpawnPlayer(a_PlayerNum);
+}
+
 //
 // G_DoReborn
 //
@@ -1798,8 +1865,13 @@ void G_DoReborn(int playernum)
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
 		
+		// Spawn at team start, if possible
+		if (P_GMIsTeam() && P_XGSVal(PGS_CONEWGAMEMODES))
+			if (G_TeamSpawnPlayer(playernum))
+				return;
+		
 		// spawn at random spot if in death match
-		if (P_XGSVal(PGS_GAMEDEATHMATCH))
+		if (P_GMIsDM())
 			if (G_DeathMatchSpawnPlayer(playernum))
 				return;
 		

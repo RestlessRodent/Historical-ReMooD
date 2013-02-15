@@ -250,8 +250,8 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	P_XGSSetAllDefaults();
 	
 	// Find rules to set
-	for (i = 0; c_VerRuleList[i].ID; i++)
-		if (c_VerRuleList[i].ID == VerMarker)
+	for (i = 0; c_VerRuleList[i].Ver; i++)
+		if (c_VerRuleList[i].Ver == VerMarker)
 		{
 			NG_SetRules(true, c_VerRuleList[i].Str);
 			break;
@@ -628,7 +628,7 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 			Bits = g_CurrentLevelInfo->LevelNum;
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
-			Bits = P_XGSVal(PGS_GAMEDEATHMATCH);
+			Bits = P_GMIsDM();
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
 			Bits = P_XGSVal(PGS_MONRESPAWNMONSTERS);

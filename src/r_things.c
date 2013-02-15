@@ -547,6 +547,7 @@ static void R_ProjectSprite(mobj_t* thing)
 	fixed_t gzt;
 	int heightsec;
 	int light = 0;
+	int32_t Color;
 	
 	// transform the origin point
 	tr_x = thing->x - viewx;
@@ -691,6 +692,28 @@ static void R_ProjectSprite(mobj_t* thing)
 	vis->Distance = TDist;
 	vis->heightsec = heightsec;	//SoM: 3/17/2000
 	vis->mobjflags = thing->flags;
+	
+	// Player Color Hacking
+	if (P_MobjIsPlayer(thing) || thing->FakeColor > 0)
+	{
+		if (P_GMIsTeam())
+		{
+			Color = 0;
+			
+			if (P_MobjIsPlayer(thing))
+				P_GetTeamInfo(P_GetMobjTeam(thing), &Color, NULL);
+			else
+				P_GetTeamInfo(thing->FakeColor - 1, &Color, NULL);
+		}
+		
+		else
+			Color = thing->player->skincolor;
+		
+		// Clear color and reset
+		vis->mobjflags &= ~MF_TRANSLATION;
+		vis->mobjflags |= (Color) << MF_TRANSSHIFT;
+	}
+	
 	vis->mobjflags2 = thing->flags2;
 	for (w = 0; w < NUMINFORXFIELDS; w++)
 		vis->RXFlags[w] = thing->RXFlags[w];

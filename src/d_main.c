@@ -2907,9 +2907,9 @@ void D_DoomMain(void)
 		
 		NG_ResetVars();
 	}
+
+	// ++ args are done at the first gametic	
 	
-	// Process all ++ parms
-	M_PushSpecialPlusParameters();
 #if 0
 	// start the apropriate game based on parms
 	p = M_CheckParm("-record");

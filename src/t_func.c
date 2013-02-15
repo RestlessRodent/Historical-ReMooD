@@ -403,7 +403,7 @@ void SF_GameMode()
 {
 	t_return.type = svt_int;
 	
-	if (P_XGSVal(PGS_GAMEDEATHMATCH))	// Deathmatch!
+	if (P_GMIsDM())	// Deathmatch!
 		t_return.value.i = 2;
 	else if (P_XGSVal(PGS_COMULTIPLAYER))	// Cooperative
 		t_return.value.i = 1;

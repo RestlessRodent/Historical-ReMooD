@@ -193,6 +193,27 @@ const CONL_VarPossibleValue_t c_PEXGSPVLastLookMP[] =
 	{0, NULL},
 };
 
+/* c_PEXGSPVGameMode -- Current Game Mode */
+const CONL_VarPossibleValue_t c_PEXGSPVGameMode[] =
+{
+	{PGM_COOP, "coop"},
+	{PGM_COUNTEROP, "counterop"},
+	{PGM_DM, "dm"},
+	{PGM_CTF, "ctf"},
+	{PGM_FLAGTAG, "flagtag"},
+	{PGM_KOTH, "koth"},
+	{PGM_POPACAP, "popacap"},
+	{PGM_LMS, "lms"},
+	{PGM_SURVIVAL, "survival"},
+	
+	{PGM_CUSTOM, "custom"},
+	
+	// End
+	{0, "MINVAL"},
+	{PGM_CUSTOM, "MAXVAL"},
+	{0, NULL},
+};
+
 // l_NiceVersions -- Nice names for versions
 static const P_XGSNiceVersion_t l_NiceVersions[] =
 {
@@ -232,11 +253,30 @@ void P_XGSChangeFunc_ITEMSKEEPWEAPONS(struct P_XGSVariable_s* const a_Bit)
 void P_XGSChangeFunc_GAMEFRAGLIMIT(struct P_XGSVariable_s* const a_Bit)
 {
 	size_t i;
-	
+
 	/* See if the frag limit has been exceeded at all */
 	if (P_XGSVal(PGS_GAMEFRAGLIMIT))
 		for (i = 0; i < MAXPLAYERS; i++)
 			P_CheckFragLimit(&players[i]);
+}
+
+/* P_XGSChangeFunc_GAMEMODE() -- Game Mode Change */
+void P_XGSChangeFunc_GAMEMODE(struct P_XGSVariable_s* const a_Bit)
+{
+	/* If new modes are not compatible, this setting has no effect */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+		return;
+	
+	/* Otherwise init mode */
+	P_InitGameMode(P_XGSVal(PGS_GAMEMODE));
+}
+
+/* P_XGSChangeFunc_CONEWGAMEMODES() -- New Game Mode Compat */
+void P_XGSChangeFunc_CONEWGAMEMODES(struct P_XGSVariable_s* const a_Bit)
+{
+	/* If set, init new mode */
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+		P_InitGameMode(P_XGSVal(PGS_GAMEMODE));
 }
 
 // l_GSVars -- Game state variables
@@ -871,6 +911,14 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_CORESPAWNCORPSESONLY, "co_respawncorpsesonly", DSTR_M_PGS_CORESPAWNCORPSESONLY,
 		DSTR_D_PGS_CORESPAWNCORPSESONLY, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PGS_CONEWGAMEMODES, "co_newgamemodes", DSTR_M_PGS_CONEWGAMEMODES,
+		DSTR_D_PGS_CONEWGAMEMODES, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, P_XGSChangeFunc_CONEWGAMEMODES},
+		
+	{PEXGST_INTEGER, PGS_GAMEMODE, "game_mode", DSTR_M_PGS_GAMEMODE,
+		DSTR_D_PGS_GAMEMODE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVGameMode, P_XGSChangeFunc_GAMEMODE},
 };
 
 /*** FUNCTIONS ***/
@@ -1052,6 +1100,29 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 	if (strcasecmp(a_ArgV[0], "menugamevar") == 0)
 	{
 		M_ExPushMenu(0, M_ExTemplateMakeGameVars(0));
+	}
+	
+	/* Next Game */
+	else if (strcasecmp(a_ArgV[0], "nextvar") == 0)
+	{
+		// Set setting from string
+		if (a_ArgC >= 3)
+		{
+			// Find var?
+			Var = P_XGSVarForName(a_ArgV[1]);
+			
+			// Not found?
+			if (!Var)
+				return 1;
+			
+			// Set value
+			NG_SetVarValueStr(Var->BitID, a_ArgV[2]);
+			return 0;
+		}
+		
+		// Not enough args
+		else
+			return 1;
 	}
 	
 	/* Game Settings Control */
@@ -1314,6 +1385,7 @@ bool_t P_XGSRegisterStuff(void)
 	/* Register game setting commands */
 	CONL_AddCommand("menugamevar", PS_EXGSGeneralComm);
 	CONL_AddCommand("gamevar", PS_EXGSGeneralComm);
+	CONL_AddCommand("nextvar", PS_EXGSGeneralComm);
 	CONL_AddCommand("gameversion", PS_EXGSGeneralComm);
 	CONL_AddCommand("dumpgameversion", PS_EXGSGeneralComm);
 	
@@ -2028,25 +2100,111 @@ void NG_SetNextMap(const char* const a_Map)
 /* P_GMIsCoop() -- Single-Player/Coop */
 bool_t P_GMIsCoop(void)
 {
+	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
+	
+	/* Old Settings */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+			return true;
+		return false;
+	}
+	
+	/* Game Modes */
+	else
+	{
+		if (Mode == PGM_COOP || Mode == PGM_COUNTEROP || Mode == PGM_SURVIVAL)
+			return true;
+		return false;
+	}
 }
 
 /* P_GMIsCounter() -- Is Counter-Op */
 bool_t P_GMIsCounter(void)
 {
+	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
+	
+	/* Old Settings */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Counter-Op Not Supported
+		return false;
+	}
+	
+	/* Game Modes */
+	else
+	{
+		return !!(Mode == PGM_COUNTEROP);
+	}
 }
 
 /* P_GMIsDM() -- Is Deathmatch Mode */
 bool_t P_GMIsDM(void)
 {
+	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
+	
+	/* Old Settings */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Only uses deathmatch setting
+		if (P_XGSVal(PGS_GAMEDEATHMATCH))
+			return true;
+		
+		
+		return false;
+	}
+	
+	/* Game Modes */
+	else
+	{
+		// Opposite of Coop
+		return !P_GMIsCoop();
+	}
 }
 
 /* P_GMIsTeam() -- Is Team Mode */
 bool_t P_GMIsTeam(void)
 {
+	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
+	
+	/* Old Settings */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Uses team play setting still
+		if (!P_XGSVal(PGS_CODISABLETEAMPLAY))
+			return !!P_XGSVal(PGS_GAMETEAMPLAY);
+		
+		return false;
+	}
+	
+	/* Game Modes */
+	else
+	{
+		// CTF or DM if teams are enabled
+		if (P_GMIsCTF() || (P_GMIsDM() && P_XGSVal(PGS_GAMETEAMPLAY)))
+			return true;
+		
+		return false;
+	}
 }
 
 /* P_GMIsCTF() -- Is CTF Mode */
 bool_t P_GMIsCTF(void)
 {
+	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
+	
+	/* Old Settings */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// CTF Not Supported
+		return false;
+	}
+	
+	/* Game Modes */
+	else
+	{
+		// Only one setting is CTF
+		return !!(Mode == PGM_CTF);
+	}
 }
 

@@ -282,7 +282,7 @@ bool_t P_GiveWeapon(player_t* player, PI_wepid_t weapon, bool_t dropped)
 		
 		if (AmmoType >= 0 && AmmoType < NUMAMMO)
 		{
-			if (P_XGSVal(PGS_GAMEDEATHMATCH))
+			if (P_GMIsDM())
 				P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, 5 * ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo);
 			else
 				P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, player->weaponinfo[weapon]->GetAmmo);
@@ -1318,7 +1318,7 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	TargColor = '5';
 	
 	// Check Team Game
-	if (P_XGSVal(PGS_GAMETEAMPLAY))
+	if (P_GMIsTeam())
 	{
 		// Source is on a team
 		if (source)
@@ -1374,7 +1374,7 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 // WARNING : check cv_fraglimit>0 before call this function !
 void P_CheckFragLimit(player_t* p)
 {
-	if (P_XGSVal(PGS_GAMETEAMPLAY))
+	if (P_GMIsTeam())
 	{
 		int fragteam = 0, i;
 		
@@ -1425,6 +1425,9 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		target->player->TotalDeaths++;
 		g_MapKIS[4]++;
 		P_UpdateScores();
+		
+		// If using new game mode, set color to match VTeam
+		target->FakeColor = P_GetMobjTeam(target->player->mo) + 1;
 	}
 	
 	// dead target is no more shootable
@@ -1804,7 +1807,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_XGSVal(PGS_CODISABLETEAMPLAY) ||	// support old demo version
 		        P_XGSVal(PGS_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
-		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(P_MobjIsPlayer(source) && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_XGSVal(PGS_GAMEDEATHMATCH) && (!P_XGSVal(PGS_GAMETEAMPLAY) || !P_MobjOnSameTeam(source->player->mo, player->mo))))
+		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(P_MobjIsPlayer(source) && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_GMIsDM() && (!P_GMIsTeam() || !P_MobjOnSameTeam(source->player->mo, player->mo))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)

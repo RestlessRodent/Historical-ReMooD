@@ -723,7 +723,7 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 	
 	// GhostlyDeath <June 6, 2012> -- Target is on your team
 	if (P_XGSVal(PGS_COENABLETEAMMONSTERS))
-		if (P_XGSVal(PGS_GAMETEAMPLAY))
+		if (P_GMIsTeam())
 			if (targ && P_MobjOnSameTeam(targ, actor))
 				targ = NULL;
 	

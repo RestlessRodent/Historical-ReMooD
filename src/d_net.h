@@ -198,6 +198,7 @@ typedef struct D_XPlayer_s
 	bool_t DidConnectTrans;						// Did connect transport
 	bool_t SaveSent;							// Was Sent savegame
 	bool_t CounterOp;							// On Counterop Team
+	int32_t VTeam;								// Virtual Team On
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */

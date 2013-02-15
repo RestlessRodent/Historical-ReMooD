@@ -558,6 +558,9 @@ typedef struct mobj_s
 	
 	// GhostlyDeath <June 22, 2012> -- Interpolation
 	fixed_t DrawPos[3];							// Interpolated Draw Position
+	
+	// GhostlyDeath <February 15, 2013> -- Fake Color Setting
+	int32_t FakeColor;							// Draw as this color
 } mobj_t;
 
 /* Converts natural flags to/from extended flags */
@@ -592,6 +595,7 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn);
 
 void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
 void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass);
+
 
 bool_t P_MobjIsPlayer(mobj_t* const a_Mo);
 bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);

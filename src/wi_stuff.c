@@ -1165,7 +1165,7 @@ void WI_Ticker(void)
 	switch (state)
 	{
 		case StatCount:
-			if (P_XGSVal(PGS_GAMEDEATHMATCH))
+			if (P_GMIsDM())
 				WI_updateDeathmatchStats();
 			else if (P_XGSVal(PGS_COMULTIPLAYER))
 				WI_updateNetgameStats();
@@ -1320,7 +1320,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 {
 #define BUFSIZE 64
 	char Buf[BUFSIZE];
-	size_t i, j;
+	int32_t i, j;
 	int32_t xBase, yBase, yAdd, y, dp, k, DrawCount;
 	bool_t IsOnScreen;
 	uint32_t DrawFlags;
@@ -1333,7 +1333,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 	
 	/* Deathmatch? */
 	IsDM = false;
-	if (P_XGSVal(PGS_GAMEDEATHMATCH))
+	if (P_GMIsDM())
 		IsDM = true;
 	
 	/* Draw title */
@@ -1412,10 +1412,25 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			
 			// Draw player band (their skin color)
 			if (l_DrawPlayers[dp].Player)
-				VHW_HUDDrawBox(
-						VEX_TRANS(VEX_TRANS50) |
-							VEX_PCOLOR(l_DrawPlayers[dp].Player->skincolor),
-						0, 255, 0, 0, yBase + y, 320, yBase + y + yAdd);
+			{
+				// Get color of the team
+				if (P_GMIsTeam())
+				{
+					j = P_GetMobjTeam(l_DrawPlayers[dp].Player->mo);
+					P_GetTeamInfo(j, &j, NULL);
+				}
+				
+				// Otherwise, it is the skin color
+				else
+					j = l_DrawPlayers[dp].Player->skincolor;
+				
+				// Only if a team was returned
+				if (j >= 0)
+					VHW_HUDDrawBox(
+							VEX_TRANS(VEX_TRANS50) |
+								VEX_PCOLOR(j),
+							0, 255, 0, 0, yBase + y, 320, yBase + y + yAdd);
+			}
 			
 			// Draw Rank
 			snprintf(Buf, BUFSIZE - 1, "%i.", l_DrawPlayers[dp].Rank + 1);
@@ -1642,7 +1657,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 	NumTempDP = 0;
 	
 	// Deathmatch?
-	DMSort = P_XGSVal(PGS_GAMEDEATHMATCH);
+	DMSort = P_GMIsDM();
 	
 	// Use players in game
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -1686,7 +1701,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
 			
 			// DM games in Legacy do not count up
-			if (P_XGSVal(PGS_GAMEDEATHMATCH))
+			if (P_GMIsDM())
 				TempDP[NumTempDP].cntFragsPtr = NULL;
 			else
 				TempDP[NumTempDP].cntFragsPtr = &cnt_frags[i];
@@ -1695,7 +1710,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 		}
 	
 	// Un-Claimed Kills/Items/Secrets?
-	if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+	if (!P_GMIsDM())
 		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2] || l_TotalFrags < g_MapKIS[3] || l_TotalDeaths < g_MapKIS[4])
 		{
 			strncpy(TempDP[NumTempDP].PlayerName, "Un-Claimed", MAXPLAYERNAME - 1);
@@ -1848,7 +1863,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	WI_loadData();
 	
 	/* Initialize Stats */
-	if (P_XGSVal(PGS_GAMEDEATHMATCH))
+	if (P_GMIsDM())
 		WI_initDeathmatchStats();
 	
 	else if (P_XGSVal(PGS_COMULTIPLAYER))

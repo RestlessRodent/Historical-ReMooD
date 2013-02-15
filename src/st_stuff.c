@@ -299,15 +299,41 @@ void ST_ExternrefreshBackground(void)
 
 bool_t ST_SameTeam(player_t* a, player_t* b)
 {
-	switch (P_XGSVal(PGS_GAMETEAMPLAY))
+	// New Modes
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
 	{
-		case 0:
+		// Team Play?
+		if (P_GMIsTeam())
+		{
+			// One player is neutral?
+			if (a->VTeamColor <= -1 || b->VTeamColor <= -1)
+				return false;
+			
+			// Same VTeam?
+			if (a->VTeamColor == b->VTeamColor)
+				return true;
+			
+			// Not same team
 			return false;
-		case 1:
-			return (a->skincolor == b->skincolor);
-		case 2:
-			return (a->skin == b->skin);
+		}
+		
+		// Otherwise not
+		else
+			return false;
 	}
+	
+	// Old Modes
+	else
+		switch (P_XGSVal(PGS_GAMETEAMPLAY))
+		{
+			case 0:
+				return false;
+			case 1:
+				return (a->skincolor == b->skincolor);
+			case 2:
+				return (a->skin == b->skin);
+		}
+	
 	return false;
 }
 
@@ -317,12 +343,12 @@ bool_t ST_SameTeam(player_t* a, player_t* b)
 //       when we need the frags
 int ST_PlayerFrags(int playernum)
 {
-	int i, frags;
+	int32_t i, frags;
 	
 	frags = players[playernum].addfrags;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if ((!P_XGSVal(PGS_GAMETEAMPLAY) && i != playernum) || (P_XGSVal(PGS_GAMETEAMPLAY) && !ST_SameTeam(&players[i], &players[playernum])))
+		if ((!P_GMIsTeam() && i != playernum) || (P_GMIsTeam() && !ST_SameTeam(&players[i], &players[playernum])))
 			frags += players[playernum].frags[i];
 		else
 			frags -= players[playernum].frags[i];
@@ -673,7 +699,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		}
 		
 		//// FRAGS
-		if (P_XGSVal(PGS_GAMEDEATHMATCH))
+		if (P_GMIsDM())
 		{
 			// Draw Icon
 			vi = V_ImageFindA("sbofrags", VCP_DOOM);

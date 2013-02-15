@@ -1763,6 +1763,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	int playernum;
 	mobj_t* mobj;
 	int i;
+	int32_t TeamColor;
 	
 	if (!mthing)
 	{
@@ -1809,6 +1810,9 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	// set color translations for player sprites
 	// added 6-2-98 : change color : now use skincolor (befor is mthing->type-1
+	
+	/* Set player sprite color */
+	// New Game Modes Enabled and is a team mode
 	mobj->flags |= (p->skincolor) << MF_TRANSSHIFT;
 	
 	//
@@ -1862,7 +1866,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	P_SetupPsprites(p);
 	
 	// give all cards in death match mode
-	if (P_XGSVal(PGS_GAMEDEATHMATCH) || P_XGSVal(PGS_PLSPAWNWITHALLKEYS))
+	if (P_GMIsDM() || P_XGSVal(PGS_PLSPAWNWITHALLKEYS))
 	{
 		p->cards = it_allkeys;
 		p->KeyCards[0] = 0;
@@ -1906,8 +1910,8 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	mthing->MarkedWeapon = false;
 	
 	if (!mthing->type)
-		return;					//SoM: 4/7/2000: Ignore type-0 things as NOPs
-		
+		return;					//SoM: 4/7/2000: Ignore type-0 things as NOPs	
+	
 	// count deathmatch start positions
 	if (mthing->type == 11)
 	{
@@ -1919,6 +1923,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		}
 		return;
 	}
+	
 	// check for players specially
 	// added 9-2-98 type 5 -> 8 player[x] starts for cooperative
 	//              support ctfdoom cooperative playerstart
@@ -1937,10 +1942,39 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// old version spawn player now, new version spawn player when level is
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
-		if (!P_XGSVal(PGS_GAMEDEATHMATCH) && ((playeringame[pid] && !players[pid].mo) || P_XGSVal(PGS_COVOODOODOLLS)))
+		if (!P_GMIsDM() && ((playeringame[pid] && !players[pid].mo) || P_XGSVal(PGS_COVOODOODOLLS)))
 			if (!players[pid].CounterOpPlayer)
 				P_SpawnPlayer(mthing);
 		
+		return;
+	}
+	
+	// GhostlyDeath <February 15, 2012> -- Check for Team Starts
+	// 5081 = Red
+	// 5080 = Blue
+	if (mthing->type >= 5080 && mthing->type <= 5084)
+	{
+		// Get Real Team Color
+		switch (mthing->type)
+		{
+			case 5081:	i = 0; break;
+			case 5080:	i = 1; break;
+			case 5083:	i = 2; break;
+			case 5084:	i = 3; break;
+			default:	i = -1; break;
+		}
+		
+		// Find free spot in start list
+		if (i >= 0)
+			for (j = 0; j < MAXPLAYERS; j++)
+				if (!g_TeamStarts[i][j])
+				{
+					g_TeamStarts[i][j] = mthing;
+					mthing->type = i + 1;
+					break;
+				}
+		
+		// Return
 		return;
 	}
 	
@@ -1949,11 +1983,11 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		return;
 		
 	//SoM: 4/7/2000: Implement "not deathmatch" thing flag
-	if (P_XGSVal(PGS_GAMEDEATHMATCH) && (mthing->options & 32))
+	if (P_GMIsDM() && (mthing->options & 32))
 		return;
 		
 	//SoM: 4/7/2000: Implement "not cooperative" thing flag
-	if (!P_XGSVal(PGS_GAMEDEATHMATCH) && (mthing->options & 64))
+	if (!P_GMIsDM() && (mthing->options & 64))
 		return;
 	
 	// check for apropriate skill level
@@ -1994,7 +2028,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		mthing->MarkedWeapon = true;
 	
 	// don't spawn keycards and players in deathmatch
-	if (P_XGSVal(PGS_GAMEDEATHMATCH) && mobjinfo[i]->flags & MF_NOTDMATCH)
+	if (P_GMIsDM() && mobjinfo[i]->flags & MF_NOTDMATCH)
 		return;
 		
 	// don't spawn any monsters if -nomonsters
@@ -2997,13 +3031,13 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 	
 	/* Determine if this is a standard player or a monster player */
 	IsThisPlayer = IsOtherPlayer = false;
-	if ((a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if (P_MobjIsPlayer(a_ThisMo))
 		IsThisPlayer = true;
-	if ((a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if (P_MobjIsPlayer(a_OtherMo))
 		IsOtherPlayer = true;
 	
 	/* Team Play Enabled */
-	if (!P_XGSVal(PGS_CODISABLETEAMPLAY) && P_XGSVal(PGS_GAMETEAMPLAY))
+	if (P_GMIsTeam())
 	{
 		// Team Damage is On -- Always do damage
 		if (P_XGSVal(PGS_GAMETEAMDAMAGE))
@@ -3025,7 +3059,7 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 		if (IsThisPlayer && IsOtherPlayer)
 		{
 			// Cooperative
-			if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+			if (!P_GMIsDM())
 			{
 				// If team damage is on, hurt
 				if (P_XGSVal(PGS_GAMETEAMDAMAGE))
@@ -3073,13 +3107,21 @@ int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 		return -1;
 	
 	/* Virtual Teams? */
-	VTeam = false;//!!P_XGSVal();
+	VTeam = P_XGSVal(PGS_CONEWGAMEMODES);
 	
 	/* Player? */
-	if ((a_Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && a_Mo->player)
+	if (P_MobjIsPlayer(a_Mo))
 	{
 		if (VTeam)
-			RetVal = a_Mo->player->VTeamColor;
+		{
+			// Teams
+			if (P_GMIsTeam())
+				RetVal = a_Mo->player->VTeamColor;
+			
+			// No Teams
+			else
+				return -1;
+		}
 		
 		else
 			if (P_XGSVal(PGS_GAMETEAMPLAY) == 2)
@@ -3099,7 +3141,7 @@ int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 		;//RetVal = RetVal % P_XGSVal();
 	
 	/* Return */
-	return VTeam;
+	return RetVal;
 }
 
 /* P_MobjOnSameTeam() -- Determines whether two objects are on the same team */
@@ -3118,9 +3160,9 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Determine if this is a standard player or a monster player */
 	IsThisPlayer = IsOtherPlayer = false;
-	if ((a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && a_ThisMo->player)
+	if (P_MobjIsPlayer(a_ThisMo))
 		IsThisPlayer = true;
-	if ((a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && a_OtherMo->player)
+	if (P_MobjIsPlayer(a_OtherMo))
 		IsOtherPlayer = true;
 	
 	/* Get team numbers */
@@ -3128,17 +3170,21 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	TeamB = P_GetMobjTeam(a_OtherMo);
 	
 	/* Cooperative Players */
-	if (!P_XGSVal(PGS_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
+	if (!P_GMIsDM() && IsThisPlayer && IsOtherPlayer)
 		return true;
 	
 	/* Deathmatch Players */
-	if (P_XGSVal(PGS_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
+	if (P_GMIsDM() && IsThisPlayer && IsOtherPlayer)
 	{
 		// Team play?
-		if (P_XGSVal(PGS_GAMETEAMPLAY))
+		if (P_GMIsTeam())
 		{
+			// Teamless for some reason?
+			if (TeamA <= -1 || TeamB <= -1)
+				return false;
+			
 			// On same team?
-			if (TeamA == TeamB)
+			else if (TeamA == TeamB)
 				return true;
 		}
 		
@@ -3154,7 +3200,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Monster Teams */
 	// Team Play Enabled
-	if (P_XGSVal(PGS_GAMETEAMPLAY))
+	if (P_GMIsTeam())
 	{
 		// Player and monster on the same colored team?
 		if (((IsThisPlayer && !IsOtherPlayer) || (IsOtherPlayer && !IsThisPlayer)) && TeamA == TeamB)
@@ -3177,7 +3223,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	else
 	{
 		// Cooperative
-		if (!P_XGSVal(PGS_GAMEDEATHMATCH))
+		if (!P_GMIsDM())
 		{
 			// Player and teamed monster
 			if ((IsThisPlayer && !IsOtherPlayer && a_OtherMo->SkinTeamColor > 0) ||

@@ -1368,6 +1368,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			"D_PGS_CODISPLACESPAWN", "If the standard spawners and/or cluster spawners fail, a displace spawn will occur. This spawns the failed player next to an adjacent player. Used in cooperative and team modes only."},
 	{	   "M_PGS_CORESPAWNCORPSESONLY", "Respawn Corpses Only"},
 	{	   "D_PGS_CORESPAWNCORPSESONLY", "Only objects that are dead are respawned when respawn monsters is enabled."},
+	{			 "M_PGS_CONEWGAMEMODES", "Enable New Game Modes"},
+	{			 "D_PGS_CONEWGAMEMODES", "Enables the usage of the new game mode settings."},
+	{				   "M_PGS_GAMEMODE", "Game Mode"},
+	{			       "D_PGS_GAMEMODE", "The type of game currently being played."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

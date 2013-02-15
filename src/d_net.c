@@ -1457,7 +1457,7 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
 				LittleWriteUInt32((uint32_t**)&Wp, DTCJF_ISBOT | Flags);
 				WriteUInt8((uint8_t**)&Wp, BotTemplate->SkinColor);
-				WriteUInt8((uint8_t**)&Wp, 0);
+				WriteUInt8((uint8_t**)&Wp, a_Player->VTeam);
 				LittleWriteUInt32((uint32_t**)&Wp, 0);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
@@ -1479,7 +1479,7 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
 				LittleWriteUInt32((uint32_t**)&Wp, Flags);
 				WriteUInt8((uint8_t**)&Wp, Profile->Color);
-				WriteUInt8((uint8_t**)&Wp, 0);
+				WriteUInt8((uint8_t**)&Wp, a_Player->VTeam);
 				LittleWriteUInt32((uint32_t**)&Wp, 0);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
@@ -1989,6 +1989,7 @@ typedef struct DS_PBABOpt_s
 {
 	B_BotTemplate_t* BotTemp;
 	bool_t CounterOp;
+	int32_t VTeam;
 } DS_PBABOpt_t;
 
 /* DS_PBAddBot() -- Adds a bot */
@@ -2003,6 +2004,7 @@ static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
 	/* Init Bot */
 	a_Player->BotData = B_InitBot(Opts->BotTemp);
 	a_Player->CounterOp = Opts->CounterOp;
+	a_Player->VTeam = Opts->VTeam;
 	
 	// If template exists
 	if (Opts->BotTemp)
@@ -2034,11 +2036,12 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
 	D_XPlayer_t* XPlay;
-	int32_t i;
+	int32_t i, j;
 	bool_t Flag;
 	struct IP_Conn_s* Conn;
 	I_HostAddress_t Addr;
 	DS_PBABOpt_t BotOpt;
+	const char* Name;
 	
 	/* Not enough args? */
 	if (a_ArgC < 2)
@@ -2130,12 +2133,30 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (!BotOpt.BotTemp)
 			BotOpt.BotTemp = B_GHOST_RandomTemplate();
 		
+		// Put Bot on random team
+		BotOpt.VTeam = M_Random() % MAXSKINCOLORS;
+		
 		// Extra arguments?
 		for (i = 3; i < a_ArgC; i++)
 		{
 			// Counter-Op Player?
 			if (!strcasecmp(a_ArgV[i], "counter"))
 				BotOpt.CounterOp = true;
+			
+			// Matches Team Name
+			if (!strncasecmp(a_ArgV[i], "team", 4))
+				for (j = 0; j < MAXSKINCOLORS; j++)
+				{
+					Name = NULL;
+					P_GetTeamInfo(j, NULL, &Name);
+					
+					if (Name)
+						if (!strcasecmp(a_ArgV[i] + 4, Name))
+						{
+							BotOpt.VTeam = j;
+							break;
+						}
+				}
 		}
 		
 		// Add Player
@@ -3182,7 +3203,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				{
 					g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
 					j++;
-				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display])));
+				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_MobjOnSameTeam(&players[g_Splits[SID].Console].mo, &players[g_Splits[SID].Display].mo)));
 				
 				// Change POV
 				SpyPOV = &players[g_Splits[SID].Display];

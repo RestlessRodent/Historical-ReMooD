@@ -187,6 +187,12 @@ extern tic_t g_ProgramTic;
 // Player spawn spots.
 extern mapthing_t* playerstarts[MAXPLAYERS];
 
+#define MAX_DM_STARTS   64
+extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
+extern int numdmstarts;
+
+extern mapthing_t* g_TeamStarts[MAXSKINCOLORS][MAXPLAYERS];
+
 // Intermission stats.
 // Parameters for world map / intermission.
 extern wbstartstruct_t wminfo;

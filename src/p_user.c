@@ -1273,25 +1273,6 @@ void P_PlayerThink(player_t* player)
 #undef MAXWEAPONSLOTS
 }
 
-/* P_PlayerOnSameTeam() -- Returns true if the player is on the same team */
-bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B)
-{
-	/* Check */
-	if (!a_A || !a_B)
-		return false;
-	
-	/* Same Player */
-	if (a_A == a_B)
-		return true;
-	
-	/* Coop? */
-	if (!P_XGSVal(PGS_GAMEDEATHMATCH))
-		return true;
-	
-	/* Not the same */
-	return false;
-}
-
 /* P_UpdateScores() -- Updates the local scoreboard */
 void P_UpdateScores(void)
 {
@@ -1299,6 +1280,83 @@ void P_UpdateScores(void)
 	WI_BuildScoreBoard(NULL, false);
 }
 
+/* c_NewTeamInfo -- Information on new teams */
+static const struct
+{
+	int32_t SkinColor;
+	const char* Name;
+} c_NewTeamInfo[MAXSKINCOLORS] =
+{
+	// Standard CTF Teams (Primary Colors)
+	{3, "Red"},
+	{8, "Blue"},
+	{0, "Green"},
+	{9, "Yellow"},
+	
+	// Team Set B
+	{12, "Orange"},
+	{15, "Pink"},
+	{13, "Tan"},
+	{1, "Gray"},
+	
+	// Team Set C
+	{11, "White"},
+	{10, "Beige"},
+	{14, "Black"},
+	{2, "Brown"},
+	
+	// Final Set (Light Colors)
+	{6, "BrightRed"},
+	{7, "BrightBlue"},
+	{4, "BrightGray"},
+	{5, "BrightBrown"},
+};
+
+/* P_GetTeamInfo() -- Gets Information on a team */
+// This returns a color and a name
+void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char** const a_Name)
+{
+	/* Check */
+	if (a_TeamNum < 0 || a_TeamNum >= MAXSKINCOLORS)
+	{
+		if (a_Color)
+			*a_Color = 0;
+		if (a_Name)
+			*a_Name = "Illegal Team";
+	 	return;
+	}
+	
+	/* If new modes are enabled, a different color set is used */
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Teams are enabled
+		if (P_GMIsTeam())
+		{
+			if (a_Color)
+				*a_Color = c_NewTeamInfo[a_TeamNum].SkinColor;
+			if (a_Name)
+				*a_Name = c_NewTeamInfo[a_TeamNum].Name;
+		}
+		
+		// Not Enabled
+		else
+		{
+			if (a_Color)
+				*a_Color = 0;
+			if (a_Name)
+				*a_Name = "No Team";
+		}
+	}
+	
+	/* Otherwise, the old legacy stuff is used */
+	else
+	{
+		if (a_Color)
+			*a_Color = a_TeamNum;
+		if (a_Name)
+			*a_Name = team_names[a_TeamNum];
+	}
+}
 
 /*** SPECTATOR PLAYER ***/
 

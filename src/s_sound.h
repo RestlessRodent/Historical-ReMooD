@@ -93,11 +93,14 @@ void S_Start(void);
 int S_GetSfxLumpNum(sfxinfo_t* sfx);
 void S_FreeSfx(sfxinfo_t* sfx);
 
-void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
-void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume);
-void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
-void S_StopSound(S_NoiseThinker_t* a_Origin);
+void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume, const bool_t a_Reverse);
 int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id);
+
+void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
+void S_StartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
+void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
+void S_StartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname);
+void S_StopSound(S_NoiseThinker_t* a_Origin);
 
 void S_RepositionSounds(void);
 
