@@ -1,4 +1,5 @@
 glob:bin/remood-dbg.exe
+relre:\.fuse_hidden.*
 relre:.*\.obj$
 relre:.*\.cod$
 relre:.*\.pdb$
@@ -10,11 +11,20 @@ relre:.*\.ncb$
 relre:.*\.suo$
 relre:.*\.dll$
 relre:.*\.idb$
-relre:.*\.usr$
+relre:.*\.tmp$
+relre:.*\.deh$
+relre:.*\.DEH$
 relre:.*doom\.wad$
 relre:.*doom2\.wad$
 relre:.*tnt\.wad$
 relre:.*plutonia\.wad$
+relre:.*doom1\.wad$
+relre:.*heretic\.wad$
+relre:.*heretic1\.wad$
+relre:.*hexen\.wad$
+relre:.*freedm\.wad$
+relre:.*freedoom\.wad$
+relre:.*ultfdoom\.wad$
 relre:.*\.user$
 relre:.*BuildLog\.htm$
 relre:.*\.o$
@@ -40,6 +50,7 @@ relre:.*\.gz$
 relre:.*\.tar$
 glob:___cdef.___
 glob:remood.cfg
+glob:remoodex.cfg
 glob:remood16
 glob:cwsdpmi.doc
 glob:cwsparam.doc
@@ -52,13 +63,14 @@ glob:*.xcodeproj/*.pbxuser
 glob:*.xcodeproj/*.perspective*
 glob:*.xcodeproj/*.mode*
 relre:^build$
-
+glob:graph/
 glob:wad (copy)/
 glob:src (copy)/
 glob:wad/sprites/smoka0.raw
 glob:playpal-base.lmp
 relre:.*@.*
 relre:.*~$
+glob:SDL-1.2.15/
 glob:proj/vc6/ReMooD.plg
 glob:ReMooD_private.rc
 glob:ReMooD_private.h
@@ -86,3 +98,5 @@ glob:parm
 glob:parm.zip
 glob:libarmboot.a
 relre:.*\.zip$
+glob:bnodes
+glob:bshore
