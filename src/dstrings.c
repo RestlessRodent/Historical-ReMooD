@@ -1372,6 +1372,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "D_PGS_CONEWGAMEMODES", "Enables the usage of the new game mode settings."},
 	{				   "M_PGS_GAMEMODE", "Game Mode"},
 	{			       "D_PGS_GAMEMODE", "The type of game currently being played."},
+	{		  "M_PGS_CTFNEEDFLAGATHOME", "Flag At Home To Score"},
+	{		  "D_PGS_CTFNEEDFLAGATHOME", "To score a flag, your team flag must be at home."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

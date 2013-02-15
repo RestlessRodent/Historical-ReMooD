@@ -16074,13 +16074,500 @@ MapObject "LegacyNode"
 }
 
 // Object -- RedFlag
+MapObject "RedFlagPed"
+{
+	NiceName "Red CTF Pedestal";
+	ShortNiceName "Red Platform";
+	DoomEdNum "5131";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "10";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	TranslationColor "light red";
+	IsDoomColored "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "FLGP";
+			Frame "A";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "FLGP";
+			Frame "C";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "FLGP";
+			Frame "E";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(0)";
+			ViewPriority "MissionCritical";
+			Next "1";
+		}
+		
+	}
+}
+
+// Object -- BlueFlag
+MapObject "BlueFlagPed"
+{
+	NiceName "Blue CTF Pedestal";
+	ShortNiceName "Blue Platform";
+	DoomEdNum "5130";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "10";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	TranslationColor "light blue";
+	IsDoomColored "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "FLGP";
+			Frame "A";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "FLGP";
+			Frame "C";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "FLGP";
+			Frame "E";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(1)";
+			ViewPriority "MissionCritical";
+			Next "1";
+		}
+		
+	}
+}
+
+// Object -- GreenFlag
+MapObject "GreenFlagPed"
+{
+	NiceName "Green CTF Pedestal";
+	ShortNiceName "Green Platform";
+	DoomEdNum "5133";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "10";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	IsDoomColored "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "FLGP";
+			Frame "A";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "FLGP";
+			Frame "C";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "FLGP";
+			Frame "E";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(2)";
+			ViewPriority "MissionCritical";
+			Next "1";
+		}
+		
+	}
+}
+
+// Object -- YellowFlag
+MapObject "YellowFlagPed"
+{
+	NiceName "Yellow CTF Pedestal";
+	ShortNiceName "Yellow Platform";
+	DoomEdNum "5134";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "10";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	TranslationColor "Yellow";
+	IsDoomColored "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "FLGP";
+			Frame "A";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "FLGP";
+			Frame "C";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "FLGP";
+			Frame "E";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(3)";
+			ViewPriority "MissionCritical";
+			Next "1";
+		}
+		
+	}
+}
+
+// Object -- NeutralFlag
+MapObject "NeutralFlagPed"
+{
+	NiceName "Neutral CTF Pedestal";
+	ShortNiceName "White Platform";
+	DoomEdNum "5132";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "10";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	TranslationColor "White";
+	IsDoomColored "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "FLGP";
+			Frame "A";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "FLGP";
+			Frame "C";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "FLGP";
+			Frame "B";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "FLGP";
+			Frame "E";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "FLGP";
+			Frame "D";
+			Tics "1";
+			Function "CTFFlagCtrl(-1)";
+			ViewPriority "MissionCritical";
+			Next "1";
+		}
+		
+	}
+}
+
+// Object -- RedFlag
 MapObject "RedFlag"
 {
 	NiceName "Red CTF Flag";
 	ShortNiceName "Red Flag";
-	DoomEdNum "5131";
-	DeHackEdNum "148";
-	MTName "MT_REDFLAG";
+	DoomEdNum "-1";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "8";
@@ -16096,7 +16583,6 @@ MapObject "RedFlag"
 	ActiveSound "none";
 	
 	NoThingClipping "true";
-	ForceInitializeBotNodes "true";
 	TranslationColor "light red";
 	IsDoomColored "true";
 	
@@ -16104,7 +16590,6 @@ MapObject "RedFlag"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "1015";
 			Sprite "FLAG";
 			Frame "7";
 			Tics "4";
@@ -16114,7 +16599,6 @@ MapObject "RedFlag"
 		
 		Frame "2"
 		{
-			DeHackEdNum "1016";
 			Sprite "FLAG";
 			Frame "6";
 			Tics "4";
@@ -16124,7 +16608,6 @@ MapObject "RedFlag"
 		
 		Frame "3"
 		{
-			DeHackEdNum "1017";
 			Sprite "FLAG";
 			Frame "5";
 			Tics "4";
@@ -16134,7 +16617,6 @@ MapObject "RedFlag"
 		
 		Frame "4"
 		{
-			DeHackEdNum "1018";
 			Sprite "FLAG";
 			Frame "4";
 			Tics "4";
@@ -16144,7 +16626,6 @@ MapObject "RedFlag"
 		
 		Frame "5"
 		{
-			DeHackEdNum "1019";
 			Sprite "FLAG";
 			Frame "3";
 			Tics "4";
@@ -16154,7 +16635,6 @@ MapObject "RedFlag"
 		
 		Frame "6"
 		{
-			DeHackEdNum "1020";
 			Sprite "FLAG";
 			Frame "2";
 			Tics "4";
@@ -16164,7 +16644,6 @@ MapObject "RedFlag"
 		
 		Frame "7"
 		{
-			DeHackEdNum "1021";
 			Sprite "FLAG";
 			Frame "1";
 			Tics "4";
@@ -16174,7 +16653,6 @@ MapObject "RedFlag"
 		
 		Frame "8"
 		{
-			DeHackEdNum "1022";
 			Sprite "FLAG";
 			Frame "0";
 			Tics "4";
@@ -16189,9 +16667,7 @@ MapObject "BlueFlag"
 {
 	NiceName "Blue CTF Flag";
 	ShortNiceName "Blue Flag";
-	DoomEdNum "5130";
-	DeHackEdNum "149";
-	MTName "MT_BLUEFLAG";
+	DoomEdNum "-1";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "8";
@@ -16207,7 +16683,6 @@ MapObject "BlueFlag"
 	ActiveSound "none";
 	
 	NoThingClipping "true";
-	ForceInitializeBotNodes "true";
 	TranslationColor "light blue";
 	IsDoomColored "true";
 	
@@ -16215,7 +16690,6 @@ MapObject "BlueFlag"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "1015";
 			Sprite "FLAG";
 			Frame "7";
 			Tics "4";
@@ -16225,7 +16699,6 @@ MapObject "BlueFlag"
 		
 		Frame "2"
 		{
-			DeHackEdNum "1016";
 			Sprite "FLAG";
 			Frame "6";
 			Tics "4";
@@ -16235,7 +16708,6 @@ MapObject "BlueFlag"
 		
 		Frame "3"
 		{
-			DeHackEdNum "1017";
 			Sprite "FLAG";
 			Frame "5";
 			Tics "4";
@@ -16245,7 +16717,6 @@ MapObject "BlueFlag"
 		
 		Frame "4"
 		{
-			DeHackEdNum "1018";
 			Sprite "FLAG";
 			Frame "4";
 			Tics "4";
@@ -16255,7 +16726,6 @@ MapObject "BlueFlag"
 		
 		Frame "5"
 		{
-			DeHackEdNum "1019";
 			Sprite "FLAG";
 			Frame "3";
 			Tics "4";
@@ -16265,7 +16735,6 @@ MapObject "BlueFlag"
 		
 		Frame "6"
 		{
-			DeHackEdNum "1020";
 			Sprite "FLAG";
 			Frame "2";
 			Tics "4";
@@ -16275,7 +16744,6 @@ MapObject "BlueFlag"
 		
 		Frame "7"
 		{
-			DeHackEdNum "1021";
 			Sprite "FLAG";
 			Frame "1";
 			Tics "4";
@@ -16285,7 +16753,6 @@ MapObject "BlueFlag"
 		
 		Frame "8"
 		{
-			DeHackEdNum "1022";
 			Sprite "FLAG";
 			Frame "0";
 			Tics "4";
@@ -16300,9 +16767,7 @@ MapObject "GreenFlag"
 {
 	NiceName "Green CTF Flag";
 	ShortNiceName "Green Flag";
-	DoomEdNum "5133";
-	DeHackEdNum "150";
-	MTName "MT_GREENFLAG";
+	DoomEdNum "-1";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "8";
@@ -16317,14 +16782,12 @@ MapObject "GreenFlag"
 	DeathSound "none";
 	ActiveSound "none";
 	
-	ForceInitializeBotNodes "true";
 	IsDoomColored "true";
 	
 	State "SpawnState"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "1015";
 			Sprite "FLAG";
 			Frame "7";
 			Tics "4";
@@ -16334,7 +16797,6 @@ MapObject "GreenFlag"
 		
 		Frame "2"
 		{
-			DeHackEdNum "1016";
 			Sprite "FLAG";
 			Frame "6";
 			Tics "4";
@@ -16344,7 +16806,6 @@ MapObject "GreenFlag"
 		
 		Frame "3"
 		{
-			DeHackEdNum "1017";
 			Sprite "FLAG";
 			Frame "5";
 			Tics "4";
@@ -16354,7 +16815,6 @@ MapObject "GreenFlag"
 		
 		Frame "4"
 		{
-			DeHackEdNum "1018";
 			Sprite "FLAG";
 			Frame "4";
 			Tics "4";
@@ -16364,7 +16824,6 @@ MapObject "GreenFlag"
 		
 		Frame "5"
 		{
-			DeHackEdNum "1019";
 			Sprite "FLAG";
 			Frame "3";
 			Tics "4";
@@ -16374,7 +16833,6 @@ MapObject "GreenFlag"
 		
 		Frame "6"
 		{
-			DeHackEdNum "1020";
 			Sprite "FLAG";
 			Frame "2";
 			Tics "4";
@@ -16384,7 +16842,6 @@ MapObject "GreenFlag"
 		
 		Frame "7"
 		{
-			DeHackEdNum "1021";
 			Sprite "FLAG";
 			Frame "1";
 			Tics "4";
@@ -16394,7 +16851,6 @@ MapObject "GreenFlag"
 		
 		Frame "8"
 		{
-			DeHackEdNum "1022";
 			Sprite "FLAG";
 			Frame "0";
 			Tics "4";
@@ -16409,9 +16865,7 @@ MapObject "YellowFlag"
 {
 	NiceName "Yellow CTF Flag";
 	ShortNiceName "Yellow Flag";
-	DoomEdNum "5134";
-	DeHackEdNum "151";
-	MTName "MT_YELLOWFLAG";
+	DoomEdNum "-1";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "8";
@@ -16427,7 +16881,6 @@ MapObject "YellowFlag"
 	ActiveSound "none";
 	
 	NoThingClipping "true";
-	ForceInitializeBotNodes "true";
 	TranslationColor "Yellow";
 	IsDoomColored "true";
 	
@@ -16435,7 +16888,6 @@ MapObject "YellowFlag"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "1015";
 			Sprite "FLAG";
 			Frame "7";
 			Tics "4";
@@ -16445,7 +16897,6 @@ MapObject "YellowFlag"
 		
 		Frame "2"
 		{
-			DeHackEdNum "1016";
 			Sprite "FLAG";
 			Frame "6";
 			Tics "4";
@@ -16455,7 +16906,6 @@ MapObject "YellowFlag"
 		
 		Frame "3"
 		{
-			DeHackEdNum "1017";
 			Sprite "FLAG";
 			Frame "5";
 			Tics "4";
@@ -16465,7 +16915,6 @@ MapObject "YellowFlag"
 		
 		Frame "4"
 		{
-			DeHackEdNum "1018";
 			Sprite "FLAG";
 			Frame "4";
 			Tics "4";
@@ -16475,7 +16924,6 @@ MapObject "YellowFlag"
 		
 		Frame "5"
 		{
-			DeHackEdNum "1019";
 			Sprite "FLAG";
 			Frame "3";
 			Tics "4";
@@ -16485,7 +16933,6 @@ MapObject "YellowFlag"
 		
 		Frame "6"
 		{
-			DeHackEdNum "1020";
 			Sprite "FLAG";
 			Frame "2";
 			Tics "4";
@@ -16495,7 +16942,6 @@ MapObject "YellowFlag"
 		
 		Frame "7"
 		{
-			DeHackEdNum "1021";
 			Sprite "FLAG";
 			Frame "1";
 			Tics "4";
@@ -16505,7 +16951,6 @@ MapObject "YellowFlag"
 		
 		Frame "8"
 		{
-			DeHackEdNum "1022";
 			Sprite "FLAG";
 			Frame "0";
 			Tics "4";
@@ -16520,9 +16965,7 @@ MapObject "NeutralFlag"
 {
 	NiceName "Neutral CTF Flag";
 	ShortNiceName "White Flag";
-	DoomEdNum "5132";
-	DeHackEdNum "152";
-	MTName "MT_NEUTRALFLAG";
+	DoomEdNum "-1";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "8";
@@ -16538,7 +16981,6 @@ MapObject "NeutralFlag"
 	ActiveSound "none";
 	
 	NoThingClipping "true";
-	ForceInitializeBotNodes "true";
 	TranslationColor "White";
 	IsDoomColored "true";
 	
@@ -16546,7 +16988,6 @@ MapObject "NeutralFlag"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "1015";
 			Sprite "FLAG";
 			Frame "7";
 			Tics "4";
@@ -16556,7 +16997,6 @@ MapObject "NeutralFlag"
 		
 		Frame "2"
 		{
-			DeHackEdNum "1016";
 			Sprite "FLAG";
 			Frame "6";
 			Tics "4";
@@ -16566,7 +17006,6 @@ MapObject "NeutralFlag"
 		
 		Frame "3"
 		{
-			DeHackEdNum "1017";
 			Sprite "FLAG";
 			Frame "5";
 			Tics "4";
@@ -16576,7 +17015,6 @@ MapObject "NeutralFlag"
 		
 		Frame "4"
 		{
-			DeHackEdNum "1018";
 			Sprite "FLAG";
 			Frame "4";
 			Tics "4";
@@ -16586,7 +17024,6 @@ MapObject "NeutralFlag"
 		
 		Frame "5"
 		{
-			DeHackEdNum "1019";
 			Sprite "FLAG";
 			Frame "3";
 			Tics "4";
@@ -16596,7 +17033,6 @@ MapObject "NeutralFlag"
 		
 		Frame "6"
 		{
-			DeHackEdNum "1020";
 			Sprite "FLAG";
 			Frame "2";
 			Tics "4";
@@ -16606,7 +17042,6 @@ MapObject "NeutralFlag"
 		
 		Frame "7"
 		{
-			DeHackEdNum "1021";
 			Sprite "FLAG";
 			Frame "1";
 			Tics "4";
@@ -16616,7 +17051,6 @@ MapObject "NeutralFlag"
 		
 		Frame "8"
 		{
-			DeHackEdNum "1022";
 			Sprite "FLAG";
 			Frame "0";
 			Tics "4";

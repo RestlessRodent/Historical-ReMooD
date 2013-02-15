@@ -121,6 +121,7 @@ typedef enum P_XGSMenuCategory_s
 	PEXGSMC_FUN,								// Fun Settings! =D yay!
 	PEXGSMC_HERETIC,							// Heretic Settings
 	PEXGSMC_COMPAT,								// Compatibility Option
+	PEXGSMC_CTF,								// CTF Options
 	
 	NUMPEXGSMENUCATEGORIES
 } P_XGSMenuCategory_t;
@@ -285,6 +286,7 @@ typedef enum P_XGSBitID_e
 	PGS_CORESPAWNCORPSESONLY,					// Only respawn dead bodies
 	PGS_CONEWGAMEMODES,							// New Game Modes
 	PGS_GAMEMODE,								// Current Game Mode
+	PGS_CTFNEEDFLAGATHOME,						// Need flag at home to score
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

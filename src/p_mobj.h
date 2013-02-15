@@ -559,8 +559,10 @@ typedef struct mobj_s
 	// GhostlyDeath <June 22, 2012> -- Interpolation
 	fixed_t DrawPos[3];							// Interpolated Draw Position
 	
-	// GhostlyDeath <February 15, 2013> -- Fake Color Setting
+	// GhostlyDeath <February 15, 2013> -- Team/CTF Related Stuff
 	int32_t FakeColor;							// Draw as this color
+	int8_t CTFTeam;								// Team Flag is on?
+	bool_t (*AltTouchFunc)(struct mobj_s* const a_Special, struct mobj_s* const a_Toucher);
 } mobj_t;
 
 /* Converts natural flags to/from extended flags */

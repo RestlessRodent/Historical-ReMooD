@@ -2963,14 +2963,373 @@ void P_ExtraSpecialStuff(void)
 
 /*****************************************************************************/
 
+/*** GLOBALS ***/
+
+mobj_t* g_CTFFlags[MAXSKINCOLORS + 1];			// Flags in Game
+
 /*** FUNCTIONS ***/
 
 /* P_InitGameMode() -- Initializes Game Mode */
 void P_InitGameMode(const P_GameMode_t a_Mode)
 {
-	
 	/* Update Scores */
 	// This shows the game mode change
 	P_UpdateScores();
+}
+
+/* P_CTFMoveFlag() -- Move CTF Flag Here */
+void P_CTFMoveFlag(mobj_t* const a_FlagMo, mobj_t* const a_Target, const bool_t a_IsHolding)
+{
+	/* Being held? */
+	if (a_IsHolding)
+	{
+		// Move around
+		P_UnsetThingPosition(a_FlagMo);
+		a_FlagMo->x = a_Target->x - FixedMul(FIXEDT_C(12), finecosine[a_Target->angle >> ANGLETOFINESHIFT]);
+		a_FlagMo->y = a_Target->y - FixedMul(FIXEDT_C(12), finesine[a_Target->angle >> ANGLETOFINESHIFT]);
+		a_FlagMo->z = a_Target->z + (a_Target->height >> 1);
+		P_SetThingPosition(a_FlagMo);
+		
+		// Reset Floor
+		a_FlagMo->floorz = a_Target->floorz;
+		a_FlagMo->ceilingz = a_Target->ceilingz;
+		
+		// Remove momentum of flag also
+		a_FlagMo->momx = a_FlagMo->momy = a_FlagMo->momz = 0;
+	}
+	
+	/* Not being held */
+	else
+	{
+		// Move flag to base
+		P_UnsetThingPosition(a_FlagMo);
+		a_FlagMo->x = a_Target->x;
+		a_FlagMo->y = a_Target->y;
+		a_FlagMo->z = a_Target->z - FIXEDT_C(32);
+		P_SetThingPosition(a_FlagMo);
+		
+		// Reset Floor
+		a_FlagMo->floorz = a_Target->floorz;
+		a_FlagMo->ceilingz = a_Target->ceilingz;
+		
+		// Remove momentum of flag also
+		a_FlagMo->momx = a_FlagMo->momy = a_FlagMo->momz = 0;
+	}
+}
+
+/* P_CTFReturnFlag() -- Returns a team's flag to base */
+void P_CTFReturnFlag(const int32_t a_TeamNum)
+{
+	mobj_t* Mo;
+	
+	/* Check */
+	if (a_TeamNum < 0 || a_TeamNum > MAXSKINCOLORS)
+		return;
+	
+	/* No Flag? */
+	if (!g_CTFFlags[a_TeamNum])
+		return;
+	
+	/* Move it */
+	// Fog in old spot
+	Mo = P_SpawnMobj(g_CTFFlags[a_TeamNum]->x, g_CTFFlags[a_TeamNum]->y, g_CTFFlags[a_TeamNum]->z, INFO_GetTypeByName("ItemFog"));
+	S_StartSoundNameRev(&Mo->NoiseThinker, "itemup");
+	
+	// Move it
+	P_CTFMoveFlag(g_CTFFlags[a_TeamNum], g_CTFFlags[a_TeamNum]->target, false);
+	
+	// Fog in new spot
+	Mo = P_SpawnMobj(g_CTFFlags[a_TeamNum]->x, g_CTFFlags[a_TeamNum]->y, g_CTFFlags[a_TeamNum]->z, INFO_GetTypeByName("ItemFog"));
+	S_StartSoundName(&Mo->NoiseThinker, "itemup");
+	
+	/* Modify Flags */
+	g_CTFFlags[a_TeamNum]->flags |= MF_SPECIAL;
+	g_CTFFlags[a_TeamNum]->health = 1;
+	
+	/* Revert flag to follow it's own base */
+	P_RefMobj(PMRT_TRACER, g_CTFFlags[a_TeamNum], g_CTFFlags[a_TeamNum]->target);
+}
+
+/* P_FlagTouchFunc() -- Flag is touched */
+bool_t P_FlagTouchFunc(struct mobj_s* const a_Special, struct mobj_s* const a_Toucher)
+{
+	int32_t FlagTeam, ToucherTeam;
+	
+	/* Not CTF? */
+	if (!P_GMIsCTF())
+		return false;
+	
+	/* Check */
+	if (!a_Special || !a_Toucher)
+		return false;
+	
+	/* Toucher is not a player? */
+	if (!P_MobjIsPlayer(a_Toucher))
+		return false;
+	
+	/* Get team the flag is on and the toucher's team */
+	FlagTeam = a_Special->CTFTeam;
+	ToucherTeam = P_GetMobjTeam(a_Toucher);
+	
+	/* If same team, return to home */
+	if (FlagTeam == ToucherTeam)
+	{
+		// Flag is following something (home or enemy)
+		if (a_Special->tracer)
+			return false;
+		
+		// Return flag
+		P_CTFReturnFlag(FlagTeam);
+	}
+	
+	/* Otherwise, take flag */
+	else
+	{
+		// Can only carry one flag at a time?
+		
+		
+		// Reference new
+		P_RefMobj(PMRT_TRACER, a_Special, a_Toucher);
+		P_RefMobj(PMRT_TRACER, a_Special->target, a_Toucher);
+		a_Special->flags &= ~MF_PICKUP;
+		
+		// Touch worked
+		return true;
+	}
+}
+
+/* P_HomeTouchFunc() -- Home is touched */
+bool_t P_HomeTouchFunc(struct mobj_s* const a_Special, struct mobj_s* const a_Toucher)
+{
+	int32_t BaseTeam, ToucherTeam, LoseTeam;
+	int32_t i;
+	
+	/* Not CTF? */
+	if (!P_GMIsCTF())
+		return false;
+		
+	/* Check */
+	if (!a_Special || !a_Toucher)
+		return false;
+	
+	/* Toucher is not a player? */
+	if (!P_MobjIsPlayer(a_Toucher))
+		return false;
+	
+	/* Get teams of special and toucher */
+	BaseTeam = a_Special->CTFTeam;
+	ToucherTeam = P_GetMobjTeam(a_Toucher);
+	
+	// Wrong Team?
+	if (BaseTeam != ToucherTeam)
+		return false;
+	
+	/* Does the flag have to be home to score? */
+	if (g_CTFFlags[BaseTeam])
+		if (P_XGSVal(PGS_CTFNEEDFLAGATHOME))
+			if (g_CTFFlags[BaseTeam]->target != g_CTFFlags[BaseTeam]->tracer)
+				return false;
+	
+	/* Determine which flag the player touching is holding */
+	// Allow for multiple grabs
+	for (LoseTeam = 0; LoseTeam <= MAXSKINCOLORS; LoseTeam++)
+	{
+		// Team has no flag
+		if (!g_CTFFlags[LoseTeam])
+			continue;
+		
+		// Flag holder is not this player
+		if (g_CTFFlags[LoseTeam]->tracer != a_Toucher)
+			continue;
+			
+		// This is our own flag? (manual return)
+		if (LoseTeam == BaseTeam)
+		{
+			// TODO FIXME: message, etc.
+		}
+		
+		// This is an enemy flag
+		else
+		{
+			// TODO FIXME: lower/increase score, message, etc.
+		}
+		
+		// Return flag always
+		P_CTFReturnFlag(LoseTeam);
+	}
+}
+
+/* A_CTFFlagCtrl() -- CTF Flag Thinker */
+void A_CTFFlagCtrl(mobj_t* a_Mo, player_t* a_Player, pspdef_t* a_PSP, const PI_sargc_t a_ArgC, PI_sargv_t* const a_ArgV)
+{
+	mobj_t* FlagMo;
+	int32_t i, TeamID;
+	
+	static const struct
+	{
+		int32_t TeamID;
+		const char* ObjClass;
+	} c_TeamFlags[MAXSKINCOLORS + 1] =
+	{
+		{0, "RedFlag"},
+		{1, "BlueFlag"},
+		{2, "GreenFlag"},
+		{3, "YellowFlag"},
+		{4, "OrangeFlag"},
+		{5, "PinkFlag"},
+		{6, "TanFlag"},
+		{7, "GrayFlag"},
+		{8, "WhiteFlag"},
+		{9, "BeigeFlag"},
+		{10, "BlackFlag"},
+		{11, "BrownFlag"},
+		{12, "BrightRedFlag"},
+		{13, "BrightBlueFlag"},
+		{14, "BrightGrayFlag"},
+		{15, "BrightBrownFlag"},
+		{MAXSKINCOLORS, "NeutralFlag"},
+	};
+	
+	/* Not CTF? */
+	if (!P_GMIsCTF())
+		return;
+	
+	/* Not enough args? */
+	if (a_ArgC <= 0)
+		return;
+	
+	/* Which Team? */
+	TeamID = a_ArgV[0].IntVal;
+	
+	if (TeamID < 0)
+		TeamID = MAXSKINCOLORS;
+	
+	/* Pedestal is always 32 from the floor */
+	a_Mo->flags |= MF_NOGRAVITY | MF_SPECIAL;
+	a_Mo->z = a_Mo->floorz + FIXEDT_C(32);
+	
+	/* Set toucher func for home base */
+	a_Mo->AltTouchFunc = P_HomeTouchFunc;
+	a_Mo->CTFTeam = TeamID;
+	
+	/* If no flag exists, create one */
+	if (!a_Mo->target && !g_CTFFlags[TeamID])
+	{
+		// Find matching ID
+		for (i = 0; i < MAXSKINCOLORS + 1; i++)
+			if (c_TeamFlags[i].TeamID == TeamID)
+				break;
+		
+		// Not found?
+		if (i >= MAXSKINCOLORS + 1)
+			return;
+		
+		// Spawn it
+		FlagMo = P_SpawnMobj(a_Mo->x, a_Mo->y, a_Mo->z - FIXEDT_C(31), INFO_GetTypeByName(c_TeamFlags[i].ObjClass));
+		
+		// Failed?
+		if (!FlagMo)
+			return;
+		
+		// Set target to this flag
+		P_RefMobj(PMRT_TARGET, a_Mo, FlagMo);
+		P_RefMobj(PMRT_TARGET, FlagMo, a_Mo);
+		
+		// Set tracer to this flag
+		P_RefMobj(PMRT_TRACER, a_Mo, FlagMo);
+		P_RefMobj(PMRT_TRACER, FlagMo, a_Mo);
+		
+		// Alternative pickup function
+		FlagMo->AltTouchFunc = P_FlagTouchFunc;
+		
+		// Team the flag is on
+		FlagMo->CTFTeam = TeamID;
+		
+		// Set flag to this one
+		g_CTFFlags[TeamID] = FlagMo;
+	}
+	
+	// still no target?
+	if (!a_Mo->target)
+		return;
+	
+	/* Get flag to modify */
+	FlagMo = a_Mo->target;
+	
+	/* These settings are always set */
+	a_Mo->CTFTeam = FlagMo->CTFTeam = TeamID;
+	
+	/* If this is the neutral flag, move colors */
+	if (a_ArgV[0].IntVal < 0)
+	{
+		i = (FlagMo->flags & MF_TRANSLATION) >> MF_TRANSSHIFT;
+		i = (i + 1) % MAXSKINCOLORS;
+		FlagMo->flags &= ~MF_TRANSLATION;
+		FlagMo->flags |= i << MF_TRANSSHIFT;
+	}
+	
+	/* Flag is at the stand */
+	if (FlagMo->tracer == a_Mo)
+	{
+		// Shadow return point so it is harder to see
+		a_Mo->flags |= MF_SHADOW;
+		
+		// Flag can be picked up
+		FlagMo->flags |= MF_SPECIAL;
+		FlagMo->flags &= ~MF_NOGRAVITY;
+		
+		// Set some health
+		FlagMo->health = 0;
+	}
+	
+	/* Flag is alway from home */
+	else
+	{
+		// Make the return point visible
+		a_Mo->flags &= ~MF_SHADOW;
+		
+		// Flag is following another player?
+		if (FlagMo->tracer != NULL)
+		{
+			// Cannot be picked up
+			FlagMo->flags &= ~MF_SPECIAL;
+			
+			// Not affected by gravity
+			FlagMo->flags |= MF_NOGRAVITY;
+			
+			// If player is not a player or is dead, stop following
+			if (!P_MobjIsPlayer(FlagMo->tracer) ||
+					FlagMo->tracer->health <= 0 ||
+					FlagMo->tracer->flags & MF_CORPSE)
+			{
+				P_RefMobj(PMRT_TRACER, a_Mo, NULL);
+				P_RefMobj(PMRT_TRACER, FlagMo, NULL);
+				
+				// Health is return time
+				FlagMo->health = TICRATE * 3;
+			}
+			
+			// Otherwise, attach to player
+			else
+			{
+				// Carry above carrying player
+				P_CTFMoveFlag(FlagMo, FlagMo->tracer, true);
+			}
+		}
+		
+		// Flag is sitting around doing nothing
+		else
+		{
+			// Make it so it can be picked up
+			FlagMo->flags |= MF_SPECIAL;
+			
+			// And it is now affected by gravity
+			FlagMo->flags &= ~MF_NOGRAVITY;
+			
+			// Decrease health of flag, when zero it returns
+			if (--FlagMo->health <= 0)
+				P_CTFReturnFlag(TeamID);
+		}
+	}
 }
 

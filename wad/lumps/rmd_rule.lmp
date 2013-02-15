@@ -19,6 +19,14 @@ game_spawnmultiplayer=1
 item_keepweapons=1
 item_respawnitems=1
 
+[ctf]
+game_mode=ctf
+co_multiplayer=1
+game_spawnmultiplayer=1
+item_keepweapons=1
+item_respawnitems=1
+ctf_needflagathome=1
+
 [coop]
 game_mode=coop
 co_multiplayer=1

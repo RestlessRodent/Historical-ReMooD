@@ -1614,6 +1614,11 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 					for (j = 0; j < mo->RefListSz[i]; j++)
 						D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->RefList[i][j]));
 				}
+				
+				// CTF Stuff
+				D_BSwi32(a_Str, mo->FakeColor);
+				D_BSwu8(a_Str, mo->CTFTeam);
+				D_BSwu32(a_Str, P_TouchFuncToID(mo->AltTouchFunc));
 				break;
 
 				// Vertical Door
@@ -1882,6 +1887,17 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 			D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)itemrespawnque[i]->mobj));
 		}
 	}
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Save CTF Flag Info */
+	D_BSBaseBlock(a_Str, "CTFF");
+	
+	// Dump Flags
+	D_BSwu8(a_Str, MAXSKINCOLORS);
+	for (i = 0; i < MAXSKINCOLORS + 1; i++)
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)g_CTFFlags[i]));
 	
 	// Record
 	D_BSRecordBlock(a_Str);
@@ -2192,6 +2208,11 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 					for (j = 0; j < mo->RefListSz[i]; j++)
 						mo->RefList[i][j] = (void*)((intptr_t)D_BSri32(a_Str));
 				}
+				
+				// CTF Stuff
+				mo->FakeColor = D_BSri32(a_Str);
+				mo->CTFTeam = D_BSru8(a_Str);
+				mo->AltTouchFunc = P_TouchIDToFunc(D_BSru32(a_Str));
 				break;
 				
 				// Vertical Door
@@ -2510,6 +2531,16 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				D_BSri32(a_Str);
 			}
 	}
+	
+	/* Load CTF Flag Info */
+	if (!PS_Expect(a_Str, "CTFF"))
+		return false;
+	
+	// Read Flags
+	n = D_BSru8(a_Str);
+	for (i = 0; i < n; i++)
+		g_CTFFlags[i] = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
+	g_CTFFlags[MAXSKINCOLORS] = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(a_Str)));
 		
 	/* Expect "LMSC" */
 	if (!PS_Expect(a_Str, "LMSC"))

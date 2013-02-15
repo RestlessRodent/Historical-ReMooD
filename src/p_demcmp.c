@@ -919,6 +919,10 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_GAMEMODE, "game_mode", DSTR_M_PGS_GAMEMODE,
 		DSTR_D_PGS_GAMEMODE, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
 		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVGameMode, P_XGSChangeFunc_GAMEMODE},
+
+	{PEXGST_INTEGER, PGS_CTFNEEDFLAGATHOME, "ctf_needflagathome", DSTR_M_PGS_CTFNEEDFLAGATHOME,
+		DSTR_D_PGS_CTFNEEDFLAGATHOME, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_CTF, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/
@@ -1815,6 +1819,13 @@ void NG_FromCLine(void)
 	else if (M_CheckParm("-newdeath") || M_CheckParm("-dm3"))
 	{
 		if (NG_SetRules(false, "dm3"))
+			l_NGAutoStart = true;
+	}
+	
+	// Standard CTF
+	else if (M_CheckParm("-ctf"))
+	{
+		if (NG_SetRules(false, "ctf"))
 			l_NGAutoStart = true;
 	}
 	

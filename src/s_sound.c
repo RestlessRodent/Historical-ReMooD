@@ -550,7 +550,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 		RealID = S_sfx[sound_id].link - S_sfx;
 	
 	// Prefix with ds
-	snprintf(Buf, BUFSIZE, "ds%.6s", S_sfx[RealID].name);
+	snprintf(Buf, BUFSIZE - 1, "ds%.6s", S_sfx[RealID].name);
 	Entry = WX_EntryForName(NULL, Buf, false);
 	
 	// Try direct name

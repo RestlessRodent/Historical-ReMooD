@@ -305,6 +305,9 @@ bool_t P_ExClearLevel(void)
 	memset(playerstarts, 0, sizeof(playerstarts));
 	memset(g_TeamStarts, 0, sizeof(g_TeamStarts));
 	
+	// Flags
+	memset(g_CTFFlags, 0, sizeof(g_CTFFlags));
+	
 	// 3D Floors
 	g_PFakeFloors = NULL;
 	g_NumPFakeFloors = 0;

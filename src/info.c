@@ -312,7 +312,7 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
 		// Reference function
 		if (states[i]->Function)
 		{
-			states[i]->action = INFO_FunctionPtrByName(states[i]->Function);
+			states[i]->action = INFO_FunctionPtrByName(states[i]->Function, &states[i]->ArgC, &states[i]->ArgV);
 			Z_Free(states[i]->Function);
 			states[i]->Function = NULL;
 		}
@@ -2401,9 +2401,14 @@ PI_spriteid_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create)
 }
 
 /* INFO_FunctionPtrByName() -- Get action pointer by name */
-actionf_t INFO_FunctionPtrByName(const char* const a_Name)
+actionf_t INFO_FunctionPtrByName(const char* const a_Name, PI_sargc_t* const a_ArgC, PI_sargv_t** const a_ArgV)
 {
-	size_t i;	
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	size_t i;
+	actionf_t ActFunc;
+	const char* s, *e;
+	char* Tok;
 	
 	static const struct
 	{
@@ -2493,20 +2498,55 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 		{"FireGenericProjectile", {A_FireGenericProjectile}},
 		{"NextFrameIfMoving", {A_NextFrameIfMoving}},
 		{"GenericMonsterMissile", {A_GenericMonsterMissile}},
+		{"CTFFlagCtrl", {A_CTFFlagCtrl}},
 		{NULL, {NULL}},
 	};
 	
 	/* Check */
 	if (!a_Name)
 		return c_FuncPs[0].Action;
+		
+	/* Init */
+	memset(&ActFunc, 0, sizeof(ActFunc));
+	
+	/* Find parenthesis */
+	s = a_Name;
+	e = strchr(a_Name, '(');
+	
+	// If not found, end is last of string
+	if (!e)
+		e = a_Name + strlen(a_Name);
 	
 	/* Go through list */
 	for (i = 1; c_FuncPs[i].Name; i++)
-		if (!strcasecmp(c_FuncPs[i].Name, a_Name))
-			return c_FuncPs[i].Action;
+		if (!strncasecmp(c_FuncPs[i].Name, a_Name, (e - s)))
+		{
+			ActFunc = c_FuncPs[i].Action;
+			break;
+		}
 	
-	/* Not found */
-	return c_FuncPs[i].Action;
+	/* If found, possibly handle arguments */
+	if (ActFunc.acv && *e == '(')
+	{
+		//PU_REMOODAT
+		strncpy(Buf, e, BUFSIZE - 1);
+		
+		// Tokenize by space ( ) and ,
+		for (Tok = strtok(Buf, " \t\r\n(),"); Tok; Tok = strtok(NULL, " \t\r\n(),"))
+		{
+			Z_ResizeArray((void**)a_ArgV, sizeof(**a_ArgV),
+				*a_ArgC, *a_ArgC + 1);
+			(*a_ArgV)[(*a_ArgC)].String = Z_StrDup(Tok, PU_REMOODAT, NULL);
+			(*a_ArgV)[(*a_ArgC)].IntVal = C_strtoi32((*a_ArgV)[(*a_ArgC)].String, NULL, 0);
+			(*a_ArgC) += 1;
+			
+			Z_ChangeTag(*a_ArgV, PU_REMOODAT);
+		}
+	}
+	
+	/* Return specified action */
+	return ActFunc;
+#undef BUFSIZE
 }
 
 /* INFO_PriorityByName() -- Priority by name */
@@ -2752,7 +2792,7 @@ PI_key_t* INFO_KeyByGroupBit(const uint32_t a_Group, const uint32_t a_Bit)
 	}	
 	
 	/* Check */
-	if (a_Group < 0 || a_Group >= 2 || a_Bit	< 0 || a_Bit >= 32)
+	if (a_Group < 0 || a_Group >= 2 || a_Bit < 0 || a_Bit >= 32)
 		return NULL;
 	
 	/* Return the mapped keys */

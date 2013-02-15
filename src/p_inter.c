@@ -567,9 +567,51 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 #undef BUFSIZE
 }
 
-//
-// P_TouchSpecialThing
-//
+bool_t P_FlagTouchFunc(struct mobj_s* const a_Special, struct mobj_s* const a_Toucher);
+bool_t P_HomeTouchFunc(struct mobj_s* const a_Special, struct mobj_s* const a_Toucher);
+
+/* c_TouchFuncList() -- Touch function list */
+static const struct
+{
+	uint32_t ID;
+	P_TouchFunc_t Func;
+} c_TouchFuncList[] =
+{
+	{UINT32_C(0xF7AC0001), P_FlagTouchFunc},
+	{UINT32_C(0xF7AC0002), P_HomeTouchFunc},
+	
+	{0, NULL},
+};
+
+/* P_TouchFuncToID() -- Converts touch function to ID */
+uint32_t P_TouchFuncToID(P_TouchFunc_t a_Func)
+{
+	int32_t i;
+	
+	/* Look in list */
+	for (i = 0; c_TouchFuncList[i].ID; i++)
+		if (a_Func == c_TouchFuncList[i].Func)
+			return c_TouchFuncList[i].ID;
+	
+	/* Failed */
+	return 0;
+}
+
+/* P_TouchIDToFunc() -- Converts ID to touch function */
+P_TouchFunc_t P_TouchIDToFunc(const uint32_t a_ID)
+{
+	int32_t i;
+	
+	/* Look in list */
+	for (i = 0; c_TouchFuncList[i].ID; i++)
+		if (a_ID == c_TouchFuncList[i].ID)
+			return c_TouchFuncList[i].Func;
+	
+	/* Failed */
+	return NULL;
+}
+
+/* P_TouchSpecialThing() -- Performed when toucher with MF_PICKUP touches special with MF_SPECIAL */
 bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 {
 #define BUFSIZE 16
@@ -599,6 +641,10 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	// Can happen with a sliding player corpse.
 	if (toucher->health <= 0 || toucher->flags & MF_CORPSE)
 		return false;
+	
+	/* If there is an alternative pickup function, use that */
+	if (special->AltTouchFunc)
+		return special->AltTouchFunc(special, toucher);
 		
 	sound = sfx_itemup;
 	

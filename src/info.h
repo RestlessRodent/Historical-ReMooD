@@ -73,13 +73,13 @@ typedef enum StatePriorities_e
 	STP_PROJECTILES = 101,		// Stuff flying though the air
 } StatePriorities_t;
 
-/* INFO_StateArgsParm_t -- State arguments */
-typedef uint8_t INFO_StateArgsNum_t;
-typedef struct INFO_StateArgsParm_s
+/* PI_sargv_t -- State arguments */
+typedef uint8_t PI_sargc_t;
+typedef struct PI_sargv_s
 {
 	char* String;								// String Argument
 	int32_t IntVal;								// Numberic Value
-} INFO_StateArgsParm_t;
+} PI_sargv_t;
 
 /* PI_stateorigin_t -- Origin of state */
 typedef struct PI_stateorigin_s
@@ -117,8 +117,8 @@ typedef struct
 	
 	PI_stateorigin_t Origin;					// Where state came from
 	
-	INFO_StateArgsNum_t ArgC;					// Argument Count
-	INFO_StateArgsParm_t* ArgV;					// Function Arguments
+	PI_sargc_t ArgC;							// Argument Count
+	PI_sargv_t* ArgV;							// Function Arguments
 } PI_state_t;
 
 #define S_NULL 0
@@ -473,12 +473,7 @@ void PI_ExecuteDEH(void);
 bool_t INFO_BoolFromString(const char* const a_String);
 PI_mobjid_t INFO_GetTypeByName(const char* const a_Name);
 PI_spriteid_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
-actionf_t INFO_FunctionPtrByName(const char* const a_Name);
-
-
-	INFO_StateArgsNum_t ArgC;					// Argument Count
-	INFO_StateArgsParm_t* ArgV;					// Function Arguments
-
+actionf_t INFO_FunctionPtrByName(const char* const a_Name, PI_sargc_t* const a_ArgC, PI_sargv_t** const a_ArgV);
 uint8_t INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);
 uint32_t INFO_ColorByName(const char* const a_Name);

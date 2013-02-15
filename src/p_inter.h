@@ -64,6 +64,10 @@ void P_BroadcastMessage(const char* const a_Message);
 void P_ExitMessage(mobj_t* const a_Exiter, const char* const a_Message);
 void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source);
 
+typedef bool_t (*P_TouchFunc_t)(mobj_t* const, mobj_t* const);
+
+uint32_t P_TouchFuncToID(P_TouchFunc_t a_Func);
+P_TouchFunc_t P_TouchIDToFunc(const uint32_t a_ID);
 
 //added:28-02-98: boooring handling of thing(s) on top of thing(s)
 

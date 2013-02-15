@@ -1356,6 +1356,10 @@ typedef enum P_GameMode_e
 	NUMPGAMEMODES
 } P_GameMode_t;
 
+/*** GLOBALS ***/
+
+extern mobj_t* g_CTFFlags[MAXSKINCOLORS + 1];	// Flags in Game
+
 /*** FUNCTIONS ***/
 
 void P_InitGameMode(const P_GameMode_t a_Mode);
