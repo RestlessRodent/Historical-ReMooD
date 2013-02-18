@@ -3033,14 +3033,14 @@ void P_CTFReturnFlag(const int32_t a_TeamNum)
 	/* Move it */
 	// Fog in old spot
 	Mo = P_SpawnMobj(g_CTFFlags[a_TeamNum]->x, g_CTFFlags[a_TeamNum]->y, g_CTFFlags[a_TeamNum]->z, INFO_GetTypeByName("ItemFog"));
-	S_StartSoundNameRev(&Mo->NoiseThinker, "itemup");
+	S_StartSoundNameRev(&Mo->NoiseThinker, "itmbk");
 	
 	// Move it
 	P_CTFMoveFlag(g_CTFFlags[a_TeamNum], g_CTFFlags[a_TeamNum]->target, false);
 	
 	// Fog in new spot
 	Mo = P_SpawnMobj(g_CTFFlags[a_TeamNum]->x, g_CTFFlags[a_TeamNum]->y, g_CTFFlags[a_TeamNum]->z, INFO_GetTypeByName("ItemFog"));
-	S_StartSoundName(&Mo->NoiseThinker, "itemup");
+	S_StartSoundName(&Mo->NoiseThinker, "itmbk");
 	
 	/* Modify Flags */
 	g_CTFFlags[a_TeamNum]->flags |= MF_SPECIAL;
