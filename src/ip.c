@@ -502,6 +502,9 @@ IP_WaitClient_t* IP_WaitByHostID(const uint32_t a_HostID)
 // This also sends them the savegame too
 void IP_WaitDoJoins(void)
 {
+	/* Nobody is waiting */
+	if (!IP_WaitCount())
+		return;
 }
 
 

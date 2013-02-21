@@ -135,8 +135,9 @@ static void IPRS_SCON(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddr
 	/* Send information to client */
 	D_BSBaseBlock(a_BS, "SCOK");
 	
-	// Tell the remote client, their host ID
+	// Tell the remote client, their info
 	D_BSwu32(a_BS, New->HostID);
+	D_BSws(a_BS, IP_AddrToString(&RemAddr));
 	
 	// Send away
 	D_BSRecordNetBlock(a_BS, a_Addr);
@@ -175,14 +176,26 @@ static void IPS_RMD_WhenClientConn(const IP_Proto_t* a_Proto, IP_Conn_t* const a
 /* IPRS_SCOK() -- Simple Connect, Authorized */
 static void IPRS_SCOK(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
 {
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	uint32_t HostID;
+	
 	/* Print Message */
 	CONL_OutputUT(CT_NETWORK, DSTR_IPC_NOWFORJOINWINDOW, "%s\n", IP_AddrToString(&a_Data->Conn->RemAddr));
 	
-	/* Set to the specified host ID */
-	D_XNetSetHostID(D_BSru32(a_BS));
+	/* Load connection info */
+	// Our HostID (for our XPlayer)
+	HostID = D_BSru32(a_BS);
+	D_XNetSetHostID(HostID);
+	
+	// Address the server sees us at
+	D_BSrs(a_BS, Buf, BUFSIZE);
+	CONL_OutputUT(CT_NETWORK, DSTR_IPC_VISADDR, "%s\n", Buf);
 	
 	/* Set as connected */
 	a_Data->IsConnected = true;
+
+#undef BUFSIZE
 }
 
 /*---------------------------------------------------------------------------*/
