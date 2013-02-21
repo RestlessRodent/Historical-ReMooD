@@ -113,23 +113,6 @@ typedef enum D_XPlayerStatBits_e
 
 struct D_XPlayer_s;
 
-/* D_XSocket_t -- Socket used to communicate to player */
-typedef struct D_XSocket_s
-{
-	// Identification
-	uint32_t ID;								// Unique Socket ID	
-	
-	// Socket Info
-	I_NetSocket_t* NetSock;						// Network socket
-	struct D_BS_s* CoreStream;					// Core stream
-	struct D_BS_s* PerfectStream;				// Core stream
-	struct D_BS_s* Streams[NUMDNCSTREAMS];		// Client Streams
-	
-	// Reverse Player Lookup
-	struct D_XPlayer_s** Players;				// Players using socket
-	size_t NumPlayers;							// Number of slots
-} D_XSocket_t;
-
 struct player_s;
 struct D_ProfileEx_s;
 struct B_GhostBot_s;
@@ -153,7 +136,6 @@ typedef struct D_XPlayer_s
 	char LoginUUID[MAXUUIDLENGTH];				// UUID used for login (cookie rather)
 	
 	// Socket
-	D_XSocket_t* Socket;						// Socket player uses
 	I_HostAddress_t Address;					// Address to player
 	char ReverseDNS[MAXXSOCKTEXTSIZE];			// Reverse DNS of Host
 	
@@ -188,7 +170,7 @@ typedef struct D_XPlayer_s
 	ticcmd_t BackupTicCmd;						// Backup Tic Command
 	bool_t Turned180;							// Did 180 degre turn
 	IP_Conn_t* IPConn;							// Connection Of Player
-	IP_Addr_t* IPAddr;							// Address of Player
+	IP_Addr_t IPAddr;							// Address of Player
 	bool_t TransSave;							// Save game transmitted and loaded
 	tic_t LagStart;								// Start of lag
 	tic_t LagKill;								// Kill at this lag time
@@ -218,9 +200,6 @@ typedef struct D_XJoinPlayerData_s
 
 /*** GLOBALS ***/
 
-extern D_XSocket_t** g_XSocks;					// Extended Sockets
-extern size_t g_NumXSocks;						// Number of them
-
 extern D_XPlayer_t** g_XPlays;					// Extended Players
 extern size_t g_NumXPlays;						// Number of them
 
@@ -244,8 +223,8 @@ D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str);
 D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr);
+D_XPlayer_t* D_XNetPlayerByIPAddr(const IP_Addr_t* const a_Addr);
 
-void D_XNetDelSocket(D_XSocket_t* const a_Socket);
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data, const bool_t a_FromGTicker);
 void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, const bool_t a_FromGTicker);
 void D_XNetClearDefunct(void);
@@ -271,6 +250,8 @@ void D_XNetUpdate(void);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 
 void D_XNetInitialServer(void);
+
+uint32_t D_XNetMakeID(const uint32_t a_ID);
 
 #endif							/* __D_NET_H__ */
 

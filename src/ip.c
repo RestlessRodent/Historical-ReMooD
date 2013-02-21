@@ -66,6 +66,7 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		IP_RMD_RunConnF,
 		IP_RMD_DeleteConnF,
 		IP_RMD_ConnTrashIPF,
+		IP_RMD_SameAddrF,
 	},
 	
 	// Odamex
@@ -77,10 +78,11 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		IP_ODA_RunConnF,
 		IP_ODA_DeleteConnF,
 		NULL,
+		IP_ODA_SameAddrF,
 	},
 };
 
-static struct IP_Conn_s** l_IPConns = NULL;		// IP Connections
+static IP_Conn_t** l_IPConns = NULL;		// IP Connections
 static size_t l_NumIPConns = 0;					// Number of connections
 
 /****************
@@ -94,7 +96,7 @@ void IP_Init(void)
 
 
 /* IP_ProtoByName() -- Finds protocol by name */
-const struct IP_Proto_s* IP_ProtoByName(const char* const a_Name)
+const IP_Proto_t* IP_ProtoByName(const char* const a_Name)
 {
 	size_t i;
 	
@@ -111,10 +113,29 @@ const struct IP_Proto_s* IP_ProtoByName(const char* const a_Name)
 	return NULL;
 }
 
-/* IP_AllocConn() -- Allocate Connection */
-struct IP_Conn_s* IP_AllocConn(const struct IP_Proto_s* a_Proto, const uint32_t a_Flags, struct IP_Addr_s* const a_RemAddr)
+/* IP_CompareAddr() -- Compares two address */
+bool_t IP_CompareAddr(const IP_Addr_t* const a_A, const IP_Addr_t* const a_B)
 {
-	struct IP_Conn_s* New;
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* Differrent handler? */
+	if (a_A->Handler != a_B->Handler)
+		return false;
+	
+	/* Use comparison func */
+	if (a_A->Handler->SameAddrF)
+		return a_A->Handler->SameAddrF(a_A->Handler, a_A, a_B);
+	
+	/* Mismatch otherwise */
+	return false;
+}
+
+/* IP_AllocConn() -- Allocate Connection */
+IP_Conn_t* IP_AllocConn(const IP_Proto_t* a_Proto, const uint32_t a_Flags, IP_Addr_t* const a_RemAddr)
+{
+	IP_Conn_t* New;
 	uint32_t UU;
 	
 	/* Create ID */
@@ -155,7 +176,7 @@ struct IP_Conn_s* IP_AllocConn(const struct IP_Proto_s* a_Proto, const uint32_t 
 }
 
 /* IP_Create() -- Creates a new protocol connectable */
-struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags)
+IP_Conn_t* IP_Create(const char* const a_URI, const uint32_t a_Flags)
 {
 #define PROTOSIZE 16
 #define HOSTSIZE 64
@@ -166,7 +187,7 @@ struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags)
 	char* p, *q, *x, *s;
 	size_t i;
 	uint32_t Port;
-	const struct IP_Proto_s* Proto;
+	const IP_Proto_t* Proto;
 	
 	/* Check */
 	if (!a_URI)
@@ -306,7 +327,7 @@ struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags)
 }
 
 /* IP_Destroy() -- Destroys protocol connection */
-void IP_Destroy(struct IP_Conn_s* const a_Conn)
+void IP_Destroy(IP_Conn_t* const a_Conn)
 {
 	size_t i;
 	
@@ -327,7 +348,7 @@ void IP_Destroy(struct IP_Conn_s* const a_Conn)
 }
 
 /* IP_ConnById() -- Returns connection by ID */
-struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID)
+IP_Conn_t* IP_ConnById(const uint32_t a_UUID)
 {
 	size_t i;
 	
@@ -345,8 +366,10 @@ struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID)
 	return NULL;
 }
 
+/*****************************************************************************/
+
 /* IP_ConnRun() -- Runs connection handling */
-void IP_ConnRun(struct IP_Conn_s* const a_Conn)
+void IP_ConnRun(IP_Conn_t* const a_Conn)
 {
 	/* Check */
 	if (!a_Conn)
@@ -357,7 +380,7 @@ void IP_ConnRun(struct IP_Conn_s* const a_Conn)
 }
 
 /* IP_ConnTrashIP() -- Trash address */
-void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr)
+void IP_ConnTrashIP(IP_Conn_t* const a_Conn, I_HostAddress_t* const a_Addr)
 {
 	/* Check */
 	if (!a_Conn)
@@ -369,7 +392,116 @@ void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Add
 }
 
 /* IP_ConnSendFile() -- Sends file to remote host */
-void IP_ConnSendFile(struct IP_Conn_s* const a_Conn, const char* const a_FileName)
+void IP_ConnSendFile(IP_Conn_t* const a_Conn, const char* const a_FileName)
 {
 }
+
+/*****************************************************************************/
+
+/*** LOCALS ***/
+
+static IP_WaitClient_t** l_WaitList = NULL;		// Clients waiting to play
+static int32_t l_NumWaitList = 0;				// Number of clients waiting
+
+/*** FUNCTIONS ***/
+
+/* IP_WaitClearList() -- Clears waiting list */
+void IP_WaitClearList(void)
+{
+}
+
+/* IP_WaitCount() -- Number of players waiting */
+int32_t IP_WaitCount(void)
+{
+	int32_t i, n;
+	
+	/* Go through list */
+	for (i = n = 0; i < l_NumWaitList; i++)
+		if (l_WaitList[i])
+			n++;
+	
+	/* Return count */
+	return n;
+}
+
+/* IP_WaitAdd() -- Adds a waiting client which is connecting */
+IP_WaitClient_t* IP_WaitAdd(IP_Conn_t* const a_Conn, IP_Addr_t* const a_RemAddr, const uint32_t a_HostID)
+{
+	IP_WaitClient_t* New;
+	int32_t i;
+	
+	/* Already Added? */
+	if (!a_HostID || !a_Conn || !a_RemAddr || IP_WaitByHostID(a_HostID) || IP_WaitByConnAddr(a_Conn, a_RemAddr))
+		return NULL;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Bump into list
+	for (i = 0; i < l_NumWaitList; i++)
+		if (!l_WaitList[i])
+			break;
+	
+	// No room?
+	if (i >= l_NumWaitList)
+	{
+		Z_ResizeArray((void**)&l_WaitList, sizeof(*l_WaitList),
+			l_NumWaitList, l_NumWaitList + 1);
+		i = l_NumWaitList++;
+	}
+	
+	// Place here
+	l_WaitList[i] = New;
+	
+	/* Setup info */
+	New->Conn = a_Conn;
+	New->HostID = a_HostID;
+	memmove(&New->RemAddr, a_RemAddr, sizeof(*a_RemAddr));
+	
+	/* Return new waiting player */
+	return New;
+}
+
+/* IP_WaitDel() -- Deletes a waiting client */
+void IP_WaitDel(IP_WaitClient_t* const a_Waiter)
+{
+}
+
+/* IP_WaitByConnAddr() -- Find waiter by connection and address */
+IP_WaitClient_t* IP_WaitByConnAddr(IP_Conn_t* const a_Conn, IP_Addr_t* const a_RemAddr)
+{
+	int32_t i;
+	
+	/* Go through list */
+	for (i = 0; i < l_NumWaitList; i++)
+		if (l_WaitList[i])
+			if (l_WaitList[i]->Conn == a_Conn)
+				if (IP_CompareAddr(a_RemAddr, &l_WaitList[i]->RemAddr))
+					return l_WaitList[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
+/* IP_WaitByHostID() -- Finds waiter by unique ID */
+IP_WaitClient_t* IP_WaitByHostID(const uint32_t a_HostID)
+{
+	int32_t i;
+	
+	/* Go through list */
+	for (i = 0; i < l_NumWaitList; i++)
+		if (l_WaitList[i])
+			if (a_HostID == l_WaitList[i]->HostID)
+				return l_WaitList[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
+/* IP_WaitDoJoins() -- Joins all waiting players */
+// This also sends them the savegame too
+void IP_WaitDoJoins(void)
+{
+}
+
 

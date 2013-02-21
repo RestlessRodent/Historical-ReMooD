@@ -53,7 +53,7 @@ typedef enum IP_Flags_e
 	IPF_INPUT 			= UINT32_C(0x00000001),	// Can be connected to
 } IP_Flags_t;
 
-#define IPADDRHOSTLEN					32		// Address host length
+#define IPADDRHOSTLEN					64		// Address host length
 #define IPPRIVATESIZE					128		// Size of Private Data
 #define IPPRIVATESIZEINT	(IPPRIVATESIZE / 4)	// In Integers
 #define IPMAXSOCKTRIES					16		// Maximum Socket Tries
@@ -71,6 +71,7 @@ typedef struct IP_Conn_s* (*IP_CreateF_t)(const struct IP_Proto_s* a_Proto, cons
 typedef void (*IP_RunConnF_t)(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
 typedef void (*IP_DeleteConnF_t)(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn);
 typedef void (*IP_ConnTrashIPF_t)(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr);
+typedef bool_t (*IP_SameAddrF_t)(const struct IP_Proto_s* a_Proto, const struct IP_Addr_s* const a_A, const struct IP_Addr_s* const a_B);
 
 /* IP_Proto_t -- Protocol Handler */
 typedef struct IP_Proto_s
@@ -82,6 +83,7 @@ typedef struct IP_Proto_s
 	IP_RunConnF_t RunConnF;						// Run Connection
 	IP_DeleteConnF_t DeleteConnF;				// Delete Connection
 	IP_ConnTrashIPF_t ConnTrashF;				// Connection Trash
+	IP_SameAddrF_t SameAddrF;					// Same Address?
 } IP_Proto_t;
 
 /* IP_Addr_t -- Standard Address */
@@ -106,10 +108,23 @@ typedef struct IP_Conn_s
 	uint32_t Flags;								// Connection Flags
 	uint32_t UUID;								// Connection ID
 	
-	struct IP_Addr_s RemAddr;					// Remote Address (if any)
+	IP_Addr_t RemAddr;							// Remote Address (if any)
 	void* Data;									// Data
 	size_t Size;								// Size of Data
 } IP_Conn_t;
+
+/* IP_WaitClient_t -- A waiting client (someone who wants to play) */
+typedef struct IP_WaitClient_s
+{
+	IP_Conn_t* Conn;							// Connection being used
+	IP_Addr_t RemAddr;							// Remote Address to client
+	uint32_t HostID;							// Host ID of client
+	
+	struct
+	{
+		uint32_t ProcessID;						// Process ID of their player
+	} Remote;									// Remote Data
+} IP_WaitClient_t;
 
 /*****************
 *** PROTOTYPES ***
@@ -117,24 +132,33 @@ typedef struct IP_Conn_s
 
 void IP_Init(void);
 
-const struct IP_Proto_s* IP_ProtoByName(const char* const a_Name);
+const IP_Proto_t* IP_ProtoByName(const char* const a_Name);
+bool_t IP_CompareAddr(const IP_Addr_t* const a_A, const IP_Addr_t* const a_B);
 
-struct IP_Conn_s* IP_AllocConn(const struct IP_Proto_s* a_Proto, const uint32_t a_Flags, struct IP_Addr_s* const a_RemAddr);
-struct IP_Conn_s* IP_Create(const char* const a_URI, const uint32_t a_Flags);
-void IP_Destroy(struct IP_Conn_s* const a_Conn);
+IP_Conn_t* IP_AllocConn(const IP_Proto_t* a_Proto, const uint32_t a_Flags, IP_Addr_t* const a_RemAddr);
+IP_Conn_t* IP_Create(const char* const a_URI, const uint32_t a_Flags);
+void IP_Destroy(IP_Conn_t* const a_Conn);
 
-struct IP_Conn_s* IP_ConnById(const uint32_t a_UUID);
-
-void IP_ConnRun(struct IP_Conn_s* const a_Conn);
-void IP_ConnTrashIP(struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr);
-void IP_ConnSendFile(struct IP_Conn_s* const a_Conn, const char* const a_FileName);
+IP_Conn_t* IP_ConnById(const uint32_t a_UUID);
 
 void IP_XFaceMaster(void);
 void IP_RunXFace(void);
 
 /*****************************************************************************/
 
+void IP_ConnRun(IP_Conn_t* const a_Conn);
+void IP_ConnTrashIP(IP_Conn_t* const a_Conn, I_HostAddress_t* const a_Addr);
+void IP_ConnSendFile(IP_Conn_t* const a_Conn, const char* const a_FileName);
 
+/*****************************************************************************/
+
+void IP_WaitClearList(void);
+int32_t IP_WaitCount(void);
+IP_WaitClient_t* IP_WaitAdd(IP_Conn_t* const a_Conn, IP_Addr_t* const a_RemAddr, const uint32_t a_HostID);
+void IP_WaitDel(IP_WaitClient_t* const a_Waiter);
+IP_WaitClient_t* IP_WaitByConnAddr(IP_Conn_t* const a_Conn, IP_Addr_t* const a_RemAddr);
+IP_WaitClient_t* IP_WaitByHostID(const uint32_t a_HostID);
+void IP_WaitDoJoins(void);
 
 #endif /* __IP_H__ */
 

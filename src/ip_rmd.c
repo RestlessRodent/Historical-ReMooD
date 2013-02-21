@@ -54,6 +54,8 @@ typedef enum IP_RmdFlags_e
 	IPRF_SERVER			= UINT32_C(0x00000001),	// Requires being server
 	IPRF_CLIENT			= UINT32_C(0x00000002),	// Requires being client
 	IPRF_AUTH			= UINT32_C(0x00000004),	// Authorized
+	IPRF_NEEDCONN		= UINT32_C(0x00000008),	// Needs to be connected
+	IPRF_NOTCONN		= UINT32_C(0x00000010),	// Must not be connected
 } IP_RmdFlags_t;
 
 /*****************
@@ -63,7 +65,7 @@ typedef enum IP_RmdFlags_e
 /* IP_RmdData_t -- Connection Data */
 typedef struct IP_RmdData_s
 {
-	struct IP_Conn_s* Conn;						// Connection
+	IP_Conn_t* Conn;						// Connection
 	I_NetSocket_t* Socket;						// Socket to server
 	
 	D_BS_t* BS;									// Block Stream
@@ -87,78 +89,94 @@ typedef struct IP_RmdConnInfo_s
 
 typedef void (*IPR_HandleType_t)(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr);
 
+/*---------------------------------------------------------------------------*/
+// As Server
+
+/* IPS_RMD_WhenServer() -- This is run when we are a server */
+static void IPS_RMD_WhenServer(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn, IP_RmdData_t* const a_Data)
+{
+}
+
 /* IPRS_RINF() -- Request Info */
 static void IPRS_RINF(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
 {
-	CONL_PrintF("Info request\n");
-}
-
-/* IPRS_SCONBaseXPlay() -- Basic XPlayer for SCON Connect */
-static void IPRS_SCONBaseXPlay(D_XPlayer_t* const a_Player, void* const a_Data)
-{
-	IP_RmdConnInfo_t* InfoP;
-	uint32_t ID;
-	
-	/* Grab Info */
-	InfoP = a_Data;
-	
-	/* Setup internals based on Info */
-	memmove(&a_Player->Address, InfoP->Addr, sizeof(a_Player->Address));
-	a_Player->ClProcessID = InfoP->BootClProcessID;
-	a_Player->IPConn = InfoP->Data->Conn;
-	
-	/* Set unique host ID */
-	if (!a_Player->HostID)
-	{
-		do
-		{
-			ID = D_CMakePureRandom();
-		} while (!ID || D_XNetPlayerByHostID(ID));
-
-		// Set ID, is hopefully really random
-		a_Player->HostID = ID;
-	}
 }
 
 /* IPRS_SCON() -- Simple Connect */
 static void IPRS_SCON(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
 {
-	int32_t i;
-	D_XPlayer_t* XPlay;
-	IP_RmdConnInfo_t Info;
+	IP_Addr_t RemAddr;
+	IP_WaitClient_t* New;
 	
-	CONL_PrintF("Simple connect request\n");
+	/* Convert to IP compatible format */
+	memset(&RemAddr, 0, sizeof(RemAddr));
+	IP_IHostToIPAddr(&RemAddr, a_Addr, a_Data->Conn->Handler);
 	
-	/* See if the client has already connected... */
-	XPlay = D_XNetPlayerByAddr(a_Addr);
+	/* See if already connected. */
+	New = IP_WaitByConnAddr(a_Data->Conn, &RemAddr);
 	
-	// He is connected!
-	if (XPlay)
+	// They are, but also check for multiple XPlayers
+	if (New || D_XNetPlayerByAddr(a_Addr) || D_XNetPlayerByIPAddr(&RemAddr))
 		return;
 	
-	/* Init Info */
-	memset(&Info, 0, sizeof(Info));
-	Info.Addr = a_Addr;
-	Info.BootClProcessID = D_BSru32(a_BS);
-	Info.Data = a_Data;
+	/* They need to be authentic by the reliable protocol */
+	// Otherwise any packets they send us will be dropped
+	D_BSStreamIOCtl(a_BS, DRBSIOCTL_ADDHOST, (intptr_t*)a_Addr);
 	
-	/* Create a new XPlayer */
-	XPlay = D_XNetAddPlayer(IPRS_SCONBaseXPlay, &Info, false);
+	/* Set them to join now */
+	New = IP_WaitAdd(a_Data->Conn, &RemAddr, D_XNetMakeID(0));
+	
+	// Oops?
+	if (!New)
+		return;
+	
+	New->Remote.ProcessID = D_BSru32(a_BS);
 	
 	/* Send information to client */
 	D_BSBaseBlock(a_BS, "SCOK");
 	
 	// Tell the remote client, their host ID
-	D_BSwu32(a_BS, XPlay->HostID);
+	D_BSwu32(a_BS, New->HostID);
 	
 	// Send away
 	D_BSRecordNetBlock(a_BS, a_Addr);
+	
+	/* Print Info */
+	CONL_OutputUT(CT_NETWORK, DSTR_IPC_CLCONNECT, "%s\n", IP_AddrToString(&RemAddr));
+}
+
+/*---------------------------------------------------------------------------*/
+// As Client
+
+/* IPS_RMD_WhenClientDisconn() -- Disconnected as a client */
+static void IPS_RMD_WhenClientDisconn(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn, IP_RmdData_t* const a_Data)
+{
+	/* Expired connect attempt */
+	if (!a_Data->LastConnectTry || g_ProgramTic >= a_Data->LastConnectTry)
+	{
+		// Set new timeout to now
+		a_Data->LastConnectTry = g_ProgramTic + CONNRETRYDELAY;
+		
+		// Print Message
+		CONL_OutputUT(CT_NETWORK, DSTR_IPC_CONNECTING, "%s\n", IP_AddrToString(&a_Data->Conn->RemAddr));
+		
+		// Send simple connection packet to the server
+		D_BSBaseBlock(a_Data->BSnet, "SCON");
+		D_BSwu32(a_Data->BSnet, g_Splits[0].ProcessID);
+		D_BSRecordNetBlock(a_Data->BSnet, SERVERADDR(a_Data));
+	}
+}
+
+/* IPS_RMD_WhenClientConn() -- Connected as a client */
+static void IPS_RMD_WhenClientConn(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn, IP_RmdData_t* const a_Data)
+{
 }
 
 /* IPRS_SCOK() -- Simple Connect, Authorized */
 static void IPRS_SCOK(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr)
 {
-	CONL_PrintF("Connected!");	
+	/* Print Message */
+	CONL_OutputUT(CT_NETWORK, DSTR_IPC_NOWFORJOINWINDOW, "%s\n", IP_AddrToString(&a_Data->Conn->RemAddr));
 	
 	/* Set to the specified host ID */
 	D_XNetSetHostID(D_BSru32(a_BS));
@@ -166,6 +184,8 @@ static void IPRS_SCOK(IP_RmdData_t* const a_Data, D_BS_t* const a_BS, I_HostAddr
 	/* Set as connected */
 	a_Data->IsConnected = true;
 }
+
+/*---------------------------------------------------------------------------*/
 
 /* c_RMDProtoHeads -- Protocol headers */
 static const struct
@@ -177,16 +197,16 @@ static const struct
 {
 	{"RINF", IPRS_RINF, IPRF_SERVER},
 	{"SCON", IPRS_SCON, IPRF_SERVER},
-	{"SCOK", IPRS_SCOK, IPRF_CLIENT | IPRF_AUTH},
+	{"SCOK", IPRS_SCOK, IPRF_CLIENT | IPRF_AUTH | IPRF_NOTCONN},
 	
 	// Done
 	{""},
 };
 
-/*---------------------------------------------------------------------------*/
+/*****************************************************************************/
 
 /* IP_RMD_VerifyF() -- Verify Protocol */
-bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
+bool_t IP_RMD_VerifyF(const IP_Proto_t* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
 {
 	uint32_t RealPort;
 	
@@ -206,36 +226,53 @@ bool_t IP_RMD_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host
 }
 
 /* IP_RMD_CreateF() -- Create connection */
-struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
+IP_Conn_t* IP_RMD_CreateF(const IP_Proto_t* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
 {
 	struct IP_Addr_s Addr;
-	struct IP_Conn_s* New;
-	uint16_t Port;
+	IP_Conn_t* New;
+	uint16_t Port, ClPort;
 	I_NetSocket_t* Socket;
 	IP_RmdData_t* Data;
 	int32_t i;
 	bool_t IsV6;
 	
 	/* Valid Port */
+	// Default port setup
 	Port = a_Port;
-	if (!Port)
+	ClPort = 0;
+	
+	// Client
+	if (!(a_Flags & IPF_INPUT))
 	{
+		// Use -port option
 		if (M_CheckParm("-port"))
 			if (M_IsNextParm())
-				Port = C_strtoi32(M_GetNextParm(), NULL, 10);
-		
-		if (!Port || Port < 0 || Port >= 65536)
-			// Random port for client
-			if (!(a_Flags & IPF_INPUT))
-			{
-				Port = D_CMakePureRandom() & UINT32_C(0x7FFF);
-				Port |= UINT32_C(0x8000);
-			}
+				ClPort = C_strtoi32(M_GetNextParm(), NULL, 10);
 			
-			// If server, use default port
-			else
-				Port = 29500;
+		// Random port for client
+		if (!ClPort || ClPort < 0 || ClPort >= 65536)
+		{
+			ClPort = D_CMakePureRandom() & UINT32_C(0x7FFF);
+			ClPort |= UINT32_C(0x8000);
+		}
 	}
+	
+	// Server
+	else
+	{
+		// Use -port option
+		if (M_CheckParm("-port"))
+			if (M_IsNextParm())
+				ClPort = C_strtoi32(M_GetNextParm(), NULL, 10);
+		
+		// Default port for client
+		if (!ClPort || ClPort < 0 || ClPort >= 65536)
+			ClPort = 29500;
+	}
+	
+	// If server, alwayse use clport
+	if (a_Flags & IPF_INPUT)
+		Port = ClPort;
 	
 	/* Attempt Host Resolution */
 	if (!IP_UDPResolveHost(a_Proto, &Addr, a_Host, Port))
@@ -262,7 +299,7 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	for (i = 0; i < IPMAXSOCKTRIES; i++)
 	{
 		// Create socket to server
-		Socket = I_NetOpenSocket((IsV6 ? INSF_V6 : 0), ((a_Flags & IPF_INPUT) ? &Addr.Private : NULL), Port + i);
+		Socket = I_NetOpenSocket((IsV6 ? INSF_V6 : 0), ((a_Flags & IPF_INPUT) ? &Addr.Private : NULL), ((a_Flags & IPF_INPUT) ? Port + i : ClPort + i));
 	
 		// Worked?
 		if (Socket)
@@ -270,10 +307,6 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 	}
 	
 	// No socket created
-	if (!Socket)
-		return NULL;
-	
-	// Failed?
 	if (!Socket)
 		return NULL;
 	
@@ -300,7 +333,7 @@ struct IP_Conn_s* IP_RMD_CreateF(const struct IP_Proto_s* a_Proto, const char* c
 }
 
 /* IP_RMD_DeleteConnF() -- Deletes connection */
-void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+void IP_RMD_DeleteConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 {
 	IP_RmdData_t* Data;
 	
@@ -323,7 +356,7 @@ void IP_RMD_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* cons
 }
 
 /* IP_RMD_RunConnF() -- Runs connection */
-void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+void IP_RMD_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 {
 	I_HostAddress_t RemAddr;
 	char Header[5];
@@ -360,6 +393,20 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 				if ((c_RMDProtoHeads[i].Flags & IPRF_AUTH) && !Auth)
 					continue;
 				
+				// If a client, Needs specific connection state?
+				if (!(a_Conn->Flags & IPF_INPUT))
+				{
+					// Needs to be connected
+					if (c_RMDProtoHeads[i].Flags & IPRF_NEEDCONN)
+						if (!Data->IsConnected)
+							continue;
+					
+					// Needs to be disconnected
+					if (c_RMDProtoHeads[i].Flags & IPRF_NOTCONN)
+						if (Data->IsConnected)
+							continue;
+				}
+				
 				c_RMDProtoHeads[i].Func(Data, Data->BS, &RemAddr);
 				break;
 			}
@@ -373,36 +420,17 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 	/* Do Client/Server Actions */
 	// We are a server
 	if (a_Conn->Flags & IPF_INPUT)
-	{
-	}
+		IPS_RMD_WhenServer(a_Proto, a_Conn, Data);
 	
 	// We are a client
 	else
-	{
-		// If not connected, attempt connect
+		// Not Connected
 		if (!Data->IsConnected)
-		{
-			// Expired connect attempt
-			if (!Data->LastConnectTry || g_ProgramTic >= Data->LastConnectTry)
-			{
-				// Set new timeout to now
-				Data->LastConnectTry = g_ProgramTic + CONNRETRYDELAY;
-				
-				// Print Message
-				CONL_PrintF("{zConnecting to {9%s{z...\n", IP_AddrToString(&Data->Conn->RemAddr));
-				
-				// Send simple connection packet to the server
-				D_BSBaseBlock(Data->BSnet, "SCON");
-				D_BSwu32(Data->BSnet, g_Splits[0].ProcessID);
-				D_BSRecordNetBlock(Data->BSnet, SERVERADDR(Data));
-			}
-		}
+			IPS_RMD_WhenClientDisconn(a_Proto, a_Conn, Data);
 		
-		// We are connected
+		// Connected
 		else
-		{
-		}
-	}
+			IPS_RMD_WhenClientConn(a_Proto, a_Conn, Data);
 	
 	/* Flush stream */
 	// This is so packets are sent, etc.
@@ -410,7 +438,7 @@ void IP_RMD_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 }
 
 /* IP_RMD_ConnTrashIPF() -- Trash IP Address */
-void IP_RMD_ConnTrashIPF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn, I_HostAddress_t* const a_Addr)
+void IP_RMD_ConnTrashIPF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn, I_HostAddress_t* const a_Addr)
 {
 	IP_RmdData_t* Data;
 	
@@ -423,6 +451,12 @@ void IP_RMD_ConnTrashIPF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* con
 	
 	/* Trash IP */
 	D_BSStreamIOCtl(Data->BS, DRBSIOCTL_DROPHOST, a_Addr);
+}
+
+/* IP_RMD_SameAddrF() -- Same address? */
+bool_t IP_RMD_SameAddrF(const IP_Proto_t* a_Proto, const IP_Addr_t* const a_A, const IP_Addr_t* const a_B)
+{
+	return I_NetCompareHost((I_HostAddress_t*)a_A->Private.Data, (I_HostAddress_t*)a_B->Private.Data);
 }
 
 /*****************************************************************************/

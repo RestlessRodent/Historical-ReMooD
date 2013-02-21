@@ -342,10 +342,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	//	PlaceAt = LastScreen;
 	
 	/* Create Process ID */
-	do
-	{
-		ProcessID = D_CMakePureRandom();
-	} while (!ProcessID || D_XNetPlayerByID(ProcessID) || D_NCSFindSplitByProcess(ProcessID) >= 0);
+	ProcessID = D_XNetMakeID(0);
 	
 	/* If not a bot, bind to a local screen */
 	// Bump splits? Not if a screen has a player (controlling keyboarder)
@@ -483,9 +480,6 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 /*** GLOBALS ***/
 
-D_XSocket_t** g_XSocks = NULL;					// Extended Sockets
-size_t g_NumXSocks = 0;							// Number of them
-
 D_XPlayer_t** g_XPlays = NULL;					// Extended Players
 size_t g_NumXPlays = 0;							// Number of them
 
@@ -536,11 +530,6 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	for (i = 0; i < g_NumXPlays; i++)
 		if (g_XPlays[i])
 			D_XNetKickPlayer(g_XPlays[i], DS_GetString(DSTR_NET_SERVERDISCON), false);
-	
-	/* Remove all sockets */
-	for (i = 0; i < g_NumXSocks; i++)
-		if (g_XSocks[i])
-			D_XNetDelSocket(g_XSocks[i]);
 	
 	/* Demos? */
 	if (demoplayback)
@@ -649,10 +638,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	
 	// Otherwise create a random one
 	if (!ProcessID)
-		do
-		{
-			ProcessID = D_CMakePureRandom();
-		} while (!ProcessID || D_XNetPlayerByID(ProcessID) || D_NCSFindSplitByProcess(ProcessID) >= 0);
+		ProcessID = D_XNetMakeID(0);
 	
 	/* Create a starting spectator (the host) */
 	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)&ProcessID, false);
@@ -919,9 +905,23 @@ D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr)
 	return NULL;
 }
 
-/* D_XNetDelSocket() -- Deletes Socket */
-void D_XNetDelSocket(D_XSocket_t* const a_Socket)
+/* D_XNetPlayerByIPAddr() -- Find player by IP Address */
+D_XPlayer_t* D_XNetPlayerByIPAddr(const IP_Addr_t* const a_Addr)
 {
+	int32_t i;
+	
+	/* Check */
+	if (!a_Addr)
+		return NULL;
+	
+	/* Search players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (IP_CompareAddr(a_Addr, &g_XPlays[i]->IPAddr))
+				return g_XPlays[i];
+	
+	/* Not Found */
+	return NULL;
 }
 
 /* D_XNetAddPlayer() -- Adds new player */
@@ -967,15 +967,8 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	/* Create ID for the player */
 	// If it does not exist!
 	if (!New->ID)
-	{
-		do
-		{
-			ID = D_CMakePureRandom();
-		} while (!ID || D_XNetPlayerByID(ID));
-
 		// Set ID, is hopefully really random
-		New->ID = ID;
-	}
+		New->ID = D_XNetMakeID(0);
 	
 	/* Link into players list */
 	// Find free spot
@@ -3683,5 +3676,21 @@ void D_XNetInitialServer(void)
 	}
 #undef BUFSIZE
 #undef SMALLBUF
+}
+
+/* D_XNetMakeHostID() -- Makes a random ID */
+uint32_t D_XNetMakeID(const uint32_t a_ID)
+{
+	uint32_t ID;
+	
+	/* ID Creation Loop */
+	ID = a_ID;
+	while (!ID || D_XNetPlayerByID(ID) || D_NCSFindSplitByProcess(ID) >= 0 || D_XNetPlayerByHostID(ID) || IP_WaitByHostID(ID))
+	{
+		ID = D_CMakePureRandom();
+	}
+	
+	/* Return specified ID, which is unique */
+	return ID;
 }
 

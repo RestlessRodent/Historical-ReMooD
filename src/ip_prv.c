@@ -58,7 +58,7 @@
 ****************/
 
 /* IP_UDPResolveHost() -- Resolves UDP Host */
-bool_t IP_UDPResolveHost(const struct IP_Proto_s* a_Proto, IP_Addr_t* const a_Dest, const char* const a_Name, const uint32_t a_Port)
+bool_t IP_UDPResolveHost(const IP_Proto_t* a_Proto, IP_Addr_t* const a_Dest, const char* const a_Name, const uint32_t a_Port)
 {
 	I_HostAddress_t* AddrData;
 	
@@ -112,5 +112,37 @@ char* IP_AddrToString(IP_Addr_t* const a_Addr)
 	/* Always return the buffer */
 	return Buf;	
 #undef BUFSIZE
+}
+
+/* IP_IHostToIPAddr() -- Converts address (I) to address (IP) */
+bool_t IP_IHostToIPAddr(IP_Addr_t* const a_Dest, I_HostAddress_t* const a_Host, const IP_Proto_t* a_Proto)
+{
+	I_HostAddress_t* AddrData;
+	
+	/* Check */
+	if (!a_Proto || !a_Dest || !a_Host)
+		return false;
+	
+	/* Clear Address */
+	memset(a_Dest, 0, sizeof(*a_Dest));
+	
+	/* Set address data */
+	AddrData = (I_HostAddress_t*)(&a_Dest->Private);
+	
+	/* Setup fields */
+	// Standard
+	a_Dest->IsValid = true;
+	a_Dest->Handler = a_Proto;
+	a_Dest->Port = a_Host->Port;
+	
+	// Resolve hostname or plain copy if that fails
+	if (!I_NetHostToName(NULL, a_Host, a_Dest->HostName, IPADDRHOSTLEN - 1))
+		I_NetHostToString(a_Host, a_Dest->HostName, IPADDRHOSTLEN - 1);
+	
+	// IP Data
+	memmove(AddrData, a_Host, sizeof(*AddrData));
+	
+	/* Success! */
+	return true;
 }
 

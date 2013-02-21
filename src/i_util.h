@@ -461,6 +461,7 @@ uint32_t I_NetHashHost(const I_HostAddress_t* const a_Host);
 bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* const a_B);
 bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, const char* const a_Name);
 bool_t I_NetHostToName(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
+size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
 
 I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* const a_Host, const uint16_t a_Port);
 void I_NetCloseSocket(I_NetSocket_t* const a_Socket);

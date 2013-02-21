@@ -1162,8 +1162,6 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 		// Translate to integer
 		MatchPort = atoi(PortP);
 	}
-	
-	CONL_PrintF("LU: %s\n", Buf);
 
 	/* Code */
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
@@ -1277,6 +1275,145 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 bool_t I_NetHostToName(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize)
 {
 	return false;
+}
+
+/* I_NetHostToString() -- Converts hostname to string */
+size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize)
+{
+	char* p;
+	int32_t l;
+	uint32_t s, m, c, i;
+	bool_t Zero, DidIt, InRun;
+	
+	/* Check */
+	if (!a_Host || !a_Out || !a_OutSize)
+		return 0;
+	
+	/* IPv4? */
+	if (a_Host->IPvX == INIPVN_IPV4)
+		return snprintf(a_Out, a_OutSize - 1, "%i.%i.%i.%i:%u",
+				a_Host->Host.v4.b[0],
+				a_Host->Host.v4.b[1],
+				a_Host->Host.v4.b[2],
+				a_Host->Host.v4.b[3],
+				a_Host->Port
+			);
+	
+	/* IPv6? */
+	else if (a_Host->IPvX == INIPVN_IPV6)
+	{
+		p = a_Out;
+		l = 0;
+		
+		// Opening bracket
+		if (l < a_OutSize - 1)
+			p[l++] = '[';
+		
+		// Actual Address
+		DidIt = InRun = false;
+		for (i = 0; i < 8; i++)
+		{
+			// Get address piece
+			s = a_Host->Host.v6.Addr.s[i];
+			
+			// Print :: in place of zero?
+			if (!InRun && !DidIt)
+				if (s == 0)
+				{
+					InRun = true;
+					DidIt = true;
+					
+					// if this is the first, nothing would have been printed
+					if (i == 0)
+						if (l < a_OutSize - 1)
+							p[l++] = ':';
+					
+					// Print colon
+					if (l < a_OutSize - 1)
+						p[l++] = ':';
+				}
+			
+			// Skipping?
+			if (InRun)
+			{
+				// No more zero
+				if (s != 0)
+					InRun = false;
+				else
+					continue;
+			}
+			
+			// Print Number
+			for (Zero = false, m = UINT32_C(0x10000000); m; m /= 16)
+			{
+				c = (s / m) % 16;
+			
+				if (c != 0)
+					Zero = true;
+			
+				if (Zero || m == 1)
+					if (l < a_OutSize - 1)
+						if (c < 10)
+							p[l++] = '0' + c;
+						else
+							p[l++] = 'a' + (c - 10);
+			}
+			
+			// Print colon?
+			if (i < 7 && !InRun)
+				if (l < a_OutSize - 1)
+					p[l++] = ':';
+		}
+		
+		// Scope
+		if (l < a_OutSize - 1)
+			p[l++] = '%';
+		s = a_Host->Host.v6.Scope;
+		
+		for (Zero = false, m = UINT32_C(1000000000); m; m /= 10)
+		{
+			c = ((s / m) % 10);
+			
+			if (c != 0)
+				Zero = true;
+			
+			if (Zero || m == 1)
+				if (l < a_OutSize - 1)
+					p[l++] = '0' + c;
+		}
+		
+		// Closing bracket
+		if (l < a_OutSize - 1)
+			p[l++] = ']';
+		
+		// Port
+		if (l < a_OutSize - 1)
+			p[l++] = ':';
+		s = a_Host->Port;
+		
+		for (Zero = false, m = UINT32_C(1000000000); m; m /= 10)
+		{
+			c = ((s / m) % 10);
+			
+			if (c != 0)
+				Zero = true;
+			
+			if (Zero || m == 1)
+				if (l < a_OutSize - 1)
+					p[l++] = '0' + c;
+		}
+		
+		// Always have 0 at end
+		if (l < a_OutSize - 1)
+			p[l++] = 0;
+		p[a_OutSize - 1] = 0;
+		
+		// Return size of string
+		return l;
+	}
+	/* Unknown? */
+	else
+		return snprintf(a_Out, a_OutSize - 1, "invalid:%u", a_Host->Port);
 }
 
 /* I_NetOpenSocket() -- Opens a socket on the specified port */
@@ -1476,7 +1613,9 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	/* Wrong Host? */
 	if (a_Host)
 		if ((a_Host->IPvX == INIPVN_IPV6 && !(a_Socket->Flags & INSF_V6)) ||
-			(a_Host->IPvX == INIPVN_IPV4 && (a_Socket->Flags & INSF_V6)))
+			(a_Host->IPvX == INIPVN_IPV4 && (a_Socket->Flags & INSF_V6)) ||
+			(a_Host->IPvX != INIPVN_IPV4 && a_Host->IPvX != INIPVN_IPV6)
+			)
 			return 0;
 	
 	/* Recieve from which socket? */

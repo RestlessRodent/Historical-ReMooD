@@ -1016,6 +1016,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			   "IPC_SVSERVERSYNC", "Synchronizing with server."},
 	{			  "IPC_SVUNKENCODING", "Unknown message encoding."},
 	{				"IPC_ODAVIRTCVAR", "Odamex CVAR change: \"$1\" to \"$2\"."},
+	{			     "IPC_CONNECTING", "{zConnecting to {9$1{z..."},
+	{		   "IPC_NOWFORJOINWINDOW", "(zNow connected to {9$1{z, waiting for game state..."},
+	{				  "IPC_CLCONNECT", "{z{9$1{z has connected!"},
 	
 	/*** W_WAD.C ***/
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},

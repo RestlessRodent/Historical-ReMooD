@@ -214,7 +214,7 @@ typedef enum clc_e
 /* IP_OdaData_t -- Connection Data */
 typedef struct IP_OdaData_s
 {
-	struct IP_Conn_s* Conn;						// Connection
+	IP_Conn_t* Conn;						// Connection
 	I_NetSocket_t* Socket;						// Socket to server
 	IP_OdamexConnState_t NetMode;				// Network Mode
 	tic_t TimeOut;								// Time out time
@@ -370,7 +370,7 @@ static bool_t IPS_ODA_ReadPacket(IP_OdaData_t* const a_Data)
 }
 
 /* IP_ODA_VerifyF() -- Verify Protocol */
-bool_t IP_ODA_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
+bool_t IP_ODA_VerifyF(const IP_Proto_t* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
 {
 	uint32_t RealPort;
 	
@@ -394,10 +394,10 @@ bool_t IP_ODA_VerifyF(const struct IP_Proto_s* a_Proto, const char* const a_Host
 }
 
 /* IP_ODA_CreateF() -- Create connection */
-struct IP_Conn_s* IP_ODA_CreateF(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
+IP_Conn_t* IP_ODA_CreateF(const IP_Proto_t* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags)
 {
 	struct IP_Addr_s Addr;
-	struct IP_Conn_s* New;
+	IP_Conn_t* New;
 	uint16_t Port;
 	I_NetSocket_t* Socket;
 	IP_OdaData_t* Data;
@@ -737,7 +737,7 @@ static void IPS_ODA_Decompress(IP_OdaData_t* const a_Data)
 }
 
 /* IP_ODA_RunConnF() -- Runs connection */
-void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+void IP_ODA_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 {
 	IP_OdaData_t* Data;
 	int32_t MsgID, i;
@@ -925,11 +925,17 @@ void IP_ODA_RunConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a
 }
 
 /* IP_ODA_DeleteConnF() -- Deletes connection */
-void IP_ODA_DeleteConnF(const struct IP_Proto_s* a_Proto, struct IP_Conn_s* const a_Conn)
+void IP_ODA_DeleteConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 {
 	/* Check */
 	if (!a_Proto || !a_Conn)
 		return;
+}
+
+/* IP_ODA_SameAddrF() -- Same address? */
+bool_t IP_ODA_SameAddrF(const IP_Proto_t* a_Proto, const IP_Addr_t* const a_A, const IP_Addr_t* const a_B)
+{
+	return I_NetCompareHost((I_HostAddress_t*)a_A->Private.Data, (I_HostAddress_t*)a_B->Private.Data);
 }
 
 
