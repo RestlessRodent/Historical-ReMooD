@@ -65,6 +65,7 @@ typedef enum IP_Flags_e
 struct IP_Proto_s;
 struct IP_Conn_s;
 struct IP_Addr_s;
+struct D_XPlayer_s;
 
 typedef bool_t (*IP_VerifyF_t)(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
 typedef struct IP_Conn_s* (*IP_CreateF_t)(const struct IP_Proto_s* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
@@ -119,6 +120,7 @@ typedef struct IP_WaitClient_s
 	IP_Conn_t* Conn;							// Connection being used
 	IP_Addr_t RemAddr;							// Remote Address to client
 	uint32_t HostID;							// Host ID of client
+	struct D_XPlayer_s* XPlayer;				// XPlayer
 	
 	struct
 	{
@@ -149,6 +151,7 @@ void IP_RunXFace(void);
 void IP_ConnRun(IP_Conn_t* const a_Conn);
 void IP_ConnTrashIP(IP_Conn_t* const a_Conn, I_HostAddress_t* const a_Addr);
 void IP_ConnSendFile(IP_Conn_t* const a_Conn, const char* const a_FileName);
+void IP_RemoteKick(IP_Conn_t* const a_Conn, IP_Addr_t* const a_RemAddr, const char* const a_Reason);
 
 /*****************************************************************************/
 

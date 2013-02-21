@@ -43,6 +43,7 @@
 #include "dstrings.h"
 #include "z_mlzo.h"
 #include "p_demcmp.h"
+#include "p_info.h"
 
 /****************
 *** CONSTANTS ***
@@ -234,6 +235,10 @@ typedef struct IP_OdaData_s
 	char SVHost[MAXODASTRING];					// Server Host
 	uint8_t SVVersion;							// Server Version
 	uint32_t SVPacketNum;						// Packet Number from server
+	
+	ticcmd_t Cmds[MAXPLAYERS + 1];				// Tic Commands
+	tic_t LastTic;								// Last Uploaded Tic
+	tic_t VGameTic;								// Virtual game tic
 } IP_OdaData_t;
 
 /****************
@@ -398,15 +403,30 @@ IP_Conn_t* IP_ODA_CreateF(const IP_Proto_t* a_Proto, const char* const a_Host, c
 {
 	struct IP_Addr_s Addr;
 	IP_Conn_t* New;
-	uint16_t Port;
+	uint16_t Port, ClPort;
 	I_NetSocket_t* Socket;
 	IP_OdaData_t* Data;
 	int32_t i;
 	
 	/* Valid Port */
 	Port = a_Port;
+	ClPort = 0;
+	
+	// Default remote port
 	if (!Port)
 		Port = 10666;
+	
+	// Use -port option
+	if (M_CheckParm("-port"))
+		if (M_IsNextParm())
+			ClPort = C_strtoi32(M_GetNextParm(), NULL, 10);
+		
+	// Random port for client
+	if (!ClPort || ClPort < 0 || ClPort >= 65536)
+	{
+		ClPort = D_CMakePureRandom() & UINT32_C(0x7FFF);
+		ClPort |= UINT32_C(0x8000);
+	}
 	
 	/* Attempt Host Resolution */
 	if (!IP_UDPResolveHost(a_Proto, &Addr, a_Host, Port))
@@ -417,7 +437,7 @@ IP_Conn_t* IP_ODA_CreateF(const IP_Proto_t* a_Proto, const char* const a_Host, c
 	for (i = 0; i < IPMAXSOCKTRIES; i++)
 	{
 		// Create socket to server
-		Socket = I_NetOpenSocket(0, NULL, Port + i);
+		Socket = I_NetOpenSocket(0, NULL, ClPort + i);
 	
 		// Worked?
 		if (Socket)
@@ -642,6 +662,36 @@ static void IPS_ODA_GetUserInfo(IP_OdaData_t* const a_Data)
 	// TODO FIXME
 }
 
+/* IPS_ODA_LoadMap() -- Loads map (svc_loadmap) */
+static void IPS_ODA_LoadMap(IP_OdaData_t* const a_Data)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	P_LevelInfoEx_t* Level;
+	void* wP;
+	int32_t i;
+	
+	/* Read map name */
+	memset(Buf, 0, sizeof(Buf));
+	IPS_Rs(a_Data, Buf, BUFSIZE - 1);
+	
+	/* Find level to switch to */
+	Level = P_FindLevelByNameEx(Buf, NULL);
+	
+	// Not found!
+	if (!Level)
+		return;	// Oops!
+	
+	/* Place into tic buffer */
+	if (D_XNetGetCommand(DTCT_MAPCHANGE, c_TCDataSize[DTCT_MAPCHANGE], &wP, &a_Data->Cmds[MAXPLAYERS]))
+	{
+		WriteUInt8((uint8_t**)&wP, 1);			// Reset players
+		for (i = 0; i < 8; i++)
+			WriteUInt8((uint8_t**)&wP, Buf[i]);	// Map Name
+	}
+#undef BUFSIZE
+}
+
 /* IPS_ODA_MagicCVAR() -- Maps Odamex CVAR to ReMooD Variable */
 static void IPS_ODA_MagicCVAR(IP_OdaData_t* const a_Data, const char* const a_Name, const char* const a_Value)
 {
@@ -749,6 +799,9 @@ void IP_ODA_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 	/* Get Data */
 	Data = a_Conn->Data;
 	
+	/* Initialize permanent settings */
+	Data->Cmds[MAXPLAYERS].Ctrl.Type = 1;
+	
 	/* Handle network packets */
 	while (IPS_ODA_ReadPacket(Data))
 		// Not Connected
@@ -841,6 +894,11 @@ void IP_ODA_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 						IPS_ODA_GetUserInfo(Data);
 						break;
 						
+						// Loads a map
+					case svc_loadmap:
+						IPS_ODA_LoadMap(Data);
+							break;
+						
 						// Unknown
 					default:
 						// Warning
@@ -862,6 +920,23 @@ void IP_ODA_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn)
 	/* Which Mode? */
 	switch (Data->NetMode)
 	{
+			// Connected To Server
+		case IPOCS_CONNECTED:
+			// Upload all tics to the networking code
+			if (g_ProgramTic != Data->LastTic)
+			{
+				for (i = 0; i <= MAXPLAYERS; i++)
+					D_XNetUploadTic(Data->VGameTic, i, &Data->Cmds[i]);
+				
+				// Increment tic count
+				Data->VGameTic++;
+				Data->LastTic = g_ProgramTic;
+				
+				// Remove all existing tics
+				memset(Data->Cmds, 0, sizeof(Data->Cmds));
+			}
+			break;
+			
 			// Request info from server
 		case IPOCS_REQUESTINFO:
 			// Information

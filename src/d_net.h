@@ -208,6 +208,7 @@ extern tic_t g_DemoFreezeTics;					// Tics to freeze demo for
 /*** FUNCTIONS ***/
 
 bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
+bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
 
 void D_XNetDisconnect(const bool_t a_FromDemo);
 void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort);
@@ -243,9 +244,11 @@ bool_t D_XNetBindConn(struct IP_Conn_s* a_Conn);
 void D_XNetDelConn(struct IP_Conn_s* a_Conn);
 
 void D_XNetInit(void);
+void D_XNetUploadTic(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_TicCmd);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetForceLag(void);
+void D_XNetPushJW(void);
 void D_XNetUpdate(void);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 

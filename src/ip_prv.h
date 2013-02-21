@@ -57,6 +57,13 @@ void IP_ODA_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn);
 void IP_ODA_DeleteConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn);
 bool_t IP_ODA_SameAddrF(const IP_Proto_t* a_Proto, const IP_Addr_t* const a_A, const IP_Addr_t* const a_B);
 
+/* Chocolate-Doom Protocol */
+bool_t IP_CHO_VerifyF(const IP_Proto_t* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
+IP_Conn_t* IP_CHO_CreateF(const IP_Proto_t* a_Proto, const char* const a_Host, const uint32_t a_Port, const char* const a_Options, const uint32_t a_Flags);
+void IP_CHO_RunConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn);
+void IP_CHO_DeleteConnF(const IP_Proto_t* a_Proto, IP_Conn_t* const a_Conn);
+bool_t IP_CHO_SameAddrF(const IP_Proto_t* a_Proto, const IP_Addr_t* const a_A, const IP_Addr_t* const a_B);
+
 /* UDP Baseline */
 bool_t IP_UDPResolveHost(const IP_Proto_t* a_Proto, IP_Addr_t* const a_Dest, const char* const a_Name, const uint32_t a_Port);
 char* IP_AddrToString(IP_Addr_t* const a_Addr);

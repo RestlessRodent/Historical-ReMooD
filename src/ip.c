@@ -80,6 +80,18 @@ static const IP_Proto_t l_Protos[NUMPROTOS] =
 		NULL,
 		IP_ODA_SameAddrF,
 	},
+	
+	// Chocolate-Doom
+	{
+		"chocolate",
+		
+		IP_CHO_VerifyF,
+		IP_CHO_CreateF,
+		IP_CHO_RunConnF,
+		IP_CHO_DeleteConnF,
+		NULL,
+		IP_CHO_SameAddrF,
+	},
 };
 
 static IP_Conn_t** l_IPConns = NULL;		// IP Connections
@@ -396,6 +408,11 @@ void IP_ConnSendFile(IP_Conn_t* const a_Conn, const char* const a_FileName)
 {
 }
 
+/* IP_RemoteKick() -- Kick remote client */
+void IP_RemoteKick(IP_Conn_t* const a_Conn, IP_Addr_t* const a_RemAddr, const char* const a_Reason)
+{
+}
+
 /*****************************************************************************/
 
 /*** LOCALS ***/
@@ -498,13 +515,75 @@ IP_WaitClient_t* IP_WaitByHostID(const uint32_t a_HostID)
 	return NULL;
 }
 
+/* IPS_WDJPB() -- PB for WDJ */
+static void IPS_WDJPB(D_XPlayer_t* const a_Player, void* const a_Data)
+{
+	IP_WaitClient_t* Wait;
+	
+	/* Set host from wait */
+	Wait = a_Data;
+	
+	/* Initialize fields */
+	a_Player->HostID = Wait->HostID;
+	a_Player->IPConn = Wait->Conn;
+	a_Player->ClProcessID = Wait->Remote.ProcessID;
+	
+	memmove(&a_Player->IPAddr, &Wait->RemAddr, sizeof(Wait->RemAddr));
+}
+
 /* IP_WaitDoJoins() -- Joins all waiting players */
 // This also sends them the savegame too
 void IP_WaitDoJoins(void)
 {
+	int32_t i;
+	D_XPlayer_t* XPlay;
+	
 	/* Nobody is waiting */
 	if (!IP_WaitCount())
 		return;
+	
+	/* Push window ahead */
+	D_XNetPushJW();
+	
+	/* Go through waiting players */
+	// Create XPlayers for them
+	for (i = 0; i < l_NumWaitList; i++)
+		if (l_WaitList[i])
+		{
+			// Add a player
+			XPlay = D_XNetAddPlayer(IPS_WDJPB, l_WaitList[i], false);
+			
+			// Set in waiting data
+			l_WaitList[i]->XPlayer = XPlay;
+		}
+	
+	/* Save the game */
+	if (!P_SaveGameEx("NetSave", "netsave0.tmp", sizeof("netsave0.tmp"), NULL, NULL))
+	{
+		// Failed so disconnect all the other players
+		for (i = 0; i < l_NumWaitList; i++)
+			if (l_WaitList[i])
+			{
+				// Delete them
+				D_XNetKickPlayer(l_WaitList[i]->XPlayer, "Server failed to save game state.", false);
+				
+				// Nuke
+				Z_Free(l_WaitList[i]);
+				l_WaitList[i] = NULL;
+			}
+		
+		return;
+	}
+	
+	/* Initiate a file transfer to them */
+	// And nuke their wait slot
+	for (i = 0; i < l_NumWaitList; i++)
+		if (l_WaitList[i])
+		{
+			// Nuke
+			Z_Free(l_WaitList[i]);
+			l_WaitList[i] = NULL;
+		}
 }
 
 

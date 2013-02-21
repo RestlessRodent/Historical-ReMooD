@@ -204,6 +204,14 @@ CONL_StaticVar_t l_SVMaxClients =
 	NULL
 };
 
+// sv_joinwindow -- Join Window Interval
+CONL_StaticVar_t l_SVJoinWindow =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_joinwindow", DSTR_CVHINT_SVJOINWINDOW, CLVVT_INTEGER, "10",
+	NULL
+};
+
 // sv_readyby -- Time to be catchup from lag
 CONL_StaticVar_t l_SVReadyBy =
 {
@@ -212,7 +220,7 @@ CONL_StaticVar_t l_SVReadyBy =
 	NULL
 };
 
-// sv_readyby -- Time to be catchup from lag
+// sv_lagthreshexpire -- When the lag threshold expires
 CONL_StaticVar_t l_SVLagThreshExpire =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
@@ -293,6 +301,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVConnectPassword);
 	CONL_VarRegister(&l_SVJoinPassword);
 	CONL_VarRegister(&l_SVMaxClients);
+	CONL_VarRegister(&l_SVJoinWindow);
 	CONL_VarRegister(&l_SVReadyBy);
 	CONL_VarRegister(&l_SVLagThreshExpire);
 	CONL_VarRegister(&l_SVMaxCatchup);
@@ -455,11 +464,52 @@ static ticcmd_t* DS_GrabGlobal(const uint8_t a_ID, const int32_t a_NeededSize, v
 bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp)
 {
 	/* Check */
-	if (!D_XNetIsServer())
+	if (!D_XNetIsServer() || a_ID < 0 || a_ID >= NUMDTCT)
 		return false;
 	
 	/* Call it */
 	return !!DS_GrabGlobal(a_ID, c_TCDataSize[a_ID], a_Wp);
+}
+
+/* D_XNetGetCommand() -- Grabs command from tic */
+bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd)
+{
+	uint16_t* dsP;
+	uint8_t** dbP;
+	
+	/* Check */
+	if (a_ID < 0 || a_ID >= NUMDTCT || !a_TicCmd)
+		return false;
+	
+	/* Extended Tic */
+	if (a_TicCmd->Ctrl.Type == 1)
+	{
+		dsP = &a_TicCmd->Ext.DataSize;
+		dbP = &a_TicCmd->Ext.DataBuf;
+	}
+		
+	/* Standard Tic */
+	else if (a_TicCmd->Ctrl.Type == 0)
+	{
+		dsP = &a_TicCmd->Std.DataSize;
+		dbP = &a_TicCmd->Std.DataBuf;
+	}
+	
+	/* Bad Type */
+	else
+		return false;
+	
+	/* Not enough room to store extended command? */
+	if (a_Size + 2 >= MAXTCDATABUF - *dsP)
+		return false;
+		
+	/* Write Command at point */
+	*a_Wp = &((*dbP)[*dsP]);
+	WriteUInt8((uint8_t**)a_Wp, a_ID);
+	*dsP += a_Size + 1;
+	
+	// Was written OK
+	return true;
 }
 
 /*** FUNCTIONS ***/
@@ -505,6 +555,7 @@ static uint32_t l_LocalHostID;					// ID of localhost
 static bool_t l_PreppedSave;					// Prepped Savegame
 
 static bool_t l_ForceLag;						// Forces Lagging
+static tic_t l_LastJW;							// Last Join Window
 
 /*** FUNCTIONS ***/
 
@@ -1651,6 +1702,11 @@ void D_XNetDelConn(struct IP_Conn_s* a_Conn)
 		}
 }
 
+/* D_XNetUploadTic() -- Uploads local client tics */
+void D_XNetUploadTic(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_TicCmd)
+{
+}
+
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
@@ -1927,6 +1983,10 @@ tic_t D_XNetTicsToRun(void)
 		// Clients need to catchup
 		if (Lagging)
 		{
+			// Move join window ahead
+			if (D_XNetIsServer())
+				D_XNetPushJW();
+			
 			// Tic spectators, so you can move when lagging
 			if (g_ProgramTic != LastSpecTic)
 			{
@@ -3255,6 +3315,12 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 #undef MAXWEAPONSLOTS
 }
 
+/* D_XNetPushJW() -- Push join window time */
+void D_XNetPushJW(void)
+{
+	l_LastJW = g_ProgramTic + TICRATE;
+}
+
 /* D_XNetUpdate() -- Updates Extended Network */
 void D_XNetUpdate(void)
 {
@@ -3550,6 +3616,16 @@ void D_XNetUpdate(void)
 		if (l_XNetConns[i])
 			IP_ConnRun(l_XNetConns[i]);
 	
+	/* Join Window Handling */
+	// Only as server
+	if (D_XNetIsServer())
+		if (g_ProgramTic >= l_LastJW + (l_SVJoinWindow.Value->Int * TICRATE))
+		{
+			IP_WaitDoJoins();
+			l_LastJW = g_ProgramTic;
+		}
+	
+#if 0
 	/* Handle remote player related things */
 	if (D_XNetIsServer())
 		for (i = 0; i < g_NumXPlays; i++)
@@ -3587,6 +3663,7 @@ void D_XNetUpdate(void)
 			{
 			}
 		}
+#endif
 }
 
 /* D_XNetInitialServer() -- Create Initial Server */
