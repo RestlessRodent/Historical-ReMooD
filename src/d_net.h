@@ -42,7 +42,6 @@
 
 #include "i_net.h"
 #include "i_util.h"
-#include "ip.h"
 
 /*****************
 *** STRUCTURES ***
@@ -116,6 +115,7 @@ struct D_XPlayer_s;
 struct player_s;
 struct D_ProfileEx_s;
 struct B_GhostBot_s;
+struct D_XDesc_s;
 
 /* D_XPlayer_t -- A player, spectator, bot, whatever */
 typedef struct D_XPlayer_s
@@ -136,8 +136,12 @@ typedef struct D_XPlayer_s
 	char LoginUUID[MAXUUIDLENGTH];				// UUID used for login (cookie rather)
 	
 	// Socket
-	I_HostAddress_t Address;					// Address to player
-	char ReverseDNS[MAXXSOCKTEXTSIZE];			// Reverse DNS of Host
+	struct
+	{
+		struct D_XDesc_s* Desc;					// Connection descriptor
+		I_HostAddress_t Address;				// Address to player
+		char ReverseDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS of Host
+	} Socket;									// Socket Information
 	
 	// Account Server
 	char AccountCookie[MAXPLAYERNAME];			// Cookie for account
@@ -169,8 +173,6 @@ typedef struct D_XPlayer_s
 	int32_t Scores;								// Scoreboard showing
 	ticcmd_t BackupTicCmd;						// Backup Tic Command
 	bool_t Turned180;							// Did 180 degre turn
-	IP_Conn_t* IPConn;							// Connection Of Player
-	IP_Addr_t IPAddr;							// Address of Player
 	bool_t TransSave;							// Save game transmitted and loaded
 	tic_t LagStart;								// Start of lag
 	tic_t LagKill;								// Kill at this lag time
@@ -211,8 +213,8 @@ bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
 bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
 
 void D_XNetDisconnect(const bool_t a_FromDemo);
-void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort);
-void D_XNetConnect(const char* const a_URI);
+void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr);
+void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID);
 
 bool_t D_XNetIsServer(void);
 bool_t D_XNetIsConnected(void);
@@ -224,7 +226,6 @@ D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str);
 D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr);
-D_XPlayer_t* D_XNetPlayerByIPAddr(const IP_Addr_t* const a_Addr);
 
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data, const bool_t a_FromGTicker);
 void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, const bool_t a_FromGTicker);
@@ -239,9 +240,6 @@ void D_XNetSendColors(D_XPlayer_t* const a_Player);
 void D_XNetTryJoin(D_XPlayer_t* const a_Player);
 void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
 void D_XNetSetServerName(const char* const a_NewName);
-
-bool_t D_XNetBindConn(struct IP_Conn_s* a_Conn);
-void D_XNetDelConn(struct IP_Conn_s* a_Conn);
 
 void D_XNetInit(void);
 void D_XNetUploadTic(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_TicCmd);

@@ -56,8 +56,8 @@
 #include "b_bot.h"
 #include "p_local.h"
 #include "p_spec.h"
-#include "ip.h"
 #include "p_saveg.h"
+#include "d_xpro.h"
 
 /*************
 *** LOCALS ***
@@ -548,9 +548,6 @@ static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
 static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
 static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
 
-static IP_Conn_t** l_XNetConns;					// Protocol connections
-static size_t l_NumXNetConns;					// Number of connections
-
 static uint32_t l_LocalHostID;					// ID of localhost
 static bool_t l_PreppedSave;					// Prepped Savegame
 
@@ -640,10 +637,8 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	/* Destroy the level */
 	P_ExClearLevel();
 	
-	/* Remove any connections */
-	for (i = 0; i < l_NumXNetConns; i++)
-		if (l_XNetConns[i])
-			D_XNetDelConn(l_XNetConns[i]);
+	/* Destroy Socket */
+	D_XBSocketDestroy();
 	
 	/* Go back to the title screen */
 	gamestate = GS_DEMOSCREEN;
@@ -670,7 +665,7 @@ static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player, void* const a_Data)
 }
 
 /* D_XNetMakeServer() -- Creates a server, possibly networked */
-void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
+void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr)
 {
 	int32_t i;
 	D_XPlayer_t* SPlay;
@@ -679,6 +674,10 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	
 	/* Disconnect First */
 	D_XNetDisconnect(false);
+	
+	/* Create Socket */
+	if (a_Networked)
+		D_XBWaitForCall(a_Addr);
 	
 	/* Create process ID, or grab one */
 	ProcessID = 0;
@@ -744,41 +743,22 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 }
 
 /* D_XNetConnect() -- Connects to server */
-void D_XNetConnect(const char* const a_URI)
+void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID)
 {
-	struct IP_Conn_s* Conn;
-	
 	/* Check */
-	if (!a_URI)
+	if (!a_Addr)
 		return;
 	
-	/* Disconnect first */
-	D_XNetDisconnect(false);
+	/* Disconnect First */
+	D_XNetDisconnect(false);	
 	
-	/* Message */
-	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_CONNECTTO, "%s\n", a_URI);
-	
-	/* Create connection to server */
-	Conn = IP_Create(a_URI, 0);
-	
-	// Failed?
-	if (!Conn)
-	{
-		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BADURI, "%s\n", a_URI);
-		return;
-	}
-	
-	/* Change state to connecting */
+	/* Set standard connection state */
+	// Set as connected, even though one might not be!
+	l_IsConnected = true;
 	gamestate = GS_WAITFORJOINWINDOW;
 	
-	/* Bind connection to server */
-	if (!D_XNetBindConn(Conn))
-	{
-		// Oops
-		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BINDFAIL, "%s", a_URI);
-		D_XNetDisconnect(false);
-		return;
-	}
+	/* Connect to remote client with specified ID */
+	D_XBCallHost(a_Addr, a_GameID);
 }
 
 /* D_XNetIsServer() -- Returns true if we are the server */
@@ -949,26 +929,7 @@ D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr)
 	/* Search players */
 	for (i = 0; i < g_NumXPlays; i++)
 		if (g_XPlays[i])
-			if (I_NetCompareHost(a_Addr, &g_XPlays[i]->Address))
-				return g_XPlays[i];
-	
-	/* Not Found */
-	return NULL;
-}
-
-/* D_XNetPlayerByIPAddr() -- Find player by IP Address */
-D_XPlayer_t* D_XNetPlayerByIPAddr(const IP_Addr_t* const a_Addr)
-{
-	int32_t i;
-	
-	/* Check */
-	if (!a_Addr)
-		return NULL;
-	
-	/* Search players */
-	for (i = 0; i < g_NumXPlays; i++)
-		if (g_XPlays[i])
-			if (IP_CompareAddr(a_Addr, &g_XPlays[i]->IPAddr))
+			if (I_NetCompareHost(a_Addr, &g_XPlays[i]->Socket.Address))
 				return g_XPlays[i];
 	
 	/* Not Found */
@@ -1133,10 +1094,6 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 	/* Remove from slot */
 	//g_XPlays[Slot] = NULL;
 	
-	/* If there is a connection, nuke the reliable connection */
-	if (a_Player->IPConn)
-		IP_ConnTrashIP(a_Player->IPConn, &a_Player->Address);
-	
 	/* Mark Defunct */
 	a_Player->Flags |= DXPF_DEFUNCT;
 	
@@ -1174,10 +1131,9 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 					if (g_XPlays[i]->HostID == a_Player->HostID)
 						j++;
 			
-			// None left
+			// None left, Send them a disconnect notice
 			if (!j)
-			{
-			}
+				D_XPDropXPlay(g_XPlays[i], a_Reason);
 		}
 	}
 	
@@ -1645,63 +1601,6 @@ void D_XNetSetServerName(const char* const a_NewName)
 	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_SERVERCHANGENAME, "%s\n", a_NewName);
 }
 
-/* D_XNetBindConn() -- Binds Connection */
-bool_t D_XNetBindConn(struct IP_Conn_s* a_Conn)
-{
-	size_t i, FreeSpot;
-	
-	/* Check */
-	if (!a_Conn)
-		return false;
-	
-	/* See if it is already set */
-	FreeSpot = l_NumXNetConns;
-	for (i = 0; i < l_NumXNetConns; i++)
-	{
-		// Free?
-		if (!l_XNetConns[i])
-			if (FreeSpot == l_NumXNetConns)
-				FreeSpot = i;
-		
-		// If matches, return true
-		if (l_XNetConns[i] == a_Conn)
-			return true;
-	}
-	
-	/* It is not, so use free spot */
-	// Resize needed?
-	if (FreeSpot >= l_NumXNetConns)
-	{
-		Z_ResizeArray((void**)&l_XNetConns, sizeof(*l_XNetConns),
-			l_NumXNetConns, l_NumXNetConns + 1);
-		l_NumXNetConns++;
-	}
-	
-	// Place here
-	l_XNetConns[FreeSpot] = a_Conn;
-	
-	/* Done */
-	return true;
-}
-
-/* D_XNetDelConn() -- Deletes connection */
-void D_XNetDelConn(struct IP_Conn_s* a_Conn)
-{
-	size_t i;
-	
-	/* Check */
-	if (!a_Conn)
-		return false;
-	
-	/* Find in list, and remove */
-	for (i = 0; i < l_NumXNetConns; i++)
-		if (l_XNetConns[i] == a_Conn)
-		{
-			IP_Destroy(l_XNetConns[i]);
-			l_XNetConns[i] = NULL;
-		}
-}
-
 /* D_XNetUploadTic() -- Uploads local client tics */
 void D_XNetUploadTic(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_TicCmd)
 {
@@ -1958,10 +1857,8 @@ tic_t D_XNetTicsToRun(void)
 			NonLocal = true;
 		
 		// See if we are acting as a internet server
-		for (i = 0; i < l_NumXNetConns; i++)
-			if (l_XNetConns[i])
-				if (l_XNetConns[i]->Flags & IPF_INPUT)
-					NonLocal = true;
+		if (D_XBHasConnection())
+			NonLocal = true;
 		
 		// No other clients in game?
 		if (!NonLocal)
@@ -2222,6 +2119,7 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	/* Bind Connection */
 	else if (strcasecmp(a_ArgV[1], "bind") == 0)
 	{
+#if 0
 		// Requires two arguments
 		if (a_ArgC < 4)
 			return 1;
@@ -2238,17 +2136,21 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Bind it
 		return !D_XNetBindConn(Conn);
+#endif
+		return 0;
 	}
 	
 	/* Connect */
 	else if (strcasecmp(a_ArgV[1], "connect") == 0)
 	{
+#if 0
 		// Requires one argument
 		if (a_ArgC < 3)
 			return 1;
 		
 		// Start connecting
 		D_XNetConnect(a_ArgV[2]);
+#endif
 		return 0;
 	}
 	
@@ -3611,20 +3513,6 @@ void D_XNetUpdate(void)
 	/* Modify spectators */
 	LastSpecTic = gametic;
 	
-	/* Handle transport layers */
-	for (i = 0; i < l_NumXNetConns; i++)
-		if (l_XNetConns[i])
-			IP_ConnRun(l_XNetConns[i]);
-	
-	/* Join Window Handling */
-	// Only as server
-	if (D_XNetIsServer())
-		if (g_ProgramTic >= l_LastJW + (l_SVJoinWindow.Value->Int * TICRATE))
-		{
-			IP_WaitDoJoins();
-			l_LastJW = g_ProgramTic;
-		}
-	
 #if 0
 	/* Handle remote player related things */
 	if (D_XNetIsServer())
@@ -3671,30 +3559,25 @@ void D_XNetInitialServer(void)
 {
 #define BUFSIZE 128
 #define SMALLBUF 16
-	char Buf[BUFSIZE];
-	char SmallBuf[SMALLBUF];
-	bool_t DoServer;
+	char Buf[BUFSIZE], *p;
+	bool_t DoServer, DoClient, GotIP;
 	uint16_t Port;
-	struct IP_Conn_s* Conn;
+	I_HostAddress_t Addr;
+	uint32_t GameID;
 	
 	/* Actually make the server? */
 	// Reset
-	DoServer = false;
+	DoServer = DoClient = GotIP = false;
+	GameID = 0;
 	Port = 0;
 	memset(Buf, 0, sizeof(Buf));
+	memset(&Addr, 0, sizeof(Addr));
 	
 	// Specified -server or -host
 	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated"))
 	{
 		// Set as server
 		DoServer = true;
-		
-		// If there is a next argument, it is a protocol
-		if (M_IsNextParm())
-		{
-			strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
-			strncat(Buf, "://", BUFSIZE - 1);
-		}
 		
 		// Binding to certain address
 		if (M_CheckParm("-bind"))
@@ -3712,44 +3595,58 @@ void D_XNetInitialServer(void)
 	// Client?
 	else if (M_CheckParm("-connect") && M_IsNextParm())
 	{
-		// Create Client Socket
-		Conn = IP_Create(M_GetNextParm(), 0);
+		if (M_IsNextParm())
+		{
+			// Set as client
+			DoClient = true;
 			
-		// Worked! so bind it
-		if (Conn)
-			D_XNetBindConn(Conn);
-		
-		// Also always auto start, so we don't get stuck a the title screen
-		NG_SetAutoStart(true);
-		
-		// Set as connected, even though one might not be!
-		l_IsConnected = true;
-		gamestate = GS_WAITFORJOINWINDOW;
-		return;
+			// Copy entire buffer
+			strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
+			
+			// If there is a /, then extract the GameID
+			if (p = strchr(Buf, '/'))
+			{
+				// Remove the slash (host lookups will fail otherwise)
+				*(p++) = 0;
+				
+				// Translate the numeric game ID number (dec, hex, octal, etc.)
+				GameID = C_strtou32(p, NULL, 0);
+			}
+		}
 	}
 	
-	// Specifying port?
-	strncat(Buf, ":", BUFSIZE - 1);
-	snprintf(SmallBuf, SMALLBUF - 1, "%hu", Port);
-	strncat(Buf, SmallBuf, BUFSIZE - 1);
-	
-	/* Making the server */
-	// But only if auto starting
-	if (NG_IsAutoStart())
+	/* Determine hostname */
+	if (Buf[0])
 	{
-		// Make unnetworked server as usual
-		D_XNetMakeServer(false, 0);
+		// Resolve hostname
+		GotIP = I_NetNameToHost(NULL, &Addr, Buf);
 		
-		// Bind server to it, if performing server
-		if (DoServer)
-		{
-			// Attempt creation
-			Conn = IP_Create(Buf, IPF_INPUT);
-			
-			// Worked! so bind it
-			if (Conn)
-				D_XNetBindConn(Conn);
-		}
+		// Failed to get IP?
+		if (!GotIP)
+			memset(Buf, 0, sizeof(Buf));
+	}
+	
+	/* If there is an address, or we are serving */
+	// Always auto start, so we don't get stuck a the title screen
+	if (GotIP || DoServer)
+		NG_SetAutoStart(true);
+	
+	/* Starting Server? */
+	if (DoServer)
+	{
+		// Make server as usual
+		D_XNetMakeServer(true, (GotIP ? &Addr : NULL));
+	}
+	
+	/* Starting Client */
+	else
+	{
+		// No address specified?
+		if (!Buf[0] || !GotIP)
+			return;
+		
+		// Use connection pathway
+		D_XNetConnect(&Addr, GameID);
 	}
 #undef BUFSIZE
 #undef SMALLBUF
@@ -3762,7 +3659,7 @@ uint32_t D_XNetMakeID(const uint32_t a_ID)
 	
 	/* ID Creation Loop */
 	ID = a_ID;
-	while (!ID || D_XNetPlayerByID(ID) || D_NCSFindSplitByProcess(ID) >= 0 || D_XNetPlayerByHostID(ID) || IP_WaitByHostID(ID))
+	while (!ID || D_XNetPlayerByID(ID) || D_NCSFindSplitByProcess(ID) >= 0 || D_XNetPlayerByHostID(ID))
 	{
 		ID = D_CMakePureRandom();
 	}
