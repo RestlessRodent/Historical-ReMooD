@@ -213,8 +213,8 @@ bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
 bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
 
 void D_XNetDisconnect(const bool_t a_FromDemo);
-void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr);
-void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID);
+void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotHost);
+void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotClient);
 
 bool_t D_XNetIsServer(void);
 bool_t D_XNetIsConnected(void);

@@ -54,19 +54,68 @@ bool_t D_XBHasConnection(void)
 /* D_XBWaitForCall() -- Waits for incoming connection */
 bool_t D_XBWaitForCall(I_HostAddress_t* const a_BindTo)
 {
-	CONL_PrintF("Hosting\n");
+	I_NetSocket_t* SvSock;
+	I_HostAddress_t BindAddr;
+	uint32_t SockFlags;
+	
+	/* Destroy old socket, if any */
+	D_XBSocketDestroy();
+	
+	/* Socket always listens */
+	SockFlags = INSF_LISTEN;
+	
+	/* Initialize binding address */
+	// To determine how we want to host this server
+	memset(&BindAddr, 0, sizeof(BindAddr));
+	if (a_BindTo)
+		memmove(&BindAddr, a_BindTo, sizeof(BindAddr));
+	
+	// Hosting IPv6 Server
+	if (M_CheckParm("-ipv6") || (BindAddr.IPvX && BindAddr.IPvX == INIPVN_IPV6))
+		SockFlags = INIPVN_IPV6;
+	
+	/* IPv6 enabled but address not v6 */
+	if (BindAddr.IPvX)
+		if ((SockFlags & INIPVN_IPV6) && BindAddr.IPvX != INIPVN_IPV6)
+			return false;
+	
+	/* Attempt socket creation */
 	return false;
 }
 
 /* D_XBCallHost() -- Connects to another server */
 bool_t D_XBCallHost(I_HostAddress_t* const a_ToCall, const uint32_t a_GameID)
 {
-#define BUFSIZE 128
-	char Buf[BUFSIZE];
-	I_NetHostToString(a_ToCall, Buf, BUFSIZE - 1);
-	CONL_PrintF("Calling `%s` extention %u\n", Buf, a_GameID);
+	I_NetSocket_t* ClSock;
+	I_HostAddress_t ConnAddr;
+	uint32_t SockFlags;
+	
+	/* Requires address */
+	if (!a_ToCall)
+		return false;
+	
+	/* Destroy old socket, if any */
+	D_XBSocketDestroy();
+	
+	/* By default, no flags used */
+	SockFlags = 0;
+	
+	/* Initialize connection address */
+	// To determine how we want to call this server
+	memset(&ConnAddr, 0, sizeof(ConnAddr));
+	if (a_ToCall)
+		memmove(&ConnAddr, a_ToCall, sizeof(ConnAddr));
+	
+	// Connecting to IPv6 host?
+	if (M_CheckParm("-ipv6") || (ConnAddr.IPvX && ConnAddr.IPvX == INIPVN_IPV6))
+		SockFlags = INIPVN_IPV6;
+		
+	/* IPv6 enabled but address not v6 */
+	if (ConnAddr.IPvX)
+		if ((SockFlags & INIPVN_IPV6) && ConnAddr.IPvX != INIPVN_IPV6)
+			return false;
+	
 	return false;
-#undef BUFSIZE
 }
 
 /* D_XBSocketDestroy() -- Destroys the connection socket */

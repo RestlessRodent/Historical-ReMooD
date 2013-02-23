@@ -51,7 +51,8 @@ typedef struct D_XDesc_s
 	I_HostAddress_t BoundTo;					// Address bound to
 	D_BS_t* StdBS;								// Standard Block Stream
 	D_BS_t* RelBS;								// Reliable Block Stream
-	bool_t Master;								// Master Socket
+	
+	bool_t Master;								// Master (Is the server)
 } D_XDesc_t;
 
 /**************

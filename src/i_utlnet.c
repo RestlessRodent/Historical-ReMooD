@@ -521,12 +521,19 @@ size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out,
 	bool_t Zero, DidIt, InRun;
 	
 	/* Check */
-	if (!a_Host || !a_Out || !a_OutSize)
+	if (!a_Out || !a_OutSize)
 		return 0;
 	
+	/* NUL at end always */
+	a_Out[a_OutSize - 1] = 0;
+	
+	/* No Host? */
+	if (!a_Host)
+		return snprintf(a_Out, a_OutSize - 1, "\0\0");
+	
 	/* IPv4? */
-	if (a_Host->IPvX == INIPVN_IPV4)
-		return snprintf(a_Out, a_OutSize - 1, "%i.%i.%i.%i:%u",
+	else if (a_Host->IPvX == INIPVN_IPV4)
+		return snprintf(a_Out, a_OutSize - 1, "%i.%i.%i.%i:%u\0\0",
 				a_Host->Host.v4.b[0],
 				a_Host->Host.v4.b[1],
 				a_Host->Host.v4.b[2],
@@ -646,9 +653,10 @@ size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out,
 		// Return size of string
 		return l;
 	}
+	
 	/* Unknown? */
 	else
-		return snprintf(a_Out, a_OutSize - 1, "invalid:%u", a_Host->Port);
+		return snprintf(a_Out, a_OutSize - 1, ":%u\0\0", a_Host->Port);
 }
 
 /* I_NetOpenSocket() -- Opens a socket on the specified port */

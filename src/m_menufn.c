@@ -932,7 +932,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 			M_ExPopAllMenus(j);
 		D_XNetDisconnect(false);
 		P_XGSSetAllDefaults();
-		D_XNetMakeServer(false, 0);
+		D_XNetMakeServer(false, NULL, 0, false);
 		D_XNetChangeMap(a_ArgV[1], true);
 		
 		// It worked, hopefully

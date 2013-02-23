@@ -665,19 +665,23 @@ static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player, void* const a_Data)
 }
 
 /* D_XNetMakeServer() -- Creates a server, possibly networked */
-void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr)
+void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotHost)
 {
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
 	int32_t i;
 	D_XPlayer_t* SPlay;
 	player_t* FakeP;
 	uint32_t ProcessID;
+	bool_t XBOk;
 	
 	/* Disconnect First */
 	D_XNetDisconnect(false);
 	
-	/* Create Socket */
-	if (a_Networked)
-		D_XBWaitForCall(a_Addr);
+	/* Address required if net and not hosted */
+	if (a_Networked && a_NotHost)
+		if (!a_Addr)
+			return;
 	
 	/* Create process ID, or grab one */
 	ProcessID = 0;
@@ -707,6 +711,28 @@ void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr)
 	/* Set all game vars */
 	if (!demoplayback)
 		NG_ApplyVars();
+	
+	/* Setup Socket Connection */
+	if (a_Networked)
+	{
+		// Not acting as network host
+		if (a_NotHost)
+			XBOk = D_XBCallHost(a_Addr, a_GameID);
+		
+		// We are network host
+		else
+			XBOk = D_XBWaitForCall(a_Addr);
+	}
+	
+	/* Creation failed? */
+	if (!XBOk)
+	{
+		memset(Buf, 0, sizeof(Buf));
+		I_NetHostToString(a_Addr, Buf, BUFSIZE);
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BINDFAIL, "%s\n", Buf);
+		D_XNetDisconnect(false);
+		return;
+	}
 	
 	/* If dedicated, no need to continue */
 	if (l_IsDedicated)
@@ -740,25 +766,48 @@ void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr)
 	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
+#undef BUFSIZE
 }
 
 /* D_XNetConnect() -- Connects to server */
-void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID)
+void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotClient)
 {
-	/* Check */
-	if (!a_Addr)
-		return;
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	bool_t XBOk;
+	
+	/* Need address if we are a standard client */
+	if (!a_NotClient)
+		if (!a_Addr)
+			return;
 	
 	/* Disconnect First */
-	D_XNetDisconnect(false);	
+	D_XNetDisconnect(false);
 	
 	/* Set standard connection state */
 	// Set as connected, even though one might not be!
 	l_IsConnected = true;
 	gamestate = GS_WAITFORJOINWINDOW;
 	
-	/* Connect to remote client with specified ID */
-	D_XBCallHost(a_Addr, a_GameID);
+	/* Connect to remote client with specified ID or wait */
+	// Anti-Client
+	if (a_NotClient)
+		XBOk = D_XBWaitForCall(a_Addr);
+	
+	// Standard Client
+	else
+		XBOk = D_XBCallHost(a_Addr, a_GameID);
+	
+	/* Creation failed? */
+	if (!XBOk)
+	{
+		memset(Buf, 0, sizeof(Buf));
+		I_NetHostToString(a_Addr, Buf, BUFSIZE);
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BINDFAIL, "%s\n", Buf);
+		D_XNetDisconnect(false);
+		return;
+	}
+#undef BUFSIZE
 }
 
 /* D_XNetIsServer() -- Returns true if we are the server */
@@ -2158,7 +2207,7 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 	else if (strcasecmp(a_ArgV[1], "create") == 0)
 	{
 		// This is easy
-		D_XNetMakeServer(false, 0);
+		D_XNetMakeServer(false, NULL, 0, false);
 		return 0;
 	}
 	
@@ -3560,59 +3609,86 @@ void D_XNetInitialServer(void)
 #define BUFSIZE 128
 #define SMALLBUF 16
 	char Buf[BUFSIZE], *p;
-	bool_t DoServer, DoClient, GotIP;
+	bool_t DoServer, DoClient, GotIP, Anti;
 	uint16_t Port;
 	I_HostAddress_t Addr;
 	uint32_t GameID;
 	
 	/* Actually make the server? */
 	// Reset
-	DoServer = DoClient = GotIP = false;
+	DoServer = DoClient = GotIP = Anti = false;
 	GameID = 0;
 	Port = 0;
 	memset(Buf, 0, sizeof(Buf));
 	memset(&Addr, 0, sizeof(Addr));
 	
-	// Specified -server or -host
-	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated"))
+	/* Connection Type? */
+	// Master: Hosting server
+	if (M_CheckParm("-server") || M_CheckParm("-host"))
 	{
 		// Set as server
 		DoServer = true;
 		
 		// Binding to certain address
-		if (M_CheckParm("-bind"))
-			if (M_IsNextParm())
-				strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
-		
-		// Also always auto start, so we don't get stuck a the title screen
-		NG_SetAutoStart(true);
+		if (M_IsNextParm())
+			strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
 		
 		// Dedicated Server?
 		if (M_CheckParm("-dedicated"))
 			l_IsDedicated = true;
 	}
 	
-	// Client?
+	// Master: Connecting to server
+	else if ((M_CheckParm("-antiserver") || M_CheckParm("-antihost")) && M_IsNextParm())
+	{
+		// We are a server, but anti
+		DoServer = true;
+		Anti = true;
+		
+		// Read hostname
+		strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
+		
+		// If there is a /, then extract the GameID
+		if (p = strchr(Buf, '/'))
+		{
+			// Remove the slash (host lookups will fail otherwise)
+			*(p++) = 0;
+			
+			// Translate the numeric game ID number (dec, hex, octal, etc.)
+			GameID = C_strtou32(p, NULL, 0);
+		}
+	}
+	
+	// Slave: Connecting to server
 	else if (M_CheckParm("-connect") && M_IsNextParm())
 	{
-		if (M_IsNextParm())
+		// Set as client
+		DoClient = true;
+		
+		// Copy entire buffer
+		strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
+		
+		// If there is a /, then extract the GameID
+		if (p = strchr(Buf, '/'))
 		{
-			// Set as client
-			DoClient = true;
+			// Remove the slash (host lookups will fail otherwise)
+			*(p++) = 0;
 			
-			// Copy entire buffer
-			strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
-			
-			// If there is a /, then extract the GameID
-			if (p = strchr(Buf, '/'))
-			{
-				// Remove the slash (host lookups will fail otherwise)
-				*(p++) = 0;
-				
-				// Translate the numeric game ID number (dec, hex, octal, etc.)
-				GameID = C_strtou32(p, NULL, 0);
-			}
+			// Translate the numeric game ID number (dec, hex, octal, etc.)
+			GameID = C_strtou32(p, NULL, 0);
 		}
+	}
+	
+	// Slave: Hosting server
+	else if (M_CheckParm("-anticonnect"))
+	{
+		// Set as anti-client
+		DoClient = true;
+		Anti = true;
+		
+		// Binding to certain address
+		if (M_IsNextParm())
+			strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
 	}
 	
 	/* Determine hostname */
@@ -3628,25 +3704,31 @@ void D_XNetInitialServer(void)
 	
 	/* If there is an address, or we are serving */
 	// Always auto start, so we don't get stuck a the title screen
-	if (GotIP || DoServer)
+	if (GotIP || DoServer || DoClient)//(DoServer && !Anti) || (DoClient && Anti))
 		NG_SetAutoStart(true);
 	
 	/* Starting Server? */
 	if (DoServer)
 	{
+		// No address specified?
+		if (Anti)
+			if (!Buf[0] || !GotIP)
+				return;
+		
 		// Make server as usual
-		D_XNetMakeServer(true, (GotIP ? &Addr : NULL));
+		D_XNetMakeServer(true, (GotIP ? &Addr : NULL), GameID, Anti);
 	}
 	
 	/* Starting Client */
 	else
 	{
 		// No address specified?
-		if (!Buf[0] || !GotIP)
-			return;
+		if (!Anti)
+			if (!Buf[0] || !GotIP)
+				return;
 		
 		// Use connection pathway
-		D_XNetConnect(&Addr, GameID);
+		D_XNetConnect((GotIP ? &Addr : NULL), GameID, Anti);
 	}
 #undef BUFSIZE
 #undef SMALLBUF

@@ -1923,7 +1923,7 @@ static bool_t MS_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
 	}
 	
 	/* Make Game Now */
-	D_XNetMakeServer(false, 0);
+	D_XNetMakeServer(false, NULL, 0, false);
 	NG_ApplyVars();
 	NG_WarpMap();
 	
