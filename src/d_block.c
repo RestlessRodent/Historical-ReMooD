@@ -640,6 +640,7 @@ typedef struct DS_RBSReliableData_s
 	
 	D_BS_t* UnAuthBuf;							// Unauthorized buffer
 	bool_t IsAuth;								// Is packet authorized
+	bool_t IsOnList;							// Is on auth list
 } DS_RBSReliableData_t;
 
 /* DS_RBSReliable_KillFlat() -- Kills a flat */
@@ -1280,6 +1281,16 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 			// Authenticated Packet?
 		case DRBSIOCTL_ISAUTH:
 			*((bool_t*)a_DataP) = RelData->IsAuth;
+			break;
+			
+			// Check if on auth list
+		case DRBSIOCTL_CHECKISONLIST:
+			RelData->IsOnList = !!DS_RBSReliable_FlatByHost(RelData, a_DataP, false);
+			break;
+			
+			// return state of last cehck
+		case DRBSIOCTL_GETISONLIST:
+			*((bool_t*)a_DataP) = RelData->IsOnList;
 			break;
 			
 			// Unknown

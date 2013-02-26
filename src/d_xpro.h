@@ -58,11 +58,13 @@ typedef struct D_XDesc_s
 	{
 		struct
 		{
+			bool_t AntiConnect;					// Performed an anti-connect
 		} Master;								// Master Data
 		
 		struct
 		{
 			bool_t Synced;						// Synced to remote side
+			tic_t LastSyncReq;					// Last Sync Request
 		} Slave;								// Slave Data
 	} Data;										// Specific Data
 } D_XDesc_t;

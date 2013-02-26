@@ -63,6 +63,8 @@ typedef enum D_BSStreamIOCtl_e
 	DRBSIOCTL_RELRESET,							// Resets reliable state to normal
 	DRBSIOCTL_ADDHOST,							// Adds a host (reliable)
 	DRBSIOCTL_ISAUTH,							// Current packet authentic?
+	DRBSIOCTL_CHECKISONLIST,					// Is on auth list?
+	DRBSIOCTL_GETISONLIST,						// Is on auth list?
 	
 	NUMDRBSSTREAMIOCTL
 } D_BSStreamIOCtl_t;

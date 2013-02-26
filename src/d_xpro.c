@@ -35,6 +35,9 @@
 
 #include "d_xpro.h"
 #include "d_netcmd.h"
+#include "doomstat.h"
+#include "console.h"
+#include "dstrings.h"
 
 /****************
 *** FUNCTIONS ***
@@ -73,6 +76,33 @@ void D_XPRunConnection(void)
 
 /*---------------------------------------------------------------------------*/
 
+/* DS_SendDisconnect() -- Sends disconnect */
+static void DS_SendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason)
+{
+	/* Check */
+	if (!a_Desc || !a_BS || !a_Addr)
+		return;
+	
+	/* Build Packet */
+	D_BSBaseBlock(a_BS, "DISC");
+	
+	// Place Message
+	D_BSwu32(a_BS, 0);
+	
+	if (a_Reason)
+		D_BSws(a_BS, a_Reason);
+	else
+		D_BSwu8(a_BS, 0);
+	
+	// Send away
+	D_BSRecordNetBlock(a_BS, a_Addr);
+	
+	/* Drop host too */
+	D_XBDropHost(a_Addr);
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* DS_DoMaster() -- Handles master connection */
 static void DS_DoMaster(D_XDesc_t* const a_Desc)
 {
@@ -81,15 +111,41 @@ static void DS_DoMaster(D_XDesc_t* const a_Desc)
 /* DS_DoSlave() -- Handles slave connection */
 static void DS_DoSlave(D_XDesc_t* const a_Desc)
 {
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	
 	/* Not Syncronized? */
 	if (!a_Desc->Data.Slave.Synced)
 	{
+		// Sent requst already?
+		if (g_ProgramTic < a_Desc->Data.Slave.LastSyncReq)
+			return;
+		
+		// Build syncronization packet
+		D_BSBaseBlock(a_Desc->StdBS, "GSYN");
+		
+		// Record Data
+		D_BSwu8(a_Desc->StdBS, D_XNetIsServer());	// We are server?
+		
+		D_BSws(a_Desc->StdBS, "version=" REMOOD_FULLVERSIONSTRING);
+		D_BSwu8(a_Desc->StdBS, 0);	// End of strings
+		
+		// Send to remote bound host
+		D_BSRecordNetBlock(a_Desc->StdBS, &a_Desc->BoundTo);
+		
+		// Wait 1 second before resync
+		a_Desc->Data.Slave.LastSyncReq = g_ProgramTic + TICRATE;
+		
+		// Print message to inform client
+		I_NetHostToString(&a_Desc->BoundTo, Buf, BUFSIZE);
+		CONL_OutputUT(CT_NETWORK, DSTR_DXP_CONNECTING, "%s\n", Buf);
 	}
 	
 	/* Synced */
 	else
 	{
 	}
+#undef BUFSIZE
 }
 
 /* DS_DoServer() -- Handles server connection */
@@ -103,6 +159,57 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 }
 
 /*---------------------------------------------------------------------------*/
+
+/* DXP_GSYN() -- Game Synchronize Connection */
+static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+{
+	uint8_t RemoteIsServer;
+	
+	/* Read if the remote says it is a server */
+	RemoteIsServer = D_BSru8(a_Desc->RelBS);
+	
+	// Incompatible
+	if (!a_Desc->Master || ((!!RemoteIsServer) == (!!D_XNetIsServer())))
+	{
+		DS_SendDisconnect(a_Desc, a_Desc->StdBS, a_Addr, "Remote end has same connection type gender.");
+		return true;
+	}
+	
+	/* Success! */
+	return true;
+}
+
+/* DXP_DISC() -- Disconnect Received */
+static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+{
+#define BUFSIZE 72
+	uint32_t Code;
+	char Buf[BUFSIZE];
+	
+	/* Read Code */
+	Code = D_BSru32(a_Desc->RelBS);
+	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE);
+	
+	/* If playing... */
+	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
+	{
+		// Detach from socket
+		D_XBSocketDestroy();
+		
+		// Transform self into server (everyone went bye)
+	}
+	
+	/* Otherwise, a network disconnect */
+	else
+	{
+		// Cannot connect to server maybe?
+		D_XNetDisconnect(false);
+	}
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
 
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
@@ -120,9 +227,14 @@ typedef enum D_CSPackFlag_e
 static const struct
 {
 	const char* Header;
+	bool_t (*Func)(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr);
 	uint32_t Flags;
 } c_CSPacks[] =
 {
+	// Game Synchronize Connection
+	{"GSYN", DXP_GSYN, PF_MASTER},
+	{"DISC", DXP_DISC, PF_SLAVE},
+	
 	{NULL}
 };
 
@@ -176,7 +288,13 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 			if (a_Desc->Master)
 				Flags |= PF_MASTER;
 			else
+			{
 				Flags |= PF_SLAVE;
+				
+				// Packet MUST be from master side
+				if (!I_NetCompareHost(&a_Desc->BoundTo, &RemAddr))
+					continue;
+			}
 				
 				// Server/Client
 			if (D_XNetIsServer())
@@ -206,10 +324,15 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 							break;
 				
 				// Mismatch?
-				if (b >= 31)
+				if (b < 31)
 					continue;
 				
 				// Call handler function
+				if (c_CSPacks[i].Func)
+					c_CSPacks[i].Func(a_Desc, Header, Flags, &RemAddr);
+				
+				// Always break
+				break;
 			}
 			
 			// Not handled?
@@ -218,6 +341,10 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 					CONL_PrintF("Unknown \'%c%c%c%c\'\n", Header[0], Header[1], Header[2], Header[3]);
 		}
 	} while (Continue);
+	
+	/* Flush reliable stream */
+	// Otherwise nothing is xmitted/rcved
+	D_BSFlushStream(a_Desc->RelBS);
 }
 
 /*---------------------------------------------------------------------------*/

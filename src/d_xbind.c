@@ -211,8 +211,6 @@ bool_t D_XBCallHost(I_HostAddress_t* const a_ToCall, const uint32_t a_GameID)
 	
 	/* Forced Port */
 	Port = 0;
-	if (ConnAddr.IPvX && ConnAddr.Port)
-		Port = ConnAddr.Port;
 	
 	// Passed by argument?
 	if (!Port)
@@ -266,6 +264,15 @@ void D_XBSocketDestroy(void)
 	/* Check */
 	if (!g_XSocket)
 		return;
+	
+	/* Delete everything in reverse order */
+	D_BSCloseStream(g_XSocket->RelBS);
+	D_BSCloseStream(g_XSocket->StdBS);
+	I_NetCloseSocket(g_XSocket->Socket);
+	
+	/* Free socket */
+	Z_Free(g_XSocket);
+	g_XSocket = NULL;
 }
 
 /* D_XBDropHost() -- Drops host from the reliable buffer */
