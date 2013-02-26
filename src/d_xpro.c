@@ -34,6 +34,7 @@
 ***************/
 
 #include "d_xpro.h"
+#include "d_netcmd.h"
 
 /****************
 *** FUNCTIONS ***
@@ -57,6 +58,11 @@ void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason)
 	else
 	{
 	}
+}
+
+/* D_XPRunConnection() -- Runs a connection */
+void D_XPRunConnection(void)
+{
 }
 
 

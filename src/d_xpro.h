@@ -69,10 +69,13 @@ extern D_XDesc_t* g_XSocket;					// Master Socket
 
 void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason);
 
+void D_XPRunConnection(void);
+
 /*** D_XBIND.C ***/
 
 bool_t D_XBHasConnection(void);
 
+bool_t D_XBValidIP(I_HostAddress_t* const a_Addr);
 bool_t D_XBWaitForCall(I_HostAddress_t* const a_BindTo);
 bool_t D_XBCallHost(I_HostAddress_t* const a_ToCall, const uint32_t a_GameID);
 

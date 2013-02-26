@@ -3296,6 +3296,9 @@ void D_XNetUpdate(void)
 	D_JoySpecialTicker();
 	M_SMTicker();				// Simple Menu Ticker
 	
+	/* Handle Networking */
+	D_XPRunConnection();
+	
 	/* Not playing? */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
 	{
