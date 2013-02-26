@@ -63,6 +63,94 @@ void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason)
 /* D_XPRunConnection() -- Runs a connection */
 void D_XPRunConnection(void)
 {
+	/* Run Neutral Socket */
+	// Neutral socket is say login server, master, etc.
+	
+	/* Client/Server Communication */
+	if (g_XSocket)
+		D_XPRunCS(g_XSocket);
 }
 
+/*---------------------------------------------------------------------------*/
+
+/* DS_DoMaster() -- Handles master connection */
+static void DS_DoMaster(D_XDesc_t* const a_Desc)
+{
+}
+
+/* DS_DoSlave() -- Handles slave connection */
+static void DS_DoSlave(D_XDesc_t* const a_Desc)
+{
+}
+
+/* DS_DoServer() -- Handles server connection */
+static void DS_DoServer(D_XDesc_t* const a_Desc)
+{
+}
+
+/* DS_DoClient() -- Handles client connection */
+static void DS_DoClient(D_XDesc_t* const a_Desc)
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+static const struct
+{
+	const char* Header;
+} c_CSPacks[] =
+{
+	{NULL}
+};
+
+/* D_XPRunCS() -- Run client server operation */
+void D_XPRunCS(D_XDesc_t* const a_Desc)
+{
+	char Header[5];
+	int32_t i;
+	I_HostAddress_t RemAddr;
+	bool_t Continue;
+	
+	/* Handle standard state based packets */
+	// Master
+	if (a_Desc->Master)
+		DS_DoMaster(a_Desc);
+	
+	// Slave
+	else
+		DS_DoSlave(a_Desc);
+	
+	// Server
+	if (D_XNetIsServer())
+		DS_DoServer(a_Desc);
+	
+	else
+		DS_DoClient(a_Desc);
+	
+	/* Handle individual packets */
+	do
+	{
+		// Reset
+		memset(Header, 0, sizeof(Header));
+		memset(&RemAddr, 0, sizeof(RemAddr));
+		
+		// Read Packet
+		Continue = D_BSPlayNetBlock(a_Desc->RelBS, Header, &RemAddr);
+		
+		// Handle Packet
+		if (Continue)
+		{
+			// Invalid IP?
+			if (!D_XBValidIP(&RemAddr))
+				continue;
+			
+			// Determine scenario packet is in
+			
+			// Look in list
+			for (i = 0; c_CSPacks[i].Header; i++)
+			{
+			}
+		}
+	} while (Continue);
+}
 

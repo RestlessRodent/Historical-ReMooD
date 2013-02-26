@@ -71,6 +71,8 @@ void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason);
 
 void D_XPRunConnection(void);
 
+void D_XPRunCS(D_XDesc_t* const a_Desc);
+
 /*** D_XBIND.C ***/
 
 bool_t D_XBHasConnection(void);
