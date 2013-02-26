@@ -253,6 +253,9 @@ bool_t D_XBCallHost(I_HostAddress_t* const a_ToCall, const uint32_t a_GameID)
 	// Init
 	DS_XBInitSocket(New, ClSock, &ConnAddr);
 	
+	// Accept reliable packets from the server
+	D_BSStreamIOCtl(New->RelBS, DRBSIOCTL_ADDHOST, (intptr_t)&ConnAddr);
+	
 	// Success!
 	return true;
 }
@@ -260,6 +263,9 @@ bool_t D_XBCallHost(I_HostAddress_t* const a_ToCall, const uint32_t a_GameID)
 /* D_XBSocketDestroy() -- Destroys the connection socket */
 void D_XBSocketDestroy(void)
 {
+	/* Check */
+	if (!g_XSocket)
+		return;
 }
 
 /* D_XBDropHost() -- Drops host from the reliable buffer */
@@ -270,7 +276,7 @@ void D_XBDropHost(I_HostAddress_t* const a_Addr)
 		return;
 	
 	/* Remove from reliable */
-	D_BSStreamIOCtl(g_XSocket->RelBS, DRBSIOCTL_DROPHOST, (intptr_t*)a_Addr);
+	D_BSStreamIOCtl(g_XSocket->RelBS, DRBSIOCTL_DROPHOST, (intptr_t)a_Addr);
 }
 
 /* D_XBPathToXPlay() -- Returns path to XPlayer */

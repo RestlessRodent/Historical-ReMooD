@@ -121,7 +121,7 @@ void __REMOOD_DEPRECATED D_BSStatStream(D_BS_t* const a_Stream, uint32_t* const 
 void __REMOOD_DEPRECATED D_BSUnStatStream(D_BS_t* const a_Stream);
 bool_t __REMOOD_DEPRECATED D_BSMarkedStream(D_BS_t* const a_Stream);
 
-bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP);
+bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP);
 
 bool_t D_BSCompareHeader(const char* const a_A, const char* const a_B);
 bool_t D_BSBaseBlock(D_BS_t* const a_Stream, const char* const a_Header);

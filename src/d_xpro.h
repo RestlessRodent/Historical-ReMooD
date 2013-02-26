@@ -53,7 +53,27 @@ typedef struct D_XDesc_s
 	D_BS_t* RelBS;								// Reliable Block Stream
 	
 	bool_t Master;								// Master (Is the server)
+	
+	union
+	{
+		struct
+		{
+		} Master;								// Master Data
+		
+		struct
+		{
+			bool_t Synced;						// Synced to remote side
+		} Slave;								// Slave Data
+	} Data;										// Specific Data
 } D_XDesc_t;
+
+/* D_XEndPoint_t -- Endpoint connection */
+typedef struct D_XEndPoint_s
+{
+	D_XDesc_t* Desc;							// Descriptor being used
+	I_HostAddress_t Addr;						// Address allocated
+	tic_t LastSeen;								// Last seen at
+} D_XEndPoint_t;
 
 /**************
 *** GLOBALS ***

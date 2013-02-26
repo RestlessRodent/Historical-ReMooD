@@ -81,6 +81,15 @@ static void DS_DoMaster(D_XDesc_t* const a_Desc)
 /* DS_DoSlave() -- Handles slave connection */
 static void DS_DoSlave(D_XDesc_t* const a_Desc)
 {
+	/* Not Syncronized? */
+	if (!a_Desc->Data.Slave.Synced)
+	{
+	}
+	
+	/* Synced */
+	else
+	{
+	}
 }
 
 /* DS_DoServer() -- Handles server connection */
@@ -95,9 +104,23 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 
 /*---------------------------------------------------------------------------*/
 
+/* D_CSPackFlag_t -- Packet flags */
+typedef enum D_CSPackFlag_e
+{
+	PF_MASTER			= UINT32_C(0x00000001),	// Need to be master
+	PF_SLAVE			= UINT32_C(0x00000002),	// Need to be slave
+	PF_SERVER			= UINT32_C(0x00000004),	// Need to be server
+	PF_CLIENT			= UINT32_C(0x00000008),	// Need to be client
+	PF_REL				= UINT32_C(0x00000010), // Must be reliable
+	PF_NOREL			= UINT32_C(0x00000020),	// Must not be reliable
+	PF_SYNCED			= UINT32_C(0x00000040),	// Remote must be synced
+} D_CSPackFlag_t;
+
+/* c_CSPacks -- Client/Server Packets */
 static const struct
 {
 	const char* Header;
+	uint32_t Flags;
 } c_CSPacks[] =
 {
 	{NULL}
@@ -107,9 +130,11 @@ static const struct
 void D_XPRunCS(D_XDesc_t* const a_Desc)
 {
 	char Header[5];
-	int32_t i;
+	int32_t i, b;
 	I_HostAddress_t RemAddr;
 	bool_t Continue;
+	uint32_t Flags;
+	bool_t Authed;
 	
 	/* Handle standard state based packets */
 	// Master
@@ -145,12 +170,55 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 				continue;
 			
 			// Determine scenario packet is in
+			Flags = 0;
+			
+				// Master/Slave
+			if (a_Desc->Master)
+				Flags |= PF_MASTER;
+			else
+				Flags |= PF_SLAVE;
+				
+				// Server/Client
+			if (D_XNetIsServer())
+				Flags |= PF_SERVER;
+			else
+				Flags |= PF_CLIENT;
+				
+				// Reliable
+			Authed = false;
+			D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_ISAUTH, (intptr_t)&Authed);
+			if (Authed)
+				Flags |= PF_REL;
+			else
+				Flags |= PF_NOREL;
+				
+				// Synced
+			if (!a_Desc->Master && a_Desc->Data.Slave.Synced)
+				Flags |= PF_SYNCED;
 			
 			// Look in list
 			for (i = 0; c_CSPacks[i].Header; i++)
 			{
+				// Check Flags
+				for (b = 0; b < 31; b++)
+					if (c_CSPacks[i].Flags & (1 << b))
+						if ((c_CSPacks[i].Flags & (1 << b)) != (Flags & (1 << b)))
+							break;
+				
+				// Mismatch?
+				if (b >= 31)
+					continue;
+				
+				// Call handler function
 			}
+			
+			// Not handled?
+			if (devparm)
+				if (!c_CSPacks[i].Header)
+					CONL_PrintF("Unknown \'%c%c%c%c\'\n", Header[0], Header[1], Header[2], Header[3]);
 		}
 	} while (Continue);
 }
+
+/*---------------------------------------------------------------------------*/
 

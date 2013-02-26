@@ -569,7 +569,7 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 }
 
 /* DS_RBSNet_IOCtlF() -- IO Ctl */
-static bool_t DS_RBSNet_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+static bool_t DS_RBSNet_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
 {
 	/* Check */
 	if (!a_DataP)
@@ -580,7 +580,7 @@ static bool_t DS_RBSNet_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIO
 	{
 			// Maximum transport
 		case DRBSIOCTL_MAXTRANSPORT:
-			*a_DataP = IRBSNETSOCKBUFSIZE - 16;
+			*((intptr_t*)a_DataP) = IRBSNETSOCKBUFSIZE - 16;
 			return true;
 			
 			// Unknown
@@ -1238,7 +1238,7 @@ void DS_RBSReliable_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSReliable_IOCtlF() -- Advanced I/O Control */
-bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
 {
 	DS_RBSReliableData_t* RelData;
 	
@@ -1254,12 +1254,12 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 	{
 			// Perfect Packet
 		case DRBSIOCTL_ISPERFECT:
-			*a_DataP = RelData->IsPerf;
+			*((intptr_t*)a_DataP) = RelData->IsPerf;
 			return true;
 			
 			// Max supported transport
 		case DRBSIOCTL_MAXTRANSPORT:
-			*a_DataP = RelData->TransSize - 32;
+			*((intptr_t*)a_DataP) = RelData->TransSize - 32;
 			return true;
 			
 			// Adds a single host
@@ -1653,7 +1653,7 @@ void DS_RBSPacked_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSPacked_IOCtlF() -- Advanced I/O Control */
-bool_t DS_RBSPacked_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+bool_t DS_RBSPacked_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
 {
 	DS_RBSPackedData_t* PackData;
 	
@@ -1868,10 +1868,10 @@ void D_BSCloseStream(D_BS_t* const a_Stream)
 }
 
 /* D_BSStreamIOCtl() -- Call special IOCtl Handler on stream */
-bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
 {
 	/* Check */
-	if (!a_Stream || !a_DataP || a_IOCtl < 0 || a_IOCtl >= NUMDRBSSTREAMIOCTL)
+	if (!a_Stream || a_IOCtl < 0 || a_IOCtl >= NUMDRBSSTREAMIOCTL)
 		return false;
 	
 	/* Call IOCtl */

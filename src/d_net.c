@@ -601,9 +601,12 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	l_ConsistencyFailed = false;
 	
 	// Revert back to solo networking
-	l_SoloNet = true;
-	l_IsConnected = false;	// Set disconnected
-	l_LocalHostID = 0;
+	if (!a_FromDemo)
+	{
+		l_SoloNet = true;
+		l_IsConnected = false;	// Set disconnected
+		l_LocalHostID = 0;
+	}
 	
 	// Reset time to now
 	l_XNLastPTic = g_ProgramTic;
@@ -638,7 +641,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	P_ExClearLevel();
 	
 	/* Destroy Socket */
-	D_XBSocketDestroy();
+	// But not when playing a demo
+	if (!a_FromDemo)
+		D_XBSocketDestroy();
 	
 	/* Go back to the title screen */
 	gamestate = GS_DEMOSCREEN;

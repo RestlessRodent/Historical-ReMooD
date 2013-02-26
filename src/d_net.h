@@ -116,6 +116,7 @@ struct player_s;
 struct D_ProfileEx_s;
 struct B_GhostBot_s;
 struct D_XDesc_s;
+struct D_XEndPoint_s;
 
 /* D_XPlayer_t -- A player, spectator, bot, whatever */
 typedef struct D_XPlayer_s
@@ -138,7 +139,7 @@ typedef struct D_XPlayer_s
 	// Socket
 	struct
 	{
-		struct D_XDesc_s* Desc;					// Connection descriptor
+		struct D_XEndPoint_t* EndPoint;			// Endpoint connection
 		I_HostAddress_t Address;				// Address to player
 		char ReverseDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS of Host
 	} Socket;									// Socket Information
