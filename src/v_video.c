@@ -626,13 +626,13 @@ void V_ClearImages(void);
 // This does video related operations (such as loading the palette)
 static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
-	/* Clear all defined image info */
-	V_ClearImages();
-	
 	/* Load PLAYPAL */
 	
 	/* Load colormaps */
 	V_InitializeColormaps();
+	
+	/* Clear all defined image info */
+	V_ClearImages();
 	
 	return true;
 }
@@ -1870,7 +1870,6 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 			CharP->Image = V_ImageLoadE(CharP->Entry, VCP);
 		
 			// Obtain size of character (include offsets)
-			w = h = xo = yo = 0;
 			V_ImageSizePos(CharP->Image, &w, &h, &xo, &yo);
 			CharP->Size[0] = w - xo;
 			CharP->Size[1] = h - yo;
@@ -2868,30 +2867,25 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	// Determine flags
 	DrawFlags = 0;
 	
-	if (VisChar->Image)
-	{
-		// Color/Trans options
-		DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
-		DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
+	// Color/Trans options
+	DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
+	DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
 	
-		if (a_Options & VFO_PCOLSET)
-			DrawFlags |= VEX_COLORSET | VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
+	if (a_Options & VFO_PCOLSET)
+		DrawFlags |= VEX_COLORSET | VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
 	
-		// Scale options
-		if (a_Options & VFO_NOSCALESTART)
-			DrawFlags |= VEX_NOSCALESTART;
-		if (a_Options & VFO_NOSCALEPATCH)
-			DrawFlags |= VEX_NOSCALESCREEN;
-		if (a_Options & VFO_NOFLOATSCALE)
-			DrawFlags |= VEX_NOFLOATSCALE;
-		if (a_Options & VFO_NOSCALELORES)
-			DrawFlags |= VEX_NOSCALE160160;
+	// Scale options
+	if (a_Options & VFO_NOSCALESTART)
+		DrawFlags |= VEX_NOSCALESTART;
+	if (a_Options & VFO_NOSCALEPATCH)
+		DrawFlags |= VEX_NOSCALESCREEN;
+	if (a_Options & VFO_NOFLOATSCALE)
+		DrawFlags |= VEX_NOFLOATSCALE;
+	if (a_Options & VFO_NOSCALELORES)
+		DrawFlags |= VEX_NOSCALE160160;
 	
-		// Draw it
-		V_ImageDraw(DrawFlags, VisChar->Image, a_x, a_y, NULL);
-		
-		return VisChar->Image->Width;
-	}
+	// Draw it
+	V_ImageDraw(DrawFlags, VisChar->Image, a_x, a_y, NULL);
 	
 	/* Return character width */
 	return VisChar->Size[0];
@@ -3132,6 +3126,13 @@ void V_RenderPD(V_PDString_t* const PDStr);
 
 /*** STRUCTURES ***/
 
+/* V_WLImageHolder_t -- Holds linked list for images, per WAD */
+typedef struct V_WLImageHolder_s
+{
+	V_Image_t* ImageChain;						// Image changes for this WAD
+	Z_HashTable_t* ImageHashes;					// Quickly find ASCII images
+} V_WLImageHolder_t;
+
 /*** LOCALS ***/
 
 // Palette Mapping
@@ -3140,9 +3141,6 @@ static uint8_t* l_VSPalMap[NUMVCOLORPALS];		// Color translation tables
 
 static bool_t l_VSImageBooted = false;
 static uint32_t l_VSImageAreaLimit = 0;			// Maximum picture size
-
-static V_Image_t* l_VImages = NULL;				// Images in chain
-static Z_HashTable_t* l_VITable = NULL;			// Image hash table
 
 /*** FUNCTIONS ***/
 
@@ -3244,6 +3242,43 @@ bool_t VS_HashImageCompare(void* const a_A, void* const a_B)
 	return false;
 }
 
+/* VS_WLImagePDC() -- Creates image containers */
+static bool_t VS_WLImagePDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	V_WLImageHolder_t* HI;
+	
+	/* Allocate */
+	*a_SizePtr = sizeof(V_WLImageHolder_t);
+	HI = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	
+	/* Create hash table there */
+	HI->ImageHashes = Z_HashCreateTable(VS_HashImageCompare);
+	
+	return true;
+}
+
+/* VS_WLImagePDCRemove() -- Removes image containers */
+static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
+{
+	V_WLImageHolder_t* HI;
+	
+	/* Obtain */
+	HI = WL_GetPrivateData(a_WAD, WLDK_VIMAGES, NULL);
+	
+	/* Check */
+	if (!HI)
+		return;
+		
+	/* Clean up after WAD */
+	// Constant image killing
+	while (HI->ImageChain)
+		V_ImageDestroy(HI->ImageChain);
+	HI->ImageChain = NULL;
+	
+	// Delete hash table
+	Z_HashDeleteTable(HI->ImageHashes);
+}
+
 /* VS_InitialBoot() -- Initial startup */
 static void VS_InitialBoot(void)
 {
@@ -3251,216 +3286,22 @@ static void VS_InitialBoot(void)
 	// FIXME TODO: cvar-ize
 	l_VSImageAreaLimit = 512 * 512;
 	
+	/* Register data loader */
+	if (!WL_RegisterPDC(WLDK_VIMAGES, WLDPO_VIMAGES, VS_WLImagePDC, VS_WLImagePDCRemove))
+		I_Error("VS_InitialBoot: Failed to register PDC!");
+	
 	/* Booted up! */
 	l_VSImageBooted = true;
-}
-
-/* V_ImageSpawn() -- Spawns an image */
-bool_t V_ImageSpawn(V_Image_t* const a_Image)
-{
-#define HEADERSIZE 12
-	int16_t Header[HEADERSIZE];
-	int32_t Conf[NUMVIMAGETYPES];
-	uint32_t* Offs, TableEnd;
-	size_t i, Best;
-	V_Image_t* Rover;
-	const WL_WADEntry_t* Entry;
-	
-	/* Check */
-	if (!a_Image)
-		return false;
-	
-	/* Already initialized? */
-	if (a_Image->wData)
-		return true;
-	
-	/* Find entry for image */
-	Entry = WL_FindEntry(NULL, 0, a_Image->Name);
-	
-	// not found?
-	if (!Entry)
-		return false;
-	
-	/* Read header from entry */
-	memset(Header, 0, sizeof(Header));
-	WL_ReadData(Entry, 0, Header, sizeof(Header));
-	
-	// Byte swap for big endian
-	for (i = 0; i < HEADERSIZE; i++)
-		Header[i] = LittleSwapInt16(Header[i]);
-	
-	/* Attempt to determine which kind of image this is */
-	// Thing is, there is no magic available to detect these kinds of things.
-	// However, images could be detected based on validity.
-	// pic_ts are   {w 0 h 0 data}
-	// patch_ts are {w h x y cols}
-	// Raw pictures such as flats have no descernable header
-	// However, the good thing is that all the header info is signed, so any
-	// negative value would invalidate it.
-	// Like the IWAD finding stuff, this will be confidence based since it
-	// usually is reliable in a chaotic world.
-	memset(Conf, 0, sizeof(Conf));
-	
-	// Determine if the image is a pic_t (this is pretty much it)
-	if ((Header[0] > 0 && Header[2] > 0) &&		// w/h > 0
-		(Header[1] == 0 && Header[3] == 0))		// resv and zero
-		Conf[VIT_PIC] += 75;
-	
-	// Determine if the image is a patch_t
-	if (Header[0] > 0 && Header[1] > 0)			// w/h > 0
-	{
-		// Not as confident as a pic_t
-		Conf[VIT_PATCH] += 50;
-		
-		// However, I can now look at the offset table to see if it is even
-		// valid at all. For every valid offset +5, for every invalid -7.
-		Offs = Z_Malloc(sizeof(*Offs) * Header[0], PU_STATIC, NULL);
-		
-		// Offsets that point at or below the actual place where data is stored
-		// are invalid (would be garbage). So with this, any offset below this
-		// point would be invalid.
-		TableEnd = 8 + (2 * Header[0]);
-		
-		// Read offset table
-		WL_ReadData(Entry, 8, Offs, sizeof(uint32_t) * Header[0]);
-		
-		// Byte swap values in table (for BE systems)
-		for (i = 0; i < Header[0]; i++)
-			Offs[i] = LittleSwapUInt32(Offs[i]);
-		
-		// Go through the table
-		for (i = 0; i < Header[0]; i++)
-			// Is it a valid offset?
-			if (Offs[i] < Entry->Size && Offs[i] >= TableEnd)
-				Conf[VIT_PATCH] += 5;
-			else
-				Conf[VIT_PATCH] -= 7;
-		
-		// Free offsets
-		Z_Free(Offs);
-	}
-	
-	// Determine if the image is a raw image
-	// The only raw images that ever get accessed would be flats really (ouch)
-	if (Entry->Size == 4096 || Entry->Size == 16384)
-		Conf[VIT_RAW] += 25;	// Not really that confident
-	
-	/* Find the most confident match */
-	for (Best = 0, i = 0; i < NUMVIMAGETYPES; i++)
-		// Better than best?
-		if (Conf[i] > Conf[Best])
-			Best = i;
-	
-	/* Based on the most confident version... */
-	// Fill in common data
-	a_Image->NativeType = Best;
-	a_Image->wData = Entry;
-	a_Image->NativePal = 0;//a_Pal;
-	
-	// Copy confidence
-	for (i = 0; i < NUMVIMAGETYPES; i++)
-		a_Image->Conf[i] = Conf[i];
-	
-	// Fill in image data based on type
-	switch (Best)
-	{
-			// patch_t
-		case VIT_PATCH:
-			a_Image->Width = Header[0];
-			a_Image->Height = Header[1];
-			a_Image->Offset[0] = Header[2];
-			a_Image->Offset[1] = Header[3];
-			break;
-			
-			// pic_t
-		case VIT_PIC:
-			a_Image->Width = Header[0];
-			a_Image->Height = Header[2];
-			break;
-			
-			// Raw
-		case VIT_RAW:
-		default:
-			// Need the square root of entry size
-			// I hate relying on floating point in Doom land
-			a_Image->Width = sqrt((double)Entry->Size);
-			a_Image->Height = a_Image->Width;
-			break;
-	}
-	
-	// Pixel count is based on image width*height
-	a_Image->PixelCount = a_Image->Width * a_Image->Height;
-	
-	// Gigantic image?
-	if (a_Image->PixelCount >= l_VSImageAreaLimit)
-	{
-		// Make square, lowest of
-		if (a_Image->Width < a_Image->Height)
-			a_Image->Height = a_Image->Width;
-		else if (a_Image->Height < a_Image->Width)
-			a_Image->Width = a_Image->Height;
-		
-		// GhostlyDeath <March 28, 2012> -- I'd like to avoid <math.h> but I don't know how
-		// to calc the square root int wise without the internet at my current disposal.
-		a_Image->Width = (int)(sqrt((double)a_Image->Width));
-		a_Image->Height = a_Image->Width;
-		
-		// Recalculate area
-		a_Image->PixelCount = a_Image->Width * a_Image->Height;
-	}
-	
-	// Obtain power of two
-	a_Image->POTSize[0] = a_Image->Width;
-	a_Image->POTSize[1] = a_Image->Height;
-	for (i = 0; i < 2; i++)
-	{
-		a_Image->POTSize[i] = a_Image->POTSize[i] - 1;
-		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 1);
-		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 2);
-		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 4);
-		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 8);
-		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 16);
-		a_Image->POTSize[i] += 1;
-	}
-	
-	/* It worked */
-	return true;
-#undef HEADERSIZE
 }
 
 /* V_ClearImages() -- Clears image list */
 void V_ClearImages(void)
 {
-	V_Image_t* Rover;
-	
-	/* Clear all WAD specific data */
-	for (Rover = l_VImages; Rover; Rover = Rover->iNext)
-	{
-		if (Rover->dPatch)
-			Z_Free(Rover->dPatch);
-			
-		if (Rover->dPic)
-			Z_Free(Rover->dPic);
-			
-		if (Rover->dRaw)
-			Z_Free(Rover->dRaw);
-		
-		Rover->Index = INVALIDLUMP;
-		Rover->wData = NULL;
-	}
 }
 
 /* V_ImageLoadE() -- Loads a specific entry as an image */
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a_Pal)
 {
-	/* Check */
-	if (!a_Entry)
-		return NULL;
-	
-	/* Just use aliased imaging instead */
-	return V_ImageFindA(a_Entry->Name, a_Pal);
-	
-#if 0
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
 	return NULL;
@@ -3677,65 +3518,12 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a
 #undef HEADERSIZE
 
 #endif /* __REMOOD_DEDICATED */
-#endif
 }
 
 /* V_ImageFindA() -- Loads an image by name */
 // Essentially a wrapper around V_ImageLoadE()
 V_Image_t* V_ImageFindA(const char* const a_Name, const V_ColorPal_t a_Pal)
 {
-	uint32_t Hash;
-	V_Image_t* New;
-	
-	/* Booted? */
-	if (!l_VSImageBooted)
-		VS_InitialBoot();
-	
-	/* Hash table needs initted? */
-	if (!l_VITable)
-		l_VITable = Z_HashCreateTable(VS_HashImageCompare);
-	
-	/* Check */
-	if (!a_Name)
-		return NULL;
-	
-	/* Hash name and attempt location */
-	Hash = Z_Hash(a_Name);
-	New = Z_HashFindEntry(l_VITable, Hash, a_Name, false);
-	
-	// If found, spawn image and return
-	if (New)
-	{
-		V_ImageSpawn(New);
-		return New;
-	}
-	
-	/* Otherwise, initialize a marker for this image */
-	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
-	
-	// Set data inside
-	New->NameHash = Hash;
-	strncpy(New->Name, a_Name, MAXUIANAME);
-	
-	// Link and add to hashes
-	Z_HashAddEntry(l_VITable, Hash, (void*)New);
-	
-	if (l_VImages)
-	{
-		New->iNext = l_VImages;
-		l_VImages->iPrev = New;
-	}
-	
-	l_VImages = New;
-	
-	// Spawn image
-	V_ImageSpawn(New);
-	
-	/* Return created image */
-	return New;
-	
-	//return Z_Malloc(sizeof(V_Image_t), PU_STATIC, NULL);
-#if 0
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
 	return NULL;
@@ -3794,13 +3582,11 @@ V_Image_t* V_ImageFindA(const char* const a_Name, const V_ColorPal_t a_Pal)
 	/* Failure */
 	return NULL;
 #endif /* __REMOOD_DEDICATED */
-#endif
 }
 
 /* V_ImageDestroy() -- Destroys an image */
 void V_ImageDestroy(V_Image_t* const a_Image)
 {
-#if 0
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
 	return;
@@ -3846,7 +3632,6 @@ void V_ImageDestroy(V_Image_t* const a_Image)
 	if (a_Image->dRaw)
 		Z_Free(a_Image->dRaw);
 #endif /* __REMOOD_DEDICATED */
-#endif
 }
 
 /* V_ImageUsage() -- Prevents an image from being freed */
@@ -3888,11 +3673,6 @@ uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_
 	/* Check */
 	if (!a_Image)
 		return 0;
-	
-	/* Load data? */
-	if (!a_Image->wData)
-		if (!V_ImageSpawn(a_Image))
-			return 0;
 	
 	/* Return stuff */
 	if (a_Width)
@@ -3940,11 +3720,6 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 	/* Check */
 	if (!a_Image)
 		return NULL;
-	
-	/* Load data? */
-	if (!a_Image->wData)
-		if (!V_ImageSpawn(a_Image))
-			return NULL;
 		
 	/* Data already loaded? */
 	if (a_Image->dPatch)
@@ -4094,11 +3869,6 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 	if (!a_Image)
 		return NULL;
 	
-	/* Load data? */
-	if (!a_Image->wData)
-		if (!V_ImageSpawn(a_Image))
-			return NULL;
-	
 	/* Data already loaded? */
 	if (a_Image->dPic)
 	{
@@ -4180,11 +3950,6 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize, const
 	/* Check */
 	if (!a_Image)
 		return NULL;
-		
-	/* Load data? */
-	if (!a_Image->wData)
-		if (!V_ImageSpawn(a_Image))
-			return NULL;
 	
 	/* Data already loaded? */
 	if (a_Image->dRaw)
@@ -4340,11 +4105,6 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	/* Check */
 	if (!a_Image)
 		return;
-	
-	/* Load data? */
-	if (!a_Image->wData)
-		if (!V_ImageSpawn(a_Image))
-			return NULL;
 	
 	/* Find colormap */
 	x = (a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT;
