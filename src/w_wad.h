@@ -204,10 +204,11 @@ typedef struct WL_ES_s WL_ES_t;
 
 /*** PROTOTYPES ***/
 const char* WL_BaseNameEx(const char* const a_File);
+bool_t WL_ValidExt(const char* const a_File);
 
 // WAD Handling
 void WL_Init(void);
-const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName);
+const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName, const char* const a_MD5);
 void WL_AttachWAD(const WL_WADFile_t* const a_WAD, const WL_WADFile_t* a_OtherWAD);
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD);
 bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);

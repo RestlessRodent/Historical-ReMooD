@@ -282,6 +282,9 @@ void D_XBSocketDestroy(void)
 	/* Free socket */
 	Z_Free(g_XSocket);
 	g_XSocket = NULL;
+	
+	/* Cleanup some things */
+	D_XPCleanup();
 }
 
 /* D_XBDropHost() -- Drops host from the reliable buffer */

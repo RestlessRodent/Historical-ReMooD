@@ -40,13 +40,47 @@
 #include "dstrings.h"
 #include "w_wad.h"
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+#define WADCHECKLEN	48
+
+/* D_XWADCheck_t -- WADs to check for */
+typedef struct D_XWADCheck_s
+{
+	size_t Count;								// Count of WADs to check
+	char Long[WADCHECKLEN];						// Long Name
+	char DOS[WADCHECKLEN];						// DOS Name
+	char Sum[WADCHECKLEN];						// Checksum
+	const WL_WADFile_t* WAD;					// WAD Specified
+	const WL_WADFile_t* OrderWAD;				// WAD that is currently here
+} D_XWADCheck_t;
+
 /**************
 *** GLOBALS ***
 **************/
 
+/*************
+*** LOCALS ***
+*************/
+
+static D_XWADCheck_t* l_WADChecks = NULL;		// WAD Checks
+
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* D_XPCleanup() -- Cleans up some things */
+void D_XPCleanup(void)
+{
+	/* Clear WAD check list */
+	if (l_WADChecks)
+	{
+		Z_Free(l_WADChecks);
+		l_WADChecks = NULL;
+	}
+}
 
 /* D_XPDropXPlay() -- Drops another XPlayer from the game */
 void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason)
@@ -168,10 +202,11 @@ static void DS_DoServer(D_XDesc_t* const a_Desc)
 static void DS_DoClient(D_XDesc_t* const a_Desc)
 {
 	D_XSyncLevel_t* LevelP;
-	int32_t i;
+	int32_t i, j, k;
 	
 	D_BS_t* RelBS, *StdBS;
 	I_HostAddress_t* HostAddr;
+	const WL_WADFile_t* WAD;
 	
 	/* Get pointer to the current level */
 	LevelP = &a_Desc->Client.SyncLevel;
@@ -222,6 +257,114 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 				// Sent request
 				a_Desc->Client.SentReqWAD = true;
 			}
+			break;
+			
+			// Checking WADs
+		case DXSL_CHECKWADS:
+			// No WADs?
+			if (!l_WADChecks || !l_WADChecks->Count)
+			{
+				D_XNetDisconnect(false);
+				return;
+			}
+			
+			// Go through WADs and 
+			for (i = j = k = 0; i < l_WADChecks->Count; i++)
+			{
+				// Ignore remood.wad
+				if (i == 1)
+					continue;
+				
+				// Increase total count
+				k++;
+				
+				// Try opening said WAD
+				l_WADChecks[i].WAD = WL_OpenWAD(l_WADChecks[i].Long, l_WADChecks[i].Sum);
+				
+				// If long name failed, try DOS name
+				if (!l_WADChecks[i].WAD)
+					l_WADChecks[i].WAD = WL_OpenWAD(l_WADChecks[i].DOS, l_WADChecks[i].Sum);
+				
+				// Increase total OK count
+				if (l_WADChecks[i].WAD)
+					j++;
+			}
+			
+			// Selected WADs OK?
+			if (j >= k)
+				*LevelP = DXSL_SWITCHWADS;
+			
+			// Otherwise, downloading required
+			else
+				*LevelP = DXSL_DOWNLOADWADS;
+			break;
+			
+			// Download WADs that need downloading
+		case DXSL_DOWNLOADWADS:
+			I_Error("WAD Downloading currently not implemented.");
+			break;
+			
+			// Switch to the specified WADs
+		case DXSL_SWITCHWADS:
+			// Get our current WAD order and place alongside list
+			WAD = NULL;
+			for (i = 0, j = 1; i < l_WADChecks->Count; i++)
+			{
+				if (!j)
+					l_WADChecks[i].OrderWAD = NULL;
+				else
+				{
+					l_WADChecks[i].OrderWAD = WAD = WL_IterateVWAD(WAD, true);
+					
+					// Bad WAD?
+					if (!WAD)
+						j = 0;
+				}
+			}
+			
+			// Expect no more WADs
+			if (j)
+			{
+				WAD = WL_IterateVWAD(WAD, true);
+				
+				if (WAD)
+					j = 0;
+			}
+			
+			// See if the order is the same
+			if (j)
+				for (i = 0; i < l_WADChecks->Count; i++)
+					if (i != 1)
+						if (l_WADChecks[i].OrderWAD != l_WADChecks[i].WAD)
+						{
+							j = 0;
+							break;
+						}
+			
+			// Need to reload?
+			if (!j)
+			{
+				// Lock OCCB and pop all wads
+				WL_LockOCCB(true);
+				while (WL_PopWAD())
+					;
+				
+				// Go through list and push new WADs
+				for (i = 0; i < l_WADChecks->Count; i++)
+					if (i == 1)	// keep remood.wad
+						WL_PushWAD(l_WADChecks[i].OrderWAD);
+					else
+						WL_PushWAD(l_WADChecks[i].WAD);
+				
+				// Unlock OCCB to change WADs
+				WL_LockOCCB(false);
+				
+				// Free all WADs not currently open
+				WL_CloseNotStacked();
+			}
+			
+			// Go to savegame now
+			*LevelP = DXSL_GETSAVE;
 			break;
 		
 			// Unhandled
@@ -422,6 +565,9 @@ static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	char DOSName[WLMAXDOSNAME];
 	char CheckSum[BUFSIZE];
 	
+	char* RealLong, *RealDOS;
+	D_XWADCheck_t* Check;
+	
 	/* In wrong sync mode? */
 	if (a_Desc->Client.SyncLevel != DXSL_LISTWADS)
 		return false;	
@@ -444,8 +590,48 @@ static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		D_BSrs(a_Desc->RelBS, DOSName, WLMAXDOSNAME);
 		D_BSrs(a_Desc->RelBS, CheckSum, BUFSIZE);
 		
+		// Get base names of WADs
+			// Using explicit paths that will probably be very different is a
+			// bad idea. Also, this would prevent possible hackery involved in
+			// file transfers where one could replace system files through a
+			// download done by malicious servers.
+		RealLong = WL_BaseNameEx(LongName);
+		RealDOS = WL_BaseNameEx(DOSName);
+		
+		// Check the extension, if it is not valid then disconnect!
+			// This is to prevent nasties like having a remote server
+			// fake a -file and name the file something like remood.exe so
+			// that clients cannot be exposed to malicious servers.
+		if (!WL_ValidExt(RealLong) || !WL_ValidExt(RealDOS))
+		{
+			CONL_OutputUT(CT_NETWORK, DSTR_DXP_BADWADEXT, "%s%s\n", RealLong, RealDOS);
+			D_XNetDisconnect(false);
+			return false;
+		}
+		
 		// Show on console
-		CONL_OutputUT(CT_NETWORK, DSTR_DXP_WADENTRY, "%s%s%s\n", LongName, DOSName, CheckSum);
+		CONL_OutputUT(CT_NETWORK, DSTR_DXP_WADENTRY, "%s%s%s\n", RealLong, RealDOS, CheckSum);
+		
+		// Add to list
+			// Nothing in list
+		if (!l_WADChecks)
+			Check = l_WADChecks = Z_Malloc(sizeof(*Check), PU_STATIC, NULL);
+			
+			// Something is there
+		else
+		{
+			Z_ResizeArray((void**)&l_WADChecks, sizeof(*l_WADChecks),
+				l_WADChecks[0].Count, l_WADChecks[0].Count + 1);
+			Check = &l_WADChecks[l_WADChecks[0].Count];
+		}
+		
+		// Increase check count
+		l_WADChecks[0].Count++;
+		
+		// Fill in check data
+		strncpy(Check->Long, RealLong, WADCHECKLEN - 1);
+		strncpy(Check->DOS, RealDOS, WADCHECKLEN - 1);
+		strncpy(Check->Sum, CheckSum, WADCHECKLEN - 1);
 	}
 	
 	/* Move to next synchronization level */

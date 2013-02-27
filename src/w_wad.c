@@ -117,7 +117,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		}
 		
 		// Try opening the WAD
-		WAD = WL_OpenWAD(a_ArgV[1]);
+		WAD = WL_OpenWAD(a_ArgV[1], NULL);
 		
 		// Failed?
 		if (!WAD)
@@ -167,7 +167,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		}
 		
 		// Open the specified IWAD (will need it)
-		NewWAD = WL_OpenWAD(a_ArgV[1]);
+		NewWAD = WL_OpenWAD(a_ArgV[1], NULL);
 		
 		// Failed to open?
 		if (!NewWAD)
@@ -262,6 +262,44 @@ const char* WL_BaseNameEx(const char* const a_File)
 	return WL_BaseName(a_File);
 }
 
+/* WL_ValidExt() -- Returns true if the file has a nice extension to it */
+bool_t WL_ValidExt(const char* const a_File)
+{
+	const char* BaseName;
+	const char* ld;	
+	
+	/* Check */
+	if (!a_File)
+		return false;
+	
+	/* Get base name */
+	BaseName = WL_BaseNameEx(a_File);
+	
+	// Not found?
+	if (!BaseName)
+		return false;
+	
+	// Find the last dot
+	ld = strrchr(BaseName, '.');
+	
+	// Not found?
+	if (!ld)
+		return false;
+	
+	/* Only accept these extentions */
+	if (!strcasecmp(ld, ".wad") ||
+		!strcasecmp(ld, ".deh") ||
+		!strcasecmp(ld, ".lmp") ||
+		!strcasecmp(ld, ".pk3") ||
+		!strcasecmp(ld, ".zip") ||
+		!strcasecmp(ld, ".7z") ||
+		!strcasecmp(ld, ".gz"))
+		return true;
+	
+	/* Presumed invalid */
+	return false;
+}
+
 /* ZLP_EntryHashCheck() -- Compares entry hash */
 // A = const char*
 // B = WL_WADEntry_t*
@@ -287,7 +325,7 @@ static bool_t ZLP_EntryHashCheck(void* const a_A, void* const a_B)
 }
 
 /* WL_OpenWAD() -- Opens a WAD File */
-const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
+const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName, const char* const a_MD5)
 {
 #define SUMBUF 4096
 	static uint32_t BaseTop;
@@ -316,7 +354,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		return NULL;
 		
 	/* First locate the WAD */
-	if (!WL_LocateWAD(a_PathName, NULL, FoundWAD, PATH_MAX))
+	if (!WL_LocateWAD(a_PathName, a_MD5, FoundWAD, PATH_MAX))
 		return NULL;
 		
 #if defined(_WIN32)
@@ -1047,7 +1085,7 @@ static bool_t WLS_CheckWADSum(char* const a_OutPath, const size_t a_OutSize, voi
 	/* Message */
 	CONL_OutputUT(CT_WDATA, DSTR_WWADC_CHECKINGTHESUM, "%s\n", a_OutPath);
 	
-	return false;
+	return true;
 }
 
 /* WL_LocateWAD() -- Finds WAD on the disk */
@@ -1072,7 +1110,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		// Hacky storage directories
 			// Data Directory
 		WLS_AppendToList("", PATH_MAX);
-		I_GetStorageDir(l_SearchList[l_SearchCount - 1], PATH_MAX - 1, DST_DATA);\
+		I_GetStorageDir(l_SearchList[l_SearchCount - 1], PATH_MAX - 1, DST_DATA);
 			
 			// Location of executable
 		WLS_AppendToList("", PATH_MAX);
@@ -2003,7 +2041,7 @@ size_t W_InitMultipleFiles(char** filenames)
 	
 	/* Run through filename list */
 	for (OK = 0, i = 0; filenames[i]; i++)
-		if ((File = WL_OpenWAD(filenames[i])))
+		if ((File = WL_OpenWAD(filenames[i], NULL)))
 		{
 			// This one worked
 			OK++;

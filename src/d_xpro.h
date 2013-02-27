@@ -50,6 +50,10 @@ typedef enum D_XSyncLevel_e
 	DXSL_INIT,									// Initialize
 	DXSL_LISTWADS,								// List WADs being used
 	DXSL_CHECKWADS,								// Checks WADs being used
+	DXSL_DOWNLOADWADS,							// Downloads WAD files
+	DXSL_SWITCHWADS,							// Switch to WADs
+	DXSL_GETSAVE,								// Get savegame
+	DXSL_LOADSAVE,								// Load savegame
 } D_XSyncLevel_t;
 
 /*****************
@@ -113,6 +117,8 @@ extern size_t g_NumXEP;							// Number of them
 ****************/
 
 /*** D_XPRO.C ***/
+
+void D_XPCleanup(void);
 
 void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason);
 void D_XPRunConnection(void);
