@@ -149,6 +149,7 @@ bool_t D_XBWaitForCall(I_HostAddress_t* const a_BindTo)
 	
 	/* Attempt socket creation */
 	// Socket creation loop
+	SvSock = NULL;
 	for (; Port <= End; Port++)
 	{
 		SvSock = I_NetOpenSocket(SockFlags, (BindAddr.IPvX ? &BindAddr : NULL), Port);

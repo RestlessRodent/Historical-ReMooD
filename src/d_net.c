@@ -727,16 +727,16 @@ void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, c
 		// We are network host
 		else
 			XBOk = D_XBWaitForCall(a_Addr);
-	}
-	
-	/* Creation failed? */
-	if (!XBOk)
-	{
-		memset(Buf, 0, sizeof(Buf));
-		I_NetHostToString(a_Addr, Buf, BUFSIZE);
-		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BINDFAIL, "%s\n", Buf);
-		D_XNetDisconnect(false);
-		return;
+		
+		// Creation failed?
+		if (!XBOk)
+		{
+			memset(Buf, 0, sizeof(Buf));
+			I_NetHostToString(a_Addr, Buf, BUFSIZE);
+			CONL_OutputUT(CT_NETWORK, DSTR_DNETC_BINDFAIL, "%s\n", Buf);
+			D_XNetDisconnect(false);
+			return;
+		}
 	}
 	
 	/* If dedicated, no need to continue */
