@@ -1870,6 +1870,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 			CharP->Image = V_ImageLoadE(CharP->Entry, VCP);
 		
 			// Obtain size of character (include offsets)
+			w = h = xo = yo = 0;
 			V_ImageSizePos(CharP->Image, &w, &h, &xo, &yo);
 			CharP->Size[0] = w - xo;
 			CharP->Size[1] = h - yo;
@@ -2867,25 +2868,30 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	// Determine flags
 	DrawFlags = 0;
 	
-	// Color/Trans options
-	DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
-	DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
+	if (VisChar->Image)
+	{
+		// Color/Trans options
+		DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
+		DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
 	
-	if (a_Options & VFO_PCOLSET)
-		DrawFlags |= VEX_COLORSET | VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
+		if (a_Options & VFO_PCOLSET)
+			DrawFlags |= VEX_COLORSET | VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
 	
-	// Scale options
-	if (a_Options & VFO_NOSCALESTART)
-		DrawFlags |= VEX_NOSCALESTART;
-	if (a_Options & VFO_NOSCALEPATCH)
-		DrawFlags |= VEX_NOSCALESCREEN;
-	if (a_Options & VFO_NOFLOATSCALE)
-		DrawFlags |= VEX_NOFLOATSCALE;
-	if (a_Options & VFO_NOSCALELORES)
-		DrawFlags |= VEX_NOSCALE160160;
+		// Scale options
+		if (a_Options & VFO_NOSCALESTART)
+			DrawFlags |= VEX_NOSCALESTART;
+		if (a_Options & VFO_NOSCALEPATCH)
+			DrawFlags |= VEX_NOSCALESCREEN;
+		if (a_Options & VFO_NOFLOATSCALE)
+			DrawFlags |= VEX_NOFLOATSCALE;
+		if (a_Options & VFO_NOSCALELORES)
+			DrawFlags |= VEX_NOSCALE160160;
 	
-	// Draw it
-	V_ImageDraw(DrawFlags, VisChar->Image, a_x, a_y, NULL);
+		// Draw it
+		V_ImageDraw(DrawFlags, VisChar->Image, a_x, a_y, NULL);
+		
+		return VisChar->Image->Width;
+	}
 	
 	/* Return character width */
 	return VisChar->Size[0];
@@ -3252,6 +3258,14 @@ static void VS_InitialBoot(void)
 /* V_ImageSpawn() -- Spawns an image */
 bool_t V_ImageSpawn(V_Image_t* const a_Image)
 {
+#define HEADERSIZE 12
+	int16_t Header[HEADERSIZE];
+	int32_t Conf[NUMVIMAGETYPES];
+	uint32_t* Offs, TableEnd;
+	size_t i, Best;
+	V_Image_t* Rover;
+	const WL_WADEntry_t* Entry;
+	
 	/* Check */
 	if (!a_Image)
 		return false;
@@ -3260,8 +3274,158 @@ bool_t V_ImageSpawn(V_Image_t* const a_Image)
 	if (a_Image->wData)
 		return true;
 	
+	/* Find entry for image */
+	Entry = WL_FindEntry(NULL, 0, a_Image->Name);
 	
-	return false;
+	// not found?
+	if (!Entry)
+		return false;
+	
+	/* Read header from entry */
+	memset(Header, 0, sizeof(Header));
+	WL_ReadData(Entry, 0, Header, sizeof(Header));
+	
+	// Byte swap for big endian
+	for (i = 0; i < HEADERSIZE; i++)
+		Header[i] = LittleSwapInt16(Header[i]);
+	
+	/* Attempt to determine which kind of image this is */
+	// Thing is, there is no magic available to detect these kinds of things.
+	// However, images could be detected based on validity.
+	// pic_ts are   {w 0 h 0 data}
+	// patch_ts are {w h x y cols}
+	// Raw pictures such as flats have no descernable header
+	// However, the good thing is that all the header info is signed, so any
+	// negative value would invalidate it.
+	// Like the IWAD finding stuff, this will be confidence based since it
+	// usually is reliable in a chaotic world.
+	memset(Conf, 0, sizeof(Conf));
+	
+	// Determine if the image is a pic_t (this is pretty much it)
+	if ((Header[0] > 0 && Header[2] > 0) &&		// w/h > 0
+		(Header[1] == 0 && Header[3] == 0))		// resv and zero
+		Conf[VIT_PIC] += 75;
+	
+	// Determine if the image is a patch_t
+	if (Header[0] > 0 && Header[1] > 0)			// w/h > 0
+	{
+		// Not as confident as a pic_t
+		Conf[VIT_PATCH] += 50;
+		
+		// However, I can now look at the offset table to see if it is even
+		// valid at all. For every valid offset +5, for every invalid -7.
+		Offs = Z_Malloc(sizeof(*Offs) * Header[0], PU_STATIC, NULL);
+		
+		// Offsets that point at or below the actual place where data is stored
+		// are invalid (would be garbage). So with this, any offset below this
+		// point would be invalid.
+		TableEnd = 8 + (2 * Header[0]);
+		
+		// Read offset table
+		WL_ReadData(Entry, 8, Offs, sizeof(uint32_t) * Header[0]);
+		
+		// Byte swap values in table (for BE systems)
+		for (i = 0; i < Header[0]; i++)
+			Offs[i] = LittleSwapUInt32(Offs[i]);
+		
+		// Go through the table
+		for (i = 0; i < Header[0]; i++)
+			// Is it a valid offset?
+			if (Offs[i] < Entry->Size && Offs[i] >= TableEnd)
+				Conf[VIT_PATCH] += 5;
+			else
+				Conf[VIT_PATCH] -= 7;
+		
+		// Free offsets
+		Z_Free(Offs);
+	}
+	
+	// Determine if the image is a raw image
+	// The only raw images that ever get accessed would be flats really (ouch)
+	if (Entry->Size == 4096 || Entry->Size == 16384)
+		Conf[VIT_RAW] += 25;	// Not really that confident
+	
+	/* Find the most confident match */
+	for (Best = 0, i = 0; i < NUMVIMAGETYPES; i++)
+		// Better than best?
+		if (Conf[i] > Conf[Best])
+			Best = i;
+	
+	/* Based on the most confident version... */
+	// Fill in common data
+	a_Image->NativeType = Best;
+	a_Image->wData = Entry;
+	a_Image->NativePal = 0;//a_Pal;
+	
+	// Copy confidence
+	for (i = 0; i < NUMVIMAGETYPES; i++)
+		a_Image->Conf[i] = Conf[i];
+	
+	// Fill in image data based on type
+	switch (Best)
+	{
+			// patch_t
+		case VIT_PATCH:
+			a_Image->Width = Header[0];
+			a_Image->Height = Header[1];
+			a_Image->Offset[0] = Header[2];
+			a_Image->Offset[1] = Header[3];
+			break;
+			
+			// pic_t
+		case VIT_PIC:
+			a_Image->Width = Header[0];
+			a_Image->Height = Header[2];
+			break;
+			
+			// Raw
+		case VIT_RAW:
+		default:
+			// Need the square root of entry size
+			// I hate relying on floating point in Doom land
+			a_Image->Width = sqrt((double)Entry->Size);
+			a_Image->Height = a_Image->Width;
+			break;
+	}
+	
+	// Pixel count is based on image width*height
+	a_Image->PixelCount = a_Image->Width * a_Image->Height;
+	
+	// Gigantic image?
+	if (a_Image->PixelCount >= l_VSImageAreaLimit)
+	{
+		// Make square, lowest of
+		if (a_Image->Width < a_Image->Height)
+			a_Image->Height = a_Image->Width;
+		else if (a_Image->Height < a_Image->Width)
+			a_Image->Width = a_Image->Height;
+		
+		// GhostlyDeath <March 28, 2012> -- I'd like to avoid <math.h> but I don't know how
+		// to calc the square root int wise without the internet at my current disposal.
+		a_Image->Width = (int)(sqrt((double)a_Image->Width));
+		a_Image->Height = a_Image->Width;
+		
+		// Recalculate area
+		a_Image->PixelCount = a_Image->Width * a_Image->Height;
+	}
+	
+	// Obtain power of two
+	a_Image->POTSize[0] = a_Image->Width;
+	a_Image->POTSize[1] = a_Image->Height;
+	for (i = 0; i < 2; i++)
+	{
+		a_Image->POTSize[i] = a_Image->POTSize[i] - 1;
+		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 1);
+		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 2);
+		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 4);
+		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 8);
+		a_Image->POTSize[i] |= (a_Image->POTSize[i] >> 16);
+		a_Image->POTSize[i] += 1;
+	}
+	
+	/* It worked */
+	return true;
+#undef HEADERSIZE
 }
 
 /* V_ClearImages() -- Clears image list */
