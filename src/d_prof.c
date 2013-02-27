@@ -512,20 +512,33 @@ D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
 {
 	D_ProfileEx_t* Rover;
 	
+	D_ProfileEx_t* Best;
+	int32_t BestN;
+	char* a, *b;
+	
 	/* Check */
 	if (!a_Name)
 		return NULL;
 	
 	/* Rove */
+	// First by UUID Match
 	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
-	{
-		// UUID Match?
 		if (strcmp(Rover->UUID, a_Name) == 0)
 			return Rover;
-		
-		// Account Match?
-		else if (strcasecmp(Rover->AccountName, a_Name) == 0)
+	
+	// Second by account name match
+	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
+		if (strcasecmp(Rover->AccountName, a_Name) == 0)
 			return Rover;
+	
+	// Third my partial UUID
+	Best = NULL;
+	BestN = 0;
+	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
+	{
+		// Prepare for comparison
+		a = a_Name;
+		b = Rover->UUID;
 	}
 	
 	/* Not found */

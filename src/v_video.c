@@ -620,6 +620,7 @@ void V_DrawFadeScreen(void)
 	}
 }
 
+void V_ClearImages(void);
 
 /* VS_VideoWADOrderCB() -- Video callback for WAD order changing */
 // This does video related operations (such as loading the palette)
@@ -631,6 +632,7 @@ static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_
 	V_InitializeColormaps();
 	
 	/* Clear all defined image info */
+	V_ClearImages();
 	
 	return true;
 }
@@ -649,7 +651,7 @@ void V_Init(void)
 	if (!InitialOK)
 	{
 		// Register order change callback
-		if (!WL_RegisterOCCB(VS_VideoWADOrderCB, 100))
+		if (!WL_RegisterOCCB(VS_VideoWADOrderCB, WLDCO_VVIDEO))
 			I_Error("V_Init: Failed to register OCCB.\n");
 		
 		// OK now
@@ -3290,6 +3292,11 @@ static void VS_InitialBoot(void)
 	
 	/* Booted up! */
 	l_VSImageBooted = true;
+}
+
+/* V_ClearImages() -- Clears image list */
+void V_ClearImages(void)
+{
 }
 
 /* V_ImageLoadE() -- Loads a specific entry as an image */

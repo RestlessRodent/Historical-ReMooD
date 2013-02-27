@@ -861,6 +861,25 @@ void D_XNetSetHostID(const uint32_t a_NewID)
 	l_LocalHostID = a_NewID;
 }
 
+/* D_XNetPlayerByXPlayerHost() -- Finds host specifier for this player */
+D_XPlayer_t* D_XNetPlayerByXPlayerHost(D_XPlayer_t* const a_XPlayer)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_XPlayer)
+		return NULL;
+	
+	/* Search players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->HostID == a_XPlayer->HostID)
+				return g_XPlays[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* D_XNetPlayerByID() -- Finds player by ID */
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID)
 {
@@ -1782,7 +1801,7 @@ tic_t D_XNetTicsToRun(void)
 	tic_t Diff, ThisTic;
 	bool_t Lagging, NonLocal;
 	int32_t i;
-	D_XPlayer_t* XPlay;
+	D_XPlayer_t* XPlay, *Host;
 	static tic_t LastSpecTic;
 	
 	/* Get current tic */
@@ -1850,10 +1869,12 @@ tic_t D_XNetTicsToRun(void)
 			// Non-Local
 			if ((XPlay->Flags & DXPF_LOCAL) == 0)
 			{
+				// One savegame transmit per host
 				NonLocal = true;
+				Host = D_XNetPlayerByXPlayerHost(XPlay);
 				
 				// Save game not transmitted?
-				if (!XPlay->TransSave)
+				if (!Host->TransSave)
 				{
 					Lagging = true;
 					XPlay->StatusBits |= DXPSB_CAUSEOFLAG;

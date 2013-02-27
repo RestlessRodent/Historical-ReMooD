@@ -153,6 +153,8 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 {
 #define BUFSIZE 64
 	char Buf[BUFSIZE];
+	int i;
+	D_ProfileEx_t* Prof;
 	
 	/* Not Syncronized? */
 	if (!a_Desc->Data.Slave.Synced)
@@ -169,9 +171,34 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 		
 		D_BSws(a_Desc->StdBS, "version=" REMOOD_FULLVERSIONSTRING);
 		
-		memset(Buf, 0, sizeof(Buf));
-		snprintf(Buf, BUFSIZE - 1, "processid=%08x", g_Splits[0].ProcessID);
-		D_BSws(a_Desc->StdBS, Buf);
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+		{
+			// No player here?
+			if (!D_ScrSplitHasPlayer(i))
+				continue;
+			
+			// Process ID of screen
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "pid+%i=%08x", i, g_Splits[i].ProcessID);
+			D_BSws(a_Desc->StdBS, Buf);
+			
+			// Profile?
+			Prof = g_Splits[i].Profile;
+			
+			// Dump profile info
+			if (Prof)
+			{
+				// UUID of profile
+				memset(Buf, 0, sizeof(Buf));
+				snprintf(Buf, BUFSIZE - 1, "puuid+%i=%s", i, Prof->UUID);
+				D_BSws(a_Desc->StdBS, Buf);
+				
+				// Display Name
+				memset(Buf, 0, sizeof(Buf));
+				snprintf(Buf, BUFSIZE - 1, "pdn+%i=%s", i, Prof->DisplayName);
+				D_BSws(a_Desc->StdBS, Buf);
+			}
+		}
 		
 		D_BSwu8(a_Desc->StdBS, 0);	// End of strings
 		
@@ -381,10 +408,12 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #define BUFSIZE 72
 	char Buf[BUFSIZE];
 	uint8_t RemoteIsServer;
-	char *EqS;
+	char *EqS, *Plus;
+	int32_t s, i;
 	
 	uint32_t ProcessID;
 	D_XEndPoint_t* EP;
+	D_XEndPoint_t Hold;
 	
 	/* Read if the remote says it is a server */
 	RemoteIsServer = D_BSru8(a_Desc->RelBS);
@@ -398,6 +427,7 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	/* Init Settings */
 	ProcessID = 0;
+	memset(&Hold, 0, sizeof(Hold));
 	
 	/* Read String Settings */
 	for (;;)
@@ -424,9 +454,44 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		{
 		}
 			
-			// ProcessID
-		else if (!strcasecmp(Buf, "processid"))
-			ProcessID = C_strtou32(EqS, NULL, 0);
+			// ProcessID of a split
+		else if (!strncasecmp(Buf, "pid+", 4))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						Hold.Splits[s].ProcessID = C_strtou32(EqS, NULL, 0);
+						
+						if (!ProcessID)
+							ProcessID = Hold.Splits[s].ProcessID;
+					}
+		}
+		
+			// Profile UUID of split
+		else if (!strncasecmp(Buf, "puuid+", 6))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						strncpy(Hold.Splits[s].ProfUUID, EqS, MAXUUIDLENGTH);
+					}
+		}
+		
+			// Profile Display Name of split
+		else if (!strncasecmp(Buf, "pdn+", 4))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						strncpy(Hold.Splits[s].DispName, EqS, MAXPLAYERNAME);
+					}
+		}
 	}
 	
 	/* See if endpoint was already added? */
@@ -440,6 +505,7 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	EP = D_XBNewEndPoint(a_Desc, a_Addr);
 	
 	EP->ProcessID = ProcessID;
+	memmove(EP->Splits, Hold.Splits, sizeof(Hold.Splits));
 	
 	// Make the client reliable now
 	D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_ADDHOST, (intptr_t)a_Addr);
@@ -458,7 +524,13 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
 	
 	/* Put message on server */
-	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLCONNECT, "%s\n", Buf);
+	// Count players joining
+	for (i = s = 0; i < MAXSPLITSCREEN; i++)
+		if (EP->Splits[i].Active)
+			s++;
+	
+	// Show message
+	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLCONNECT, "%s%i%s\n", Buf, s, (s == 1 ? "" : "s"));
 	
 	/* Success! */
 	return true;

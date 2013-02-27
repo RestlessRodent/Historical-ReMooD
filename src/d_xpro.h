@@ -99,8 +99,16 @@ typedef struct D_XEndPoint_s
 	tic_t LastSeen;								// Last seen at
 	
 	uint32_t HostID;							// Host ID
-	uint32_t ProcessID;							// Initial Process ID
+	uint32_t ProcessID;							// Standard Process ID
 	D_XSyncLevel_t SyncLevel;					// Synchronization level
+	
+	struct
+	{
+		bool_t Active;							// Active Split
+		uint32_t ProcessID;						// Initial Process ID
+		char DispName[MAXPLAYERNAME];			// Display Name
+		char ProfUUID[MAXUUIDLENGTH + 1];		// Profile UUID
+	} Splits[MAXSPLITSCREEN];					// Splitscreens
 } D_XEndPoint_t;
 
 /**************

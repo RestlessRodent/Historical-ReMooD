@@ -1019,7 +1019,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				"DXP_ODAVIRTCVAR", "Odamex CVAR change: \"$1\" to \"$2\"."},
 	{			     "DXP_CONNECTING", "{zConnecting to {9$1{z..."},
 	{		   "DXP_NOWFORJOINWINDOW", "{zNow connected to {9$1{z, waiting for game state..."},
-	{				  "DXP_CLCONNECT", "{z{9$1{z has connected!"},
+	{				  "DXP_CLCONNECT", "{z{9$1{z has connected {6$2{z player$3!"},
 	{					"DXP_VISADDR", "{zLink back at {9$1{z."},
 	{				  "DXP_DISCONNED", "{zDisconnected, reason: \"{9$1\"."},
 	{				  "DXP_WADHEADER", "{zWADs used by server:"},

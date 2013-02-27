@@ -222,6 +222,7 @@ bool_t D_XNetIsConnected(void);
 uint32_t D_XNetGetHostID(void);
 void D_XNetSetHostID(const uint32_t a_NewID);
 
+D_XPlayer_t* D_XNetPlayerByXPlayerHost(D_XPlayer_t* const a_XPlayer);
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID);
 D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
