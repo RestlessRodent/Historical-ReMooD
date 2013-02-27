@@ -1381,7 +1381,7 @@ static const P_NLTrig_t c_LineTrigs[] =
 	
 	// Platforms (EV_DoPlat)
 		// Walk
-	{10, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
+	{10, 0, LAT_WALK, PNLF_CLEARNOTBOOM | PNLF_MONSTER, EV_DoPlat, 2,
 		{downWaitUpStay, 0}},
 	{22, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoPlat, 2,
 		{raiseToNearestAndChange, 0}},
@@ -1391,7 +1391,7 @@ static const P_NLTrig_t c_LineTrigs[] =
 		{blazeDWUS, 0}},
 	{87, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
 		{PPT_PERPRAISE, 0}},
-	{88, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
+	{88, 0, LAT_WALK, PNLF_RETRIG | PNLF_MONSTER, EV_DoPlat, 2,
 		{downWaitUpStay, 0}},
 	{95, 0, LAT_WALK, PNLF_RETRIG, EV_DoPlat, 2,
 		{raiseToNearestAndChange, 0}},

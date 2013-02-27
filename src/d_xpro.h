@@ -40,6 +40,18 @@
 #include "d_block.h"
 #include "i_util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* D_XSyncLevel_t -- Syncrhonization level */
+typedef enum D_XSyncLevel_e
+{
+	DXSL_INIT,									// Initialize
+	DXSL_LISTWADS,								// List WADs being used
+	DXSL_CHECKWADS,								// Checks WADs being used
+} D_XSyncLevel_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -67,6 +79,12 @@ typedef struct D_XDesc_s
 			tic_t LastSyncReq;					// Last Sync Request
 		} Slave;								// Slave Data
 	} Data;										// Specific Data
+	
+	struct
+	{
+		D_XSyncLevel_t SyncLevel;				// Synchronization level
+		bool_t SentReqWAD;						// Sent requested WADs
+	} Client;									// Client Stuff
 } D_XDesc_t;
 
 /* D_XEndPoint_t -- Endpoint connection */
@@ -78,6 +96,7 @@ typedef struct D_XEndPoint_s
 	
 	uint32_t HostID;							// Host ID
 	uint32_t ProcessID;							// Initial Process ID
+	D_XSyncLevel_t SyncLevel;					// Synchronization level
 } D_XEndPoint_t;
 
 /**************
@@ -113,7 +132,7 @@ void D_XBSocketDestroy(void);
 
 void D_XBDropHost(I_HostAddress_t* const a_Addr);
 
-D_XDesc_t* D_XBPathToXPlay(D_XPlayer_t* const a_XPlay, I_HostAddress_t** const a_HostPP, D_BS_t** const a_StdBSPP, D_BS_t** const a_RelBSPP);
+D_BS_t* D_XBRouteToServer(D_BS_t** const a_StdBSP, I_HostAddress_t** const a_AddrP);
 
 D_XEndPoint_t* D_XBNewEndPoint(D_XDesc_t* const a_Desc, I_HostAddress_t* const a_Addr);
 void D_XBDelEndPoint(D_XEndPoint_t* const a_XEP, const char* const a_Reason);

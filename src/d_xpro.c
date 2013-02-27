@@ -38,6 +38,7 @@
 #include "doomstat.h"
 #include "console.h"
 #include "dstrings.h"
+#include "w_wad.h"
 
 /**************
 *** GLOBALS ***
@@ -166,6 +167,67 @@ static void DS_DoServer(D_XDesc_t* const a_Desc)
 /* DS_DoClient() -- Handles client connection */
 static void DS_DoClient(D_XDesc_t* const a_Desc)
 {
+	D_XSyncLevel_t* LevelP;
+	int32_t i;
+	
+	D_BS_t* RelBS, *StdBS;
+	I_HostAddress_t* HostAddr;
+	
+	/* Get pointer to the current level */
+	LevelP = &a_Desc->Client.SyncLevel;
+	
+	/* Obtain route to server */
+	RelBS = D_XBRouteToServer(&StdBS, &HostAddr);
+	
+	/* How synchronization with server should resume */
+	switch (*LevelP)
+	{
+			// Initialization
+		case DXSL_INIT:
+			// Requires route to connect first
+			if (!RelBS)
+				return;
+			
+			// Master -- If a route to the server exists, level up
+			if (a_Desc->Master)
+			{
+				for (i = 0; i < g_NumXEP; i++)
+					if (g_XEP[i])
+					{
+						*LevelP += 1;
+						break;
+					}
+			}
+			
+			// Slave -- Otherwise, wait until we are connected
+			else
+			{
+				if (a_Desc->Data.Slave.Synced)
+					*LevelP += 1;
+			}
+			
+			break;
+			
+			// Listing WAD files used by server
+		case DXSL_LISTWADS:
+			// Send request to server to check the WADs it is using
+			if (!a_Desc->Client.SentReqWAD)
+			{
+				// Send request to server
+				D_BSBaseBlock(RelBS, "RQFL");
+				
+				// Send away!
+				D_BSRecordNetBlock(RelBS, HostAddr);
+				
+				// Sent request
+				a_Desc->Client.SentReqWAD = true;
+			}
+			break;
+		
+			// Unhandled
+		default:
+			break;
+	}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -260,28 +322,6 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
-/* DXP_SYNJ() -- Synchronization Accepted */
-static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
-{
-	uint32_t HostID;
-	
-	/* Read out HostID */
-	HostID = D_BSru32(a_Desc->RelBS);
-	
-	// Check for invalid address
-	if (!HostID)
-		return false;
-	
-	// Set address
-	D_XNetSetHostID(HostID);
-	
-	/* Set as connected now */
-	a_Desc->Data.Slave.Synced = true;
-	
-	/* Success! */
-	return true;
-}
-
 /* DXP_DISC() -- Disconnect Received */
 static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
 {
@@ -317,6 +357,105 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
+/* DXP_SYNJ() -- Synchronization Accepted */
+static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+{
+	uint32_t HostID;
+	
+	/* Read out HostID */
+	HostID = D_BSru32(a_Desc->RelBS);
+	
+	// Check for invalid address
+	if (!HostID)
+		return false;
+	
+	// Set address
+	D_XNetSetHostID(HostID);
+	
+	/* Set as connected now */
+	a_Desc->Data.Slave.Synced = true;
+	
+	/* Success! */
+	return true;
+}
+
+/* DXP_RQFL() -- Request File List */
+static bool_t DXP_RQFL(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+{
+	const WL_WADFile_t* WAD;
+	int i;
+	
+	/* Base packet */
+	D_BSBaseBlock(a_Desc->RelBS, "WADS");
+	
+	/* Go through all WADs */
+	WAD = NULL;
+	while ((WAD = WL_IterateVWAD(WAD, true)))
+	{
+		// WAD Exists here
+		D_BSwu8(a_Desc->RelBS, 1);
+		
+		// Write known names
+		D_BSws(a_Desc->RelBS, WL_GetWADName(WAD, false));
+		D_BSws(a_Desc->RelBS, WL_GetWADName(WAD, true));
+		
+		// Write MD5
+		D_BSws(a_Desc->RelBS, WAD->CheckSumChars);
+	}
+	
+	// End of list
+	D_BSwu8(a_Desc->RelBS, 0);
+	
+	/* Send to remote end */
+	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
+	
+	/* Success! */
+	return true;
+}
+
+/* DXP_WADS() -- Got list of WADs that server is using */
+static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+{
+#define BUFSIZE 48
+	uint8_t Code;
+	char LongName[BUFSIZE];
+	char DOSName[WLMAXDOSNAME];
+	char CheckSum[BUFSIZE];
+	
+	/* In wrong sync mode? */
+	if (a_Desc->Client.SyncLevel != DXSL_LISTWADS)
+		return false;	
+	
+	/* Show Header */
+	CONL_OutputUT(CT_NETWORK, DSTR_DXP_WADHEADER, "\n");
+	
+	/* Read from list */
+	for (;;)
+	{
+		// Read Code
+		Code = D_BSru8(a_Desc->RelBS);
+		
+		// End of WADs?
+		if (!Code)
+			break;
+		
+		// Read names and sums
+		D_BSrs(a_Desc->RelBS, LongName, BUFSIZE);
+		D_BSrs(a_Desc->RelBS, DOSName, WLMAXDOSNAME);
+		D_BSrs(a_Desc->RelBS, CheckSum, BUFSIZE);
+		
+		// Show on console
+		CONL_OutputUT(CT_NETWORK, DSTR_DXP_WADENTRY, "%s%s%s\n", LongName, DOSName, CheckSum);
+	}
+	
+	/* Move to next synchronization level */
+	a_Desc->Client.SyncLevel++;
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -337,10 +476,11 @@ static const struct
 	uint32_t Flags;
 } c_CSPacks[] =
 {
-	// Game Synchronize Connection
 	{"GSYN", DXP_GSYN, PF_MASTER},
 	{"DISC", DXP_DISC, PF_SLAVE},
 	{"SYNJ", DXP_SYNJ, PF_SLAVE | PF_REL},
+	{"RQFL", DXP_RQFL, PF_SERVER | PF_REL},
+	{"WADS", DXP_WADS, PF_CLIENT | PF_REL},
 	
 	{NULL}
 };

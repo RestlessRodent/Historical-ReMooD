@@ -295,9 +295,46 @@ void D_XBDropHost(I_HostAddress_t* const a_Addr)
 	D_BSStreamIOCtl(g_XSocket->RelBS, DRBSIOCTL_DROPHOST, (intptr_t)a_Addr);
 }
 
-/* D_XBPathToXPlay() -- Returns path to XPlayer */
-D_XDesc_t* D_XBPathToXPlay(D_XPlayer_t* const a_XPlay, I_HostAddress_t** const a_HostPP, D_BS_t** const a_StdBSPP, D_BS_t** const a_RelBSPP)
+/* D_XBRouteToServer() -- Returns route to server */
+D_BS_t* D_XBRouteToServer(D_BS_t** const a_StdBSP, I_HostAddress_t** const a_AddrP)
 {
+	int32_t i;
+	
+	/* Check */
+	if (!g_XSocket)
+		return NULL;
+	
+	/* If we are server, return NULL */
+	if (D_XNetIsServer())
+		return NULL;
+	
+	/* Depending on the connection type */
+	// Master -- The true server is on the endpoint side
+	if (g_XSocket->Master)
+	{
+		for (i = 0; i < g_NumXEP; i++)
+			if (g_XEP[i])
+			{
+				if (a_StdBSP)
+					*a_StdBSP = g_XEP[i]->Desc->StdBS;
+				if (a_AddrP)
+					*a_AddrP = &g_XEP[i]->Addr;
+				return g_XEP[i]->Desc->RelBS;
+			}
+	}
+	
+	// Slave -- Server is where the socket says it is
+	else
+	{
+		if (a_StdBSP)
+			*a_StdBSP = g_XSocket->StdBS;
+		if (a_AddrP)
+			*a_AddrP = &g_XSocket->BoundTo;
+		return g_XSocket->RelBS;
+	}
+	
+	/* Not Found */
+	return NULL;
 }
 
 /* D_XBNewEndPoint() -- Creates new endpoint */
