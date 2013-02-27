@@ -392,6 +392,7 @@ typedef struct V_Image_s
 } V_Image_t;
 
 // Load and Destroy
+bool_t V_ImageSpawn(V_Image_t* const a_Image);
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a_Pal);
 V_Image_t* V_ImageFindA(const char* const a_Name, const V_ColorPal_t a_Pal);
 void V_ImageDestroy(V_Image_t* const a_Image);
