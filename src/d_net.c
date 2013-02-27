@@ -3749,7 +3749,7 @@ uint32_t D_XNetMakeID(const uint32_t a_ID)
 	
 	/* ID Creation Loop */
 	ID = a_ID;
-	while (!ID || D_XNetPlayerByID(ID) || D_NCSFindSplitByProcess(ID) >= 0 || D_XNetPlayerByHostID(ID))
+	while (!ID || D_XNetPlayerByID(ID) || D_NCSFindSplitByProcess(ID) >= 0 || D_XNetPlayerByHostID(ID) || D_XBEndPointForID(ID))
 	{
 		ID = D_CMakePureRandom();
 	}

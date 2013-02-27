@@ -139,7 +139,7 @@ typedef struct D_XPlayer_s
 	// Socket
 	struct
 	{
-		struct D_XEndPoint_t* EndPoint;			// Endpoint connection
+		struct D_XEndPoint_s* EndPoint;			// Endpoint connection
 		I_HostAddress_t Address;				// Address to player
 		char ReverseDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS of Host
 	} Socket;									// Socket Information

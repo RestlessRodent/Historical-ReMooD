@@ -75,6 +75,9 @@ typedef struct D_XEndPoint_s
 	D_XDesc_t* Desc;							// Descriptor being used
 	I_HostAddress_t Addr;						// Address allocated
 	tic_t LastSeen;								// Last seen at
+	
+	uint32_t HostID;							// Host ID
+	uint32_t ProcessID;							// Initial Process ID
 } D_XEndPoint_t;
 
 /**************
@@ -83,6 +86,9 @@ typedef struct D_XEndPoint_s
 
 extern D_XDesc_t* g_XSocket;					// Master Socket
 
+extern D_XEndPoint_t** g_XEP;					// End points
+extern size_t g_NumXEP;							// Number of them
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -90,8 +96,8 @@ extern D_XDesc_t* g_XSocket;					// Master Socket
 /*** D_XPRO.C ***/
 
 void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason);
-
 void D_XPRunConnection(void);
+void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason);
 
 void D_XPRunCS(D_XDesc_t* const a_Desc);
 
@@ -108,6 +114,11 @@ void D_XBSocketDestroy(void);
 void D_XBDropHost(I_HostAddress_t* const a_Addr);
 
 D_XDesc_t* D_XBPathToXPlay(D_XPlayer_t* const a_XPlay, I_HostAddress_t** const a_HostPP, D_BS_t** const a_StdBSPP, D_BS_t** const a_RelBSPP);
+
+D_XEndPoint_t* D_XBNewEndPoint(D_XDesc_t* const a_Desc, I_HostAddress_t* const a_Addr);
+void D_XBDelEndPoint(D_XEndPoint_t* const a_XEP, const char* const a_Reason);
+D_XEndPoint_t* D_XBEndPointForAddr(I_HostAddress_t* const a_Addr);
+D_XEndPoint_t* D_XBEndPointForID(const uint32_t a_ID);
 
 #endif /* __D_XPRO_H__ */
 

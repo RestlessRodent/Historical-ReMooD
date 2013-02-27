@@ -39,6 +39,10 @@
 #include "console.h"
 #include "dstrings.h"
 
+/**************
+*** GLOBALS ***
+**************/
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -53,6 +57,9 @@ void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason)
 	/* Master Mode */
 	if (g_XSocket->Master)
 	{
+		// Delete their endpoint
+		D_XBDelEndPoint(a_XPlay->Socket.EndPoint, a_Reason);
+		
 		// Remove their reliable connection
 		D_XBDropHost(&a_XPlay->Socket.Address);
 	}
@@ -74,10 +81,8 @@ void D_XPRunConnection(void)
 		D_XPRunCS(g_XSocket);
 }
 
-/*---------------------------------------------------------------------------*/
-
-/* DS_SendDisconnect() -- Sends disconnect */
-static void DS_SendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason)
+/* D_XPSendDisconnect() -- Sends disconnect */
+void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason)
 {
 	/* Check */
 	if (!a_Desc || !a_BS || !a_Addr)
@@ -128,6 +133,11 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 		D_BSwu8(a_Desc->StdBS, D_XNetIsServer());	// We are server?
 		
 		D_BSws(a_Desc->StdBS, "version=" REMOOD_FULLVERSIONSTRING);
+		
+		memset(Buf, 0, sizeof(Buf));
+		snprintf(Buf, BUFSIZE - 1, "processid=%08x", g_Splits[0].ProcessID);
+		D_BSws(a_Desc->StdBS, Buf);
+		
 		D_BSwu8(a_Desc->StdBS, 0);	// End of strings
 		
 		// Send to remote bound host
@@ -163,7 +173,13 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 /* DXP_GSYN() -- Game Synchronize Connection */
 static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
 {
+#define BUFSIZE 72
+	char Buf[BUFSIZE];
 	uint8_t RemoteIsServer;
+	char *EqS;
+	
+	uint32_t ProcessID;
+	D_XEndPoint_t* EP;
 	
 	/* Read if the remote says it is a server */
 	RemoteIsServer = D_BSru8(a_Desc->RelBS);
@@ -171,9 +187,96 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	// Incompatible
 	if (!a_Desc->Master || ((!!RemoteIsServer) == (!!D_XNetIsServer())))
 	{
-		DS_SendDisconnect(a_Desc, a_Desc->StdBS, a_Addr, "Remote end has same connection type gender.");
+		D_XPSendDisconnect(a_Desc, a_Desc->StdBS, a_Addr, "Remote end has same connection type gender.");
 		return true;
 	}
+	
+	/* Init Settings */
+	ProcessID = 0;
+	
+	/* Read String Settings */
+	for (;;)
+	{
+		// Read new string
+		memset(Buf, 0, sizeof(Buf));
+		D_BSrs(a_Desc->RelBS, Buf, BUFSIZE - 1);
+		
+		// End of strings?
+		if (!Buf[0])
+			break;
+		
+		// Get equal sign and zero it out
+		EqS = strchr(Buf, '=');
+		
+		if (!EqS)
+			continue;
+		
+		*(EqS++) = 0;
+		
+		// Process dynamic setting
+			// Version
+		if (!strcasecmp(Buf, "version"))
+		{
+		}
+			
+			// ProcessID
+		else if (!strcasecmp(Buf, "processid"))
+			ProcessID = C_strtou32(EqS, NULL, 0);
+	}
+	
+	/* See if endpoint was already added? */
+	EP = D_XBEndPointForAddr(a_Addr);
+	
+	// It was, no need to resend because it is reliable packet
+	if (EP)
+		return true;
+	
+	/* Create new endpoint */
+	EP = D_XBNewEndPoint(a_Desc, a_Addr);
+	
+	EP->ProcessID = ProcessID;
+	
+	// Make the client reliable now
+	D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_ADDHOST, (intptr_t)a_Addr);
+	
+	// Inform client of their endpoint
+	D_BSBaseBlock(a_Desc->RelBS, "SYNJ");
+	
+	D_BSwu32(a_Desc->RelBS, EP->HostID);
+	D_BSwu32(a_Desc->RelBS, EP->ProcessID);
+	
+	memset(Buf, 0, sizeof(Buf));
+	I_NetHostToString(&EP->Addr, Buf, BUFSIZE - 1);
+	D_BSws(a_Desc->RelBS, Buf);
+	
+	// Send away
+	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
+	
+	/* Put message on server */
+	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLCONNECT, "%s\n", Buf);
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* DXP_SYNJ() -- Synchronization Accepted */
+static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+{
+	uint32_t HostID;
+	
+	/* Read out HostID */
+	HostID = D_BSru32(a_Desc->RelBS);
+	
+	// Check for invalid address
+	if (!HostID)
+		return false;
+	
+	// Set address
+	D_XNetSetHostID(HostID);
+	
+	/* Set as connected now */
+	a_Desc->Data.Slave.Synced = true;
 	
 	/* Success! */
 	return true;
@@ -183,12 +286,15 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
 {
 #define BUFSIZE 72
-	uint32_t Code;
 	char Buf[BUFSIZE];
+	uint32_t Code;
 	
 	/* Read Code */
 	Code = D_BSru32(a_Desc->RelBS);
 	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE);
+	
+	/* Disconnect notice */
+	CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Buf);
 	
 	/* If playing... */
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
@@ -234,6 +340,7 @@ static const struct
 	// Game Synchronize Connection
 	{"GSYN", DXP_GSYN, PF_MASTER},
 	{"DISC", DXP_DISC, PF_SLAVE},
+	{"SYNJ", DXP_SYNJ, PF_SLAVE | PF_REL},
 	
 	{NULL}
 };
@@ -317,6 +424,10 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 			// Look in list
 			for (i = 0; c_CSPacks[i].Header; i++)
 			{
+				// Diff Header?
+				if (!D_BSCompareHeader(Header, c_CSPacks[i].Header))
+					continue;
+				
 				// Check Flags
 				for (b = 0; b < 31; b++)
 					if (c_CSPacks[i].Flags & (1 << b))

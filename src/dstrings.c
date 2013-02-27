@@ -1021,6 +1021,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		   "DXP_NOWFORJOINWINDOW", "{zNow connected to {9$1{z, waiting for game state..."},
 	{				  "DXP_CLCONNECT", "{z{9$1{z has connected!"},
 	{					"DXP_VISADDR", "{zLink back at {9$1{z."},
+	{				  "DXP_DISCONNED", "{zDisconnected, reason: \"{9$1\"."},
 	
 	/*** W_WAD.C ***/
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},
