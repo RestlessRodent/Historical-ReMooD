@@ -50,6 +50,12 @@
 #include <conio.h>
 #endif
 
+// ALSA MIDI on Linux
+#if defined(__linux__) && !defined(__REMOOD_NOALSAMIDI)
+	#include <alsa/asoundlib.h>
+	#include <alsa/seq.h>
+#endif
+
 /* Local */
 #include "i_util.h"
 #include "i_system.h"
@@ -1103,6 +1109,164 @@ static I_MusicDriver_t l_OSSMidiDriver =
 	NULL,//IS_OSSMidi_SoundLayer,
 };
 
+/******************************
+*** LINUX ALSA MUSIC DRIVER ***
+******************************/
+
+#if defined(__linux__) && !defined(__REMOOD_NOALSAMIDI)
+
+/* I_ALSAMidiData_t -- ALSA Midi Data */
+typedef struct I_ALSAMidiData_s
+{
+	snd_seq_t* Handle;							// Device Handle
+	int ClientID;								// Client ID
+	int PortID;									// MIDI Port ID
+	int Err;									// Error status
+	
+	snd_seq_addr_t Source;						// Source Address
+	snd_seq_addr_t Dest;						// Destination address
+} I_ALSAMidiData_t;
+
+// i_alsamididev -- ALSA device to use
+CONL_StaticVar_t l_IALSAMidiDev =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"i_alsamididev", DSTR_CVHINT_IALSAMIDIDEV, CLVVT_STRING, "",
+	NULL
+};
+
+/* IS_ALSAMidi_Init() -- /dev/midi Driver */
+static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
+{
+	static bool_t l_ALSAMidiReg;
+	I_ALSAMidiData_t* Data;
+	
+	/* Register */
+	if (!l_ALSAMidiReg)
+	{
+		// Register OSS driver option
+		CONL_VarRegister(&l_IALSAMidiDev);
+		
+		// Done
+		l_ALSAMidiReg = true;
+	}
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Initialize Data Area */
+	a_Driver->Size = sizeof(*Data);
+	Data = a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
+	
+	/* Open Sequencer */
+	Data->Err = snd_seq_open(&Data->Handle, "default", SND_SEQ_OPEN_INPUT, 0);
+	
+	// Failed?
+	if (Data->Err < 0)
+		return false;
+	
+	// It worked, so say that our name is ReMooD!
+	snd_seq_set_client_name(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING);
+	
+	/* Setup our local MIDI port */
+	Data->ClientID = snd_seq_client_id(Data->Handle);
+	Data->PortID = snd_seq_create_simple_port(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING " Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	
+	/* Setup the source/dest */
+	Data->Source.client = Data->ClientID;
+	Data->Source.port = Data->PortID;
+	Data->Dest.client = 128;
+	Data->Dest.port = 0;
+	
+	//l_IALSAMidiDev.Value->String
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* IS_ALSAMidi_Destroy() -- Destroys the driver */
+static bool_t IS_ALSAMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
+{
+	I_ALSAMidiData_t* Data;
+	
+	/* Check */
+	if (!a_Driver || !a_Driver->Data)
+		return false;
+	
+	/* Get Data */
+	Data = a_Driver->Data;
+	
+	// Never worked?
+	if (Data->Err < 0)
+		return false;
+	
+	/* Delete Port */
+	snd_seq_delete_simple_port(Data->Handle, Data->PortID);
+	
+	/* Close Handle */
+	snd_seq_close(Data->Handle);
+	
+	/* Success? */
+	return true;
+}
+
+/* IS_ALSAMidi_RawMIDI() -- Writes raw data to driver */
+static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
+{
+	I_ALSAMidiData_t* Data;
+	snd_seq_event_t Event;
+	uint32_t AsBig;
+	uint8_t MIDI[4];
+	
+	/* Check */
+	if (!a_Driver || !a_Msg || !a_BitLength)
+		return;
+	
+	/* Get Data */
+	Data = a_Driver->Data;
+	
+	/* Setup Event */
+	memset(&Event, 0, sizeof(Event));
+	
+	// Fill fields
+	Event.type = SND_SEQ_EVENT_OSS;
+	Event.source = Data->Source;
+	Event.dest = Data->Dest;
+	Event.data.raw32.d[0] = a_Msg;
+	
+	/* Direct to output */
+	snd_seq_event_output_direct(Data->Handle, &Event);
+}
+
+// l_ALSAMidiDriver -- OSS MIDI Driver
+static I_MusicDriver_t l_ALSAMidiDriver =
+{
+	/* Data */
+	"ALSA Midi",
+	"alsamidi",
+	1 << IMT_MIDI,
+	false,
+	35,
+	
+	/* Handlers */
+	IS_ALSAMidi_Init,
+	IS_ALSAMidi_Destroy,
+	NULL,//I_MUS2MID_Success,
+	NULL,//I_MUS2MID_Pause,
+	NULL,//I_MUS2MID_Resume,
+	NULL,//I_MUS2MID_Stop,
+	NULL,//I_MUS2MID_Length,
+	NULL,//I_MUS2MID_Seek,
+	NULL,//I_MUS2MID_Play,
+	NULL,//I_MUS2MID_Volume,
+	IS_ALSAMidi_RawMIDI,//NULL,
+	NULL,//I_MUS2MID_Update
+	NULL,//IS_ALSAMidi_SoundLayer,
+};
+#endif
+
 /**********************
 *** MUSIC FUNCTIONS ***
 **********************/
@@ -1203,8 +1367,12 @@ bool_t I_InitMusic(void)
 	// OSS Driver
 	if (!I_AddMusicDriver(&l_OSSMidiDriver))
 		CONL_PrintF("I_InitMusic: Failed to add the OSS MIDI driver.\n");
-	
-	// Native MOD Support
+
+#if defined(__linux__) && !defined(__REMOOD_NOALSAMIDI)
+	// ALSA Driver
+	if (!I_AddMusicDriver(&l_ALSAMidiDriver))
+		CONL_PrintF("I_InitMusic: Failed to add the ALSA MIDI driver.\n");
+#endif
 	
 	// ReMooD MUS2MID Driver
 	if (!I_AddMusicDriver(&l_MUS2MIDDriver))
@@ -1777,6 +1945,10 @@ void I_SoundLockThread(const bool_t a_Lock)
 	if (l_CurSoundDriver->LockThread)
 		l_CurSoundDriver->LockThread(l_CurSoundDriver, a_Lock);
 }
+
+/*******************
+*** CD-ROM MUSIC ***
+*******************/
 
 void I_StopCD(void)
 {

@@ -97,7 +97,7 @@ endif
 	__XX_EXESUFFIX = 
 	__XX_OBJPREFIX = d
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_LINUX
-	__XX_ILDFLAGS = -lm
+	__XX_ILDFLAGS = -lm -lasound
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = 
 
