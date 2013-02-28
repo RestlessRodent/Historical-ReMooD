@@ -391,7 +391,23 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 			}
 			
 			// Go to savegame now
-			*LevelP = DXSL_GETSAVE;
+			*LevelP = DXSL_WAITFORWINDOW;
+			break;
+		
+			// Wait for join window
+		case DXSL_WAITFORWINDOW:
+				// Ready and waiting for the join window
+				if (!a_Desc->Client.JoinWait)
+				{
+					// Send request to server
+					D_BSBaseBlock(RelBS, "JRDY");
+				
+					// Send away!
+					D_BSRecordNetBlock(RelBS, HostAddr);
+					
+					// Don't send message again
+					a_Desc->Client.JoinWait = true;
+				}
 			break;
 		
 			// Unhandled
@@ -403,7 +419,7 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 /*---------------------------------------------------------------------------*/
 
 /* DXP_GSYN() -- Game Synchronize Connection */
-static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 #define BUFSIZE 72
 	char Buf[BUFSIZE];
@@ -538,7 +554,7 @@ static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 }
 
 /* DXP_DISC() -- Disconnect Received */
-static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 #define BUFSIZE 72
 	char Buf[BUFSIZE];
@@ -573,7 +589,7 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 }
 
 /* DXP_SYNJ() -- Synchronization Accepted */
-static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 	uint32_t HostID;
 	
@@ -595,7 +611,7 @@ static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 }
 
 /* DXP_RQFL() -- Request File List */
-static bool_t DXP_RQFL(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+static bool_t DXP_RQFL(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 	const WL_WADFile_t* WAD;
 	int i;
@@ -629,7 +645,7 @@ static bool_t DXP_RQFL(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 }
 
 /* DXP_WADS() -- Got list of WADs that server is using */
-static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr)
+static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 #define BUFSIZE 48
 	uint8_t Code;
@@ -714,6 +730,30 @@ static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
+/* DXP_JRDY() -- Client is ready for the join window */
+static bool_t DXP_JRDY(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+#define BUFSIZE 72
+	char Buf[BUFSIZE];
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Already signaled? */
+	if (a_EP->SignalReady)
+		return true;
+	
+	/* Otherwise, set as being ready to enter the true game */
+	a_EP->SignalReady = true;
+	I_NetHostToString(a_Addr, Buf, BUFSIZE);
+	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLIENTREADYWAIT, "%s\n", Buf);
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -730,7 +770,7 @@ typedef enum D_CSPackFlag_e
 static const struct
 {
 	const char* Header;
-	bool_t (*Func)(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr);
+	bool_t (*Func)(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP);
 	uint32_t Flags;
 } c_CSPacks[] =
 {
@@ -739,6 +779,7 @@ static const struct
 	{"SYNJ", DXP_SYNJ, PF_SLAVE | PF_REL},
 	{"RQFL", DXP_RQFL, PF_SERVER | PF_REL},
 	{"WADS", DXP_WADS, PF_CLIENT | PF_REL},
+	{"JRDY", DXP_JRDY, PF_SERVER | PF_REL},
 	
 	{NULL}
 };
@@ -752,6 +793,7 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 	bool_t Continue;
 	uint32_t Flags;
 	bool_t Authed;
+	D_XEndPoint_t* EP;
 	
 	/* Handle standard state based packets */
 	// Master
@@ -836,9 +878,12 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 				if (b < 31)
 					continue;
 				
+				// Reference endpoint
+				EP = D_XBEndPointForAddr(&RemAddr);
+				
 				// Call handler function
 				if (c_CSPacks[i].Func)
-					c_CSPacks[i].Func(a_Desc, Header, Flags, &RemAddr);
+					c_CSPacks[i].Func(a_Desc, Header, Flags, &RemAddr, EP);
 				
 				// Always break
 				break;

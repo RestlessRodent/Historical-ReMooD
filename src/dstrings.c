@@ -1026,6 +1026,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				  "DXP_WADHEADER", "{zWADs used by server:"},
 	{				   "DXP_WADENTRY", "{z [{4$3{z] {9$1 {z({3$2{z)"},
 	{				  "DXP_BADWADEXT", "{zWAD {9$1{z/{3$2{z has an invalid extension, due to security measures."},
+	{			"DXP_CLIENTREADYWAIT", "{z{9$1{z is waiting for next join window."},
 	
 	/*** W_WAD.C ***/
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},

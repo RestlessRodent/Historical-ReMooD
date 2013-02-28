@@ -44,7 +44,7 @@
 *** CONSTANTS ***
 ****************/
 
-/* D_XSyncLevel_t -- Syncrhonization level */
+/* D_XSyncLevel_t -- Synchronization level */
 typedef enum D_XSyncLevel_e
 {
 	DXSL_INIT,									// Initialize
@@ -52,6 +52,7 @@ typedef enum D_XSyncLevel_e
 	DXSL_CHECKWADS,								// Checks WADs being used
 	DXSL_DOWNLOADWADS,							// Downloads WAD files
 	DXSL_SWITCHWADS,							// Switch to WADs
+	DXSL_WAITFORWINDOW,							// Wait for join window
 	DXSL_GETSAVE,								// Get savegame
 	DXSL_LOADSAVE,								// Load savegame
 } D_XSyncLevel_t;
@@ -88,6 +89,7 @@ typedef struct D_XDesc_s
 	{
 		D_XSyncLevel_t SyncLevel;				// Synchronization level
 		bool_t SentReqWAD;						// Sent requested WADs
+		bool_t JoinWait;						// Join waiting
 	} Client;									// Client Stuff
 } D_XDesc_t;
 
@@ -109,6 +111,8 @@ typedef struct D_XEndPoint_s
 		char DispName[MAXPLAYERNAME];			// Display Name
 		char ProfUUID[MAXUUIDLENGTH + 1];		// Profile UUID
 	} Splits[MAXSPLITSCREEN];					// Splitscreens
+	
+	bool_t SignalReady;							// Signaled ready to play
 } D_XEndPoint_t;
 
 /**************
