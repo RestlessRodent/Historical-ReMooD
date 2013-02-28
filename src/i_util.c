@@ -1876,6 +1876,7 @@ void I_Quit(void)
 	if (quiting)
 		return;
 	quiting = 1;
+	
 	//added:16-02-98: when recording a demo, should exit using 'q' key,
 	//        but sometimes we forget and use 'F10'.. so save here too.
 	if (demorecording)
@@ -1885,6 +1886,9 @@ void I_Quit(void)
 		// Force stop record, even if demo was checked already!
 		G_StopDemoRecord();
 	}
+	
+	// Stop playing music
+	I_StopSong(0);
 	
 	// Disconnect from network game
 	D_XNetDisconnect(false);
