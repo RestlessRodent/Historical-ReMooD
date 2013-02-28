@@ -53,7 +53,7 @@
 // ALSA MIDI on Linux
 #if defined(__linux__) && !defined(__REMOOD_NOALSAMIDI)
 	#include <alsa/asoundlib.h>
-	#include <alsa/rawmidi.h>
+	#include <alsa/seq.h>
 #endif
 
 /* Local */
@@ -1118,8 +1118,14 @@ static I_MusicDriver_t l_OSSMidiDriver =
 /* I_ALSAMidiData_t -- ALSA Midi Data */
 typedef struct I_ALSAMidiData_s
 {
-	snd_rawmidi_t* Handle;						// Raw MIDI handle
-	int Err;									// Error
+	snd_seq_t* Handle;							// Device Handle
+	int ClientID;								// Client ID
+	int PortID;									// MIDI Port ID
+	int Err;									// Error status
+	int ConErr;									// Connection Error
+	
+	snd_seq_addr_t Source;						// Source Address
+	snd_seq_addr_t Dest;						// Destination address
 } I_ALSAMidiData_t;
 
 // i_alsamididev -- ALSA device to use
@@ -1154,11 +1160,30 @@ static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 	a_Driver->Size = sizeof(*Data);
 	Data = a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
 	
-	/* Open Raw Output */
-	Data->Err = snd_rawmidi_open(NULL, &Data->Handle, "hw:128,0", 0);
+	/* Open Sequencer */
+	Data->Err = snd_seq_open(&Data->Handle, "default", SND_SEQ_OPEN_OUTPUT, 0);
 	
+	// Failed?
 	if (Data->Err < 0)
 		return false;
+	
+	// It worked, so say that our name is ReMooD!
+	snd_seq_set_client_name(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING);
+	
+	/* Setup our local MIDI port */
+	Data->PortID = snd_seq_create_simple_port(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING " Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	Data->ClientID = snd_seq_client_id(Data->Handle);
+	
+	/* Setup the source/dest */
+	Data->Source.client = Data->ClientID;
+	Data->Source.port = Data->PortID;
+	Data->Dest.client = 128;
+	Data->Dest.port = 0;
+	
+	/* Connect */
+	Data->ConErr = snd_seq_connect_to(Data->Handle, Data->Source.port, Data->Dest.client, Data->Dest.port);
+	
+	//l_IALSAMidiDev.Value->String
 	
 	/* Success! */
 	return true;
@@ -1181,18 +1206,65 @@ static bool_t IS_ALSAMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
 	if (Data->Err < 0)
 		return false;
 	
-	/* Delete raw data */
-	snd_rawmidi_close(Data->Handle);
-	Data->Handle = NULL;
+	/* Delete Port */
+	snd_seq_delete_simple_port(Data->Handle, Data->PortID);
+	
+	/* Close Handle */
+	snd_seq_close(Data->Handle);
 	
 	/* Success? */
 	return true;
+}
+
+/* IS_ALSAMidi_RawToALSA() -- Raw to ALSA Event */
+static void IS_ALSAMidi_RawToALSA(uint32_t a_Msg, const uint32_t a_BitLength, snd_seq_event_t* const a_Evt)
+{
+	uint8_t Bit[4];
+	
+	uint8_t Act;
+	uint8_t Chan;
+	
+	/* Extract Bits */
+	Bit[3] = (a_Msg & UINT32_C(0xFF)) >> UINT32_C(0);
+	Bit[2] = (a_Msg & UINT32_C(0xFF00)) >> UINT32_C(8);
+	Bit[1] = (a_Msg & UINT32_C(0xFF0000)) >> UINT32_C(16);
+	Bit[0] = (a_Msg & UINT32_C(0xFF000000)) >> UINT32_C(24);
+	
+	/* Extract Info */
+	Act = (Bit[0] & 0xF0) >> 4;
+	Chan = (Bit[0] & 0xF);
+	
+	/* Which action? */
+	switch (Act)
+	{
+			// Note Off
+		case 0x8:
+			a_Evt->type = SND_SEQ_EVENT_NOTEOFF;
+			a_Evt->data.note.channel = Chan;
+			a_Evt->data.note.note = Bit[1];
+			a_Evt->data.note.velocity = Bit[2];
+			break;
+			
+			// Note On
+		case 0x9:
+			a_Evt->type = SND_SEQ_EVENT_NOTEON;
+			a_Evt->data.note.channel = Chan;
+			a_Evt->data.note.note = Bit[1];
+			a_Evt->data.note.velocity = Bit[2];
+			break;
+			
+			// Unknown
+		default:
+			break;
+	}
 }
 
 /* IS_ALSAMidi_RawMIDI() -- Writes raw data to driver */
 static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
 {
 	I_ALSAMidiData_t* Data;
+	snd_seq_event_t Event;
+	int Err;
 	
 	/* Check */
 	if (!a_Driver || !a_Msg || !a_BitLength)
@@ -1201,8 +1273,29 @@ static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const ui
 	/* Get Data */
 	Data = a_Driver->Data;
 	
-	/* Direct Write */
-	snd_rawmidi_write(Data->Handle, &a_Msg, a_BitLength);
+	/* Setup Event */
+	memset(&Event, 0, sizeof(Event));
+	
+	// Fill fields
+	snd_seq_ev_set_direct(&Event);
+	snd_seq_ev_set_source(&Event, Data->Source.port);
+	snd_seq_ev_set_subs(&Event);
+	
+	IS_ALSAMidi_RawToALSA(a_Msg, a_BitLength, &Event);
+	
+	/*Event.type = SND_SEQ_EVENT_NOTEON;
+	Event.data.note.channel = 1;
+	Event.data.note.note = 63;
+	Event.data.note.velocity = 127;*/
+	
+	
+	/* Direct to output */
+	Err = snd_seq_event_output_direct(Data->Handle, &Event);
+	if (Err < 0)
+		CONL_PrintF("Err (%i %s) %i %s [%i:%i -> %i:%i]\n", Data->ConErr, snd_strerror(Data->ConErr), Err, snd_strerror(Err),
+				Data->Source.client, Data->Source.port,
+				Data->Dest.client, Data->Dest.port
+			);
 }
 
 // l_ALSAMidiDriver -- OSS MIDI Driver
