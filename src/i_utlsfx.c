@@ -1139,8 +1139,15 @@ CONL_StaticVar_t l_IALSAMidiDev =
 /* IS_ALSAMidi_Init() -- /dev/midi Driver */
 static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 {
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
 	static bool_t l_ALSAMidiReg;
 	I_ALSAMidiData_t* Data;
+	char* c;
+	snd_seq_client_info_t* SeqInfo;
+	int Client, i;
+	
+	int FCl;
 	
 	/* Register */
 	if (!l_ALSAMidiReg)
@@ -1171,19 +1178,89 @@ static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 	snd_seq_set_client_name(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING);
 	
 	/* Setup our local MIDI port */
-	Data->PortID = snd_seq_create_simple_port(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING " Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	Data->PortID = snd_seq_create_simple_port(Data->Handle, "ReMooD " REMOOD_VERSIONSTRING " Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ/* | SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE*/, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	Data->ClientID = snd_seq_client_id(Data->Handle);
 	
 	/* Setup the source/dest */
 	Data->Source.client = Data->ClientID;
 	Data->Source.port = Data->PortID;
-	Data->Dest.client = 128;
-	Data->Dest.port = 0;
+	
+	// Extract client:port from string
+	if (l_IALSAMidiDev.Value->String && strlen(l_IALSAMidiDev.Value->String) > 0)
+	{
+		memset(Buf, 0, sizeof(Buf));
+		strncpy(Buf, l_IALSAMidiDev.Value->String, BUFSIZE - 1);
+		
+		// Find colon
+		c = strchr(Buf, ':');
+		
+		// If found, clear it out
+		if (c)
+			*(c++) = 0;
+		
+		// Client is first number
+		Data->Dest.client = C_strtoi32(Buf, NULL, 10);
+		
+		// Port is second number, if it exists
+		if (c)
+			Data->Dest.port = C_strtoi32(c, NULL, 10);
+	}
+	
+	// If no string is specified, guess which port to use
+	else
+	{
+		// Init
+		SeqInfo = Z_Malloc(snd_seq_client_info_sizeof(), PU_STATIC, NULL);
+		
+		// Look for clients
+		while (snd_seq_query_next_client(Data->Handle, SeqInfo) >= 0)
+		{
+			Client = snd_seq_client_info_get_client(SeqInfo);
+			
+			// Ignore ourself
+			if (Client == Data->Source.client)
+				continue;
+			
+			// See if it matches something like "Timidity"
+			c = snd_seq_client_info_get_name(SeqInfo);
+			
+			if (c)
+			{
+				// Translate
+				memset(Buf, 0, sizeof(Buf));
+				strncpy(Buf, c, BUFSIZE);
+				
+				// Lowercase all
+				for (i = 0; i < BUFSIZE; i++)
+					Buf[i] = tolower(Buf[i]);
+				
+				// Contains a software synth of sorts?
+				if (strstr(Buf, "timidity") || strstr(Buf, "FLUID"))
+				{
+					Data->Dest.client = Client;
+					Data->Dest.port = 0;
+					break;
+				}
+			}
+			
+			// Remember this as a fallback one
+			if (!FCl)
+				FCl = Client;
+		}
+		
+		// Freeup
+		Z_Free(SeqInfo);
+		
+		// If no client, as as presumed one
+		if (!Data->Dest.client)
+		{
+			Data->Dest.client = FCl;
+			Data->Dest.port = 0;
+		}
+	}
 	
 	/* Connect */
 	Data->ConErr = snd_seq_connect_to(Data->Handle, Data->Source.port, Data->Dest.client, Data->Dest.port);
-	
-	//l_IALSAMidiDev.Value->String
 	
 	/* Success! */
 	return true;
@@ -1303,7 +1380,6 @@ static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const ui
 {
 	I_ALSAMidiData_t* Data;
 	snd_seq_event_t Event;
-	int Err;
 	
 	/* Check */
 	if (!a_Driver || !a_Msg || !a_BitLength)
@@ -1323,12 +1399,8 @@ static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const ui
 	IS_ALSAMidi_RawToALSA(a_Msg, a_BitLength, &Event);
 	
 	/* Direct to output */
-	Err = snd_seq_event_output_direct(Data->Handle, &Event);
-	if (Err < 0)
-		CONL_PrintF("Err (%i %s) %i %s [%i:%i -> %i:%i]\n", Data->ConErr, snd_strerror(Data->ConErr), Err, snd_strerror(Err),
-				Data->Source.client, Data->Source.port,
-				Data->Dest.client, Data->Dest.port
-			);
+	// Ignore any errors returned by this function
+	snd_seq_event_output_direct(Data->Handle, &Event);
 }
 
 // l_ALSAMidiDriver -- OSS MIDI Driver
