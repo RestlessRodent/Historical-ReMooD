@@ -793,6 +793,7 @@ void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const
 	// Set as connected, even though one might not be!
 	l_IsConnected = true;
 	gamestate = GS_WAITFORJOINWINDOW;
+	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
 	
 	/* Connect to remote client with specified ID or wait */
 	// Anti-Client

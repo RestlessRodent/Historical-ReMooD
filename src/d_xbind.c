@@ -236,9 +236,8 @@ bool_t D_XBCallHost(I_HostAddress_t* const a_ToCall, const uint32_t a_GameID)
 	// Socket creation loop
 	for (; Port <= End; Port++)
 	{
-		// Open a socket on said random port, but do not try to bind to the
-		// remote address. As this will fail.
-		ClSock = I_NetOpenSocket(SockFlags, NULL/*(ConnAddr.IPvX ? &ConnAddr : NULL)*/, Port);
+		// Open a socket on said random port, but bind to no address.
+		ClSock = I_NetOpenSocket(SockFlags, NULL, Port);
 		
 		// Created?
 		if (ClSock)

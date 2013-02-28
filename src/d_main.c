@@ -735,6 +735,9 @@ void D_DoomLoop(void)
 			S_UpdateSounds(false);	// move positional sounds
 		}
 		
+		// Update music
+		I_UpdateMusic();
+		
 		// Sound mixing for the buffer is snychronous.
 		I_UpdateSound();
 		

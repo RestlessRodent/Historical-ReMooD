@@ -134,9 +134,9 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	tic_t XXLocalTic, XXSNAR;
 	static tic_t LastNCSNU = (tic_t)-1;
 	
-	/* Update music */
+	// Update music
 	I_UpdateMusic();
-
+	
 	/* Init */
 	LocalTic = 0;
 	ThisMS = I_GetTimeMS();
