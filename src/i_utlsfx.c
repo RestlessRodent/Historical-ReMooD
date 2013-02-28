@@ -1253,6 +1253,43 @@ static void IS_ALSAMidi_RawToALSA(uint32_t a_Msg, const uint32_t a_BitLength, sn
 			a_Evt->data.note.velocity = Bit[2];
 			break;
 			
+			// Pressure Change
+		case 0xA:
+			a_Evt->type = SND_SEQ_EVENT_KEYPRESS;
+			a_Evt->data.note.channel = Chan;
+			a_Evt->data.note.note = Bit[1];
+			a_Evt->data.note.velocity = Bit[2];
+			break;
+			
+			// Control Change
+		case 0xB:
+			a_Evt->type = SND_SEQ_EVENT_CONTROLLER;
+			a_Evt->data.control.channel = Chan;
+			a_Evt->data.control.param = Bit[1];
+			a_Evt->data.control.value = Bit[2];
+			break;
+			
+			// Program Change
+		case 0xC:
+			a_Evt->type = SND_SEQ_EVENT_PGMCHANGE;
+			a_Evt->data.control.channel = Chan;
+			a_Evt->data.control.value = Bit[1];
+			break;
+			
+			// Pressure
+		case 0xD:
+			a_Evt->type = SND_SEQ_EVENT_CHANPRESS;
+			a_Evt->data.control.channel = Chan;
+			a_Evt->data.control.value = Bit[1];
+			break;
+			
+			// Pitch Bend
+		case 0xE:
+			a_Evt->type = SND_SEQ_EVENT_PITCHBEND;
+			a_Evt->data.control.channel = Chan;
+			a_Evt->data.control.value = (((((int32_t)Bit[1]) & 0x7F) << 7) | (((int32_t)Bit[2]) & 0x7F));
+			break;
+			
 			// Unknown
 		default:
 			break;
