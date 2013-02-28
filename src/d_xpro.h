@@ -55,6 +55,7 @@ typedef enum D_XSyncLevel_e
 	DXSL_WAITFORWINDOW,							// Wait for join window
 	DXSL_GETSAVE,								// Get savegame
 	DXSL_LOADSAVE,								// Load savegame
+	DXSL_PLAYING,								// Game being played
 } D_XSyncLevel_t;
 
 /*****************

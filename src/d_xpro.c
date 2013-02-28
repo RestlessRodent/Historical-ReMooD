@@ -396,18 +396,18 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 		
 			// Wait for join window
 		case DXSL_WAITFORWINDOW:
-				// Ready and waiting for the join window
-				if (!a_Desc->Client.JoinWait)
-				{
-					// Send request to server
-					D_BSBaseBlock(RelBS, "JRDY");
+			// Ready and waiting for the join window
+			if (!a_Desc->Client.JoinWait)
+			{
+				// Send request to server
+				D_BSBaseBlock(RelBS, "JRDY");
+			
+				// Send away!
+				D_BSRecordNetBlock(RelBS, HostAddr);
 				
-					// Send away!
-					D_BSRecordNetBlock(RelBS, HostAddr);
-					
-					// Don't send message again
-					a_Desc->Client.JoinWait = true;
-				}
+				// Don't send message again
+				a_Desc->Client.JoinWait = true;
+			}
 			break;
 		
 			// Unhandled
