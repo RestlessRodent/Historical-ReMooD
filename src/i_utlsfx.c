@@ -1220,15 +1220,17 @@ static bool_t IS_ALSAMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
 static void IS_ALSAMidi_RawToALSA(uint32_t a_Msg, const uint32_t a_BitLength, snd_seq_event_t* const a_Evt)
 {
 	uint8_t Bit[4];
-	
 	uint8_t Act;
 	uint8_t Chan;
+	uint32_t Msg;
 	
 	/* Extract Bits */
-	Bit[3] = (a_Msg & UINT32_C(0xFF)) >> UINT32_C(0);
-	Bit[2] = (a_Msg & UINT32_C(0xFF00)) >> UINT32_C(8);
-	Bit[1] = (a_Msg & UINT32_C(0xFF0000)) >> UINT32_C(16);
-	Bit[0] = (a_Msg & UINT32_C(0xFF000000)) >> UINT32_C(24);
+	Msg = BigSwapUInt32(a_Msg);
+	
+	Bit[3] = (Msg & UINT32_C(0xFF)) >> UINT32_C(0);
+	Bit[2] = (Msg & UINT32_C(0xFF00)) >> UINT32_C(8);
+	Bit[1] = (Msg & UINT32_C(0xFF0000)) >> UINT32_C(16);
+	Bit[0] = (Msg & UINT32_C(0xFF000000)) >> UINT32_C(24);
 	
 	/* Extract Info */
 	Act = (Bit[0] & 0xF0) >> 4;
@@ -1481,6 +1483,17 @@ bool_t I_InitMusic(void)
 void I_ShutdownMusic(void)
 {
 	size_t i;
+	int Handle;
+	
+	/* Stop all songs */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Handle)
+		{
+			Handle = l_LocalSongs[i].Handle;
+			
+			I_StopSong(Handle);
+			I_UnRegisterSong(Handle);
+		}
 	
 	/* Destroy all drivers */
 	for (i = 0; i < l_NumMusicDrivers; i++)

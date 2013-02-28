@@ -1887,9 +1887,6 @@ void I_Quit(void)
 		G_StopDemoRecord();
 	}
 	
-	// Stop playing music
-	I_StopSong(0);
-	
 	// Disconnect from network game
 	D_XNetDisconnect(false);
 	D_QuitNetGame();
