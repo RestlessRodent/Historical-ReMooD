@@ -1067,6 +1067,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "PSAVEGC_ILLEGALTHINKER", "An illegal thinker exists."},
 	{	   "PSAVEGC_UNHANDLEDTHINKER", "A valid thinker is not currently handled."},
 	
+	/*** I_UTLNET.C ***/
+	{			"IUTLNET_BADUNIXBIND", "Socket bind failed: $2 ($1)"},
+	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},
 	{               "D_PGS_NOTHINGHERE", "Nothing is here"},

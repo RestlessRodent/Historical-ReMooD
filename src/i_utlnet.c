@@ -94,6 +94,8 @@
 #include "i_util.h"
 #include "i_net.h"
 #include "z_zone.h"
+#include "dstrings.h"
+#include "console.h"
 
 /*****************
 *** STRUCTURES ***
@@ -663,7 +665,7 @@ size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out,
 I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* const a_Host, const uint16_t a_Port)
 {
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
-	int SockFD, SockOpt;
+	int SockFD, SockOpt, Err;
 	socklen_t SockLen;
 	unsigned long NBVal;
 	struct sockaddr* Addr;
@@ -690,17 +692,17 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 	// Creation failed
 	if (SockFD < 0)
 		return NULL;
-
-	/* Disable multi-binding on IPv6 socket */
-#if defined(__REMOOD_ENABLEIPV6) && defined(IPV6_V6ONLY)
-	SockOpt = 1;
-	setsockopt(SockFD, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&SockOpt, sizeof(SockOpt));
-#endif
 	
 	/* Bind to local address and port */
 #if defined(__REMOOD_ENABLEIPV6)
 	if (a_Flags & INSF_V6)
 	{
+		// Disable multi-binding on IPv6 socket
+#if defined(IPV6_V6ONLY)
+		SockOpt = 1;
+		setsockopt(SockFD, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&SockOpt, sizeof(SockOpt));
+#endif
+		
 		// Set Any (all zeroes)
 		memset(&In6, 0, sizeof(In6));
 		
@@ -734,6 +736,10 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 	/* Bind */
 	if (bind(SockFD, Addr, SockLen) < 0)
 	{
+		// Show error
+		CONL_OutputUT(CT_NETWORK, DTSR_IUTLNET_BADUNIXBIND, "%i%s\n", errno, strerror(errno));
+		
+		// Close created socket
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 		closesocket(SockFD);
 #else

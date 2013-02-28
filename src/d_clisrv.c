@@ -133,8 +133,11 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	
 	tic_t XXLocalTic, XXSNAR;
 	static tic_t LastNCSNU = (tic_t)-1;
+	
+	/* Update music */
+	I_UpdateMusic();
 
-	// Init
+	/* Init */
 	LocalTic = 0;
 	ThisMS = I_GetTimeMS();
 	
@@ -202,8 +205,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	}
 	
 	/* While the client is behind, update it to catch up */
-	// Update music
-	I_UpdateMusic();
 	
 	// Update Tics
 	//D_NCSNetUpdateSingleTic();
