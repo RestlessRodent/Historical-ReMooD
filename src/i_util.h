@@ -509,8 +509,8 @@ void I_ShowEndTxt(const uint8_t* const a_TextData);
 void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr);
 void I_TextModeNextLine(void);
 
-void I_AddExitFunc(void (*func) ());
-void I_RemoveExitFunc(void (*func) ());
+void I_AddExitFunc(void (*func)(void));
+void I_RemoveExitFunc(void (*func)(void));
 void I_ShutdownSystem(void);
 
 int I_mkdir(const char* a_Path, int a_UNIXPowers);

@@ -1322,12 +1322,6 @@ static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const ui
 	
 	IS_ALSAMidi_RawToALSA(a_Msg, a_BitLength, &Event);
 	
-	/*Event.type = SND_SEQ_EVENT_NOTEON;
-	Event.data.note.channel = 1;
-	Event.data.note.note = 63;
-	Event.data.note.velocity = 127;*/
-	
-	
 	/* Direct to output */
 	Err = snd_seq_event_output_direct(Data->Handle, &Event);
 	if (Err < 0)
@@ -1453,7 +1447,10 @@ bool_t I_InitMusic(void)
 	/* Add interface specific stuff */
 	if (!I_MusicDriverInit())
 		CONL_PrintF("I_InitMusic: Failed to add interface specific drivers.\n");
-		
+	
+	/* Shutdown music on quit */
+	I_AddExitFunc(I_ShutdownMusic);
+	
 	/* Add our own virtual drivers that always work */
 	// Simple Tone Driver
 	

@@ -305,7 +305,7 @@ static I_EventEx_t l_EventQ[EVENTQUEUESIZE];	// Events in queue
 static size_t l_EQRead = 0;		// Read position in queue
 static size_t l_EQWrite = 0;	// Write position in queue
 
-typedef void (*quitfuncptr) ();
+typedef void (*quitfuncptr)(void);
 static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 
 static bool_t l_JoyOK = false;	// Joysticks OK
@@ -1240,7 +1240,7 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 }
 
 /* I_AddExitFunc() -- Adds an exit function */
-void I_AddExitFunc(void (*func) ())
+void I_AddExitFunc(void (*func)(void))
 {
 	int c;
 	
@@ -1263,7 +1263,7 @@ void I_AddExitFunc(void (*func) ())
 }
 
 /* I_RemoveExitFunc() -- Removes an exit function */
-void I_RemoveExitFunc(void (*func) ())
+void I_RemoveExitFunc(void (*func)(void))
 {
 	int c;
 	
@@ -1320,7 +1320,7 @@ void I_ShutdownSystem(void)
 	/* Call functions */
 	for (c = MAX_QUIT_FUNCS - 1; c >= 0; c--)
 		if (quit_funcs[c])
-			(*quit_funcs[c]) ();
+			(*quit_funcs[c])();
 			
 	/* Post exit func */
 	I_SystemPostExit();
