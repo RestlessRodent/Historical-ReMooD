@@ -184,6 +184,7 @@ typedef struct D_XPlayer_s
 	bool_t SaveSent;							// Was Sent savegame
 	bool_t CounterOp;							// On Counterop Team
 	int32_t VTeam;								// Virtual Team On
+	int32_t Color;								// Color
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */

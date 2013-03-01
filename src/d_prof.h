@@ -237,6 +237,8 @@ typedef struct D_ProfileEx_s
 	bool_t LookSpring;							// Spring back to center on move
 	bool_t JoyAutoRun;							// Joystick auto-run
 	uint8_t ColorLock[4];						// Door Lock Colors
+	uint8_t VTeam;								// Virtual Team
+	bool_t CounterOp;							// CounterOp player
 } D_ProfileEx_t;
 
 /*** GLOBALS ***/

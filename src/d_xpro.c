@@ -61,6 +61,8 @@ typedef struct D_XWADCheck_s
 *** GLOBALS ***
 **************/
 
+extern CONL_StaticVar_t l_SVJoinWindow;
+
 /*************
 *** LOCALS ***
 *************/
@@ -141,11 +143,324 @@ void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddre
 	D_XBDropHost(a_Addr);
 }
 
+/* DS_DumpSplitInfo() -- Dumps split info into packet */
+static void DS_DumpSplitInfo(D_BS_t* const a_BS)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	int i;
+	D_ProfileEx_t* Prof;
+	
+	/* Check */
+	if (!a_BS)
+		return;
+		
+	/* Dump split info strings */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// No player here?
+		if (!D_ScrSplitHasPlayer(i))
+			continue;
+	
+		// Process ID of screen
+		memset(Buf, 0, sizeof(Buf));
+		snprintf(Buf, BUFSIZE - 1, "pid+%i=%08x", i, g_Splits[i].ProcessID);
+		D_BSws(a_BS, Buf);
+	
+		// Profile?
+		Prof = g_Splits[i].Profile;
+	
+		// Dump profile info
+		if (Prof)
+		{
+			// UUID of profile
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "puuid+%i=%s", i, Prof->UUID);
+			D_BSws(a_BS, Buf);
+		
+			// Display Name
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "pdn+%i=%s", i, Prof->DisplayName);
+			D_BSws(a_BS, Buf);
+			
+			// Color
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "pc+%i=%i", i, Prof->Color);
+			D_BSws(a_BS, Buf);
+			
+			// CounterOp
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "pcp+%i=%s", i, (Prof->CounterOp ? "true" : "false"));
+			D_BSws(a_BS, Buf);
+			
+			// VTeam
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "pvt+%i=%i", i, Prof->VTeam);
+			D_BSws(a_BS, Buf);
+		}
+	}
+#undef BUFSIZE
+}
+
+/* DS_BringInClient() -- Brings in a connected client */
+static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP, D_BS_t* const a_BS)
+{
+#define BUFSIZE 72
+	char Buf[BUFSIZE];
+	char *EqS, *Plus;
+	int32_t s, i;
+	
+	uint32_t ProcessID;
+	D_XEndPoint_t* EP;
+	D_XEndPoint_t Hold;
+	
+	/* Init Settings */
+	ProcessID = 0;
+	memset(&Hold, 0, sizeof(Hold));
+	
+	/* Read String Settings */
+	for (;;)
+	{
+		// Read new string
+		memset(Buf, 0, sizeof(Buf));
+		D_BSrs(a_BS, Buf, BUFSIZE - 1);
+		
+		// End of strings?
+		if (!Buf[0])
+			break;
+		
+		// Get equal sign and zero it out
+		EqS = strchr(Buf, '=');
+		
+		if (!EqS)
+			continue;
+		
+		*(EqS++) = 0;
+		
+		// Process dynamic setting
+			// Version
+		if (!strcasecmp(Buf, "version"))
+		{
+		}
+			
+			// ProcessID of a split
+		else if (!strncasecmp(Buf, "pid+", 4))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						Hold.Splits[s].ProcessID = C_strtou32(EqS, NULL, 0);
+						
+						if (!ProcessID)
+							ProcessID = Hold.Splits[s].ProcessID;
+					}
+		}
+		
+			// Profile UUID of split
+		else if (!strncasecmp(Buf, "puuid+", 6))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						strncpy(Hold.Splits[s].ProfUUID, EqS, MAXUUIDLENGTH);
+					}
+		}
+		
+			// Profile Display Name of split
+		else if (!strncasecmp(Buf, "pdn+", 4))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						strncpy(Hold.Splits[s].DispName, EqS, MAXPLAYERNAME);
+					}
+		}
+			
+			// Color of a split
+		else if (!strncasecmp(Buf, "pc+", 3))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						Hold.Splits[s].Color = C_strtou32(EqS, NULL, 0);
+					}
+		}
+			
+			// VTeam of a split
+		else if (!strncasecmp(Buf, "vt+", 3))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						Hold.Splits[s].VTeam = C_strtou32(EqS, NULL, 0);
+					}
+		}
+			
+			// CounterOp Status of a split
+		else if (!strncasecmp(Buf, "pcp+", 3))
+		{
+			if ((Plus = strchr(Buf, '+')))
+				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
+					if (s >= 0 && s < MAXSPLITSCREEN)
+					{
+						Hold.Splits[s].Active = true;
+						Hold.Splits[s].CounterOp = INFO_BoolFromString(EqS);
+					}
+		}
+	}
+	
+	/* See if endpoint was already added? */
+	EP = D_XBEndPointForAddr(a_Addr);
+	
+	// It was, no need to resend because it is reliable packet
+	if (EP)
+		return true;
+	
+	/* Create new endpoint */
+	EP = D_XBNewEndPoint(a_Desc, a_Addr);
+	
+	EP->ProcessID = ProcessID;
+	memmove(EP->Splits, Hold.Splits, sizeof(Hold.Splits));
+	
+	// Make the client reliable now
+	D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_ADDHOST, (intptr_t)a_Addr);
+	
+	// Inform client of their endpoint
+	D_BSBaseBlock(a_Desc->RelBS, (a_Desc->Master ? "SYNJ" : "SYNC"));
+	
+	D_BSwu32(a_Desc->RelBS, EP->HostID);
+	D_BSwu32(a_Desc->RelBS, EP->ProcessID);
+	
+	memset(Buf, 0, sizeof(Buf));
+	I_NetHostToString(&EP->Addr, Buf, BUFSIZE - 1);
+	D_BSws(a_Desc->RelBS, Buf);
+	
+	// Send away
+	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
+	
+	/* Put message on server */
+	// Count players joining
+	for (i = s = 0; i < MAXSPLITSCREEN; i++)
+		if (EP->Splits[i].Active)
+			s++;
+	
+	// Show message
+	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLCONNECT, "%s%i%s\n", Buf, s, (s == 1 ? "" : "s"));
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* DS_JWJoins() -- Do join window joins */
+static void DS_JWJoins(D_XPlayer_t* const a_Player, void* const a_Data)
+{
+	D_XEndPoint_t* EP;
+	int32_t s;
+	
+	/* Initialize Player */
+	a_Player->Flags = 0;
+	a_Player->HostID = EP->HostID;
+	
+	/* Get endpoint */
+	EP = a_Data;
+	
+	// Oops?
+	if (!EP)
+	{
+		a_Player->Flags = DXPF_DEFUNCT;
+		return;
+	}
+	
+	/* Get screen to add for */
+	s = EP->ScreenToAdd;
+	
+	/* Fill in info */
+	a_Player->Color = EP->Splits[s].Color;
+	a_Player->VTeam = EP->Splits[s].VTeam;
+	a_Player->CounterOp = EP->Splits[s].CounterOp;
+	a_Player->ClProcessID = EP->Splits[s].ProcessID;
+	
+	// Copy names
+	strncat(a_Player->DisplayName, EP->Splits[s].DispName, MAXPLAYERNAME);
+	strncat(a_Player->ProfileUUID, EP->Splits[s].ProfUUID, MAXUUIDLENGTH);
+}
+
 /*---------------------------------------------------------------------------*/
 
 /* DS_DoMaster() -- Handles master connection */
 static void DS_DoMaster(D_XDesc_t* const a_Desc)
 {
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	bool_t IsServer;
+	int32_t i;	
+	
+	/* Client in master mode */
+	if (!D_XNetIsServer())
+	{
+		// Did not anti-connect yet
+		if (!a_Desc->Data.Master.RemSent)
+		{
+			// Sent requst already?
+			if (g_ProgramTic < a_Desc->Data.Master.LastAnti)
+				return;
+		
+			// wait a second and print a message
+			a_Desc->Data.Master.LastAnti = g_ProgramTic + TICRATE;
+			CONL_OutputUT(CT_NETWORK, DSTR_DXP_WAITINGFORCONN, "\n");
+		
+			// Find endpoint, which will belong to client
+			for (i = 0; i < g_NumXEP; i++)
+				if (g_XEP[i])
+					break;
+		
+			// Not found? No client connection yet
+			if (g_NumXEP == 0 || i >= g_NumXEP)
+				return;
+			
+			// Do not send multiple times
+			if (!a_Desc->Data.Master.RemSent)
+			{
+				// Anti-Connect sync packet
+				D_BSBaseBlock(a_Desc->RelBS, "CSYN");
+			
+				// Record Data
+				D_BSwu8(a_Desc->RelBS, false);	// Not a server
+				D_BSws(a_Desc->RelBS, "version=" REMOOD_FULLVERSIONSTRING);
+				DS_DumpSplitInfo(a_Desc->RelBS);
+			
+				D_BSwu8(a_Desc->RelBS, 0);	// End of strings
+			
+				// Send to remote bound host
+				D_BSRecordNetBlock(a_Desc->RelBS, &g_XEP[i]->Addr);
+			
+				// Only need to send request once
+				a_Desc->Data.Master.RemSent = true;
+			}
+		}
+		
+		// Anti connected
+		else
+		{
+		}
+	}
+	
+	/* Server Mode */
+	else
+	{
+	}
+#undef BUFSIZE
 }
 
 /* DS_DoSlave() -- Handles slave connection */
@@ -153,8 +468,7 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 {
 #define BUFSIZE 64
 	char Buf[BUFSIZE];
-	int i;
-	D_ProfileEx_t* Prof;
+	bool_t IsServer;
 	
 	/* Not Syncronized? */
 	if (!a_Desc->Data.Slave.Synced)
@@ -163,42 +477,20 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 		if (g_ProgramTic < a_Desc->Data.Slave.LastSyncReq)
 			return;
 		
+		// Get server mode
+		IsServer = D_XNetIsServer();
+		
 		// Build syncronization packet
 		D_BSBaseBlock(a_Desc->StdBS, "GSYN");
 		
 		// Record Data
-		D_BSwu8(a_Desc->StdBS, D_XNetIsServer());	// We are server?
+		D_BSwu8(a_Desc->StdBS, IsServer);	// We are server?
 		
 		D_BSws(a_Desc->StdBS, "version=" REMOOD_FULLVERSIONSTRING);
 		
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-		{
-			// No player here?
-			if (!D_ScrSplitHasPlayer(i))
-				continue;
-			
-			// Process ID of screen
-			memset(Buf, 0, sizeof(Buf));
-			snprintf(Buf, BUFSIZE - 1, "pid+%i=%08x", i, g_Splits[i].ProcessID);
-			D_BSws(a_Desc->StdBS, Buf);
-			
-			// Profile?
-			Prof = g_Splits[i].Profile;
-			
-			// Dump profile info
-			if (Prof)
-			{
-				// UUID of profile
-				memset(Buf, 0, sizeof(Buf));
-				snprintf(Buf, BUFSIZE - 1, "puuid+%i=%s", i, Prof->UUID);
-				D_BSws(a_Desc->StdBS, Buf);
-				
-				// Display Name
-				memset(Buf, 0, sizeof(Buf));
-				snprintf(Buf, BUFSIZE - 1, "pdn+%i=%s", i, Prof->DisplayName);
-				D_BSws(a_Desc->StdBS, Buf);
-			}
-		}
+		// Master side won't care about our splits if we are the server!
+		if (!IsServer)
+			DS_DumpSplitInfo(a_Desc->StdBS);
 		
 		D_BSwu8(a_Desc->StdBS, 0);	// End of strings
 		
@@ -223,6 +515,69 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 /* DS_DoServer() -- Handles server connection */
 static void DS_DoServer(D_XDesc_t* const a_Desc)
 {
+	static bool_t DoingJoin;
+	D_XEndPoint_t* Joins[MAXPLAYERS];
+	int32_t i, j, s, ns, fs;
+	D_XPlayer_t* XPlayer;
+	
+	/* Perform join windows? */
+	if (g_ProgramTic >= a_Desc->CS.Server.JoinWindowTime)
+	{
+		// Clear joins
+		memset(Joins, 0, sizeof(Joins));
+		
+		// Go through all clients
+		j = 0;
+		if (!DoingJoin)
+			for (i = 0; g_NumXEP; i++)
+				if (g_XEP[i])
+					if (!g_XEP[i]->Latched && g_XEP[i]->SignalReady &&
+						g_ProgramTic >= g_XEP[i]->ReadyTime)
+					{
+						// Make them join
+						if (j < MAXPLAYERS)
+							Joins[j++] = g_XEP[i];
+					}
+		
+		// Increase until next join window
+		a_Desc->CS.Server.JoinWindowTime = g_ProgramTic + (l_SVJoinWindow.Value->Int * TICRATE);
+		
+		// Enough players waiting
+		if (j > 0)
+		{
+			// Performing joins now
+			DoingJoin = true;
+			
+			// Go through all endpoints and do massive xplayer generation
+				// For each of their screens
+			for (i = 0; i < j; i++)
+			{
+				// Count how many screens are playing
+				for (s = ns = 0, fs = -1; s < MAXSPLITSCREEN; s++)
+					if (Joins[i]->Splits[s].Active)
+					{
+						if (fs == -1)
+							fs = s;
+						ns++;
+					}
+				
+				// Now add each player
+				for (s = 0; s < MAXSPLITSCREEN; s++)
+				{
+					// Player has no split players or their split player happens
+						// to be P2, P3, or P4, but no P1
+					if (!(Joins[i]->Splits[s].Active || (!ns && s == 0) || (s == fs)))
+						continue;
+					
+					// Create their XPlayer
+					Joins[i]->ScreenToAdd = s;
+					XPlayer = D_XNetAddPlayer(DS_JWJoins, Joins[i], false);
+				}
+			}
+			
+			// Save the game
+		}
+	}
 }
 
 /* DS_DoClient() -- Handles client connection */
@@ -236,7 +591,7 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 	const WL_WADFile_t* WAD;
 	
 	/* Get pointer to the current level */
-	LevelP = &a_Desc->Client.SyncLevel;
+	LevelP = &a_Desc->CS.Client.SyncLevel;
 	
 	/* Obtain route to server */
 	RelBS = D_XBRouteToServer(&StdBS, &HostAddr);
@@ -253,12 +608,9 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 			// Master -- If a route to the server exists, level up
 			if (a_Desc->Master)
 			{
-				for (i = 0; i < g_NumXEP; i++)
-					if (g_XEP[i])
-					{
-						*LevelP += 1;
-						break;
-					}
+				// Needs anti-connect
+				if (a_Desc->Data.Master.AntiConnect)
+					*LevelP += 1;
 			}
 			
 			// Slave -- Otherwise, wait until we are connected
@@ -273,7 +625,7 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 			// Listing WAD files used by server
 		case DXSL_LISTWADS:
 			// Send request to server to check the WADs it is using
-			if (!a_Desc->Client.SentReqWAD)
+			if (!a_Desc->CS.Client.SentReqWAD)
 			{
 				// Send request to server
 				D_BSBaseBlock(RelBS, "RQFL");
@@ -282,7 +634,7 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 				D_BSRecordNetBlock(RelBS, HostAddr);
 				
 				// Sent request
-				a_Desc->Client.SentReqWAD = true;
+				a_Desc->CS.Client.SentReqWAD = true;
 			}
 			break;
 			
@@ -397,7 +749,7 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 			// Wait for join window
 		case DXSL_WAITFORWINDOW:
 			// Ready and waiting for the join window
-			if (!a_Desc->Client.JoinWait)
+			if (!a_Desc->CS.Client.JoinWait)
 			{
 				// Send request to server
 				D_BSBaseBlock(RelBS, "JRDY");
@@ -406,7 +758,7 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 				D_BSRecordNetBlock(RelBS, HostAddr);
 				
 				// Don't send message again
-				a_Desc->Client.JoinWait = true;
+				a_Desc->CS.Client.JoinWait = true;
 			}
 			break;
 		
@@ -421,136 +773,71 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 /* DXP_GSYN() -- Game Synchronize Connection */
 static bool_t DXP_GSYN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
-#define BUFSIZE 72
-	char Buf[BUFSIZE];
 	uint8_t RemoteIsServer;
-	char *EqS, *Plus;
-	int32_t s, i;
-	
-	uint32_t ProcessID;
-	D_XEndPoint_t* EP;
-	D_XEndPoint_t Hold;
+	bool_t IsServer;
+	int32_t i;
 	
 	/* Read if the remote says it is a server */
 	RemoteIsServer = D_BSru8(a_Desc->RelBS);
+	IsServer = D_XNetIsServer();
 	
 	// Incompatible
-	if (!a_Desc->Master || ((!!RemoteIsServer) == (!!D_XNetIsServer())))
+	if (!a_Desc->Master || ((!!RemoteIsServer) == (!!IsServer)))
 	{
 		D_XPSendDisconnect(a_Desc, a_Desc->StdBS, a_Addr, "Remote end has same connection type gender.");
 		return true;
 	}
 	
-	/* Init Settings */
-	ProcessID = 0;
-	memset(&Hold, 0, sizeof(Hold));
-	
-	/* Read String Settings */
-	for (;;)
-	{
-		// Read new string
-		memset(Buf, 0, sizeof(Buf));
-		D_BSrs(a_Desc->RelBS, Buf, BUFSIZE - 1);
+	/* If we are a client, only permit one endpoint */
+	if (!IsServer)
+	{	
+		// Break on the first sight
+		for (i = 0; i < g_NumXEP; i++)
+			if (g_XEP[i])
+				break;
 		
-		// End of strings?
-		if (!Buf[0])
-			break;
-		
-		// Get equal sign and zero it out
-		EqS = strchr(Buf, '=');
-		
-		if (!EqS)
-			continue;
-		
-		*(EqS++) = 0;
-		
-		// Process dynamic setting
-			// Version
-		if (!strcasecmp(Buf, "version"))
-		{
-		}
-			
-			// ProcessID of a split
-		else if (!strncasecmp(Buf, "pid+", 4))
-		{
-			if ((Plus = strchr(Buf, '+')))
-				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
-					{
-						Hold.Splits[s].Active = true;
-						Hold.Splits[s].ProcessID = C_strtou32(EqS, NULL, 0);
-						
-						if (!ProcessID)
-							ProcessID = Hold.Splits[s].ProcessID;
-					}
-		}
-		
-			// Profile UUID of split
-		else if (!strncasecmp(Buf, "puuid+", 6))
-		{
-			if ((Plus = strchr(Buf, '+')))
-				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
-					{
-						Hold.Splits[s].Active = true;
-						strncpy(Hold.Splits[s].ProfUUID, EqS, MAXUUIDLENGTH);
-					}
-		}
-		
-			// Profile Display Name of split
-		else if (!strncasecmp(Buf, "pdn+", 4))
-		{
-			if ((Plus = strchr(Buf, '+')))
-				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
-					{
-						Hold.Splits[s].Active = true;
-						strncpy(Hold.Splits[s].DispName, EqS, MAXPLAYERNAME);
-					}
-		}
+		// Something is around
+		if (i < g_NumXEP)
+			return false;
 	}
 	
-	/* See if endpoint was already added? */
-	EP = D_XBEndPointForAddr(a_Addr);
+	/* Otherwise always bring in the client */
+	return DS_BringInClient(a_Desc, a_Header, a_Flags, a_Addr, a_EP, a_Desc->RelBS);
+}
+
+/* DXP_CSYN() -- Client Synchronize Connection */
+static bool_t DXP_CSYN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	uint8_t RemoteIsServer;
+	bool_t IsServer;
+	int32_t i;
 	
-	// It was, no need to resend because it is reliable packet
-	if (EP)
+	/* Read if the remote says it is a server */
+	RemoteIsServer = D_BSru8(a_Desc->RelBS);
+	IsServer = D_XNetIsServer();
+	
+	// Incompatible
+	if (a_Desc->Master || ((!!RemoteIsServer) == (!!IsServer)))
+	{
+		D_XPSendDisconnect(a_Desc, a_Desc->StdBS, a_Addr, "Remote end has same connection type gender.");
 		return true;
+	}
 	
-	/* Create new endpoint */
-	EP = D_XBNewEndPoint(a_Desc, a_Addr);
+	/* If we are a server, only permit one endpoint */
+	if (IsServer)
+	{	
+		// Break on the first sight
+		for (i = 0; i < g_NumXEP; i++)
+			if (g_XEP[i])
+				break;
+		
+		// Something is around
+		if (i < g_NumXEP)
+			return false;
+	}
 	
-	EP->ProcessID = ProcessID;
-	memmove(EP->Splits, Hold.Splits, sizeof(Hold.Splits));
-	
-	// Make the client reliable now
-	D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_ADDHOST, (intptr_t)a_Addr);
-	
-	// Inform client of their endpoint
-	D_BSBaseBlock(a_Desc->RelBS, "SYNJ");
-	
-	D_BSwu32(a_Desc->RelBS, EP->HostID);
-	D_BSwu32(a_Desc->RelBS, EP->ProcessID);
-	
-	memset(Buf, 0, sizeof(Buf));
-	I_NetHostToString(&EP->Addr, Buf, BUFSIZE - 1);
-	D_BSws(a_Desc->RelBS, Buf);
-	
-	// Send away
-	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
-	
-	/* Put message on server */
-	// Count players joining
-	for (i = s = 0; i < MAXSPLITSCREEN; i++)
-		if (EP->Splits[i].Active)
-			s++;
-	
-	// Show message
-	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLCONNECT, "%s%i%s\n", Buf, s, (s == 1 ? "" : "s"));
-	
-	/* Success! */
-	return true;
-#undef BUFSIZE
+	/* Otherwise always bring in the client */
+	return DS_BringInClient(a_Desc, a_Header, a_Flags, a_Addr, a_EP, a_Desc->RelBS);
 }
 
 /* DXP_DISC() -- Disconnect Received */
@@ -610,6 +897,28 @@ static bool_t DXP_SYNJ(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return true;
 }
 
+/* DXP_SYNC() -- Anti-Synchronization Accepted */
+static bool_t DXP_SYNC(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	uint32_t HostID;
+	
+	/* Read out HostID */
+	HostID = D_BSru32(a_Desc->RelBS);
+	
+	// Check for invalid address
+	if (!HostID)
+		return false;
+	
+	// Set address
+	D_XNetSetHostID(HostID);
+	
+	/* Set as connected now */
+	a_Desc->Data.Master.AntiConnect = true;
+	
+	/* Success! */
+	return true;
+}
+
 /* DXP_RQFL() -- Request File List */
 static bool_t DXP_RQFL(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
@@ -657,7 +966,7 @@ static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_XWADCheck_t* Check;
 	
 	/* In wrong sync mode? */
-	if (a_Desc->Client.SyncLevel != DXSL_LISTWADS)
+	if (a_Desc->CS.Client.SyncLevel != DXSL_LISTWADS)
 		return false;	
 	
 	/* Show Header */
@@ -723,7 +1032,7 @@ static bool_t DXP_WADS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	}
 	
 	/* Move to next synchronization level */
-	a_Desc->Client.SyncLevel++;
+	a_Desc->CS.Client.SyncLevel++;
 	
 	/* Success! */
 	return true;
@@ -746,6 +1055,7 @@ static bool_t DXP_JRDY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	/* Otherwise, set as being ready to enter the true game */
 	a_EP->SignalReady = true;
+	a_EP->ReadyTime = g_ProgramTic;
 	I_NetHostToString(a_Addr, Buf, BUFSIZE);
 	CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLIENTREADYWAIT, "%s\n", Buf);
 	
@@ -775,8 +1085,10 @@ static const struct
 } c_CSPacks[] =
 {
 	{"GSYN", DXP_GSYN, PF_MASTER},
+	{"CSYN", DXP_CSYN, PF_SLAVE},
 	{"DISC", DXP_DISC, PF_SLAVE},
 	{"SYNJ", DXP_SYNJ, PF_SLAVE | PF_REL},
+	{"SYNC", DXP_SYNC, PF_MASTER | PF_REL},
 	{"RQFL", DXP_RQFL, PF_SERVER | PF_REL},
 	{"WADS", DXP_WADS, PF_CLIENT | PF_REL},
 	{"JRDY", DXP_JRDY, PF_SERVER | PF_REL},
@@ -790,6 +1102,7 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 	char Header[5];
 	int32_t i, b;
 	I_HostAddress_t RemAddr;
+	I_HostAddress_t* SvRoute;
 	bool_t Continue;
 	uint32_t Flags;
 	bool_t Authed;

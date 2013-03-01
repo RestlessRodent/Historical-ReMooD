@@ -62,6 +62,34 @@ typedef enum D_XSyncLevel_e
 *** STRUCTURES ***
 *****************/
 
+/* D_XEndPoint_t -- Endpoint connection */
+typedef struct D_XEndPoint_s
+{
+	struct D_XDesc_s* Desc;						// Descriptor being used
+	I_HostAddress_t Addr;						// Address allocated
+	tic_t LastSeen;								// Last seen at
+	
+	uint32_t HostID;							// Host ID
+	uint32_t ProcessID;							// Standard Process ID
+	D_XSyncLevel_t SyncLevel;					// Synchronization level
+	
+	struct
+	{
+		bool_t Active;							// Active Split
+		uint32_t ProcessID;						// Initial Process ID
+		char DispName[MAXPLAYERNAME];			// Display Name
+		char ProfUUID[MAXUUIDLENGTH + 1];		// Profile UUID
+		int8_t Color;							// Color of player
+		int8_t VTeam;							// Virtul Team
+		bool_t CounterOp;						// Counter-op
+	} Splits[MAXSPLITSCREEN];					// Splitscreens
+	
+	bool_t SignalReady;							// Signaled ready to play
+	tic_t ReadyTime;							// Ready time
+	bool_t Latched;								// Latched into game
+	int32_t ScreenToAdd;						// Screen to add for
+} D_XEndPoint_t;
+
 /* D_XDesc_t -- Socket descriptor */
 typedef struct D_XDesc_s
 {
@@ -76,7 +104,9 @@ typedef struct D_XDesc_s
 	{
 		struct
 		{
+			bool_t RemSent;						// Sent to remote?
 			bool_t AntiConnect;					// Performed an anti-connect
+			tic_t LastAnti;						// Last anti connection
 		} Master;								// Master Data
 		
 		struct
@@ -86,35 +116,21 @@ typedef struct D_XDesc_s
 		} Slave;								// Slave Data
 	} Data;										// Specific Data
 	
-	struct
+	union
 	{
-		D_XSyncLevel_t SyncLevel;				// Synchronization level
-		bool_t SentReqWAD;						// Sent requested WADs
-		bool_t JoinWait;						// Join waiting
-	} Client;									// Client Stuff
+		struct
+		{
+			D_XSyncLevel_t SyncLevel;			// Synchronization level
+			bool_t SentReqWAD;					// Sent requested WADs
+			bool_t JoinWait;					// Join waiting
+		} Client;								// Client Stuff
+	
+		struct
+		{
+			tic_t JoinWindowTime;				// Time until next JW
+		} Server;								// Server Stuff
+	} CS;										// Client/Server Stuff
 } D_XDesc_t;
-
-/* D_XEndPoint_t -- Endpoint connection */
-typedef struct D_XEndPoint_s
-{
-	D_XDesc_t* Desc;							// Descriptor being used
-	I_HostAddress_t Addr;						// Address allocated
-	tic_t LastSeen;								// Last seen at
-	
-	uint32_t HostID;							// Host ID
-	uint32_t ProcessID;							// Standard Process ID
-	D_XSyncLevel_t SyncLevel;					// Synchronization level
-	
-	struct
-	{
-		bool_t Active;							// Active Split
-		uint32_t ProcessID;						// Initial Process ID
-		char DispName[MAXPLAYERNAME];			// Display Name
-		char ProfUUID[MAXUUIDLENGTH + 1];		// Profile UUID
-	} Splits[MAXSPLITSCREEN];					// Splitscreens
-	
-	bool_t SignalReady;							// Signaled ready to play
-} D_XEndPoint_t;
 
 /**************
 *** GLOBALS ***
@@ -152,6 +168,7 @@ void D_XBSocketDestroy(void);
 void D_XBDropHost(I_HostAddress_t* const a_Addr);
 
 D_BS_t* D_XBRouteToServer(D_BS_t** const a_StdBSP, I_HostAddress_t** const a_AddrP);
+D_BS_t* D_XBIterClient(D_BS_t** const a_StdBSP, I_HostAddress_t** const a_AddrP);
 
 D_XEndPoint_t* D_XBNewEndPoint(D_XDesc_t* const a_Desc, I_HostAddress_t* const a_Addr);
 void D_XBDelEndPoint(D_XEndPoint_t* const a_XEP, const char* const a_Reason);

@@ -167,6 +167,7 @@ static const struct
 #define QUICKDS(x,s) {#x, offsetof(D_ProfileEx_t, x), s}
 	QUICKDS(DisplayName, PDST_STRING),
 	QUICKDS(Color, PDST_UINT8),
+	QUICKDS(VTeam, PDST_UINT8),
 	QUICKDS(JoyControl, PDST_UINT8),
 	QUICKDS(SlowTurnTime, PDST_TIC),
 	QUICKDS(MouseSens[0], PDST_INT32),
@@ -196,6 +197,7 @@ static const struct
 	QUICKDS(SlowTurn, PDST_BOOL),
 	QUICKDS(LookSpring, PDST_BOOL),
 	QUICKDS(JoyAutoRun, PDST_BOOL),
+	QUICKDS(CounterOp, PDST_BOOL),
 	
 	{"", 0, 0},
 #undef QUICKDS
