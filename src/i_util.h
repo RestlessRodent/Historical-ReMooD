@@ -49,6 +49,7 @@ typedef enum I_DataStorageType_e
 	DST_CONFIG,									// Config Dir (remoodex.cfg)
 	DST_DATA,									// Data Dir (Demos, saves, etc.)
 	DST_EXE,									// Executable Directory
+	DST_TEMP,									// Temporary Directory
 	
 	NUMDATASTORAGETYPES
 } I_DataStorageType_t;

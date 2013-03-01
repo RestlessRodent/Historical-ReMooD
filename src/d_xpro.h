@@ -175,5 +175,10 @@ void D_XBDelEndPoint(D_XEndPoint_t* const a_XEP, const char* const a_Reason);
 D_XEndPoint_t* D_XBEndPointForAddr(I_HostAddress_t* const a_Addr);
 D_XEndPoint_t* D_XBEndPointForID(const uint32_t a_ID);
 
+/*** D_XFILE.C ***/
+
+bool_t D_XFPrepFile(const char* const a_File, int32_t* const a_FileRef);
+bool_t D_XFSendFile(const int32_t a_FileRef, I_HostAddress_t* const a_Addr, D_BS_t* const a_RelBS, D_BS_t* const a_StdBS);
+
 #endif /* __D_XPRO_H__ */
 

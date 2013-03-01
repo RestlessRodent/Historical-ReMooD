@@ -1472,10 +1472,7 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 #if defined(_WIN32)
 	HMODULE hMod;
 	char* BaseN;
-	
-#if defined(_UNICODE)
 	TCHAR Path[MAX_PATH];
-#endif
 
 #elif defined(__unix__)
 	char CheckPath[PATH_MAX];
@@ -1521,6 +1518,22 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 			*BaseN = 0;
 		
 		// Return with size
+		return strlen(a_Out);
+	}
+	
+	// Temporary Dir
+	else if (a_Type == DST_TEMP)
+	{
+		// Get temporary directory
+		memset(Path, 0, sizeof(Path));
+		GetTempPath(MAX_PATH - 1, Path);
+		
+		// Slowly Copy
+		for (i = 0; i < MAX_PATH && Path[i] && i < a_Size; i++)
+			a_Out[i] = Path[i];
+		a_Out[a_Size - 1] = 0;
+		
+		// Return size of output
 		return strlen(a_Out);
 	}
 	
@@ -1605,6 +1618,13 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 					while (PathEnv);
 				break;
 		}
+	}
+	
+	// Hardcoded paths are easy
+	else if (a_Type == DST_TEMP)
+	{
+		strncat(a_Out, "/tmp", a_Size);
+		return strlen(a_Out);
 	}
 	
 	// Get XDG Config directory

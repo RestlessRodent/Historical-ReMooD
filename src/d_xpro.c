@@ -68,6 +68,8 @@ extern CONL_StaticVar_t l_SVJoinWindow;
 *************/
 
 static D_XWADCheck_t* l_WADChecks = NULL;		// WAD Checks
+static bool_t l_PerfJoins = false;				// Performing Joins
+static int32_t l_SaveBeingSent = 0;				// Save game being sent
 
 /****************
 *** FUNCTIONS ***
@@ -390,6 +392,119 @@ static void DS_JWJoins(D_XPlayer_t* const a_Player, void* const a_Data)
 	strncat(a_Player->ProfileUUID, EP->Splits[s].ProfUUID, MAXUUIDLENGTH);
 }
 
+/* DS_HandleJoinWindow() -- Handle join windows */
+static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
+{
+#define BUFSIZE 128
+#define MINISIZE 12
+	char Buf[BUFSIZE];
+	char Mini[MINISIZE];
+	D_XEndPoint_t* Joins[MAXPLAYERS];
+	D_XPlayer_t* XJoins[MAXPLAYERS * MAXSPLITSCREEN];
+	int32_t i, j, s, ns, fs, x, k;
+	
+	/* Perform join windows? */
+	if (g_ProgramTic >= a_Desc->CS.Server.JoinWindowTime)
+	{
+		// Clear joins
+		memset(Joins, 0, sizeof(Joins));
+		memset(XJoins, 0, sizeof(XJoins));
+		
+		// Go through all clients
+		j = x = 0;
+		if (!l_PerfJoins)
+			for (i = 0; i < g_NumXEP; i++)
+				if (g_XEP[i])
+					if (!g_XEP[i]->Latched && g_XEP[i]->SignalReady &&
+						g_ProgramTic >= g_XEP[i]->ReadyTime)
+					{
+						// Make them join
+						if (j < MAXPLAYERS)
+							Joins[j++] = g_XEP[i];
+					}
+		
+		// Increase until next join window
+		a_Desc->CS.Server.JoinWindowTime = g_ProgramTic + (l_SVJoinWindow.Value->Int * TICRATE);
+		
+		// Enough players waiting
+		if (j > 0)
+		{
+			// Performing joins now
+			l_PerfJoins = true;
+			
+			// Go through all endpoints and do massive xplayer generation
+				// For each of their screens
+			for (i = 0; i < j; i++)
+			{
+				// Count how many screens are playing
+				for (s = ns = 0, fs = -1; s < MAXSPLITSCREEN; s++)
+					if (Joins[i]->Splits[s].Active)
+					{
+						if (fs == -1)
+							fs = s;
+						ns++;
+					}
+				
+				// Now add each player
+				for (s = 0; s < MAXSPLITSCREEN; s++)
+				{
+					// Player has no split players or their split player happens
+						// to be P2, P3, or P4, but no P1
+					if (!(Joins[i]->Splits[s].Active || (!ns && s == 0) || (s == fs)))
+						continue;
+					
+					// Create their XPlayer
+					Joins[i]->ScreenToAdd = s;
+					
+					if (x < MAXPLAYERS * MAXSPLITSCREEN)
+						XJoins[x++] = D_XNetAddPlayer(DS_JWJoins, Joins[i], false);
+				}
+			}
+			
+			// Save the game and put in temporary dir
+				// Setup a name
+			memset(Buf, 0, sizeof(Buf));
+			memset(Mini, 0, sizeof(Mini));
+			I_GetStorageDir(Buf, BUFSIZE - 24, DST_TEMP);
+			strncat(Buf, "/", BUFSIZE);
+			snprintf(Mini, MINISIZE - 1, "%i", I_GetCurrentPID());
+			strncat(Buf, Mini, BUFSIZE);
+			strncat(Buf, ".rsv", BUFSIZE);
+			
+				// Save the game!
+			if (!P_SaveGameEx("Network Save", Buf, strlen(Buf), NULL, NULL))
+			{
+				// Guess we failed, guess it is time to kick the newcomers
+				for (i = 0; i < x; i++)
+					D_XNetKickPlayer(XJoins[i], "Failed to save game.", false);
+				return;
+			}
+			
+			// Send file away
+			l_SaveBeingSent = 0;
+			
+			if (!D_XFPrepFile(Buf, &l_SaveBeingSent))
+			{
+				for (i = 0; i < x; i++)
+					D_XNetKickPlayer(XJoins[i], "Failed to initialize file for sending.", false);
+				return;
+			}
+			
+			// Send file to each host
+			for (i = 0; i < j; i++)
+				if (!D_XFSendFile(l_SaveBeingSent, &Joins[i]->Addr, Joins[i]->Desc->RelBS, Joins[i]->Desc->StdBS))
+					for (k = 0; k < x; k++)
+						if (XJoins[k]->HostID == XJoins[i]->HostID)
+						{
+							D_XNetKickPlayer(XJoins[i], "Failed to send savegame.", false);
+							XJoins[k] = NULL;
+						}
+		}
+	}
+#undef BUFSIZE
+#undef MINISIZE
+}
+
 /*---------------------------------------------------------------------------*/
 
 /* DS_DoMaster() -- Handles master connection */
@@ -509,69 +624,8 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 /* DS_DoServer() -- Handles server connection */
 static void DS_DoServer(D_XDesc_t* const a_Desc)
 {
-	static bool_t DoingJoin;
-	D_XEndPoint_t* Joins[MAXPLAYERS];
-	int32_t i, j, s, ns, fs;
-	D_XPlayer_t* XPlayer;
-	
-	/* Perform join windows? */
-	if (g_ProgramTic >= a_Desc->CS.Server.JoinWindowTime)
-	{
-		// Clear joins
-		memset(Joins, 0, sizeof(Joins));
-		
-		// Go through all clients
-		j = 0;
-		if (!DoingJoin)
-			for (i = 0; i < g_NumXEP; i++)
-				if (g_XEP[i])
-					if (!g_XEP[i]->Latched && g_XEP[i]->SignalReady &&
-						g_ProgramTic >= g_XEP[i]->ReadyTime)
-					{
-						// Make them join
-						if (j < MAXPLAYERS)
-							Joins[j++] = g_XEP[i];
-					}
-		
-		// Increase until next join window
-		a_Desc->CS.Server.JoinWindowTime = g_ProgramTic + (l_SVJoinWindow.Value->Int * TICRATE);
-		
-		// Enough players waiting
-		if (j > 0)
-		{
-			// Performing joins now
-			DoingJoin = true;
-			
-			// Go through all endpoints and do massive xplayer generation
-				// For each of their screens
-			for (i = 0; i < j; i++)
-			{
-				// Count how many screens are playing
-				for (s = ns = 0, fs = -1; s < MAXSPLITSCREEN; s++)
-					if (Joins[i]->Splits[s].Active)
-					{
-						if (fs == -1)
-							fs = s;
-						ns++;
-					}
-				
-				// Now add each player
-				for (s = 0; s < MAXSPLITSCREEN; s++)
-				{
-					// Player has no split players or their split player happens
-						// to be P2, P3, or P4, but no P1
-					if (!(Joins[i]->Splits[s].Active || (!ns && s == 0) || (s == fs)))
-						continue;
-					
-					// Create their XPlayer
-					Joins[i]->ScreenToAdd = s;
-					XPlayer = D_XNetAddPlayer(DS_JWJoins, Joins[i], false);
-				}
-			}
-			
-			// Save the game
-		}
-	}
+	/* Handle join windows */
+	DS_HandleJoinWindow(a_Desc);
 }
 
 /* DS_DoClient() -- Handles client connection */
