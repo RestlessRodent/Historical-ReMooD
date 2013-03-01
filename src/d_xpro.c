@@ -368,19 +368,13 @@ static void DS_JWJoins(D_XPlayer_t* const a_Player, void* const a_Data)
 	D_XEndPoint_t* EP;
 	int32_t s;
 	
-	/* Initialize Player */
-	a_Player->Flags = 0;
-	a_Player->HostID = EP->HostID;
-	
 	/* Get endpoint */
 	EP = a_Data;
 	
-	// Oops?
-	if (!EP)
-	{
-		a_Player->Flags = DXPF_DEFUNCT;
-		return;
-	}
+	/* Initialize Player */
+	a_Player->Flags = 0;
+	a_Player->HostID = EP->HostID;
+	a_Player->Socket.EndPoint = EP;
 	
 	/* Get screen to add for */
 	s = EP->ScreenToAdd;
@@ -529,7 +523,7 @@ static void DS_DoServer(D_XDesc_t* const a_Desc)
 		// Go through all clients
 		j = 0;
 		if (!DoingJoin)
-			for (i = 0; g_NumXEP; i++)
+			for (i = 0; i < g_NumXEP; i++)
 				if (g_XEP[i])
 					if (!g_XEP[i]->Latched && g_XEP[i]->SignalReady &&
 						g_ProgramTic >= g_XEP[i]->ReadyTime)

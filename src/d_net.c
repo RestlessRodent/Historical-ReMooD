@@ -1202,12 +1202,26 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 			// See if the player is not shared by any more hosts (all gone)
 			for (j = 0, i = 0; i < g_NumXPlays; i++)
 				if (g_XPlays[i])
-					if (g_XPlays[i]->HostID == a_Player->HostID)
-						j++;
+				{
+					// Ignore the player being kicked
+					if (g_XPlays[i] == a_Player)
+						continue;
+					
+					// Ignore defunct players
+					if (g_XPlays[i]->Flags & DXPF_DEFUNCT)
+						continue;
+					
+					// Ignore non matching HostIDs
+					if (g_XPlays[i]->HostID != a_Player->HostID)
+						continue;
+					
+					// A player with the same host is still inside
+					j++;
+				}
 			
 			// None left, Send them a disconnect notice
 			if (!j)
-				D_XPDropXPlay(g_XPlays[i], a_Reason);
+				D_XPDropXPlay(a_Player, a_Reason);
 		}
 	}
 	
