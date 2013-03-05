@@ -293,7 +293,8 @@ bool_t WL_ValidExt(const char* const a_File)
 		!strcasecmp(ld, ".pk3") ||
 		!strcasecmp(ld, ".zip") ||
 		!strcasecmp(ld, ".7z") ||
-		!strcasecmp(ld, ".gz"))
+		!strcasecmp(ld, ".gz") ||
+		!strcasecmp(ld, ".rsv"))
 		return true;
 	
 	/* Presumed invalid */

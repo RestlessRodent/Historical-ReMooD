@@ -254,6 +254,7 @@ void D_XNetUpdate(void);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 
 void D_XNetInitialServer(void);
+void D_XNetBecomeServer(void);
 
 uint32_t D_XNetMakeID(const uint32_t a_ID);
 

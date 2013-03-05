@@ -154,6 +154,7 @@ void D_XPRunConnection(void);
 void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason);
 
 void D_XPRunCS(D_XDesc_t* const a_Desc);
+void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* const a_Sum, const uint32_t a_Size, I_HostAddress_t* const a_Addr, const tic_t a_TimeStart, const tic_t a_TimeEnd);
 
 /*** D_XBIND.C ***/
 
@@ -179,6 +180,12 @@ D_XEndPoint_t* D_XBEndPointForID(const uint32_t a_ID);
 
 bool_t D_XFPrepFile(const char* const a_File, int32_t* const a_FileRef);
 bool_t D_XFSendFile(const int32_t a_FileRef, I_HostAddress_t* const a_Addr, D_BS_t* const a_RelBS, D_BS_t* const a_StdBS);
+void D_XFStopTransferRef(const int32_t a_FileRef);
+void D_XFStopTransferHost(I_HostAddress_t* const a_Addr);
+void D_XFStopAll(void);
+
+bool_t D_XFFilePacket(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP);
+void D_XFHandleFiles(void);
 
 #endif /* __D_XPRO_H__ */
 

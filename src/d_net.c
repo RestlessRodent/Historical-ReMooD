@@ -3778,6 +3778,58 @@ void D_XNetInitialServer(void)
 #undef SMALLBUF
 }
 
+/* D_XNetBecomeServer() -- Become the server */
+void D_XNetBecomeServer(void)
+{
+	size_t i;
+	D_XPlayer_t* XPlay;
+	
+	/* Go through all XPlayers */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Not here?
+		if (!XPlay)
+			continue;
+		
+		// Local Player
+		if (XPlay->Flags & DXPF_LOCAL)
+		{
+			// Become server!
+			XPlay->Flags |= DXPF_SERVER;
+		}
+		
+		// Bot player
+		else if (XPlay->Flags & DXPF_BOT)
+		{
+			// Remove server and make local
+			XPlay->Flags &= ~DXPF_SERVER;
+			XPlay->Flags |= DXPF_LOCAL;
+		}
+		
+		// Other, remove server status if any
+		else
+		{
+			XPlay->Flags &= DXPF_SERVER;
+		}
+	}
+	
+	/* Kick any non local players */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Not here?
+		if (!XPlay)
+			continue;
+		
+		// Kick them?
+		if (!(XPlay->Flags & DXPF_LOCAL))
+			D_XNetKickPlayer(XPlay, "Became server player.", false);
+	}
+}
+
 /* D_XNetMakeHostID() -- Makes a random ID */
 uint32_t D_XNetMakeID(const uint32_t a_ID)
 {

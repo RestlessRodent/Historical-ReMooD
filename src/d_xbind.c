@@ -276,6 +276,9 @@ void D_XBSocketDestroy(void)
 		if (g_XEP[i])
 			D_XBDelEndPoint(g_XEP[i], "Server disconnect.");
 	
+	/* Delete all file transfers */
+	D_XFStopAll();
+	
 	/* Delete everything in reverse order */
 	D_BSCloseStream(g_XSocket->RelBS);
 	D_BSCloseStream(g_XSocket->StdBS);

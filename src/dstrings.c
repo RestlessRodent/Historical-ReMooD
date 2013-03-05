@@ -1028,6 +1028,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				  "DXP_BADWADEXT", "{zWAD {9$1{z/{3$2{z has an invalid extension, due to security measures."},
 	{			"DXP_CLIENTREADYWAIT", "{z{9$1{z is waiting for next join window."},
 	{			 "DXP_WAITINGFORCONN", "{zWaiting for connection..."},
+	{				   "DXP_SENDFILE", "{zSending file \"{3$1{z\" to {9$2{z."},
+	{				   "DXP_RECVFILE", "{zReceiving file \"{3$1{z\" from {9$2{z."},
+	{				"DXP_BADSAVELOAD", "{zFailed to load savegame \"{3$1{z\"."},
 	
 	/*** W_WAD.C ***/
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},

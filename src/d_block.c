@@ -436,7 +436,7 @@ bool_t DS_RBSLoopBack_FlushF(struct D_BS_s* const a_Stream)
 /* I_RBSNetSockData_t -- Network Socket Data */
 typedef struct I_RBSNetSockData_s
 {
-#define IRBSNETSOCKBUFSIZE 2048
+#define IRBSNETSOCKBUFSIZE 1300
 	I_NetSocket_t* Socket;						// Socket
 	uint8_t ReadBuf[IRBSNETSOCKBUFSIZE];		// Read Buffer Fill
 	uint8_t WriteBuf[IRBSNETSOCKBUFSIZE];		// Output Buffer Fill

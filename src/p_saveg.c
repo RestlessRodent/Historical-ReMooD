@@ -731,7 +731,8 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 /* PS_LoadNetState() -- Loads networked state */
 static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 {
-	uint32_t OurHost, SaveHost, i;
+	uint32_t OurHost, SaveHost;
+	int32_t i;
 	uint8_t Code;
 	D_XPlayer_t *XPlay;
 	char NameBuf[MAXPLAYERNAME];

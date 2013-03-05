@@ -396,7 +396,7 @@ static void DS_JWJoins(D_XPlayer_t* const a_Player, void* const a_Data)
 static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
 {
 #define BUFSIZE 128
-#define MINISIZE 12
+#define MINISIZE 16
 	char Buf[BUFSIZE];
 	char Mini[MINISIZE];
 	D_XEndPoint_t* Joins[MAXPLAYERS];
@@ -467,9 +467,8 @@ static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
 			memset(Mini, 0, sizeof(Mini));
 			I_GetStorageDir(Buf, BUFSIZE - 24, DST_TEMP);
 			strncat(Buf, "/", BUFSIZE);
-			snprintf(Mini, MINISIZE - 1, "%i", I_GetCurrentPID());
+			snprintf(Mini, MINISIZE - 1, "netg%04x.rsv", I_GetCurrentPID() & 0xFFFF);
 			strncat(Buf, Mini, BUFSIZE);
-			strncat(Buf, ".rsv", BUFSIZE);
 			
 				// Save the game!
 			if (!P_SaveGameEx("Network Save", Buf, strlen(Buf), NULL, NULL))
@@ -909,6 +908,7 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		D_XBSocketDestroy();
 		
 		// Transform self into server (everyone went bye)
+		D_XNetBecomeServer();
 	}
 	
 	/* Otherwise, a network disconnect */
@@ -1112,6 +1112,12 @@ static bool_t DXP_JRDY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
+/* DXP_FILE() -- File Handling */
+static bool_t DXP_FILE(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	return D_XFFilePacket(a_Desc, a_Header, a_Flags, a_Addr, a_EP);
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1121,7 +1127,8 @@ typedef enum D_CSPackFlag_e
 	PF_CLIENT			= UINT32_C(0x00000008),	// Need to be client
 	PF_REL				= UINT32_C(0x00000010), // Must be reliable
 	PF_NOREL			= UINT32_C(0x00000020),	// Must not be reliable
-	PF_SYNCED			= UINT32_C(0x00000040),	// Remote must be synced
+	PF_SYNCED			= UINT32_C(0x00000040),	// Remote must be synced (Slave)
+	PF_ONAUTH			= UINT32_C(0x00000080),	// Authorized Source
 } D_CSPackFlag_t;
 
 /* c_CSPacks -- Client/Server Packets */
@@ -1134,12 +1141,13 @@ static const struct
 {
 	{"GSYN", DXP_GSYN, PF_MASTER},
 	{"CSYN", DXP_CSYN, PF_SLAVE},
-	{"DISC", DXP_DISC, PF_SLAVE},
-	{"SYNJ", DXP_SYNJ, PF_SLAVE | PF_REL},
-	{"SYNC", DXP_SYNC, PF_MASTER | PF_REL},
-	{"RQFL", DXP_RQFL, PF_SERVER | PF_REL},
-	{"WADS", DXP_WADS, PF_CLIENT | PF_REL},
-	{"JRDY", DXP_JRDY, PF_SERVER | PF_REL},
+	{"DISC", DXP_DISC, PF_ONAUTH | PF_SLAVE},
+	{"SYNJ", DXP_SYNJ, PF_ONAUTH | PF_SLAVE | PF_REL},
+	{"SYNC", DXP_SYNC, PF_ONAUTH | PF_MASTER | PF_REL},
+	{"RQFL", DXP_RQFL, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"WADS", DXP_WADS, PF_ONAUTH | PF_CLIENT | PF_REL},
+	{"JRDY", DXP_JRDY, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"FILE", DXP_FILE, PF_ONAUTH},
 	
 	{NULL}
 };
@@ -1155,6 +1163,9 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 	uint32_t Flags;
 	bool_t Authed;
 	D_XEndPoint_t* EP;
+	
+	/* Handle Files */
+	D_XFHandleFiles();
 	
 	/* Handle standard state based packets */
 	// Master
@@ -1175,6 +1186,10 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 	/* Handle individual packets */
 	do
 	{
+		// Disconected?
+		if (!g_XSocket)
+			break;
+		
 		// Reset
 		memset(Header, 0, sizeof(Header));
 		memset(&RemAddr, 0, sizeof(RemAddr));
@@ -1218,6 +1233,13 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 			else
 				Flags |= PF_NOREL;
 				
+				// On Auth List
+			Authed = false;
+			D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_CHECKISONLIST, (intptr_t)&RemAddr);
+			D_BSStreamIOCtl(a_Desc->RelBS, DRBSIOCTL_GETISONLIST, (intptr_t)&Authed);
+			if (Authed)
+				Flags |= PF_ONAUTH;
+				
 				// Synced
 			if (!a_Desc->Master && a_Desc->Data.Slave.Synced)
 				Flags |= PF_SYNCED;
@@ -1259,7 +1281,61 @@ void D_XPRunCS(D_XDesc_t* const a_Desc)
 	
 	/* Flush reliable stream */
 	// Otherwise nothing is xmitted/rcved
-	D_BSFlushStream(a_Desc->RelBS);
+	if (g_XSocket)
+		D_BSFlushStream(a_Desc->RelBS);
+}
+
+/* D_XPGotFile() -- Got file from someone */
+void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* const a_Sum, const uint32_t a_Size, I_HostAddress_t* const a_Addr, const tic_t a_TimeStart, const tic_t a_TimeEnd)
+{
+	tic_t DlTime;
+	uint32_t BpS, BpT;
+	char* Name, *Ext;
+	
+	/* Check */
+	if (!a_Path || !a_Sum || !a_Size || !a_Addr)
+		return;
+	
+	/* Message */
+	DlTime = a_TimeEnd - a_TimeStart;
+	if (DlTime < 1)
+		DlTime = 1;
+	BpT = a_Size / DlTime;
+	BpS = BpT / TICRATE;
+	
+	/* Detect extension */
+	Name = WL_BaseNameEx(a_Path);
+	Ext = strrchr(Name, '.');
+	
+	// No extension found?
+	if (!Ext)
+		return;
+		
+	/* Save Game */
+	if (!strcasecmp(Ext, ".rsv"))
+	{
+		// Load Game
+		if (!P_LoadGameEx(NULL, a_Path, strlen(a_Path), NULL, NULL))
+		{
+			CONL_OutputUT(CT_NETWORK, DSTR_DXP_BADSAVELOAD, "%s\n", Name);
+			D_XNetDisconnect(false);
+			return;
+		}
+		
+		// Set as playing now if waiting for window
+		if (a_Desc->CS.Client.SyncLevel == DXSL_WAITFORWINDOW)
+			a_Desc->CS.Client.SyncLevel = DXSL_PLAYING;
+	}
+	
+	/* WAD File */
+	else if (WL_ValidExt(a_Path))
+	{
+	}
+	
+	/* Unknown */
+	else
+	{
+	}
 }
 
 /*---------------------------------------------------------------------------*/
