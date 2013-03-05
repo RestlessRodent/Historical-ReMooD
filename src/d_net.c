@@ -624,6 +624,11 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 	uint8_t* p;
 	uint64_t Left;
 	uint16_t u16;
+	uint32_t u32;
+	int32_t i, j;
+	ticcmd_t* Cmd;
+	uint16_t* dsP;
+	uint8_t* dsB;
 	
 	/* Check */
 	if (!a_TicBuf)
@@ -653,6 +658,98 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 		// Encode
 		LittleWriteUInt16(&p, u16);
 	} while (Left);
+	
+	/* Player Counts */
+	for (u32 = 0, i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			u32 |= UINT32_C(1) << i;
+	
+	// Write counts
+	LittleWriteUInt32(&p, u32);
+	
+	/* Encode player tics */
+	for (i = 0; i < MAXPLAYERS + 1; i++)
+	{
+		// Not in game?
+		if (!playeringame[i] && i != MAXPLAYERS)
+			continue;
+		
+		// Get Command for this player
+		Cmd = &TicBuf->Tics[i];
+		
+		// Encode Type
+		WriteUInt8(&p, Cmd->Ctrl.Type);
+		
+		// Standard player stuff
+		if (!Cmd->Ctrl.Type)
+		{	
+			// Set Data to encode
+			u16 = 0;
+
+#define __DIFFY(x,y) if (Cmd->Std.x) u16 |= y;
+#define __WRITE(x,y) if (u16 & x) y
+			
+			__DIFFY(forwardmove, DDB_FORWARD);
+			__DIFFY(sidemove, DDB_SIDE);
+			__DIFFY(aiming, DDB_AIMING);
+			__DIFFY(buttons, DDB_BUTTONS);
+			__DIFFY(angleturn, DDB_ANGLE);
+			__DIFFY(InventoryBits, DDB_INVENTORY);
+			__DIFFY(StatFlags, DDB_STATFLAGS);
+			__DIFFY(artifact, DDB_ARTIFACT);
+			__DIFFY(FlySwim, DDB_FLYSWIM);
+			__DIFFY(XSNewWeapon[0], DDB_WEAPON);
+			
+			LittleWriteUInt16((uint16_t**)&p, u16);
+			
+			__WRITE(DDB_FORWARD, WriteInt8(&p, Cmd->Std.forwardmove));
+			__WRITE(DDB_SIDE, WriteInt8(&p, Cmd->Std.sidemove));
+			__WRITE(DDB_AIMING, LittleWriteUInt16((uint16_t**)&p, Cmd->Std.aiming));
+			__WRITE(DDB_BUTTONS, LittleWriteUInt32((uint32_t**)&p, Cmd->Std.buttons));
+			__WRITE(DDB_ANGLE, LittleWriteInt16((int16_t**)&p, Cmd->Std.angleturn));
+			__WRITE(DDB_INVENTORY, WriteUInt8(&p, Cmd->Std.InventoryBits));
+			__WRITE(DDB_STATFLAGS, LittleWriteUInt32((uint32_t**)&p, Cmd->Std.StatFlags));
+			__WRITE(DDB_ARTIFACT, WriteUInt8(&p, Cmd->Std.artifact));
+			__WRITE(DDB_FLYSWIM, LittleWriteInt16((int16_t**)&p, Cmd->Std.FlySwim));
+			
+			if (u16 & DDB_WEAPON)
+				WriteString((uint8_t**)&p, Cmd->Std.XSNewWeapon);
+			
+			// Data pointers
+			dsP = &Cmd->Std.DataSize;
+			dsB = &Cmd->Std.DataBuf;
+#undef __WRITE	
+#undef __DIFFY
+		}
+		
+		// Extended data
+		else
+		{
+			// Data pointers
+			dsP = &Cmd->Ext.DataSize;
+			dsB = &Cmd->Ext.DataBuf;
+		}
+		
+		// Write pointer data
+		Left = *dsP;
+		do
+		{
+			// Get value and shift down
+			u16 = Left & UINT8_C(0x7F);
+			Left >>= 7;
+			
+			// More Data?
+			if (Left)
+				u16 |= UINT8_C(0x80);
+			
+			// Write Value
+			WriteUInt8(&p, u16);
+		} while (Left);
+		
+		// Write buffer
+		for (j = 0; j < *dsP; j++)
+			WriteUInt8(&p, dsP[j]);
+	}
 	
 	/* Done */
 	*a_OutD = Buf;

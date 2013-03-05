@@ -830,16 +830,11 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		{
 			// Read Header
 			inCode = D_BSru8(RelData->WrapStream);
-			inSlot = D_BSru16(RelData->WrapStream);
-			inKey = D_BSru32(RelData->WrapStream);
+			inSlot = D_BSru8(RelData->WrapStream);
+			inKey = D_BSru16(RelData->WrapStream);
 			inTime = D_BSru32(RelData->WrapStream);
 			inFTime = D_BSru32(RelData->WrapStream);
 			inSize = D_BSru16(RelData->WrapStream);
-			
-			// Reserved
-			D_BSru32(RelData->WrapStream);
-			D_BSru32(RelData->WrapStream);
-			D_BSru32(RelData->WrapStream);
 			
 			// Which Code?
 			switch (inCode)
@@ -867,16 +862,11 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			
 					// Write protocol head
 					D_BSwu8(RelData->WrapStream, 'A');	// A for ack
-					D_BSwu16(RelData->WrapStream, inSlot);	// Current slot
-					D_BSwu32(RelData->WrapStream, inKey);
+					D_BSwu8(RelData->WrapStream, inSlot);	// Current slot
+					D_BSwu16(RelData->WrapStream, inKey);
 					D_BSwu32(RelData->WrapStream, inTime);
 					D_BSwu32(RelData->WrapStream, inFTime);
 					D_BSwu16(RelData->WrapStream, inSize);
-			
-					// Reserved
-					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
-					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
-					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
 					
 					D_BSRecordNetBlock(RelData->WrapStream, &CurFlat->Address);
 					D_BSFlushStream(RelData->WrapStream);
@@ -891,7 +881,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 						PkP = &CurFlat->OutPks[inSlot];
 						
 						// Same key?
-						if (inKey == PkP->Key)
+						if ((inKey & UINT16_C(0xFFFF)) == (PkP->Key & UINT16_C(0xFFFF)))
 						{
 							// Clear Data
 							PkP->Key = 0;
@@ -1007,7 +997,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			
 			// Generate key and time
 			for (PkP->Key = 0; PkP->Key == 0;)	// cannot be zero!
-				PkP->Key = D_CMakePureRandom();
+				PkP->Key = D_CMakePureRandom() & UINT16_C(0xFFFF);
 			PkP->Time = PkP->FirstTime = ThisTime;
 			PkP->Transmit = true;
 			
@@ -1057,16 +1047,11 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			
 			// Write protocol head
 			D_BSwu8(RelData->WrapStream, 'P');	// P for packet
-			D_BSwu16(RelData->WrapStream, j);	// Current slot
-			D_BSwu32(RelData->WrapStream, PkP->Key);
+			D_BSwu8(RelData->WrapStream, j);	// Current slot
+			D_BSwu16(RelData->WrapStream, PkP->Key);
 			D_BSwu32(RelData->WrapStream, PkP->Time);
 			D_BSwu32(RelData->WrapStream, PkP->FirstTime);
 			D_BSwu16(RelData->WrapStream, PkP->Size);
-			
-			// Reserved
-			D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
-			D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
-			D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
 			
 			// Block Header
 			for (z = 0; z < 4; z++)

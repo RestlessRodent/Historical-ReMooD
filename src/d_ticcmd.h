@@ -190,7 +190,7 @@ typedef enum D_DiffBits_e
 	DDB_ANGLE						= 0x0100,	// Angle changes
 	DDB_INVENTORY					= 0x0200,	// Inventory Control
 	DDB_STATFLAGS					= 0x0400,	// Status Flags
-	DDB_PLAYER						= 0x0800,	// Forward Changes
+	DDB_PLAYER						= 0x0800,	// Player Changes
 	DDB_ARTIFACT					= 0x1000,	// Artifact Changes
 	DDB_UNUSED2000					= 0x2000,	// Unused
 	DDB_FLYSWIM						= 0x4000,	// Flying/Swimming
