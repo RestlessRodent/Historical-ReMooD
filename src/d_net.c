@@ -625,10 +625,10 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 	uint64_t Left;
 	uint16_t u16;
 	uint32_t u32;
-	int32_t i, j;
+	int32_t i, j, z;
 	ticcmd_t* Cmd;
 	uint16_t* dsP;
-	uint8_t* dsB;
+	uint8_t* dsB, u8;
 	
 	/* Check */
 	if (!a_TicBuf)
@@ -700,20 +700,51 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 			__DIFFY(FlySwim, DDB_FLYSWIM);
 			__DIFFY(XSNewWeapon[0], DDB_WEAPON);
 			
-			LittleWriteUInt16((uint16_t**)&p, u16);
+			// Save a byte by encoding the more important commands first
+			Left = u16;
+			u8 = u16 & UINT16_C(0x7F);
+			Left >>= 7;
+			if (Left)
+				u8 |= UINT8_C(0x80);
+			WriteUInt8(&p, u8);
+			if (Left)
+			{
+				u8 = Left & UINT16_C(0xFF);
+				WriteUInt8(&p, u8);
+			}
 			
 			__WRITE(DDB_FORWARD, WriteInt8(&p, Cmd->Std.forwardmove));
 			__WRITE(DDB_SIDE, WriteInt8(&p, Cmd->Std.sidemove));
 			__WRITE(DDB_AIMING, LittleWriteUInt16((uint16_t**)&p, Cmd->Std.aiming));
-			__WRITE(DDB_BUTTONS, LittleWriteUInt32((uint32_t**)&p, Cmd->Std.buttons));
 			__WRITE(DDB_ANGLE, LittleWriteInt16((int16_t**)&p, Cmd->Std.angleturn));
 			__WRITE(DDB_INVENTORY, WriteUInt8(&p, Cmd->Std.InventoryBits));
-			__WRITE(DDB_STATFLAGS, LittleWriteUInt32((uint32_t**)&p, Cmd->Std.StatFlags));
 			__WRITE(DDB_ARTIFACT, WriteUInt8(&p, Cmd->Std.artifact));
 			__WRITE(DDB_FLYSWIM, LittleWriteInt16((int16_t**)&p, Cmd->Std.FlySwim));
 			
 			if (u16 & DDB_WEAPON)
 				WriteString((uint8_t**)&p, Cmd->Std.XSNewWeapon);
+			
+			// Variable encode buttons and status flags
+			for (z = 0; z < 2; z++)
+			{
+				// Check if flag is not set, if not do not write anything
+				if (!(u16 & (z ? DDB_BUTTONS : DDB_STATFLAGS)))
+					continue;
+				
+				// Encode in variable length
+				
+				Left = (z ? Cmd->Std.buttons : Cmd->Std.StatFlags);
+				do
+				{
+					u8 = Left & UINT32_C(0x7F);
+					Left >>= 7;
+					
+					if (Left)
+						u8 |= UINT8_C(0x80);
+					
+					WriteUInt8(&p, u8);
+				} while (Left);
+			}
 			
 			// Data pointers
 			dsP = &Cmd->Std.DataSize;

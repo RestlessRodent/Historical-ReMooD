@@ -2195,8 +2195,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* c
 					DiffBits = D_BSru16(Data->CBs);
 		
 #define __READY(Arg,Add,Num) if (DiffBits & Add) CmdP->Std.Arg = D_BSr##Num(Data->CBs)
-
-					__READY(Player, DDB_PLAYER, u16);
+					
 					__READY(forwardmove, DDB_FORWARD, i8);
 					__READY(sidemove, DDB_SIDE, i8);
 					__READY(angleturn, DDB_ANGLE, i16);
@@ -2341,8 +2340,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32
 			DiffBits = 0;
 
 #define __DIFFY(Arg,Add) if (CmdP->Std.Arg != LastP->Std.Arg) DiffBits |= Add
-
-			__DIFFY(Player, DDB_PLAYER);
+			
 			__DIFFY(forwardmove, DDB_FORWARD);
 			__DIFFY(sidemove, DDB_SIDE);
 			__DIFFY(angleturn, DDB_ANGLE);
@@ -2364,8 +2362,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32
 			D_BSwu16(Data->CBs, DiffBits);
 		
 #define __WRITEY(Arg,Add,Num) if (DiffBits & Add) D_BSw##Num(Data->CBs, CmdP->Std.Arg)
-
-			__WRITEY(Player, DDB_PLAYER, u16);
+			
 			__WRITEY(forwardmove, DDB_FORWARD, i8);
 			__WRITEY(sidemove, DDB_SIDE, i8);
 			__WRITEY(angleturn, DDB_ANGLE, i16);

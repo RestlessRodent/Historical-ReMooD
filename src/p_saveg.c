@@ -379,7 +379,6 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 		if (a_TC->Ctrl.Type == 0)
 		{
 			// Standard Commands
-			D_BSwu16(a_Str, a_TC->Std.Player);
 			D_BSwi8(a_Str, a_TC->Std.forwardmove);
 			D_BSwi8(a_Str, a_TC->Std.sidemove);
 			D_BSwi16(a_Str, a_TC->Std.angleturn);
@@ -423,7 +422,6 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 		if (a_TC->Ctrl.Type == 0)
 		{
 			// Standard Commands
-			a_TC->Std.Player = D_BSru16(a_Str);
 			a_TC->Std.forwardmove = D_BSri8(a_Str);
 			a_TC->Std.sidemove = D_BSri8(a_Str);
 			a_TC->Std.angleturn = D_BSri16(a_Str);

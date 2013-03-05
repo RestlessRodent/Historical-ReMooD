@@ -80,6 +80,7 @@ typedef struct D_XFile_s
 	uint8_t* RecvHold;							// Receiving hold
 	tic_t RecvLastReq;							// Last chunk request
 	bool_t RecvGot[MAXHOLDCHUNKS];				// Chunks got in hold
+	bool_t RecvBlip;							// Blip the download time
 	
 	tic_t StartTime, EndTime;					// Transfer times
 } D_XFile_t;
@@ -675,6 +676,21 @@ void D_XFHandleFiles(void)
 			// Clear last spot
 			memset(&XFile->RecvHold[XFile->ChunkSize * (MAXHOLDCHUNKS - 1)], 0, XFile->ChunkSize);
 			XFile->RecvGot[MAXHOLDCHUNKS - 1] = false;
+			
+			// Since we got something, reduce the time every so tickers
+				// Make it odd
+			if (!XFile->RecvBlip)
+				XFile->RecvBlip = true;
+			
+				// Make it even
+			else
+			{
+				XFile->RecvBlip = false;
+				
+				// Reduce the Recieve queue to ask for a file faster
+				if (XFile->RecvLastReq >= g_ProgramTic)
+					XFile->RecvLastReq--;
+			}
 		}
 		
 		// Got file completely

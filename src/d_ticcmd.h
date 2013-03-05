@@ -111,8 +111,7 @@ typedef union
 	
 	struct
 	{
-		D_TicControl_t Ctrl;						// Control
-		uint16_t Player;						// Player it is meant for
+		D_TicControl_t Ctrl;					// Control
 		
 		int8_t forwardmove;						// *2048 for move
 		int8_t sidemove;						// *2048 for move
@@ -179,22 +178,27 @@ typedef enum D_TCJoinFlags_e
 /* D_DiffBits_t -- Diff bits */
 typedef enum D_DiffBits_e
 {
+	/* Important <= 128 */
 	DDB_FORWARD						= 0x0001,	// Forward Changes
 	DDB_SIDE						= 0x0002,	// Side Changes
 	DDB_AIMING						= 0x0004,	// Aiming Changes
 	DDB_BUTTONS						= 0x0008,	// Button Changes
 	DDB_WEAPON						= 0x0010,	// Weapon Changes
-	DDB_BAT							= 0x0020,	// Base turn angle changes
-	DDB_BAM							= 0x0040,	// Base aiming changes
-	DDB_UNUSED0080					= 0x0080,	// Unused
-	DDB_ANGLE						= 0x0100,	// Angle changes
+	DDB_ANGLE						= 0x0020,	// Angle changes
+	DDB_STATFLAGS					= 0x0040,	// Status Flags
+	
+	/* Less Important > 128 */
+	DDB_BAT							= 0x0080,	// Base turn angle changes
+	DDB_BAM							= 0x0100,	// Base aiming changes
 	DDB_INVENTORY					= 0x0200,	// Inventory Control
-	DDB_STATFLAGS					= 0x0400,	// Status Flags
-	DDB_PLAYER						= 0x0800,	// Player Changes
-	DDB_ARTIFACT					= 0x1000,	// Artifact Changes
-	DDB_UNUSED2000					= 0x2000,	// Unused
-	DDB_FLYSWIM						= 0x4000,	// Flying/Swimming
-	DDB_UNUSED8000					= 0x8000,	// Unused
+	DDB_ARTIFACT					= 0x0400,	// Artifact Changes
+	DDB_FLYSWIM						= 0x0800,	// Flying/Swimming
+	DDB_UNUSED1000					= 0x1000,	// Not used
+	DDB_UNUSED2000					= 0x2000,	// Not used
+	DDB_UNUSED4000					= 0x4000,	// Not used
+	
+	/* DO NOT USE */
+	DDB_UNUSED8000					= 0x8000,	// Unused [ DO NOT USE! ]
 } D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];
