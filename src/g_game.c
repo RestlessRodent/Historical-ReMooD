@@ -830,6 +830,9 @@ void G_Ticker(void)
 	if (demorecording)
 		G_WriteEndTic(NowCode);
 	
+	// Networking
+	D_XNetFinalCmds(gametic, NowCode);
+	
 	/* If playing a demo, check code comparison */
 	// Also make sure the demo supports the ReMooD sync code, otherwise there
 	// will always be a false desync message.

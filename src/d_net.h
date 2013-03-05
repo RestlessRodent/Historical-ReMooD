@@ -161,6 +161,7 @@ typedef struct D_XPlayer_s
 	
 	// Timing
 	tic_t LastRanTic;							// Last tic ran
+	tic_t LastXMit;								// Last XMit time
 	uint64_t LastProgramTic[2];					// Remote/Local program tic
 	
 	// Tics
@@ -214,6 +215,9 @@ extern tic_t g_DemoFreezeTics;					// Tics to freeze demo for
 bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
 bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
 
+void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_Cmd);
+void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode);
+
 void D_XNetDisconnect(const bool_t a_FromDemo);
 void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotHost);
 void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotClient);
@@ -245,7 +249,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
 void D_XNetSetServerName(const char* const a_NewName);
 
 void D_XNetInit(void);
-void D_XNetUploadTic(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_TicCmd);
+void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetForceLag(void);

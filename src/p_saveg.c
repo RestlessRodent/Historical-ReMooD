@@ -384,14 +384,12 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 			D_BSwi8(a_Str, a_TC->Std.sidemove);
 			D_BSwi16(a_Str, a_TC->Std.angleturn);
 			D_BSwu16(a_Str, a_TC->Std.aiming);
-			D_BSwu16(a_Str, a_TC->Std.buttons);
+			D_BSwu32(a_Str, a_TC->Std.buttons);
 			D_BSwu8(a_Str, a_TC->Std.artifact);
 			D_BSwi16(a_Str, a_TC->Std.BaseAngleTurn);
 			D_BSwi16(a_Str, a_TC->Std.BaseAiming);
 			D_BSwu8(a_Str, a_TC->Std.InventoryBits);
-			D_BSwu8(a_Str, a_TC->Std.ResetAim);
 			D_BSwu32(a_Str, a_TC->Std.StatFlags);
-			D_BSwu32(a_Str, a_TC->Std.ExButtons);
 			
 			// Extended Command Buffer
 			D_BSwu16(a_Str, a_TC->Std.DataSize);
@@ -430,14 +428,12 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 			a_TC->Std.sidemove = D_BSri8(a_Str);
 			a_TC->Std.angleturn = D_BSri16(a_Str);
 			a_TC->Std.aiming = D_BSru16(a_Str);
-			a_TC->Std.buttons = D_BSru16(a_Str);
+			a_TC->Std.buttons = D_BSru32(a_Str);
 			a_TC->Std.artifact = D_BSru8(a_Str);
 			a_TC->Std.BaseAngleTurn = D_BSri16(a_Str);
 			a_TC->Std.BaseAiming = D_BSri16(a_Str);
 			a_TC->Std.InventoryBits = D_BSru8(a_Str);
-			a_TC->Std.ResetAim = D_BSru8(a_Str);
 			a_TC->Std.StatFlags = D_BSru32(a_Str);
-			a_TC->Std.ExButtons = D_BSru32(a_Str);
 			
 			// Extended Command Buffer
 			a_TC->Std.DataSize = D_BSru16(a_Str);
@@ -2748,6 +2744,9 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 				continue;
 			
 			if (!(g_Splits[i].Console >= 0 && g_Splits[i].Console < MAXPLAYERS))
+				continue;
+			
+			if (!playeringame[g_Splits[i].Console])
 				continue;
 			
 			localaiming[i] = players[g_Splits[i].Console].aiming;

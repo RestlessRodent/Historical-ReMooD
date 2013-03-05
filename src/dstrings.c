@@ -1031,6 +1031,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				   "DXP_SENDFILE", "{zSending file \"{3$1{z\" to {9$2{z."},
 	{				   "DXP_RECVFILE", "{zReceiving file \"{3$1{z\" from {9$2{z."},
 	{				"DXP_BADSAVELOAD", "{zFailed to load savegame \"{3$1{z\"."},
+	{			"DXP_PLAYERISPLAYING", "{9$1{z ({9$2{z) is now playing."},
 	
 	/*** W_WAD.C ***/
 	{		   "WWADC_WADSTILLLINKED", "WAD \"$1\" is still linked in."},

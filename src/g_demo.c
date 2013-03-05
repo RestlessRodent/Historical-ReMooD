@@ -2201,14 +2201,12 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* c
 					__READY(sidemove, DDB_SIDE, i8);
 					__READY(angleturn, DDB_ANGLE, i16);
 					__READY(aiming, DDB_AIMING, u16);
-					__READY(buttons, DDB_BUTTONS, u16);
+					__READY(buttons, DDB_BUTTONS, u32);
 					__READY(artifact, DDB_ARTIFACT, u8);
 					__READY(BaseAngleTurn, DDB_BAT, i16);
 					__READY(BaseAiming, DDB_BAM, i16);
 					__READY(InventoryBits, DDB_INVENTORY, u8);
-					__READY(ResetAim, DDB_RESETAIM, u8);
 					__READY(StatFlags, DDB_STATFLAGS, u32);
-					__READY(ExButtons, DDB_EXBUTTONS, u32);
 					__READY(FlySwim, DDB_FLYSWIM, i16);
 		
 					if (DiffBits & DDB_WEAPON)
@@ -2354,9 +2352,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32
 			__DIFFY(BaseAngleTurn, DDB_BAT);
 			__DIFFY(BaseAiming, DDB_BAM);
 			__DIFFY(InventoryBits, DDB_INVENTORY);
-			__DIFFY(ResetAim, DDB_RESETAIM);
 			__DIFFY(StatFlags, DDB_STATFLAGS);
-			__DIFFY(ExButtons, DDB_EXBUTTONS);
 			__DIFFY(FlySwim, DDB_FLYSWIM);
 		
 			if (strcasecmp(CmdP->Std.XSNewWeapon, LastP->Std.XSNewWeapon))
@@ -2374,14 +2370,12 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32
 			__WRITEY(sidemove, DDB_SIDE, i8);
 			__WRITEY(angleturn, DDB_ANGLE, i16);
 			__WRITEY(aiming, DDB_AIMING, u16);
-			__WRITEY(buttons, DDB_BUTTONS, u16);
+			__WRITEY(buttons, DDB_BUTTONS, u32);
 			__WRITEY(artifact, DDB_ARTIFACT, u8);
 			__WRITEY(BaseAngleTurn, DDB_BAT, i16);
 			__WRITEY(BaseAiming, DDB_BAM, i16);
 			__WRITEY(InventoryBits, DDB_INVENTORY, u8);
-			__WRITEY(ResetAim, DDB_RESETAIM, u8);
 			__WRITEY(StatFlags, DDB_STATFLAGS, u32);
-			__WRITEY(ExButtons, DDB_EXBUTTONS, u32);
 			__WRITEY(FlySwim, DDB_FLYSWIM, i16);
 		
 			if (DiffBits & DDB_WEAPON)

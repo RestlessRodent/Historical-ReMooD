@@ -297,19 +297,15 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 			AM = a_SrcList[j].Std.BaseAiming;
 #endif
 		
-		// Reset aim?
-		a_DestCmd->Std.ResetAim |= a_SrcList[j].Std.ResetAim;
-			
 		// Merge weapon here
 		if (!a_DestCmd->Std.XSNewWeapon[0])
-			strncpy(a_DestCmd->Std.XSNewWeapon, a_SrcList[j].Std.XSNewWeapon, MAXTCWEAPNAME);
+			strncpy(a_DestCmd->Std.XSNewWeapon, a_SrcList[j].Std.XSNewWeapon, MAXTCWEAPNAME - 1);
 		
 		// Clear slot and weapon masks (they OR badly)
 		a_DestCmd->Std.buttons &= ~(BT_WEAPONMASK | BT_SLOTMASK);
 		
 		// Merge Buttons
 		a_DestCmd->Std.buttons |= a_SrcList[j].Std.buttons;
-		a_DestCmd->Std.ExButtons |= a_SrcList[j].Std.ExButtons;
 		
 		a_DestCmd->Std.aiming = a_SrcList[j].Std.aiming;
 		
@@ -483,7 +479,7 @@ const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 /* D_TicCmdFillWeapon() -- Fills weapon for tic command */
 void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID)
 {
-	strncpy(a_Target->Std.XSNewWeapon, wpnlev1info[a_ID]->ClassName, MAXTCWEAPNAME);
+	strncpy(a_Target->Std.XSNewWeapon, wpnlev1info[a_ID]->ClassName, MAXTCWEAPNAME - 1);
 }
 
 /* D_CMakePureRandom() -- Create a pure random number */

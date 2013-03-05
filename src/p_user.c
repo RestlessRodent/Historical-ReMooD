@@ -1811,12 +1811,12 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	localangle[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAngleTurn << UINT32_C(16);
 	
 	// Modify Aiming Angle
-	if (a_TicCmd->Std.ResetAim)
+	if (a_TicCmd->Std.buttons & BT_RESETAIM)
 		localaiming[a_Screen] = 0;
 	else
 	{
 		// Panning Look
-		if (a_TicCmd->Std.ExButtons & BTX_PANLOOK)
+		if (a_TicCmd->Std.buttons & BT_PANLOOK)
 			localaiming[a_Screen] = (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
 		
 		// Standard Look

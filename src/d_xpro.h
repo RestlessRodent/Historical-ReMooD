@@ -123,6 +123,7 @@ typedef struct D_XDesc_s
 			D_XSyncLevel_t SyncLevel;			// Synchronization level
 			bool_t SentReqWAD;					// Sent requested WADs
 			bool_t JoinWait;					// Join waiting
+			bool_t SentReady;					// Sent ready
 		} Client;								// Client Stuff
 	
 		struct

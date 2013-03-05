@@ -47,34 +47,33 @@
 typedef enum
 {
 	// Press "Fire".
-	BT_ATTACK = 1,
+	BT_ATTACK = 0x1,
 	// Use button, to open doors, activate switches.
-	BT_USE = 2,
+	BT_USE = 0x2,
 	
 	// Flag, weapon change pending.
 	// If true, the next 3 bits hold weapon num.
-	BT_CHANGE = 4,
+	BT_CHANGE = 0x4,
 	
 	// Jump button.
-	BT_JUMP = 8,
+	BT_JUMP = 0x8,
 	
 	// Suicide
-	BT_SUICIDE = 16,
+	BT_SUICIDE = 0x10,
 	
 	// The 3bit weapon mask and shift, convenience.
-	BT_WEAPONMASK = (32 + 64 + 128 + 256),
+	BT_WEAPONMASK = 0x1E0,
 	BT_WEAPONSHIFT = 5,
-	BT_EXTRAWEAPON = 512,
-	BT_SLOTMASK = (1024 + 2048 + 4096 + 8192),
+	
+	BT_EXTRAWEAPON = 0x200,
+	
+	BT_SLOTMASK = 0x3C00,
 	BT_SLOTSHIFT = 11,
+	
+	BT_FLYLAND			= UINT32_C(0x00010000),	// Fly Up
+	BT_PANLOOK			= UINT32_C(0x00020000),	// Panning Loop
+	BT_RESETAIM			= UINT32_C(0x00040000),	// Reset aim
 } buttoncode_t;
-
-/* ExtButtonCodes_t -- Extended button codes */
-typedef enum ExtButtonCodes_e
-{
-	BTX_FLYLAND			= UINT32_C(0x00000001),	// Fly Up
-	BTX_PANLOOK			= UINT32_C(0x00000002),	// Panning Loop
-} ExtButtonCodes_t;
 
 // The data sampled per tick (single player)
 // and transmitted to other peers (multiplayer).
@@ -120,7 +119,7 @@ typedef union
 		int16_t angleturn;						// <<16 for angle delta
 		// SAVED AS A BYTE into demos
 		uint16_t aiming;						//added:16-02-98:mouse aiming
-		uint16_t buttons;
+		uint32_t buttons;
 		uint8_t artifact;						// For Heretic
 	
 		// Extended tic command stuff
@@ -129,10 +128,8 @@ typedef union
 		int16_t BaseAngleTurn;					// Base angle turning
 		int16_t BaseAiming;						// Base Aiming
 		uint8_t InventoryBits;					// Inventory Control
-		uint8_t ResetAim;						// Reset Aim
 		
 		uint32_t StatFlags;						// Player Status Flags
-		uint32_t ExButtons;						// More Buttons
 		int16_t FlySwim;						// Fly/Swim
 		
 		uint16_t DataSize;						// Size of Data
@@ -189,15 +186,15 @@ typedef enum D_DiffBits_e
 	DDB_WEAPON						= 0x0010,	// Weapon Changes
 	DDB_BAT							= 0x0020,	// Base turn angle changes
 	DDB_BAM							= 0x0040,	// Base aiming changes
-	DDB_RESETAIM					= 0x0080,	// Aim is reset
+	DDB_UNUSED0080					= 0x0080,	// Unused
 	DDB_ANGLE						= 0x0100,	// Angle changes
 	DDB_INVENTORY					= 0x0200,	// Inventory Control
 	DDB_STATFLAGS					= 0x0400,	// Status Flags
-	
 	DDB_PLAYER						= 0x0800,	// Forward Changes
 	DDB_ARTIFACT					= 0x1000,	// Artifact Changes
-	DDB_EXBUTTONS					= 0x2000,	// More Buttons
+	DDB_UNUSED2000					= 0x2000,	// Unused
 	DDB_FLYSWIM						= 0x4000,	// Flying/Swimming
+	DDB_UNUSED8000					= 0x8000,	// Unused
 } D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];

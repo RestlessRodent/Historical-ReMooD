@@ -528,6 +528,16 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 #define MAXPLMOVE       (c_forwardmove[1])
 #define MAXLOCALJOYS	MAXJOYSTICKS			// Max joysticks handled
 
+/*** STRUCTURES ***/
+
+/* DXNetTicBuf_t -- Tic Command Buffer */
+typedef struct DXNetTicBuf_s
+{
+	tic_t GameTic;								// Gametic to run at
+	uint32_t SyncCode;							// Synchronization Code
+	ticcmd_t Tics[MAXPLAYERS + 1];				// Tic Commands
+} DXNetTicBuf_t;
+
 /*** GLOBALS ***/
 
 D_XPlayer_t** g_XPlays = NULL;					// Extended Players
@@ -554,10 +564,202 @@ static bool_t l_PreppedSave;					// Prepped Savegame
 static bool_t l_ForceLag;						// Forces Lagging
 static tic_t l_LastJW;							// Last Join Window
 
+static DXNetTicBuf_t** l_TicStore;				// Tic Storage
+static size_t l_NumTicStore;					// Tics in storage
+
+//l_SVMaxCatchup
+
 /*** FUNCTIONS ***/
 
 extern int demosequence;
 extern int pagetic;
+
+/* DS_XNetBufForTic() -- Get buffer for tic */
+static DXNetTicBuf_t* DS_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create)
+{
+	size_t i;
+	
+	/* Look in list */
+	for (i = 0; i < l_NumTicStore; i++)
+		if (l_TicStore[i])
+			if (l_TicStore[i]->GameTic == a_GameTic)
+				return l_TicStore[i];
+	
+	/* Worth it? */
+	if (a_GameTic < gametic)
+		return NULL;
+	
+	/* Do not create? */
+	if (!a_Create)
+		return NULL;
+	
+	/* Allocate new spot */
+	for (i = 0; i < l_NumTicStore; i++)
+		if (!l_TicStore[i])
+			break;
+	
+	// End?
+	if (i >= l_NumTicStore)
+	{
+		Z_ResizeArray((void**)&l_TicStore, sizeof(*l_TicStore),
+			l_NumTicStore, l_NumTicStore + 1);
+		i = l_NumTicStore++;
+	}
+	
+	// Place here
+	l_TicStore[i] = Z_Malloc(sizeof(*l_TicStore[i]), PU_STATIC, NULL);
+	l_TicStore[i]->GameTic = a_GameTic;
+	return l_TicStore[i];
+}
+
+/* D_XNetEncodeTicBuf() -- Encodes tic buffer into more compact method */
+static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz)
+{
+	// Size for a single player
+	// 384 + 2 + 2 + 4 + 1 + 2 + 2 + 32 + 1 + 4 + 2 + 2 + 1 + 1 + 1 + 8 = 449
+	// For 32+global: 449 * 33 = 14817
+#define BUFSIZE 16384
+	static uint8_t* Buf;
+	DXNetTicBuf_t* TicBuf;
+	uint8_t* p;
+	uint64_t Left;
+	uint16_t u16;
+	
+	/* Check */
+	if (!a_TicBuf)
+		return;
+	
+	/* Init */
+	TicBuf = a_TicBuf;
+	
+	// Allocate buffer and start there
+	if (!Buf)
+		Buf = Z_Malloc(sizeof(*Buf) * BUFSIZE, PU_STATIC, NULL);
+	p = Buf;
+	
+	/* Write Data */
+	// Encode gametic in multiple parts
+	Left = TicBuf->GameTic;
+	do
+	{
+		// Write lower bits
+		u16 = Left & UINT16_C(0x7FFF);
+		Left >>= UINT64_C(15);
+		
+		// More data?
+		if (Left)
+			u16 |= UINT16_C(0x8000);
+		
+		// Encode
+		LittleWriteUInt16(&p, u16);
+	} while (Left);
+	
+	/* Done */
+	*a_OutD = Buf;
+	*a_OutSz = p - Buf;
+#undef BUFSIZE
+}
+
+/* D_XNetPlaceTicCmd() -- Place tic command in store */
+void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_Cmd)
+{
+	DXNetTicBuf_t* Buf;
+	int32_t Player;
+	
+	/* Check */
+	if (!a_Cmd)
+		return;
+	
+	/* Get Buffer */
+	Buf = DS_XNetBufForTic(a_GameTic, true);
+	
+	// Not there?
+	if (!Buf)
+		return;
+	
+	/* Correct player */
+	if (a_Player < 0 || a_Player >= MAXPLAYERS)
+		Player = MAXPLAYERS;
+	else
+		Player = a_Player;
+	
+	/* Place in specific location */
+	memmove(&Buf->Tics[Player], a_Cmd, sizeof(Buf->Tics[Player]));
+}
+
+/* D_XNetFinalCmds() -- Place final tic commands */
+void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
+{
+	DXNetTicBuf_t* Buf;
+	int32_t i, p, j;
+	D_XPlayer_t* XPlay, *Host;
+	D_XEndPoint_t* EP;
+	D_BS_t* BS;
+	
+	uint8_t* OutD;
+	uint32_t OutSz;
+	
+	/* If server, store into buffer */
+	if (D_XNetIsServer())
+	{
+		// Get Buffer
+		Buf = DS_XNetBufForTic(a_GameTic, false);
+		
+		// Not there?
+		if (!Buf)
+			return;
+			
+		// Place sync code there
+		Buf->SyncCode = a_SyncCode;
+		
+		// Encode Commands
+		OutD = NULL;
+		OutSz = 0;
+		D_XNetEncodeTicBuf(Buf, &OutD, &OutSz);
+		
+		// Send to everyone
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			XPlay = g_XPlays[i];
+			
+			// No player?
+			if (!XPlay)
+				continue;
+			
+			// Obtain host player
+			Host = D_XNetPlayerByXPlayerHost(XPlay);
+			
+			// Local or bot, ignore
+			if (Host->Flags & (DXPF_LOCAL | DXPF_BOT))
+				continue;
+			
+			// Get endpoint
+			EP = Host->Socket.EndPoint;
+			
+			if (!EP)
+				continue;
+			
+			// Already xmitted?
+			if (a_GameTic <= Host->LastXMit)
+				continue;
+			
+			// XMit now
+			Host->LastXMit = a_GameTic;
+			BS = EP->Desc->RelBS;
+			
+			// Record block to them
+			D_BSBaseBlock(BS, "TICS");
+			D_BSWriteChunk(BS, OutD, OutSz);
+			D_BSRecordNetBlock(BS, &EP->Addr);
+		}
+	}
+	
+	/* If client, tell server the sync code for this gametic */
+	// If the server feels otherwise, they kick us
+	else
+	{
+	}
+}
 
 /* D_XNetDisconnect() -- Disconnect from server/self server */
 // Replaces D_NCDisconnect()
@@ -1689,9 +1891,16 @@ void D_XNetSetServerName(const char* const a_NewName)
 	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_SERVERCHANGENAME, "%s\n", a_NewName);
 }
 
-/* D_XNetUploadTic() -- Uploads local client tics */
-void D_XNetUploadTic(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_TicCmd)
+/* D_XNetUpPlayerTics() -- Upload tics to server */
+void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd)
 {
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Ignore on server */
+	if (!D_XNetIsServer())
+		return;
 }
 
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
@@ -1706,6 +1915,7 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 		// Write commands to clients
 		if (a_Write)
 		{
+			D_XNetPlaceTicCmd(gametic, a_Player, a_TicCmd);
 		}
 	
 		// Read commands
@@ -1774,12 +1984,12 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 								a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
 						
 							// Aiming Angle
-							if (a_TicCmd->Std.ResetAim)
+							if (a_TicCmd->Std.buttons & BT_RESETAIM)
 								localaiming[XPlay->ScreenID] = 0;
 							else
 							{
 								// Panning Look
-								if (a_TicCmd->Std.ExButtons & BTX_PANLOOK)
+								if (a_TicCmd->Std.buttons & BT_PANLOOK)
 									localaiming[XPlay->ScreenID] = a_TicCmd->Std.BaseAiming << 16;
 								
 								// Standard Look
@@ -1893,6 +2103,12 @@ tic_t D_XNetTicsToRun(void)
 				{
 					Lagging = true;
 					XPlay->StatusBits |= DXPSB_CAUSEOFLAG;
+				}
+				
+				// Not lagging
+				else
+				{
+					XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
 				}
 			}
 			
@@ -2795,7 +3011,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 						BaseAM *= -1 * NegMod;
 						
 						// Make sure panning look is set
-						a_TicCmd->Std.ExButtons |= BTX_PANLOOK;
+						a_TicCmd->Std.buttons |= BT_PANLOOK;
 						break;
 						
 						// Panning Up/Down (Angular)
@@ -2821,7 +3037,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 							BaseAM *= -1;
 						
 						// Make sure panning look is set
-						a_TicCmd->Std.ExButtons |= BTX_PANLOOK;
+						a_TicCmd->Std.buttons |= BT_PANLOOK;
 						break;
 				
 					default:
@@ -2980,7 +3196,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		
 		// Land
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_LAND))
-		a_TicCmd->Std.ExButtons |= BTX_FLYLAND;
+		a_TicCmd->Std.buttons |= BT_FLYLAND;
 	
 	// Weapons
 	if (Player)
@@ -3293,7 +3509,9 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	/* Turning */
 	a_TicCmd->Std.BaseAngleTurn = BaseAT;
 	a_TicCmd->Std.BaseAiming = BaseAM;
-	a_TicCmd->Std.ResetAim = ResetAim;
+	
+	if (ResetAim)
+		a_TicCmd->Std.buttons |= BT_RESETAIM;
 	
 	/* Handle Look Spring */
 	// This resets aim to center once you move
@@ -3301,7 +3519,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		if (!BaseAM && (abs(ForwardMove) >= c_forwardmove[0] || abs(SideMove) >= c_sidemove[0]))
 		{
 			a_TicCmd->Std.BaseAiming = 0;
-			a_TicCmd->Std.ResetAim = true;
+			a_TicCmd->Std.buttons |= BT_RESETAIM;
 		}
 	
 #undef MAXWEAPONSLOTS
@@ -3538,6 +3756,7 @@ void D_XNetUpdate(void)
 				}
 				
 				// Continue on
+				D_XNetUpPlayerTics(XPlay, gametic, NULL);
 				continue;
 			}
 		
@@ -3575,6 +3794,9 @@ void D_XNetUpdate(void)
 		else
 			TicCmdP->Ctrl.Ping = XPlay->Ping;
 		
+		// Send commands to server eventually
+		D_XNetUpPlayerTics(XPlay, gametic, TicCmdP);
+		
 		// No player for this one?
 		if (!XPlay->Player)
 		{
@@ -3605,46 +3827,6 @@ void D_XNetUpdate(void)
 	
 	/* Modify spectators */
 	LastSpecTic = gametic;
-	
-#if 0
-	/* Handle remote player related things */
-	if (D_XNetIsServer())
-		for (i = 0; i < g_NumXPlays; i++)
-		{
-			XPlay = g_XPlays[i];
-		
-			// Missing?
-			if (!XPlay)
-				continue;
-			
-			// Get origin XPlayer
-			XOrig = D_XNetPlayerByHostID(XPlay->HostID);
-			
-			// No origin!?
-			if (!XOrig)
-				continue;
-			
-			// Local? Then ignore
-			if (XOrig->Flags & DXPF_LOCAL)
-				continue;
-			
-			// No save game sent?
-			if (!XOrig->SaveSent)
-			{
-				// Save game needs preparing
-				if (!l_PreppedSave)
-				{
-					P_SaveGameEx("Network Save", "netsave0.tmp", NULL, NULL, NULL);
-					l_PreppedSave = true;
-				}
-			}
-			
-			// Save Game Sent
-			else
-			{
-			}
-		}
-#endif
 }
 
 /* D_XNetInitialServer() -- Create Initial Server */

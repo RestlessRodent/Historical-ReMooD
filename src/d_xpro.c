@@ -377,6 +377,7 @@ static void DS_JWJoins(D_XPlayer_t* const a_Player, void* const a_Data)
 	a_Player->Flags = 0;
 	a_Player->HostID = EP->HostID;
 	a_Player->Socket.EndPoint = EP;
+	memmove(&a_Player->Socket.Address, &EP->Addr, sizeof(EP->Addr));
 	
 	/* Get screen to add for */
 	s = EP->ScreenToAdd;
@@ -809,6 +810,22 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 			}
 			break;
 		
+			// Playing
+		case DXSL_PLAYING:
+			if (!a_Desc->CS.Client.SentReady)
+			{
+				// Send request to server
+				D_BSBaseBlock(RelBS, "PLAY");
+				D_BSwu32(RelBS, D_XNetGetHostID());
+			
+				// Send away!
+				D_BSRecordNetBlock(RelBS, HostAddr);
+				
+				// Send ready
+				a_Desc->CS.Client.SentReady = true;
+			}
+			break;
+		
 			// Unhandled
 		default:
 			break;
@@ -1112,6 +1129,44 @@ static bool_t DXP_JRDY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
+/* DXP_PLAY() -- Player is ready */
+static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	uint32_t HostID, i;
+	D_XPlayer_t* XPlay;
+	
+	/* Read HostID */
+	HostID = D_BSru32(a_Desc->RelBS);
+	
+	// Check
+	if (!HostID)
+		return false;
+	
+	/* Go through players */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Nothing?
+		if (!XPlay)
+			continue;
+		
+		// HostID and from address must match
+		if (HostID != XPlay->HostID || !I_NetCompareHost(a_Addr, &XPlay->Socket.Address))
+			continue;
+		
+		// Set as ready now
+		XPlay->TransSave = true;
+		XPlay->LastRanTic = gametic;
+		
+		// Message
+		CONL_OutputUT(CT_NETWORK, DSTR_DXP_PLAYERISPLAYING, "%s%s\n", XPlay->DisplayName, XPlay->AccountName);
+	}
+	
+	/* Success! */
+	return true;
+}
+
 /* DXP_FILE() -- File Handling */
 static bool_t DXP_FILE(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
@@ -1147,6 +1202,7 @@ static const struct
 	{"RQFL", DXP_RQFL, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"WADS", DXP_WADS, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"JRDY", DXP_JRDY, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"PLAY", DXP_PLAY, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"FILE", DXP_FILE, PF_ONAUTH},
 	
 	{NULL}
