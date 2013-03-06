@@ -1252,7 +1252,7 @@ static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 	Data = a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
 	
 	/* Open Sequencer */
-	Data->Err = snd_seq_open(&Data->Handle, "default", SND_SEQ_OPEN_OUTPUT, 0);
+	Data->Err = snd_seq_open(&Data->Handle, "default", SND_SEQ_OPEN_DUPLEX/*SND_SEQ_OPEN_OUTPUT*/, 0);
 	
 	// Failed?
 	if (Data->Err < 0)
@@ -1345,6 +1345,15 @@ static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 	
 	/* Connect */
 	Data->ConErr = snd_seq_connect_to(Data->Handle, Data->Source.port, Data->Dest.client, Data->Dest.port);
+	
+	// Error?
+	if (Data->ConErr < 0)
+	{
+		// Delete Port and close handle
+		snd_seq_delete_simple_port(Data->Handle, Data->PortID);
+		snd_seq_close(Data->Handle);
+		return false;
+	}
 	
 	/* Success! */
 	return true;
@@ -1498,7 +1507,7 @@ static I_MusicDriver_t l_ALSAMidiDriver =
 	"alsamidi",
 	1 << IMT_MIDI,
 	false,
-	35,
+	40,
 	
 	/* Handlers */
 	IS_ALSAMidi_Init,

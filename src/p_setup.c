@@ -304,6 +304,7 @@ bool_t P_ExClearLevel(void)
 	memset(deathmatchstarts, 0, sizeof(deathmatchstarts));
 	memset(playerstarts, 0, sizeof(playerstarts));
 	memset(g_TeamStarts, 0, sizeof(g_TeamStarts));
+	numdmstarts = 0;
 	
 	// Flags
 	memset(g_CTFFlags, 0, sizeof(g_CTFFlags));
