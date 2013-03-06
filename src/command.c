@@ -438,7 +438,7 @@ bool_t CONL_AddCommand(const char* const a_Name, int (*a_ComFunc)(const uint32_t
 		l_CONLCommandHashes = Z_HashCreateTable(CONL_CommandHashCompare);
 	
 	// Add to hash
-	Z_HashAddEntry(l_CONLCommandHashes, l_CONLCommands[l_CONLNumCommands].Hash, (uintptr_t)(l_CONLNumCommands + 1));
+	Z_HashAddEntry(l_CONLCommandHashes, l_CONLCommands[l_CONLNumCommands].Hash, (void*)(l_CONLNumCommands + 1));
 	
 	/* Increment */
 	l_CONLNumCommands++;
@@ -461,7 +461,7 @@ int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	Hash = Z_Hash(a_ArgV[0]);
 	
 	/* Find command for this hash */
-	ComNum = (uintptr_t)Z_HashFindEntry(l_CONLCommandHashes, Hash, a_ArgV[0], false);
+	ComNum = (uintptr_t)Z_HashFindEntry(l_CONLCommandHashes, Hash, (const void*)a_ArgV[0], false);
 	ComNum -= 1;
 	
 	// Check, if not found try variables
@@ -701,7 +701,7 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal)
 	int32_t IntVal, MinVal, MaxVal;
 	double DblVal;
 	fixed_t FixVal;
-	const char* StoppedAt;
+	char* StoppedAt;
 	
 	/* Check */
 	if (!a_Var || !a_NewVal)

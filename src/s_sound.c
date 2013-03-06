@@ -46,6 +46,7 @@
 #include "m_argv.h"
 #include "r_main.h"
 #include "p_maputl.h"
+#include "p_local.h"
 
 /*****************
 *** PROTOTYPES ***

@@ -68,7 +68,6 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 	FILE* File;
 	size_t RetVal;
 	uint16_t BlockLen;
-	uint32_t i;
 	
 	/* Check */
 	if (!a_Stream)

@@ -80,7 +80,7 @@ typedef enum
 // Mainly movements/button commands per game tick,
 // plus a checksum for internal state consistency.
 
-typedef enum
+enum
 {
 	TICCMD_NOTHING,								// Do nothing
 	TICCMD_INVLEFT,								// Move Inventory Left

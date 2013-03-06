@@ -39,6 +39,7 @@
 #include "p_inter.h"
 #include "m_argv.h"
 #include "t_ini.h"
+#include "d_main.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***

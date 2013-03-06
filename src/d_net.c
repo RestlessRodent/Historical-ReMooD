@@ -58,6 +58,7 @@
 #include "p_spec.h"
 #include "p_saveg.h"
 #include "d_xpro.h"
+#include "p_inter.h"
 
 /*************
 *** LOCALS ***

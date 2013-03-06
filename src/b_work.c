@@ -34,6 +34,7 @@
 ***************/
 
 #include "b_priv.h"
+#include "p_inter.h"
 
 /****************
 *** FUNCTIONS ***
@@ -1077,7 +1078,6 @@ bool_t B_WorkShootStuff(B_Bot_t* a_Bot, const size_t a_JobID)
 	sector_t* CurSec;
 	mobj_t* Mo;
 	mobj_t* ListMos[CLOSEMOS];
-	int slope;
 	INFO_BotObjMetric_t GunMetric;
 	fixed_t Mod;
 	
@@ -1150,7 +1150,7 @@ bool_t B_WorkShootStuff(B_Bot_t* a_Bot, const size_t a_JobID)
 			// this check if shoot allies is enabled.
 			if (!(a_Bot->BotTemplate.Flags & BGBF_SHOOTALLIES))
 			{
-				slope = P_AimLineAttack(a_Bot->Mo, a_Bot->Mo->angle, MISSILERANGE, NULL);
+				P_AimLineAttack(a_Bot->Mo, a_Bot->Mo->angle, MISSILERANGE, NULL);
 			
 				if (linetarget && linetarget != a_Bot->Mo && P_MobjOnSameTeam(a_Bot->Mo, linetarget))
 					continue;
@@ -1299,7 +1299,7 @@ bool_t B_WorkGunControl(B_Bot_t* a_Bot, const size_t a_JobID)
 		return true;
 	
 	/* Get Our Favorite Gun */
-	FavoriteGun = P_PlayerBestWeapon(a_Bot->Player);
+	FavoriteGun = P_PlayerBestWeapon(a_Bot->Player, true);
 	
 	/* Determine guns to switch to */
 	for (i = 0; i < MAXGUNSWITCHERS && i < NUMWEAPONS; i++)

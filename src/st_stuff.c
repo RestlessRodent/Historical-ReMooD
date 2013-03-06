@@ -35,29 +35,25 @@
 //      Does palette indicators as well (red pain/berserk, bright pickup)
 
 #include "doomdef.h"
-
-
-
 #include "g_game.h"
 #include "m_cheat.h"
-
 #include "screen.h"
 #include "r_local.h"
 #include "p_local.h"
 #include "p_inter.h"
 #include "m_random.h"
-
 #include "st_stuff.h"
 #include "st_lib.h"
 #include "i_video.h"
 #include "v_video.h"
-
 #include "z_zone.h"
 #include "hu_stuff.h"
 #include "d_main.h"
-
 #include "p_demcmp.h"
 #include "vhw_wrap.h"
+#include "p_info.h"
+#include "wi_stuff.h"
+#include "m_menu.h"
 
 //protos
 void ST_createWidgets(void);

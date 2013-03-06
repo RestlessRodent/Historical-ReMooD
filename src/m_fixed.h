@@ -61,7 +61,7 @@ typedef int32_t fixed_t;
 #define FLOAT_TO_FIXED(x) (((fixed_t)(((float)(x)) * 65536.0)))
 
 /* FixedRound() -- Round a fixed point number */
-static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
+static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
 {
 	/* Negative */
 	if (a & _FIXED_SIGN)

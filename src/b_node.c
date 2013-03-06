@@ -35,6 +35,7 @@
 
 #include "b_priv.h"
 #include "console.h"
+#include "m_argv.h"
 
 /****************
 *** FUNCTIONS ***
@@ -1019,7 +1020,8 @@ void B_ClearNodes(void)
 		Z_Free(l_BAdj);
 		Z_Free(l_BNumAdj);
 		l_BAdj = NULL;
-		l_BNumAdj = l_BNumSecs = l_BBuildAdj = 0;
+		l_BNumAdj = NULL;
+		l_BNumSecs = l_BBuildAdj = 0;
 	}
 	
 	/* Destroy the unimatrix */

@@ -307,7 +307,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 #define BUFSIZE 512
 	uint8_t Code;
 	uint16_t Char;
-	int32_t i, j, OldSpot;
+	int32_t i, j;
 	char MB[5];
 	char Buf[BUFSIZE];
 	CONCTI_MBChain_t* MBRover, *Last;
@@ -711,7 +711,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	CONCTI_MBChain_t* MBRover;
 	uint32_t Options, DefaultOptions;
 	int32_t bx, x, j;
-	bool_t GotCur, CurVirtual;
+	bool_t GotCur;
 	uint16_t ThisChar, NextChar;
 	
 	/* Not in dedicated server */
@@ -777,7 +777,6 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	x = bx = a_x;
 	j = 0;
 	GotCur = false;
-	CurVirtual = false;
 	
 	// While there is a multibyte char
 	while (MBRover)
@@ -787,7 +786,6 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 		{
 			bx = x;
 			GotCur = true;
-			CurVirtual = MBRover->EnableVirtual;
 		}
 		
 		// Draw it
@@ -902,7 +900,6 @@ extern bool_t con_started;
 static void CONLFF_OutputFF(const char* const a_Buf)
 {
 	const char* p;
-	char* d;
 	char Buf[MAXCONLPMQBUFSIZE];
 	size_t i, j, pNum, n;
 	tic_t CurrentTime;
@@ -1039,10 +1036,12 @@ static void CONLFF_InputFF(const char* const a_Buf)
 		// Determine ; location (but not inside quotes)
 		for (Quote = 0; *n && (Quote || (!Quote && *n != ';')); n++)
 			if (*n == '\"' || *n == '\'')
+			{
 				if (Quote)
 					Quote = 0;
 				else
 					Quote = *n;
+			}
 	
 		// Run loop
 		for (Quote = 0, p = m; p != n; p++)
@@ -1089,7 +1088,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 		/* Send to execution handler */
 		if (ArgC)
 		{
-			ec = CONL_Exec(ArgC, ArgV);
+			ec = CONL_Exec(ArgC, (const char**)ArgV);
 			
 			if (ec)
 				CONL_OutputF("{b%s{z\n", CONL_ExitCodeToStr(ec));
@@ -1659,7 +1658,6 @@ void CONL_Ticker(void)
 #endif
 	size_t i, j;
 	tic_t CurrentTime, Left;
-	uint8_t v;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -1716,11 +1714,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/*** STANDARD CLIENT ***/
 #else
 	uint8_t Code;
-	uint16_t Char;
-	uint32_t Old;
-	static int32_t HistorySpot = -1;
-	size_t i, j, k;
-	const char* p;
+	size_t i;
 
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -1762,7 +1756,6 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 		
 	// Remember key code and character
 	Code = a_Event->Data.Keyboard.KeyCode;
-	Char = a_Event->Data.Keyboard.Character;
 	
 	/* Console is not active */
 	if (!CONL_IsActive() && (Code == IKBK_TILDE || Code == IKBK_GRAVE))
@@ -1822,8 +1815,6 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	char* c;
 	size_t i, j, x, y, r, yB;
 	uint8_t BMPc, Char;
-	uint32_t BarBits;
-	fixed_t Frac;
 	uint32_t ThisTime;
 	static uint32_t LastTime;
 	
@@ -2159,8 +2150,6 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 // OSK Events are virtually synthetic, really!
 bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum)
 {
-	bool_t VirtOnly;
-	int8_t Shift;
 	uint32_t ThisTime;
 	I_EventEx_t FakeEvent;
 	uint8_t r, c;
@@ -2305,8 +2294,8 @@ bool_t CONL_DrawConsole(void)
 #else
 	bool_t FullCon;
 	size_t i, n, j, k, l, BSkip;
-	int32_t NumLines, Limit;
-	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions, BackFlags, ScaleConH, ScaleBH;
+	int32_t NumLines;
+	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions, BackFlags;
 	const char* p;
 	char TempFill[6];
 	CONL_BasicBuffer_t* Out;
@@ -2315,8 +2304,6 @@ bool_t CONL_DrawConsole(void)
 	static int32_t BootLines = -1;
 	static int32_t BootCount = 0;
 	static V_Image_t* BackPic;
-	
-	static uint8_t SColor;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -2778,7 +2765,7 @@ size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* co
 	char* p;
 	const char* s;
 	uint16_t WChar;
-	size_t MBSkip, i, j;
+	size_t MBSkip, j;
 	char Buf[BUFSIZE];
 	bool_t IgnoreEscape;
 	
@@ -2787,7 +2774,7 @@ size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* co
 		return 0;
 	
 	/* Conversion Loop */
-	for (IgnoreEscape = false, i = 0, d = a_Dest, s = a_Src; *s;)
+	for (IgnoreEscape = false, d = a_Dest, s = a_Src; *s;)
 	{
 		// Overflow?
 		if (((size_t)(d - a_Dest)) >= (a_Size - 1))
@@ -2858,7 +2845,6 @@ size_t CONL_UnEscapeString(char* const a_Dest, const size_t a_Size, const char* 
 {
 	size_t i, j, k;
 	char* d;
-	char* p;
 	const char* s;
 	uint16_t WChar;
 	char MB[5];
@@ -2971,7 +2957,6 @@ bool_t CONL_FindDefaultConfig(void)
 /* CONL_LoadConfigFile() -- Loads the configuration file specified by path */
 bool_t CONL_LoadConfigFile(const char* const a_Path)
 {
-	const char* p;
 	char Buf[PATH_MAX];
 	
 	/* Check */
@@ -3010,7 +2995,6 @@ bool_t CONL_SaveConfigFile(const char* const a_Path)
 	size_t i;
 	CONL_StaticVar_t* SVar;
 	FILE* File;
-	const char* p;
 	char Buf[BUFSIZE];
 	
 	/* Check */

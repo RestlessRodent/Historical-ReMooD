@@ -48,6 +48,7 @@
 #include "dstrings.h"
 #include "p_demcmp.h"
 #include "vhw_wrap.h"
+#include "p_local.h"
 
 //
 // Data needed to add patches to full screen intermission pics.

@@ -55,6 +55,7 @@
 #include "d_netcmd.h"
 #include "r_main.h"
 #include "r_sky.h"
+#include "p_inter.h"
 
 /****************
 *** FUNCTIONS ***

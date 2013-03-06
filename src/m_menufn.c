@@ -38,6 +38,7 @@
 #include "p_local.h"
 #include "r_data.h"
 #include "p_info.h"
+#include "m_random.h"
 
 /****************
 *** FUNCTIONS ***

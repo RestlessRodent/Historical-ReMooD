@@ -36,6 +36,7 @@
 #include "doomtype.h"
 #include "m_random.h"
 #include "d_net.h"
+#include "i_util.h"
 
 //
 // M_Random

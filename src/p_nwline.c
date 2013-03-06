@@ -40,6 +40,7 @@
 #include "p_inter.h"
 #include "p_demcmp.h"
 #include "m_random.h"
+#include "g_game.h"
 
 /****************
 *** CONSTANTS ***

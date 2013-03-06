@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# This looks for which strings are used, and which are not used anywhere
+# Helpful for purging any unused strings that may exist.
+
 # Clear found file
 rm -f /tmp/$$
 
@@ -8,6 +11,7 @@ grep 'DSTR_[a-zA-Z0-9_]*' < src/dstrings.h | sed 's/[^a-zA-Z0-9_]//g' | sed 's/D
 do
 	# Progress
 	echo -n "." 1>&2
+	FOUND=""
 	
 	# Search each file
 	for file in $(ls src/*.[ch] | sed 's/src\/dstrings\.[ch]//g') $(ls wad/lumps/*.lmp)
@@ -17,6 +21,13 @@ do
 		then
 			echo "$line" >> /tmp/$$
 			echo -n "#" 1>&2
+			FOUND="yes"
+		fi
+		
+		# Early break if found
+		if [ "$FOUND" = "yes" ]
+		then
+			break
 		fi
 	done
 done

@@ -224,7 +224,7 @@ int32_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 		*a_EndPtr = c;
 	
 	/* Return value */
-	return Temp;
+	return Temp * (Neg ? INT32_C(-1) : INT32_C(1));
 #undef FRACLIMIT
 }
 

@@ -212,6 +212,8 @@ extern tic_t g_DemoFreezeTics;					// Tics to freeze demo for
 
 /*** FUNCTIONS ***/
 
+void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
+
 bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
 bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
 

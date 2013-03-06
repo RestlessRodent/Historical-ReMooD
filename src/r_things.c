@@ -44,7 +44,7 @@
 #include "m_argv.h"
 #include "r_data.h"
 #include "p_maputl.h"
-
+#include "p_demcmp.h"
 #include "i_video.h"
 
 static void R_InitSkins(void);

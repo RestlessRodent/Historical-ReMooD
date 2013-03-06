@@ -37,6 +37,7 @@
 #include "vhw_locl.h"
 #include "console.h"
 #include "dstrings.h"
+#include "m_argv.h"
 
 /*************
 *** LOCALS ***

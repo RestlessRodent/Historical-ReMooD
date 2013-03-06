@@ -35,7 +35,6 @@
 //      Pending weapon.
 
 #include "doomdef.h"
-
 #include "g_game.h"
 #include "p_local.h"
 #include "r_main.h"
@@ -45,6 +44,7 @@
 #include "m_random.h"
 #include "p_demcmp.h"
 #include "d_main.h"
+#include "wi_stuff.h"
 
 // Index of the special effects (INVUL inverse) map.
 #define INVERSECOLORMAP         32

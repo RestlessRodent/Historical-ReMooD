@@ -39,6 +39,7 @@
 #include "m_bbox.h"
 #include "p_info.h"
 #include "sn_polyg.h"
+#include "m_argv.h"
 
 /*************
 *** LOCALS ***

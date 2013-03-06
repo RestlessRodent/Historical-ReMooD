@@ -39,6 +39,7 @@
 #include "console.h"
 #include "dstrings.h"
 #include "w_wad.h"
+#include "p_saveg.h"
 
 /*****************
 *** STRUCTURES ***

@@ -45,6 +45,7 @@
 #include "r_draw.h"				// transtable
 #include "p_pspr.h"				// tr_transxxx
 #include "z_zone.h"
+#include "vhw_wrap.h"
 
 /*****************
 *** PROTOTYPES ***
