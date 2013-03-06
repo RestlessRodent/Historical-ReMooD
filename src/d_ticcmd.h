@@ -203,5 +203,15 @@ typedef enum D_DiffBits_e
 
 extern const int32_t c_TCDataSize[NUMDTCT];
 
+
+/* D_XNetTicBuf_t -- Tic Command Buffer */
+typedef struct D_XNetTicBuf_s
+{
+	tic_t GameTic;								// Gametic to run at
+	uint32_t SyncCode;							// Synchronization Code
+	bool_t GotTic;								// Got tic
+	ticcmd_t Tics[MAXPLAYERS + 1];				// Tic Commands
+} D_XNetTicBuf_t;
+
 #endif
 

@@ -1174,6 +1174,78 @@ static bool_t DXP_FILE(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return D_XFFilePacket(a_Desc, a_Header, a_Flags, a_Addr, a_EP);
 }
 
+/* DXP_TICS() -- Handling of tic commands from server */
+static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	D_XNetTicBuf_t TicBuf;
+	D_XNetTicBuf_t* To;
+	
+	/* Decode Data */
+	memset(&TicBuf, 0, sizeof(TicBuf));
+	D_XNetDecodeTicBuf(&TicBuf, a_Desc->RelBS->BlkData, a_Desc->RelBS->BlkSize);
+	
+	/* Don't need? */
+	if (TicBuf.GameTic < gametic)
+		return false;
+	
+	/* Create tic command to write to */
+	To = D_XNetBufForTic(TicBuf.GameTic, true);
+	
+	// Got already?
+	if (To->GotTic)
+		return false;
+	
+	/* Copy tic data there */
+	memmove(To, &TicBuf, sizeof(*To));
+	
+	/* Reply to server that we got it */
+	To->GotTic = true;
+	
+	D_BSBaseBlock(a_Desc->RelBS, "TACK");
+	
+	D_BSwcu64(a_Desc->RelBS, To->GameTic);
+	D_BSwcu64(a_Desc->RelBS, gametic);
+	D_BSwcu64(a_Desc->RelBS, g_ProgramTic);
+	
+	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
+	
+	/* Success! */
+	return true;
+}
+
+/* DXP_TACK() -- Server acknowledged they recieved a tic */
+static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	D_XPlayer_t* XPlay;
+	tic_t AckTic, RemGameTic, RemProgTic;
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Get XPlayer for this host */
+	XPlay = D_XNetPlayerByHostID(a_EP->HostID);
+	
+	// Not found?
+	if (!XPlay)
+		return false;
+	
+	/* Read */
+	AckTic = D_BSrcu64(a_Desc->RelBS);
+	RemGameTic = D_BSrcu64(a_Desc->RelBS);
+	RemProgTic = D_BSrcu64(a_Desc->RelBS);
+	
+	/* Already acked this tic? */
+	if (AckTic >= XPlay->LastAckTic)
+		return true;
+	
+	/* Set as acknowledged */
+	if (AckTic > XPlay->LastAckTic)
+		XPlay->LastAckTic = AckTic;
+	
+	return true;
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1204,6 +1276,8 @@ static const struct
 	{"WADS", DXP_WADS, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"JRDY", DXP_JRDY, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"PLAY", DXP_PLAY, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"TICS", DXP_TICS, PF_ONAUTH | PF_CLIENT | PF_REL},
+	{"TACK", DXP_TACK, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"FILE", DXP_FILE, PF_ONAUTH},
 	
 	{NULL}

@@ -531,14 +531,6 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 /*** STRUCTURES ***/
 
-/* DXNetTicBuf_t -- Tic Command Buffer */
-typedef struct DXNetTicBuf_s
-{
-	tic_t GameTic;								// Gametic to run at
-	uint32_t SyncCode;							// Synchronization Code
-	ticcmd_t Tics[MAXPLAYERS + 1];				// Tic Commands
-} DXNetTicBuf_t;
-
 /*** GLOBALS ***/
 
 D_XPlayer_t** g_XPlays = NULL;					// Extended Players
@@ -565,7 +557,7 @@ static bool_t l_PreppedSave;					// Prepped Savegame
 static bool_t l_ForceLag;						// Forces Lagging
 static tic_t l_LastJW;							// Last Join Window
 
-static DXNetTicBuf_t** l_TicStore;				// Tic Storage
+static D_XNetTicBuf_t** l_TicStore;				// Tic Storage
 static size_t l_NumTicStore;					// Tics in storage
 
 //l_SVMaxCatchup
@@ -575,8 +567,8 @@ static size_t l_NumTicStore;					// Tics in storage
 extern int demosequence;
 extern int pagetic;
 
-/* DS_XNetBufForTic() -- Get buffer for tic */
-static DXNetTicBuf_t* DS_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create)
+/* D_XNetBufForTic() -- Get buffer for tic */
+D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create)
 {
 	size_t i;
 	
@@ -614,14 +606,14 @@ static DXNetTicBuf_t* DS_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Cre
 }
 
 /* D_XNetEncodeTicBuf() -- Encodes tic buffer into more compact method */
-static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz)
+void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz)
 {
 	// Size for a single player
 	// 384 + 2 + 2 + 4 + 1 + 2 + 2 + 32 + 1 + 4 + 2 + 2 + 1 + 1 + 1 + 8 = 449
 	// For 32+global: 449 * 33 = 14817
 #define BUFSIZE 16384
 	static uint8_t* Buf;
-	DXNetTicBuf_t* TicBuf;
+	D_XNetTicBuf_t* TicBuf;
 	uint8_t* p;
 	uint64_t Left;
 	uint16_t u16;
@@ -629,10 +621,10 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 	int32_t i, j, z;
 	ticcmd_t* Cmd;
 	uint16_t* dsP;
-	uint8_t* dsB, u8;
+	uint8_t* dbP, u8;
 	
 	/* Check */
-	if (!a_TicBuf)
+	if (!a_TicBuf || !a_OutD || !a_OutSz)
 		return;
 	
 	/* Init */
@@ -748,7 +740,7 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 			
 			// Data pointers
 			dsP = &Cmd->Std.DataSize;
-			dsB = &Cmd->Std.DataBuf;
+			dbP = &Cmd->Std.DataBuf;
 #undef __WRITE	
 #undef __DIFFY
 		}
@@ -758,7 +750,7 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 		{
 			// Data pointers
 			dsP = &Cmd->Ext.DataSize;
-			dsB = &Cmd->Ext.DataBuf;
+			dbP = &Cmd->Ext.DataBuf;
 		}
 		
 		// Write pointer data
@@ -779,7 +771,7 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 		
 		// Write buffer
 		for (j = 0; j < *dsP; j++)
-			WriteUInt8(&p, dsP[j]);
+			WriteUInt8(&p, dbP[j]);
 	}
 	
 	/* Done */
@@ -788,10 +780,162 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 #undef BUFSIZE
 }
 
+/* D_XNetDecodeTicBuf() -- Decodes tic buffer */
+void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz)
+{
+#define BUFSIZE 16384
+	static uint8_t* Buf;
+	uint8_t* p, u8;
+	uint16_t u16, Mask;
+	uint32_t PIG, u32;
+	ticcmd_t* Cmd;
+	uint16_t* dsP;
+	uint8_t* dbP;
+	int32_t i, j, z;
+	
+	/* Check */
+	if (!a_TicBuf || !a_InD || !a_InSz)
+		return 0;
+	
+	/* Init */
+	if (!Buf)
+		Buf = Z_Malloc(BUFSIZE, PU_STATIC, NULL);
+	
+	// Setup buffer
+	memset(Buf, 0, BUFSIZE);
+	memmove(Buf, a_InD, a_InSz);
+	p = Buf;
+	
+	// Clear tic buffer
+	memset(a_TicBuf, 0, sizeof(*a_TicBuf));
+	
+	/* Read Data */
+	// Read Gametic
+	do
+	{
+		a_TicBuf->GameTic <<= UINT64_C(15);
+		u16 = LittleReadUInt16(&p);
+		a_TicBuf->GameTic |= (tic_t)(u16 & UINT16_C(0x7FFF));
+	} while (u16 & UINT16_C(0x8000));
+	
+	// Player in game
+	PIG = LittleReadUInt32(&p);
+	
+	// Player Commands
+	for (i = 0; i < MAXPLAYERS + 1; i++)
+	{
+		// Get tic command
+		Cmd = &a_TicBuf->Tics[i];
+		
+		// not in game?
+		if (!(PIG & (1 << i)) && i != MAXPLAYERS)
+			continue;
+		
+		// Read type
+		Cmd->Ctrl.Type = ReadUInt8(&p);
+		
+		// Standard Player
+		if (!Cmd->Ctrl.Type)
+		{
+			// Read config mask
+			u8 = ReadUInt8(&p);
+			Mask = u8 & UINT8_C(0x7F);
+		
+			if (u8 & UINT8_C(0x80))
+			{
+				u8 = ReadUInt8(&p);
+				Mask |= ((uint16_t)u8) << 7;
+			}
+			
+			if (Mask & DDB_FORWARD)
+				Cmd->Std.forwardmove = ReadInt8(&p);
+			if (Mask & DDB_SIDE)
+				Cmd->Std.sidemove = ReadInt8(&p);
+			if (Mask & DDB_AIMING)
+				Cmd->Std.aiming = LittleReadUInt16(&p);
+			if (Mask & DDB_ANGLE)
+				Cmd->Std.angleturn = LittleReadInt16(&p);
+			if (Mask & DDB_INVENTORY)
+				Cmd->Std.InventoryBits = ReadUInt8(&p);
+			if (Mask & DDB_ARTIFACT)
+				Cmd->Std.artifact = ReadUInt8(&p);
+			if (Mask & DDB_FLYSWIM)
+				Cmd->Std.FlySwim = LittleReadInt16(&p);
+			
+			if (Mask & DDB_WEAPON)
+			{
+				j = 0;
+				do
+				{
+					u8 = ReadUInt8(&p);
+					
+					if (j < MAXTCWEAPNAME)
+						Cmd->Std.XSNewWeapon[j++] = u8;
+				} while (u8);
+			}
+			
+			// Variable decode buttons and status flags
+			for (z = 0; z < 2; z++)
+			{
+				// Check if flag is set
+				if (!(Mask & (z ? DDB_BUTTONS : DDB_STATFLAGS)))
+					continue;
+				
+				// Read variable length
+				u32 = 0;
+				do
+				{
+					u32 <<= 7;
+					u8 = ReadUInt8(&p);
+					u32 |= ((uint32_t)(u8 & UINT8_C(0x7F)));
+				} while (u8 & UINT8_C(0x80));
+				
+				// Set value
+				if (z)
+					Cmd->Std.buttons = u32;
+				else
+					Cmd->Std.StatFlags = u32;
+			}
+			
+			// Data pointers
+			dsP = &Cmd->Std.DataSize;
+			dbP = &Cmd->Std.DataBuf;
+		}
+		
+		// Extended
+		else
+		{
+			// Data pointers
+			dsP = &Cmd->Ext.DataSize;
+			dbP = &Cmd->Ext.DataBuf;
+		}
+		
+		// Read Size
+		*dsP = 0;
+		do
+		{
+			*dsP <<= UINT64_C(7);
+			u8 = ReadUInt8(&p);
+			*dsP |= (tic_t)(u8 & UINT16_C(0x7F));
+		} while (u8 & UINT16_C(0x80));
+		
+		// Read data buffer
+		for (j = 0; j < *dsP; j++)
+		{
+			u8 = ReadUInt8(&p);
+			
+			if (j < MAXTCDATABUF)
+				dbP[j] = u8;
+		}
+	}
+	
+#undef BUFSIZE
+}
+
 /* D_XNetPlaceTicCmd() -- Place tic command in store */
 void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_Cmd)
 {
-	DXNetTicBuf_t* Buf;
+	D_XNetTicBuf_t* Buf;
 	int32_t Player;
 	
 	/* Check */
@@ -799,7 +943,7 @@ void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* 
 		return;
 	
 	/* Get Buffer */
-	Buf = DS_XNetBufForTic(a_GameTic, true);
+	Buf = D_XNetBufForTic(a_GameTic, true);
 	
 	// Not there?
 	if (!Buf)
@@ -818,7 +962,7 @@ void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* 
 /* D_XNetFinalCmds() -- Place final tic commands */
 void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 {
-	DXNetTicBuf_t* Buf;
+	D_XNetTicBuf_t* Buf;
 	int32_t i, p, j;
 	D_XPlayer_t* XPlay, *Host;
 	D_XEndPoint_t* EP;
@@ -831,7 +975,7 @@ void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 	if (D_XNetIsServer())
 	{
 		// Get Buffer
-		Buf = DS_XNetBufForTic(a_GameTic, false);
+		Buf = D_XNetBufForTic(a_GameTic, false);
 		
 		// Not there?
 		if (!Buf)
@@ -2036,6 +2180,7 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 {
 	int32_t i;
 	D_XPlayer_t* XPlay;
+	D_XNetTicBuf_t* Buf;
 	
 	/* We are the server */
 	if (D_XNetIsServer())
@@ -2145,6 +2290,26 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 	/* We are the client */
 	else
 	{
+		// Writing
+		if (a_Write)
+		{
+		}
+		
+		// Reading
+		else
+		{
+			// Get tic that we want
+			Buf = D_XNetBufForTic(gametic , false);
+		
+			// That tic better be found!
+			if (Buf)
+			{
+				// Copy specific player
+				memmove(a_TicCmd, &Buf->Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
+			
+				// Send run acknowledge to server
+			}
+		}
 	}
 }
 
@@ -2156,6 +2321,7 @@ tic_t D_XNetTicsToRun(void)
 	int32_t i;
 	D_XPlayer_t* XPlay, *Host;
 	static tic_t LastSpecTic;
+	D_XNetTicBuf_t* Buf;
 	
 	/* Get current tic */
 	ThisTic = I_GetTime();
@@ -2355,6 +2521,12 @@ tic_t D_XNetTicsToRun(void)
 		// Otherwise, return the amount of tics that are in queue
 		else
 		{
+			Diff = 0;
+			while ((Buf = D_XNetBufForTic(gametic + Diff, false)))
+				Diff++;
+			
+			// Return available count
+			return Diff;
 		}
 	}
 	

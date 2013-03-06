@@ -162,6 +162,7 @@ typedef struct D_XPlayer_s
 	// Timing
 	tic_t LastRanTic;							// Last tic ran
 	tic_t LastXMit;								// Last XMit time
+	tic_t LastAckTic;							// Last acknowledged tic
 	uint64_t LastProgramTic[2];					// Remote/Local program tic
 	
 	// Tics
@@ -249,6 +250,10 @@ void D_XNetSendColors(D_XPlayer_t* const a_Player);
 void D_XNetTryJoin(D_XPlayer_t* const a_Player);
 void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
 void D_XNetSetServerName(const char* const a_NewName);
+
+D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create);
+void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz);
+void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
 
 void D_XNetInit(void);
 void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd);
