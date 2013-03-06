@@ -732,7 +732,6 @@ static void D_XNetEncodeTicBuf(DXNetTicBuf_t* const a_TicBuf, uint8_t** const a_
 					continue;
 				
 				// Encode in variable length
-				
 				Left = (z ? Cmd->Std.buttons : Cmd->Std.StatFlags);
 				do
 				{

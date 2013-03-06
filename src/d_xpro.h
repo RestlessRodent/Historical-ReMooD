@@ -62,6 +62,18 @@ typedef enum D_XSyncLevel_e
 *** STRUCTURES ***
 *****************/
 
+/* D_XNetConnType_t -- Network Connection Type */
+typedef struct D_XNetConnType_s
+{
+	const char* ShortName;						// Short name
+	uint32_t BPSCap[2];							// Bytes/s down/up
+	uint16_t HoldChunks;						// File chunks at once (MAXHOLDCHUNKS)
+	uint16_t MaxChunksPerSecond;				// Maximum chunks to send in one second
+	uint16_t TicCompress;						// Tic size compression threshold
+	uint16_t TicCluster;						// Game tics to cluster at once
+	uint16_t TicGlide;							// Tics to glide
+} D_XNetConnType_t;
+
 /* D_XEndPoint_t -- Endpoint connection */
 typedef struct D_XEndPoint_s
 {
@@ -72,6 +84,7 @@ typedef struct D_XEndPoint_s
 	uint32_t HostID;							// Host ID
 	uint32_t ProcessID;							// Standard Process ID
 	D_XSyncLevel_t SyncLevel;					// Synchronization level
+	D_XNetConnType_t* ConnType;					// Connection Type
 	
 	struct
 	{
