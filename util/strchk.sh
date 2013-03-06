@@ -3,6 +3,8 @@
 # This looks for which strings are used, and which are not used anywhere
 # Helpful for purging any unused strings that may exist.
 
+# use strgrep.sh afterwards
+
 # Clear found file
 rm -f /tmp/$$
 
