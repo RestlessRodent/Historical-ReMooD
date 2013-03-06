@@ -673,16 +673,89 @@ void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 	}
 }
 
-/* I_MUS2MID_Stop() -- Stops a song from playing and seeks to start (stop []) */
-void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
+/* IS_MUS2MID_FullReset() -- Fully resets keyboard */
+static void IS_MUS2MID_FullReset(struct I_MusicDriver_s* const a_Driver, I_MUS2MIDData_t* const a_Local)
 {
-	I_MUS2MIDData_t* Local;
 	size_t i;
 	union
 	{
 		uint32_t u;
 		uint8_t b[4];
 	} MIDIMsg;
+	
+	/* Feeding */
+	if (a_Local->FeedMessages)
+	{
+		// Clear time
+		a_Local->BaseTime = 0;
+		
+		// Reset All
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xFF;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
+		
+		// End everything pretty much
+		for (i = 0; i < 16; i++)
+		{
+			// Turn off all notes
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x7B;
+			MIDIMsg.b[2] = 0;
+			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+			// Turn off sustain
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x40;
+			MIDIMsg.b[2] = 0;
+			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+			// Reset all controllers
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x79;
+			MIDIMsg.b[2] = 0;
+			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+			
+			// Bank all to zero
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0;
+			MIDIMsg.b[2] = (i == 9 ? 127 : 0);
+			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+			
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 32;
+			MIDIMsg.b[2] = 0;
+			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+			
+			// Change all to first program
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xC0 | i;
+			MIDIMsg.b[1] = 0;
+			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 2);
+		}
+	
+#if 0
+		// Reset All
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xFF;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
+#endif
+	}
+	
+	/* Not Feeding */
+	else
+	{
+	}
+}
+
+/* I_MUS2MID_Stop() -- Stops a song from playing and seeks to start (stop []) */
+void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
+{
+	I_MUS2MIDData_t* Local;
 	
 	/* Check */
 	if (!a_Driver)
@@ -702,33 +775,7 @@ void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
-		// Clear time
-		Local->BaseTime = 0;
-		
-		// End everything pretty much
-		for (i = 0; i < 16; i++)
-		{
-			// Turn off all notes
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x7B;
-			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-			
-			// Turn off sustain
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x40;
-			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-			
-			// Reset all controllers
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x79;
-			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-		}
+		IS_MUS2MID_FullReset(a_Driver, Local);
 	}
 	
 	/* Full convert mode */
@@ -851,30 +898,7 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
-		// End everything pretty much
-		for (i = 0; i < 16; i++)
-		{
-			// Turn off all notes
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x7B;
-			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-			
-			// Turn off sustain
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x40;
-			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-			
-			// Reset all controllers
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x79;
-			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-		}
+		IS_MUS2MID_FullReset(a_Driver, Local);
 	}
 	
 	/* Full convert mode */
@@ -1465,6 +1489,26 @@ static void IS_ALSAMidi_RawToALSA(uint32_t a_Msg, const uint32_t a_BitLength, sn
 			a_Evt->data.control.value -= 8192;
 			break;
 			
+			// SysEx
+		case 0xF:
+			switch (Chan)
+			{
+					// Sense
+				case 0xE:
+					a_Evt->type = SND_SEQ_EVENT_SENSING;
+					break;
+				
+					// Reset all
+				case 0xF:
+					a_Evt->type = SND_SEQ_EVENT_RESET;
+					break;
+				
+					// Unknown
+				default:
+					break;
+			}
+			break;
+			
 			// Unknown
 		default:
 			break;
@@ -1493,6 +1537,10 @@ static void IS_ALSAMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const ui
 	snd_seq_ev_set_subs(&Event);
 	
 	IS_ALSAMidi_RawToALSA(a_Msg, a_BitLength, &Event);
+	
+	/* No event? */
+	if (!Event.type)
+		return;
 	
 	/* Direct to output */
 	// Ignore any errors returned by this function
