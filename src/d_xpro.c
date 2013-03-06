@@ -919,6 +919,7 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Disconnect notice */
 	CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Buf);
 	
+#if 0
 	/* If playing... */
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
 	{
@@ -932,9 +933,12 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Otherwise, a network disconnect */
 	else
 	{
+#endif
 		// Cannot connect to server maybe?
 		D_XNetDisconnect(false);
+#if 0
 	}
+#endif
 	
 	/* Success! */
 	return true;
@@ -1246,6 +1250,64 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return true;
 }
 
+/* DXP_TRUN() -- Server acknowledged they recieved a tic */
+static bool_t DXP_TRUN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	D_XPlayer_t* XPlay;
+	tic_t GameTic;
+	uint32_t SyncCode, i;
+	D_XNetTicBuf_t* TicBuf;
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Get XPlayer for this host */
+	XPlay = D_XNetPlayerByHostID(a_EP->HostID);
+	
+	// Not found?
+	if (!XPlay)
+		return false;
+	
+	/* Read */
+	GameTic = D_BSrcu64(a_Desc->RelBS);
+	SyncCode = D_BSru32(a_Desc->RelBS);
+	
+	/* Already ran this tic? */
+	if (GameTic >= XPlay->LastRanTic)
+		return false;
+	
+	/* Check syncs */
+	if (GameTic > XPlay->LastRanTic)
+		XPlay->LastRanTic = GameTic;
+	
+	// Obtain the tic buffer for this tic
+	TicBuf = D_XNetBufForTic(GameTic, false);
+	
+	// No tic buffer or mismatch?
+	if (!TicBuf || (TicBuf && SyncCode != TicBuf->SyncCode))
+	{
+		// Kick all associated XPlayers
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			// Get XPlayer
+			XPlay = g_XPlays[0];
+			
+			if (!XPlay)
+				continue;
+			
+			// Kick em
+			D_XNetKickPlayer(XPlay, "Client desynchronized.", false);
+		}
+		
+		// I'd say it failed
+		return false;
+	}
+	
+	/* Success! */
+	return true;
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1278,6 +1340,7 @@ static const struct
 	{"PLAY", DXP_PLAY, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"TICS", DXP_TICS, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"TACK", DXP_TACK, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"TRUN", DXP_TRUN, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"FILE", DXP_FILE, PF_ONAUTH},
 	
 	{NULL}

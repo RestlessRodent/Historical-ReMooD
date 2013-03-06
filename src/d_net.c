@@ -971,6 +971,8 @@ void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 	uint8_t* OutD;
 	uint32_t OutSz;
 	
+	I_HostAddress_t* AddrP;
+	
 	/* If server, store into buffer */
 	if (D_XNetIsServer())
 	{
@@ -1030,6 +1032,16 @@ void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 	// If the server feels otherwise, they kick us
 	else
 	{
+		// Tell the server the sync code for this tic
+		BS = D_XBRouteToServer(NULL, &AddrP);
+		
+		if (BS)
+		{
+			D_BSBaseBlock(BS, "TRUN");
+			D_BSwcu64(BS, a_GameTic);
+			D_BSwu32(BS, a_SyncCode);
+			D_BSRecordNetBlock(BS, AddrP);
+		}
 	}
 }
 
@@ -2299,16 +2311,12 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 		else
 		{
 			// Get tic that we want
-			Buf = D_XNetBufForTic(gametic , false);
+			Buf = D_XNetBufForTic(gametic, false);
 		
 			// That tic better be found!
 			if (Buf)
-			{
 				// Copy specific player
 				memmove(a_TicCmd, &Buf->Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
-			
-				// Send run acknowledge to server
-			}
 		}
 	}
 }
