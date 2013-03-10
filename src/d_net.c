@@ -622,7 +622,7 @@ void D_XNetWipeBefores(const tic_t a_GameTic)
 	/* Erase all in store */
 	for (i = 0; i < l_NumTicStore; i++)
 		if (l_TicStore[i])
-			if (a_GameTic < l_TicStore[i]->GameTic)
+			if (l_TicStore[i]->GameTic < a_GameTic)
 			{
 				Z_Free(l_TicStore[i]);
 				l_TicStore[i] = NULL;
@@ -2555,7 +2555,10 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 			
 			// If not, disconnect
 			else
+			{
+				CONL_OutputUT(CT_NETWORK, DSTR_DNETC_INVALIDTIC, "%u\n", (unsigned int)gametic);
 				D_XNetDisconnect(false);
+			}
 		}
 	}
 }
@@ -2757,8 +2760,8 @@ tic_t D_XNetTicsToRun(void)
 		}
 		
 		// Wipe old gametics we don't care about
-		if (gametic < OldestTic && OldestTic != 0)
-			D_XNetWipeBefores(OldestTic - 1);
+		if (gametic > l_SVMaxCatchup.Value->Int + 1)
+			D_XNetWipeBefores(gametic - l_SVMaxCatchup.Value->Int);
 			
 		// Get time difference
 		Diff = ThisTic - l_XNLastPTic;
@@ -2790,11 +2793,11 @@ tic_t D_XNetTicsToRun(void)
 		{
 			// Count tics in buffer
 			Diff = 0;
-			while ((Buf = D_XNetBufForTic(gametic + 1 + Diff, false)))
+			while ((Buf = D_XNetBufForTic(gametic + Diff, false)))
 				Diff++;
 			
 			// Remove all tics before gametic
-			if (gametic > 0)
+			if (gametic > 1)
 				D_XNetWipeBefores(gametic - 1);
 			
 			// Return available count
@@ -2810,7 +2813,7 @@ tic_t D_XNetTicsToRun(void)
 				// Request Threshold once
 				if (!ReqThresh)
 					// Set threshold
-					ReqThresh = ReqThresh + l_CLReqTicDelay.Value->Int + 1;
+					ReqThresh = g_ProgramTic + l_CLReqTicDelay.Value->Int + 1;
 				
 				// Wait until obtained threshold
 				else if (g_ProgramTic >= ReqThresh)

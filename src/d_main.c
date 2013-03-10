@@ -397,6 +397,7 @@ void D_Display(void)
 		if (PausePic)
 			V_ImageDraw(0, PausePic, (320 >> 1) - (PausePic->Width >> 1), 10, NULL);
 	}
+	
 	//added:24-01-98:vid size change is now finished if it was on...
 	vid.recalc = 0;
 	
@@ -476,6 +477,9 @@ void D_Display(void)
 	g_IgnoreWipeTics = 0;
 		
 	wipe_EndScreen(0, 0, vid.width, vid.height);
+	
+	// GhostlyDeath <March 10, 2013> -- Run a tic on wipe (for networking)
+	TryRunTics(0, NULL);
 	
 	wipestart = I_GetTime() - 1;
 	y = wipestart + 2 * TICRATE;	// init a timeout

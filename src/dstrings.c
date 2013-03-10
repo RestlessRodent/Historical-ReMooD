@@ -278,6 +278,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			"DNETC_HOSTNORESOLVE", "Host \"$1\" does not resolve."},
 	{			  "DNETC_HOSTRESFOUR", "Host \"$1\" resolves to $2.$3.$4.$5 (v4)."},
 	{			   "DNETC_HOSTRESSIX", "Host \"$1\" resolves to $2$3:$4:$5:$6:$7%$8 (v6)."},
+	{			   "DNETC_INVALIDTIC", "Attempted to gather tic $1 but it was not found."},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},

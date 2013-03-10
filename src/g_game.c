@@ -821,7 +821,7 @@ void G_Ticker(void)
 		}
 		
 	/* Calculate the current sync code */
-	NowCode = G_CalcSyncCode((devparm/* && gametic <= 1*/));
+	NowCode = G_CalcSyncCode((devparm && gametic <= 1));
 		
 	/* Post-Tic */
 	if (demoplayback)
