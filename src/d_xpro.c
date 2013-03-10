@@ -125,7 +125,7 @@ void D_XPRunConnection(void)
 void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason)
 {
 	/* Check */
-	if (!a_Desc || !a_BS || !a_Addr)
+	if (!a_BS || !a_Addr)
 		return;
 	
 	/* Build Packet */
@@ -142,8 +142,19 @@ void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddre
 	// Send away
 	D_BSRecordNetBlock(a_BS, a_Addr);
 	
+	// Flush, just in case (so it is sent before they go bye)
+	D_BSFlushStream(a_BS);
+	
 	/* Drop host too */
 	D_XBDropHost(a_Addr);
+}
+
+/* D_XPRequestScreen() -- Request Screen */
+void D_XPRequestScreen(const int32_t a_ScreenID)
+{
+	/* Range Cap? */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+		return;
 }
 
 /* DS_DumpSplitInfo() -- Dumps split info into packet */
@@ -404,9 +415,20 @@ static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
 	D_XEndPoint_t* Joins[MAXPLAYERS];
 	D_XPlayer_t* XJoins[MAXPLAYERS * MAXSPLITSCREEN];
 	int32_t i, j, s, ns, fs, x, k;
+	bool_t FreeToJoin;
+	
+	/* Players waiting in join window? */
+	FreeToJoin = true;
+	for (i = 0; i < g_NumXEP; i++)
+		if (g_XEP[i])
+			if (g_XEP[i]->ActiveJoinWindow)
+			{
+				FreeToJoin = false;
+				break;
+			}
 	
 	/* Perform join windows? */
-	if (g_ProgramTic >= a_Desc->CS.Server.JoinWindowTime)
+	if (FreeToJoin && g_ProgramTic >= a_Desc->CS.Server.JoinWindowTime)
 	{
 		// Clear joins
 		memset(Joins, 0, sizeof(Joins));
@@ -414,16 +436,15 @@ static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
 		
 		// Go through all clients
 		j = x = 0;
-		if (!l_PerfJoins)
-			for (i = 0; i < g_NumXEP; i++)
-				if (g_XEP[i])
-					if (!g_XEP[i]->Latched && g_XEP[i]->SignalReady &&
-						g_ProgramTic >= g_XEP[i]->ReadyTime)
-					{
-						// Make them join
-						if (j < MAXPLAYERS)
-							Joins[j++] = g_XEP[i];
-					}
+		for (i = 0; i < g_NumXEP; i++)
+			if (g_XEP[i])
+				if (!g_XEP[i]->Latched && g_XEP[i]->SignalReady &&
+					g_ProgramTic >= g_XEP[i]->ReadyTime)
+				{
+					// Make them join
+					if (j < MAXPLAYERS)
+						Joins[j++] = g_XEP[i];
+				}
 		
 		// Increase until next join window
 		a_Desc->CS.Server.JoinWindowTime = g_ProgramTic + (l_SVJoinWindow.Value->Int * TICRATE);
@@ -493,13 +514,21 @@ static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
 			
 			// Send file to each host
 			for (i = 0; i < j; i++)
+			{
 				if (!D_XFSendFile(l_SaveBeingSent, &Joins[i]->Addr, Joins[i]->Desc->RelBS, Joins[i]->Desc->StdBS))
+				{
 					for (k = 0; k < x; k++)
 						if (XJoins[k]->HostID == XJoins[i]->HostID)
 						{
 							D_XNetKickPlayer(XJoins[i], "Failed to send savegame.", false);
 							XJoins[k] = NULL;
 						}
+				}
+				
+				// Set endpoint inside of a join window
+				else
+					Joins[i]->ActiveJoinWindow = true;
+			}
 		}
 	}
 #undef BUFSIZE
@@ -910,14 +939,43 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 {
 #define BUFSIZE 72
 	char Buf[BUFSIZE];
-	uint32_t Code;
+	uint32_t Code, i;
 	
 	/* Read Code */
 	Code = D_BSru32(a_Desc->RelBS);
 	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE);
 	
-	/* Disconnect notice */
-	CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Buf);
+	/* If slave, disconnect */
+	if (!a_Desc->Master)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Buf);
+		D_XNetDisconnect(false);
+	}
+	
+	/* We are server */
+	else if (D_XNetIsServer())
+	{
+		// Remove endpoints if any
+		if (a_EP)
+		{
+			// Kick XPlayers with said reason
+			for (i = 0; i < g_NumXPlays; i++)
+				if (g_XPlays[i])
+					if (g_XPlays[i]->HostID == a_EP->HostID)
+						D_XNetKickPlayer(g_XPlays[i], Buf, false);
+			
+			// Remove endpoint
+			D_XBDelEndPoint(a_EP, Buf);
+		}
+	}
+	
+	/* We are client */
+	else
+	{
+		// Disconnect from server
+		CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Buf);
+		D_XNetDisconnect(false);
+	}
 	
 #if 0
 	/* If playing... */
@@ -1147,6 +1205,15 @@ static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	if (!HostID)
 		return false;
 	
+	/* Clear active join from end point */
+	if (a_EP)
+	{
+		a_EP->ActiveJoinWindow = false;
+		
+		// Also set as latched
+		a_EP->Latched = true;
+	}
+	
 	/* Go through players */
 	for (i = 0; i < g_NumXPlays; i++)
 	{
@@ -1191,8 +1258,6 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Don't need? */
 	if (TicBuf.GameTic < gametic)
 		return false;
-	
-	CONL_PrintF("TICS %u at %u.\n", (unsigned)TicBuf.GameTic, (unsigned)gametic);
 	
 	/* Create tic command to write to */
 	To = D_XNetBufForTic(TicBuf.GameTic, true);
@@ -1447,7 +1512,7 @@ static const struct
 {
 	{"GSYN", DXP_GSYN, PF_MASTER},
 	{"CSYN", DXP_CSYN, PF_SLAVE},
-	{"DISC", DXP_DISC, PF_ONAUTH | PF_SLAVE},
+	{"DISC", DXP_DISC, PF_ONAUTH},
 	{"SYNJ", DXP_SYNJ, PF_ONAUTH | PF_SLAVE | PF_REL},
 	{"SYNC", DXP_SYNC, PF_ONAUTH | PF_MASTER | PF_REL},
 	{"RQFL", DXP_RQFL, PF_ONAUTH | PF_SERVER | PF_REL},

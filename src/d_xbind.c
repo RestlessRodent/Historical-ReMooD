@@ -390,14 +390,16 @@ void D_XBDelEndPoint(D_XEndPoint_t* const a_XEP, const char* const a_Reason)
 	if (!a_XEP)
 		return;
 	
-	/* No descriptor? */
-	if (!a_XEP->Desc)
-		return;
+	/* Send disconnect? */
+	// D_XPSendDisconnect can call this function
+	if (a_XEP->Desc)
+		if (!a_XEP->Bye)
+		{
+			a_XEP->Bye = true;
+			D_XPSendDisconnect(a_XEP->Desc, a_XEP->Desc->RelBS, &a_XEP->Addr, a_Reason);
+		}
 	
-	/* Send them disconnect notice */
-	D_XPSendDisconnect(a_XEP->Desc, a_XEP->Desc->RelBS, &a_XEP->Addr, a_Reason);
-	
-	/* Look in list form them */
+	/* Look in list for them and remove them */
 	for (i = 0; i < g_NumXEP; i++)
 		if (g_XEP[i] == a_XEP)
 			g_XEP[i] = NULL;

@@ -1127,7 +1127,8 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	DoingDiscon = true;
 	
 	/* Send quit message to server */
-	D_XNetSendQuit();
+	if (!a_FromDemo)
+		D_XNetSendQuit();
 	
 	/* Disconnect all players */
 	for (i = 0; i < g_NumXPlays; i++)
@@ -1893,6 +1894,8 @@ void D_XNetSpectate(const int32_t a_PlayerID)
 void D_XNetSendQuit(void)
 {
 	int i;
+	D_BS_t* BS;
+	I_HostAddress_t* AddrP;
 	
 	/* If we are not the server, tell the server */
 	if (!D_XNetIsServer())
@@ -1902,6 +1905,8 @@ void D_XNetSendQuit(void)
 			D_XNetPartLocal(g_Splits[i].XPlayer);
 		
 		// Send final disconnect to server
+		if ((BS = D_XBRouteToServer(NULL, &AddrP)))
+			D_XPSendDisconnect(NULL, BS, AddrP, "Disconnecting.");
 	}
 	
 	/* Disconnect from the server */
@@ -4300,6 +4305,7 @@ void D_XNetUpdate(void)
 					else
 					{
 						// Send Message
+						D_XPRequestScreen(i);
 						
 						// Set timeout
 						g_Splits[i].RequestSent++;

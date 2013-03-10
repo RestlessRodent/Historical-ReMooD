@@ -1908,6 +1908,7 @@ void I_Quit(void)
 	}
 	
 	// Disconnect from network game
+	D_XNetSendQuit();
 	D_XNetDisconnect(false);
 	D_QuitNetGame();
 	

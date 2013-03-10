@@ -101,6 +101,8 @@ typedef struct D_XEndPoint_s
 	tic_t ReadyTime;							// Ready time
 	bool_t Latched;								// Latched into game
 	int32_t ScreenToAdd;						// Screen to add for
+	bool_t Bye;									// Going bye
+	bool_t ActiveJoinWindow;					// Active join window
 } D_XEndPoint_t;
 
 /* D_XDesc_t -- Socket descriptor */
@@ -142,6 +144,7 @@ typedef struct D_XDesc_s
 		struct
 		{
 			tic_t JoinWindowTime;				// Time until next JW
+			bool_t ActiveJoinWindow;			// Active join window?
 		} Server;								// Server Stuff
 	} CS;										// Client/Server Stuff
 } D_XDesc_t;
@@ -166,6 +169,7 @@ void D_XPCleanup(void);
 void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason);
 void D_XPRunConnection(void);
 void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason);
+void D_XPRequestScreen(const int32_t a_ScreenID);
 
 void D_XPRunCS(D_XDesc_t* const a_Desc);
 void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* const a_Sum, const uint32_t a_Size, I_HostAddress_t* const a_Addr, const tic_t a_TimeStart, const tic_t a_TimeEnd);
