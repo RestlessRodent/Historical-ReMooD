@@ -108,6 +108,15 @@ typedef enum D_XPlayerStatBits_e
 	DXPSB_CAUSEOFLAG	= UINT32_C(0x0000008),	// Is Causing the lag
 } D_XPlayerStatBits_t;
 
+/* D_XPlayerPref_t -- Player preference */
+typedef enum D_XPlayerPref_e
+{
+	DXPP_SKINCOLOR,								// Color of skin
+	DXPP_VTEAM,									// Virtual Team
+	DXPP_DISPLAYNAME,							// Display Name
+	DXPP_HEXENCLASS,							// Hexen Class
+} D_XPlayerPref_t;
+
 /*** STRUCTURES ***/
 
 struct D_XPlayer_s;
@@ -187,6 +196,8 @@ typedef struct D_XPlayer_s
 	bool_t CounterOp;							// On Counterop Team
 	int32_t VTeam;								// Virtual Team On
 	int32_t Color;								// Color
+	tic_t JoinExpire;							// Join attempt expires
+	char HexenClass[MAXPLAYERNAME];				// Hexen Class
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -218,6 +229,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
 bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
 
+void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host);
 void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_Cmd);
 void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode);
 
@@ -245,13 +257,18 @@ void D_XNetSendQuit(void);
 void D_XNetPartLocal(D_XPlayer_t* const a_Player);
 void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
 void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset);
+
 void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile);
 void D_XNetSendColors(D_XPlayer_t* const a_Player);
+
 void D_XNetTryJoin(D_XPlayer_t* const a_Player);
 void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
 void D_XNetSetServerName(const char* const a_NewName);
 
+void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const D_XPlayerPref_t a_Pref, const intptr_t a_Value);
+
 D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create);
+void D_XNetWipeBefores(const tic_t a_GameTic);
 void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz);
 void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
 

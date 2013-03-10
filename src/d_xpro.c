@@ -1192,6 +1192,8 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	if (TicBuf.GameTic < gametic)
 		return false;
 	
+	CONL_PrintF("TICS %u at %u.\n", (unsigned)TicBuf.GameTic, (unsigned)gametic);
+	
 	/* Create tic command to write to */
 	To = D_XNetBufForTic(TicBuf.GameTic, true);
 	
@@ -1240,7 +1242,7 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	RemProgTic = D_BSrcu64(a_Desc->RelBS);
 	
 	/* Already acked this tic? */
-	if (AckTic >= XPlay->LastAckTic)
+	if (AckTic <= XPlay->LastAckTic)
 		return true;
 	
 	/* Set as acknowledged */
@@ -1253,10 +1255,12 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 /* DXP_TRUN() -- Server acknowledged they recieved a tic */
 static bool_t DXP_TRUN(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
+#define BUFSIZE 72
 	D_XPlayer_t* XPlay;
 	tic_t GameTic;
 	uint32_t SyncCode, i;
 	D_XNetTicBuf_t* TicBuf;
+	char Buf[BUFSIZE];
 	
 	/* Check */
 	if (!a_EP)
@@ -1274,7 +1278,7 @@ static bool_t DXP_TRUN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	SyncCode = D_BSru32(a_Desc->RelBS);
 	
 	/* Already ran this tic? */
-	if (GameTic >= XPlay->LastRanTic)
+	if (GameTic <= XPlay->LastRanTic)
 		return false;
 	
 	/* Check syncs */
@@ -1287,17 +1291,33 @@ static bool_t DXP_TRUN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	// No tic buffer or mismatch?
 	if (!TicBuf || (TicBuf && SyncCode != TicBuf->SyncCode))
 	{
+		// Setup message
+		memset(Buf, 0, sizeof(Buf));
+		
+		if (TicBuf)
+			snprintf(Buf, BUFSIZE - 1, "Game State Desync (%08x != %08x @ %u",
+					SyncCode, TicBuf->SyncCode, ((unsigned int)GameTic)
+				);
+		else
+			snprintf(Buf, BUFSIZE - 1, "Out of Reality (@ %u)",
+					((unsigned int)GameTic)
+				);
+		
 		// Kick all associated XPlayers
 		for (i = 0; i < g_NumXPlays; i++)
 		{
 			// Get XPlayer
-			XPlay = g_XPlays[0];
+			XPlay = g_XPlays[i];
 			
 			if (!XPlay)
 				continue;
 			
+			// Not this host
+			if (XPlay->HostID != a_EP->HostID)
+				continue;
+			
 			// Kick em
-			D_XNetKickPlayer(XPlay, "Client desynchronized.", false);
+			D_XNetKickPlayer(XPlay, Buf, false);
 		}
 		
 		// I'd say it failed
@@ -1305,6 +1325,102 @@ static bool_t DXP_TRUN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	}
 	
 	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* DXP_TRYJ() -- Player wants to try to join the game */
+static bool_t DXP_TRYJ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	D_XPlayer_t* XPlay;
+	uint32_t ClientID;
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Read client ID for the player that does want to join */
+	ClientID = D_BSru32(a_Desc->RelBS);
+	
+	// Find XPlayer for this ID
+	XPlay = D_XNetPlayerByID(ClientID);
+	
+	// No player?
+	if (!XPlay)
+		return false;
+	
+	/* Unauthorized? */
+	if (XPlay->HostID != a_EP->HostID)
+		return false;
+	
+	/* Already playing? */
+	if (XPlay->Player)
+		return false;
+	
+	/* Otherwise read join data */
+	// Place that info into that player, in case it does happen to be missing
+		// Display Name
+	memset(Buf, 0, sizeof(Buf));
+	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE - 1);
+	D_XNetPlayerPref(XPlay, false, DXPP_DISPLAYNAME, Buf);
+	
+		// Hexen Class
+	memset(Buf, 0, sizeof(Buf));
+	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE - 1);
+	D_XNetPlayerPref(XPlay, false, DXPP_HEXENCLASS, Buf);
+	
+		// Color
+	D_XNetPlayerPref(XPlay, false, DXPP_SKINCOLOR, D_BSru32(a_Desc->RelBS));
+	
+		// VTeam
+	D_XNetPlayerPref(XPlay, false, DXPP_VTEAM, D_BSru32(a_Desc->RelBS));
+	
+	/* Attempt actual join */
+	D_XNetTryJoin(XPlay);
+	return true;
+#undef BUFSIZE
+}
+
+/* DXP_TREQ() -- Requesting tics from the server */
+static bool_t DXP_TREQ(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	tic_t GameTic;
+	D_XNetTicBuf_t* Buf;
+	D_XPlayer_t* XPlay;
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Obtain XPlayer */
+	XPlay = D_XNetPlayerByHostID(a_EP->HostID);
+	
+	// Failed
+	if (!XPlay)
+		return false;
+	
+	/* Read gametic they want */
+	GameTic = D_BSrcu64(a_Desc->RelBS);
+	
+	/* Obtain that tic, if it hopefully exists */
+	Buf = D_XNetBufForTic(Buf, false);
+	
+	// Nope!
+	if (!Buf)
+		return false;
+	
+	/* Hopefully this works */
+	// Reset their ACKs
+	if (GameTic < XPlay->LastXMit)
+		XPlay->LastXMit = GameTic;
+	
+	if (GameTic < XPlay->LastAckTic)
+		XPlay->LastAckTic = GameTic;
+	
+	// Send the tic over
+	D_XNetSendTicToHost(Buf, XPlay);
 	return true;
 }
 
@@ -1341,6 +1457,8 @@ static const struct
 	{"TICS", DXP_TICS, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"TACK", DXP_TACK, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"TRUN", DXP_TRUN, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"TRYJ", DXP_TRYJ, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"TREQ", DXP_TREQ, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"FILE", DXP_FILE, PF_ONAUTH},
 	
 	{NULL}

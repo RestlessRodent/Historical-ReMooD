@@ -261,6 +261,14 @@ CONL_StaticVar_t l_CLMaxPTryTime =
 	NULL
 };
 
+// cl_reqticdelay -- When the lag threshold expires
+CONL_StaticVar_t l_CLReqTicDelay =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"cl_reqticdelay", DSTR_CVHINT_CLREQTICDELAY, CLVVT_INTEGER, "7",
+	NULL
+};
+
 extern CONL_StaticVar_t l_CONPauseGame;
 
 /*** FUNCTIONS ***/
@@ -311,6 +319,7 @@ bool_t D_CheckNetGame(void)
 	// Client
 	CONL_VarRegister(&l_CLMaxPTries);
 	CONL_VarRegister(&l_CLMaxPTryTime);
+	CONL_VarRegister(&l_CLReqTicDelay);
 	
 	/* Debug? */
 	if (M_CheckParm("-netdev") || M_CheckParm("-devnet"))
@@ -603,6 +612,21 @@ D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create)
 	l_TicStore[i] = Z_Malloc(sizeof(*l_TicStore[i]), PU_STATIC, NULL);
 	l_TicStore[i]->GameTic = a_GameTic;
 	return l_TicStore[i];
+}
+
+/* D_XNetWipeBefores() -- Wipe tics all before this tic */
+void D_XNetWipeBefores(const tic_t a_GameTic)
+{	
+	size_t i;
+	
+	/* Erase all in store */
+	for (i = 0; i < l_NumTicStore; i++)
+		if (l_TicStore[i])
+			if (a_GameTic < l_TicStore[i]->GameTic)
+			{
+				Z_Free(l_TicStore[i]);
+				l_TicStore[i] = NULL;
+			}
 }
 
 /* D_XNetEncodeTicBuf() -- Encodes tic buffer into more compact method */
@@ -959,18 +983,101 @@ void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* 
 	memmove(&Buf->Tics[Player], a_Cmd, sizeof(Buf->Tics[Player]));
 }
 
+/* D_XNetSendTicToHost() -- Sends tic to XPlayer */
+void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host)
+{
+	uint8_t* OutD;
+	uint32_t OutSz;
+	D_XPlayer_t* Host;
+	int32_t i;
+	D_XEndPoint_t* EP;
+	D_BS_t* BS;
+	
+	/* Encode Commands */
+	OutD = NULL;
+	OutSz = 0;
+	D_XNetEncodeTicBuf(a_Buf, &OutD, &OutSz);
+	
+	/* If host specified */
+	// Only send to them
+	if (a_Host)
+	{
+		// Obtain real host
+		Host = D_XNetPlayerByXPlayerHost(Host);
+		
+		// Not there?
+		if (!Host)
+			return;
+			
+		// Local, defunct or bot, ignore
+		if (Host->Flags & (DXPF_LOCAL | DXPF_BOT | DXPF_DEFUNCT))
+			return;
+			
+		// Get endpoint
+		EP = Host->Socket.EndPoint;
+	
+		if (!EP)
+			return;
+		
+		// Record block to them
+		BS = EP->Desc->RelBS;
+		D_BSBaseBlock(BS, "TICS");
+		D_BSWriteChunk(BS, OutD, OutSz);
+		D_BSRecordNetBlock(BS, &EP->Addr);
+	}
+	
+	// Otherwise send to all
+	else
+	{
+		// Send to everyone
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			Host = g_XPlays[i];
+			
+			// Not there?
+			if (!Host)
+				continue;
+			
+			// Local, defunct or bot, ignore
+			if (Host->Flags & (DXPF_LOCAL | DXPF_BOT | DXPF_DEFUNCT))
+				continue;
+			
+			// Obtain real Host
+			Host = D_XNetPlayerByXPlayerHost(Host);
+			
+			// Not there?
+			if (!Host)
+				continue;
+			
+			// Get endpoint
+			EP = Host->Socket.EndPoint;
+			
+			if (!EP)
+				continue;
+			
+			// Already xmitted?
+			if (a_Buf->GameTic <= Host->LastXMit)
+				continue;
+			
+			// XMit now
+			Host->LastXMit = a_Buf->GameTic;
+			BS = EP->Desc->RelBS;
+			
+			// Record block to them
+			D_BSBaseBlock(BS, "TICS");
+			D_BSWriteChunk(BS, OutD, OutSz);
+			D_BSRecordNetBlock(BS, &EP->Addr);
+		}
+	}
+}
+
 /* D_XNetFinalCmds() -- Place final tic commands */
 void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 {
 	D_XNetTicBuf_t* Buf;
 	int32_t i, p, j;
 	D_XPlayer_t* XPlay, *Host;
-	D_XEndPoint_t* EP;
 	D_BS_t* BS;
-	
-	uint8_t* OutD;
-	uint32_t OutSz;
-	
 	I_HostAddress_t* AddrP;
 	
 	/* If server, store into buffer */
@@ -986,46 +1093,8 @@ void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 		// Place sync code there
 		Buf->SyncCode = a_SyncCode;
 		
-		// Encode Commands
-		OutD = NULL;
-		OutSz = 0;
-		D_XNetEncodeTicBuf(Buf, &OutD, &OutSz);
-		
-		// Send to everyone
-		for (i = 0; i < g_NumXPlays; i++)
-		{
-			XPlay = g_XPlays[i];
-			
-			// No player?
-			if (!XPlay)
-				continue;
-			
-			// Obtain host player
-			Host = D_XNetPlayerByXPlayerHost(XPlay);
-			
-			// Local or bot, ignore
-			if (Host->Flags & (DXPF_LOCAL | DXPF_BOT))
-				continue;
-			
-			// Get endpoint
-			EP = Host->Socket.EndPoint;
-			
-			if (!EP)
-				continue;
-			
-			// Already xmitted?
-			if (a_GameTic <= Host->LastXMit)
-				continue;
-			
-			// XMit now
-			Host->LastXMit = a_GameTic;
-			BS = EP->Desc->RelBS;
-			
-			// Record block to them
-			D_BSBaseBlock(BS, "TICS");
-			D_BSWriteChunk(BS, OutD, OutSz);
-			D_BSRecordNetBlock(BS, &EP->Addr);
-		}
+		// Send to all
+		D_XNetSendTicToHost(Buf, NULL);
 	}
 	
 	/* If client, tell server the sync code for this gametic */
@@ -1130,6 +1199,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// But not when playing a demo
 	if (!a_FromDemo)
 		D_XBSocketDestroy();
+	
+	/* Wipe all the old tics */
+	D_XNetWipeBefores((tic_t)-1);
 	
 	/* Go back to the title screen */
 	gamestate = GS_DEMOSCREEN;
@@ -1987,17 +2059,29 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 	void* Wp;
 	int32_t i;
 	uint32_t Flags;
+	D_BS_t* RelBS;
+	I_HostAddress_t* AddrP;
 	
 	/* Already playing? */
 	if (a_Player->Player)
 		return;
 	
 	/* Already tried to join? */
+	// Prevents over join abuse, or when someone goes to join during a save
 	if (a_Player->TriedToJoin)
-		return;
+	{
+		// Join has not yet expired
+		if (gametic < a_Player->JoinExpire)
+			return;
+		
+		// Clear
+		a_Player->TriedToJoin = false;
+		a_Player->JoinExpire = 0;
+	}
 	
 	// Set tried to join
 	a_Player->TriedToJoin = true;
+	a_Player->JoinExpire = gametic + TICRATE;
 	
 	/* If we are the server and this is ourself, join ourself */
 	if (D_XNetIsServer())
@@ -2019,8 +2103,8 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 		// Got one
 		if (Placement)
 		{
-			// Is a bot
-			if (a_Player->Flags & DXPF_BOT)
+			// Is a bot (must be local)
+			if ((a_Player->Flags & (DXPF_LOCAL | DXPF_BOT)) == (DXPF_LOCAL | DXPF_BOT))
 			{
 				// Get Template
 				BotTemplate = B_BotGetTemplateDataPtr(a_Player->BotData);
@@ -2052,15 +2136,30 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ClProcessID);
 				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
 				LittleWriteUInt32((uint32_t**)&Wp, Flags);
-				WriteUInt8((uint8_t**)&Wp, Profile->Color);
+				
+				if ((a_Player->Flags & DXPF_LOCAL) && Profile)
+					WriteUInt8((uint8_t**)&Wp, Profile->Color);
+				else
+					WriteUInt8((uint8_t**)&Wp, a_Player->Color);
+				
 				WriteUInt8((uint8_t**)&Wp, a_Player->VTeam);
 				LittleWriteUInt32((uint32_t**)&Wp, 0);
 				
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					WriteUInt8((uint8_t**)&Wp, Profile->DisplayName[i]);
-					
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					WriteUInt8((uint8_t**)&Wp, Profile->HexenClass[i]);
+				// Display name of player (to others)
+				if ((a_Player->Flags & DXPF_LOCAL) && Profile)
+					for (i = 0; i < MAXPLAYERNAME; i++)
+						WriteUInt8((uint8_t**)&Wp, Profile->DisplayName[i]);
+				else
+					for (i = 0; i < MAXPLAYERNAME; i++)
+						WriteUInt8((uint8_t**)&Wp, (a_Player->DisplayName[0] ? a_Player->DisplayName[i] : "Unnamed Doomer"));
+				
+				// Hexen class to choose
+				if ((a_Player->Flags & DXPF_LOCAL) && Profile)
+					for (i = 0; i < MAXPLAYERNAME; i++)
+						WriteUInt8((uint8_t**)&Wp, Profile->HexenClass[i]);
+				else
+					for (i = 0; i < MAXPLAYERNAME; i++)
+						WriteUInt8((uint8_t**)&Wp, (a_Player->HexenClass[0] ? a_Player->HexenClass[i] : 0));
 			}
 		}
 	}
@@ -2068,6 +2167,28 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 	/* Otherwise, we must ask the server */
 	else
 	{
+		// Obtain route to server
+		RelBS = D_XBRouteToServer(NULL, &AddrP);
+		
+		// Get player
+		Profile = a_Player->Profile;
+		
+		if (RelBS)
+		{
+			// Base block data
+			D_BSBaseBlock(RelBS, "TRYJ");
+			
+			// Write required data
+			D_BSwu32(RelBS, a_Player->ID);
+			
+			D_BSws(RelBS, ((Profile && Profile->DisplayName) ? Profile->DisplayName : a_Player->DisplayName));
+			D_BSws(RelBS, ((Profile && Profile->HexenClass) ? Profile->HexenClass : a_Player->HexenClass));
+			D_BSwu32(RelBS, (Profile ? Profile->Color : a_Player->Color));
+			D_BSwu32(RelBS, (Profile ? Profile->VTeam : a_Player->VTeam));
+			
+			// Send
+			D_BSRecordNetBlock(RelBS, AddrP);
+		}
 	}
 }
 
@@ -2173,6 +2294,120 @@ void D_XNetSetServerName(const char* const a_NewName)
 	
 	/* Print */
 	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_SERVERCHANGENAME, "%s\n", a_NewName);
+}
+
+/* D_XNetPlayerPref() -- Change preference of player */
+void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const D_XPlayerPref_t a_Pref, const intptr_t a_Value)
+{
+	bool_t StrValue;
+	
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Check argument type */
+	StrValue = false;
+	
+	switch (a_Pref)
+	{
+			// Integer
+		case DXPP_SKINCOLOR:
+		case DXPP_VTEAM:
+			StrValue = false;
+			break;
+			
+			// String
+		case DXPP_DISPLAYNAME:
+		case DXPP_HEXENCLASS:
+			StrValue = true;
+			break;
+		
+			// Unknown
+		default:
+			return;
+	}
+	
+	/* From Running Tics */
+	if (a_FromTic)
+	{
+		// Which preference?
+		switch (a_Pref)
+		{
+				// Skin Color
+			case DXPP_SKINCOLOR:
+				a_Player->Color = a_Value;
+				
+				// Change in game color
+				if (a_Player->Player)
+					a_Player->Player->skincolor = a_Value % MAXSKINCOLORS;
+				break;
+			
+				// Virtual Team
+			case DXPP_VTEAM:
+				a_Player->VTeam = a_Value;
+				
+				// Change in game team
+				if (a_Player->Player)
+					a_Player->Player->VTeamColor = a_Value;
+				break;
+			
+				// Display Name
+			case DXPP_DISPLAYNAME:
+				// Change their in game name if they are playing
+				if (a_Player->Player)
+					D_NetSetPlayerName(a_Player->Player - players, (const char*)a_Value);
+				
+				// Otherwise set their name (no need to broadcast)
+				else
+					strncpy(a_Player->DisplayName, (const char*)a_Value, MAXPLAYERNAME - 1);
+				break;
+		
+				// Hexen Class
+			case DXPP_HEXENCLASS:
+				strncpy(a_Player->HexenClass, (const char*)a_Value, MAXPLAYERNAME - 1);
+				break;
+		}
+	}
+	
+	/* Otherwise */
+	else
+	{
+		// If server, elicit change into tic structure
+		if (D_XNetIsServer())
+		{
+			
+			// Affect the server side of things
+			switch (a_Pref)
+			{
+					// Skin Color
+				case DXPP_SKINCOLOR:
+					a_Player->Color = a_Value;
+					break;
+					
+					// Virtual Team
+				case DXPP_VTEAM:
+					a_Player->VTeam = a_Value;
+					break;
+			
+					// Display Name
+				case DXPP_DISPLAYNAME:
+					strncpy(a_Player->DisplayName, (const char*)a_Value, MAXPLAYERNAME - 1);
+					break;
+					
+					// Hexen Class
+				case DXPP_HEXENCLASS:
+					strncpy(a_Player->HexenClass, (const char*)a_Value, MAXPLAYERNAME - 1);
+					break;
+			}
+			
+			// Inject into tic stream to inform clients of changes
+		}
+		
+		// Otherwise, if client, request change
+		else
+		{
+		}
+	}
 }
 
 /* D_XNetUpPlayerTics() -- Upload tics to server */
@@ -2317,6 +2552,10 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 			if (Buf)
 				// Copy specific player
 				memmove(a_TicCmd, &Buf->Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
+			
+			// If not, disconnect
+			else
+				D_XNetDisconnect(false);
 		}
 	}
 }
@@ -2330,9 +2569,19 @@ tic_t D_XNetTicsToRun(void)
 	D_XPlayer_t* XPlay, *Host;
 	static tic_t LastSpecTic;
 	D_XNetTicBuf_t* Buf;
+	tic_t OldestTic, BehindCount;
 	
-	/* Get current tic */
+	bool_t ItWorked;
+	static tic_t ReqThresh;
+	D_BS_t* BS;
+	I_HostAddress_t* AddrP;
+	
+	/* Initialize */
+	// Get current tic
 	ThisTic = I_GetTime();
+	
+	// The oldest tic visible
+	OldestTic = ((tic_t)-1);
 	
 	/* Playing a demo back */
 	if (demoplayback)
@@ -2400,8 +2649,16 @@ tic_t D_XNetTicsToRun(void)
 				NonLocal = true;
 				Host = D_XNetPlayerByXPlayerHost(XPlay);
 				
-				// Save game not transmitted?
-				if (!Host->TransSave)
+				// Time behind
+				if (Host->LastRanTic >= gametic)
+					BehindCount	= 0;
+				else
+					BehindCount = gametic - Host->LastRanTic;
+				
+				// Reasons for lag:
+					// Save game not transmitted?
+				if ((!Host->TransSave) ||
+					(BehindCount >= l_SVMaxCatchup.Value->Int))
 				{
 					Lagging = true;
 					XPlay->StatusBits |= DXPSB_CAUSEOFLAG;
@@ -2409,9 +2666,7 @@ tic_t D_XNetTicsToRun(void)
 				
 				// Not lagging
 				else
-				{
 					XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
-				}
 			}
 			
 			// Check lag stop/start
@@ -2432,9 +2687,7 @@ tic_t D_XNetTicsToRun(void)
 				
 				// If lag timer is past the threshold, kick
 				else if (g_ProgramTic >= XPlay->LagKill)
-				{
 					D_XNetKickPlayer(XPlay, "Timed out.", false);
-				}
 			}
 			
 			// If not lagging, clear indicators
@@ -2502,6 +2755,10 @@ tic_t D_XNetTicsToRun(void)
 			l_XNLastPTic = ThisTic;
 			return 0;
 		}
+		
+		// Wipe old gametics we don't care about
+		if (gametic < OldestTic && OldestTic != 0)
+			D_XNetWipeBefores(OldestTic - 1);
 			
 		// Get time difference
 		Diff = ThisTic - l_XNLastPTic;
@@ -2527,14 +2784,51 @@ tic_t D_XNetTicsToRun(void)
 		}
 		
 		// Otherwise, return the amount of tics that are in queue
+			// This is the as fast as possible spec, super fast
+			
 		else
 		{
+			// Count tics in buffer
 			Diff = 0;
-			while ((Buf = D_XNetBufForTic(gametic + Diff, false)))
+			while ((Buf = D_XNetBufForTic(gametic + 1 + Diff, false)))
 				Diff++;
 			
+			// Remove all tics before gametic
+			if (gametic > 0)
+				D_XNetWipeBefores(gametic - 1);
+			
 			// Return available count
-			return Diff;
+			if (Diff > 0)
+			{
+				ReqThresh = 0;
+				return Diff;
+			}
+			
+			// Otherwise, ask server for those missing tics
+			else
+			{
+				// Request Threshold once
+				if (!ReqThresh)
+					// Set threshold
+					ReqThresh = ReqThresh + l_CLReqTicDelay.Value->Int + 1;
+				
+				// Wait until obtained threshold
+				else if (g_ProgramTic >= ReqThresh)
+				{
+					// Request tic from server
+					BS = D_XBRouteToServer(NULL, &AddrP);
+					
+					if (BS)
+					{
+						D_BSBaseBlock(BS, "TREQ");
+						D_BSwcu64(BS, gametic);
+						D_BSRecordNetBlock(BS, AddrP);
+					}
+					
+					// Remove threshold to wait again
+					ReqThresh = 0;
+				}
+			}
 		}
 	}
 	

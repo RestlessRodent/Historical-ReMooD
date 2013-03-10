@@ -164,6 +164,7 @@ enum
 	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
 	DTCT_XMORPHPLAYER,							// Morph Player
 	DTCT_XSPECPLAYER,							// Spectate Player
+	DTCT_XPLAYERPREF,							// Player Preference
 	
 	NUMDTCT
 };

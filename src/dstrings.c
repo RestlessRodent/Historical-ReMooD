@@ -154,6 +154,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	{				"CVHINT_CLMAXPTRIES", "Maximum amount of client attempts to obtain a client from the server."},
 	{			  "CVHINT_CLMAXPTRYTIME", "Time to wait between client requests."},
+	{			  "CVHINT_CLREQTICDELAY", "Amount in time to tics to wait when requesting more tics if none are available."},
 	
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},

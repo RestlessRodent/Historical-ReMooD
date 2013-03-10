@@ -821,7 +821,7 @@ void G_Ticker(void)
 		}
 		
 	/* Calculate the current sync code */
-	NowCode = G_CalcSyncCode((devparm && gametic <= 1));
+	NowCode = G_CalcSyncCode((devparm/* && gametic <= 1*/));
 		
 	/* Post-Tic */
 	if (demoplayback)
@@ -926,11 +926,8 @@ void G_Ticker(void)
 		case GS_FINALE:
 			F_Ticker();
 			break;
-		
-			// Waiting for join window
-		case GS_WAITFORJOINWINDOW:
-			break;
 			
+		case GS_WAITFORJOINWINDOW:
 		case GS_WAITINGPLAYERS:
 		case GS_DEDICATEDSERVER:
 		case GS_NULL:
