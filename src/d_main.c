@@ -480,6 +480,7 @@ void D_Display(void)
 	
 	// GhostlyDeath <March 10, 2013> -- Run a tic on wipe (for networking)
 	TryRunTics(0, NULL);
+	D_XNetForceLag();	// force lag so the game doesn't speed up after wipe
 	
 	wipestart = I_GetTime() - 1;
 	y = wipestart + 2 * TICRATE;	// init a timeout

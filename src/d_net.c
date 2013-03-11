@@ -1711,6 +1711,16 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 	/* Already defunct? */
 	if (a_Player->Flags & DXPF_DEFUNCT)
 		return;
+	
+	/* Write console message */
+	if (!(a_Player->Flags & DXPF_DEFUNCT))
+		CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n",
+				a_Player->AccountName,
+				(!a_Reason ? DS_GetString(DSTR_NET_NOREASON) : a_Reason)
+			);
+		
+	/* Mark Defunct */
+	a_Player->Flags |= DXPF_DEFUNCT;
 		
 	/* Get our host ID */
 	OurHID = D_XNetGetHostID();
@@ -1726,9 +1736,6 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 	
 	/* Remove from slot */
 	//g_XPlays[Slot] = NULL;
-	
-	/* Mark Defunct */
-	a_Player->Flags |= DXPF_DEFUNCT;
 	
 	/* Local Player */
 	if (a_Player->Flags & DXPF_LOCAL)
@@ -1817,12 +1824,6 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 		B_XDestroyBot(a_Player->BotData);
 		a_Player->BotData = NULL;
 	}
-	
-	/* Write console message */
-	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n",
-			a_Player->AccountName,
-			(!a_Reason ? DS_GetString(DSTR_NET_NOREASON) : a_Reason)
-		);
 	
 	/* Free associated data */
 	//Z_Free(a_Player);
