@@ -52,11 +52,6 @@
 #include "p_demcmp.h"
 #include "p_nwline.h"
 
-//SoM: Enable Boom features?
-int boomsupport = 1;
-int variable_friction = 1;
-int allow_pushers = 1;
-
 //SoM: 3/7/2000
 static void P_SpawnScrollers(void);
 
@@ -961,7 +956,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 #if 0
 	
 	//SoM: 3/7/2000: Check for generalized line types/
-	if (boomsupport)
+	if (P_XGSVal(PGS_COBOOMSUPPORT))
 	{
 		// pointer to line function is NULL by default, set non-null if
 		// line special is walkover generalized linedef type
@@ -1078,7 +1073,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			return;
 	}
 	
-	if (!P_CheckTag(line) && boomsupport)
+	if (!P_CheckTag(line) && P_XGSVal(PGS_COBOOMSUPPORT))
 		return;
 		
 	// Note: could use some const's here.
@@ -1090,84 +1085,84 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			
 		case 6:
 			// Fast Ceiling Crush & Raise
-			if (EV_DoCeiling(line, fastCrushAndRaise) || !boomsupport)
+			if (EV_DoCeiling(line, fastCrushAndRaise) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 8:
 			// Build Stairs
-			if (EV_BuildStairs(line, build8) || !boomsupport)
+			if (EV_BuildStairs(line, build8) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 			
 		case 12:
 			// Light Turn On - brightest near
-			if (EV_LightTurnOn(line, 0) || !boomsupport)
+			if (EV_LightTurnOn(line, 0) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 13:
 			// Light Turn On 255
-			if (EV_LightTurnOn(line, 255) || !boomsupport)
+			if (EV_LightTurnOn(line, 255) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 17:
 			// Start Light Strobing
-			if (EV_StartLightStrobing(line) || !boomsupport)
+			if (EV_StartLightStrobing(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 25:
 			// Ceiling Crush and Raise
-			if (EV_DoCeiling(line, crushAndRaise) || !boomsupport)
+			if (EV_DoCeiling(line, crushAndRaise) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 35:
 			// Lights Very Dark
-			if (EV_LightTurnOn(line, 35) || !boomsupport)
+			if (EV_LightTurnOn(line, 35) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 			
 		case 44:
 			// Ceiling Crush
-			if (EV_DoCeiling(line, lowerAndCrush) || !boomsupport)
+			if (EV_DoCeiling(line, lowerAndCrush) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 			
 		case 54:
 			// Platform Stop
-			if (EV_StopPlat(line) || !boomsupport)
+			if (EV_StopPlat(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 57:
 			// Ceiling Crush Stop
-			if (EV_CeilingCrushStop(line) || !boomsupport)
+			if (EV_CeilingCrushStop(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 		case 104:
 			// Turn lights off in sector(tag)
-			if (EV_TurnTagLightsOff(line) || !boomsupport)
+			if (EV_TurnTagLightsOff(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 			
 		case 100:
 			// Build Stairs Turbo 16
-			if (EV_BuildStairs(line, turbo16) || !boomsupport)
+			if (EV_BuildStairs(line, turbo16) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
 			
 		case 141:
 			// Silent Ceiling Crush & Raise
-			if (EV_DoCeiling(line, silentCrushAndRaise) || !boomsupport)
+			if (EV_DoCeiling(line, silentCrushAndRaise) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
@@ -1236,7 +1231,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			
 			// SoM:3/4/2000: Extended Boom W* triggers.
 		default:
-			if (boomsupport)
+			if (P_XGSVal(PGS_COBOOMSUPPORT))
 			{
 				switch (line->special)
 				{
@@ -1400,8 +1395,8 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 
 #if 0
 	//SoM: 3/7/2000: Another General type check
-	if (boomsupport)
-	{
+	if (P_XGSVal(PGS_COBOOMSUPPORT))
+	{	
 		// pointer to line function is NULL by default, set non-null if
 		// line special is gun triggered generalized linedef type
 		int (*linefunc) (line_t * line) = NULL;
@@ -2264,7 +2259,7 @@ void T_Friction(friction_t* f)
 	msecnode_t* node;
 	bool_t foundfloor = false;
 	
-	if (!P_XGSVal(PGS_COBOOMSUPPORT) || !variable_friction)
+	if (!P_XGSVal(PGS_COBOOMSUPPORT) || !P_XGSVal(PGS_COVARIABLEFRICTION))
 		return;
 		
 	sec = sectors + f->affectee;
@@ -2425,7 +2420,7 @@ void T_Pusher(pusher_t* p)
 	
 	inwater = touching = false;
 	
-	if (!allow_pushers)
+	if (!P_XGSVal(PGS_COALLOWPUSHERS))
 		return;
 		
 	sec = sectors + p->affectee;

@@ -147,6 +147,13 @@ typedef struct P_LevelInfoEx_s
 	bool_t KillMonstersOnSpecial;				// Kills other monsters on special
 	int32_t LevelNum;							// Level number
 	int32_t EpisodeNum;							// Episode Number
+	int32_t SuckTime;							// Time before you suck
+	char* EnterPic;								// Picture when entering level
+	char* EnterSound;							// Sound when entering level
+	char* InterTicSound;						// Sound to play when ticking
+	char* InterDoneSound;						// Intermission done sound
+	char* InterFragSound;						// Sound to play for Coop Frags
+	char* InterDMSound;							// Sound to play when DM starts
 } P_LevelInfoEx_t;
 
 /*** GLOBALS ***/

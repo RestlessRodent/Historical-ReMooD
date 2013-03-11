@@ -4,6 +4,10 @@ defaultsettings
 	intermusic D_INTER
 	bordertexture GRNROCK
 	gravity 800
+	interticsound PISTOL
+	interdonesound BAREXP
+	interfragsound PLDETH
+	interdmsound SLOP
 
 defaultsettings
 	exitpic WIMAP0

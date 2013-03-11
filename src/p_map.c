@@ -150,7 +150,7 @@ int P_GetMoveFactor(mobj_t* mo)
 	
 	int momentum, friction;
 	
-	if (P_XGSVal(PGS_COBOOMSUPPORT) && variable_friction && !(mo->flags & (MF_NOGRAVITY | MF_NOCLIP)))
+	if (P_XGSVal(PGS_COBOOMSUPPORT) && P_XGSVal(PGS_COVARIABLEFRICTION) && !(mo->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 	{
 		friction = mo->friction;
 		if (friction == ORIG_FRICTION)	// normal floor

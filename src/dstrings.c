@@ -681,6 +681,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			       "D_PGS_GAMEMODE", "The type of game currently being played."},
 	{		  "M_PGS_CTFNEEDFLAGATHOME", "Flag At Home To Score"},
 	{		  "D_PGS_CTFNEEDFLAGATHOME", "To score a flag, your team flag must be at home."},
+	{		 "M_PGS_COVARIABLEFRICTION", "Boom Variable Friction"},
+	{		 "D_PGS_COVARIABLEFRICTION", "Friction is able to be varied."},
+	{			 "M_PGS_COALLOWPUSHERS", "Allow Boom Pushers"},
+	{			 "D_PGS_COALLOWPUSHERS", "Enables push/puller objects to work."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

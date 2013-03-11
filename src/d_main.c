@@ -2953,7 +2953,6 @@ void D_DoomMain(void)
 		if (autostart || netgame || M_CheckParm("+connect") || M_CheckParm("-connect"))
 		{
 			//added:27-02-98: reset the current version number
-			G_Downgrade(VERSION);
 			gameaction = ga_nothing;
 			//COM_BufAddText(va("map \"%s\"\n", G_BuildMapName(startepisode, startmap)));
 		}

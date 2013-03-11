@@ -287,6 +287,8 @@ typedef enum P_XGSBitID_e
 	PGS_CONEWGAMEMODES,							// New Game Modes
 	PGS_GAMEMODE,								// Current Game Mode
 	PGS_CTFNEEDFLAGATHOME,						// Need flag at home to score
+	PGS_COVARIABLEFRICTION,						// Boom Variable Friction
+	PGS_COALLOWPUSHERS,							// Allow Boom Pushers
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

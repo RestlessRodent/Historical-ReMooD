@@ -60,9 +60,6 @@ void WI_Start(wbstartstruct_t* wbstartstruct);
 
 bool_t teamingame(int teamnum);
 
-// draw ranckings
-void WI_drawRancking(char* title, int x, int y, fragsort_t* fragtable, int scorelines, bool_t large, int white);
-
 void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter);
 void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const char* const a_SubTitle);
 

@@ -302,11 +302,6 @@ extern fixed_t bottomslope;
 //
 #include "p_spec.h"
 
-//SoM: 3/6/2000: Added public "boomsupport variable"
-extern int boomsupport;
-extern int variable_friction;
-extern int allow_pushers;
-
 // heretic specific
 extern int ceilmovesound;
 extern int doorclosesound;

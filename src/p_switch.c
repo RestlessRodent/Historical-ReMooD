@@ -249,7 +249,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 
 #if 0
 	//SoM: 3/18/2000: Add check for Generalized linedefs.
-	if (boomsupport)
+	if (P_XGSVal(PGS_COBOOMSUPPORT))
 	{
 		// pointer to line function is NULL by default, set non-null if
 		// line special is push or switch generalized linedef type
@@ -371,7 +371,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 		}
 	}
 	
-	if (!P_CheckTag(line) && boomsupport)	//disallow zero tag on some types
+	if (!P_CheckTag(line) && P_XGSVal(PGS_COBOOMSUPPORT))	//disallow zero tag on some types
 		return false;
 		
 	// do something
@@ -445,7 +445,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			break;
 			
 		default:
-			if (boomsupport)
+			if (P_XGSVal(PGS_COBOOMSUPPORT))
 				switch (line->special)
 				{
 						// added linedef types to fill all functions out so that

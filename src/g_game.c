@@ -2045,6 +2045,8 @@ void G_ResetPlayer(player_t* const a_Player)
 //
 bool_t secretexit;
 
+
+
 /* G_ExitLevel() -- Exits the level */
 void G_ExitLevel(const bool_t a_Secret, mobj_t* const a_Activator, const char* const a_Message)
 {
@@ -2059,9 +2061,11 @@ void G_ExitLevel(const bool_t a_Secret, mobj_t* const a_Activator, const char* c
 	P_ExitMessage(a_Activator, a_Message);
 }
 
+/* G_DoCompleted() -- Called when level is exited */
 void G_DoCompleted(void)
 {
 	int i;
+	P_LevelInfoEx_t* NewInfo;
 	
 	gameaction = ga_nothing;
 	
@@ -2092,6 +2096,21 @@ void G_DoCompleted(void)
 	wminfo.partime = TICRATE * g_CurrentLevelInfo->ParTime;
 	wminfo.pnum = g_Splits[0].Console;
 	
+	/* Level going to enter, possibly */
+	NewInfo = NULL;
+	
+	// Secret Exit?
+	if (wminfo.next && g_CurrentLevelInfo->SecretNext)
+		NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->SecretNext, NULL);
+	
+	// Normal Exit?
+	if (!NewInfo && g_CurrentLevelInfo->NormalNext)
+		NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
+	
+	// Set next
+	wminfo.NextInfo = NewInfo;
+	
+	/* Player Junk */
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		wminfo.plyr[i].in = playeringame[i];
@@ -2123,476 +2142,22 @@ void G_NextLevel(void)
 
 void G_DoWorldDone(void)
 {
-	P_LevelInfoEx_t* NewInfo;
-	
-	// Clear Info
-	NewInfo = NULL;
-	
-	// Secret Exit?
-	if (wminfo.next && g_CurrentLevelInfo->SecretNext)
-		NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->SecretNext, NULL);
-	
-	// Normal Exit?
-	if (!NewInfo && g_CurrentLevelInfo->NormalNext)
-		NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
-	
-	// Was able to find the level?
-	if (NewInfo)
-		P_ExLoadLevel(NewInfo, false);
+	/* Change to new level */
+	// Level can be changed to?
+	if (wminfo.NextInfo)
+	{
+		if (!P_ExLoadLevel(wminfo.NextInfo, false))
+			gamestate = GS_WAITINGPLAYERS;
+	}
 	
 	// Otherwise it was a failure, try something else
 		// Just go back to the waiting for players screen
 	else
 		gamestate = GS_WAITINGPLAYERS;
 	
+	/* Done exiting level */
 	gameaction = ga_nothing;
 }
-
-//
-// G_InitFromSavegame
-// Can be called by the startup code or the menu task.
-//
-void G_LoadGame(int slot)
-{
-}
-
-#define VERSIONSIZE             16
-
-void G_DoLoadGame(int slot)
-{
-#if 0
-	int length;
-	char vcheck[VERSIONSIZE];
-	char savename[255];
-	
-	sprintf(savename, savegamename, slot);
-	
-	length = FIL_ReadFile(savename, &savebuffer);
-	if (!length)
-	{
-		CONL_PrintF("Couldn't read file %s", savename);
-		return;
-	}
-	// skip the description field
-	save_p = savebuffer + SAVESTRINGSIZE;
-	
-	memset(vcheck, 0, sizeof(vcheck));
-	sprintf(vcheck, "version %i", VERSION);
-	if (strcmp(save_p, vcheck))
-	{
-		M_StartMessage("Save game from different version\n\nPress ESC\n", NULL, MM_NOTHING);
-		return;					// bad version
-	}
-	save_p += VERSIONSIZE;
-	
-	if (demoplayback)			// reset game engine
-		G_StopDemo();
-		
-	//added:27-02-98: reset the game version
-	G_Downgrade(VERSION);
-	
-	paused = false;
-	automapactive = false;
-	
-	// dearchive all the modifications
-	if (!P_LoadGame())
-	{
-		M_StartMessage("savegame file corrupted\n\nPress ESC\n", NULL, MM_NOTHING);
-		Command_ExitGame_f();
-		Z_Free(savebuffer);
-		return;
-	}
-	
-	gameaction = ga_nothing;
-	gamestate = GS_LEVEL;
-	g_Splits[0].Display = g_Splits[0].Console;
-	
-	// done
-	Z_Free(savebuffer);
-	
-	multiplayer = playeringame[1];
-	//if (playeringame[1] && !netgame)
-	//	CV_SetValue(&cv_splitscreen, 1);
-		
-	if (setsizeneeded)
-		R_ExecuteSetViewSize();
-		
-	// draw the pattern into the back screen
-	R_FillBackScreen();
-	CON_ToggleOff();
-#endif
-}
-
-//
-// G_SaveGame
-// Called by the menu task.
-// Description is a 24 uint8_t text string
-//
-void G_SaveGame(int slot, char* description)
-{
-}
-
-void G_DoSaveGame(int savegameslot, char* savedescription)
-{
-#if 0
-	char name2[VERSIONSIZE];
-	char description[SAVESTRINGSIZE];
-	int length;
-	char name[256];
-	
-	gameaction = ga_nothing;
-	
-	sprintf(name, savegamename, savegameslot);
-	
-	gameaction = ga_nothing;
-	
-	save_p = savebuffer = (uint8_t*)malloc(SAVEGAMESIZE);
-	if (!save_p)
-	{
-		CONL_PrintF("No More free memory for savegame\n");
-		return;
-	}
-	
-	strcpy(description, savedescription);
-	description[SAVESTRINGSIZE] = 0;
-	WRITEMEM(save_p, description, SAVESTRINGSIZE);
-	memset(name2, 0, sizeof(name2));
-	sprintf(name2, "version %i", VERSION);
-	WRITEMEM(save_p, name2, VERSIONSIZE);
-	
-	P_SaveGame();
-	
-	length = save_p - savebuffer;
-	if (length > SAVEGAMESIZE)
-		I_Error("Savegame buffer overrun");
-	FIL_WriteFile(name, savebuffer, length);
-	free(savebuffer);
-	
-	gameaction = ga_nothing;
-	
-	players[g_Splits[0].Console].message = GGSAVED;
-	
-	// draw the pattern into the back screen
-	R_FillBackScreen();
-#endif
-
-#if 0
-	char ExtFileName[MAX_WADPATH];
-	size_t FileLen = 0;
-	
-	CONL_PrintF("G_DoSaveGame: Saving the game...\n");
-	
-	// Can't save when NOT playing
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
-	{
-		CONL_PrintF("G_DoSaveGame: You can't save the game if you are not inside of a game!\n");
-		return;
-	}
-	// Setup
-	memset(ExtFileName, 0, sizeof(ExtFileName));
-	gameaction = ga_nothing;
-	
-	if (P_SaveGameEx(savedescription, ExtFileName, MAX_WADPATH, &FileLen, &savebuffer))
-	{
-		if (savebuffer)
-		{
-			FIL_WriteFile(ExtFileName, savebuffer, FileLen);
-			Z_Free(savebuffer);
-			savebuffer = NULL;
-		}
-		
-		gameaction = ga_nothing;
-		
-		CONL_PrintF("G_DoSaveGame: Game saved!\n");
-		R_FillBackScreen();
-	}
-	
-	gameaction = ga_nothing;
-#endif
-}
-
-//added:03-02-98:
-//
-//  'Downgrade' the game engine so that it is compatible with older demo
-//   versions. This will probably get harder and harder with each new
-//   'feature' that we add to the game. This will stay until it cannot
-//   be done a 'clean' way, then we'll have to forget about old demos..
-//
-bool_t G_Downgrade(int version)
-{
-	int i;
-	
-	if (version < 109)
-		return false;
-	
-	//hmmm.. first time I see an use to the switch without break...
-	switch (version)
-	{
-		case 109:
-			// Boris : for older demos, initalise the new skincolor value
-			//         also disable the new preferred weapons order.
-			for (i = 0; i < 4; i++)
-			{
-				players[i].skincolor = i % MAXSKINCOLORS;
-				players[i].originalweaponswitch = true;
-			}					//eof Boris
-		case 110:
-		case 111:
-			//added:16-02-98: make sure autoaim is used for older
-			//                demos not using mouse aiming
-			for (i = 0; i < MAXPLAYERS; i++)
-				players[i].autoaim_toggle = true;
-				
-		default:
-			break;
-	}
-	
-	//SoM: 3/17/2000: Demo compatability
-	if (version < 129)
-	{
-		boomsupport = 0;
-		allow_pushers = 0;
-		variable_friction = 0;
-	}
-	else
-	{
-		boomsupport = 1;
-		allow_pushers = 1;
-		variable_friction = 1;
-	}
-	
-	// always true now, might be false in the future, if couldn't
-	// go backward and disable all the features...
-	demoversion = version;
-	return true;
-}
-
-#if 0
-/* G_DoPlayDemo() -- Plays A demo */
-void G_DoPlayDemo(char* defdemoname)
-{
-	G_Skill_t skill;
-	int i, j, episode, map;
-	
-	WL_WADEntry_t* Entry;
-	WL_ES_t* Stream;
-	
-	/* Stop playing old demo */
-	if (g_CurDemoInfo)
-		Z_Free(g_CurDemoInfo);
-	g_CurDemoInfo = NULL;
-	
-	/* Try playing by entry */
-	Entry = WL_FindEntry(NULL, 0, defdemoname);
-	
-	// Found?
-	if (Entry)
-	{
-		// Open Stream
-		Stream = WL_StreamOpen(Entry);
-		
-		// Found!
-		if (Stream)
-		{
-			// Allocate
-			g_CurDemoInfo = Z_Malloc(sizeof(*g_CurDemoInfo), PU_STATIC, NULL);
-			
-			// Fill
-			g_CurDemoInfo->Entry = Entry;
-			g_CurDemoInfo->EntryStream = Stream;
-			g_CurDemoInfo->DemoVersion = WL_Sru8(Stream);
-		}
-	}
-	
-	/* Begin demo playback now */
-	if (g_CurDemoInfo)
-	{
-		// Inform the watcher
-		demoplayback = true;
-		CONL_PrintF("Playing back %i.%02i\n",
-				g_CurDemoInfo->DemoVersion / 100, g_CurDemoInfo->DemoVersion % 100);
-		
-		// Load Demo Information
-	}
-	
-#if 0
-//
-// load demo file / resource
-//
-
-	//it's an internal demo
-	if ((i = W_CheckNumForName(defdemoname)) == INVALIDLUMP)
-	{
-		FIL_DefaultExtension(defdemoname, ".lmp");
-		if (!FIL_ReadFile(defdemoname, &demobuffer))
-		{
-			CONL_PrintF("\2ERROR: couldn't open file '%s'.\n", defdemoname);
-			goto no_demo;
-		}
-		demo_p = demobuffer;
-	}
-	else
-		demobuffer = demo_p = W_CacheLumpNum(i, PU_STATIC);
-		
-//
-// read demo header
-//
-
-	gameaction = ga_nothing;
-	demoversion = READBYTE(demo_p);
-	if (demoversion < 109)
-	{
-		CONL_PrintF("\2ERROR: demo version too old.\n");
-		demoversion = VERSION;
-		if (demobuffer)
-			Z_Free(demobuffer);
-		demobuffer = NULL;
-no_demo:
-#endif
-		gameaction = ga_nothing;
-		return;
-#if 0
-	}
-	
-	if (demoversion < VERSION)
-		CONL_PrintF("\2Demo is from an older game version\n");
-		
-	CONL_PrintF("Demo is from %i.i\n", demoversion / 100, demoversion % 100);
-	
-	skill = *demo_p++;
-	episode = *demo_p++;
-	map = *demo_p++;
-	if (demoversion < 127)
-		// push it in the console will be too late set
-		cv_deathmatch.value = *demo_p++;
-	else
-		demo_p++;
-		
-	if (demoversion < 128)
-		// push it in the console will be too late set
-		cv_respawnmonsters.value = *demo_p++;
-	else
-		demo_p++;
-		
-	if (demoversion < 128)
-	{
-		// push it in the console will be too late set
-		cv_fastmonsters.value = *demo_p++;
-		cv_fastmonsters.func();
-	}
-	else
-		demo_p++;
-		
-	nomonsters = *demo_p++;
-	
-	//added:08-02-98: added displayplayer because the status bar links
-	// to the display player when playing back a demo.
-	g_Splits[0].Display = g_Splits[0].Console = *demo_p++;
-	
-	//added:11-01-98:
-	//  support old v1.9 demos with ONLY 4 PLAYERS ! Man! what a shame!!!
-	if (demoversion == 109)
-	{
-		for (i = 0; i < 4; i++)
-			playeringame[i] = *demo_p++;
-	}
-	else
-	{
-		if (demoversion < 128)
-		{
-			cv_timelimit.value = *demo_p++;
-			cv_timelimit.func();
-		}
-		else
-			demo_p++;
-			
-		if (demoversion < 113)
-		{
-			for (i = 0; i < 8; i++)
-				playeringame[i] = *demo_p++;
-		}
-		else
-		{
-			if (demoversion >= 131)
-				multiplayer = *demo_p++;
-				
-			for (i = 0; i < 32; i++)
-				playeringame[i] = *demo_p++;
-		}
-#if MAXPLAYERS>32
-#error Please add support for old lmps
-#endif
-	}
-	
-	if (demoversion < 131)
-	{
-		j = 0;
-		
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i])
-				j++;
-				
-		multiplayer = j > 1;
-	}
-	
-	memset(oldcmd, 0, sizeof(oldcmd));
-	
-	// don't spend a lot of time in loadlevel
-	if (demoversion < 127)
-	{
-		precache = false;
-		G_InitNew(skill, G_BuildMapName(episode, map), true);
-		precache = false;		// GhostlyDeath -- was true
-		CON_ToggleOff();		// will be done at the end of map command
-	}
-	else
-		// wait map command in the demo
-		gamestate = wipegamestate = GS_WAITINGPLAYERS;
-		
-	if (g_SplitScreen)
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		{
-			g_Splits[i].Display = i;
-			g_Splits[i].Console = i;
-		}
-		
-	demoplayback = true;
-	M_LockGameCVARS();
-	DC_SetMenuGameOptions(1);
-	DC_SetDemoOptions(demoversion);
-#endif
-}
-#endif
-
-#if 0
-//
-// G_TimeDemo
-//             NOTE: name is a full filename for external demos
-//
-static int restorecv_vidwait;
-
-void G_TimeDemo(char* name)
-{
-	int i;
-	
-	if (g_SplitScreen > 0)
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		{
-			g_Splits[i].Display = i;
-			g_Splits[i].Console = i;
-		}
-	nodrawers = M_CheckParm("-nodraw");
-	noblit = M_CheckParm("-noblit");
-	restorecv_vidwait = cv_vidwait.value;
-	if (cv_vidwait.value)
-		CV_Set(&cv_vidwait, "0");
-	timingdemo = true;
-	singletics = true;
-	framecount = 0;
-	demostarttime = I_GetTime();
-	G_DeferedPlayDemo(name);
-}
-#endif
 
 void G_DoneLevelLoad(void)
 {
@@ -2601,82 +2166,4 @@ void G_DoneLevelLoad(void)
 	framecount = 0;
 	demostarttime = I_GetTime();
 }
-
-/*
-===================
-=
-= G_CheckDemoStatus
-=
-= Called after a death or level completion to allow demos to be cleaned up
-= Returns true if a new demo loop action will take place
-===================
-*/
-
-#if 0
-// reset engine variable set for the demos
-// called from stopdemo command, map command, and g_checkdemoStatus.
-void G_StopDemo(void)
-{
-	if (demobuffer)
-		Z_Free(demobuffer);
-	demobuffer = NULL;
-	demoplayback = false;
-	timingdemo = false;
-	singletics = false;
-	
-	G_Downgrade(VERSION);
-	
-	gamestate = wipegamestate = GS_NULL;
-}
-
-bool_t G_CheckDemoStatus(void)
-{
-	if (timingdemo)
-	{
-		int time;
-		float f1, f2;
-		
-		time = I_GetTime() - demostarttime;
-		if (!time)
-			return true;
-		G_StopDemo();
-		timingdemo = false;
-		f1 = time;
-		f2 = framecount * TICRATE;
-		CONL_PrintF("timed %i gametics in %i realtics\n" "%f secondes, %f avg fps\n", leveltime, time, f1 / TICRATE, f2 / f1);
-		if (restorecv_vidwait != cv_vidwait.value)
-			CV_SetValue(&cv_vidwait, restorecv_vidwait);
-		D_AdvanceDemo();
-		return true;
-	}
-	else if (demoplayback)
-	{
-		if (singledemo)
-			I_Quit();
-		G_StopDemo();
-		D_AdvanceDemo();
-		return true;
-	}
-	else if (demorecording)
-	{
-		RDF_DEMO_EndRecording();
-#if 0
-		RDF_WriteEndDemo();
-		
-		/**demo_p++ = DEMOMARKER;*/
-		FIL_WriteFile(demoname, demobuffer, demo_p - demobuffer);
-		if (demobuffer)
-			Z_Free(demobuffer);
-		demobuffer = NULL;
-		demorecording = false;
-		
-		CONL_PrintF("\2Demo %s recorded\n", demoname);
-		return true;
-		//I_Quit ();
-#endif
-	}
-	
-	return false;
-}
-#endif
 

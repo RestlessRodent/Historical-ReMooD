@@ -6,6 +6,10 @@ defaultsettings
 	intermusic D_DM2INT
 	bordertexture GRNROCK
 	gravity 800
+	interticsound PISTOL
+	interdonesound BAREXP
+	interfragsound PLDETH
+	interdmsound SLOP
 	
 defaultsettings
 	sky1 SKY1

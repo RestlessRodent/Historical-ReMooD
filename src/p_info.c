@@ -124,9 +124,15 @@ static const struct
 	{false, PPMFIFT_STRING, "secretnext", "nextsecret", offsetof(P_LevelInfoEx_t, SecretNext)},
 	{false, PPMFIFT_STRING, NULL, "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
 	{false, PPMFIFT_WIDEBITFIELD, NULL, "defaultweapons", offsetof(P_LevelInfoEx_t, Weapons)},
-	
+	{false, PPMFIFT_INTEGER, "sucktime", "sucktime", offsetof(P_LevelInfoEx_t, SuckTime)},
+	{false, PPMFIFT_STRING, "enterpic", "enterpic", offsetof(P_LevelInfoEx_t, EnterPic)},
 	{false, PPMFIFT_INTEGER, "levelnum", "mapnumber", offsetof(P_LevelInfoEx_t, LevelNum)},
 	{false, PPMFIFT_INTEGER, "cluster", "episodenumber", offsetof(P_LevelInfoEx_t, EpisodeNum)},
+	{false, PPMFIFT_STRING, "entersound", "entersound", offsetof(P_LevelInfoEx_t, EnterSound)},
+	{false, PPMFIFT_STRING, "interticsound", "interticsound", offsetof(P_LevelInfoEx_t, InterTicSound)},
+	{false, PPMFIFT_STRING, "interdonesound", "interdonesound", offsetof(P_LevelInfoEx_t, InterDoneSound)},
+	{false, PPMFIFT_STRING, "interfragsound", "interfragsound", offsetof(P_LevelInfoEx_t, InterFragSound)},
+	{false, PPMFIFT_STRING, "interdmsound", "interdmsound", offsetof(P_LevelInfoEx_t, InterDMSound)},
 	
 	// Level special endings
 	{false, PPMFIFT_BOOL, "map07special", NULL, offsetof(P_LevelInfoEx_t, MapSevenSpecial)},

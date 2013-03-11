@@ -659,15 +659,11 @@ static void WI_updateDeathmatchStats(void)
 	
 	if (cnt_pause == 0)
 	{
-		S_StartSound(0, sfx_slop);
+		if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDMSound)
+			S_StartSoundName(NULL, g_CurrentLevelInfo->InterDMSound);
 		
 		WI_initNoState();
 	}
-}
-
-/* WI_drawRancking() -- Draws rankings */
-void WI_drawRancking(char* title, int x, int y, fragsort_t* fragtable, int scorelines, bool_t large, int white)
-{
 }
 
 #define RANKINGY 60
@@ -865,14 +861,16 @@ static void WI_updateNetgameStats(void)
 			if (dofrags)
 				cnt_frags[i] = ST_PlayerFrags(i);
 		}
-		S_StartSound(0, sfx_barexp);
+		if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+			S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 		ng_state = 10;
 	}
 	
 	if (ng_state == 2)
 	{
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		stillticking = false;
 		
@@ -891,14 +889,16 @@ static void WI_updateNetgameStats(void)
 		
 		if (!stillticking)
 		{
-			S_StartSound(0, sfx_barexp);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 			ng_state++;
 		}
 	}
 	else if (ng_state == 4)
 	{
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		stillticking = false;
 		
@@ -915,14 +915,16 @@ static void WI_updateNetgameStats(void)
 		}
 		if (!stillticking)
 		{
-			S_StartSound(0, sfx_barexp);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 			ng_state++;
 		}
 	}
 	else if (ng_state == 6)
 	{
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		stillticking = false;
 		
@@ -941,14 +943,16 @@ static void WI_updateNetgameStats(void)
 		
 		if (!stillticking)
 		{
-			S_StartSound(0, sfx_barexp);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 			ng_state += 1 + 2 * !dofrags;
 		}
 	}
 	else if (ng_state == 8)
 	{
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		stillticking = false;
 		
@@ -967,7 +971,8 @@ static void WI_updateNetgameStats(void)
 		
 		if (!stillticking)
 		{
-			S_StartSound(0, sfx_pldeth);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterFragSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterFragSound);
 			ng_state++;
 		}
 	}
@@ -975,7 +980,9 @@ static void WI_updateNetgameStats(void)
 	{
 		if (acceleratestage)
 		{
-			S_StartSound(0, sfx_sgcock);
+			if (wminfo.NextInfo && wminfo.NextInfo->EnterSound)
+				S_StartSoundName(NULL, wminfo.NextInfo->EnterSound);
+			
 			if (gamemode == commercial)
 				WI_initNoState();
 			else
@@ -1024,7 +1031,8 @@ static void WI_updateStats(void)
 		cnt_secret[0] = (plrs[me].ssecret * 100) / wbs->maxsecret;
 		cnt_time = plrs[me].stime / TICRATE;
 		cnt_par = wbs->partime / TICRATE;
-		S_StartSound(0, sfx_barexp);
+		if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+			S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 		sp_state = 10;
 	}
 	
@@ -1033,12 +1041,14 @@ static void WI_updateStats(void)
 		cnt_kills[0] += 2;
 		
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		if (cnt_kills[0] >= (plrs[me].skills * 100) / wbs->maxkills)
 		{
 			cnt_kills[0] = (plrs[me].skills * 100) / wbs->maxkills;
-			S_StartSound(0, sfx_barexp);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 			sp_state++;
 		}
 	}
@@ -1047,12 +1057,14 @@ static void WI_updateStats(void)
 		cnt_items[0] += 2;
 		
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		if (cnt_items[0] >= (plrs[me].sitems * 100) / wbs->maxitems)
 		{
 			cnt_items[0] = (plrs[me].sitems * 100) / wbs->maxitems;
-			S_StartSound(0, sfx_barexp);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 			sp_state++;
 		}
 	}
@@ -1061,12 +1073,14 @@ static void WI_updateStats(void)
 		cnt_secret[0] += 2;
 		
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		if (cnt_secret[0] >= (plrs[me].ssecret * 100) / wbs->maxsecret)
 		{
 			cnt_secret[0] = (plrs[me].ssecret * 100) / wbs->maxsecret;
-			S_StartSound(0, sfx_barexp);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 			sp_state++;
 		}
 	}
@@ -1074,7 +1088,8 @@ static void WI_updateStats(void)
 	else if (sp_state == 8)
 	{
 		if (!(bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+			if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterTicSound)
+				S_StartSoundName(NULL, g_CurrentLevelInfo->InterTicSound);
 			
 		cnt_time += 3;
 		
@@ -1089,7 +1104,8 @@ static void WI_updateStats(void)
 			
 			if (cnt_time >= plrs[me].stime / TICRATE)
 			{
-				S_StartSound(0, sfx_barexp);
+				if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
+					S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
 				sp_state++;
 			}
 		}
@@ -1098,7 +1114,8 @@ static void WI_updateStats(void)
 	{
 		if (acceleratestage)
 		{
-			S_StartSound(0, sfx_sgcock);
+			if (wminfo.NextInfo && wminfo.NextInfo->EnterSound)
+				S_StartSoundName(NULL, wminfo.NextInfo->EnterSound);
 			
 			if (gamemode == commercial)
 				WI_initNoState();

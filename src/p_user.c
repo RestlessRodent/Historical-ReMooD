@@ -354,7 +354,7 @@ void P_MovePlayer(player_t* player)
 		player->aiming = cmd->Std.aiming << 16;
 		if (player->chickenTics)
 			movefactor = 2500;
-		if (P_XGSVal(PGS_COBOOMSUPPORT) && variable_friction)
+		if (P_XGSVal(PGS_COBOOMSUPPORT) && P_XGSVal(PGS_COVARIABLEFRICTION))
 		{
 			//SoM: This seems to be buggy! Can anyone figure out why??
 			movefactor = P_GetMoveFactor(player->mo);

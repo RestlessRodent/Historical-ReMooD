@@ -287,6 +287,8 @@ typedef struct
 	
 } wbplayerstruct_t;
 
+struct P_LevelInfoEx_s;
+
 typedef struct
 {
 	int epsd;					// episode # (0-2)
@@ -310,6 +312,8 @@ typedef struct
 	int pnum;
 	
 	wbplayerstruct_t plyr[MAXPLAYERS];
+	
+	struct P_LevelInfoEx_s* NextInfo;			// Info for next level
 	
 } wbstartstruct_t;
 
