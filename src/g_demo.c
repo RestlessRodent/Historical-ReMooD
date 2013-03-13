@@ -2937,6 +2937,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	l_PlayDemo = Demo;
 	g_DemoTime = 0;
 	g_TitleScreenDemo = a_TitleScreen;
+	l_CommandedDemo = a_TitleScreen;
 }
 
 void G_TimeDemo(char* name)
