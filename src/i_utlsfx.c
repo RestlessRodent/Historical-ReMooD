@@ -1714,7 +1714,8 @@ void I_ShutdownMusic(void)
 			CONL_PrintF("I_ShutdownMusic: Failed to remove driver.\n");
 			
 	/* Destroy array */
-	Z_Free(l_MusicDrivers);
+	if (l_MusicDrivers)
+		Z_Free(l_MusicDrivers);
 	l_MusicDrivers = NULL;
 	l_NumMusicDrivers = 0;
 }

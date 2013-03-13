@@ -966,7 +966,7 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 						D_XNetKickPlayer(g_XPlays[i], Buf, false);
 			
 			// Remove endpoint
-			D_XBDelEndPoint(a_EP, Buf);
+			//D_XBDelEndPoint(a_EP, Buf);
 		}
 	}
 	
@@ -977,27 +977,6 @@ static bool_t DXP_DISC(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Buf);
 		D_XNetDisconnect(false);
 	}
-	
-#if 0
-	/* If playing... */
-	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
-	{
-		// Detach from socket
-		D_XBSocketDestroy();
-		
-		// Transform self into server (everyone went bye)
-		D_XNetBecomeServer();
-	}
-	
-	/* Otherwise, a network disconnect */
-	else
-	{
-#endif
-		// Cannot connect to server maybe?
-		D_XNetDisconnect(false);
-#if 0
-	}
-#endif
 	
 	/* Success! */
 	return true;
