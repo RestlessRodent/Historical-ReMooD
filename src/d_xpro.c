@@ -40,6 +40,7 @@
 #include "dstrings.h"
 #include "w_wad.h"
 #include "p_saveg.h"
+#include "g_game.h"
 
 /*****************
 *** STRUCTURES ***
@@ -1694,6 +1695,9 @@ void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* 
 		// Load Game
 		if (!P_LoadGameEx(NULL, a_Path, strlen(a_Path), NULL, NULL))
 		{
+			// Delete file
+			I_FileDeletePath(a_Path);
+			
 			CONL_OutputUT(CT_NETWORK, DSTR_DXP_BADSAVELOAD, "%s\n", Name);
 			D_XNetDisconnect(false);
 			return;
@@ -1702,6 +1706,13 @@ void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* 
 		// Set as playing now if waiting for window
 		if (a_Desc->CS.Client.SyncLevel == DXSL_WAITFORWINDOW)
 			a_Desc->CS.Client.SyncLevel = DXSL_PLAYING;
+		
+		// Delete file
+		I_FileDeletePath(a_Path);
+		
+		// If recording demo, save to demo (so they can play the net demo)
+		if (demorecording)
+			G_EncodeSaveGame();
 	}
 	
 	/* WAD File */

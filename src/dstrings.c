@@ -118,6 +118,12 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "MENUGENERAL_VIDDRAWFPS", "Draw Frames per Second"},
 	{		  "MENUGENERAL_VIDSCREENLINK", "Screen Link"},
 	
+	{				"MENUQUIT_DISCONNECT", "Disconnect"},
+	{			  "MENUQUIT_STOPWATCHING", "Stop Watching Demo"},
+	{			 "MENUQUIT_STOPRECORDING", "Stop Recording Demo"},
+	{					"MENUQUIT_LOGOFF", "Log Off"},
+	{				"MENUQUIT_EXITREMOOD", "Exit ReMooD"},
+	
 	{				"UIGENERAL_DONTCARE", "Don't Care!"},
 	{					 "UIGENERAL_YES", "Yes"},
 	{					  "UIGENERAL_NO", "No"},

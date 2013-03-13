@@ -538,6 +538,8 @@ uint64_t I_FileRead(I_File_t* const a_File, void* const a_Dest, const uint64_t a
 uint64_t I_FileWrite(I_File_t* const a_File, const void* const a_Src, const uint64_t a_Len);
 bool_t I_FileEOF(I_File_t* const a_File);
 
+void I_FileDeletePath(const char* const a_Path);
+
 /*** i_utlnet.c ***/
 bool_t I_InitNetwork(void);
 

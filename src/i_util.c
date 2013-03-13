@@ -2484,3 +2484,14 @@ bool_t I_FileEOF(I_File_t* const a_File)
 	return false;
 }
 
+/* I_FileDeletePath() -- Deletes a file */
+void I_FileDeletePath(const char* const a_Path)
+{
+	/* Check */
+	if (!a_Path)
+		return;
+	
+	/* Call remove */
+	remove(a_Path);
+}
+

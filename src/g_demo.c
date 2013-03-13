@@ -2728,10 +2728,10 @@ void G_StopDemoRecord(void)
 		l_RecDemo->Factory->StopRecordFunc(l_RecDemo);
 	
 	/* Close any files and streams */
-	if (l_RecDemo->CFile)
-		fclose(l_RecDemo->CFile);
 	if (l_RecDemo->BSs)
 		D_BSCloseStream(l_RecDemo->BSs);
+	if (l_RecDemo->CFile)
+		fclose(l_RecDemo->CFile);
 	
 	/* Free current */
 	Z_Free(l_RecDemo);

@@ -199,6 +199,7 @@ typedef enum M_SMMenus_e
 	MSM_EPISELECTDOOM,							// Select Episode (Doom)
 	MSM_EPISELECTUDOOM,							// Select Episode (Ult Doom)
 	MSM_ADVANCEDCREATEGAME,						// Advanced Game Creation
+	MSM_QUITGAME,								// Quit Game
 	
 	NUMMSMMENUS
 } M_SMMenus_t;

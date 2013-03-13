@@ -69,6 +69,8 @@
 #include "r_data.h"
 #include "vhw_wrap.h"
 
+#include "g_game.h"
+
 /*******************************************************************************
 ********************************************************************************
 *******************************************************************************/
@@ -1292,6 +1294,18 @@ static void MS_StackPop(const int32_t a_ScreenID)
 	S_StartSound(NULL, sfx_generic_switchoff);
 }
 
+/* MS_StackPopAllScreen() -- Pops all from stack for screen */
+static void MS_StackPopAllScreen(const int32_t a_Screen)
+{
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return;
+	
+	/* Pop */
+	while (l_NumSMWi[a_Screen])
+		MS_StackPop(a_Screen);
+}
+
 /* MS_StackPopAll() -- Pops all from stack */
 static void MS_StackPopAll(void)
 {
@@ -1932,6 +1946,52 @@ static bool_t MS_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
 	return true;
 }
 
+/* MS_QuitGame_DisconFSelect() -- Disconnect from server */
+static bool_t MS_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Disconnect from Netgame */
+	D_XNetDisconnect(false);
+	MS_StackPopAll();
+	return true;
+}
+
+/* MS_QuitGame_StopWatchFSelect() -- Stop watching demo */
+static bool_t MS_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Stop Demo from Playing */
+	if (demoplayback)
+	{
+		G_StopDemoPlay();
+		MS_StackPopAll();
+	}
+	return true;
+}
+
+/* MS_QuitGame_StopRecordFSelect() -- Stop recording demo */
+static bool_t MS_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Stop Demo from Recording */
+	if (demorecording)
+	{
+		G_StopDemoRecord();
+		MS_StackPopAll();
+	}
+	return true;
+}
+
+/* MS_QuitGame_LogOffFSelect() -- Stop recording demo */
+static bool_t MS_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget)
+{
+	return true;
+}
+
+/* MS_QuitGame_ExitFSelect() -- Stop recording demo */
+static bool_t MS_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget)
+{
+	I_Quit();
+	return true;
+}
+
 /* M_SMSpawn() -- Spawns menu for player */
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 {
@@ -1969,7 +2029,10 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work = MS_SMCreateImage(Root, 97, 80, V_ImageFindA("M_OPTION", VCP_DOOM));
 			Work = MS_SMCreateImage(Root, 97, 96, V_ImageFindA("M_LOADG", VCP_DOOM));
 			Work = MS_SMCreateImage(Root, 97, 112, V_ImageFindA("M_SAVEG", VCP_DOOM));
+			
 			Work = MS_SMCreateImage(Root, 97, 128, V_ImageFindA("M_QUITG", VCP_DOOM));
+			Work->FSelect = MS_SubMenu_FSelect;
+			Work->SubMenu = MSM_QUITGAME;
 			
 			// Start on new game
 			Root->CursorOn = 1;
@@ -2076,6 +2139,33 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 		case MSM_ADVANCEDCREATEGAME:
 			// Create initial box
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			break;
+			
+			// Quit Game
+		case MSM_QUITGAME:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Add sub options
+				// Disconnect
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_DISCONNECT));
+			Work->FSelect = MS_QuitGame_DisconFSelect;
+			
+				// Stop Watching
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_STOPWATCHING));
+			Work->FSelect = MS_QuitGame_StopWatchFSelect;
+			
+				// Stop Recording
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_STOPRECORDING));
+			Work->FSelect = MS_QuitGame_StopRecordFSelect;
+			
+				// Log Off
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_LOGOFF));
+			Work->FSelect = MS_QuitGame_LogOffFSelect;
+			
+				// Exit ReMooD
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_EXITREMOOD));
+			Work->FSelect = MS_QuitGame_ExitFSelect;
 			break;
 		
 			// Unknown
