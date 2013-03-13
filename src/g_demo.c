@@ -50,6 +50,8 @@
 *** GLOBALS ***
 **************/
 
+extern int32_t g_IgnoreWipeTics;
+
 static uint32_t l_DemoHostID = 0;				// Demo's HostID
 
 /*****************
@@ -2524,11 +2526,14 @@ static int CLC_PlayDemo(const uint32_t a_ArgC, const char** const a_ArgV)
 		return 1;
 	}
 	
-	/* Stop old demo from playing */
-	if (demoplayback)
-		G_StopDemo();
+	/* Disconnect */
+	D_XNetDisconnect(false);
+	
+	/* Stop old demos from playing */
+	G_StopDemo();
 	
 	/* Play Demo */
+	g_IgnoreWipeTics = true;
 	l_CommandedDemo = true;
 	G_DoPlayDemo(a_ArgV[1], !!(strcasecmp(a_ArgV[0], "titledemo") == 0));
 }
@@ -2641,7 +2646,7 @@ bool_t G_PlayNextQ(void)
 	}
 	
 	// Use specified name
-	G_DeferedPlayDemo(DOSName);
+	G_DoPlayDemo(DOSName, false);//G_DeferedPlayDemo(DOSName);
 	return true;
 }
 
@@ -2760,6 +2765,11 @@ void G_StopDemoPlay(void)
 	demoplayback = false;
 	gamestate = wipegamestate = GS_NULL;
 	
+	/* If not a server playing demos (demoplayback server) */
+	// Disconnect from "ourself"
+	if (!l_DemoServer)
+		D_XNetDisconnect(true);
+	
 	/* What to do? */
 	QuitDoom = Advance = false;
 	
@@ -2780,11 +2790,6 @@ void G_StopDemoPlay(void)
 		l_CommandedDemo = false;
 		D_StartTitle();
 	}
-	
-	/* If not a server playing demos (demoplayback server) */
-	// Disconnect from "ourself"
-	if (!l_DemoServer)
-		D_XNetDisconnect(true);
 	
 	/* Stop recording if advancing/quitting */
 	if ((QuitDoom || Advance) && demorecording)

@@ -39,11 +39,12 @@
 #include "r_data.h"
 #include "p_info.h"
 #include "m_random.h"
+#include "m_menupv.h"
+#include "g_game.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
-
 
 /* MS_TextureTestUnderDraw() -- Menu Under Drawer */
 static bool_t MS_TextureTestUnderDraw(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
@@ -384,18 +385,18 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 
 /*** SUB-MENU HANDLER FUNCTIONS ***/
 
-/* MS_NEWGAME_t -- NewGame Data */
-typedef struct MS_NEWGAME_s
+/* M_NewGame_t -- NewGame Data */
+typedef struct M_NewGame_s
 {
 	const char** NullRef;
 	const char** TypeRef;
 	const char** LevelRef;
-} MS_NEWGAME_t;
+} M_NewGame_t;
 
-/* MS_NEWGAME_Init() -- New Game Initialized */
-static void MS_NEWGAME_Init(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu)
+/* M_NewGame_Init() -- New Game Initialized */
+void M_NewGame_Init(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu)
 {
-	MS_NEWGAME_t* pd;
+	M_NewGame_t* pd;
 	
 	/* Get Private */
 	pd = a_Handler->PrivateData;
@@ -409,33 +410,6 @@ static void MS_NEWGAME_Init(struct M_UIMenuHandler_s* const a_Handler, struct M_
 }
 
 /*** GENERATION ***/
-
-/* MS_AddNewItem() -- Adds item to menu */
-static M_UIItem_t* MS_AddNewItem(M_UIMenu_t* a_Menu, const M_UIItemType_t a_Type, const uint32_t a_Flags, const int32_t a_Bits, const char** const a_TextRef, const char** const a_ValRef, M_UIItemLRValChangeFuncType_t a_LRValFunc, M_UIItemPressFuncType_t a_PressFunc)
-{
-	M_UIItem_t* NewItem;
-	
-	/* Check */
-	if (!a_Menu)
-		return NULL;
-	
-	/* Resize items in menu */
-	Z_ResizeArray((void**)&a_Menu->Items, sizeof(*a_Menu->Items),
-		a_Menu->NumItems, a_Menu->NumItems + 1);
-	NewItem = &a_Menu->Items[a_Menu->NumItems++];
-	
-	/* Set Stuff in it */
-	NewItem->Type = a_Type;
-	NewItem->Flags = a_Flags;
-	NewItem->DataBits = a_Bits;
-	NewItem->TextRef = a_TextRef;
-	NewItem->ValueRef = a_ValRef;
-	NewItem->LRValChangeFunc = a_LRValFunc;
-	NewItem->ItemPressFunc = a_PressFunc;
-	
-	/* Return it */
-	return NewItem;
-}
 
 static M_UIMenu_t** l_PreMenus;					// Pre-Created Menus
 static size_t l_NumPreMenus;					// Number of them
@@ -540,18 +514,18 @@ M_UIMenu_t* M_ExMakeMenu(const int32_t a_MenuID, void* const a_Data)
 			NewMenu->TitleRef = DS_GetStringRef(DSTR_MENUGENERAL_HELLOWORLD);
 			
 			// Create Items
-			MS_AddNewItem(NewMenu, MUIIT_NORMAL, 0, 0, DS_GetStringRef(DSTR_MENUGENERAL_NEWGAMETYPE), NULL, NULL, NULL);
+			M_AddNewItem(NewMenu, MUIIT_NORMAL, 0, 0, DS_GetStringRef(DSTR_MENUGENERAL_NEWGAMETYPE), NULL, NULL, NULL);
 			break;
 			
 			// Create New Game
 		case MNMID_NEWGAME:
 			// Set Title
 			NewMenu->TitleRef = DS_GetStringRef(DSTR_MENUNEWGAME_TITLE);
-			NewMenu->InitFunc = MS_NEWGAME_Init;
-			NewMenu->PrivateSize = sizeof(MS_NEWGAME_t);
+			NewMenu->InitFunc = M_NewGame_Init;
+			NewMenu->PrivateSize = sizeof(M_NewGame_t);
 			
 			// Create Items
-#define __GEN_NG(bit, flags, title, ref) MS_AddNewItem(NewMenu, MUIIT_NORMAL, flags, bit, DS_GetStringRef(title), offsetof(MS_NEWGAME_t, ref), NULL, NULL)
+#define __GEN_NG(bit, flags, title, ref) M_AddNewItem(NewMenu, MUIIT_NORMAL, flags, bit, DS_GetStringRef(title), offsetof(M_NewGame_t, ref), NULL, NULL)
 			__GEN_NG(0, 0, DSTR_MENUGENERAL_NEWGAMETYPE, TypeRef);
 			__GEN_NG(0, MUIIF_NOPARK, DSTR_MENU_NULLSPACE, NullRef);
 			__GEN_NG(0, 0, DSTR_MENUGENERAL_NEWGAMELEVEL, LevelRef);
@@ -1413,4 +1387,258 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 	}
 }
 
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+
+/* --- NEW GAME MENU --- */
+
+/* M_MainMenu_DCursor() -- Draws cursor over item */
+void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub)
+{
+	bool_t SkullNum;
+	
+	/* Which skull? */
+	SkullNum = !!(g_ProgramTic & 0x8);
+	
+	/* Load Skull? */
+	if (!a_Widget->Data.MainMenu.Skulls[SkullNum])
+		a_Widget->Data.MainMenu.Skulls[SkullNum] = V_ImageFindA((SkullNum ? "M_SKULL2" : "M_SKULL1"), VCP_DOOM);
+	
+	/* Draw it */
+	V_ImageDraw(
+			0,
+			a_Widget->Data.MainMenu.Skulls[SkullNum],
+			a_Sub->dx - 32,
+			a_Sub->dy - 5,
+			NULL
+		);
+}
+
+/* M_SubMenu_FSelect() -- Opens submenu */
+bool_t M_SubMenu_FSelect(struct M_SWidget_s* const a_Widget)
+{
+	M_SMSpawn(a_Widget->Screen, a_Widget->SubMenu);
+	return true;
+}
+
+/* M_NewGameClassic_FSelect() -- Classic is selected at the top menu */
+bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Clear next game vars */
+	NG_ResetVars();
+	
+	/* Doom */
+	if (g_CoreGame == CG_DOOM)
+	{
+		// Doom II
+		if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL))
+		{
+			NG_SetNextMap("map01");
+			M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
+			return true;
+		}
+		
+		// Doom II: BFG Edition
+		else if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL | CIF_EXTENDED))
+		{
+		}
+		
+		// Shareware Doom
+		else if ((g_IWADFlags & (CIF_SHAREWARE)) == (CIF_SHAREWARE))
+		{
+			NG_SetNextMap("e1m1");
+			M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
+			return true;
+		}
+		
+		// Registered Doom
+		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED))
+		{
+			M_SMSpawn(a_Widget->Screen, MSM_EPISELECTDOOM);
+			return true;
+		}
+		
+		// Ultimate Doom
+		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED | CIF_EXTENDED))
+		{
+			M_SMSpawn(a_Widget->Screen, MSM_EPISELECTUDOOM);
+			return true;
+		}
+		
+		// Unknown
+		else
+			return false;
+	}
+	
+	/* Heretic */
+	else if (g_CoreGame == CG_HERETIC)
+	{
+	}
+	
+	/* Unknown!? */
+	else
+		return false;
+	
+	/* Success! */
+	return true;
+}
+
+/* M_NewGameEpi_FSelect() -- Episode Selected */
+bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget)
+{
+#define BUFSIZE 8
+	char Buf[BUFSIZE];
+	snprintf(Buf, BUFSIZE, "e%dm1", a_Widget->Option);
+	NG_SetNextMap(Buf);
+	M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
+	return true;
+#undef BUFSIZE
+}
+
+/* M_NewGameSkill_FSelect() -- Selects skill */
+bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
+{
+	NG_SetVarValue(PGS_GAMESKILL, a_Widget->Option);
+	
+	// I'm Too Young To Die
+	if (a_Widget->Option == 0)
+		NG_SetVarValue(PGS_PLHALFDAMAGE, 1);
+	
+	// I'm Too Young To Die/Nightmare
+	if (a_Widget->Option == 0 || a_Widget->Option == 4)
+		NG_SetVarValue(PGS_PLDOUBLEAMMO, 1);
+	
+	// Nightmare
+	if (a_Widget->Option == 4)
+	{
+		NG_SetVarValue(PGS_MONFASTMONSTERS, 1);
+		NG_SetVarValue(PGS_MONRESPAWNMONSTERS, 1);
+	}
+	
+	/* Make Game Now */
+	D_XNetMakeServer(false, NULL, 0, false);
+	NG_ApplyVars();
+	NG_WarpMap();
+	
+	/* Kill all menus */
+	M_StackPopAll();
+	return true;
+}
+
+/* --------------------- */
+
+/* --- QUIT GAME MENU --- */
+
+/* M_QuitGame_DisconFSelect() -- Disconnect from server */
+bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Disconnect from Netgame */
+	D_XNetDisconnect(false);
+	M_StackPopAll();
+	return true;
+}
+
+/* M_QuitGame_StopWatchFSelect() -- Stop watching demo */
+bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Stop Demo from Playing */
+	if (demoplayback)
+	{
+		G_StopDemoPlay();
+		M_StackPopAll();
+	}
+	return true;
+}
+
+/* M_QuitGame_StopRecordFSelect() -- Stop recording demo */
+bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Stop Demo from Recording */
+	if (demorecording)
+	{
+		G_StopDemoRecord();
+		M_StackPopAll();
+	}
+	return true;
+}
+
+/* M_QuitGame_LogOffFSelect() -- Stop recording demo */
+bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget)
+{
+	return true;
+}
+
+/* M_QuitGame_ExitFSelect() -- Stop recording demo */
+bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget)
+{
+	I_Quit();
+	return true;
+}
+
+/* M_QuitGame_FTicker() -- Ticker for quit game */
+void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
+{
+	size_t i;
+	M_SWidget_t* Kid;
+	
+	/* Go through all options */
+	for (i = 0; i < a_Widget->NumKids; i++)
+	{
+		// Get kid
+		Kid = a_Widget->Kids[i];
+		
+		if (!Kid)
+			continue;
+		
+		// Depends on the function
+			// Disconnect
+		if (Kid->FSelect == M_QuitGame_DisconFSelect)
+		{
+		}
+				
+			// Stop watching demo
+		else if (Kid->FSelect == M_QuitGame_StopWatchFSelect)
+		{
+			if (demoplayback)
+				Kid->Flags &= ~MSWF_DISABLED;
+			else
+				Kid->Flags |= MSWF_DISABLED;
+		}
+				
+			// Stop Recording
+		else if (Kid->FSelect == M_QuitGame_StopRecordFSelect)
+		{
+			if (demorecording)
+				Kid->Flags &= ~MSWF_DISABLED;
+			else
+				Kid->Flags |= MSWF_DISABLED;
+		}
+			
+			// Log Off
+		else if (Kid->FSelect == M_QuitGame_LogOffFSelect)
+		{
+			Kid->Flags |= MSWF_DISABLED;
+		}
+		
+		// If disabled, do not select
+		if (Kid->Flags & MSWF_DISABLED)
+		{
+			// Do not select
+			Kid->Flags |= MSWF_NOSELECT;
+			
+			if (i == a_Widget->CursorOn)
+				a_Widget->CursorOn = (a_Widget->CursorOn + 1) % a_Widget->NumKids;
+		}
+		
+		// Not disabled
+		else
+			Kid->Flags &= ~MSWF_NOSELECT;
+	}
+	
+	return true;
+}
+
+/* ---------------------- */
 

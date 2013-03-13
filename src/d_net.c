@@ -1136,14 +1136,15 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 			D_XNetKickPlayer(g_XPlays[i], DS_GetString(DSTR_NET_SERVERDISCON), false);
 	
 	/* Demos? */
-	if (demoplayback)
-	{
-		// Don't quit when the demo stops
-		singledemo = false;
+	if (!a_FromDemo)
+		if (demoplayback)
+		{
+			// Don't quit when the demo stops
+			singledemo = false;
 		
-		// Stop it
-		G_StopDemoPlay();
-	}
+			// Stop it
+			G_StopDemoPlay();
+		}
 	
 	/* Clear network stuff */
 	// Tics
@@ -1198,17 +1199,17 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	
 	/* Destroy Socket */
 	// But not when playing a demo
-	if (!a_FromDemo)
+	//if (!a_FromDemo)
 		D_XBSocketDestroy();
 	
 	/* Wipe all the old tics */
 	D_XNetWipeBefores((tic_t)-1);
 	
 	/* Go back to the title screen */
-	gamestate = GS_DEMOSCREEN;
-	
 	if (!a_FromDemo)
 	{
+		gamestate = GS_DEMOSCREEN;
+		
 		demosequence = -1;
 		pagetic = -1;
 	}

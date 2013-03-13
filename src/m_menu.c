@@ -71,6 +71,8 @@
 
 #include "g_game.h"
 
+#include "m_menupv.h"
+
 /*******************************************************************************
 ********************************************************************************
 *******************************************************************************/
@@ -1154,72 +1156,6 @@ void M_ExUIDrawer(void)
 *** SIMPLE MENUS ***
 *******************/
 
-/*** CONSTANTS ***/
-
-/* M_SWidFlags_t -- Widget flags */
-typedef enum M_SWidFlags_e
-{
-	MSWF_NOSELECT		= UINT32_C(0x00000001),	// Cannot be selected
-	MSWF_NOHANDLEEVT	= UINT32_C(0x00000002),	// Do not handle events
-} M_SWidFlags_t;
-
-/*** STRUCTURES ***/
-
-/* M_SWidget_t -- Simple menu widget */
-typedef struct M_SWidget_s
-{
-	uint32_t Flags;								// Widget Flags
-	int32_t Screen;								// Screen
-	
-	int32_t x, y;								// X/Y position
-	int32_t w, h;								// Width/Height
-	int32_t offx, offy;							// X/Y offset
-	
-	int32_t dx, dy;								// Draw X/Y
-	int32_t dw, dh;								// Draw W/H
-	
-	struct M_SWidget_s* Parent;					// Parent Widget
-	
-	struct M_SWidget_s** Kids;					// Kid Widgets
-	int32_t NumKids;							// Number of kids
-	
-	int32_t CursorOn;							// Curson on which kid?
-	M_SMMenus_t SubMenu;						// SubMenu to open
-	int32_t Option;								// Option
-	
-	// Drawing
-	void (*DCursor)(struct M_SWidget_s* const, struct M_SWidget_s* const);
-	void (*DDraw)(struct M_SWidget_s* const);
-	
-	// Functions
-	void (*FDestroy)(struct M_SWidget_s* const);
-	bool_t (*FEvent)(struct M_SWidget_s* const, const I_EventEx_t* const);
-	bool_t (*FLeftRight)(struct M_SWidget_s* const, const int32_t);
-	bool_t (*FUpDown)(struct M_SWidget_s* const, const int32_t);
-	bool_t (*FSelect)(struct M_SWidget_s* const);
-	bool_t (*FCancel)(struct M_SWidget_s* const);
-	
-	union
-	{
-		struct
-		{
-			V_Image_t* Pic;						// Picture to draw
-		} Image;								// Simple Image
-		
-		struct
-		{
-			V_Image_t* Skulls[2];				// Skulls
-		} MainMenu;								// Main Menu Stuff
-		
-		struct
-		{
-			VideoFont_t Font;						// Font to draw in
-			uint32_t Flags;						// Draw flags
-			const char** Ref;					// Reference to text
-		} Label;
-	} Data;										// Widget Data
-} M_SWidget_t;
-
 /*** LOCALS ***/
 
 static M_SWidget_t** l_SMWi[MAXSPLITSCREEN];
@@ -1271,8 +1207,8 @@ static void MS_SMStackPush(const int32_t a_ScreenID, M_SWidget_t* const a_Widget
 		S_StartSound(NULL, sfx_generic_menupress);
 }
 
-/* MS_SMStackPop() -- Pops Widget */
-static void MS_StackPop(const int32_t a_ScreenID)
+/* M_StackPop() -- Pops Widget */
+void M_StackPop(const int32_t a_ScreenID)
 {
 	M_SWidget_t* Popped;
 	
@@ -1294,8 +1230,8 @@ static void MS_StackPop(const int32_t a_ScreenID)
 	S_StartSound(NULL, sfx_generic_switchoff);
 }
 
-/* MS_StackPopAllScreen() -- Pops all from stack for screen */
-static void MS_StackPopAllScreen(const int32_t a_Screen)
+/* M_StackPopAllScreen() -- Pops all from stack for screen */
+void M_StackPopAllScreen(const int32_t a_Screen)
 {
 	/* Check */
 	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
@@ -1303,18 +1239,18 @@ static void MS_StackPopAllScreen(const int32_t a_Screen)
 	
 	/* Pop */
 	while (l_NumSMWi[a_Screen])
-		MS_StackPop(a_Screen);
+		M_StackPop(a_Screen);
 }
 
-/* MS_StackPopAll() -- Pops all from stack */
-static void MS_StackPopAll(void)
+/* M_StackPopAll() -- Pops all from stack */
+void M_StackPopAll(void)
 {
 	int32_t i;
 	
 	/* Pop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		while (l_NumSMWi[i])
-			MS_StackPop(i);
+			M_StackPop(i);
 }
 
 /* MS_SMCreateBase() -- Creates base widget */
@@ -1361,7 +1297,25 @@ static M_SWidget_t* MS_SMCreateBox(M_SWidget_t* const a_Parent, const int32_t a_
 /* MS_Label_DDraw() -- Draws Label */
 void MS_Label_DDraw(struct M_SWidget_s* const a_Widget)
 {
-	V_DrawStringA(a_Widget->Data.Label.Font, a_Widget->Data.Label.Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
+	uint32_t Flags;
+	
+	/* Base flags */
+	Flags = a_Widget->Data.Label.Flags;
+	
+	/* Disabled? */
+	if (a_Widget->Flags & MSWF_DISABLED)
+	{
+		Flags &= VFO_COLORMASK;
+		Flags |= VFO_COLOR(VEX_MAP_GRAY);
+	}
+	
+	/* Not Disabled */
+	else
+	{
+	}
+	
+	/* Draw String */
+	V_DrawStringA(a_Widget->Data.Label.Font, Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
 }
 
 
@@ -1719,7 +1673,7 @@ bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
 			a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE) ||
 			(a_Event->Type == IET_SYNTHOSK && a_Event->Data.SynthOSK.Cancel))
 		{
-			MS_StackPop(Screen);
+			M_StackPop(Screen);
 			return true;
 		}
 		
@@ -1801,6 +1755,7 @@ void M_SMDrawer(void)
 void M_SMTicker(void)
 {
 	int32_t Screen;
+	M_SWidget_t* TopMenu;
 	
 	/* For all screens */
 	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
@@ -1810,187 +1765,29 @@ void M_SMTicker(void)
 			continue;
 		
 		// Tick menu stuff in this menu
-	}
-}
-
-/* MS_MainMenu_DCursor() -- Draws cursor over item */
-void MS_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub)
-{
-	bool_t SkullNum;
-	
-	/* Which skull? */
-	SkullNum = !!(g_ProgramTic & 0x8);
-	
-	/* Load Skull? */
-	if (!a_Widget->Data.MainMenu.Skulls[SkullNum])
-		a_Widget->Data.MainMenu.Skulls[SkullNum] = V_ImageFindA((SkullNum ? "M_SKULL2" : "M_SKULL1"), VCP_DOOM);
-	
-	/* Draw it */
-	V_ImageDraw(
-			0,
-			a_Widget->Data.MainMenu.Skulls[SkullNum],
-			a_Sub->dx - 32,
-			a_Sub->dy - 5,
-			NULL
-		);
-}
-
-/* MS_SubMenu_FSelect() -- Opens submenu */
-static bool_t MS_SubMenu_FSelect(struct M_SWidget_s* const a_Widget)
-{
-	M_SMSpawn(a_Widget->Screen, a_Widget->SubMenu);
-	return true;
-}
-
-/* MS_NewGameClassic_FSelect() -- Classic is selected at the top menu */
-static bool_t MS_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
-{
-	/* Clear next game vars */
-	NG_ResetVars();
-	
-	/* Doom */
-	if (g_CoreGame == CG_DOOM)
-	{
-		// Doom II
-		if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL))
-		{
-			NG_SetNextMap("map01");
-			M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
-			return true;
-		}
+		TopMenu = l_SMWi[Screen][l_NumSMWi[Screen] - 1];
 		
-		// Doom II: BFG Edition
-		else if ((g_IWADFlags & (CIF_COMMERCIAL | CIF_EXTENDED)) == (CIF_COMMERCIAL | CIF_EXTENDED))
-		{
-		}
+		// No menu?
+		if (!TopMenu)
+			continue;
 		
-		// Shareware Doom
-		else if ((g_IWADFlags & (CIF_SHAREWARE)) == (CIF_SHAREWARE))
-		{
-			NG_SetNextMap("e1m1");
-			M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
-			return true;
-		}
-		
-		// Registered Doom
-		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED))
-		{
-			M_SMSpawn(a_Widget->Screen, MSM_EPISELECTDOOM);
-			return true;
-		}
-		
-		// Ultimate Doom
-		else if ((g_IWADFlags & (CIF_REGISTERED | CIF_EXTENDED)) == (CIF_REGISTERED | CIF_EXTENDED))
-		{
-			M_SMSpawn(a_Widget->Screen, MSM_EPISELECTUDOOM);
-			return true;
-		}
-		
-		// Unknown
-		else
-			return false;
+		// Tick it
+		if (TopMenu->FTicker)
+			TopMenu->FTicker(TopMenu);
 	}
-	
-	/* Heretic */
-	else if (g_CoreGame == CG_HERETIC)
-	{
-	}
-	
-	/* Unknown!? */
-	else
-		return false;
-	
-	/* Success! */
-	return true;
 }
 
-/* MS_NewGameEpi_FSelect() -- Episode Selected */
-static bool_t MS_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget)
-{
-#define BUFSIZE 8
-	char Buf[BUFSIZE];
-	snprintf(Buf, BUFSIZE, "e%dm1", a_Widget->Option);
-	NG_SetNextMap(Buf);
-	M_SMSpawn(a_Widget->Screen, MSM_SKILLSELECTDOOM);
-	return true;
-#undef BUFSIZE
-}
-
-/* MS_NewGameSkill_FSelect() -- Selects skill */
-static bool_t MS_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
-{
-	NG_SetVarValue(PGS_GAMESKILL, a_Widget->Option);
-	
-	// I'm Too Young To Die
-	if (a_Widget->Option == 0)
-		NG_SetVarValue(PGS_PLHALFDAMAGE, 1);
-	
-	// I'm Too Young To Die/Nightmare
-	if (a_Widget->Option == 0 || a_Widget->Option == 4)
-		NG_SetVarValue(PGS_PLDOUBLEAMMO, 1);
-	
-	// Nightmare
-	if (a_Widget->Option == 4)
-	{
-		NG_SetVarValue(PGS_MONFASTMONSTERS, 1);
-		NG_SetVarValue(PGS_MONRESPAWNMONSTERS, 1);
-	}
-	
-	/* Make Game Now */
-	D_XNetMakeServer(false, NULL, 0, false);
-	NG_ApplyVars();
-	NG_WarpMap();
-	
-	/* Kill all menus */
-	MS_StackPopAll();
-	return true;
-}
-
-/* MS_QuitGame_DisconFSelect() -- Disconnect from server */
-static bool_t MS_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget)
-{
-	/* Disconnect from Netgame */
-	D_XNetDisconnect(false);
-	MS_StackPopAll();
-	return true;
-}
-
-/* MS_QuitGame_StopWatchFSelect() -- Stop watching demo */
-static bool_t MS_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget)
-{
-	/* Stop Demo from Playing */
-	if (demoplayback)
-	{
-		G_StopDemoPlay();
-		MS_StackPopAll();
-	}
-	return true;
-}
-
-/* MS_QuitGame_StopRecordFSelect() -- Stop recording demo */
-static bool_t MS_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget)
-{
-	/* Stop Demo from Recording */
-	if (demorecording)
-	{
-		G_StopDemoRecord();
-		MS_StackPopAll();
-	}
-	return true;
-}
-
-/* MS_QuitGame_LogOffFSelect() -- Stop recording demo */
-static bool_t MS_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget)
-{
-	return true;
-}
-
-/* MS_QuitGame_ExitFSelect() -- Stop recording demo */
-static bool_t MS_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget)
-{
-	I_Quit();
-	return true;
-}
+void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub);
+bool_t M_SubMenu_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget);
+void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget);
 
 /* M_SMSpawn() -- Spawns menu for player */
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
@@ -2015,7 +1812,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			
 			// Use skull cursor instead
-			Root->DCursor = MS_MainMenu_DCursor;
+			Root->DCursor = M_MainMenu_DCursor;
 			
 			// Nice Doom picture
 			Work = MS_SMCreateImage(Root, 94, 2, V_ImageFindA("M_DOOM", VCP_DOOM));
@@ -2023,7 +1820,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Main Menu Stuff
 			Work = MS_SMCreateImage(Root, 97, 64, V_ImageFindA("M_NGAME", VCP_DOOM));
-			Work->FSelect = MS_SubMenu_FSelect;
+			Work->FSelect = M_SubMenu_FSelect;
 			Work->SubMenu = MSM_NEWGAME;
 			
 			Work = MS_SMCreateImage(Root, 97, 80, V_ImageFindA("M_OPTION", VCP_DOOM));
@@ -2031,7 +1828,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work = MS_SMCreateImage(Root, 97, 112, V_ImageFindA("M_SAVEG", VCP_DOOM));
 			
 			Work = MS_SMCreateImage(Root, 97, 128, V_ImageFindA("M_QUITG", VCP_DOOM));
-			Work->FSelect = MS_SubMenu_FSelect;
+			Work->FSelect = M_SubMenu_FSelect;
 			Work->SubMenu = MSM_QUITGAME;
 			
 			// Start on new game
@@ -2046,11 +1843,11 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Add sub options
 				// New Game
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CLASSIC));
-			Work->FSelect = MS_NewGameClassic_FSelect;
+			Work->FSelect = M_NewGameClassic_FSelect;
 			
 				// More advanced settings
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CREATEGAME));
-			Work->FSelect = MS_SubMenu_FSelect;
+			Work->FSelect = M_SubMenu_FSelect;
 			Work->SubMenu = MSM_ADVANCEDCREATEGAME;
 			
 				// Server List: Name
@@ -2063,7 +1860,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			
 			// Use skull cursor instead
-			Root->DCursor = MS_MainMenu_DCursor;
+			Root->DCursor = M_MainMenu_DCursor;
 			
 			// Nice new game picture
 			Work = MS_SMCreateImage(Root, 96, 14, V_ImageFindA("M_NEWG", VCP_DOOM));
@@ -2076,23 +1873,23 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Skill Select
 			Work = MS_SMCreateImage(Root, 48, 63, V_ImageFindA("M_JKILL", VCP_DOOM));
 			Work->Option = 0;
-			Work->FSelect = MS_NewGameSkill_FSelect;
+			Work->FSelect = M_NewGameSkill_FSelect;
 			
 			Work = MS_SMCreateImage(Root, 48, 79, V_ImageFindA("M_ROUGH", VCP_DOOM));
 			Work->Option = 1;
-			Work->FSelect = MS_NewGameSkill_FSelect;
+			Work->FSelect = M_NewGameSkill_FSelect;
 			
 			Work = MS_SMCreateImage(Root, 48, 95, V_ImageFindA("M_HURT", VCP_DOOM));
 			Work->Option = 2;
-			Work->FSelect = MS_NewGameSkill_FSelect;
+			Work->FSelect = M_NewGameSkill_FSelect;
 			
 			Work = MS_SMCreateImage(Root, 48, 111, V_ImageFindA("M_ULTRA", VCP_DOOM));
 			Work->Option = 3;
-			Work->FSelect = MS_NewGameSkill_FSelect;
+			Work->FSelect = M_NewGameSkill_FSelect;
 			
 			Work = MS_SMCreateImage(Root, 48, 127, V_ImageFindA("M_NMARE", VCP_DOOM));
 			Work->Option = 4;
-			Work->FSelect = MS_NewGameSkill_FSelect;
+			Work->FSelect = M_NewGameSkill_FSelect;
 			
 			// Start on HMP
 			Root->CursorOn = 4;
@@ -2105,7 +1902,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			
 			// Use skull cursor instead
-			Root->DCursor = MS_MainMenu_DCursor;
+			Root->DCursor = M_MainMenu_DCursor;
 			
 			// Nice episode choosing picture
 			Work = MS_SMCreateImage(Root, 54, 38, V_ImageFindA("M_EPISOD", VCP_DOOM));
@@ -2114,21 +1911,21 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Episode Select
 			Work = MS_SMCreateImage(Root, 48, 63, V_ImageFindA("M_EPI1", VCP_DOOM));
 			Work->Option = 1;
-			Work->FSelect = MS_NewGameEpi_FSelect;
+			Work->FSelect = M_NewGameEpi_FSelect;
 			
 			Work = MS_SMCreateImage(Root, 48, 79, V_ImageFindA("M_EPI2", VCP_DOOM));
 			Work->Option = 2;
-			Work->FSelect = MS_NewGameEpi_FSelect;
+			Work->FSelect = M_NewGameEpi_FSelect;
 			
 			Work = MS_SMCreateImage(Root, 48, 95, V_ImageFindA("M_EPI3", VCP_DOOM));
 			Work->Option = 3;
-			Work->FSelect = MS_NewGameEpi_FSelect;
+			Work->FSelect = M_NewGameEpi_FSelect;
 			
 			if (a_MenuID == MSM_EPISELECTUDOOM)
 			{
 				Work = MS_SMCreateImage(Root, 48, 111, V_ImageFindA("M_EPI4", VCP_DOOM));
 				Work->Option = 4;
-				Work->FSelect = MS_NewGameEpi_FSelect;
+				Work->FSelect = M_NewGameEpi_FSelect;
 			}
 			
 			// Start on Episode
@@ -2146,26 +1943,29 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Create initial box
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			
+			// Options
+			Root->FTicker = M_QuitGame_FTicker;
+			
 			// Add sub options
 				// Disconnect
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_DISCONNECT));
-			Work->FSelect = MS_QuitGame_DisconFSelect;
+			Work->FSelect = M_QuitGame_DisconFSelect;
 			
 				// Stop Watching
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_STOPWATCHING));
-			Work->FSelect = MS_QuitGame_StopWatchFSelect;
+			Work->FSelect = M_QuitGame_StopWatchFSelect;
 			
 				// Stop Recording
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_STOPRECORDING));
-			Work->FSelect = MS_QuitGame_StopRecordFSelect;
+			Work->FSelect = M_QuitGame_StopRecordFSelect;
 			
 				// Log Off
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_LOGOFF));
-			Work->FSelect = MS_QuitGame_LogOffFSelect;
+			Work->FSelect = M_QuitGame_LogOffFSelect;
 			
 				// Exit ReMooD
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_EXITREMOOD));
-			Work->FSelect = MS_QuitGame_ExitFSelect;
+			Work->FSelect = M_QuitGame_ExitFSelect;
 			break;
 		
 			// Unknown

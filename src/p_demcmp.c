@@ -1684,7 +1684,7 @@ int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const 
 	bool_t Valid;
 	
 	/* Check */
-	if (!a_Value || a_Master)
+	if (!a_Value/* || a_Master*/)
 		return 0;
 	
 	/* Get variable first */
