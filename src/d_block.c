@@ -2320,6 +2320,14 @@ uint64_t D_BSrcu64(D_BS_t* const a_Stream)
 	
 	/* Constantly read */
 	RetVal = Shift = 0;
+#if 0
+	do
+	{
+		RetVal <<= UINT64_C(7);
+		Read = D_BSru8(a_Stream);
+		RetVal |= ((uint64_t)(Read & UINT8_C(0x7F)));
+	} while (Read & UINT8_C(0x80));
+#else
 	do
 	{
 		// Read single byte
@@ -2329,6 +2337,7 @@ uint64_t D_BSrcu64(D_BS_t* const a_Stream)
 		RetVal |= ((uint64_t)(Read & UINT8_C(0x7F))) << Shift;
 		Shift += 7;
 	} while (Read & UINT8_C(0x80));
+#endif
 	
 	/* Return it */
 	return RetVal;

@@ -94,14 +94,14 @@ enum
 #define MAXTCWEAPNAME						32	// Max length for weapon name
 #define MAXTCDATABUF					384		// Data Buffer size
 
+#define TICPINGSINGLASHIFT UINT16_C(14)
+#define TICPINGSIGNALMASK UINT16_C(0xC000)
+#define TICPINGAMOUNTMASK UINT16_C(0x3FFF)
+
 /* D_TicControl_t -- Tic Control */
 typedef struct D_TicControl_s
 {
 	uint8_t Type;								// Type of Command
-	
-	// Timing
-	uint64_t ProgramTic;						// Program Tic
-	uint64_t GameTic;							// Last game tic
 	uint16_t Ping;								// Players' Ping
 } D_TicControl_t;
 
@@ -212,6 +212,7 @@ typedef struct D_XNetTicBuf_s
 	uint32_t SyncCode;							// Synchronization Code
 	bool_t GotTic;								// Got tic
 	ticcmd_t Tics[MAXPLAYERS + 1];				// Tic Commands
+	uint32_t PIGRevMask;						// Player in reverse game mask
 } D_XNetTicBuf_t;
 
 #endif

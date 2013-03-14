@@ -372,8 +372,6 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 	{
 		// Save control
 		D_BSwu8(a_Str, a_TC->Ctrl.Type);
-		D_BSwcu64(a_Str, a_TC->Ctrl.ProgramTic);
-		D_BSwcu64(a_Str, a_TC->Ctrl.GameTic);
 		D_BSwu16(a_Str, a_TC->Ctrl.Ping);
 		
 		// Players
@@ -415,8 +413,6 @@ static void PS_LoadUnloadTicCmd(D_BS_t* const a_Str, const bool_t a_Write, ticcm
 	{
 		// Read control
 		a_TC->Ctrl.Type = D_BSru8(a_Str);
-		a_TC->Ctrl.ProgramTic = D_BSrcu64(a_Str);
-		a_TC->Ctrl.GameTic = D_BSrcu64(a_Str);
 		a_TC->Ctrl.Ping = D_BSru16(a_Str);
 		
 		// Players

@@ -838,22 +838,35 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 				
 				// Don't send message again
 				a_Desc->CS.Client.JoinWait = true;
+				a_Desc->CS.Client.JRTime = g_ProgramTic + TICRATE;
 			}
+			
+			// Remove ready time?
+			if (g_ProgramTic >= a_Desc->CS.Client.JRTime)
+				a_Desc->CS.Client.JoinWait = false;
 			break;
 		
 			// Playing
 		case DXSL_PLAYING:
-			if (!a_Desc->CS.Client.SentReady)
+			if (!a_Desc->CS.Client.GotTics)
 			{
-				// Send request to server
-				D_BSBaseBlock(RelBS, "PLAY");
-				D_BSwu32(RelBS, D_XNetGetHostID());
+				if (!a_Desc->CS.Client.SentReady)
+				{
+					// Send request to server
+					D_BSBaseBlock(RelBS, "PLAY");
+					D_BSwu32(RelBS, D_XNetGetHostID());
 			
-				// Send away!
-				D_BSRecordNetBlock(RelBS, HostAddr);
+					// Send away!
+					D_BSRecordNetBlock(RelBS, HostAddr);
 				
-				// Send ready
-				a_Desc->CS.Client.SentReady = true;
+					// Send ready
+					a_Desc->CS.Client.SentReady = true;
+					a_Desc->CS.Client.SRTime = g_ProgramTic + TICRATE;
+				}
+				
+				// Remove sent ready?
+				if (g_ProgramTic >= a_Desc->CS.Client.SRTime)
+					a_Desc->CS.Client.SentReady = false;
 			}
 			break;
 		
@@ -1185,14 +1198,15 @@ static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	if (!HostID)
 		return false;
 	
+	/* Already latched? */
+	if (a_EP->Latched)
+		return false;
+	
 	/* Clear active join from end point */
-	if (a_EP)
-	{
-		a_EP->ActiveJoinWindow = false;
+	a_EP->ActiveJoinWindow = false;
 		
-		// Also set as latched
-		a_EP->Latched = true;
-	}
+	// Also set as latched
+	a_EP->Latched = true;
 	
 	/* Go through players */
 	for (i = 0; i < g_NumXPlays; i++)
@@ -1233,7 +1247,20 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	/* Decode Data */
 	memset(&TicBuf, 0, sizeof(TicBuf));
-	D_XNetDecodeTicBuf(&TicBuf, a_Desc->RelBS->BlkData, a_Desc->RelBS->BlkSize);
+	
+	// Got some tics
+	a_Desc->CS.Client.GotTics = true;
+	
+	// Read Server Timing
+	a_Desc->CS.Client.SvLastRanTic = D_BSrcu64(a_Desc->RelBS);
+	a_Desc->CS.Client.SvLastXMit = D_BSrcu64(a_Desc->RelBS);
+	a_Desc->CS.Client.SvLastAckTic = D_BSrcu64(a_Desc->RelBS);
+	a_Desc->CS.Client.SvProgTic = D_BSrcu64(a_Desc->RelBS);
+	a_Desc->CS.Client.SvMilli = D_BSru32(a_Desc->RelBS);
+	
+	// Only of valid size, no negative
+	if (a_Desc->RelBS->BlkSize > a_Desc->RelBS->ReadOff)
+		D_XNetDecodeTicBuf(&TicBuf, a_Desc->RelBS->BlkData + a_Desc->RelBS->ReadOff, a_Desc->RelBS->BlkSize - a_Desc->RelBS->ReadOff);
 	
 	/* Don't need? */
 	if (TicBuf.GameTic < gametic)
@@ -1246,6 +1273,9 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	if (To->GotTic)
 		return false;
 	
+	/* Update ACK Time */
+	a_Desc->CS.Client.ClLastAckTic = g_ProgramTic;
+	
 	/* Copy tic data there */
 	memmove(To, &TicBuf, sizeof(*To));
 	
@@ -1257,6 +1287,11 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_BSwcu64(a_Desc->RelBS, To->GameTic);
 	D_BSwcu64(a_Desc->RelBS, gametic);
 	D_BSwcu64(a_Desc->RelBS, g_ProgramTic);
+	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastRanTic);
+	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastXMit);
+	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastAckTic);
+	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvProgTic);
+	D_BSwu32(a_Desc->RelBS, a_Desc->CS.Client.SvMilli);
 	
 	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
 	
@@ -1293,7 +1328,20 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Set as acknowledged */
 	if (AckTic > XPlay->LastAckTic)
 		XPlay->LastAckTic = AckTic;
+		
+	/* Set Timing Code */
+	a_EP->ClGameTic = RemGameTic;
+	a_EP->ClProgTic = RemProgTic;
+	a_EP->PongLRT = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongLXM = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongLAT = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongPT = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongMS = D_BSru32(a_Desc->RelBS);
 	
+	/* Calculate Player Ping */
+	D_XNetCalcPing(XPlay);
+	
+	/* Success! */
 	return true;
 }
 
@@ -1342,6 +1390,10 @@ static bool_t DXP_TRUN(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		if (TicBuf)
 			snprintf(Buf, BUFSIZE - 1, "Game State Desync (%08x != %08x @ %u",
 					SyncCode, TicBuf->SyncCode, ((unsigned int)GameTic)
+				);
+		else if (GameTic > gametic)
+			snprintf(Buf, BUFSIZE - 1, "In the future (%u > %u)",
+					((unsigned int)GameTic), ((unsigned int)gametic)
 				);
 		else
 			snprintf(Buf, BUFSIZE - 1, "Out of Reality (@ %u)",

@@ -681,14 +681,19 @@ void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, 
 		if (playeringame[i])
 			u32 |= UINT32_C(1) << i;
 	
+	// Reverse mask
+	u32 &= ~a_TicBuf->PIGRevMask;
+	
 	// Write counts
 	LittleWriteUInt32(&p, u32);
+	
+	// Do not use u32 any longer
 	
 	/* Encode player tics */
 	for (i = 0; i < MAXPLAYERS + 1; i++)
 	{
 		// Not in game?
-		if (!playeringame[i] && i != MAXPLAYERS)
+		if (!(u32 & (1 << i)) && i != MAXPLAYERS)
 			continue;
 		
 		// Get Command for this player
@@ -696,6 +701,9 @@ void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, 
 		
 		// Encode Type
 		WriteUInt8(&p, Cmd->Ctrl.Type);
+		
+		// Encode Ping
+		LittleWriteUInt16(&p, Cmd->Ctrl.Ping);
 		
 		// Standard player stuff
 		if (!Cmd->Ctrl.Type)
@@ -819,7 +827,7 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 	
 	/* Check */
 	if (!a_TicBuf || !a_InD || !a_InSz)
-		return 0;
+		return;
 	
 	/* Init */
 	if (!Buf)
@@ -827,7 +835,7 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 	
 	// Setup buffer
 	memset(Buf, 0, BUFSIZE);
-	memmove(Buf, a_InD, a_InSz);
+	memmove(Buf, a_InD, (a_InSz < BUFSIZE ? a_InSz : BUFSIZE));
 	p = Buf;
 	
 	// Clear tic buffer
@@ -857,6 +865,9 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 		
 		// Read type
 		Cmd->Ctrl.Type = ReadUInt8(&p);
+		
+		// Read Ping
+		Cmd->Ctrl.Ping = LittleReadUInt16(&p);
 		
 		// Standard Player
 		if (!Cmd->Ctrl.Type)
@@ -992,11 +1003,13 @@ void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host)
 	int32_t i;
 	D_XEndPoint_t* EP;
 	D_BS_t* BS;
+	uint32_t NowTime;
 	
 	/* Encode Commands */
 	OutD = NULL;
 	OutSz = 0;
 	D_XNetEncodeTicBuf(a_Buf, &OutD, &OutSz);
+	NowTime = I_GetTimeMS();
 	
 	/* If host specified */
 	// Only send to them
@@ -1022,6 +1035,14 @@ void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host)
 		// Record block to them
 		BS = EP->Desc->RelBS;
 		D_BSBaseBlock(BS, "TICS");
+		
+		// Timing Codes
+		D_BSwcu64(BS, Host->LastRanTic);
+		D_BSwcu64(BS, Host->LastXMit);
+		D_BSwcu64(BS, Host->LastAckTic);
+		D_BSwcu64(BS, g_ProgramTic);
+		D_BSwu32(BS, NowTime);
+		
 		D_BSWriteChunk(BS, OutD, OutSz);
 		D_BSRecordNetBlock(BS, &EP->Addr);
 	}
@@ -1065,6 +1086,14 @@ void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host)
 			
 			// Record block to them
 			D_BSBaseBlock(BS, "TICS");
+			
+			// Timing Codes
+			D_BSwcu64(BS, Host->LastRanTic);
+			D_BSwcu64(BS, Host->LastXMit);
+			D_BSwcu64(BS, Host->LastAckTic);
+			D_BSwcu64(BS, g_ProgramTic);
+			D_BSwu32(BS, NowTime);
+			
 			D_BSWriteChunk(BS, OutD, OutSz);
 			D_BSRecordNetBlock(BS, &EP->Addr);
 		}
@@ -1817,6 +1846,10 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 				else
 					WriteUInt8((uint8_t**)&Wp, 0);
 		}
+		
+		// Remove player ref, if any
+		if (a_Player->Player)
+			a_Player->Player->XPlayer = NULL;
 	}
 	
 	/* Delete bot, if any */
@@ -2424,9 +2457,58 @@ void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticc
 	if (!a_Player)
 		return;
 	
-	/* Ignore on server */
-	if (!D_XNetIsServer())
+	/* Needs player */
+	if (!a_Player->Player)
 		return;
+	
+	/* Ignore on certain settings */
+	if ((a_Player->Flags & (DXPF_SERVER | DXPF_BOT | DXPF_LOCAL)) != DXPF_LOCAL)
+		return;
+	
+	CONL_PrintF("Upload!\n");
+}
+
+/* D_XNetCalcPing() -- Calculates Player Ping */
+uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player)
+{
+	D_XEndPoint_t* EP;
+	uint16_t PVal, SVal;
+	int32_t TicDiff;
+	uint32_t NowTime;
+	
+	/* Invalid Player? */
+	if (!a_Player)
+		return 0;
+	
+	/* Calculate */
+	EP = a_Player->Socket.EndPoint;
+	PVal = SVal = 0;
+	TicDiff = 0;
+	
+	// No endpoint?
+	if (!EP)
+		return 0;
+	
+	// Programtic difference
+	NowTime = I_GetTimeMS();
+	if (NowTime > EP->PongMS)
+		TicDiff = NowTime - EP->PongMS;
+	
+	// Program value
+	if (TicDiff < 65535)
+		PVal = TicDiff;
+	else
+		TicDiff = 65535;
+	
+	/* Limit */
+	if (SVal > 3)
+		SVal = 3;
+	if (PVal > TICPINGAMOUNTMASK)
+		PVal = TICPINGAMOUNTMASK - 1;
+	
+	/* Return */
+	a_Player->Ping = PVal | (SVal << TICPINGSINGLASHIFT);
+	return a_Player->Ping;
 }
 
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
@@ -2537,6 +2619,7 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 				
 				// Always move over status bits
 				a_TicCmd->Std.StatFlags = XPlay->StatusBits;
+				a_TicCmd->Ctrl.Ping = XPlay->Ping;
 			}
 		}
 	}
@@ -4396,16 +4479,6 @@ void D_XNetUpdate(void)
 		// Human player
 		else
 			D_XNetBuildTicCmd(XPlay, TicCmdP);
-		
-		// Time Codes
-		TicCmdP->Ctrl.ProgramTic = g_ProgramTic;
-		TicCmdP->Ctrl.GameTic = gametic;
-		
-		// Ping of player (cap to 32 seconds)
-		if (XPlay->Ping >= 32767)
-			TicCmdP->Ctrl.Ping = 32767;
-		else
-			TicCmdP->Ctrl.Ping = XPlay->Ping;
 		
 		// Send commands to server eventually
 		D_XNetUpPlayerTics(XPlay, gametic, TicCmdP);

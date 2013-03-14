@@ -165,7 +165,7 @@ typedef struct D_XPlayer_s
 	struct player_s* Player;					// Pointer to player
 	struct D_ProfileEx_s* Profile;				// Profile Used by player
 	struct B_GhostBot_s* BotData;				// Bot data used by player
-	int32_t Ping;								// Player's Ping
+	uint16_t Ping;								// Player's Ping
 	uint32_t StatusBits;						// Status Flags
 	
 	// Timing
@@ -274,6 +274,7 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 
 void D_XNetInit(void);
 void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd);
+uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetForceLag(void);

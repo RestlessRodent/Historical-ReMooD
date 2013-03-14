@@ -818,6 +818,9 @@ void G_Ticker(void)
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
 			D_XNetMultiTics(cmd, true, i);
+			
+			// Copy Ping
+			players[i].Ping = cmd->Ctrl.Ping;
 		}
 		
 	/* Calculate the current sync code */

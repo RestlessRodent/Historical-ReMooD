@@ -414,6 +414,8 @@ typedef struct WI_PlayerInfo_s
 	int32_t SecretPcnt;
 	int32_t FragsPcnt;
 	
+	uint16_t Ping;
+	
 	/* Percent Pointers */
 	int* cntKillsPtr;
 	int* cntItemsPtr;
@@ -427,7 +429,7 @@ typedef struct WI_PlayerInfo_s
 
 static V_Image_t* l_PicINTER = NULL;
 static WI_PlayerInfo_t l_DrawPlayers[(MAXPLAYERS * 2) + 1];
-static size_t l_NumDrawPlayers;
+static int32_t l_NumDrawPlayers;
 static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets, l_TotalFrags, l_TotalDeaths;
 
 /****************
@@ -1508,7 +1510,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 		}
 		
 		// Single-player/Cooperative
-		for (k = 0; k < 5; k++)
+		for (k = 0; k < 6; k++)
 		{
 			Val = 0;
 			
@@ -1617,6 +1619,21 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				Title = "KILL";
 			}
 			
+			// Ping
+			else if (k == 5)
+			{
+				// Do not do totals for ping
+				if (dp >= l_NumDrawPlayers)
+					continue;
+				
+				// Get raw value
+				Val = 0;
+				if (dp >= 0)
+					Val = l_DrawPlayers[dp].Ping & TICPINGAMOUNTMASK;
+				
+				Title = "PING";
+			}
+			
 			// Completely missed?
 			else
 				continue;
@@ -1717,6 +1734,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
 			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];
 			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
+			TempDP[NumTempDP].Ping = Player->Ping;
 			
 			// DM games in Legacy do not count up
 			if (P_GMIsDM())

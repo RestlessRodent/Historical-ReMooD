@@ -103,6 +103,10 @@ typedef struct D_XEndPoint_s
 	int32_t ScreenToAdd;						// Screen to add for
 	bool_t Bye;									// Going bye
 	bool_t ActiveJoinWindow;					// Active join window
+	tic_t ClGameTic, ClProgTic;					// CL Program Tic
+	tic_t PongLRT, PongLXM, PongLAT;			// Ping Calculation
+	tic_t PongPT;								// Pong Program Tic
+	uint32_t PongMS;							// Pong Milliseconds
 } D_XEndPoint_t;
 
 /* D_XDesc_t -- Socket descriptor */
@@ -139,6 +143,16 @@ typedef struct D_XDesc_s
 			bool_t SentReqWAD;					// Sent requested WADs
 			bool_t JoinWait;					// Join waiting
 			bool_t SentReady;					// Sent ready
+			tic_t SvLastRanTic;					// Last tic ran (on server)
+			tic_t SvLastXMit;					// Last XMit time (on server)
+			tic_t SvLastAckTic;					// Last acknowledged tic (on server)
+			tic_t SvProgTic;					// Program Tic on Server
+			tic_t ClLastXMit;					// Last xmit on gametic
+			tic_t ClLastAckTic;					// Last acknowledge
+			tic_t JRTime;						// JoinReady Time
+			tic_t SRTime;						// SentReady Time
+			bool_t GotTics;						// Got tic commands
+			uint32_t SvMilli;					// Milli seconds on server
 		} Client;								// Client Stuff
 	
 		struct

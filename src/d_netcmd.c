@@ -315,11 +315,9 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 		
 		a_DestCmd->Std.aiming = a_SrcList[j].Std.aiming;
 		
-		// Use latest time codes
-		if (a_SrcList[j].Ctrl.ProgramTic > a_DestCmd->Ctrl.ProgramTic)
-			a_DestCmd->Ctrl.ProgramTic = a_SrcList[j].Ctrl.ProgramTic;
-		if (a_SrcList[j].Ctrl.GameTic > a_DestCmd->Ctrl.GameTic)
-			a_DestCmd->Ctrl.GameTic = a_SrcList[j].Ctrl.GameTic;
+		// Use higher ping
+		if ((a_SrcList[j].Ctrl.Ping & TICPINGAMOUNTMASK) > (a_DestCmd->Ctrl.Ping & TICPINGAMOUNTMASK))
+			a_DestCmd->Ctrl.Ping = a_SrcList[j].Ctrl.Ping; 
 	}
 
 	// Do some math
