@@ -107,6 +107,7 @@ typedef struct D_XEndPoint_s
 	tic_t PongLRT, PongLXM, PongLAT;			// Ping Calculation
 	tic_t PongPT;								// Pong Program Tic
 	uint32_t PongMS;							// Pong Milliseconds
+	uint32_t ClMS;								// Client Milliseconds
 } D_XEndPoint_t;
 
 /* D_XDesc_t -- Socket descriptor */

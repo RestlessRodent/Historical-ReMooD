@@ -823,7 +823,7 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 	ticcmd_t* Cmd;
 	uint16_t* dsP;
 	uint8_t* dbP;
-	int32_t i, j, z;
+	int32_t i, j, z, ShiftMul;
 	
 	/* Check */
 	if (!a_TicBuf || !a_InD || !a_InSz)
@@ -843,11 +843,11 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 	
 	/* Read Data */
 	// Read Gametic
+	ShiftMul = 0;
 	do
 	{
-		a_TicBuf->GameTic <<= UINT64_C(15);
 		u16 = LittleReadUInt16(&p);
-		a_TicBuf->GameTic |= (tic_t)(u16 & UINT16_C(0x7FFF));
+		a_TicBuf->GameTic |= ((tic_t)(u16 & UINT16_C(0x7FFF))) << (15 * ShiftMul++);
 	} while (u16 & UINT16_C(0x8000));
 	
 	// Player in game
@@ -917,12 +917,11 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 					continue;
 				
 				// Read variable length
-				u32 = 0;
+				u32 = ShiftMul = 0;
 				do
 				{
-					u32 <<= 7;
 					u8 = ReadUInt8(&p);
-					u32 |= ((uint32_t)(u8 & UINT8_C(0x7F)));
+					u32 |= ((uint32_t)(u8 & UINT8_C(0x7F))) << (7 * ShiftMul++);
 				} while (u8 & UINT8_C(0x80));
 				
 				// Set value
@@ -946,12 +945,11 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 		}
 		
 		// Read Size
-		*dsP = 0;
+		*dsP = ShiftMul = 0;
 		do
 		{
-			*dsP <<= UINT64_C(7);
 			u8 = ReadUInt8(&p);
-			*dsP |= (tic_t)(u8 & UINT16_C(0x7F));
+			*dsP |= (tic_t)(u8 & UINT16_C(0x7F)) << (7 * ShiftMul++);
 		} while (u8 & UINT16_C(0x80));
 		
 		// Read data buffer

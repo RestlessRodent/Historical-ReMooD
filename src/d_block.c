@@ -2320,14 +2320,6 @@ uint64_t D_BSrcu64(D_BS_t* const a_Stream)
 	
 	/* Constantly read */
 	RetVal = Shift = 0;
-#if 0
-	do
-	{
-		RetVal <<= UINT64_C(7);
-		Read = D_BSru8(a_Stream);
-		RetVal |= ((uint64_t)(Read & UINT8_C(0x7F)));
-	} while (Read & UINT8_C(0x80));
-#else
 	do
 	{
 		// Read single byte
@@ -2337,7 +2329,6 @@ uint64_t D_BSrcu64(D_BS_t* const a_Stream)
 		RetVal |= ((uint64_t)(Read & UINT8_C(0x7F))) << Shift;
 		Shift += 7;
 	} while (Read & UINT8_C(0x80));
-#endif
 	
 	/* Return it */
 	return RetVal;
@@ -2353,20 +2344,14 @@ void D_BSwcu64(D_BS_t* const a_Stream, const uint64_t a_Val)
 	Left = a_Val;
 	
 	// While there is something left
-		// DO while because if Left is zero, then no data is written
 	do
 	{
-		// Chop off 7-bits
-		Write = Left & UINT64_C(0x7F);
-		Left >>= UINT64_C(7);
-		
-		// If something is left, set high bit
+		Write = Left & 0x7F;
+		Left >>= 7;
 		if (Left)
-			Write |= UINT8_C(0x80);
-		
-		// Write the current bit
+			Write |= 0x80;
 		D_BSwu8(a_Stream, Write);
-	} while (Left);
+	} while (Write & 0x80);
 }
 
 /* D_BSrhost() -- Reads host name from stream */

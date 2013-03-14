@@ -1292,6 +1292,7 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastAckTic);
 	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvProgTic);
 	D_BSwu32(a_Desc->RelBS, a_Desc->CS.Client.SvMilli);
+	D_BSwu32(a_Desc->RelBS, I_GetTimeMS());
 	
 	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
 	
@@ -1303,7 +1304,7 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 	D_XPlayer_t* XPlay;
-	tic_t AckTic, RemGameTic, RemProgTic;
+	tic_t AckTic;
 	
 	/* Check */
 	if (!a_EP)
@@ -1318,8 +1319,17 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	/* Read */
 	AckTic = D_BSrcu64(a_Desc->RelBS);
-	RemGameTic = D_BSrcu64(a_Desc->RelBS);
-	RemProgTic = D_BSrcu64(a_Desc->RelBS);
+	a_EP->ClGameTic = D_BSrcu64(a_Desc->RelBS);
+	a_EP->ClProgTic = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongLRT = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongLXM = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongLAT = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongPT = D_BSrcu64(a_Desc->RelBS);
+	a_EP->PongMS = D_BSru32(a_Desc->RelBS);
+	a_EP->ClMS = D_BSru32(a_Desc->RelBS);
+	
+	/* Calculate Player Ping */
+	D_XNetCalcPing(XPlay);
 	
 	/* Already acked this tic? */
 	if (AckTic <= XPlay->LastAckTic)
@@ -1328,18 +1338,6 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Set as acknowledged */
 	if (AckTic > XPlay->LastAckTic)
 		XPlay->LastAckTic = AckTic;
-		
-	/* Set Timing Code */
-	a_EP->ClGameTic = RemGameTic;
-	a_EP->ClProgTic = RemProgTic;
-	a_EP->PongLRT = D_BSrcu64(a_Desc->RelBS);
-	a_EP->PongLXM = D_BSrcu64(a_Desc->RelBS);
-	a_EP->PongLAT = D_BSrcu64(a_Desc->RelBS);
-	a_EP->PongPT = D_BSrcu64(a_Desc->RelBS);
-	a_EP->PongMS = D_BSru32(a_Desc->RelBS);
-	
-	/* Calculate Player Ping */
-	D_XNetCalcPing(XPlay);
 	
 	/* Success! */
 	return true;
