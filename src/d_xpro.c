@@ -1244,6 +1244,8 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 {
 	D_XNetTicBuf_t TicBuf;
 	D_XNetTicBuf_t* To;
+	D_BS_t* BS;
+	I_HostAddress_t* AddrP;
 	
 	/* Decode Data */
 	memset(&TicBuf, 0, sizeof(TicBuf));
@@ -1269,42 +1271,44 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Create tic command to write to */
 	To = D_XNetBufForTic(TicBuf.GameTic, true);
 	
-	// Got already?
+	/* Copy tic data there */
+	// Already got tick
 	if (To->GotTic)
 		return false;
 	
-	/* Update ACK Time */
-	a_Desc->CS.Client.ClLastAckTic = g_ProgramTic;
-	
-	/* Copy tic data there */
+	// Copy over
 	memmove(To, &TicBuf, sizeof(*To));
-	
-	/* Reply to server that we got it */
 	To->GotTic = true;
 	
-	D_BSBaseBlock(a_Desc->RelBS, "TACK");
+	/* Reply to server that we got it */
+	a_Desc->CS.Client.ClLastAckTic = g_ProgramTic;
 	
-	D_BSwcu64(a_Desc->RelBS, To->GameTic);
-	D_BSwcu64(a_Desc->RelBS, gametic);
-	D_BSwcu64(a_Desc->RelBS, g_ProgramTic);
-	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastRanTic);
-	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastXMit);
-	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvLastAckTic);
-	D_BSwcu64(a_Desc->RelBS, a_Desc->CS.Client.SvProgTic);
-	D_BSwu32(a_Desc->RelBS, a_Desc->CS.Client.SvMilli);
-	D_BSwu32(a_Desc->RelBS, I_GetTimeMS());
+	BS = D_XBRouteToServer(NULL, &AddrP);
 	
-	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
+	D_BSBaseBlock(BS, "TACK");
+	
+	D_BSwcu64(BS, To->GameTic);
+	D_BSwcu64(BS, gametic);
+	D_BSwcu64(BS, g_ProgramTic);
+	D_BSwcu64(BS, a_Desc->CS.Client.SvLastRanTic);
+	D_BSwcu64(BS, a_Desc->CS.Client.SvLastXMit);
+	D_BSwcu64(BS, a_Desc->CS.Client.SvLastAckTic);
+	D_BSwcu64(BS, a_Desc->CS.Client.SvProgTic);
+	D_BSwu32(BS, a_Desc->CS.Client.SvMilli);
+	D_BSwu32(BS, I_GetTimeMS());
+	
+	D_BSRecordNetBlock(BS, a_Addr);
 	
 	/* Success! */
 	return true;
 }
 
-/* DXP_TACK() -- Server acknowledged they recieved a tic */
+/* DXP_TACK() -- Client acknowledged they recieved a tic */
 static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 	D_XPlayer_t* XPlay;
 	tic_t AckTic;
+	uint32_t MsTime;
 	
 	/* Check */
 	if (!a_EP)
@@ -1325,11 +1329,17 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	a_EP->PongLXM = D_BSrcu64(a_Desc->RelBS);
 	a_EP->PongLAT = D_BSrcu64(a_Desc->RelBS);
 	a_EP->PongPT = D_BSrcu64(a_Desc->RelBS);
-	a_EP->PongMS = D_BSru32(a_Desc->RelBS);
+	
+	MsTime = D_BSru32(a_Desc->RelBS);
+	if (MsTime > a_EP->PongMS || a_EP->PongMS >= MsTime + 300000)
+		a_EP->PongMS = MsTime;
+	
 	a_EP->ClMS = D_BSru32(a_Desc->RelBS);
 	
 	/* Calculate Player Ping */
 	D_XNetCalcPing(XPlay);
+	
+	CONL_PrintF("TACK %u\n", XPlay->Ping);
 	
 	/* Already acked this tic? */
 	if (AckTic <= XPlay->LastAckTic)

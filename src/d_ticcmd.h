@@ -94,7 +94,7 @@ enum
 #define MAXTCWEAPNAME						32	// Max length for weapon name
 #define MAXTCDATABUF					384		// Data Buffer size
 
-#define TICPINGSINGLASHIFT UINT16_C(14)
+#define TICPINGSIGNALSHIFT UINT16_C(14)
 #define TICPINGSIGNALMASK UINT16_C(0xC000)
 #define TICPINGAMOUNTMASK UINT16_C(0x3FFF)
 

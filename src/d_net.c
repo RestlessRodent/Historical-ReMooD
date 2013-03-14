@@ -2488,24 +2488,27 @@ uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player)
 		return 0;
 	
 	// Programtic difference
-	NowTime = I_GetTimeMS();
-	if (NowTime > EP->PongMS)
-		TicDiff = NowTime - EP->PongMS;
+	//NowTime = I_GetTimeMS();
+	NowTime = g_ProgramTic * TICSPERMS;
+	
+	TicDiff = NowTime - EP->PongMS;
 	
 	// Program value
-	if (TicDiff < 65535)
+	if (TicDiff < 0)
+		PVal = 0;
+	else if (TicDiff < 65535)
 		PVal = TicDiff;
 	else
-		TicDiff = 65535;
+		PVal = TICPINGAMOUNTMASK;
 	
 	/* Limit */
 	if (SVal > 3)
 		SVal = 3;
-	if (PVal > TICPINGAMOUNTMASK)
+	if (PVal >= TICPINGAMOUNTMASK)
 		PVal = TICPINGAMOUNTMASK - 1;
 	
 	/* Return */
-	a_Player->Ping = PVal | (SVal << TICPINGSINGLASHIFT);
+	a_Player->Ping = PVal | (SVal << TICPINGSIGNALSHIFT);
 	return a_Player->Ping;
 }
 
