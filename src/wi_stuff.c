@@ -399,6 +399,7 @@ typedef struct WI_PlayerInfo_s
 	player_t* Player;
 	int32_t Rank;
 	bool_t LocalPlayer;
+	bool_t Spectator;
 	int8_t ScreenNum;
 	char PlayerName[MAXPLAYERNAME + 1];
 	
@@ -1285,6 +1286,12 @@ static int WIS_ComparePI(const bool_t a_Deathmatch, WI_PlayerInfo_t* const a_A, 
 	if (!a_A || !a_B)
 		return 0;
 	
+	/* Spec */
+	if (a_A->Spectator && !a_B->Spectator)
+		return -1;
+	else if (!a_A->Spectator && a_B->Spectator)
+		return 1;
+	
 	/* DM Mode */
 	if (a_Deathmatch)
 	{
@@ -1349,7 +1356,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 	int32_t Val, pVal;
 	bool_t Flash, All;
 	fixed_t mVal;
-	bool_t IsDM;
+	bool_t IsDM, DrawSpec;
 	
 	/* Deathmatch? */
 	IsDM = false;
@@ -1402,6 +1409,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 		dp--;
 		All = false;
 		DrawCount = 0;
+		DrawSpec = true;
 		
 		// Drawing A Player
 		if (dp >= 0 && dp < l_NumDrawPlayers)
@@ -1423,11 +1431,21 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			{
 				// Local Players are distinguished
 				if (l_DrawPlayers[dp].LocalPlayer)
-					DrawFlags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+				{
+					if (l_DrawPlayers[dp].Spectator)
+						DrawFlags = VFO_COLOR(VEX_MAP_WHITE);
+					else
+						DrawFlags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+				}
 				
 				// Others are not
 				else
-					DrawFlags = VFO_COLOR(VEX_MAP_RED);
+				{
+					if (l_DrawPlayers[dp].Spectator)
+						DrawFlags = VFO_COLOR(VEX_MAP_GRAY);
+					else
+						DrawFlags = VFO_COLOR(VEX_MAP_RED);
+				}
 			}
 			
 			// Draw player band (their skin color)
@@ -1517,6 +1535,8 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			// Deaths
 			if (k == 0)
 			{
+				DrawSpec = false;
+				
 				// Get frags value
 				if (dp < l_NumDrawPlayers)
 					Val = l_DrawPlayers[dp].Deaths;
@@ -1529,6 +1549,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			// Frags
 			else if ((IsDM || dofrags) && k == 1)
 			{
+				DrawSpec = false;
 				mVal = FIXEDT_C(1);
 				
 				// Get frags value
@@ -1550,6 +1571,8 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			// Secrets
 			else if (!IsDM && k == 1)
 			{
+				DrawSpec = false;
+				
 				// Get Multiplier
 				mVal = FIXEDT_C(1);
 				if (dp < l_NumDrawPlayers)
@@ -1574,6 +1597,8 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			// Items
 			else if (!IsDM && k == 3)
 			{
+				DrawSpec = false;
+				
 				// Get Multiplier
 				mVal = FIXEDT_C(1);
 				if (dp < l_NumDrawPlayers)
@@ -1598,6 +1623,8 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			// Kills
 			else if (!IsDM && k == 4)
 			{
+				DrawSpec = false;
+				
 				// Get Multiplier
 				mVal = FIXEDT_C(1);
 				if (dp < l_NumDrawPlayers)
@@ -1640,32 +1667,41 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			
 			// Which to draw?
 			if (dp >= 0)
-				// M?
-				if (Val >= 1000000)
-					snprintf(Buf, BUFSIZE - 1, "%i.%iM",
-							Val / 1000000,
-							(Val / 100000) % 10
-						);
-						
-				// K?
-				else if (Val >= 1000)
-					snprintf(Buf, BUFSIZE - 1, "%i.%iK",
-							Val / 1000,
-							(Val / 100) % 10
-						);
-				else
-					snprintf(Buf, BUFSIZE - 1, "%i", Val);
+			{
+				if (!l_DrawPlayers[dp].Spectator || (l_DrawPlayers[dp].Spectator && DrawSpec))
+				{
+					// M?
+					if (Val >= 1000000)
+						snprintf(Buf, BUFSIZE - 1, "%i.%iM",
+								Val / 1000000,
+								(Val / 100000) % 10
+							);
+					
+					// K?
+					else if (Val >= 1000)
+						snprintf(Buf, BUFSIZE - 1, "%i.%iK",
+								Val / 1000,
+								(Val / 100) % 10
+							);
+					else
+						snprintf(Buf, BUFSIZE - 1, "%i", Val);
+				}
+			}
 			else
 				snprintf(Buf, BUFSIZE - 1, "%s", Title);
 			
 			// Draw
 			DrawCount++;
-			V_DrawStringA(
-					VFONT_SMALL,
-					DrawFlags,
-					Buf,
-					(320 - (xBase << 1)) - (35 * DrawCount), yBase + y
-				);
+			
+			if ((dp < 0) ||
+				(dp >= 0 && (!l_DrawPlayers[dp].Spectator || (l_DrawPlayers[dp].Spectator && DrawSpec))) ||
+				(dp >= l_NumDrawPlayers))
+				V_DrawStringA(
+						VFONT_SMALL,
+						DrawFlags,
+						Buf,
+						(320 - (xBase << 1)) - (35 * DrawCount), yBase + y
+					);
 		}
 	}
 	
@@ -1675,12 +1711,15 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 /* WI_BuildScoreBoard() -- Builds the scoreboard */
 void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter)
 {
+#define MAXSBLIMIT (MAXPLAYERS + MAXPLAYERS + 1)
+
 	int i, j, k;
-	WI_PlayerInfo_t TempDP[MAXPLAYERS + 1];
+	WI_PlayerInfo_t TempDP[MAXSBLIMIT];
 	size_t NumTempDP;
 	player_t* Player;
 	WI_PlayerInfo_t Store;
 	bool_t DMSort;
+	D_XPlayer_t* XPlay;
 	
 	/* Determine Players to Draw */
 	// Clear
@@ -1744,6 +1783,34 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			
 			TempDP[NumTempDP++].Rank = i;
 		}
+	
+	// Other XPlayers
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Not here
+		if (!XPlay)
+			continue;
+		
+		// In game or defunc
+		if ((XPlay->Flags & DXPF_DEFUNCT) || (XPlay->Player))
+			continue;
+		
+		// Out of Room
+		if (NumTempDP >= MAXSBLIMIT - 1)
+			break;
+			
+		// Setup fields
+		if (XPlay->DisplayName[0])
+			strncpy(TempDP[NumTempDP].PlayerName, XPlay->DisplayName, MAXPLAYERNAME - 1);
+		else
+			strncpy(TempDP[NumTempDP].PlayerName, XPlay->AccountName, MAXPLAYERNAME - 1);
+		
+		TempDP[NumTempDP].Spectator = true;
+		TempDP[NumTempDP].Ping = XPlay->Ping;
+		TempDP[NumTempDP++].Rank = MAXPLAYERS + i;
+	}
 	
 	// Un-Claimed Kills/Items/Secrets?
 	if (!P_GMIsDM())

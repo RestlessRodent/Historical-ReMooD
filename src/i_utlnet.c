@@ -413,7 +413,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 	AddrInfo.ai_family = AF_UNSPEC;
 	AddrInfo.ai_socktype = SOCK_STREAM;
 #if !defined(_WIN32)
-	AddrInfo.ai_flags = AI_ADDRCONFIG | AI_ALL | AI_V4MAPPED;
+	AddrInfo.ai_flags = AI_ADDRCONFIG | AI_ALL;
 #endif
 
 	/* Get address info */

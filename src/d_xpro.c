@@ -1339,8 +1339,6 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Calculate Player Ping */
 	D_XNetCalcPing(XPlay);
 	
-	CONL_PrintF("TACK %u\n", XPlay->Ping);
-	
 	/* Already acked this tic? */
 	if (AckTic <= XPlay->LastAckTic)
 		return true;
