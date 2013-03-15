@@ -2015,7 +2015,7 @@ bool_t NG_SetRules(const bool_t a_Master, const char* const a_Name)
 	WL_StreamCheckUnicode(Stream);
 	
 	// Read all sections for the right one
-	for (CurSect = TINI_FindNextSection(CurSect, Stream); CurSect; CurSect = CurSect->Next)
+	for (CurSect = TINI_FindNextSection(NULL, Stream); CurSect; CurSect = CurSect->Next)
 	{
 		// Section name mismatch?
 		if (strcasecmp(CurSect->Name, a_Name) != 0)

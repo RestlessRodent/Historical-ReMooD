@@ -1538,7 +1538,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				DrawSpec = false;
 				
 				// Get frags value
-				if (dp < l_NumDrawPlayers)
+				if (dp >= 0 && dp < l_NumDrawPlayers)
 					Val = l_DrawPlayers[dp].Deaths;
 				else
 					Val = l_TotalDeaths;
@@ -1553,7 +1553,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				mVal = FIXEDT_C(1);
 				
 				// Get frags value
-				if (dp < l_NumDrawPlayers)
+				if (dp >= 0 && dp < l_NumDrawPlayers)
 					if (a_IsInter && l_DrawPlayers[dp].cntFragsPtr)
 						Val = *l_DrawPlayers[dp].cntFragsPtr;
 					else
@@ -1575,7 +1575,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				
 				// Get Multiplier
 				mVal = FIXEDT_C(1);
-				if (dp < l_NumDrawPlayers)
+				if (dp >= 0 && dp < l_NumDrawPlayers)
 					if (a_IsInter && l_DrawPlayers[dp].cntSecretsPtr)
 						mVal = FixedDiv(
 								(fixed_t)*l_DrawPlayers[dp].cntSecretsPtr,
@@ -1601,7 +1601,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				
 				// Get Multiplier
 				mVal = FIXEDT_C(1);
-				if (dp < l_NumDrawPlayers)
+				if (dp >= 0 && dp < l_NumDrawPlayers)
 					if (a_IsInter && l_DrawPlayers[dp].cntItemsPtr)
 						mVal = FixedDiv(
 								(fixed_t)*l_DrawPlayers[dp].cntItemsPtr,
@@ -1627,7 +1627,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				
 				// Get Multiplier
 				mVal = FIXEDT_C(1);
-				if (dp < l_NumDrawPlayers)
+				if (dp >= 0 && dp < l_NumDrawPlayers)
 					if (a_IsInter && l_DrawPlayers[dp].cntKillsPtr)
 						mVal = FixedDiv(
 								(fixed_t)*l_DrawPlayers[dp].cntKillsPtr,
@@ -1649,6 +1649,8 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			// Ping
 			else if (k == 5)
 			{
+				DrawSpec = true;
+
 				// Do not do totals for ping
 				if (dp >= l_NumDrawPlayers)
 					continue;
@@ -1694,7 +1696,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			DrawCount++;
 			
 			if ((dp < 0) ||
-				(dp >= 0 && (!l_DrawPlayers[dp].Spectator || (l_DrawPlayers[dp].Spectator && DrawSpec))) ||
+				(dp >= 0 && dp < l_NumDrawPlayers && (!l_DrawPlayers[dp].Spectator || (l_DrawPlayers[dp].Spectator && DrawSpec))) ||
 				(dp >= l_NumDrawPlayers))
 				V_DrawStringA(
 						VFONT_SMALL,
