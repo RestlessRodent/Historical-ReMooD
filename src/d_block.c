@@ -33,6 +33,8 @@
 *** INCLUDES ***
 ***************/
 
+#include <errno.h>
+
 #include "d_block.h"
 #include "z_zone.h"
 #include "console.h"
@@ -87,7 +89,7 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 	
 	/* Write Data */
 	if (a_Stream->BlkSize)
-		RetVal = fwrite(a_Stream->BlkData, a_Stream->BlkSize, 1, File);
+		RetVal = fwrite(a_Stream->BlkData, 1, a_Stream->BlkSize, File);
 	else
 		RetVal = 0;
 	
@@ -104,6 +106,7 @@ bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 	char Header[5];
 	uint16_t Len;
 	void* Data;
+	int RetVal;
 	
 	/* Check */
 	if (!a_Stream)
@@ -135,7 +138,7 @@ bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 	if (Len > 0)
 	{
 		Data = Z_Malloc(Len, PU_STATIC, NULL);
-		if (fread(Data, Len, 1, File) < 1)
+		if ((RetVal = fread(Data, 1, Len, File)) < Len)
 		{
 			Z_Free(Data);
 			return false;
@@ -1547,7 +1550,6 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 				if (devparm)
 					CONL_OutputUT(CT_NETWORK, DSTR_DBLOCKC_ZLIBINFLATEERR,
 						"%i", ZRet * -1);
-				I_Error("Real Bad");
 				return false;
 			}
 			
@@ -1560,7 +1562,6 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 				if (devparm)
 					CONL_OutputUT(CT_NETWORK, DSTR_DBLOCKC_ZLIBINFLATEERR,
 						"%i", ZRet);
-				I_Error("Bad");
 				return false;
 			}
 			
@@ -1597,9 +1598,8 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 		Header[i] = 0;
 		
 		// Read Size
-		Size = ((uint32_t)(*(PackData->InAt++))) << UINT32_C(8);
-		Size |= ((uint32_t)(*(PackData->InAt++)));
-		
+		Size = BigReadUInt16(&PackData->InAt);
+
 		// Size exceeds bounds?
 		if (PackData->InAt + Size > PackData->InEnd)
 			Size = PackData->InEnd - PackData->InAt;
@@ -1719,7 +1719,7 @@ D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flag
 		return NULL;
 	
 	/* Open r or r/w file */
-	File = fopen(a_PathName, (((a_Flags & DRBSSF_READONLY) ? "r" : ((a_Flags & DRBSSF_OVERWRITE) ? "w+b" : "a+b"))));
+	File = fopen(a_PathName, (((a_Flags & DRBSSF_READONLY) ? "rb" : ((a_Flags & DRBSSF_OVERWRITE) ? "w+b" : "a+b"))));
 	
 	// Failed?
 	if (!File)

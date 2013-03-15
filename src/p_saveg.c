@@ -2623,6 +2623,10 @@ bool_t P_SaveToStream(D_BS_t* const a_Str)
 {
 	/* Force Lag */
 	D_XNetForceLag();
+
+	/* If on title screen, or demo, die. */
+	if (gamestate == GS_DEMOSCREEN || demoplayback)
+		return false;
 	
 	/* Network State */
 	PS_SaveDummy(a_Str, false);
