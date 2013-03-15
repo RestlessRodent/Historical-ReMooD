@@ -6,6 +6,7 @@
 	ProjectGUID="{31D1512F-B0D7-4C91-9D4F-B3E1A09326D5}"
 	RootNamespace="RMDTex"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="0"
 	>
 	<Platforms>
 		<Platform
@@ -17,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\bin"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="rmdtex$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -85,15 +86,12 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\bin"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="rmdtex$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -159,9 +157,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

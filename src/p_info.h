@@ -87,7 +87,7 @@ typedef enum P_LevelInfoBitLevels_e
 } P_LevelInfoBitLevels_t;
 
 #define MAXPINFOPROPERNAME	64					// Max Level Proper Name
-#define MAXPINFOSETFLAGS 24						// Max stuff to set flags for
+#define MAXPINFOSETFLAGS 35						// Max stuff to set flags for
 
 /*** STRUCTURES ***/
 /* P_LevelInfoEx_t -- Extended level info */

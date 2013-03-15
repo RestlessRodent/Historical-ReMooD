@@ -958,6 +958,7 @@ void* INFO_KeyGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Storage Pointer */
 	StorePP = a_Data;
+	This = NULL;
 	if (StorePP)
 		This = *StorePP;
 	

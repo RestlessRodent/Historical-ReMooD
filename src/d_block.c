@@ -2216,7 +2216,7 @@ void D_BSwp(D_BS_t* const a_Stream, const void* const a_Ptr)
 /* D_BSReadChunk() -- Reads Chunk */
 size_t D_BSReadChunk(D_BS_t* const a_Stream, void* const a_Data, const size_t a_Size)
 {
-	ssize_t Count;
+	size_t Count;
 	size_t Read;
 	uint8_t Bit;
 	
@@ -2226,7 +2226,7 @@ size_t D_BSReadChunk(D_BS_t* const a_Stream, void* const a_Data, const size_t a_
 	
 	/* Counting Read */
 	Read = 0;
-	for (Count = a_Size; Count > 0; Count--)
+	for (Count = 0; Count < a_Size; Count++)
 	{
 		Bit = 0;
 		if (a_Stream->ReadOff < a_Stream->BlkSize)

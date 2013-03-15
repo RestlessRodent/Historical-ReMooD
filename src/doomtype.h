@@ -61,6 +61,8 @@
 	#include <windows.h>
 	#include <io.h>
 	#include <shlobj.h>
+	#include <limits.h>
+	#include <float.h>
 #endif
 
 /* Palm OS Ugly Includes */
@@ -206,7 +208,12 @@
 		typedef size_t uintptr_t;
 		typedef ssize_t intptr_t;
 	#endif
-		
+	
+	#define INT8_C(x) x
+	#define UINT8_C(x) x
+	#define INT16_C(x) x
+	#define UINT16_C(x) x
+	#define INT32_C(x) x
 	#define UINT32_C(x) x
 	#define INT64_C(x) x##i64
 	#define UINT64_C(x) x##ui64
@@ -278,10 +285,11 @@
 
 /* Microsoft Visual C++ */
 #if defined(_MSC_VER)
-#define strncasecmp strnicmp
-#define strcasecmp stricmp
-#define snprintf _snprintf
-#define alloca _alloca
+	#define strncasecmp strnicmp
+	#define strcasecmp stricmp
+	#define snprintf _snprintf
+	#define alloca _alloca
+	#define isnan _isnan
 
 // Visual C++ does not like inline in C
 #define inline _inline
@@ -349,6 +357,48 @@ typedef union FColorRGBA RGBA_t;
 #else
 	#define __REMOOD_VA_COPY(a,b) ((a) = (b))
 	#define __REMOOD_VA_COPYEND(a)
+#endif
+
+/*************
+*** LIMITS ***
+*************/
+
+#if defined(_MSC_VER)
+	#if !defined(INT8_MAX)
+		#define INT8_MAX _I8_MAX
+	#endif
+
+	#if !defined(INT8_MIN)
+		#define INT8_MIN _I8_MIN
+	#endif
+
+	#if !defined(UINT8_MAX)
+		#define UINT8_MAX _UI8_MAX
+	#endif
+
+	#if !defined(INT16_MAX)
+		#define INT16_MAX _I16_MAX
+	#endif
+
+	#if !defined(INT16_MIN)
+		#define INT16_MIN _I16_MIN
+	#endif
+
+	#if !defined(UINT16_MAX)
+		#define UINT16_MAX _UI16_MAX
+	#endif
+
+	#if !defined(INT32_MAX)
+		#define INT32_MAX _I32_MAX
+	#endif
+
+	#if !defined(INT32_MIN)
+		#define INT32_MIN _I32_MIN
+	#endif
+
+	#if !defined(UINT32_MAX)
+		#define UINT32_MAX _UI32_MAX
+	#endif
 #endif
 
 /****************************

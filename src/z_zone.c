@@ -86,12 +86,7 @@ void Z_Init(void)
 	
 	/* Clear */
 	DidSomething = false;
-	
-#if defined(_DEBUG)
-	IsDebug = true;
-#else
 	IsDebug = false;
-#endif
 	
 	/* Select which manager */
 	for (Run = 0; Run < 2; Run++)

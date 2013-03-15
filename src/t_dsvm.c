@@ -1038,7 +1038,7 @@ bool_t T_DSVM_CompileStream(WL_ES_t* const a_Stream, const size_t a_End)
 				TS_VMClearExpr(&BootExpr);
 				T_DSVM_ScriptError("Expected end of expression.", Row);
 				ScriptProblem = true;
-				return;
+				return false;
 			}
 			
 			// Try solving it
@@ -1050,7 +1050,7 @@ bool_t T_DSVM_CompileStream(WL_ES_t* const a_Stream, const size_t a_End)
 				TS_VMClearExpr(&BootExpr);
 				T_DSVM_ScriptError("Could not solve expression.", Row);
 				ScriptProblem = true;
-				return;
+				return false;
 			}
 			
 			// Call traverses a scope `if (something) {`

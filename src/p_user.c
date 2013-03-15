@@ -1521,7 +1521,7 @@ void P_SpecTicker(void)
 	angle_t Angle, PeerAngle;
 	bool_t DeadView;
 	
-	fixed_t ToDist, ToPos[0], BCPos[2], CDist, BCDist;
+	fixed_t ToDist, ToPos[2], BCPos[2], CDist, BCDist;
 	
 	/* Title Screen Demo */
 	if (g_TitleScreenDemo)

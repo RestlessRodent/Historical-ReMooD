@@ -9,7 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 2011-2012 GhostlyDeath <ghostlydeath@gmail.com>
+// Copyright (C) 2011-2013 GhostlyDeath <ghostlydeath@gmail.com>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1696,6 +1696,14 @@ int main(int argc, char** argv)
 	
 	u32 = LittleSwapUInt32(l_NumEntries);
 	fwrite(&u32, 4, 1, OutWAD);
+	
+	// Recalc offsets
+	l_TableSpot = 12;
+	for (i = 0; i < l_NumEntries; i++)
+	{
+		l_Entries[i].Offset = l_TableSpot;
+		l_TableSpot += l_Entries[i].Size;
+	}
 	
 	u32 = LittleSwapUInt32(l_TableSpot);
 	fwrite(&u32, 4, 1, OutWAD);

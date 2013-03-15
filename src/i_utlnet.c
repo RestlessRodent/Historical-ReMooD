@@ -804,7 +804,7 @@ static size_t IS_NetRecvWrap(I_NetSocket_t* const a_Socket, I_HostAddress_t* con
 	struct sockaddr_storage Addr;
 	socklen_t SockLen;
 	bool_t DisconSock;
-	ssize_t RetVal;
+	int32_t RetVal;
 	size_t i;
 	
 	/* Check */
@@ -852,7 +852,7 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	struct sockaddr_storage Addr;
 	socklen_t SockLen;
 	bool_t DisconSock;
-	ssize_t RetVal;
+	int32_t RetVal;
 	size_t i;
 	
 	/* Check */

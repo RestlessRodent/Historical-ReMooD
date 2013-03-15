@@ -5,6 +5,7 @@
 	Name="ReMooD"
 	ProjectGUID="{864683B0-3583-49E0-BDDB-96F48A5F58FC}"
 	RootNamespace="ReMooD"
+	TargetFrameworkVersion="0"
 	>
 	<Platforms>
 		<Platform
@@ -30,8 +31,8 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
-				AdditionalDependencies=""
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
+				AdditionalDependencies="$(InputDir)\..\..\wad\wadinfo.txt"
 				Outputs="$(OutDir)\remood.wad"
 			/>
 			<Tool
@@ -105,9 +106,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -125,7 +123,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -194,9 +192,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -214,7 +209,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -289,9 +284,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -309,7 +301,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -376,9 +368,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -840,672 +829,28 @@
 				</File>
 			</Filter>
 		</Filter>
-		<Filter
-			Name="v_ (Video)"
-			>
-			<File
-				RelativePath="..\..\src\v_video.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\v_video.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\v_widc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\v_widget.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\v_widget.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="w_ (WADs)"
-			>
-			<File
-				RelativePath="..\..\src\w_wad.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\w_wad.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="wi_ (Intermission)"
-			>
-			<File
-				RelativePath="..\..\src\wi_stuff.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\wi_stuff.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="z_ (Memory)"
-			>
-			<File
-				RelativePath="..\..\src\z_zone.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\z_zone.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Doom"
-			>
-			<Filter
-				Name="r_ (Renderer)"
-				>
-				<File
-					RelativePath="..\..\src\r_bsp.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_bsp.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_data.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_data.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_defs.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_draw.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_draw.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_local.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_main.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_main.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_plane.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_plane.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_segs.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_segs.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_sky.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_sky.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_splats.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_splats.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_state.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_things.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\r_things.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="s_ (Sound)"
-				>
-				<File
-					RelativePath="..\..\src\s_sound.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\s_sound.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="p_ (Logic)"
-				>
-				<File
-					RelativePath="..\..\src\p_ceilng.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_demcmp.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_demcmp.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_doors.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_enemy.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_fab.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_fab.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_floor.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_genlin.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_info.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_info.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_inter.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_inter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_lights.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_local.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_map.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_maputl.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_maputl.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_mobj.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_mobj.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_plats.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_pspr.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_pspr.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_saveg.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_saveg.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_setup.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_setup.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_sight.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_spec.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_spec.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_switch.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_telept.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_tick.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_tick.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_user.c"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="st_ (Status Bar)"
-				>
-				<File
-					RelativePath="..\..\src\st_lib.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\st_lib.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\st_stuff.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\st_stuff.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="t_ (FraggleScript/ReMooD Script)"
-				>
-				<File
-					RelativePath="..\..\src\t_comp.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_func.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_func.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_oper.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_oper.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_parse.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_parse.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_prepro.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_prepro.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_script.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_script.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_spec.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_spec.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_vari.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\t_vari.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="m_ (Misc)"
-				>
-				<File
-					RelativePath="..\..\src\m_argv.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_argv.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_bbox.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_bbox.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_cheat.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_cheat.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_fixed.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_fixed.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_menu.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_menu.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_menudr.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_menufn.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_misc.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_misc.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_random.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_random.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\m_swap.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="hu_ (HUD)"
-				>
-				<File
-					RelativePath="..\..\src\hu_stuff.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\hu_stuff.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="g_ (Game)"
-				>
-				<File
-					RelativePath="..\..\src\g_game.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\g_game.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\g_input.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\g_input.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\g_state.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\g_state.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="f_ (Finale)"
-				>
-				<File
-					RelativePath="..\..\src\f_finale.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\f_finale.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\f_wipe.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\f_wipe.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="d_ (Doom)"
-				>
-				<File
-					RelativePath="..\..\src\d_block.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_block.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_clisrv.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_clisrv.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_englsh.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_event.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_french.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_info.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_info.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_items.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_items.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_main.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_main.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_net.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_net.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_netcmd.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_netcmd.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_player.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_prof.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_prof.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_rdf.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_rdf.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_rmod.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_rmod.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_think.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\d_ticcmd.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="am_ (Automap)"
-				>
-				<File
-					RelativePath="..\..\src\am_map.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\am_map.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
-			Name="Bots (b_)"
-			>
-			<File
-				RelativePath="..\..\src\b_bot.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\b_bot.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\b_ghost.c"
-				>
-			</File>
-		</Filter>
 		<File
-			RelativePath="..\..\src\bootdata.h"
+			RelativePath="..\..\src\b_bot.h"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\byteptr.h"
+			RelativePath="..\..\src\b_ghost.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\b_node.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\b_priv.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\b_work.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\bootdata.h"
 			>
 		</File>
 		<File
@@ -1517,11 +862,15 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\command.c"
+			RelativePath="..\..\src\ccstub.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\command.h"
+			RelativePath="..\..\src\ccstub.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\command.c"
 			>
 		</File>
 		<File
@@ -1533,19 +882,107 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dbopl.c"
+			RelativePath="..\..\src\d_block.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dbopl.h"
+			RelativePath="..\..\src\d_block.h"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dehacked.c"
+			RelativePath="..\..\src\d_clisrv.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dehacked.h"
+			RelativePath="..\..\src\d_clisrv.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_items.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_items.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_main.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_net.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_net.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_netcmd.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_netcmd.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_netmst.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_netmst.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_player.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_prof.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_prof.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_rmod.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_rmod.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_root.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_think.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_ticcmd.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_xbind.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_xfile.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_xpro.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\d_xpro.h"
 			>
 		</File>
 		<File
@@ -1573,6 +1010,54 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\f_finale.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\f_finale.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\f_wipe.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\f_wipe.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\g_demo.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\g_game.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\g_game.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\g_input.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\g_state.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\g_state.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\hu_stuff.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\hu_stuff.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\info.c"
 			>
 		</File>
@@ -1581,7 +1066,79 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\keys.h"
+			RelativePath="..\..\src\m_argv.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_argv.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_bbox.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_bbox.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_cheat.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_cheat.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_fixed.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_fixed.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_menu.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_menu.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_menudr.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_menufn.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_menupv.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_misc.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_misc.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_random.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_random.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_uitwo.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\m_uitwo.h"
 			>
 		</File>
 		<File
@@ -1593,15 +1150,279 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\rc\remood.ico"
+			RelativePath="..\..\src\p_ceilng.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\rc\remood.rc"
+			RelativePath="..\..\src\p_demcmp.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\rc\remoods.ico"
+			RelativePath="..\..\src\p_demcmp.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_doors.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_enemy.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_floor.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_genlin.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_hexlin.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_info.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_info.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_inter.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_inter.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_lights.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_local.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_map.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_maputl.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_maputl.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_mobj.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_mobj.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_nwline.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_nwline.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_plats.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_pspr.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_pspr.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_saveg.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_saveg.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_setup.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_setup.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_sight.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_spec.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_spec.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_switch.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_telept.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_tick.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_tick.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\p_user.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_bsp.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_bsp.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_data.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_data.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_defs.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_draw.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_draw.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_local.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_main.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_plane.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_plane.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_segs.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_segs.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_sky.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_sky.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_splats.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_splats.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_state.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_things.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\r_things.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_bsp.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_draw.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_main.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_plane.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_thing.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_draw.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_main.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_sky.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\s_sound.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\s_sound.h"
 			>
 		</File>
 		<File
@@ -1613,11 +1434,51 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\sn_main.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\sn_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\sn_polyg.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\sn_polyg.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\sn_prep.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\sounds.c"
 			>
 		</File>
 		<File
 			RelativePath="..\..\src\sounds.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\st_lib.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\st_lib.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\st_stuff.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\st_stuff.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_comp.c"
 			>
 		</File>
 		<File
@@ -1637,11 +1498,175 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\t_func.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_func.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_ini.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_ini.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_oper.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_oper.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_parse.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_parse.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_prepro.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_prepro.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_script.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_script.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_spec.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_spec.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_vari.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_vari.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_vm.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_vm.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\tables.c"
 			>
 		</File>
 		<File
 			RelativePath="..\..\src\tables.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\v_video.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\v_video.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\vhw_gl.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\vhw_locl.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\vhw_sidx.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\vhw_stru.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\vhw_wrap.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\vhw_wrap.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\w_wad.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\w_wad.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\wi_stuff.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\wi_stuff.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_debug.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_lzoc.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_lzod.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_mhs.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_miniz.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_miniz.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_mlzo.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_mlzo.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_util.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_zone.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_zone.h"
 			>
 		</File>
 	</Files>
