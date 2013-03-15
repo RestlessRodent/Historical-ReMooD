@@ -121,23 +121,30 @@ static bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 		return 0;
 	
 	/* Flush before read */
-	I_FileFlush(File);
+	// Do not flush the file, because on Windows it seems it seeks the file to an offset of the buffer
+	// size (in my case 4096). So best not to do that so savegames and demos work.
+	//I_FileFlush(File);
 	
 	/* Read Data */
 	// Header
 	Header[4] = 0;
-	if (I_FileRead(File, Header, 4) < 4)
+	if (I_FileRead(File, &Header[0], 4) < 4)
 		return false;
 	
 	// Base a new block
 	D_BSBaseBlock(a_Stream, Header);
 	
 	// Length
+	Len = 0;
 	if (I_FileRead(File, &Len, 2) < 2)
 		return false;
 	
 	Len = LittleSwapUInt16(Len);
 	Left = Len;
+	
+	// Treat zero sized blocks as success!
+	if (!Len)
+		return true;
 	
 	// Data Read Loop
 	do

@@ -2406,7 +2406,8 @@ I_File_t* I_FileOpen(const char* const a_Path, const uint32_t a_Modes)
 	// Text or binary file?
 	if (a_Modes & IFM_TEXT)
 		strncat(Buf, "t", BUFSIZE - 1);
-	else	// Must be appended for Windows and DOS
+	else
+		// Binary file for other files that make said difference
 		strncat(Buf, "b", BUFSIZE - 1);
 	
 	/* Open it */
