@@ -2379,6 +2379,7 @@ I_File_t* I_FileOpen(const char* const a_Path, const uint32_t a_Modes)
 {
 #define BUFSIZE 8
 	char Buf[BUFSIZE];
+	FILE* File;
 	
 	/* Check */
 	if (!a_Path || ((a_Modes & (IFM_READ | IFM_WRITE)) == 0))
@@ -2402,12 +2403,25 @@ I_File_t* I_FileOpen(const char* const a_Path, const uint32_t a_Modes)
 	else if ((a_Modes & (IFM_READ | IFM_WRITE | IFM_TRUNCATE)) == (IFM_READ | IFM_WRITE | IFM_TRUNCATE))
 		strncpy(Buf, "w+", BUFSIZE - 1);
 	
-	// Text file?
+	// Text or binary file?
 	if (a_Modes & IFM_TEXT)
 		strncat(Buf, "t", BUFSIZE - 1);
+	else	// Must be appended for Windows and DOS
+		strncat(Buf, "b", BUFSIZE - 1);
 	
 	/* Open it */
-	return (I_File_t*)fopen(a_Path, Buf);
+	File = fopen(a_Path, Buf);
+	
+	// Failed?
+	if (!File)
+		return NULL;
+	
+	// Seek to start of file and flush
+	fseek(File, 0, SEEK_SET);
+	fflush(File);
+	
+	/* Return file pointer */
+	return (I_File_t*)File;
 #undef BUFSIZE
 }
 
@@ -2420,6 +2434,17 @@ void I_FileClose(I_File_t* const a_File)
 	
 	/* Close */
 	fclose((FILE*)a_File);
+}
+
+/* I_FileFlush() -- Flushes File */
+void I_FileFlush(I_File_t* const a_File)
+{
+	/* Check */
+	if (!a_File)
+		return;
+	
+	/* Close */
+	fflush((FILE*)a_File);
 }
 
 /* I_FileSeek() -- Seeks to new position */

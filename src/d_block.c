@@ -33,8 +33,6 @@
 *** INCLUDES ***
 ***************/
 
-#include <errno.h>
-
 #include "d_block.h"
 #include "z_zone.h"
 #include "console.h"
@@ -59,7 +57,7 @@ static void DS_RBSFile_DeleteF(struct D_BS_s* const a_Stream)
 	/* Close file? */
 	if (a_Stream->Data)
 	{
-		fclose((FILE*)a_Stream->Data);
+		I_FileClose((I_File_t*)a_Stream->Data);
 		a_Stream->Data = NULL;
 	}
 }
@@ -67,93 +65,125 @@ static void DS_RBSFile_DeleteF(struct D_BS_s* const a_Stream)
 /* DS_RBSFile_RecordF() -- Records the current block */
 static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 {
-	FILE* File;
-	size_t RetVal;
-	uint16_t BlockLen;
+	I_File_t* File;
+	uint16_t Len, USLen;
 	
 	/* Check */
 	if (!a_Stream)
 		return 0;
 	
-	/* Get Data */
-	File = (FILE*)a_Stream->Data;
+	/* Obtain file */
+	File = (I_File_t*)a_Stream->Data;
 	
-	/* Flush for write */
-	fflush(File);
+	// Not found?
+	if (!File)
+		return 0;
 	
-	/* Write Header */
-	fwrite(a_Stream->BlkHeader, 4, 1, File);
-	BlockLen = a_Stream->BlkSize;
-	BlockLen = LittleSwapUInt16(BlockLen);
-	fwrite(&BlockLen, sizeof(BlockLen), 1, File);
+	/* Flush before write */
+	I_FileFlush(File);
 	
-	/* Write Data */
-	if (a_Stream->BlkSize)
-		RetVal = fwrite(a_Stream->BlkData, 1, a_Stream->BlkSize, File);
+	/* Write Fields */
+	// Header
+	I_FileWrite(File, a_Stream->BlkHeader, 4);
+	
+	// Size
+	if (a_Stream->BlkSize < UINT16_C(65535))
+		Len = a_Stream->BlkSize; 
 	else
-		RetVal = 0;
+		Len = UINT16_C(65535);
 	
-	/* Flush for write */
-	fflush(File);
+	USLen = Len;
+	Len = LittleSwapUInt16(Len);
+	I_FileWrite(File, &Len, 2);
 	
-	return RetVal;
+	// Data
+	return I_FileWrite(File, a_Stream->BlkData, USLen);
 }
 
 /* DS_RBSFile_PlayF() -- Play from file */
-bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
+static bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 {
-	FILE* File;
+#define BUFSIZE 128
+	uint8_t Buf[BUFSIZE];
+	I_File_t* File;
 	char Header[5];
-	uint16_t Len;
-	void* Data;
-	int RetVal;
+	uint16_t Len, Left, Count;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Obtain file */
+	File = (I_File_t*)a_Stream->Data;
+	
+	// Not found?
+	if (!File)
+		return 0;
+	
+	/* Flush before read */
+	I_FileFlush(File);
+	
+	/* Read Data */
+	// Header
+	Header[4] = 0;
+	if (I_FileRead(File, Header, 4) < 4)
+		return false;
+	
+	// Base a new block
+	D_BSBaseBlock(a_Stream, Header);
+	
+	// Length
+	if (I_FileRead(File, &Len, 2) < 2)
+		return false;
+	
+	Len = LittleSwapUInt16(Len);
+	Left = Len;
+	
+	// Data Read Loop
+	do
+	{
+		// Big enough read?
+		if (Left >= BUFSIZE)
+			Count = BUFSIZE;
+		
+		// Too small
+		else
+			Count = Left;
+		
+		// Read associated data
+		memset(Buf, 0, sizeof(Buf));
+		if (I_FileRead(File, Buf, Count) < Count)
+			return false;
+		
+		// Write count sized chunk
+		D_BSWriteChunk(a_Stream, Buf, Count);
+		
+		// Remove count from left
+		Left -= Count;
+	} while (Left);
+
+	return true;
+#undef BUFSIZE
+}
+
+/* DS_RBSFile_FlushF() -- Flushes file */
+static bool_t DS_RBSFile_FlushF(struct D_BS_s* const a_Stream)
+{
+	I_File_t* File;
 	
 	/* Check */
 	if (!a_Stream)
 		return false;
-		
-	/* Get Data */
-	File = (FILE*)a_Stream->Data;
 	
-	/* Flush for read */
-	fflush(File);
+	/* Obtain file */
+	File = (I_File_t*)a_Stream->Data;
 	
-	/* Read Header */
-	// Clear
-	memset(Header, 0, sizeof(Header));
-	Len = 0;
-	Data = NULL;
-	
-	// Start reading and be sure to check if the read failed!!!
-	if (fread(&Header[0], 4, 1, File) < 1)
-		return false;
-		
-	if (fread(&Len, sizeof(Len), 1, File) < 1)
+	// Not found?
+	if (!File)
 		return false;
 	
-	// Endian Correct Values
-	Len = LittleSwapUInt16(Len);
-	
-	// Read data, if possible (Len could be zero (empty block?))
-	if (Len > 0)
-	{
-		Data = Z_Malloc(Len, PU_STATIC, NULL);
-		if ((RetVal = fread(Data, 1, Len, File)) < Len)
-		{
-			Z_Free(Data);
-			return false;
-		}
-	}
-	
-	/* Initialize Block */
-	D_BSBaseBlock(a_Stream, Header);
-	
-	/* Write Data to Block */
-	D_BSWriteChunk(a_Stream, Data, Len);
-	if (Data)
-		Z_Free(Data);
-	
-	/* Success! */
+	/* Flush */
+	I_FileFlush(File);
 	return true;
 }
 
@@ -1711,15 +1741,26 @@ D_BS_t* D_BSCreateWLStream(WL_ES_t* const a_Stream)
 /* D_BSCreateFileStream() -- Create file stream */
 D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags)
 {
-	FILE* File;
+	I_File_t* File;
 	D_BS_t* New;
+	uint32_t Modes;
 	
 	/* Check */
 	if (!a_PathName)
 		return NULL;
 	
 	/* Open r or r/w file */
-	File = fopen(a_PathName, (((a_Flags & DRBSSF_READONLY) ? "rb" : ((a_Flags & DRBSSF_OVERWRITE) ? "w+b" : "a+b"))));
+	if (a_Flags & DRBSSF_READONLY)
+		Modes = IFM_READ;
+	else
+	{
+		Modes = IFM_WRITE;
+		
+		if (a_Flags & DRBSSF_OVERWRITE)
+			Modes |= IFM_TRUNCATE;
+	}
+	
+	File = I_FileOpen(a_PathName, Modes);
 	
 	// Failed?
 	if (!File)
@@ -1734,6 +1775,7 @@ D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flag
 	New->RecordF = DS_RBSFile_RecordF;
 	New->PlayF = DS_RBSFile_PlayF;
 	New->DeleteF = DS_RBSFile_DeleteF;
+	New->FlushF = DS_RBSFile_FlushF;
 	
 	/* Return Stream */
 	return New;

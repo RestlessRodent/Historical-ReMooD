@@ -532,6 +532,7 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 
 I_File_t* I_FileOpen(const char* const a_Path, const uint32_t a_Modes);
 void I_FileClose(I_File_t* const a_File);
+void I_FileFlush(I_File_t* const a_File);
 uint64_t I_FileSeek(I_File_t* const a_File, const uint64_t a_Offset, const bool_t a_End);
 uint64_t I_FileTell(I_File_t* const a_File);
 uint64_t I_FileRead(I_File_t* const a_File, void* const a_Dest, const uint64_t a_Len);
