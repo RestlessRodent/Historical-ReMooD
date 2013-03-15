@@ -1433,7 +1433,7 @@ int main(int argc, char** argv)
 	
 	/* Open inputs and outputs */
 	InTXT = fopen(argv[1], "rt");
-	OutWAD = fopen(argv[2], "wt");
+	OutWAD = fopen(argv[2], "wb");
 	
 	// Check
 	if (!InTXT || !OutWAD)
