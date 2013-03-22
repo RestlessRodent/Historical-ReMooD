@@ -3466,23 +3466,68 @@ static uint8_t DS_XNetNextWeapon(player_t* player, int step)
 static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
 {
 	static bool_t Recoursed;
-	bool_t MoreDown;
+	int8_t MoreDown;
 	size_t i;
 	uint32_t CurrentButton;
+	uint32_t KeyBit, JoyBit, MouseBit, DMouseBit;
 	
 	/* Determine if more key is down */
 	// But do not infinite loop here
-	MoreDown = false;
+	MoreDown = 0;
 	if (!Recoursed)
 	{
+		// More Down?
 		Recoursed = true;
-		MoreDown = GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF);
+		if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF))
+			MoreDown = 1;
 		Recoursed = false;
+		
+		// Even more down?
+		if (MoreDown == 1)
+		{
+			Recoursed = true;
+			if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MOREMORESTUFF))
+				MoreDown = 2;
+			Recoursed = false;
+		}
+	}
+	
+	// If key is more more stuff, check more stuff bind
+		// This is for multi-key combo buttons
+	if (a_Key == DPEXIC_MOREMORESTUFF)
+		MoreDown = 1;
+	
+	/* Determine check shifts */
+	// Standard
+	if (MoreDown <= 0 || MoreDown > 2)
+	{
+		KeyBit = PRFKBIT_KEY;
+		JoyBit = PRFKBIT_JOY;
+		MouseBit = PRFKBIT_MOUSE;
+		DMouseBit = PRFKBIT_DMOUSE;
+	}
+	
+	// More
+	else if (MoreDown == 1)
+	{
+		KeyBit = PRFKBIT_KEYP;
+		JoyBit = PRFKBIT_JOYP;
+		MouseBit = PRFKBIT_MOUSEP;
+		DMouseBit = PRFKBIT_DMOUSEP;
+	}
+	
+	// Extra
+	else if (MoreDown == 2)
+	{
+		KeyBit = PRFKBIT_KEYX;
+		JoyBit = PRFKBIT_JOYX;
+		MouseBit = PRFKBIT_MOUSEX;
+		DMouseBit = PRFKBIT_DMOUSEX;
 	}
 	
 	/* Check Keyboard */
 	for (i = 0; i < 4; i++)
-		if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == (MoreDown ? PRFKBIT_KEYP : PRFKBIT_KEY))
+		if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == KeyBit)
 		{
 			// Get current key
 			CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
@@ -3500,7 +3545,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 		if (g_Splits[a_SID].JoyID >= 1 && g_Splits[a_SID].JoyID <= MAXLOCALJOYS)
 			if (l_JoyButtons[g_Splits[a_SID].JoyID - 1])
 				for (i = 0; i < 4; i++)
-					if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == (MoreDown ? PRFKBIT_JOYP : PRFKBIT_JOY))
+					if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == JoyBit)
 					{
 						// Get current button
 						CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
@@ -3517,7 +3562,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 			for (i = 0; i < 4; i++)
 			{
 				// Single
-				if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == (MoreDown ? PRFKBIT_MOUSEP : PRFKBIT_MOUSE))
+				if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == MouseBit)
 				{
 					// Get current button
 					CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
@@ -3529,7 +3574,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 				}
 		
 				// Double
-				if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == (MoreDown ? PRFKBIT_DMOUSEP : PRFKBIT_DMOUSE))
+				if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == DMouseBit)
 				{
 					// Get current button
 					CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);

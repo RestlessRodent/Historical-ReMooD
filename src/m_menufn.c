@@ -1596,6 +1596,10 @@ void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
 			// Disconnect
 		if (Kid->FSelect == M_QuitGame_DisconFSelect)
 		{
+			if (gamestate != GS_DEMOSCREEN)
+				Kid->Flags &= ~MSWF_DISABLED;
+			else
+				Kid->Flags |= MSWF_DISABLED;
 		}
 				
 			// Stop watching demo
