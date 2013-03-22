@@ -10,7 +10,15 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 Controls:
  - SELECT: Open Menu
- 
+
+When menu is visible:
+ - START: Select Item
+ - UP: Move selector up
+ - DOWN: Move selector down
+ - LEFT: Decrease value
+ - RIGHT: Increase value
+
+When playing:
  - UP: Move Forwards
  - DOWN: Move Backwards
  - LEFT: Turn Left
