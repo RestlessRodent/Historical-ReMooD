@@ -1574,6 +1574,62 @@ static I_MusicDriver_t l_ALSAMidiDriver =
 };
 #endif
 
+/******************
+*** WIN32 MUSIC ***
+******************/
+
+#if defined(_WIN32)
+
+/* I_ALSAMidiData_t -- ALSA Midi Data */
+typedef struct I_WinMidiData_s
+{
+	int Junk;
+} I_WinMidiData_t;
+
+/* IS_WinMidi_Init() -- /dev/midi Driver */
+static bool_t IS_WinMidi_Init(struct I_MusicDriver_s* const a_Driver)
+{
+	return false;
+}
+
+/* IS_WinMidi_Destroy() -- Destroys the driver */
+static bool_t IS_WinMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
+{
+	return false;
+}
+
+/* IS_WinMidi_RawMIDI() -- Writes raw data to driver */
+static void IS_WinMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
+{
+}
+
+// l_WinMidiDriver -- Win32 MIDI Driver
+static I_MusicDriver_t l_WinMidiDriver =
+{
+	/* Data */
+	"Win32 Midi",
+	"winmidi",
+	1 << IMT_MIDI,
+	false,
+	40,
+	
+	/* Handlers */
+	IS_WinMidi_Init,
+	IS_WinMidi_Destroy,
+	NULL,//I_MUS2MID_Success,
+	NULL,//I_MUS2MID_Pause,
+	NULL,//I_MUS2MID_Resume,
+	NULL,//I_MUS2MID_Stop,
+	NULL,//I_MUS2MID_Length,
+	NULL,//I_MUS2MID_Seek,
+	NULL,//I_MUS2MID_Play,
+	NULL,//I_MUS2MID_Volume,
+	IS_WinMidi_RawMIDI,//NULL,
+	NULL,//I_MUS2MID_Update
+	NULL,//IS_ALSAMidi_SoundLayer,
+};
+#endif
+
 /**********************
 *** MUSIC FUNCTIONS ***
 **********************/
@@ -1682,6 +1738,12 @@ bool_t I_InitMusic(void)
 	// ALSA Driver
 	if (!I_AddMusicDriver(&l_ALSAMidiDriver))
 		CONL_PrintF("I_InitMusic: Failed to add the ALSA MIDI driver.\n");
+#endif
+
+#if defined(_WIN32)
+	// Win32 Driver
+	if (!I_AddMusicDriver(&l_WinMidiDriver))
+		CONL_PrintF("I_InitMusic: Failed to add the Win32 MIDI driver.\n");
 #endif
 	
 	// ReMooD MUS2MID Driver
