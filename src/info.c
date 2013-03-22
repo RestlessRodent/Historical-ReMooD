@@ -2509,6 +2509,8 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name, PI_sargc_t* const a_A
 		
 	/* Init */
 	memset(&ActFunc, 0, sizeof(ActFunc));
+	memset(Buf, 0, sizeof(Buf));
+	strncpy(Buf, a_Name, BUFSIZE - 1);
 	
 	/* Find parenthesis */
 	s = a_Name;
@@ -2517,10 +2519,12 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name, PI_sargc_t* const a_A
 	// If not found, end is last of string
 	if (!e)
 		e = a_Name + strlen(a_Name);
+	else
+		Buf[(e - s)] = 0;
 	
 	/* Go through list */
 	for (i = 1; c_FuncPs[i].Name; i++)
-		if (!strncasecmp(c_FuncPs[i].Name, a_Name, (e - s)))
+		if (!strcasecmp(c_FuncPs[i].Name, Buf))
 		{
 			ActFunc = c_FuncPs[i].Action;
 			break;
