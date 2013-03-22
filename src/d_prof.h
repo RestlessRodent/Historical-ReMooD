@@ -141,6 +141,7 @@ typedef enum D_ProfileExInputCtrl_e
 	DPEXIC_POPUPMENU,							// Popup the menu
 	DPEXIC_MORESTUFF,							// Access to more stuff
 	DPEXIC_QUICKMENU,							// Perfect Dark-like Quick Menu
+	DPEXIC_MOREMORESTUFF,						// Access to even more stuff
 	
 	NUMDPROFILEEXINPUTCTRLS
 } D_ProfileExInputCtrl_t;
@@ -188,6 +189,10 @@ typedef enum D_ProfileExCtrlMA_e
 #define PRFKBIT_MOUSEP	UINT32_C(0x00005000)
 #define PRFKBIT_DMOUSEP	UINT32_C(0x00006000)
 #define PRFKBIT_KEYP	UINT32_C(0x00007000)
+#define PRFKBIT_JOYX	UINT32_C(0x00008000)
+#define PRFKBIT_MOUSEX	UINT32_C(0x00009000)
+#define PRFKBIT_DMOUSEX	UINT32_C(0x0000A000)
+#define PRFKBIT_KEYX	UINT32_C(0x0000B000)
 
 /*** STRUCTURES ***/
 

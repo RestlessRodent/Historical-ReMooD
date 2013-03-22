@@ -121,6 +121,7 @@ static const struct
 	{"popupmenu", "Show the Menu", DPEXIC_POPUPMENU},
 	{"morestuff", "More Commands Modifier", DPEXIC_MORESTUFF},
 	{"quickmenu", "Quick Selection Menu", DPEXIC_QUICKMENU},
+	{"moremorestuff", "Extra More Commands Modifier", DPEXIC_MOREMORESTUFF},
 };
 
 /* c_AxisMap -- Map of axis names */
@@ -297,10 +298,14 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 #define SETKEY_M(a,b) a##b
 #define SETKEY(x,c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_KEY | (SETKEY_M(IKBK_,k))
 #define SETJOY(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOY | ((b) - 1)
-#define SETJOYMORE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOYP | ((b) - 1)
 #define SETMOUSE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_MOUSE | ((b) - 1)
 #define SETDBLMOUSE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_DMOUSE | ((b) - 1)
+
+#define SETJOYMORE(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOYP | ((b) - 1)
 #define SETKEYMORE(x,c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_KEYP | (SETKEY_M(IKBK_,k))
+
+#define SETJOYXTRA(x,c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_JOYX | ((b) - 1)
+#define SETKEYXTRA(x,c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][x] = PRFKBIT_KEYX | (SETKEY_M(IKBK_,k))
 		
 		// Default Controls
 		if (g_ModelMode == DMM_DEFAULT)
@@ -392,36 +397,50 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		// GCW Zero
 		else if (g_ModelMode == DMM_GCW)
 		{
+			// Standard Keys
 			SETKEY(0, FORWARDS, UP);
 			SETKEY(0, BACKWARDS, DOWN);
 			SETKEY(0, TURNLEFT, LEFT);
 			SETKEY(0, TURNRIGHT, RIGHT);
 			
-			SETKEY(0, ATTACK, SPACE);
-			SETKEY(0, USE, CTRL);
-			//SETKEY(0, MOVEMENT, ALT);
-			SETKEY(0, MORESTUFF, ALT);
-			SETKEY(0, SPEED, SHIFT);
+			SETKEY(0, ATTACK, GCWZEROY);
+			SETKEY(0, USE, GCWZEROA);
+			SETKEY(0, MORESTUFF, GCWZEROB);
+			SETKEY(0, SPEED, GCWZEROX);
 		
-			SETKEY(0, STRAFELEFT, TAB);
-			SETKEY(0, STRAFERIGHT, BACKSPACE);
+			SETKEY(0, STRAFELEFT, GCWZEROL);
+			SETKEY(0, STRAFERIGHT, GCWZEROR);
 			
-			SETKEY(0, QUICKMENU, RETURN);
+			SETKEY(0, USEINVENTORY, GCWZEROSTART);
 			
-			// More Stuff
-			SETKEYMORE(2, LOOKUP, UP);
-			SETKEYMORE(2, LOOKDOWN, DOWN);
-			SETKEYMORE(2, TURNLEFT, LEFT);
-			SETKEYMORE(2, TURNRIGHT, RIGHT);
+			// More Keys (B is pressed)
+			SETKEYMORE(0, FORWARDS, UP);
+			SETKEYMORE(0, BACKWARDS, DOWN);
+			SETKEYMORE(0, TURNLEFT, LEFT);
+			SETKEYMORE(0, TURNRIGHT, RIGHT);
 			
-			SETKEYMORE(2, ATTACK, SPACE);
-			SETKEYMORE(2, USE, CTRL);
-			SETKEYMORE(2, SPEED, SHIFT);
+			SETKEYMORE(0, LAND, GCWZEROY);
+			SETKEYMORE(0, JUMP, GCWZEROA);
+			SETKEYMORE(0, MOREMORESTUFF, GCWZEROX);
 		
-			SETKEYMORE(2, STRAFELEFT, TAB);
-			SETKEYMORE(2, STRAFERIGHT, BACKSPACE);
+			SETKEYMORE(0, PREVWEAPON, GCWZEROL);
+			SETKEYMORE(0, NEXTWEAPON, GCWZEROR);
 			
-			SETKEYMORE(2, QUICKMENU, RETURN);
+			SETKEYMORE(0, CHAT, GCWZEROSTART);
+			
+			// Extra Keys (B+X is pressed)
+			SETKEYXTRA(0, LOOKDOWN, UP);
+			SETKEYXTRA(0, LOOKUP, DOWN);
+			SETKEYXTRA(0, TURNLEFT, LEFT);
+			SETKEYXTRA(0, TURNRIGHT, RIGHT);
+			
+			SETKEYXTRA(0, AUTOMAP, GCWZEROY);
+			SETKEYXTRA(0, COOPSPY, GCWZEROA);
+		
+			SETKEYXTRA(0, PREVINVENTORY, GCWZEROL);
+			SETKEYXTRA(0, NEXTINVENTORY, GCWZEROR);
+			
+			SETKEYXTRA(0, SUICIDE, GCWZEROSTART);
 		}
 		
 #undef SETJOY
@@ -599,6 +618,22 @@ static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint3
 	/* More Keyboard */
 	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_KEYP)
 		snprintf(a_Dest, a_Size, "morekey%s", c_KeyNames[a_Code][0]);
+	
+	/* Extra Joystick */
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_JOYX)
+		snprintf(a_Dest, a_Size, "xtrajoyb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
+	
+	/* Extra Mouse */
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_MOUSEX)
+		snprintf(a_Dest, a_Size, "xtramouseb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
+	
+	/* Extra Double Mouse */
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_DMOUSEX)
+		snprintf(a_Dest, a_Size, "xtradblmouseb%02i", (int)((a_Code & PRFKBIT_VMASK) + 1));
+	
+	/* Extra Keyboard */
+	else if ((a_Code & PRFKBIT_MASK) == PRFKBIT_KEYX)
+		snprintf(a_Dest, a_Size, "xtrakey%s", c_KeyNames[a_Code][0]);
 		
 	/* Keyboard */
 	else if (a_Code >= 0 && a_Code < NUMIKEYBOARDKEYS)
@@ -648,6 +683,18 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 	else if (strncasecmp(a_Str, "moredblmouseb", 13) == 0)
 		return PRFKBIT_DMOUSEP | (C_strtou32(a_Str + 9, NULL, 10) - 1);
 	
+	/* Extra Joystick Buttons */
+	else if (strncasecmp(a_Str, "xtrajoyb", 8) == 0)
+		return PRFKBIT_JOYX | (C_strtou32(a_Str + 4, NULL, 10) - 1);
+	
+	/* Extra Mouse Buttons */
+	else if (strncasecmp(a_Str, "xtramouseb", 10) == 0)
+		return PRFKBIT_MOUSEX | (C_strtou32(a_Str + 6, NULL, 10) - 1);
+	
+	/* Extra Double Mouse Buttons */
+	else if (strncasecmp(a_Str, "xtradblmouseb", 13) == 0)
+		return PRFKBIT_DMOUSEX| (C_strtou32(a_Str + 9, NULL, 10) - 1);
+	
 	/* Keyboard Keys */
 	else
 	{
@@ -662,6 +709,14 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 			ExtraMask = PRFKBIT_KEYP;
 		}
 		
+		// Or if it starts with xtrakey, it is a more more modifier
+		else if (!strncasecmp(p, "xtrakey", 7))
+		{
+			p += 7;
+			ExtraMask = PRFKBIT_KEYX;
+		}
+		
+		// Find key name
 		for (i = 0; i < NUMIKEYBOARDKEYS; i++)
 			if (strcasecmp(p, c_KeyNames[i][0]) == 0)
 				return ExtraMask | i;

@@ -3465,19 +3465,58 @@ static uint8_t DS_XNetNextWeapon(player_t* player, int step)
 /* GAMEKEYDOWN() -- Checks if a key is down */
 static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
 {
-	static bool_t Recoursed;
-	bool_t MoreDown;
+	static int8_t Recoursed;
+	int8_t MoreDown;
 	size_t i;
 	uint32_t CurrentButton;
+	uint32_t KeyBit, JoyBit, MouseBit, DMouseBit;
 	
 	/* Determine if more key is down */
 	// But do not infinite loop here
-	MoreDown = false;
-	if (!Recoursed)
+	MoreDown = 0;
+	if (Recoursed == 0)
 	{
-		Recoursed = true;
-		MoreDown = GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF);
-		Recoursed = false;
+		Recoursed++;
+		if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF))
+			MoreDown = 1;
+		Recoursed--;
+	}
+	
+	// Even more stuff pressed?
+	else if (Recoursed == 1)
+	{
+		Recoursed++;
+		if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MOREMORESTUFF))
+			MoreDown = 2;
+		Recoursed--;
+	}
+	
+	/* Determine check shifts */
+	// Standard
+	if (MoreDown == 0)
+	{
+		KeyBit = PRFKBIT_KEY;
+		JoyBit = PRFKBIT_JOY;
+		MouseBit = PRFKBIT_MOUSE;
+		DMouseBit = PRFKBIT_DMOUSE;
+	}
+	
+	// More
+	else if (MoreDown == 1)
+	{
+		KeyBit = PRFKBIT_KEYP;
+		JoyBit = PRFKBIT_JOYP;
+		MouseBit = PRFKBIT_MOUSEP;
+		DMouseBit = PRFKBIT_DMOUSEP;
+	}
+	
+	// Extra
+	else if (MoreDown == 2)
+	{
+		KeyBit = PRFKBIT_KEYX;
+		JoyBit = PRFKBIT_JOYX;
+		MouseBit = PRFKBIT_MOUSEX;
+		DMouseBit = PRFKBIT_DMOUSEX;
 	}
 	
 	/* Check Keyboard */
