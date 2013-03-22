@@ -403,50 +403,56 @@ void D_Display(void)
 	
 	//CON_Drawer();
 	
+	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
+	if (l_VIDDrawFPS.Value->Int)
+	{
+//#if 0
+		i = VFO_TRANS(VEX_TRANS30);	
+		
+		// GhostlyDeath <july 8, 2009> -- Draw FPS
+		V_DrawCharacterA(VFONT_LARGE, i, '0' + ((l_FPSTrueFPS / 1000) % 10), 320 - 70, 0);
+		V_DrawCharacterA(VFONT_LARGE, i, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 60, 0);
+		V_DrawCharacterA(VFONT_LARGE, i, '0' + ((l_FPSTrueFPS / 10) % 10), 320 - 50, 0);
+		V_DrawCharacterA(VFONT_LARGE, i, '0' + (l_FPSTrueFPS % 10), 320 - 40, 0);
+		V_DrawCharacterA(VFONT_LARGE, i, 'F', 320 - 30, 0);
+		V_DrawCharacterA(VFONT_LARGE, i, 'P', 320 - 20, 0);
+		V_DrawCharacterA(VFONT_LARGE, i, 'S', 320 - 10, 0);
+		
+		V_DrawCharacterA(VFONT_OEM, i, '0' + ((l_FPSRealTics / 10) % 10), 320 - 48, 15);
+		V_DrawCharacterA(VFONT_OEM, i, '0' + (l_FPSRealTics % 10), 320 - 40, 15);
+		V_DrawCharacterA(VFONT_OEM, i, 'T', 320 - 32, 15);
+		V_DrawCharacterA(VFONT_OEM, i, 'I', 320 - 24, 15);
+		V_DrawCharacterA(VFONT_OEM, i, 'C', 320 - 16, 15);
+		V_DrawCharacterA(VFONT_OEM, i, 'S', 320 - 8, 15);
+		
+		V_DrawCharacterA(VFONT_OEM, i, '0' + ((l_FPSGameTicRatio / 1000) % 10), 320 - 72, 24);
+		V_DrawCharacterA(VFONT_OEM, i, '.', 320 - 64, 24);
+		V_DrawCharacterA(VFONT_OEM, i, '0' + ((l_FPSGameTicRatio / 100) % 10), 320 - 56, 24);
+		V_DrawCharacterA(VFONT_OEM, i, '0' + ((l_FPSGameTicRatio / 10) % 10), 320 - 48, 24);
+		V_DrawCharacterA(VFONT_OEM, i, '0' + (l_FPSGameTicRatio % 10), 320 - 40, 24);
+		V_DrawCharacterA(VFONT_OEM, i, 'G', 320 - 32, 24);
+		V_DrawCharacterA(VFONT_OEM, i, 'S', 320 - 24, 24);
+		V_DrawCharacterA(VFONT_OEM, i, '/', 320 - 16, 24);
+		V_DrawCharacterA(VFONT_OEM, i, 'S', 320 - 8, 24);
+//#endif
+	}
+	
 	// GhostlyDeath <September 5, 2012> -- Joystick specials
 	D_JoySpecialDrawer();
+	
+	// GhostlyDeath <March 22, 2013> -- Draw player text under menus
+	CONL_DrawConsole(false);
 	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
 	M_SMDrawer();
 	
-	// Draw the console on the menu (if it is opened anyway)
-	CONL_DrawConsole();
+	// GhostlyDeath <March 22, 2013> -- Draw big dropped down console over menus
+	CONL_DrawConsole(true);
 	
 	// GhostlyDeath <May 5, 2012> -- Update Music
 	I_UpdateMusic();
 	
-	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-	if (l_VIDDrawFPS.Value->Int)
-	{
-//#if 0
-		// GhostlyDeath <july 8, 2009> -- Draw FPS
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 1000) % 10), 320 - 70, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 60, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 10) % 10), 320 - 50, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, '0' + (l_FPSTrueFPS % 10), 320 - 40, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, 'F', 320 - 30, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, 'P', 320 - 20, 0);
-		V_DrawCharacterA(VFONT_LARGE, 0, 'S', 320 - 10, 0);
-		
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSRealTics / 10) % 10), 320 - 48, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSRealTics % 10), 320 - 40, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'T', 320 - 32, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'I', 320 - 24, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'C', 320 - 16, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 15);
-		
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSGameTicRatio / 1000) % 10), 320 - 72, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '.', 320 - 64, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSGameTicRatio / 100) % 10), 320 - 56, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSGameTicRatio / 10) % 10), 320 - 48, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSGameTicRatio % 10), 320 - 40, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 32, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 24, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '/', 320 - 16, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 24);
-//#endif
-	}
 	
 	//I_BeginProfile();
 	if (!noblit)
@@ -1191,31 +1197,6 @@ void D_AddFile(char* file)
 
 /*** STRUCTURES ***/
 
-/* D_IWADInfoEx_t() -- Extended IWAD Info */
-typedef struct D_IWADInfoEx_s
-{
-	/* Base Info */
-	const char* NiceTitle;						// Nice IWAD Title name
-	const char* ForceNames;						// Names for forcing [conf = 500]
-	const char* BaseName;						// WAD Basename [conf = 5]
-	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
-	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
-	const char* SHA1Sum;						// SHA-1 Sum of WAD [conf = 60]
-	const char* Lumps;							// Identifying lumps [conf = 1]
-	uint32_t Size;								// Size of WAD [conf = 15]
-	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
-	
-	/* Game Info */
-	CoreGame_t CoreGame;						// Core Game
-	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
-	const char* MapInfoLump;					// Map Info Lump
-	uint32_t Flags;								// Flags for game
-	const char* MapNameFormat;					// Format of map names
-	
-	int mission;								// Deprecated mission
-	int mode;									// Deprecated mode
-} D_IWADInfoEx_t;
-
 /*** CONSTANTS ***/
 const D_IWADInfoEx_t c_IWADInfos[] =
 {
@@ -1492,8 +1473,28 @@ static char l_IWADSum[33];						// IWAD Sum
 
 /*** FUNCTIONS ***/
 
-/* DS_FieldNumber() -- Get field number from string */
-static const char* DS_FieldNumber(const char* const a_Str, const size_t a_Num)
+/* D_GetThisIWAD() -- Get current IWAD */
+D_IWADInfoEx_t* D_GetThisIWAD(void)
+{
+	return l_IWADCur;
+}
+
+/* D_GetIWADInfoByNum() -- Get IWAD Info by Number */
+D_IWADInfoEx_t* D_GetIWADInfoByNum(const uint32_t a_Num)
+{
+	uint32_t i;
+	
+	/* Look through list */
+	for (i = 0; c_IWADInfos[i].NiceTitle; i++)
+		if (i == a_Num)
+			return &c_IWADInfos[i];
+	
+	/* Not found */
+	return NULL;
+}
+
+/* D_FieldNumber() -- Get field number from string */
+const char* D_FieldNumber(const char* const a_Str, const size_t a_Num)
 {
 	const char* f;
 	size_t n;
@@ -1636,7 +1637,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			for (j = 0;; j++)
 			{
 				// Get field
-				Field = DS_FieldNumber(c_IWADInfos[i].ForceNames, j);
+				Field = D_FieldNumber(c_IWADInfos[i].ForceNames, j);
 			
 				// No more?
 				if (!Field)
@@ -1655,7 +1656,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 		for (j = 0;; j++)
 		{
 			// Get field
-			Field = DS_FieldNumber(c_IWADInfos[i].BaseName, j);
+			Field = D_FieldNumber(c_IWADInfos[i].BaseName, j);
 			
 			// No more?
 			if (!Field)
@@ -1695,7 +1696,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 		for (j = 0;; j++)
 		{
 			// Get field
-			Field = DS_FieldNumber(c_IWADInfos[i].Lumps, j);
+			Field = D_FieldNumber(c_IWADInfos[i].Lumps, j);
 			
 			// No more?
 			if (!Field)
@@ -1905,7 +1906,7 @@ void D_LoadGameFilesEx(void)
 			for (j = 0;; j++)
 			{
 				// Get field
-				Field = DS_FieldNumber(c_IWADInfos[i].BaseName, j);
+				Field = D_FieldNumber(c_IWADInfos[i].BaseName, j);
 				
 				// No more fields
 				if (!Field)

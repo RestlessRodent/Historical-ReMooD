@@ -273,7 +273,7 @@ bool_t CONL_IsActive(void);
 bool_t CONL_SetActive(const bool_t a_Set);
 bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
-bool_t CONL_DrawConsole(void);
+bool_t CONL_DrawConsole(const bool_t a_BigConsole);
 
 void CONL_DrawMouse(void);
 void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, const uint32_t a_SplitP);

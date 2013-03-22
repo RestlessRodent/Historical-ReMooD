@@ -1397,7 +1397,7 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
 		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
-			Drew = CONL_DrawConsole();
+			Drew = CONL_DrawConsole(true);
 			
 			if ((!g_EarlyBootConsole && Drew) || g_EarlyBootConsole)
 				if (!LastTime || (ThisTime > LastTime + 250))
@@ -2284,7 +2284,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 }
 
 /* CONL_DrawConsole() -- Draws the console */
-bool_t CONL_DrawConsole(void)
+bool_t CONL_DrawConsole(const bool_t a_BigConsole)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
@@ -2321,7 +2321,7 @@ bool_t CONL_DrawConsole(void)
 	}
 	
 	/* Console is active (draw the console) */
-	else if (CONL_IsActive())
+	else if (CONL_IsActive() && a_BigConsole)
 	{
 		// Fullscreen console?
 		FullCon = con_startup;
@@ -2625,7 +2625,7 @@ bool_t CONL_DrawConsole(void)
 	}
 	
 	/* Not active, draw per player messages */
-	else
+	else if (!a_BigConsole)
 	{
 		// On intermission, only draw player 1's stuff
 		if (gamestate == GS_INTERMISSION || g_SplitScreen < 0)

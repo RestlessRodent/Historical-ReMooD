@@ -41,6 +41,7 @@
 #include "v_video.h"
 #include "console.h"
 #include "i_util.h"
+#include "d_main.h"
 
 // WAD DATA
 #include "m_argv.h"
@@ -1116,6 +1117,10 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			// Location of executable
 		WLS_AppendToList("", PATH_MAX);
 		I_GetStorageDir(l_SearchList[l_SearchCount - 1], PATH_MAX - 1, DST_EXE);
+		
+		// System Dependent locations
+		if (g_ModelMode == DMM_GCW)
+			WLS_AppendToList("/boot/local/share/games/doom", PATH_MAX);
 		
 		// -waddir argument
 		if (M_CheckParm("-waddir"))

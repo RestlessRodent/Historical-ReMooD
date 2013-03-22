@@ -1297,16 +1297,21 @@ static M_SWidget_t* MS_SMCreateBox(M_SWidget_t* const a_Parent, const int32_t a_
 /* MS_Label_DDraw() -- Draws Label */
 void MS_Label_DDraw(struct M_SWidget_s* const a_Widget)
 {
-	uint32_t Flags;
+	uint32_t Flags, ValFlags;
+	int32_t Width;
 	
 	/* Base flags */
 	Flags = a_Widget->Data.Label.Flags;
+	ValFlags = a_Widget->Data.Label.ValFlags;
 	
 	/* Disabled? */
 	if (a_Widget->Flags & MSWF_DISABLED)
 	{
 		Flags &= VFO_COLORMASK;
 		Flags |= VFO_COLOR(VEX_MAP_GRAY);
+		
+		ValFlags &= VFO_COLORMASK;
+		ValFlags |= VFO_COLOR(VEX_MAP_GRAY);
 	}
 	
 	/* Not Disabled */
@@ -1316,8 +1321,18 @@ void MS_Label_DDraw(struct M_SWidget_s* const a_Widget)
 	
 	/* Draw String */
 	V_DrawStringA(a_Widget->Data.Label.Font, Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
+	
+	/* Draw value */
+	// Possible Value
+	if (a_Widget->Data.Label.Possible)
+	{
+		// Get width of possible
+		Width = V_StringWidthA(a_Widget->Data.Label.Font, ValFlags, a_Widget->Data.Label.Possible[a_Widget->Data.Label.Pivot].StrAlias) + 8;
+		
+		// Draw it
+		V_DrawStringA(a_Widget->Data.Label.Font, ValFlags, a_Widget->Data.Label.Possible[a_Widget->Data.Label.Pivot].StrAlias, a_Widget->Parent->dx + (a_Widget->Parent->dw - Width), a_Widget->dy);
+	}
 }
-
 
 /* MS_SMCreateLabel() -- Creates label */
 static M_SWidget_t* MS_SMCreateLabel(M_SWidget_t* const a_Parent, const VideoFont_t a_Font, const uint32_t a_Flags, const char** const a_Ref)
@@ -1354,6 +1369,61 @@ static M_SWidget_t* MS_SMCreateLabel(M_SWidget_t* const a_Parent, const VideoFon
 	New->Data.Label.Ref = a_Ref;
 	
 	/* Done */
+	return New;
+}
+
+/* MS_SMCreateCVarSlide() -- Console Variable Slider */
+static M_SWidget_t* MS_SMCreateCVarSlide(M_SWidget_t* const a_Parent, const VideoFont_t a_Font, const uint32_t a_Flags, const uint32_t a_ValFlags, const char** const a_Ref, CONL_StaticVar_t* const a_CVar)
+{
+	M_SWidget_t* New;
+	
+	/* Create base label widget first */
+	New = MS_SMCreateLabel(a_Parent, a_Font, a_Flags, a_Ref);
+	
+	/* Setup */
+	New->Data.Label.ValFlags = a_ValFlags;
+	New->Data.Label.CVar = a_CVar;
+	
+	/* Return */
+	return New;
+}
+
+/* MS_PossSlideFLeftRight() -- L/R Possible Slide */
+static bool_t MS_PossSlideFLeftRight(struct M_SWidget_s* const a_Widget, const int32_t a_Right)
+{	
+	int32_t n;	
+	
+	/* Find max value of possible value */	
+	for (n = 0; a_Widget->Data.Label.Possible[n].StrAlias; n++)
+		;
+	
+	/* Change Pivot */
+	a_Widget->Data.Label.Pivot += a_Right;
+	
+	// Cap
+	while (a_Widget->Data.Label.Pivot < 0)
+		a_Widget->Data.Label.Pivot += n;
+	while (n > 0 && a_Widget->Data.Label.Pivot >= n)
+		a_Widget->Data.Label.Pivot -= n;
+	
+	/* Always emit slide sound */
+	S_StartSound(NULL, sfx_generic_menuslide);
+}
+
+/* MS_SMCreatePossSlide() -- Possible Value Slider */
+static M_SWidget_t* MS_SMCreatePossSlide(M_SWidget_t* const a_Parent, const VideoFont_t a_Font, const uint32_t a_Flags, const uint32_t a_ValFlags, const char** const a_Ref, CONL_VarPossibleValue_t* const a_PossibleList)
+{
+	M_SWidget_t* New;
+	
+	/* Create base label widget first */
+	New = MS_SMCreateLabel(a_Parent, a_Font, a_Flags, a_Ref);
+	
+	/* Setup */
+	New->Data.Label.ValFlags = a_ValFlags;
+	New->Data.Label.Possible = a_PossibleList;
+	New->FLeftRight = MS_PossSlideFLeftRight;
+	
+	/* Return */
 	return New;
 }
 
@@ -1754,7 +1824,7 @@ void M_SMDrawer(void)
 /* M_SMTicker() -- Ticks simple menu */
 void M_SMTicker(void)
 {
-	int32_t Screen;
+	int32_t Screen, i;
 	M_SWidget_t* TopMenu;
 	
 	/* For all screens */
@@ -1774,6 +1844,12 @@ void M_SMTicker(void)
 		// Tick it
 		if (TopMenu->FTicker)
 			TopMenu->FTicker(TopMenu);
+		
+		// Tick Kids
+		for (i = 0; i < TopMenu->NumKids; i++)
+			if (TopMenu->Kids[i])
+				if (TopMenu->Kids[i]->FTicker)
+					TopMenu->Kids[i]->FTicker(TopMenu->Kids[i]);
 	}
 }
 
@@ -1788,13 +1864,18 @@ bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget);
 bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget);
 bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget);
 void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget);
+void M_ACG_CreateFTicker(struct M_SWidget_s* const a_Widget);
+void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget);
 
 /* M_SMSpawn() -- Spawns menu for player */
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 {
 #define SUBMENUFLAGS (VFO_COLOR(VEX_MAP_BRIGHTWHITE))
 #define SORTFLAGS (VFO_COLOR(VEX_MAP_ORANGE))
+#define VALUEFLAGS (VFO_COLOR(VEX_MAP_BRIGHTWHITE))
 	M_SWidget_t* Root, *Work;
+	CONL_VarPossibleValue_t* Possible;
+	int32_t i;
 	
 	/* Check */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || a_MenuID < 0 || a_MenuID >= NUMMSMMENUS)
@@ -1936,6 +2017,19 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 		case MSM_ADVANCEDCREATEGAME:
 			// Create initial box
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Connection Type
+			//Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_DISCONNECT));
+			
+			// IWAD to play with (UDoom, HOE, etc.)
+			i = M_HelpInitIWADList(&Possible);
+			Work = MS_SMCreatePossSlide(Root, VFONT_SMALL, 0, VALUEFLAGS, DS_GetStringRef(DSTR_MENUCREATEGAME_IWADTITLE), Possible);
+			Work->Data.Label.Pivot = i;
+			
+			// Start Game
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUCREATEGAME_STARTGAME));
+			Work->FTicker = M_ACG_CreateFTicker;
+			Work->FSelect = M_ACG_CreateFSelect;
 			break;
 			
 			// Quit Game

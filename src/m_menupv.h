@@ -64,9 +64,16 @@ typedef struct M_SWidget_s
 		
 		struct
 		{
-			VideoFont_t Font;						// Font to draw in
+			VideoFont_t Font;					// Font to draw in
 			uint32_t Flags;						// Draw flags
 			const char** Ref;					// Reference to text
+			const char** ValRef;				// Value Reference
+			int32_t Pivot;						// Current pivot location
+			CONL_StaticVar_t* CVar;				// Console Variables
+			CONL_VarPossibleValue_t* Possible;	// Possible Values
+			P_XGSVariable_t* Var;				// Variable
+			P_XGSBitID_t NextVar;				// Next Variable
+			uint32_t ValFlags;					// Value Draw Flags
 		} Label;
 	} Data;										// Widget Data
 } M_SWidget_t;
@@ -78,4 +85,6 @@ typedef struct M_SWidget_s
 void M_StackPop(const int32_t a_ScreenID);
 void M_StackPopAllScreen(const int32_t a_Screen);
 void M_StackPopAll(void);
+
+int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut);
 

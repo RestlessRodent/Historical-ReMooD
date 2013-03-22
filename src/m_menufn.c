@@ -41,6 +41,8 @@
 #include "m_random.h"
 #include "m_menupv.h"
 #include "g_game.h"
+#include "d_main.h"
+#include "w_wad.h"
 
 /****************
 *** FUNCTIONS ***
@@ -1391,6 +1393,102 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 /*****************************************************************************/
 /*****************************************************************************/
 
+/* M_HelpInitIWADList() -- Generates IWAD list for selection */
+int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut)
+{
+	char Buf[PATH_MAX];
+	static CONL_VarPossibleValue_t* IWADListPV;
+	int32_t i, j, ThisWAD, n;
+	D_IWADInfoEx_t* Info;
+	const char* SubField;
+	bool_t Found;
+	
+	/* If list exists, return that */
+	if (IWADListPV)
+	{
+		// Return possible output
+		if (a_PossibleOut)
+			*a_PossibleOut = IWADListPV;
+		
+		// Return Currently selected WAD
+		for (i = 0; IWADListPV[i].StrAlias; i++)
+			if (D_GetIWADInfoByNum(IWADListPV[i].IntVal) == D_GetThisIWAD())
+				return i;
+		
+		// Not found, presume zero
+		return 0;
+	}
+	
+	/* Otherwise, it needs generation */
+	i = -1;
+	Info = NULL;
+	ThisWAD = 0;
+	n = 0;
+	
+	do
+	{
+		// Only if there is info
+		if (Info)
+		{
+			// Not found
+			Found = false;
+			
+			// Try and locate WAD File, to see if it exists in the standard locations
+			for (j = 0; ; j++)
+			{
+				// Get sub field of IWAD Name
+				SubField = D_FieldNumber(Info->BaseName, j);
+				
+				// End of fields?
+				if (!SubField)
+					break;
+				
+				// See if it exists
+				memset(Buf, 0, sizeof(Buf));
+				if (WL_LocateWAD(SubField, Info->MD5Sum, Buf, PATH_MAX - 1))
+				{
+					Found = true;
+					break;	// No need to continue
+				}
+			}
+			
+			// WAD was found somewhere
+			if (Found)
+			{
+				// Matches this WAD?
+				if (ThisWAD == 0 && Info == D_GetThisIWAD())
+					ThisWAD = i;
+				
+				// Add to possible list
+				Z_ResizeArray((void**)&IWADListPV, sizeof(*IWADListPV),
+					n, n + 1);
+				IWADListPV[n].IntVal = i;
+				IWADListPV[n++].StrAlias = Info->NiceTitle;
+			}
+		}
+		
+		// Obtain info for next WAD
+		Info = D_GetIWADInfoByNum(++i);
+	} while (Info);
+	
+	// Nothing in list?
+	if (n == 0)
+	{
+		Z_ResizeArray((void**)&IWADListPV, sizeof(*IWADListPV),
+			n, n + 1);
+		IWADListPV[n].IntVal = 0;
+		IWADListPV[n++].StrAlias = "This IWAD";
+	}
+	
+	// Add blank spot
+	Z_ResizeArray((void**)&IWADListPV, sizeof(*IWADListPV),
+		n, n + 1);
+	
+	// Return current WAD
+	if (a_PossibleOut)
+		*a_PossibleOut = IWADListPV;
+	return ThisWAD;
+}
 
 /* --- NEW GAME MENU --- */
 
@@ -1645,4 +1743,36 @@ void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
 }
 
 /* ---------------------- */
+
+/* --- ADVANCED CREATE GAME MENU --- */
+
+/* M_ACG_CreateFTicker() -- Ticker for advanced create game */
+void M_ACG_CreateFTicker(struct M_SWidget_s* const a_Widget)
+{
+	a_Widget->Data.Label.Flags = 
+		(a_Widget->Data.Label.Flags & ~VFO_COLORMASK) |
+		VFO_COLOR(((a_Widget->Data.Label.Flags & VFO_COLORMASK) >> VFO_COLORSHIFT) + 1);
+}
+
+/* M_ACG_CreateFSelect() -- Start Game is selected */
+void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Pop All Menus */
+	M_StackPopAll();
+	
+	/* Disconnect */
+	D_XNetDisconnect(false);
+	
+	/* Change IWAD, if need be */
+	
+	/* Set new game options */
+	
+	/* Setup Server */
+	D_XNetMakeServer(false /*TODO*/, NULL, 0, false);
+	
+	/* Add any bots */
+}
+
+/* --------------------------------- */
+
 

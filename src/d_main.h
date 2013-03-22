@@ -35,9 +35,47 @@
 #define __D_MAIN__
 
 #include "doomtype.h"
+#include "doomstat.h"
 
 #include "w_wad.h"				// for MAX_WADFILES
 #include "i_util.h"
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* D_IWADInfoEx_t -- Extended IWAD Info */
+typedef struct D_IWADInfoEx_s
+{
+	/* Base Info */
+	const char* NiceTitle;						// Nice IWAD Title name
+	const char* ForceNames;						// Names for forcing [conf = 500]
+	const char* BaseName;						// WAD Basename [conf = 5]
+	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
+	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
+	const char* SHA1Sum;						// SHA-1 Sum of WAD [conf = 60]
+	const char* Lumps;							// Identifying lumps [conf = 1]
+	uint32_t Size;								// Size of WAD [conf = 15]
+	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
+	
+	/* Game Info */
+	CoreGame_t CoreGame;						// Core Game
+	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
+	const char* MapInfoLump;					// Map Info Lump
+	uint32_t Flags;								// Flags for game
+	const char* MapNameFormat;					// Format of map names
+	
+	int mission;								// Deprecated mission
+	int mode;									// Deprecated mode
+} D_IWADInfoEx_t;
+
+/************
+*** OTHER ***
+************/
+
+D_IWADInfoEx_t* D_GetThisIWAD(void);
+D_IWADInfoEx_t* D_GetIWADInfoByNum(const uint32_t a_Num);
+const char* D_FieldNumber(const char* const a_Str, const size_t a_Num);
 
 //void D_AddFile (char *file);
 
