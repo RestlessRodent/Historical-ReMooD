@@ -1,8 +1,7 @@
 ReMooD 1.0a
 
 http://remood.org/
-Copyright (C) 2006-2013 GhostlyDeath
-    <ghostlydeath@remood.org, ghostlydeath@gmail.com>
+Copyright (C) 2006-2013 GhostlyDeath <ghostlydeath@remood.org, ghostlydeath@gmail.com>
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 
@@ -18,14 +17,14 @@ When menu is visible:
  - LEFT: Decrease value
  - RIGHT: Increase value
 
-When playing:
+When playing/spectating:
  - UP: Move Forwards
  - DOWN: Move Backwards
  - LEFT: Turn Left
  - RIGHT: Turn Right
  - Y: Attack
  - X: Speed
- - A: Use
+ - A: Use/Join Game
  - L: Strafe Left
  - R: Strafe Right
  - START: Use Inventory Item

@@ -246,7 +246,7 @@ do
 			fi
 			
 			echo "$COOLPREFIX Building default source" 1>&2
-			if ! make USEINTERFACE=sdl
+			if ! make $MAKEFLAGS USEINTERFACE=sdl
 			then
 				echo "$COOLPREFIX Failed to build" 1>&2
 				exit 1
@@ -371,7 +371,7 @@ do
 			
 			# Compile
 			make clean USEINTERFACE=allegro TOOLPREFIX="$WINGCC"
-			if ! make USEINTERFACE=allegro TOOLPREFIX="$WINGCC" ALLEGRO_INCLUDE=allegw32/include ALLEGRO_LIB=allegw32/lib
+			if ! make $MAKEFLAGS USEINTERFACE=allegro TOOLPREFIX="$WINGCC" ALLEGRO_INCLUDE=allegw32/include ALLEGRO_LIB=allegw32/lib
 			then
 				echo "$COOLPREFIX Failed" 1>&2
 				exit 1
@@ -433,7 +433,7 @@ do
 			
 			# Compile
 			make clean USEINTERFACE=sdl TOOLPREFIX="$WINGCC"
-			if ! make USEINTERFACE=sdl TOOLPREFIX="$WINGCC" SDL_INCLUDE=SDL-1.2.15/include/SDL SDL_LIB=SDL-1.2.15/lib OPENGL_LDFLAGS="-lopengl32"
+			if ! make $MAKEFLAGS USEINTERFACE=sdl TOOLPREFIX="$WINGCC" SDL_INCLUDE=SDL-1.2.15/include/SDL SDL_LIB=SDL-1.2.15/lib OPENGL_LDFLAGS="-lopengl32"
 			then
 				echo "$COOLPREFIX Failed" 1>&2
 				exit 1
@@ -487,7 +487,7 @@ do
 			fi
 			
 			# Compile
-			if ! make CDEFFLAGS="-D__REMOOD_WII" CC="$DEVKITPPC/bin/powerpc-eabi-gcc" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf"
+			if ! make $MAKEFLAGS CDEFFLAGS="-D__REMOOD_WII" CC="$DEVKITPPC/bin/powerpc-eabi-gcc" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf"
 			then
 				echo "$COOLPREFIX Build failed" 1>&2
 				exit 1
@@ -523,7 +523,7 @@ do
 			fi
 			
 			# Build
-			if ! make CC="$GCWTCROOT/usr/bin/mipsel-gcw0-linux-uclibc-gcc" USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL -D__REMOOD_MODEL=1 -D__REMOOD_NOALSAMIDI" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
+			if ! make $MAKEFLAGS CC="$GCWTCROOT/usr/bin/mipsel-gcw0-linux-uclibc-gcc" USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL -D__REMOOD_MODEL=1 -D__REMOOD_NOALSAMIDI" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
 			then
 				echo "$COOLPREFIX Build failed" 1>&2
 				exit 1
@@ -661,7 +661,7 @@ do
 			# Compile ReMooD Now
 			echo "$COOLPREFIX Now Compiling..." 1>&2
 			make clean USEINTERFACE=palmos TOOLPREFIX="arm-palmos-"
-			if ! make USEINTERFACE=palmos TOOLPREFIX="arm-palmos-" CFLAGS="-Iparm -Ipeal-2005_4_14/arm" LDFLAGS="-lc libarmboot.a"
+			if ! make $MAKEFLAGS USEINTERFACE=palmos TOOLPREFIX="arm-palmos-" CFLAGS="-Iparm -Ipeal-2005_4_14/arm" LDFLAGS="-lc libarmboot.a"
 			then
 				echo "$COOLPREFIX Failed" 1>&2
 				exit 1

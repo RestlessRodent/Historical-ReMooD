@@ -3465,7 +3465,7 @@ static uint8_t DS_XNetNextWeapon(player_t* player, int step)
 /* GAMEKEYDOWN() -- Checks if a key is down */
 static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
 {
-	static int8_t Recoursed;
+	static bool_t Recoursed;
 	int8_t MoreDown;
 	size_t i;
 	uint32_t CurrentButton;
@@ -3474,22 +3474,28 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 	/* Determine if more key is down */
 	// But do not infinite loop here
 	MoreDown = 0;
-	if (Recoursed == 0)
+	if (!Recoursed)
 	{
-		Recoursed++;
+		// More Down?
+		Recoursed = true;
 		if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF))
 			MoreDown = 1;
-		Recoursed--;
+		Recoursed = false;
+		
+		// Even more down?
+		if (MoreDown == 1)
+		{
+			Recoursed = true;
+			if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MOREMORESTUFF))
+				MoreDown = 2;
+			Recoursed = false;
+		}
 	}
 	
-	// Even more stuff pressed?
-	else if (Recoursed == 1)
-	{
-		Recoursed++;
-		if (GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MOREMORESTUFF))
-			MoreDown = 2;
-		Recoursed--;
-	}
+	// If key is more more stuff, check more stuff bind
+		// This is for multi-key combo buttons
+	if (a_Key == DPEXIC_MOREMORESTUFF)
+		MoreDown = 1;
 	
 	/* Determine check shifts */
 	// Standard
