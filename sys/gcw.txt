@@ -12,6 +12,7 @@ Controls:
 
 When menu is visible:
  - START: Select Item
+ - SELECT: Leave Menu
  - UP: Move selector up
  - DOWN: Move selector down
  - LEFT: Decrease value

@@ -510,6 +510,10 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->TransSBar = false;						// Transparent status bar
 	New->ScaledSBar = false;					// Scaled status bar
 	
+	// Autorun on GCW
+	if (g_ModelMode == DMM_GCW)
+		New->AutoRun = true;					// Hurts thumb to hold run all the time
+	
 	/* Link */
 	if (!l_FirstProfile)
 		l_FirstProfile = New;
