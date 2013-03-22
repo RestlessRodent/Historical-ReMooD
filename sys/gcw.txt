@@ -1,0 +1,36 @@
+ReMooD 1.0a
+
+http://remood.org/
+Copyright (C) 2006-2013 GhostlyDeath
+    <ghostlydeath@remood.org, ghostlydeath@gmail.com>
+
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+Controls:
+ - SELECT: Open Menu
+ 
+ - UP: Move Forwards
+ - DOWN: Move Backwards
+ - LEFT: Turn Left
+ - RIGHT: Turn Right
+ - Y: Attack
+ - X: Speed
+ - A: Use
+ - L: Strafe Left
+ - R: Strafe Right
+ - START: Use Inventory Item
+ - B+Y: Land
+ - B+A: Jump
+ - B+L: Previous Weapon
+ - B+R: Next Weapon
+ - B+START: Chat
+ - B+X+UP: Look Down
+ - B+X+DOWN: Look Up
+ - B+X+Y: Automap
+ - B+X+A: Coop-Spy
+ - B+X+L: Previous Inventory
+ - B+X+R: Next Inventory
+ - B+X+START: Suicide
+

@@ -541,9 +541,10 @@ do
 			cp ../doc/AUTHORS AUTHORS
 			cp ../doc/LICENSE LICENSE
 			cp ../doc/manual.pdf manual.pdf
+			cp ../sys/gcw.txt remood.txt
 			
 			# version
-			echo "Version=REMOODVERSION" >> default.gcw0.desktop
+			echo "Version=$REMOODVERSION" >> default.gcw0.desktop
 			
 			# Make sure everything is readable
 			chmod uog+r *

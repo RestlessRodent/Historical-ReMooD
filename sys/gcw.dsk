@@ -5,4 +5,5 @@ Comment=Doom source port based off Doom Legacy 1.42
 Exec=remood.elf
 Icon=remood
 Categories=games;
+X-OD-Manual=remood.txt
 
