@@ -1030,6 +1030,9 @@ void S_ChangeMusicName(char* name, int looping)
 			else
 				return;
 		}
+		
+		// Otherwise, it worked
+		break;
 	}
 		
 	/* Start playing the song */

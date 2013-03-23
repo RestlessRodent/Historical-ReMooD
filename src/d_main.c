@@ -776,7 +776,7 @@ void D_DoomLoop(void)
 // Handles timing for warped projection
 //
 void D_PageTicker(void)
-{
+{	
 	if (--pagetic < 0)
 		D_AdvanceDemo();
 }

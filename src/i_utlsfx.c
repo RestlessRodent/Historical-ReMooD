@@ -1786,11 +1786,15 @@ void I_ShutdownMusic(void)
 void I_UpdateMusic(void)
 {
 	size_t i;
+	uint32_t ThisTime;
+	
+	/* Get Current Time */
+	ThisTime = I_GetTimeMS();
 	
 	/* Update all drivers */
 	for (i = 0; i < l_NumMusicDrivers; i++)
 		if (l_MusicDrivers[i]->Update)
-			l_MusicDrivers[i]->Update(l_MusicDrivers[i], I_GetTimeMS());
+			l_MusicDrivers[i]->Update(l_MusicDrivers[i], ThisTime);
 }
 
 /* I_SetMusicVolume() -- Sets music volume */

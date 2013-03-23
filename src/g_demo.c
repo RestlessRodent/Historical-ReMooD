@@ -2783,7 +2783,7 @@ void G_StopDemoPlay(void)
 		else
 			QuitDoom = true;
 	}
-	else if (!l_CommandedDemo)
+	else if (!l_CommandedDemo || g_TitleScreenDemo)
 		Advance = true;
 	else if (l_CommandedDemo)
 	{
@@ -2801,7 +2801,10 @@ void G_StopDemoPlay(void)
 	
 	// Advance
 	else if (Advance)
+	{
 		D_AdvanceDemo();
+		gamestate = GS_DEMOSCREEN;
+	}
 }
 
 /* G_StopDemo() -- Stops recording demo */
@@ -2937,7 +2940,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	l_PlayDemo = Demo;
 	g_DemoTime = 0;
 	g_TitleScreenDemo = a_TitleScreen;
-	l_CommandedDemo = a_TitleScreen;
+	l_CommandedDemo = !a_TitleScreen;
 }
 
 void G_TimeDemo(char* name)
