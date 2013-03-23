@@ -153,6 +153,9 @@ typedef struct CONCTI_Inputter_s
 	bool_t Changed;								// Input changed?
 	
 	struct CONCTI_Inputter_s** RefPtr;			// Reference to this struct
+	void* DataRef;								// Data Reference
+	bool_t DontDrawCursor;						// Does not draw the cursor
+	int8_t Screen;								// Screen this belongs to
 } CONCTI_Inputter_t;
 
 /*** Console Variables ***/
@@ -281,6 +284,7 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 bool_t CONL_OSKIsActive(const size_t a_PlayerNum);
 bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis);
 bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum);
+void CONL_OSKDrawForPlayer(const int32_t a_PlayerNum);
 
 /*** Console Commands ***/
 // Variable Commands

@@ -40,9 +40,14 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 {
 	/****** MENUS ******/
 	{"MENU_NULLSPACE", ""},
+	
 	{"MENUNEWGAME_TITLE", "New Game"},
 	{"MENUNEWGAME_CLASSIC", "Classic..."},
 	{"MENUNEWGAME_CREATEGAME", "Create Game..."},
+	{			"MENUNEWGAME_UNLISTEDIP", "Connect to Unlisted Server..."},
+	
+	{			  "MENUUNLISTED_CONNECT", "Connect!"},
+	{			  "MENUUNLISTED_ADDRESS", "Remote Address:"},
 	
 	{			   "MENUGAMEVAR_CATNONE", ""},
 	

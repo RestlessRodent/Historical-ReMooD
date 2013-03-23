@@ -75,6 +75,15 @@ typedef struct M_SWidget_s
 			P_XGSBitID_t NextVar;				// Next Variable
 			uint32_t ValFlags;					// Value Draw Flags
 		} Label;
+		
+		struct
+		{
+			VideoFont_t Font;					// Font to draw in
+			uint32_t Flags;						// Draw flags
+			CONCTI_Inputter_t* Inputter;		// Text Inputter
+			bool_t StealInput;					// Input Stolen
+			bool_t OldSteal;					// Old Steal Input
+		} TextBox;
 	} Data;										// Widget Data
 } M_SWidget_t;
 
@@ -87,4 +96,19 @@ void M_StackPopAllScreen(const int32_t a_Screen);
 void M_StackPopAll(void);
 
 int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut);
+
+void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub);
+bool_t M_SubMenu_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget);
+void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget);
+void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget);
+bool_t M_CTUS_BoxCallBack(struct CONCTI_Inputter_s*, const char* const);
+void M_CTUS_ConnectFSelect(struct M_SWidget_s* const a_Widget);
 

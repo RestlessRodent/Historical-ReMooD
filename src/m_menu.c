@@ -1264,6 +1264,10 @@ static M_SWidget_t* MS_SMCreateBase(M_SWidget_t* const a_Parent)
 	// Parent
 	New->Parent = a_Parent;
 	
+	// Copy Screen Too
+	if (New->Parent)
+		New->Screen = New->Parent->Screen;
+	
 	// Add to parents kids
 	if (New->Parent)
 	{
@@ -1292,6 +1296,150 @@ static M_SWidget_t* MS_SMCreateBox(M_SWidget_t* const a_Parent, const int32_t a_
 	
 	/* Return it */
 	return New;
+}
+
+/* MS_SMTBFDDraw() -- Draw Text Box */
+static void MS_SMTBFDDraw(struct M_SWidget_s* const a_Widget)
+{
+	uint32_t Flags;
+	
+	/* Base flags */
+	Flags = a_Widget->Data.TextBox.Flags;
+	a_Widget->Data.TextBox.Inputter->Font = a_Widget->Data.TextBox.Font;
+	
+	/* Change cursor draw status */
+	a_Widget->Data.TextBox.Inputter->DontDrawCursor = !a_Widget->Data.TextBox.StealInput;
+	
+	/* Draw Inputter */
+	CONCTI_DrawInput(a_Widget->Data.TextBox.Inputter, Flags, a_Widget->dx, a_Widget->dy, a_Widget->Parent->dx + a_Widget->Parent->dw);
+	
+	/* Draw OSK? */
+	if (a_Widget->Data.TextBox.StealInput)
+	{
+		CONL_OSKSetVisible(a_Widget->Screen, true);
+		CONL_OSKDrawForPlayer(a_Widget->Screen);
+		CONL_OSKSetVisible(a_Widget->Screen, false);
+	}
+}
+
+/* MS_SMTBFEvent() -- Text Box Event */
+bool_t MS_SMTBFEvent(struct M_SWidget_s* const a_Widget, const I_EventEx_t* const a_Event)
+{
+	bool_t RetVal;
+	
+	/* If not stealing input, ignore */
+	if (!a_Widget->Data.TextBox.StealInput)
+		return false;
+	
+	/* Unsteal Focus */
+	// Keyboard
+	if (a_Event->Type == IET_KEYBOARD)
+	{
+		// Ignore keyboard events on other screens
+		if (a_Widget->Screen != 0)
+			return false;
+		
+		// Only check if escape is down
+		if (a_Event->Data.Keyboard.Down)
+			if (a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
+			{
+				a_Widget->Data.TextBox.StealInput = false;
+				return true;
+			}
+	}
+	
+	// Synthetic
+	else if (a_Event->Type == IET_SYNTHOSK)
+	{
+		// Ignore events belonging to another screen
+		if (a_Event->Data.SynthOSK.PNum != a_Widget->Screen)
+			return false;
+		
+		// Check if cancel is pressed
+		if (a_Event->Data.SynthOSK.Cancel)
+		{
+			a_Widget->Data.TextBox.StealInput = false;
+			return true;
+		}
+	}
+	
+	/* Otherwise it is stolen */
+	// Handle OSK Event (Virtual board?)
+	CONL_OSKSetVisible(a_Widget->Screen, true);
+	RetVal = CONL_OSKHandleEvent(a_Event, a_Widget->Screen);
+	CONL_OSKSetVisible(a_Widget->Screen, false);
+	
+	if (RetVal)
+		return true;
+	
+	// Accept Only Keyboard and Synth
+	if (a_Event->Type != IET_KEYBOARD && a_Event->Type != IET_SYNTHOSK)
+		return false;
+	
+	// Handle inputter event
+	if (CONCTI_HandleEvent(a_Widget->Data.TextBox.Inputter, a_Event))
+		return true;
+	
+	// Always return true to prevent menu stealing
+	return true;
+}
+
+/* MS_SMTBFSelect() -- Text Box Selected */
+void MS_SMTBFSelect(struct M_SWidget_s* const a_Widget)
+{
+	/* Steal input if not selected */
+	if (!a_Widget->Data.TextBox.StealInput)
+		a_Widget->Data.TextBox.StealInput = true;
+}
+
+/* MS_SMTBFTicker() -- Text Box Ticker */
+void MS_SMTBFTicker(struct M_SWidget_s* const a_Widget)
+{
+	/* Change of stolen input? */
+	if (a_Widget->Data.TextBox.StealInput != a_Widget->Data.TextBox.OldSteal)
+	{
+		// Set
+		a_Widget->Data.TextBox.OldSteal = a_Widget->Data.TextBox.StealInput;
+	}
+}
+
+/* MS_SMCreateTextBox() -- Creates editable text box */
+static M_SWidget_t* MS_SMCreateTextBox(M_SWidget_t* const a_Parent, const VideoFont_t a_Font, const uint32_t a_Flags, CONCTI_OutBack_t a_CallBack)
+{
+	M_SWidget_t* New;
+	
+	/* First create base */
+	New = MS_SMCreateBase(a_Parent);
+	
+	// Parent has no kids, start from base position
+	if (a_Parent->NumKids == 1)
+	{
+		New->x = 12;
+		New->y = 5;
+	}
+	
+	// Otherwise add to it
+	else
+	{
+		New->x = a_Parent->Kids[a_Parent->NumKids - 2]->x;
+		New->y = a_Parent->Kids[a_Parent->NumKids - 2]->y + a_Parent->Kids[a_Parent->NumKids - 2]->h + 4;
+	}
+	
+	// Width and height matches font
+	New->w = V_FontWidth(a_Font);
+	New->h = V_FontHeight(a_Font);
+	
+	New->DDraw = MS_SMTBFDDraw;
+	New->FSelect = MS_SMTBFSelect;
+	New->FEvent = MS_SMTBFEvent;
+	New->FTicker = MS_SMTBFTicker;
+	
+	/* Setup Inputter */
+	New->Data.TextBox.Font = a_Font;
+	New->Data.TextBox.Flags = a_Flags;
+	New->Data.TextBox.Inputter = CONCTI_CreateInput(1, a_CallBack, &New->Data.TextBox.Inputter);
+	New->Data.TextBox.Inputter->DataRef = New;
+	New->Data.TextBox.Inputter->Screen = New->Screen;
 }
 
 /* MS_Label_DDraw() -- Draws Label */
@@ -1853,20 +2001,6 @@ void M_SMTicker(void)
 	}
 }
 
-void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub);
-bool_t M_SubMenu_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget);
-void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget);
-void M_ACG_CreateFTicker(struct M_SWidget_s* const a_Widget);
-void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget);
-
 /* M_SMSpawn() -- Spawns menu for player */
 void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 {
@@ -1930,6 +2064,11 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_CREATEGAME));
 			Work->FSelect = M_SubMenu_FSelect;
 			Work->SubMenu = MSM_ADVANCEDCREATEGAME;
+				
+				// Connect to unlisted server
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUNEWGAME_UNLISTEDIP));
+			Work->FSelect = M_SubMenu_FSelect;
+			Work->SubMenu = MSM_JOINUNLISTEDSERVER;
 			
 				// Server List: Name
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SORTFLAGS, DS_GetStringRef(DSTR_MENUGENERAL_SVNAME));
@@ -2028,8 +2167,28 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Start Game
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUCREATEGAME_STARTGAME));
-			Work->FTicker = M_ACG_CreateFTicker;
 			Work->FSelect = M_ACG_CreateFSelect;
+			break;
+		
+			// Join Unlisted Server
+		case MSM_JOINUNLISTEDSERVER:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Address Label
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SORTFLAGS, DS_GetStringRef(DSTR_MENUUNLISTED_ADDRESS));
+			Work->Flags |= MSWF_NOSELECT;
+			
+			// Edit Box
+			Work = MS_SMCreateTextBox(Root, VFONT_SMALL, 0, M_CTUS_BoxCallBack);
+			Work->Option = 1337;
+			
+			// Connect
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUUNLISTED_CONNECT));
+			Work->FSelect = M_CTUS_ConnectFSelect;
+			
+			// Start on text box
+			Root->CursorOn = 1;
 			break;
 			
 			// Quit Game

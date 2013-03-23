@@ -1746,14 +1746,6 @@ void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
 
 /* --- ADVANCED CREATE GAME MENU --- */
 
-/* M_ACG_CreateFTicker() -- Ticker for advanced create game */
-void M_ACG_CreateFTicker(struct M_SWidget_s* const a_Widget)
-{
-	a_Widget->Data.Label.Flags = 
-		(a_Widget->Data.Label.Flags & ~VFO_COLORMASK) |
-		VFO_COLOR(((a_Widget->Data.Label.Flags & VFO_COLORMASK) >> VFO_COLORSHIFT) + 1);
-}
-
 /* M_ACG_CreateFSelect() -- Start Game is selected */
 void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget)
 {
@@ -1774,5 +1766,107 @@ void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* --------------------------------- */
+
+/* --- CONNECT TO UNLISTED SERVER --- */
+
+#define CONNECTIPSIZE 72
+static char l_ConnectIP[CONNECTIPSIZE];
+
+/* M_CTUS_ConnectFSelect() -- Connect Selected */
+void M_CTUS_ConnectFSelect(struct M_SWidget_s* const a_Widget)
+{
+	int32_t i;
+	M_SWidget_t* Wid;
+	I_EventEx_t Evt;
+	I_HostAddress_t Addr;
+	char* p;
+	uint32_t GameID;
+	
+	/* Obtain string buffer by sending \n to inputter */
+	// Widget is NULL if called from callback!
+	if (a_Widget)
+	{
+		for (i = 0; i < a_Widget->Parent->NumKids; i++)
+			if (a_Widget->Parent->Kids[i])
+				if (a_Widget->Parent->Kids[i]->Option == 1337)
+				{
+					Wid = a_Widget->Parent->Kids[i];
+					
+					// Send enter
+					memset(&Evt, 0, sizeof(Evt));
+					
+					Evt.Type = IET_SYNTHOSK;
+					Evt.Data.SynthOSK.PNum = Wid->Screen;
+					Evt.Data.SynthOSK.KeyCode = IKBK_RETURN;
+					
+					I_EventExPush(&Evt);
+				}
+		
+		// Return from now
+		return;
+	}
+	
+	/* Do standard connect, if there is a string there */
+	// Check for no string
+	if (!l_ConnectIP[0])
+		return;
+	
+	/* Find slash (Game ID) */
+	GameID = 0;
+	p = strchr(l_ConnectIP, '/');
+	
+	// Found?
+	if (p)
+	{
+		// Remove and move up
+		*(p++) = 0;
+		
+		// Get the GameID
+		GameID = C_strtou32(p, NULL, 0);
+	}
+	
+	/* Resolve IP first */
+	memset(&Addr, 0, sizeof(Addr));
+	if (!I_NetNameToHost(NULL, &Addr, l_ConnectIP))
+		return;
+	
+	/* Pop all menus */
+	M_StackPopAll();
+	
+	/* Do Disconnect First */
+	D_XNetDisconnect(false);
+	
+	/* Now try to connect */
+	D_XNetConnect(&Addr, GameID, false);
+}
+
+/* M_CTUS_BoxCallBack() -- Callback for enter on the box */
+bool_t M_CTUS_BoxCallBack(struct CONCTI_Inputter_s* a_Inputter, const char* const a_Str)
+{
+	M_SWidget_t* Widget;
+	
+	/* Empty string? */
+	if (!a_Str || !a_Str[0])
+		return false;
+	
+	/* No longer steal focus */
+	Widget = (M_SWidget_t*)a_Inputter->DataRef;
+	Widget->Data.TextBox.StealInput = false;
+	
+	/* Copy string to buffer */
+	memset(l_ConnectIP, 0, sizeof(l_ConnectIP));
+	strncpy(l_ConnectIP, a_Str, CONNECTIPSIZE - 1);
+	
+	/* Set inputter to that text */
+	CONCTI_SetText(a_Inputter, l_ConnectIP);
+	
+	/* Call Connect Func */
+	M_CTUS_ConnectFSelect(NULL);
+	
+	/* Return false, do not want box destroyed */
+	return false;
+}
+
+/* ---------------------------------- */
 
 
