@@ -1799,7 +1799,10 @@ void M_CTUS_ConnectFSelect(struct M_SWidget_s* const a_Widget)
 					Evt.Data.SynthOSK.PNum = Wid->Screen;
 					Evt.Data.SynthOSK.KeyCode = IKBK_RETURN;
 					
-					I_EventExPush(&Evt);
+					// Fake a handle event
+					CONCTI_HandleEvent(Wid->Data.TextBox.Inputter, &Evt);
+					//I_EventExPush(&Evt);
+					return;
 				}
 		
 		// Return from now

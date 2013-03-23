@@ -1323,7 +1323,7 @@ static void MS_SMTBFDDraw(struct M_SWidget_s* const a_Widget)
 }
 
 /* MS_SMTBFEvent() -- Text Box Event */
-bool_t MS_SMTBFEvent(struct M_SWidget_s* const a_Widget, const I_EventEx_t* const a_Event)
+static bool_t MS_SMTBFEvent(struct M_SWidget_s* const a_Widget, const I_EventEx_t* const a_Event)
 {
 	bool_t RetVal;
 	
@@ -1385,7 +1385,7 @@ bool_t MS_SMTBFEvent(struct M_SWidget_s* const a_Widget, const I_EventEx_t* cons
 }
 
 /* MS_SMTBFSelect() -- Text Box Selected */
-void MS_SMTBFSelect(struct M_SWidget_s* const a_Widget)
+static void MS_SMTBFSelect(struct M_SWidget_s* const a_Widget)
 {
 	/* Steal input if not selected */
 	if (!a_Widget->Data.TextBox.StealInput)
@@ -1393,7 +1393,7 @@ void MS_SMTBFSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* MS_SMTBFTicker() -- Text Box Ticker */
-void MS_SMTBFTicker(struct M_SWidget_s* const a_Widget)
+static void MS_SMTBFTicker(struct M_SWidget_s* const a_Widget)
 {
 	/* Change of stolen input? */
 	if (a_Widget->Data.TextBox.StealInput != a_Widget->Data.TextBox.OldSteal)
@@ -1401,6 +1401,14 @@ void MS_SMTBFTicker(struct M_SWidget_s* const a_Widget)
 		// Set
 		a_Widget->Data.TextBox.OldSteal = a_Widget->Data.TextBox.StealInput;
 	}
+}
+
+/* MS_SMTBFDestroy() -- Box destroyed */
+static void MS_SMTBFDestroy(struct M_SWidget_s* const a_Widget)
+{
+	/* Destroy Inputter */
+	CONCTI_DestroyInput(a_Widget->Data.TextBox.Inputter);
+	a_Widget->Data.TextBox.Inputter = NULL;
 }
 
 /* MS_SMCreateTextBox() -- Creates editable text box */
@@ -1429,6 +1437,7 @@ static M_SWidget_t* MS_SMCreateTextBox(M_SWidget_t* const a_Parent, const VideoF
 	New->w = V_FontWidth(a_Font);
 	New->h = V_FontHeight(a_Font);
 	
+	New->FDestroy = MS_SMTBFDestroy;
 	New->DDraw = MS_SMTBFDDraw;
 	New->FSelect = MS_SMTBFSelect;
 	New->FEvent = MS_SMTBFEvent;
@@ -1440,6 +1449,9 @@ static M_SWidget_t* MS_SMCreateTextBox(M_SWidget_t* const a_Parent, const VideoF
 	New->Data.TextBox.Inputter = CONCTI_CreateInput(1, a_CallBack, &New->Data.TextBox.Inputter);
 	New->Data.TextBox.Inputter->DataRef = New;
 	New->Data.TextBox.Inputter->Screen = New->Screen;
+	
+	/* Return */
+	return New;
 }
 
 /* MS_Label_DDraw() -- Draws Label */

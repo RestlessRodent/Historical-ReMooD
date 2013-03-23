@@ -450,7 +450,10 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			// Send buffer to handler
 			if (a_Input->OutFunc)
 				if (a_Input->OutFunc(a_Input, Buf))
+				{
 					CONCTI_DestroyInput(a_Input);	// Done with this, so destroy
+					return true;
+				}
 					
 			// Unmark changed, cleared away
 			a_Input->Changed = false;
