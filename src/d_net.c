@@ -4678,7 +4678,7 @@ void D_XNetInitialServer(void)
 	}
 	
 	/* Starting Client */
-	else
+	else if (DoClient)
 	{
 		// No address specified?
 		if (!Anti)
@@ -4687,6 +4687,12 @@ void D_XNetInitialServer(void)
 		
 		// Use connection pathway
 		D_XNetConnect((GotIP ? &Addr : NULL), GameID, Anti);
+	}
+	
+	/* Standard Command Line Game */
+	else if (NG_IsAutoStart())
+	{
+		D_XNetMakeServer(false, NULL, 0, false);
 	}
 #undef BUFSIZE
 #undef SMALLBUF
