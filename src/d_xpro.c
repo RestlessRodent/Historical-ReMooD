@@ -169,7 +169,7 @@ void D_XPUploadTic(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t*
 	/* Get PlayerID */
 	PlayerID = a_Player->InGameID;
 	
-	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
+	if (PlayerID < 0 || PlayerID >= MAXPLAYERS || !a_TicCmd)
 		return;
 	
 	/* Set gametic, if newer */
@@ -1449,8 +1449,6 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_XNetCalcPing(XPlay);
 	
 	/* Read Commands (might be duped, oh well) */
-	memset(&TicBuf, 0, sizeof(TicBuf));
-	
 	// Read and mask
 	j = D_BSru32(a_Desc->RelBS);
 	
@@ -1468,14 +1466,16 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 			{
 				if (Buf)
 					Z_Free(Buf);
-				Buf = Z_Malloc(EncSize + 256, PU_STATIC, NULL);
+				Buf = Z_Malloc(EncSize + 512, PU_STATIC, NULL);
 				BufSize = EncSize;
 			}
 	
 			// Read Buffer
+			memset(Buf, 0, BufSize + 512);
 			D_BSReadChunk(a_Desc->RelBS, Buf, EncSize);
 	
 			// Decode
+			memset(&TicBuf, 0, sizeof(TicBuf));
 			D_XNetDecodeTicBuf(&TicBuf, Buf, EncSize);
 	
 			// Go through masked players
@@ -1499,7 +1499,7 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 				// Illegal data change (can't tic another player)
 				if (Target->HostID != XPlay->HostID)
 					continue;
-		
+				
 				// Append to end
 				if (Target->LocalAt < MAXLBTSIZE - 1)
 				{

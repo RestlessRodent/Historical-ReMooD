@@ -2582,7 +2582,6 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 				// Merge local tic commands
 				else if (XPlay->LocalAt)
 				{
-					memset(a_TicCmd, 0, sizeof(*a_TicCmd));
 					D_XNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
 					XPlay->LocalAt = 0;
 					memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
@@ -4364,6 +4363,7 @@ void D_XNetUpdate(void)
 				// Merge tics
 				memset(&MergeTrunk, 0, sizeof(MergeTrunk));
 				D_XNetMergeTics(&MergeTrunk, XPlay->LocalBuf, XPlay->LocalAt);
+				memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
 				XPlay->LocalAt = 0;
 			
 				// Execute Command
@@ -4535,6 +4535,9 @@ void D_XNetUpdate(void)
 			XPlay->StatusBits |= DXPSB_LBOVERFLOW;
 		}
 		
+		// Clear Tic command before rebuilding
+		memset(TicCmdP, 0, sizeof(*TicCmdP));
+		
 		// Clear overflow bit
 		XPlay->StatusBits &= ~DXPSB_LBOVERFLOW;
 		
@@ -4568,6 +4571,7 @@ void D_XNetUpdate(void)
 					// Merge tics
 					memset(&MergeTrunk, 0, sizeof(MergeTrunk));
 					D_XNetMergeTics(&MergeTrunk, XPlay->LocalBuf, XPlay->LocalAt);
+					memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
 					XPlay->LocalAt = 0;
 					
 					// Execute Command
