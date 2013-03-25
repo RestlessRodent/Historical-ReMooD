@@ -3138,7 +3138,7 @@ int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 	
 	/* Cap team to team limit */
 	if (VTeam)
-		;//RetVal = RetVal % P_XGSVal();
+		RetVal = RetVal % 2;//RetVal = RetVal % P_XGSVal();
 	
 	/* Return */
 	return RetVal;

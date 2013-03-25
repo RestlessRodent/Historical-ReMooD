@@ -2522,6 +2522,7 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 				}
 			}
 		}
+		
 		// Normal
 		return Safe;
 	}
@@ -2826,7 +2827,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 			*a_OptionsMod |= VFO_COLOR(WChar & 0xF);
 		}
 		
-		// Transparency Change?
+		// Transparency Change? (just misses 0x1E which is underline)
 		else if (WChar >= 16 && WChar < (16 + NUMVEXTRANSPARENCIES))
 		{
 			*a_OptionsMod &= ~VFO_TRANSMASK;
@@ -2840,7 +2841,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 			*a_OptionsMod |= VFO_PCOL((WChar - 0x70U) & 0xFU) | VFO_PCOLSET;
 		}
 		
-		// Underlined?
+		// Underlined? 0x1E
 		else if (WChar == ('u' - 'a') + 10)
 		{
 			if (*a_OptionsMod & VFO_UNDERLINE)

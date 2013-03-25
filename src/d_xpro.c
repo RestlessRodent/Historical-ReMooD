@@ -1527,12 +1527,19 @@ static bool_t DXP_TREQ(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return true;
 }
 
+extern CONL_StaticVar_t l_SVName;
+
 /* DXP_INFO() -- Information Request */
 static bool_t DXP_INFO(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
 	D_BS_t* BS;
 	bool_t IsServer;
 	uint32_t GameID;
+	const WL_WADFile_t* Rover;
+	int32_t i;
+	D_XPlayer_t* XPlay;
+	player_t* Player;
+	uint8_t Bits;
 	
 	/* Read Game ID */
 	GameID = D_BSru32(a_Desc->RelBS);
@@ -1552,11 +1559,105 @@ static bool_t DXP_INFO(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_BSBaseBlock(BS, "IXBI");
 	
 	D_BSwu8(BS, (IsServer ? 0x01 : 0x00));		// More bits for later usage
+	D_BSws(BS, l_SVName.Value->String);			// Name of server
 	
 	D_BSRecordNetBlock(BS, a_Addr);
 	
-	// Settings
+	// Done if wer are not a server
+	if (!IsServer)
+		return true;
+	
+	// Settings (bits in giant array)
 	D_BSBaseBlock(BS, "IXST");
+	
+	for (i = 0; i < 256; i++)
+		D_BSwi32(BS, P_XGSVal(i));
+	
+	D_BSRecordNetBlock(BS, a_Addr);
+	
+	// WADs
+	D_BSBaseBlock(BS, "IXWD");
+	
+	for (i = 0, Rover = WL_IterateVWAD(NULL, true); Rover; i++, Rover = WL_IterateVWAD(Rover, true))
+	{
+		// Ignore remood.wad
+		if (i == 1)
+			continue;
+		
+		// Flags for future use (first bit indicates WAD is here)
+		D_BSwu8(BS, 1);
+		
+		// Names of WAD
+		D_BSws(BS, WL_GetWADName(Rover, false));
+		D_BSws(BS, WL_GetWADName(Rover, true));
+		
+		// Sum
+		D_BSws(BS, Rover->CheckSumChars);
+	}
+	
+	// End of list
+	D_BSwu8(BS, 0);
+	
+	D_BSRecordNetBlock(BS, a_Addr);
+	
+	// Players
+	D_BSBaseBlock(BS, "IXPL");
+	
+	D_BSwu16(BS, MAXPLAYERS);
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		XPlay = g_XPlays[i];
+		
+		// Missing?
+		if (!XPlay)
+			continue;
+		
+		// Direct flags
+		D_BSwu8(BS, 1);
+		D_BSwu16(BS, XPlay->Flags & UINT32_C(0xFFFF));
+		
+		// Stuff
+			// Name inside of the game
+		if (XPlay->InGameID >= 0 && XPlay->InGameID <= MAXPLAYERS && player_names[XPlay->InGameID][0])
+			D_BSws(BS, player_names[XPlay->InGameID]);
+			// Display name as spec
+		else if (XPlay->DisplayName[0])
+			D_BSws(BS, XPlay->DisplayName);
+			// Use account name if there is no display name
+		else
+			D_BSws(BS, XPlay->AccountName);
+		//D_BSws(BS, XPlay->LoginUUID);
+		D_BSwi8(BS, XPlay->ScreenID);
+		D_BSwi16(BS, XPlay->InGameID);
+		D_BSwu16(BS, XPlay->Ping);
+		
+		// If in game, in game stuff
+		if (XPlay->InGameID >= 0 && XPlay->InGameID <= MAXPLAYERS)
+		{
+			Player = &players[XPlay->InGameID];
+			
+			Bits = 0;
+			
+			if (Player->playerstate == PST_DEAD)
+				Bits |= 0x01;
+			if (Player->CounterOpPlayer)
+				Bits |= 0x02;
+			
+			D_BSwu8(BS, Bits);
+			D_BSwi16(BS, Player->killcount);
+			D_BSwi16(BS, Player->itemcount);
+			D_BSwi16(BS, Player->secretcount);
+			D_BSwi32(BS, ST_PlayerFrags(Player - players));
+			D_BSwi32(BS, Player->TotalFrags);
+			D_BSwi32(BS, Player->TotalDeaths);
+			D_BSwi32(BS, 0);	// Reserved for Score
+			D_BSwu8(BS, Player->skincolor);
+			D_BSwu8(BS, P_GetMobjTeam(Player->mo));
+		}
+	}
+	
+	// Done
+	D_BSwu8(BS, 0);
 	
 	D_BSRecordNetBlock(BS, a_Addr);
 	

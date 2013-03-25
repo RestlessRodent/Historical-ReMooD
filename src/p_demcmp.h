@@ -363,6 +363,7 @@ void NG_SetNextMap(const char* const a_Map);
 bool_t P_GMIsCoop(void);
 bool_t P_GMIsCounter(void);
 bool_t P_GMIsDM(void);
+bool_t P_GMIsLMS(void);
 bool_t P_GMIsTeam(void);
 bool_t P_GMIsCTF(void);
 

@@ -2182,6 +2182,30 @@ bool_t P_GMIsDM(void)
 	}
 }
 
+/* P_GMIsLMS() -- Is Last Man Standing Mode */
+bool_t P_GMIsLMS(void)
+{
+	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
+	
+	/* Old Settings */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Legacy has no concept of LMS
+		return false;
+	}
+	
+	/* Game Modes */
+	else
+	{
+		// LMS modes or Survival
+		if (Mode == PGM_LMS || Mode == PGM_SURVIVAL)
+			return true;
+		
+		// Otherwise not LMS
+		return false;
+	}
+}
+
 /* P_GMIsTeam() -- Is Team Mode */
 bool_t P_GMIsTeam(void)
 {
@@ -2200,8 +2224,8 @@ bool_t P_GMIsTeam(void)
 	/* Game Modes */
 	else
 	{
-		// CTF or DM if teams are enabled
-		if (P_GMIsCTF() || (P_GMIsDM() && P_XGSVal(PGS_GAMETEAMPLAY)))
+		// CTF, TeamDM, TeamLMS
+		if (P_GMIsCTF() || ((Mode == PGM_DM || Mode == PGM_LMS) && P_XGSVal(PGS_GAMETEAMPLAY)))
 			return true;
 		
 		return false;

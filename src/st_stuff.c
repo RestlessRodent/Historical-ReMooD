@@ -341,6 +341,12 @@ int ST_PlayerFrags(int playernum)
 {
 	int32_t i, frags;
 	
+	/* If using game modes, use new count method */
+	// This prevents disconnect "cheats"
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+		return players[playernum].TotalFrags;
+	
+	/* Old Frag Counting Method */
 	frags = players[playernum].addfrags;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
