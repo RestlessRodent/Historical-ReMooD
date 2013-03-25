@@ -67,6 +67,9 @@
 	#include <errno.h>
 	
 	#define __REMOOD_DONTWAITMSG MSG_DONTWAIT
+	
+	#define __getaddrinfo getaddrinfo
+	#define __freeaddrinfo freeaddrinfo
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
 	#include <sys/socket.h>
@@ -83,7 +86,12 @@
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
 	
+	#include <wspiapi.h>
+	
 	#define __REMOOD_DONTWAITMSG 0
+	
+	#define __getaddrinfo WspiapiLegacyGetAddrInfo
+	#define __freeaddrinfo WspiapiFreeAddrInfo
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKNETLIB
 
@@ -340,7 +348,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 	uint16_t MatchPort;
 	
 	/* Variables */
-#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 	size_t i;
 	struct addrinfo AddrInfo;
 	struct addrinfo* Find, *Rover;
@@ -401,7 +409,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 	}
 
 	/* Code */
-#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 	/* Clear all */
 	memset(a_Host, 0, sizeof(*a_Host));
 	memset(&AddrInfo, 0, sizeof(AddrInfo));
@@ -417,7 +425,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 #endif
 
 	/* Get address info */
-	if (getaddrinfo(Buf, NULL, &AddrInfo, &Find) != 0)
+	if (__getaddrinfo(Buf, NULL, &AddrInfo, &Find) != 0)
 		return false;
 	
 	/* Rove through addresses */
@@ -449,7 +457,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			a_Host->Port = MatchPort;
 			
 			// Done
-			freeaddrinfo(Find);
+			__freeaddrinfo(Find);
 			return true;
 		}
 		
@@ -470,13 +478,13 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			a_Host->Port = MatchPort;
 			
 			// Success!
-			freeaddrinfo(Find);
+			__freeaddrinfo(Find);
 			return true;
 		}
 	}
 	
 	/* Free address info */
-	freeaddrinfo(Find);
+	__freeaddrinfo(Find);
 	
 	/* No match found */
 	return false;
