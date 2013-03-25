@@ -1014,7 +1014,7 @@ void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host)
 	if (a_Host)
 	{
 		// Obtain real host
-		Host = D_XNetPlayerByXPlayerHost(Host);
+		Host = D_XNetPlayerByXPlayerHost(a_Host);
 		
 		// Not there?
 		if (!Host)
@@ -2463,7 +2463,8 @@ void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticc
 	if ((a_Player->Flags & (DXPF_SERVER | DXPF_BOT | DXPF_LOCAL)) != DXPF_LOCAL)
 		return;
 	
-	CONL_PrintF("Upload!\n");
+	/* Upload to server */
+	D_XPUploadTic(a_Player, a_GameTic, a_TicCmd);
 }
 
 /* D_XNetCalcPing() -- Calculates Player Ping */
@@ -2531,6 +2532,9 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 		// Read commands
 		else
 		{
+			// Clear tic command first
+			memset(a_TicCmd, 0, sizeof(a_TicCmd));
+			
 			// Global
 			if (a_Player < 0)
 			{
@@ -2562,18 +2566,23 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 					return;
 				
 				// No commands available in queue? (lag)
-				if (!XPlay->LocalAt)
+				if (!XPlay->LocalAt && XPlay->GotBackup)
 				{
 					// Ouch =(
 					memmove(a_TicCmd, &XPlay->BackupTicCmd, sizeof(ticcmd_t));
 					
 					// Set as missing commands
 					XPlay->StatusBits |= DXPSB_MISSINGTICS;
+					
+					// Set local angles (probably lost)
+					a_TicCmd->Std.angleturn = XPlay->LookAngle;
+					a_TicCmd->Std.aiming = XPlay->AimAngle;
 				}
 				
 				// Merge local tic commands
-				else
+				else if (XPlay->LocalAt)
 				{
+					memset(a_TicCmd, 0, sizeof(*a_TicCmd));
 					D_XNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
 					XPlay->LocalAt = 0;
 					memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
@@ -2611,12 +2620,21 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 							a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[XPlay->ScreenID]);
 						}
 					
+					// Set angles from tic command
+					XPlay->LookAngle = a_TicCmd->Std.angleturn;
+					XPlay->AimAngle = a_TicCmd->Std.aiming;
+					
 					// Copy command to backup command
-					memmove(&XPlay->BackupTicCmd, a_TicCmd, sizeof(ticcmd_t));
+					memmove(&XPlay->BackupTicCmd, a_TicCmd, sizeof(*a_TicCmd));
+					XPlay->GotBackup = true;
 					
 					// Clear missing commands
 					XPlay->StatusBits &= ~DXPSB_MISSINGTICS;
 				}
+				
+				// No backup tic, this really sucks
+				else if (!XPlay->GotBackup)
+					XPlay->StatusBits |= DXPSB_MISSINGTICS;
 				
 				// Always move over status bits
 				a_TicCmd->Std.StatFlags = XPlay->StatusBits;
@@ -2641,8 +2659,10 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 		
 			// That tic better be found!
 			if (Buf)
+			{
 				// Copy specific player
 				memmove(a_TicCmd, &Buf->Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
+			}
 			
 			// If not, disconnect
 			else

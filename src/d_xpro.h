@@ -189,6 +189,8 @@ void D_XPRequestScreen(const int32_t a_ScreenID);
 void D_XPRunCS(D_XDesc_t* const a_Desc);
 void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* const a_Sum, const uint32_t a_Size, I_HostAddress_t* const a_Addr, const tic_t a_TimeStart, const tic_t a_TimeEnd);
 
+void D_XPUploadTic(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd);
+
 /*** D_XBIND.C ***/
 
 bool_t D_XBHasConnection(void);

@@ -1424,9 +1424,15 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 {
 	uint32_t i, j;
 	thinker_t* Thinker;
-	mobj_t* mo;
 	sector_t* sect;
 	line_t* line;
+	
+	mobj_t* mo;
+	fireflicker_t* flicker;
+	lightflash_t* lightflash;
+	strobe_t* strobe;
+	glow_t* glow;
+	lightlevel_t* lightfade;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1616,25 +1622,58 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 				// Vertical Door
 			case PTT_VERTICALDOOR:
 				break;
-	
+			
 				// Light Source
 			case PTT_FIREFLICKER:
+				flicker = Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, &flicker->sector);
+				D_BSwi32(a_Str, flicker->count);
+				D_BSwi32(a_Str, flicker->maxlight);
+				D_BSwi32(a_Str, flicker->minlight);
 				break;
 	
 				// Light Source
 			case PTT_LIGHTFLASH:
+				lightflash = Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, &lightflash->sector);
+				D_BSwi32(a_Str, lightflash->count);
+				D_BSwi32(a_Str, lightflash->maxlight);
+				D_BSwi32(a_Str, lightflash->minlight);
+				D_BSwi32(a_Str, lightflash->maxtime);
+				D_BSwi32(a_Str, lightflash->mintime);
 				break;
 	
 				// Light Source
 			case PTT_STROBEFLASH:
+				strobe = Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, &strobe->sector);
+				D_BSwi32(a_Str, strobe->count);
+				D_BSwi32(a_Str, strobe->maxlight);
+				D_BSwi32(a_Str, strobe->minlight);
+				D_BSwi32(a_Str, strobe->darktime);
+				D_BSwi32(a_Str, strobe->brighttime);
 				break;
 	
 				// Light Source
 			case PTT_GLOW:
+				glow = Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, &glow->sector);
+				D_BSwi32(a_Str, glow->maxlight);
+				D_BSwi32(a_Str, glow->minlight);
+				D_BSwi32(a_Str, glow->direction);
 				break;
 	
 				// Light Source
 			case PTT_LIGHTFADE:
+				lightfade = Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, &lightfade->sector);
+				D_BSwi32(a_Str, lightfade->destlevel);
+				D_BSwi32(a_Str, lightfade->speed);
 				break;
 	
 				// Moving Surface
@@ -1951,10 +1990,16 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	P_LevelInfoEx_t* pli;
 	int32_t i, j, k, n, x;
 	thinker_t* Thinker;
-	mobj_t* mo;
 	sector_t* sect;
 	line_t* line;
 	tic_t Tic;
+	
+	mobj_t* mo;
+	fireflicker_t* flicker;
+	lightflash_t* lightflash;
+	strobe_t* strobe;
+	glow_t* glow;
+	lightlevel_t* lightfade;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -2213,22 +2258,55 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_FIREFLICKER:
+				flicker = (void*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, &flicker->sector);
+				flicker->count = D_BSri32(a_Str);
+				flicker->maxlight = D_BSri32(a_Str);
+				flicker->minlight = D_BSri32(a_Str);
 				break;
 	
 				// Light Source
 			case PTT_LIGHTFLASH:
+				lightflash = (void*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, &lightflash->sector);
+				lightflash->count = D_BSri32(a_Str);
+				lightflash->maxlight = D_BSri32(a_Str);
+				lightflash->minlight = D_BSri32(a_Str);
+				lightflash->maxtime = D_BSri32(a_Str);
+				lightflash->mintime = D_BSri32(a_Str);
 				break;
 	
 				// Light Source
 			case PTT_STROBEFLASH:
+				strobe = (void*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, &strobe->sector);
+				strobe->count = D_BSri32(a_Str);
+				strobe->maxlight = D_BSri32(a_Str);
+				strobe->minlight = D_BSri32(a_Str);
+				strobe->darktime = D_BSri32(a_Str);
+				strobe->brighttime = D_BSri32(a_Str);
 				break;
 	
 				// Light Source
 			case PTT_GLOW:
+				glow = (void*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, &glow->sector);
+				glow->maxlight = D_BSri32(a_Str);
+				glow->minlight = D_BSri32(a_Str);
+				glow->direction = D_BSri32(a_Str);
 				break;
 	
 				// Light Source
 			case PTT_LIGHTFADE:
+				lightfade = (void*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, &lightfade->sector);
+				lightfade->destlevel = D_BSri32(a_Str);
+				lightfade->speed = D_BSri32(a_Str);
 				break;
 	
 				// Moving Surface

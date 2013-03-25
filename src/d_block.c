@@ -1165,6 +1165,9 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	if (!RelData)
 		return false;
 	
+	/* Init */
+	memset(Header, 0, sizeof(Header));
+	
 	/* No communications performed, ever? */
 	SkipFlats = false;
 	if (!RelData->NumFlats)
@@ -1175,10 +1178,7 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	
 	/* Setup stop point */
 	if (!SkipFlats)
-	{
 		Stop = RelData->RR % RelData->NumFlats;
-		memset(Header, 0, sizeof(Header));
-	}
 	
 	/* Go through all the rounds */
 	if (!SkipFlats)

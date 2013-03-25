@@ -626,7 +626,23 @@ void V_ClearImages(void);
 // This does video related operations (such as loading the palette)
 static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	int32_t i;	
+	
+	/* Nuke Palette */
+	if (l_DoomPals)
+	{
+		for (i = 0; i < l_NumDoomPals; i++)
+		{
+			if (l_DoomPals[i])
+				Z_Free(l_DoomPals[i]);
+			l_DoomPals[i] = NULL;
+		}
+		Z_Free(l_DoomPals);
+	}
+	l_DoomPals = NULL;
+	
 	/* Load PLAYPAL */
+	V_SetPalette(0);
 	
 	/* Load colormaps */
 	V_InitializeColormaps();

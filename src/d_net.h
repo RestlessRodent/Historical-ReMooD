@@ -198,6 +198,9 @@ typedef struct D_XPlayer_s
 	int32_t Color;								// Color
 	tic_t JoinExpire;							// Join attempt expires
 	char HexenClass[MAXPLAYERNAME];				// Hexen Class
+	
+	uint32_t LookAngle, AimAngle;				// Angle Remember (for server)
+	bool_t GotBackup;							// Got backup command
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */

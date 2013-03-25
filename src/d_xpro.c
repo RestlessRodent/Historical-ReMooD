@@ -41,6 +41,7 @@
 #include "w_wad.h"
 #include "p_saveg.h"
 #include "g_game.h"
+#include "p_demcmp.h"
 
 /*****************
 *** STRUCTURES ***
@@ -72,6 +73,7 @@ extern CONL_StaticVar_t l_SVJoinWindow;
 static D_XWADCheck_t* l_WADChecks = NULL;		// WAD Checks
 static bool_t l_PerfJoins = false;				// Performing Joins
 static int32_t l_SaveBeingSent = 0;				// Save game being sent
+static D_XNetTicBuf_t l_UpTic;					// Tic to upload
 
 /****************
 *** FUNCTIONS ***
@@ -156,6 +158,81 @@ void D_XPRequestScreen(const int32_t a_ScreenID)
 	/* Range Cap? */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
 		return;
+}
+
+/* D_XPUploadTic() -- Upload tic to server */
+void D_XPUploadTic(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd)
+{
+	ticcmd_t Merge;
+	int32_t PlayerID, i;
+	
+	/* Get PlayerID */
+	PlayerID = a_Player->InGameID;
+	
+	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
+		return;
+	
+	/* Set gametic, if newer */
+	if (a_GameTic > l_UpTic.GameTic)
+		l_UpTic.GameTic = a_GameTic;
+	
+	/* Modify looking angle */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitHasPlayer(i))
+			if (g_Splits[i].Console == PlayerID)
+			{
+				// Absolute Angles
+				if (P_XGSVal(PGS_COABSOLUTEANGLE))
+				{
+					localangle[i] += a_TicCmd->Std.BaseAngleTurn << 16;
+					a_TicCmd->Std.angleturn = localangle[i] >> 16;
+				}
+
+				// Doom Angles
+				else
+					a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
+		
+				// Aiming Angle
+				if (a_TicCmd->Std.buttons & BT_RESETAIM)
+					localaiming[i] = 0;
+				else
+				{
+					// Panning Look
+					if (a_TicCmd->Std.buttons & BT_PANLOOK)
+						localaiming[i] = a_TicCmd->Std.BaseAiming << 16;
+				
+					// Standard Look
+					else
+						localaiming[i] += a_TicCmd->Std.BaseAiming << 16;
+				}
+			
+				// Clip aiming pitch to not exceed bounds
+				a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[i]);
+			}
+	
+	/* If tic placed, merge into */
+	if (l_UpTic.PIGRevMask & (1 << PlayerID))
+	{
+	}
+	
+	/* Tic not yet placed */
+	else
+	{
+		// Place it now
+		l_UpTic.PIGRevMask |= (1 << PlayerID);
+		
+		// Inject commands
+		memmove(&l_UpTic.Tics[PlayerID], a_TicCmd, sizeof(*a_TicCmd));
+	}
+	
+	/* Update aiming angles */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitHasPlayer(i))
+			if (g_Splits[i].Console == PlayerID)
+			{
+				l_UpTic.Tics[PlayerID].Std.angleturn = localangle[i] >> 16;
+				l_UpTic.Tics[PlayerID].Std.aiming = localaiming[i] >> 16;
+			}
 }
 
 /* DS_DumpSplitInfo() -- Dumps split info into packet */
@@ -1246,6 +1323,8 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_XNetTicBuf_t* To;
 	D_BS_t* BS;
 	I_HostAddress_t* AddrP;
+	uint8_t* EncDP;
+	uint32_t EncSP;
 	
 	/* Decode Data */
 	memset(&TicBuf, 0, sizeof(TicBuf));
@@ -1297,6 +1376,30 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_BSwu32(BS, a_Desc->CS.Client.SvMilli);
 	D_BSwu32(BS, I_GetTimeMS());
 	
+	// Dump local command buffers here (saves time, for the most part)
+	D_BSwu32(BS, l_UpTic.PIGRevMask);
+	if (l_UpTic.PIGRevMask)
+	{
+		// Reverse the mask
+		l_UpTic.PIGRevMask = ~l_UpTic.PIGRevMask;
+		
+		// Encode buffer data
+		EncDP = NULL;
+		EncSP = 0;
+		
+		D_XNetEncodeTicBuf(&l_UpTic, &EncDP, &EncSP);
+		
+		// Size of encode
+		D_BSwu16(BS, EncSP);
+		
+		// Data to encode?
+		if (EncDP && EncSP)
+			D_BSWriteChunk(BS, EncDP, EncSP);
+		
+		// Done encoding, wipe upload tics
+		memset(&l_UpTic, 0, sizeof(l_UpTic));
+	}
+	
 	D_BSRecordNetBlock(BS, a_Addr);
 	
 	/* Success! */
@@ -1306,9 +1409,15 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 /* DXP_TACK() -- Client acknowledged they recieved a tic */
 static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
-	D_XPlayer_t* XPlay;
+	D_XPlayer_t* XPlay, *Target;
 	tic_t AckTic;
 	uint32_t MsTime;
+	D_XNetTicBuf_t TicBuf;
+	int32_t i, j;
+	
+	uint32_t EncSize;
+	static uint8_t* Buf;
+	static size_t BufSize;
 	
 	/* Check */
 	if (!a_EP)
@@ -1338,6 +1447,68 @@ static bool_t DXP_TACK(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	/* Calculate Player Ping */
 	D_XNetCalcPing(XPlay);
+	
+	/* Read Commands (might be duped, oh well) */
+	memset(&TicBuf, 0, sizeof(TicBuf));
+	
+	// Read and mask
+	j = D_BSru32(a_Desc->RelBS);
+	
+	// Only if there is a mask
+	if (j)
+	{
+		// Read encoding size
+		EncSize = D_BSru16(a_Desc->RelBS);
+	
+		// Only if there is data encoded
+		if (EncSize)
+		{
+			// Setup buffer for buffer read
+			if (EncSize > BufSize)
+			{
+				if (Buf)
+					Z_Free(Buf);
+				Buf = Z_Malloc(EncSize + 256, PU_STATIC, NULL);
+				BufSize = EncSize;
+			}
+	
+			// Read Buffer
+			D_BSReadChunk(a_Desc->RelBS, Buf, EncSize);
+	
+			// Decode
+			D_XNetDecodeTicBuf(&TicBuf, Buf, EncSize);
+	
+			// Go through masked players
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				// No mask for this player
+				if (!(j & (1 << i)))
+					continue;	
+				
+				// Not in game?
+				if (!playeringame[i])
+					continue;
+		
+				// Find target player (their X buffer)
+				Target = players[i].XPlayer;
+		
+				// No target?
+				if (!Target)
+					continue;
+		
+				// Illegal data change (can't tic another player)
+				if (Target->HostID != XPlay->HostID)
+					continue;
+		
+				// Append to end
+				if (Target->LocalAt < MAXLBTSIZE - 1)
+				{
+					memmove(&Target->LocalBuf[Target->LocalAt], &TicBuf.Tics[i], sizeof(ticcmd_t));
+					Target->LocalAt++;
+				}
+			}
+		}
+	}
 	
 	/* Already acked this tic? */
 	if (AckTic <= XPlay->LastAckTic)
@@ -1508,7 +1679,7 @@ static bool_t DXP_TREQ(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	GameTic = D_BSrcu64(a_Desc->RelBS);
 	
 	/* Obtain that tic, if it hopefully exists */
-	Buf = D_XNetBufForTic(Buf, false);
+	Buf = D_XNetBufForTic(GameTic, false);
 	
 	// Nope!
 	if (!Buf)

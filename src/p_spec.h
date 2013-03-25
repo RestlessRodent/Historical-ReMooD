@@ -118,9 +118,9 @@ typedef struct
 {
 	thinker_t thinker;
 	sector_t* sector;
-	int count;
-	int maxlight;
-	int minlight;
+	int32_t count;
+	int32_t maxlight;
+	int32_t minlight;
 	
 } fireflicker_t;
 
@@ -128,11 +128,11 @@ typedef struct
 {
 	thinker_t thinker;
 	sector_t* sector;
-	int count;
-	int maxlight;
-	int minlight;
-	int maxtime;
-	int mintime;
+	int32_t count;
+	int32_t maxlight;
+	int32_t minlight;
+	int32_t maxtime;
+	int32_t mintime;
 	
 } lightflash_t;
 
@@ -140,11 +140,11 @@ typedef struct
 {
 	thinker_t thinker;
 	sector_t* sector;
-	int count;
-	int minlight;
-	int maxlight;
-	int darktime;
-	int brighttime;
+	int32_t count;
+	int32_t minlight;
+	int32_t maxlight;
+	int32_t darktime;
+	int32_t brighttime;
 	
 } strobe_t;
 
@@ -152,9 +152,9 @@ typedef struct
 {
 	thinker_t thinker;
 	sector_t* sector;
-	int minlight;
-	int maxlight;
-	int direction;
+	int32_t minlight;
+	int32_t maxlight;
+	int32_t direction;
 	
 } glow_t;
 
@@ -164,8 +164,8 @@ typedef struct
 {
 	thinker_t thinker;
 	sector_t* sector;
-	int destlevel;
-	int speed;
+	int32_t destlevel;
+	int32_t speed;
 } lightlevel_t;
 
 #define GLOWSPEED               8
