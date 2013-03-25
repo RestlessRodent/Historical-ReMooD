@@ -1457,7 +1457,7 @@ int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut)
 			{
 				// Matches this WAD?
 				if (ThisWAD == 0 && Info == D_GetThisIWAD())
-					ThisWAD = i;
+					ThisWAD = n;
 				
 				// Add to possible list
 				Z_ResizeArray((void**)&IWADListPV, sizeof(*IWADListPV),

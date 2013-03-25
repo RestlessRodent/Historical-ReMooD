@@ -1583,24 +1583,144 @@ static I_MusicDriver_t l_ALSAMidiDriver =
 /* I_ALSAMidiData_t -- ALSA Midi Data */
 typedef struct I_WinMidiData_s
 {
-	int Junk;
+	HMIDIOUT MidiOut;							// Handle for MIDI output
+	UINT MapperNum;								// Mapper Number
 } I_WinMidiData_t;
+
+
+// i_winmididev -- Win32 MIDI device to use
+CONL_StaticVar_t l_IWinMidiDev =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"i_winmididev", DSTR_CVHINT_IWINMIDIDEV, CLVVT_STRING, "",
+	NULL
+};
 
 /* IS_WinMidi_Init() -- /dev/midi Driver */
 static bool_t IS_WinMidi_Init(struct I_MusicDriver_s* const a_Driver)
 {
-	return false;
+#define BUFSIZE 24
+	char Buf[BUFSIZE];
+	I_WinMidiData_t* Data;
+	HMIDIOUT MidiOut;
+	UINT MapperNum, NumDevs, i, j, CheckNum;
+	MIDIOUTCAPS Caps;
+	TCHAR *in;
+	TCHAR ic;
+	static bool_t l_WinMidiReg;
+	
+	/* Register */
+	if (!l_WinMidiReg)
+	{
+		// Register OSS driver option
+		CONL_VarRegister(&l_IWinMidiDev);
+		
+		// Done
+		l_WinMidiReg = true;
+	}
+	
+	/* Attempt opening mapper */
+	MapperNum = MIDI_MAPPER;
+	
+	// If argument specified, try that
+	CheckNum = C_strtou32(l_IWinMidiDev.Value->String, NULL, 0);
+	
+	// Search through devices and select one based on cvar
+	NumDevs = midiOutGetNumDevs();
+	for (i = 0; i < NumDevs; i++)
+	{
+		// Get Caps for device
+		memset(&Caps, 0, sizeof(Caps));
+		if (midiOutGetDevCaps(i, &Caps, sizeof(Caps)) == MMSYSERR_NOERROR)
+		{
+			// Strip name to something more sensible
+			memset(Buf, 0, sizeof(Buf));
+			in = Caps.szPname;
+			j = 0;
+			
+			while (ic = *(in++))
+			{
+				// Ignore invalid chars (Unicode) and space
+				if (ic <= ' ' || ic > 0x7F)
+					continue;
+				
+				// Copy to buffer
+				if (j < BUFSIZE - 1)
+					Buf[j++] = ic;
+			}
+			
+			// Name Match? Or number match too
+			if (!strcasecmp(Buf, l_IWinMidiDev.Value->String) || (CheckNum > 0 && i == CheckNum))
+			{
+				MapperNum = i;
+				break;
+			}
+		}
+	}
+	
+	// Open it
+	MidiOut = NULL;
+	if (midiOutOpen(&MidiOut, MIDI_MAPPER, (DWORD_PTR)NULL, (DWORD_PTR)NULL, CALLBACK_NULL) != MMSYSERR_NOERROR)
+		return false;	// Failed to open
+	
+	// See which one was opened
+	midiOutGetID(MidiOut, &MapperNum);
+	CONL_PrintF("Opened Win32 MIDI Device %u\n", MapperNum);
+	
+	/* Well it worked! */
+	a_Driver->Size = sizeof(*Data);
+	Data = a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
+	
+	// Copy stuff over
+	Data->MidiOut = MidiOut;
+	
+	/* Done */
+	return true;
+#undef BUFSIZE
 }
 
 /* IS_WinMidi_Destroy() -- Destroys the driver */
 static bool_t IS_WinMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
 {
-	return false;
+	I_WinMidiData_t* Data;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Get Data */
+	Data = a_Driver->Data;
+	if (!Data)
+		return false;
+	
+	/* Close MIDI */
+	// Close
+	midiOutClose(Data->MidiOut);
+	
+	// Free
+	Z_Free(Data);
+	a_Driver->Data = NULL;
+	
+	// Done
+	return true;
 }
 
 /* IS_WinMidi_RawMIDI() -- Writes raw data to driver */
 static void IS_WinMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
 {
+	I_WinMidiData_t* Data;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Get Data */
+	Data = a_Driver->Data;
+	if (!Data)
+		return false;
+	
+	/* Send straight through */
+	midiOutShortMsg(Data->MidiOut, a_Msg);
 }
 
 // l_WinMidiDriver -- Win32 MIDI Driver

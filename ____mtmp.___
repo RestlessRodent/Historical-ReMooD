@@ -68,6 +68,7 @@ endif
 	__XX_ILDFLAGS = -lm -lglib
 	__XX_DEFINTRF ?= allegro
 	__XX_EXTRAOBJ = 
+	__XX_SYSOPENGL =
 
 # Windows CE
 `ei ?_WIN32_WCE | ?__MINGW32CE__
@@ -77,6 +78,7 @@ endif
 	__XX_ILDFLAGS = -lws2 -lm -Wl,--major-subsystem-version,4 -Wl,--minor-subsystem-version,20
 	__XX_DEFINTRF ?= win36c
 	__XX_EXTRAOBJ = 
+	__XX_SYSOPENGL =
 
 # Windows 32-bit and 64-bit
 `ei ?_WIN32
@@ -88,9 +90,10 @@ endif
 `en
 	__XX_EXESUFFIX = .exe
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
-	__XX_ILDFLAGS = -lm -lws2_32 -lmingw32 -mwindows
+	__XX_ILDFLAGS = -lm -lws2_32 -lwinmm -lmingw32 -mwindows
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = $(__XX_RC)/remood.rc
+	__XX_SYSOPENGL = -lopengl32
 
 # Linux
 `ei ?__linux__
@@ -100,6 +103,7 @@ endif
 	__XX_ILDFLAGS = -lm -lasound
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = 
+	__XX_SYSOPENGL = -lGL
 
 # Apple
 `ei ?__APPLE__
@@ -111,6 +115,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	# Classic
 `el
@@ -120,6 +125,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	#
 `en
@@ -134,6 +140,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	# Interix
 `ei ?__INTERIX
@@ -143,6 +150,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	# FreeBSD
 `ei ?__FreeBSD__
@@ -152,6 +160,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	# NetBSD
 `ei ?__NetBSD__
@@ -161,6 +170,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	# OpenBSD
 `ei ?__OpenBSD__
@@ -170,6 +180,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	# Solaris
 `ei ?__sun
@@ -179,6 +190,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 		
 	# Generic UNIX
 `el
@@ -188,6 +200,7 @@ endif
 		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
+		__XX_SYSOPENGL =
 	
 	#
 `en
@@ -234,53 +247,74 @@ endif
 ### SELECTED INTERFACE ###
 ##########################
 
+# OpenGL Init
+ifeq (,$(strip $(__INT_OPENGLLDFLAGS)))
+	__XX_FGLC = -D__REMOOD_OPENGL_SUPPORTED 
+	__XX_FGLD = $(__XX_SYSOPENGL)
+else
+	__XX_FGLC = $(__INT_OPENGLCFLAGS)
+	__XX_FGLD = $(__INT_OPENGLLDFLAGS)
+endif
+
 # SDL Interface
 ifeq (sdl,$(strip $(__XX_DEFINTRF)))
 	# Basic Settings
 	__XX_IFACEDIR = sdl
 	__XX_FPREFIX = s
-	__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS) $(__INT_OPENGLCFLAGS)
-	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS) $(__INT_OPENGLLDFLAGS)
+	__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS) $(__XX_FGLC)
+	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS) $(__XX_FGLD)
 else
 
 # Allegro Interface
 ifeq (allegro,$(strip $(__XX_DEFINTRF)))
+	__XX_FGLC :=
+	__XX_FGLD :=
+	
 	__XX_IFACEDIR = allegro
 	__XX_FPREFIX = a
-	__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO $(__INT_ALLEGROCFLAGS)
-	__XX_FLDFLAGS = $(__INT_ALLEGROLDFLAGS)
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO $(__INT_ALLEGROCFLAGS) $(__XX_FGLC)
+	__XX_FLDFLAGS = $(__INT_ALLEGROLDFLAGS) $(__XX_FGLD)
 else
 
 # Raw Windows Interface
 ifeq (win36c,$(strip $(__XX_DEFINTRF)))
+	__XX_FGLC :=
+	__XX_FGLD :=
+	
 	__XX_IFACEDIR = win36c
 	__XX_FPREFIX = w
-	__XX_FCFLAGS = -D__REMOOD_INTERFACE_WIN36C
-	__XX_FLDFLAGS = 
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_WIN36C $(__XX_FGLC)
+	__XX_FLDFLAGS = $(__XX_FGLD)
 else
 
 # Headless interface
 ifeq (headless,$(strip $(__XX_DEFINTRF)))
+	__XX_FGLC :=
+	__XX_FGLD :=
+	
 	__XX_IFACEDIR = headless
 	__XX_FPREFIX = h
-	__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS
-	__XX_FLDFLAGS = 
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS $(__XX_FGLC)
+	__XX_FLDFLAGS = $(__XX_FGLD)
 else
 
 # PalmOS interface
 ifeq (palmos,$(strip $(__XX_DEFINTRF)))
+	__XX_FGLC :=
+	__XX_FGLD :=
+	
 	__XX_IFACEDIR = palmos
 	__XX_FPREFIX = p
-	__XX_FCFLAGS = -D__REMOOD_INTERFACE_PALMOS
-	__XX_FLDFLAGS = 
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_PALMOS $(__XX_FGLC)
+	__XX_FLDFLAGS = $(__XX_FGLD)
 else
 
 # OpenGL+GLUT+OpenAL interface
 ifeq (glutal,$(strip $(__XX_DEFINTRF)))
 	__XX_IFACEDIR = glutal
 	__XX_FPREFIX = g
-	__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_GLUTAL $(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
-	__XX_FLDFLAGS = $(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
+	__XX_FCFLAGS = -D__REMOOD_OPENGL_SUPPORTED -D__REMOOD_INTERFACE_GLUTAL $(__XX_FGLC) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
+	__XX_FLDFLAGS = $(__XX_FGLD) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
 else
 
 # Nintendo GC/Wii interface

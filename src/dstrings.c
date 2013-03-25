@@ -188,8 +188,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	{			   "CVHINT_IENABLEMOUSE", "Enable mouse input."},
 	{			"CVHINT_IENABLEJOYSTICK", "Enable joystick input."},
-	{				"CVHINT_IOSSMIDIDEV", "Open Sound System /dev/midi device to use when playing MIDI music."},
-	{			   "CVHINT_IALSAMIDIDEV", "ALSA device to use when playing MIDI music."},
+	{				"CVHINT_IOSSMIDIDEV", "OSS device to use when playing MIDI music. (Pathname to MIDI device such as /dev/midi)"},
+	{			   "CVHINT_IALSAMIDIDEV", "ALSA device to use when playing MIDI music. (Client:Port to MIDI device such as 128:0)"},
+	{				"CVHINT_IWINMIDIDEV", "Win32 device to use when playing MIDI music. (Name or number of device such as 0 or \"midimapper\")"},
 	
 	{			"CVHINT_SNDSPEAKERSETUP", "Number of speakers to use."},
 	{				 "CVHINT_SNDQUALITY", "Quality of sound to be outputted."},

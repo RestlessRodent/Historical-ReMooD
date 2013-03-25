@@ -217,7 +217,7 @@ endif
 ifneq (,$(strip $(OPENGL_LDFLAGS)))
 	export __INT_OPENGLLDFLAGS := $(OPENGL_LDFLAGS)
 else
-	export __INT_OPENGLLDFLAGS := -lGL
+	export __INT_OPENGLLDFLAGS :=
 endif
 
 ### GLUT ###
