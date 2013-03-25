@@ -495,7 +495,7 @@ uint8_t I_NumJoysticks(void);
 void I_GetEvent(void);
 ticcmd_t* I_BaseTiccmd(void);
 char* I_GetEnvironment(const char* const a_VarName);
-bool_t I_CheckFileAccess(const char* const a_Path, const bool_t a_Write);
+bool_t I_CheckFileAccess(const char* const a_Path, const bool_t a_Write, bool_t* const a_IsDir);
 uint16_t I_GetCurrentPID(void);
 
 int VID_NumModes(void);

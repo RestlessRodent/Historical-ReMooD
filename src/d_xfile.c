@@ -317,13 +317,19 @@ bool_t D_XFPrepFile(const char* const a_File, int32_t* const a_FileRef)
 	MD5_CTX MD5Sum;
 	uint64_t n;
 	uint8_t RawSum[16];
+	bool_t IsDir;
 	
 	/* Check */
 	if (!a_File || !a_FileRef)
 		return false;
 	
 	/* See if it exists first */
-	if (!I_CheckFileAccess(a_File, false))
+	IsDir = false;
+	if (!I_CheckFileAccess(a_File, false, &IsDir))
+		return false;
+	
+	// Do not open directories
+	if (IsDir)
 		return false;
 	
 	/* Try opening file */

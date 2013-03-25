@@ -1527,6 +1527,43 @@ static bool_t DXP_TREQ(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return true;
 }
 
+/* DXP_INFO() -- Information Request */
+static bool_t DXP_INFO(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	D_BS_t* BS;
+	bool_t IsServer;
+	uint32_t GameID;
+	
+	/* Read Game ID */
+	GameID = D_BSru32(a_Desc->RelBS);
+	
+	// Do not permit game ID queries of non-zero
+		// These are reserved for the proxy server
+	if (GameID > 0)
+		return false;
+	
+	/* Reply on standard stream */
+	BS = a_Desc->StdBS;
+	
+	IsServer = D_XNetIsServer();
+	
+	/* Build game information */
+	// Base Info
+	D_BSBaseBlock(BS, "IXBI");
+	
+	D_BSwu8(BS, (IsServer ? 0x01 : 0x00));		// More bits for later usage
+	
+	D_BSRecordNetBlock(BS, a_Addr);
+	
+	// Settings
+	D_BSBaseBlock(BS, "IXST");
+	
+	D_BSRecordNetBlock(BS, a_Addr);
+	
+	/* Success! */
+	return true;
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1563,6 +1600,7 @@ static const struct
 	{"TRYJ", DXP_TRYJ, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"TREQ", DXP_TREQ, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"FILE", DXP_FILE, PF_ONAUTH},
+	{"INFO", DXP_INFO, PF_MASTER | PF_NOREL},
 	
 	{NULL}
 };

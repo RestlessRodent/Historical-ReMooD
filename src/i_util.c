@@ -1479,6 +1479,7 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	char* Clone, *DirName;
 	char* PathEnv, *End;
 	size_t j;
+	bool_t IsDir;
 #endif
 	
 	/* Check */
@@ -1599,15 +1600,17 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 						strncat(CheckPath, "/", PATH_MAX);
 						strncat(CheckPath, DirName, PATH_MAX);
 						
-						// See if it exists here
-						if (I_CheckFileAccess(CheckPath, false))
-						{
-							// Copy base directory path
-							strncpy(a_Out, PathEnv, (j < a_Size ? j : a_Size));
+						// See if it exists here (and it is not a directory)
+						IsDir = false;
+						if (I_CheckFileAccess(CheckPath, false, &IsDir))
+							if (!IsDir)
+							{
+								// Copy base directory path
+								strncpy(a_Out, PathEnv, (j < a_Size ? j : a_Size));
 							
-							// Stop looping
-							break;
-						}
+								// Stop looping
+								break;
+							}
 					
 						// Go to end
 						if (End)
@@ -1932,7 +1935,7 @@ char* I_GetEnvironment(const char* const a_VarName)
 }
 
 /* I_CheckFileAccess() -- Checks file read/write */
-bool_t I_CheckFileAccess(const char* const a_Path, const bool_t a_Write)
+bool_t I_CheckFileAccess(const char* const a_Path, const bool_t a_Write, bool_t* const a_IsDir)
 {
 	/* On WinCE, always return true */
 #if defined(_WIN32_WCE)
@@ -1958,13 +1961,31 @@ bool_t I_CheckFileAccess(const char* const a_Path, const bool_t a_Write)
 	if (a_Write && (Attribs & FILE_ATTRIBUTE_READONLY))
 		return false;
 	
+	// Set directory status
+	if (a_IsDir)
+		*a_IsDir = !!(Attribs & FILE_ATTRIBUTE_DIRECTORY);
+	
 	// Otherwise success
 	return true;
 	
 	/* Use access() */
 #else
 	int Modes, Ret;
+	struct stat Stat;
 	
+	/* Stat the file (see if it is a dir) */
+	if (a_IsDir)
+	{
+		// Init to false
+		*a_IsDir = false;
+		
+		// Now see if it is a dir
+		if (stat(a_Path, &Stat) == 0)
+			if (Stat.st_mode & S_IFDIR)
+				*a_IsDir = true;
+	}
+	
+	/* Use access */
 	Modes = R_OK | (a_Write ? W_OK : 0);
 	return !access(a_Path, Modes);	// zero means OK
 #endif
@@ -2272,7 +2293,7 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 	char CheckBuffer[PATH_MAX];
 	char BaseWAD[PATH_MAX];
 	const char* p, *bn;
-	bool_t Found;
+	bool_t Found, IsDir;
 	
 	/* Name is required and a size must be given if a_OutPath is set */
 	// List and count must be available also
@@ -2298,6 +2319,10 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 			strncpy(BaseWAD, WL_BaseNameEx(a_Name), PATH_MAX);
 			p = BaseWAD;
 			bn = BaseWAD;
+			
+			// Basename is NULL
+			if (!bn[0])
+				return false;
 		}
 		
 		// Now search (explicit names)
@@ -2312,8 +2337,13 @@ bool_t I_LocateFile(const char* const a_Name, const uint32_t a_Flags, const char
 			strncat(CheckBuffer, p, PATH_MAX);
 			
 			// Check whether we can read it
-			if (I_CheckFileAccess(CheckBuffer, false))
+			IsDir = false;
+			if (I_CheckFileAccess(CheckBuffer, false, &IsDir))
 			{
+				// If a directory, ignore
+				if (IsDir)
+					continue;
+				
 				// Send to output buffer (if it was passed)
 				if (a_OutPath)
 					strncpy(a_OutPath, CheckBuffer, a_OutSize);

@@ -1881,6 +1881,7 @@ void D_LoadGameFilesEx(void)
 		
 		// OK?
 		if (CheckWAD)
+		{
 			if (WL_LocateWAD(CheckWAD, NULL, DiscoveredPath, PATH_MAX))
 				OK |= 1;
 			else
@@ -1891,11 +1892,15 @@ void D_LoadGameFilesEx(void)
 				if (WL_LocateWAD(CheckWAD, NULL, DiscoveredPath, PATH_MAX))
 					OK |= 1;
 			}
+		}
 		
-		// Debug
-		if (devparm)
-			if (OK)
+		// No argument passed!?
+		else
+		{
+			if (devparm)
 				CONL_PrintF("D_LoadGameFilesEx: Pass via -iwad not found\n");
+			OK &= ~1;	// Not OK, missing argument
+		}
 	}
 	
 	// Not found, do standard rotary search

@@ -204,6 +204,11 @@ typedef enum D_DiffBits_e
 
 extern const int32_t c_TCDataSize[NUMDTCT];
 
+/* D_XNetSyncCodeInfo_t -- Sync Code Data (sync debugging) */
+typedef struct D_XNetSyncCodeInfo_s
+{
+	uint32_t Code;								// Generated Code
+} D_XNetSyncCodeInfo_t;
 
 /* D_XNetTicBuf_t -- Tic Command Buffer */
 typedef struct D_XNetTicBuf_s
