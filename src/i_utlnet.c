@@ -67,9 +67,6 @@
 	#include <errno.h>
 	
 	#define __REMOOD_DONTWAITMSG MSG_DONTWAIT
-	
-	#define __getaddrinfo getaddrinfo
-	#define __freeaddrinfo freeaddrinfo
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
 	#include <sys/socket.h>
@@ -85,13 +82,9 @@
 	#include <winsock2.h>
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
-	
 	#include <wspiapi.h>
 	
 	#define __REMOOD_DONTWAITMSG 0
-	
-	#define __getaddrinfo WspiapiLegacyGetAddrInfo
-	#define __freeaddrinfo WspiapiFreeAddrInfo
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKNETLIB
 
@@ -425,7 +418,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 #endif
 
 	/* Get address info */
-	if (__getaddrinfo(Buf, NULL, &AddrInfo, &Find) != 0)
+	if (getaddrinfo(Buf, NULL, &AddrInfo, &Find) != 0)
 		return false;
 	
 	/* Rove through addresses */
@@ -457,7 +450,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			a_Host->Port = MatchPort;
 			
 			// Done
-			__freeaddrinfo(Find);
+			freeaddrinfo(Find);
 			return true;
 		}
 		
@@ -478,13 +471,13 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			a_Host->Port = MatchPort;
 			
 			// Success!
-			__freeaddrinfo(Find);
+			freeaddrinfo(Find);
 			return true;
 		}
 	}
 	
 	/* Free address info */
-	__freeaddrinfo(Find);
+	freeaddrinfo(Find);
 	
 	/* No match found */
 	return false;
