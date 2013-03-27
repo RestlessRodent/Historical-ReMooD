@@ -2087,24 +2087,29 @@ void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset)
 /* D_XNetChangeLocalProf() -- Change local screen to use this profile */
 void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile)
 {
+	D_XPlayer_t* XPlay;	
+	
 	/* Check */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || !a_Profile)
 		return;
 	
+	/* Get */
+	XPlay = g_Splits[a_ScreenID].XPlayer;
+	
 	/* No player? */
-	if (!g_Splits[a_ScreenID].XPlayer)
+	if (!XPlay)
 		return;
 	
 	/* Set screen to use profile */
-	g_Splits[a_ScreenID].XPlayer->Profile = a_Profile;
+	XPlay->Profile = a_Profile;
 	g_Splits[a_ScreenID].Profile = a_Profile;
 	
 	// If player is attached, switch profile
-	if (g_Splits[a_ScreenID].XPlayer->Player)
-		g_Splits[a_ScreenID].XPlayer->Player->ProfileEx = a_Profile;
+	if (XPlay->Player)
+		XPlay->Player->ProfileEx = a_Profile;
 	
 	// Copy UUID to XPlayer
-	strncpy(g_Splits[a_ScreenID].XPlayer->ProfileUUID, a_Profile->UUID, MAXUUIDLENGTH);
+	strncpy(XPlay->ProfileUUID, a_Profile->UUID, MAXUUIDLENGTH);
 	
 	/* Auto-Grab Joystick? */
 	// Only if it isn't grabbed by someone else
@@ -2116,15 +2121,12 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 		}
 	
 	/* Send information to server to change colors and stuff */
-	D_XNetSendColors(g_Splits[a_ScreenID].XPlayer);
-}
-
-/* D_XNetSendColors() -- Sends colors and such to server */
-void D_XNetSendColors(D_XPlayer_t* const a_Player)
-{
-	/* Check */
-	if (!a_Player)
-		return;
+	D_XNetPlayerPref(XPlay, false, DXPP_ACCOUNTNAME, a_Profile->AccountName);
+	D_XNetPlayerPref(XPlay, false, DXPP_PROFILEUUID, a_Profile->UUID);
+	D_XNetPlayerPref(XPlay, false, DXPP_DISPLAYNAME, a_Profile->DisplayName);
+	D_XNetPlayerPref(XPlay, false, DXPP_SKINCOLOR, a_Profile->Color);
+	D_XNetPlayerPref(XPlay, false, DXPP_VTEAM, a_Profile->VTeam);
+	D_XNetPlayerPref(XPlay, false, DXPP_HEXENCLASS, a_Profile->HexenClass);
 }
 
 /* D_XNetTryJoin() -- Player attempt to join game */
@@ -2376,7 +2378,17 @@ void D_XNetSetServerName(const char* const a_NewName)
 /* D_XNetPlayerPref() -- Change preference of player */
 void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const D_XPlayerPref_t a_Pref, const intptr_t a_Value)
 {
+#define BUFSIZE (MAXPLAYERNAME + MAXPLAYERNAME + 1)
+	char Buf[BUFSIZE];
 	bool_t StrValue;
+	D_ProfileEx_t* Prof;
+	int32_t i, ModVal;
+	
+	ticcmd_t* Place;
+	uint8_t* Wp;
+	
+	D_BS_t* BS;
+	I_HostAddress_t* AddrP;
 	
 	/* Check */
 	if (!a_Player)
@@ -2391,12 +2403,26 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 		case DXPP_SKINCOLOR:
 		case DXPP_VTEAM:
 			StrValue = false;
+			
+			ModVal = a_Value;
 			break;
 			
 			// String
 		case DXPP_DISPLAYNAME:
 		case DXPP_HEXENCLASS:
+		case DXPP_PROFILEUUID:
+		case DXPP_ACCOUNTNAME:
 			StrValue = true;
+			
+			// Safe String
+			memset(Buf, 0, sizeof(Buf));
+			for (i = 0; i < MAXPLAYERNAME + MAXPLAYERNAME; i++)
+			{
+				Buf[i] = ((const char*)a_Value)[i];
+				
+				if (!Buf[i])
+					break;
+			}
 			break;
 		
 			// Unknown
@@ -2404,7 +2430,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 			return;
 	}
 	
-	/* From Running Tics */
+	/* From Running Tics (server changed it) */
 	if (a_FromTic)
 	{
 		// Which preference?
@@ -2412,79 +2438,155 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 		{
 				// Skin Color
 			case DXPP_SKINCOLOR:
-				a_Player->Color = a_Value;
+				a_Player->Color = ModVal;
 				
 				// Change in game color
 				if (a_Player->Player)
-					a_Player->Player->skincolor = a_Value % MAXSKINCOLORS;
+				{
+					a_Player->Player->skincolor = ModVal % MAXSKINCOLORS;
+					
+					// Need to change translation
+					if (a_Player->Player->mo)
+					{
+						a_Player->Player->mo->flags &= ~MF_TRANSLATION;
+						a_Player->Player->mo->flags |= (a_Player->Player->skincolor) << MF_TRANSSHIFT;
+					}
+				}
 				break;
 			
 				// Virtual Team
 			case DXPP_VTEAM:
-				a_Player->VTeam = a_Value;
+				a_Player->VTeam = ModVal;
 				
 				// Change in game team
 				if (a_Player->Player)
-					a_Player->Player->VTeamColor = a_Value;
+				{
+					i = a_Player->Player->VTeamColor;
+					a_Player->Player->VTeamColor = ModVal;
+					
+					// Evil Change of Team? Remove their object if they have one
+						// forces a reborn!
+					if (P_GMIsTeam() && P_XGSVal(PGS_CONEWGAMEMODES))
+						if (i != a_Player->Player->VTeamColor)
+							if (a_Player->Player->mo)
+								P_RemoveMobj(a_Player->Player->mo);
+				}
 				break;
 			
 				// Display Name
 			case DXPP_DISPLAYNAME:
 				// Change their in game name if they are playing
 				if (a_Player->Player)
-					D_NetSetPlayerName(a_Player->Player - players, (const char*)a_Value);
+					D_NetSetPlayerName(a_Player->Player - players, Buf);
 				
 				// Otherwise set their name (no need to broadcast)
 				else
-					strncpy(a_Player->DisplayName, (const char*)a_Value, MAXPLAYERNAME - 1);
+					strncpy(a_Player->DisplayName, Buf, MAXPLAYERNAME - 1);
+				break;
+			
+				// Account Name
+			case DXPP_ACCOUNTNAME:
+				strncpy(a_Player->AccountName, Buf, MAXPLAYERNAME - 1);
+				break;
+				
+				// Profile UUID
+			case DXPP_PROFILEUUID:
+				// If local, try and relate change
+				if (a_Player->Flags & DXPF_LOCAL)
+				{
+					Prof = D_FindProfileEx(Buf);
+					
+					// Found, so change it
+					if (Prof)
+					{
+						// Use this instead
+						strncpy(a_Player->ProfileUUID, Prof->UUID, MAXPLAYERNAME - 1);
+						
+						// Set profile references to that (so key binds take effect)
+						a_Player->Profile = Prof;
+						if (a_Player->Player)
+							a_Player->Player->ProfileEx = Prof;
+						if (a_Player->ScreenID >= 0 && a_Player->ScreenID < MAXSPLITSCREEN)
+							if (g_Splits[a_Player->ScreenID].XPlayer == a_Player)
+								g_Splits[a_Player->ScreenID].Profile = Prof;
+					}
+				}
+				
+				// Blind copy as local
+				else
+					strncpy(a_Player->ProfileUUID, Buf, MAXPLAYERNAME - 1);
 				break;
 		
 				// Hexen Class
 			case DXPP_HEXENCLASS:
-				strncpy(a_Player->HexenClass, (const char*)a_Value, MAXPLAYERNAME - 1);
+				strncpy(a_Player->HexenClass, Buf, MAXPLAYERNAME - 1);
 				break;
 		}
 	}
 	
-	/* Otherwise */
+	/* Otherwise, place change or request server to change it */
 	else
 	{
 		// If server, elicit change into tic structure
+			// Inject into tic stream to inform clients of changes
 		if (D_XNetIsServer())
 		{
-			
-			// Affect the server side of things
-			switch (a_Pref)
+			// If a string, use long version
+			if (StrValue)
 			{
-					// Skin Color
-				case DXPP_SKINCOLOR:
-					a_Player->Color = a_Value;
-					break;
+				if (D_XNetGlobalTic(DTCT_XPLAYERPREFSTR, &Wp))
+				{
+					LittleWriteUInt32(&Wp, a_Player->ID);
+					LittleWriteUInt16(&Wp, a_Pref);
 					
-					// Virtual Team
-				case DXPP_VTEAM:
-					a_Player->VTeam = a_Value;
-					break;
-			
-					// Display Name
-				case DXPP_DISPLAYNAME:
-					strncpy(a_Player->DisplayName, (const char*)a_Value, MAXPLAYERNAME - 1);
-					break;
-					
-					// Hexen Class
-				case DXPP_HEXENCLASS:
-					strncpy(a_Player->HexenClass, (const char*)a_Value, MAXPLAYERNAME - 1);
-					break;
+					for (i = 0; i < MAXPLAYERNAME + MAXPLAYERNAME; i++)
+						WriteUInt8(&Wp, Buf[i]);
+				}
 			}
 			
-			// Inject into tic stream to inform clients of changes
+			// Otherwise, if an int, just use one
+			else
+			{
+				if (D_XNetGlobalTic(DTCT_XPLAYERPREFINT, &Wp))
+				{
+					LittleWriteUInt32(&Wp, a_Player->ID);
+					LittleWriteUInt16(&Wp, a_Pref);
+					LittleWriteInt32(&Wp, ModVal);
+				}
+			}
 		}
 		
 		// Otherwise, if client, request change
 		else
 		{
+			BS = D_XBRouteToServer(NULL, &AddrP);
+					
+			if (BS)
+			{
+				D_BSBaseBlock(BS, "PREF");
+				
+				D_BSwu32(BS, a_Player->ID);
+				D_BSwu16(BS, a_Pref);
+				
+				// String
+				if (StrValue)
+				{
+					D_BSwu8(BS, 1);
+					D_BSws(BS, Buf);
+				}
+				
+				// Int
+				else
+				{
+					D_BSwu8(BS, 0);
+					D_BSwi32(BS, ModVal);
+				}
+				
+				D_BSRecordNetBlock(BS, AddrP);
+			}
 		}
 	}
+#undef BUFSIZE
 }
 
 /* D_XNetCalcPing() -- Calculates Player Ping */
@@ -4250,7 +4352,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				{
 					g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
 					j++;
-				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_MobjOnSameTeam(&players[g_Splits[SID].Console].mo, &players[g_Splits[SID].Display].mo)));
+				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_MobjOnSameTeam(players[g_Splits[SID].Console].mo, players[g_Splits[SID].Display].mo)));
 				
 				// Change POV
 				SpyPOV = &players[g_Splits[SID].Display];

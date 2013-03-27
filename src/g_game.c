@@ -662,6 +662,31 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 						P_MorphObjectClass(players[u32[0]].mo, INFO_GetTypeByName(NameBuf));
 				break;
 				
+				// Preferences
+			case DTCT_XPLAYERPREFSTR:
+			case DTCT_XPLAYERPREFINT:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
+				
+				// Read String?
+				if (Command == DTCT_XPLAYERPREFSTR)
+				{
+					for (i = 0; i < MAXPLAYERNAME + MAXPLAYERNAME; i++)
+						NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					
+					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], (intptr_t)NameBuf);
+				}
+				
+				// Read Integer
+				else
+				{
+					i32[0] = LittleReadInt32((uint32_t**)&Rp);
+					
+					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], i32[0]);
+				}
+				break;
+				
 			default:
 				CONL_PrintF("Unknown command %i.\n", Command);
 				Command = 0;

@@ -1476,8 +1476,14 @@ void P_SpecInit(const int32_t a_PlayerNum)
 	static bool_t LastFlipped;
 	
 	/* All */
+	// Clear object refs
+	if (a_PlayerNum == -3)
+	{
+		
+	}
+	
 	// This is called on a new level, possibly
-	if (a_PlayerNum < 0)
+	else if (a_PlayerNum < 0)
 	{
 		// If the map did not change, do not reset (so specs don't get jerked
 		// all the time). However -2 forces it, in case of savegames

@@ -1742,6 +1742,62 @@ static bool_t DXP_INFO(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return true;
 }
 
+/* DXP_PREF() -- Preference Change */
+static bool_t DXP_PREF(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+#define BUFSIZE (MAXPLAYERNAME + MAXPLAYERNAME + 1)
+	int32_t i;
+	D_XPlayer_t* XPlay;
+	
+	uint32_t ID;
+	uint16_t Code;
+	uint8_t Type;
+	int32_t IntVal;
+	char StrVal[BUFSIZE];
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Load Packet */
+	// Clear buffer
+	memset(StrVal, 0, sizeof(StrVal));
+	
+	ID = D_BSru32(a_Desc->RelBS);
+	Code = D_BSru16(a_Desc->RelBS);
+	Type = D_BSru8(a_Desc->RelBS);
+	
+	/* Which type? */
+	switch (Type)
+	{
+			// Integer
+		case 0:
+			IntVal = D_BSri32(a_Desc->RelBS);
+			break;
+		
+			// String
+		case 1:
+			D_BSrs(a_Desc->RelBS, StrVal, BUFSIZE - 1);
+			break;
+		
+			// Unknown
+		default:
+			return false;
+	}
+	
+	/* Find player by ID */
+	XPlay = D_XNetPlayerByID(ID);
+	
+	// Confirm player
+	if (!XPlay || XPlay->HostID != a_EP->HostID)
+		return false;
+	
+	/* Call function */
+	D_XNetPlayerPref(XPlay, false, Code, (Type == 1 ? (intptr_t)StrVal : IntVal));
+	return true;
+#undef BUFSIZE
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1779,6 +1835,7 @@ static const struct
 	{"TREQ", DXP_TREQ, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"FILE", DXP_FILE, PF_ONAUTH},
 	{"INFO", DXP_INFO, PF_MASTER | PF_NOREL},
+	{"PREF", DXP_PREF, PF_ONAUTH | PF_SERVER | PF_REL},
 	
 	{NULL}
 };

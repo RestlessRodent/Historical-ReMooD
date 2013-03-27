@@ -219,11 +219,17 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint16 Player ID
 		// uint32 Unique ID
 	
-	// DTCT_XPLAYERPREF, Player Preference
+	// DTCT_XPLAYERPREFSTR, Player Preference (Str)
 	4 + 2 + MAXPLAYERNAME + MAXPLAYERNAME,
 		// uint32 Unique ID
 		// uint16 Preference Type
-		// hybrid (uint32/uint8*) Preference Data
+		// uint8* Preference String
+	
+	// DTCT_XPLAYERPREFINT, Player Preference (Int)
+	4 + 2 + 4,
+		// uint32 Unique ID
+		// uint16 Preference Type
+		// int32  Preference Int
 };
 
 /*** GLOBALS ***/

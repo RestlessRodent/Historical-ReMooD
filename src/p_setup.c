@@ -234,6 +234,9 @@ bool_t P_ExClearLevel(void)
 {
 	size_t i;
 	
+	/* De-initialize Fake Player */
+	P_SpecInit(-3);
+	
 	/* Stop Playing Music and Sound */
 	S_StopSounds();
 	//S_StopMusic();
@@ -262,6 +265,7 @@ bool_t P_ExClearLevel(void)
 		players[i].TotalDeaths = 0;
 		players[i].TotalFrags = 0;
 		players[i].addfrags = 0;
+		players[i].mo = NULL;
 		
 		memset(players[i].frags, 0, sizeof(players[i].frags));
 		
