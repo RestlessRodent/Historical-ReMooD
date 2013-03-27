@@ -2445,6 +2445,10 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 	// Double check
 	if (!n)
 		return 0;
+	
+	// Default BSkip	
+	if (BSkip)
+		*BSkip = 1;
 		
 	/* Convert in stages (I think) */
 	// Single byte
@@ -2550,6 +2554,10 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 		Feed <<= 6;
 		MBChar++;
 		
+		// Illegal?
+		if (!(*MBChar & 0x80))
+			return '?';
+		
 		Feed |= (*MBChar & 0x3F);
 		
 		if (BSkip)
@@ -2564,9 +2572,17 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 		Feed <<= 6;
 		MBChar++;
 		
+		// Illegal?
+		if (!(*MBChar & 0x80))
+			return '?';
+		
 		Feed |= (*MBChar & 0x3F);
 		Feed <<= 6;
 		MBChar++;
+		
+		// Illegal?
+		if (!(*MBChar & 0x80))
+			return '?';
 		
 		Feed |= (*MBChar & 0x3F);
 		
@@ -2582,13 +2598,25 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 		Feed <<= 6;
 		MBChar++;
 		
-		Feed |= (*MBChar & 0x3F);
-		Feed <<= 6;
-		MBChar++;
+		// Illegal?
+		if (!(*MBChar & 0x80))
+			return '?';
 		
 		Feed |= (*MBChar & 0x3F);
 		Feed <<= 6;
 		MBChar++;
+		
+		// Illegal?
+		if (!(*MBChar & 0x80))
+			return '?';
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		// Illegal?
+		if (!(*MBChar & 0x80))
+			return '?';
 		
 		Feed |= (*MBChar & 0x3F);
 		

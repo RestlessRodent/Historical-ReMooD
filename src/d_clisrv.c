@@ -44,6 +44,7 @@
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
+#include "d_xpro.h"
 
 //
 // NETWORKING
@@ -251,9 +252,17 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		// Run tick loops
 		while ((XXSNAR--) > 0)
 		{
+			// Do not do join windows in the middle of a tic!
+				// Otherwise they will miss the tic and lag out! Not to mention
+				// have a malformed save of sorts.
+			g_LockJW = true;
+			
 			// Run game ticker and increment the gametic
 			G_Ticker();
 			++gametic;
+			
+			// Can join people now
+			g_LockJW = false;
 			
 			// Single tics? -timedemo
 			if (singletics)

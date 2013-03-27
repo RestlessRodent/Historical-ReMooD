@@ -168,6 +168,8 @@ typedef struct D_XDesc_s
 *** GLOBALS ***
 **************/
 
+extern bool_t g_LockJW;							// Lock the join window
+
 extern D_XDesc_t* g_XSocket;					// Master Socket
 
 extern D_XEndPoint_t** g_XEP;					// End points
@@ -189,7 +191,8 @@ void D_XPRequestScreen(const int32_t a_ScreenID);
 void D_XPRunCS(D_XDesc_t* const a_Desc);
 void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* const a_Sum, const uint32_t a_Size, I_HostAddress_t* const a_Addr, const tic_t a_TimeStart, const tic_t a_TimeEnd);
 
-void D_XPUploadTic(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd);
+void D_XPPossiblyEncodeTics(D_BS_t* const a_BS);
+void D_XPEncodeLocalTics(D_BS_t* const a_BS);
 
 /*** D_XBIND.C ***/
 

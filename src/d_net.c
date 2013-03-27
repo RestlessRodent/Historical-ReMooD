@@ -587,7 +587,7 @@ D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create)
 			if (l_TicStore[i]->GameTic == a_GameTic)
 				return l_TicStore[i];
 	
-	/* Worth it? */
+	/* Not Worth it? */
 	if (a_GameTic < gametic)
 		return NULL;
 	
@@ -630,7 +630,7 @@ void D_XNetWipeBefores(const tic_t a_GameTic)
 }
 
 /* D_XNetEncodeTicBuf() -- Encodes tic buffer into more compact method */
-void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz)
+void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_XNetTicBufVersion_t a_VersionNum)
 {
 	// Size for a single player
 	// 384 + 2 + 2 + 4 + 1 + 2 + 2 + 32 + 1 + 4 + 2 + 2 + 1 + 1 + 1 + 8 = 449
@@ -658,6 +658,9 @@ void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, 
 	if (!Buf)
 		Buf = Z_Malloc(sizeof(*Buf) * BUFSIZE, PU_STATIC, NULL);
 	p = Buf;
+	
+	/* Write Version Number */
+	WriteUInt8(&p, a_VersionNum);
 	
 	/* Write Data */
 	// Encode gametic in multiple parts
@@ -822,7 +825,7 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 	uint32_t PIG, u32;
 	ticcmd_t* Cmd;
 	uint16_t* dsP;
-	uint8_t* dbP;
+	uint8_t* dbP, VersionNum;
 	int32_t i, j, z, ShiftMul;
 	
 	/* Check */
@@ -842,6 +845,9 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 	memset(a_TicBuf, 0, sizeof(*a_TicBuf));
 	
 	/* Read Data */
+	// Read Version
+	VersionNum = ReadUInt8(&p);
+	
 	// Read Gametic
 	ShiftMul = 0;
 	do
@@ -1006,7 +1012,7 @@ void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host)
 	/* Encode Commands */
 	OutD = NULL;
 	OutSz = 0;
-	D_XNetEncodeTicBuf(a_Buf, &OutD, &OutSz);
+	D_XNetEncodeTicBuf(a_Buf, &OutD, &OutSz, DXNTBV_LATEST);
 	NowTime = I_GetTimeMS();
 	
 	/* If host specified */
@@ -2480,25 +2486,6 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 	}
 }
 
-/* D_XNetUpPlayerTics() -- Upload tics to server */
-void D_XNetUpPlayerTics(D_XPlayer_t* const a_Player, const tic_t a_GameTic, ticcmd_t* const a_TicCmd)
-{
-	/* Check */
-	if (!a_Player)
-		return;
-	
-	/* Needs player */
-	if (!a_Player->Player)
-		return;
-	
-	/* Ignore on certain settings */
-	if ((a_Player->Flags & (DXPF_SERVER | DXPF_BOT | DXPF_LOCAL)) != DXPF_LOCAL)
-		return;
-	
-	/* Upload to server */
-	D_XPUploadTic(a_Player, a_GameTic, a_TicCmd);
-}
-
 /* D_XNetCalcPing() -- Calculates Player Ping */
 uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player)
 {
@@ -2708,6 +2695,8 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 /* D_XNetTicsToRun() -- Amount of tics to run */
 tic_t D_XNetTicsToRun(void)
 {
+#define BUFSIZE 48
+	char ErrBuf[BUFSIZE];
 	tic_t Diff, ThisTic;
 	bool_t Lagging, NonLocal;
 	int32_t i;
@@ -2832,7 +2821,10 @@ tic_t D_XNetTicsToRun(void)
 				
 				// If lag timer is past the threshold, kick
 				else if (g_ProgramTic >= XPlay->LagKill)
-					D_XNetKickPlayer(XPlay, "Timed out.", false);
+				{
+					snprintf(ErrBuf, BUFSIZE - 1, "Timed out. ( @ %u - %u)", (unsigned)Host->LastRanTic, (unsigned)gametic);
+					D_XNetKickPlayer(XPlay, ErrBuf, false);
+				}
 			}
 			
 			// If not lagging, clear indicators
@@ -2979,6 +2971,7 @@ tic_t D_XNetTicsToRun(void)
 	
 	/* Fell through? */
 	return 0;
+#undef BUFSIZE
 }
 
 /* D_XNetForceLag() -- Forces lag to the server */
@@ -4555,9 +4548,6 @@ void D_XNetUpdate(void)
 					M_ExPushMenu(ScrID, ProfMenu);
 					g_ResumeMenu++;
 				}
-				
-				// Continue on
-				D_XNetUpPlayerTics(XPlay, gametic, NULL);
 				continue;
 			}
 		
@@ -4587,9 +4577,6 @@ void D_XNetUpdate(void)
 		// Human player
 		else
 			D_XNetBuildTicCmd(XPlay, TicCmdP);
-		
-		// Send commands to server eventually
-		D_XNetUpPlayerTics(XPlay, gametic, TicCmdP);
 		
 		// No player for this one?
 		if (!XPlay->Player)
