@@ -352,6 +352,7 @@ bool_t P_CanUseWeapon(player_t* const a_Player, const PI_wepid_t a_Weapon);
 void P_SpecInit(const int32_t a_PlayerNum);
 struct player_s;
 struct player_s* P_SpecGet(const int32_t a_Screen);
+void P_SpecDelXPlayer(D_XPlayer_t* const a_XPlay);
 void P_SpecTicker(void);
 void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd);
 

@@ -285,6 +285,7 @@ void D_XBSocketDestroy(void)
 	I_NetCloseSocket(g_XSocket->Socket);
 	
 	/* Free socket */
+	// Now free it
 	Z_Free(g_XSocket);
 	g_XSocket = NULL;
 	
@@ -403,6 +404,12 @@ void D_XBDelEndPoint(D_XEndPoint_t* const a_XEP, const char* const a_Reason)
 	for (i = 0; i < g_NumXEP; i++)
 		if (g_XEP[i] == a_XEP)
 			g_XEP[i] = NULL;
+	
+	/* Look for clients that have this endpoint and terminate it */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Socket.EndPoint == a_XEP)
+				g_XPlays[i]->Socket.EndPoint = NULL;
 	
 	/* Delete endpoint */
 	Z_Free(a_XEP);

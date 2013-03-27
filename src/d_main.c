@@ -510,6 +510,11 @@ void D_Display(void)
 		I_UpdateNoBlit();
 		M_ExUIDrawer();
 		
+		// GhostlyDeath <March 27, 2013> -- Update network here to prevent lag outs
+		if (!i)	// But not every draw, wastes updates
+			D_XNetUpdate();
+		i = !i;
+		
 		if (!noblit)
 			I_FinishUpdate();		// page flip or blit buffer
 		
@@ -517,7 +522,7 @@ void D_Display(void)
 			// So that the game does not catch up during wipes!
 		g_IgnoreWipeTics++;
 	}
-	while (!done && I_GetTime() < (unsigned)y);
+	while (!done && nowtime < (unsigned)y);
 	
 	// GhostlyDeath <June 4, 2010> -- If a wipe never finished 100% we must end if
 	if (!done)
@@ -762,7 +767,12 @@ void D_DoomLoop(void)
 			
 			// Enough time to sleep?
 			if (DiffTime < TICSPERMS)
+			{
 				I_WaitVBL(TICSPERMS - DiffTime);
+				
+				// Update network state when leaving loop
+				D_XNetUpdate();
+			}
 		}
 	}
 }

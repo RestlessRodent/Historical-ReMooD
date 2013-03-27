@@ -1457,7 +1457,7 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 			continue;
 		
 		// Local?
-		if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
+		if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT | DXPF_DEFUNCT)) == DXPF_LOCAL)
 			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
 				l_SpecPlayers[XPlay->ScreenID].XPlayer = XPlay;
 	}
@@ -1505,6 +1505,27 @@ struct player_s* P_SpecGet(const int32_t a_Screen)
 	
 	/* Return associated screen */
 	return &l_SpecPlayers[a_Screen];
+}
+
+/* P_SpecDelXPlayer() -- Deletes XPlayer in screen */
+void P_SpecDelXPlayer(D_XPlayer_t* const a_XPlay)
+{
+	int i;
+	
+	/* Check */
+	if (!a_XPlay)
+		return;
+	
+	/* Go through */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (l_SpecPlayers[i].XPlayer == a_XPlay)
+		{
+			// Nuke
+			l_SpecPlayers[i].XPlayer = NULL;
+			
+			// Re-init spec spot
+			P_SpecInitOne(i);
+		}
 }
 
 /* P_SpecTicker() -- Ticks fake players */

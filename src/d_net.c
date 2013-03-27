@@ -1184,6 +1184,10 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// Consistency problems
 	l_ConsistencyFailed = false;
 	
+	// If connected, reset splits
+	if (l_IsConnected)
+		D_NCResetSplits(a_FromDemo);
+	
 	// Revert back to solo networking
 	if (!a_FromDemo)
 	{
@@ -1209,10 +1213,6 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// Just wipe ALL of it!
 	memset(players, 0, sizeof(players));
 	memset(playeringame, 0, sizeof(playeringame));
-	
-	// If connected, reset splits
-	if (l_IsConnected)
-		D_NCResetSplits(a_FromDemo);
 	
 	// Always reset demo splits though
 	D_NCResetSplits(true);
@@ -1408,15 +1408,39 @@ bool_t D_XNetIsServer(void)
 {
 	int32_t i;
 	
-	/* Grab server status from first local player */
-	for (i = 0; i < g_NumXPlays; i++)
-		if (g_XPlays[i])
-			if (g_XPlays[i]->Flags & DXPF_LOCAL)
-				return !!(g_XPlays[i]->Flags & DXPF_SERVER);
+	static int32_t XNISNum;
+	static D_XPlayer_t* XNISXPlay;
 	
 	/* If Dedicated, return true */
 	if (l_IsDedicated)
 		return true;
+	
+	/* Cached? */
+	if (XNISXPlay)
+	{
+		// Now illegal?
+		if (XNISNum >= g_NumXPlays || XNISXPlay != g_XPlays[XNISNum])
+		{
+			XNISNum = 0;
+			XNISXPlay = NULL;
+		}
+		
+		// Cached response
+		else
+			return true;
+	}
+	
+	/* Grab server status from first local player */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Flags & DXPF_LOCAL)
+				if (!!(g_XPlays[i]->Flags & DXPF_SERVER))
+				{
+					// Cache response for more "speed"
+					XNISNum = i;
+					XNISXPlay = g_XPlays[i];
+					return true;
+				}
 	
 	/* Fell through */
 	return false;
@@ -1740,6 +1764,9 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 	if (a_Player->Flags & DXPF_DEFUNCT)
 		return;
 	
+	/* Remove from split */
+	P_SpecDelXPlayer(a_Player);
+	
 	/* Write console message */
 	if (!(a_Player->Flags & DXPF_DEFUNCT))
 		CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n",
@@ -1815,7 +1842,12 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 			
 			// None left, Send them a disconnect notice
 			if (!j)
+			{
 				D_XPDropXPlay(a_Player, a_Reason);
+				
+				// Drop their endpoint
+				D_XBDelEndPoint(a_Player->Socket.EndPoint, a_Reason);
+			}
 		}
 	}
 	
@@ -4298,7 +4330,7 @@ void D_XNetUpdate(void)
 	D_XPlayer_t* XPlay, *XOrig;
 	ticcmd_t* TicCmdP;
 	M_UIMenu_t* ProfMenu;
-	static tic_t LastSpecTic;
+	static tic_t LastSpecTic, LastPT;
 	ticcmd_t MergeTrunk;
 	
 	static D_XPlayer_t DemoXPlay;
@@ -4311,9 +4343,16 @@ void D_XNetUpdate(void)
 	
 	I_OsPolling();				// i_getevent
 	D_ProcessEvents();			// menu responder ???!!!
-	CONL_Ticker();
-	D_JoySpecialTicker();
-	M_SMTicker();				// Simple Menu Ticker
+	
+	// This stuff is only important once a program tic
+	if (LastPT != g_ProgramTic)
+	{
+		CONL_Ticker();
+		D_JoySpecialTicker();
+		M_SMTicker();				// Simple Menu Ticker
+		
+		LastPT = g_ProgramTic;
+	}
 	
 	/* Handle Networking */
 	D_XPRunConnection();
@@ -4583,6 +4622,9 @@ void D_XNetUpdate(void)
 	
 	/* Modify spectators */
 	LastSpecTic = gametic;
+
+	/* Handle Networking, again */
+	D_XPRunConnection();
 }
 
 /* D_XNetInitialServer() -- Create Initial Server */
