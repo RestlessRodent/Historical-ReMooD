@@ -1147,6 +1147,13 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 			TMA = &New->MouseAxis[i][j];
 		}
 		
+		// Alias for null
+		if (strcasecmp(a_ArgV[5], "---") == 0)
+		{
+			*TMA = 0;
+			return 0;
+		}
+		
 		// Find in list
 		for (k = 0; k < NUMDPROFILEEXCTRLMAS; k++)
 			if (strcasecmp(a_ArgV[5], c_AxisMap[k]) == 0)
@@ -1154,8 +1161,8 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 				*TMA = k;
 				return 0;
 			}
-			
-		// Failed?
+		
+		// Not found
 		return 1;
 	}
 	

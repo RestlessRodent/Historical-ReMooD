@@ -2860,12 +2860,39 @@ size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* co
 		// Unicode Character?
 		if (WChar > 127)
 		{
-			// Place in \uHHHH
-			snprintf(Buf, BUFSIZE - 1, "\\u%04X", WChar);
+			// If special sequence, use { or {x format
+			if (WChar >= 0xF100 && WChar <= 0xF1FF)
+			{
+				// Extract Base
+				WChar -= 0xF100;
+				
+				// Short Range? Numeric
+				if (WChar <= 9)
+					snprintf(Buf, BUFSIZE - 1, "{%i", WChar);
+				
+				// Short Range? Alpha
+				else if (WChar <= 10 + ('z' - 'a'))
+					snprintf(Buf, BUFSIZE - 1, "{%c", 'a' + WChar);
+				
+				// Long Range
+				else
+					snprintf(Buf, BUFSIZE - 1, "{x%02x", WChar);
+				
+				// Place
+				for (p = Buf; *p; p++)
+					if (((size_t)(d - a_Dest)) < (a_Size - 1))
+						*(d++) = *p;
+			}
 			
-			for (p = Buf; *p; p++)
-				if (((size_t)(d - a_Dest)) < (a_Size - 1))
-					*(d++) = *p;
+			else
+			{
+				// Place in \uHHHH
+				snprintf(Buf, BUFSIZE - 1, "\\u%04X", WChar);
+			
+				for (p = Buf; *p; p++)
+					if (((size_t)(d - a_Dest)) < (a_Size - 1))
+						*(d++) = *p;
+			}
 		}
 		
 		// Standard ASCII

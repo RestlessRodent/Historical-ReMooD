@@ -432,10 +432,11 @@ void I_OsPolling(void)
 					
 					// Keyboard
 				case IET_KEYBOARD:
-					CONL_PrintF("Event: KEYBRD St:%2s Rp:%2s Kc:%03X Ch:%c\n",
+					CONL_PrintF("Event: KEYBRD St:%2s Rp:%2s Kc:%03X Ch:%c [aka %s]\n",
 					            (Event.Data.Keyboard.Down ? "Dn" : "Up"),
 					            (Event.Data.Keyboard.Repeat ? "Re" : "--"),
-					            Event.Data.Keyboard.KeyCode, (Event.Data.Keyboard.Character & 0x7F ? Event.Data.Keyboard.Character & 0x7F : ' '));
+					            Event.Data.Keyboard.KeyCode, (Event.Data.Keyboard.Character & 0x7F ? Event.Data.Keyboard.Character & 0x7F : ' '),
+					            c_KeyNames[Event.Data.Keyboard.KeyCode][0]);
 					break;
 					
 					// Mouse
