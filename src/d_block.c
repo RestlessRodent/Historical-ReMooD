@@ -656,7 +656,6 @@ typedef struct DS_ReliableFlat_s
 {
 	uint32_t HostHash;							// Hash of host
 	I_HostAddress_t Address;					// Address of host
-	D_BS_t* outStore;							// Loopback storage (sent data)
 	DS_ReliablePk_t OutPks[RBSMAXRELIABLEKEEP];	// Output packets
 	//uint32_t KeepKeys[RBSMAXRELIABLEKEEP];	// Maximum Keep keys
 	uint64_t GoCount;							// Go count (sent stuff)
@@ -711,7 +710,6 @@ static void DS_RBSReliable_KillFlat(DS_RBSReliableData_t* const a_Data, DS_Relia
 		
 		// Destroy loopback stores
 		D_BSCloseStream(CurFlat->inStore);
-		D_BSCloseStream(CurFlat->outStore);
 		
 		// Destroy and active holds
 		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
@@ -799,7 +797,6 @@ static DS_ReliableFlat_t* DS_RBSReliable_FlatByHost(DS_RBSReliableData_t* const 
 		// Setup
 		CurFlat->HostHash = CurHash;
 		memmove(&CurFlat->Address, a_Address, sizeof(I_HostAddress_t));
-		CurFlat->outStore = D_BSCreateLoopBackStream();
 		CurFlat->inStore = D_BSCreateLoopBackStream();
 		
 		// Return it
@@ -922,6 +919,11 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 						// Same key?
 						if ((inKey & UINT16_C(0xFFFF)) == (PkP->Key & UINT16_C(0xFFFF)))
 						{
+							// If data set, nuke
+							if (PkP->Data)
+								Z_Free(PkP->Data);
+							PkP->Data = NULL;
+							
 							// Clear Data
 							PkP->Key = 0;
 							PkP->Time = 0;
@@ -1015,6 +1017,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		if (Kill)
 			continue;
 		
+#if 0
 		// Something was not active? free spot!
 		while (nai >= 0)
 		{
@@ -1058,6 +1061,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			// Read entire chunk
 			D_BSReadChunk(CurFlat->outStore, PkP->Data, CopyCount);
 		}
+#endif
 		
 		// Transmit all packets needing transmission
 		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
@@ -1117,6 +1121,9 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 {
 	DS_RBSReliableData_t* RelData;
 	DS_ReliableFlat_t* Flat;
+	DS_ReliablePk_t* Pack, *FirstFree, *Oldest;
+	
+	int32_t i;
 	
 	/* Get Data */
 	RelData = a_Stream->Data;
@@ -1131,7 +1138,61 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 	// Not found? Whoops!
 	if (!Flat)
 		return 0;
+
+#if 1
+	/* Go through output store */
+	// The previous code wrote to an output store, how terrible, and the same
+	// stream was never even flushed, so there would be insane spikes. Also,
+	// these spikes were viral, so you would spike out of control.
+	for (FirstFree = Oldest = NULL, i = 0; i < RBSMAXRELIABLEKEEP; i++)
+	{
+		// Get
+		Pack = &Flat->OutPks[i];
+		
+		// No packet here?
+		if (!Pack->Key)
+		{
+			if (!FirstFree)
+				FirstFree = Pack;
+			break;	// For speed, since we found one, no sense!
+		}
+		
+		// Older? Bug every 49 days, but no too much of a worry
+		if (!Oldest || Pack->FirstTime < Oldest->FirstTime)
+			Oldest = Pack;
+	}
 	
+	/* Choose a packet spot to place in */
+	if (FirstFree)
+		Pack = FirstFree;
+	else
+		Pack = Oldest;
+	
+	/* Place data with key and such */
+	// Wipe packet first
+	if (Pack->Data)
+		Z_Free(Pack->Data);
+	memset(Pack, 0, sizeof(*Pack));
+	
+	// Setup fields
+	Pack->Key = D_CMakePureRandom();
+	Pack->Time = Pack->FirstTime = I_GetTimeMS();
+	Pack->Decay = 0;
+	Pack->Transmit = true;
+	Pack->Header[0] = a_Stream->BlkHeader[0];
+	Pack->Header[1] = a_Stream->BlkHeader[1];
+	Pack->Header[2] = a_Stream->BlkHeader[2];
+	Pack->Header[3] = a_Stream->BlkHeader[3];
+	Pack->Size = a_Stream->BlkSize;
+	Pack->Data = Z_Malloc(a_Stream->BlkSize, PU_STATIC, NULL);
+	
+	// Place data there
+	memmove(Pack->Data, a_Stream->BlkData, Pack->Size);
+	
+	/* Flush reliable stream to transmit */
+	D_BSFlushStream(a_Stream);
+	
+#else
 	/* Write to output queue, stuff to be done, eventually... */
 	D_BSBaseBlock(Flat->outStore, a_Stream->BlkHeader);
 	
@@ -1141,8 +1202,9 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 	// Record it
 	D_BSRecordBlock(Flat->outStore);
 	
-	// Flush it
+	/* Flush it */
 	D_BSFlushStream(Flat->outStore);
+#endif
 	
 	/* Always successful */
 	return 1;
