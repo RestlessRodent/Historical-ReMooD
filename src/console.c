@@ -2872,7 +2872,7 @@ size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* co
 				
 				// Short Range? Alpha
 				else if (WChar <= 10 + ('z' - 'a'))
-					snprintf(Buf, BUFSIZE - 1, "{%c", 'a' + WChar);
+					snprintf(Buf, BUFSIZE - 1, "{%c", 'a' + (WChar - 10));
 				
 				// Long Range
 				else
