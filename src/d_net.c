@@ -1381,6 +1381,7 @@ void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const
 	
 	/* Disconnect First */
 	D_XNetDisconnect(false);
+	D_XBSocketDestroy();
 	
 	/* Set standard connection state */
 	// Set as connected, even though one might not be!
@@ -1782,7 +1783,7 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, c
 		
 	/* Mark Defunct */
 	a_Player->Flags |= DXPF_DEFUNCT;
-		
+	
 	/* Get our host ID */
 	OurHID = D_XNetGetHostID();
 	
@@ -2508,8 +2509,8 @@ uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player)
 		return 0;
 	
 	// Programtic difference
-	//NowTime = I_GetTimeMS();
-	NowTime = g_ProgramTic * TICSPERMS;
+	NowTime = I_GetTimeMS();
+	//NowTime = g_ProgramTic * TICSPERMS;
 	
 	TicDiff = NowTime - EP->PongMS;
 	
@@ -4390,7 +4391,7 @@ void D_XNetUpdate(void)
 			D_XNetBuildTicCmd(XPlay, TicCmdP);
 			
 			// Move spec only if tic changed
-			if (LastSpecTic != gametic)
+			if (LastSpecTic != g_ProgramTic)
 			{
 				// Merge tics
 				memset(&MergeTrunk, 0, sizeof(MergeTrunk));
@@ -4403,10 +4404,10 @@ void D_XNetUpdate(void)
 				
 				// Scores
 				g_NetBoardDown = XPlay->Scores;
-			}
 			
-			// Tics
-			LastSpecTic = gametic;
+				// Tics
+				LastSpecTic = g_ProgramTic;
+			}
 		}
 		
 		return;

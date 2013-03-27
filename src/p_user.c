@@ -844,6 +844,11 @@ void P_PlayerThink(player_t* player)
 	bool_t GunInSlot;
 	PI_wepid_t SlotList[MAXWEAPONSLOTS];
 	
+	cmd = &player->cmd;
+	
+	/* Clone Ping */
+	player->Ping = cmd->Ctrl.Ping;
+	
 	/* Find screen for this player */
 	// This is the display player that is
 	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
@@ -883,7 +888,6 @@ void P_PlayerThink(player_t* player)
 		player->mo->flags &= ~MF_NOCLIP;
 		
 	// chain saw run forward
-	cmd = &player->cmd;
 	if (player->mo->flags & MF_JUSTATTACKED)
 	{
 // added : now angle turn is a absolute value not relative

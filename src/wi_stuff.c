@@ -415,7 +415,7 @@ typedef struct WI_PlayerInfo_s
 	int32_t SecretPcnt;
 	int32_t FragsPcnt;
 	
-	uint16_t Ping;
+	uint16_t* Ping;
 	
 	/* Percent Pointers */
 	int* cntKillsPtr;
@@ -1528,7 +1528,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 		}
 		
 		// Single-player/Cooperative
-		for (k = 0; k < 6; k++)
+		for (k = 0; k < 7; k++)
 		{
 			Val = 0;
 			
@@ -1647,7 +1647,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 			}
 			
 			// Ping
-			else if (k == 5)
+			else if (k == 6)
 			{
 				DrawSpec = true;
 
@@ -1658,7 +1658,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				// Get raw value
 				Val = 0;
 				if (dp >= 0)
-					Val = l_DrawPlayers[dp].Ping & TICPINGAMOUNTMASK;
+					Val = (*l_DrawPlayers[dp].Ping) & TICPINGAMOUNTMASK;
 				
 				Title = "PING";
 			}
@@ -1775,7 +1775,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
 			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];
 			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
-			TempDP[NumTempDP].Ping = Player->Ping;
+			TempDP[NumTempDP].Ping = &Player->Ping;
 			
 			// DM games in Legacy do not count up
 			if (P_GMIsDM())
@@ -1810,7 +1810,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			strncpy(TempDP[NumTempDP].PlayerName, XPlay->AccountName, MAXPLAYERNAME - 1);
 		
 		TempDP[NumTempDP].Spectator = true;
-		TempDP[NumTempDP].Ping = XPlay->Ping;
+		TempDP[NumTempDP].Ping = &XPlay->Ping;
 		TempDP[NumTempDP++].Rank = MAXPLAYERS + i;
 	}
 	
