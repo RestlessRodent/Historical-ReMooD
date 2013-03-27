@@ -2403,7 +2403,6 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 		case DXPP_SKINCOLOR:
 		case DXPP_VTEAM:
 			StrValue = false;
-			
 			ModVal = a_Value;
 			break;
 			
@@ -2412,8 +2411,6 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 		case DXPP_HEXENCLASS:
 		case DXPP_PROFILEUUID:
 		case DXPP_ACCOUNTNAME:
-			StrValue = true;
-			
 			// Safe String
 			memset(Buf, 0, sizeof(Buf));
 			for (i = 0; i < MAXPLAYERNAME + MAXPLAYERNAME; i++)
@@ -2423,6 +2420,8 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 				if (!Buf[i])
 					break;
 			}
+			
+			StrValue = true;
 			break;
 		
 			// Unknown
@@ -2482,11 +2481,17 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 				// Otherwise set their name (no need to broadcast)
 				else
 					strncpy(a_Player->DisplayName, Buf, MAXPLAYERNAME - 1);
+					
+				// Update scores
+				P_UpdateScores();
 				break;
 			
 				// Account Name
 			case DXPP_ACCOUNTNAME:
 				strncpy(a_Player->AccountName, Buf, MAXPLAYERNAME - 1);
+				
+				// Update scores
+				P_UpdateScores();
 				break;
 				
 				// Profile UUID

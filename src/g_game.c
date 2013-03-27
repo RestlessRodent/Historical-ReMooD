@@ -385,8 +385,8 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	uint16_t u16[6];
 	uint8_t u8[6];
 	int8_t SplitNum;
-	char NameBuf[MAXTCCBUFSIZE + 1];
-	char AltBuf[MAXTCCBUFSIZE + 1];
+	char NameBuf[MAXTCCBUFSIZE + MAXTCCBUFSIZE + 1];
+	char AltBuf[MAXTCCBUFSIZE + MAXTCCBUFSIZE + 1];
 	bool_t OK, LegalMove;
 	
 	B_Bot_t* NewBot;
@@ -398,12 +398,12 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	if (a_TicCmd->Ctrl.Type == 1)
 	{
 		Rb = Rp = a_TicCmd->Ext.DataBuf;
-		Re = (uintptr_t)(Rb + a_TicCmd->Ext.DataSize);
+		Re = (const uint8_t*)((uintptr_t)(Rb + a_TicCmd->Ext.DataSize));
 	}
 	else
 	{
 		Rb = Rp = a_TicCmd->Std.DataBuf;
-		Re = (uintptr_t)(Rb + a_TicCmd->Std.DataSize);
+		Re = (const uint8_t*)((uintptr_t)(Rb + a_TicCmd->Std.DataSize));
 	}
 	
 	/* Constantly Read Bits */
@@ -429,7 +429,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Spectate Player
 			case DTCT_XSPECPLAYER:
 				// Read Data
-				u16[0] = LittleReadUInt16((uint32_t**)&Rp);
+				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
 				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
 				
 				// Locate player ID
@@ -479,19 +479,19 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Join Player
 			case DTCT_XJOINPLAYER:
 				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[3] = LittleReadUInt32((uint32_t**)&Rp);
-				u8[0] = ReadUInt8((uint8_t**)&Rp);
-				u8[1] = ReadUInt8((uint8_t**)&Rp);
-				u32[4] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
+				u32[1] = LittleReadUInt32((const uint32_t**)&Rp);
+				u32[2] = LittleReadUInt32((const uint32_t**)&Rp);
+				u32[3] = LittleReadUInt32((const uint32_t**)&Rp);
+				u8[0] = ReadUInt8((const uint8_t**)&Rp);
+				u8[1] = ReadUInt8((const uint8_t**)&Rp);
+				u32[4] = LittleReadUInt32((const uint32_t**)&Rp);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 					
 				for (i = 0; i < MAXPLAYERNAME; i++)
-					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 				
 				// Build structure
 				memset(&JoinDat, 0, sizeof(JoinDat));
@@ -512,17 +512,17 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Add Player
 			case DTCT_XADDPLAYER:
 				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
-				u8[0] = ReadUInt8((uint8_t**)&Rp);
-				u32[3] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[4] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
+				u32[1] = LittleReadUInt32((const uint32_t**)&Rp);
+				u32[2] = LittleReadUInt32((const uint32_t**)&Rp);
+				u8[0] = ReadUInt8((const uint8_t**)&Rp);
+				u32[3] = LittleReadUInt32((const uint32_t**)&Rp);
+				u32[4] = LittleReadUInt32((const uint32_t**)&Rp);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
 				{
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
-					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
+					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 				}
 				
 				// Locate player ID
@@ -557,11 +557,11 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Kick Player
 			case DTCT_XKICKPLAYER:
 				// Read Data
-				u16[0] = LittleReadUInt16((uint32_t**)&Rp);
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u16[0] = LittleReadUInt16((const uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
 				
 				for (i = 0; i < MAXTCCBUFSIZE; i++)
-					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 				
 				// Find the player's ID
 				XPlayer = D_XNetPlayerByID(u32[0]);
@@ -601,10 +601,10 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Map Changes
 			case DTCT_MAPCHANGE:
 				// Read Data
-				u8[0] = ReadUInt8((uint8_t**)&Rp);
+				u8[0] = ReadUInt8((const uint8_t**)&Rp);
 				
 				for (i = 0; i < 8; i++)
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 				
 				// Resetting players?
 				if (u8[0])
@@ -626,8 +626,8 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Variable Change
 			case DTCT_GAMEVAR:
 				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				i32[0] = LittleReadInt32((int32_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
+				i32[0] = LittleReadInt32((const int32_t**)&Rp);
 				
 				// Change Variable
 				P_XGSSetValue(true, u32[0], i32[0]);
@@ -636,8 +636,8 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Change Monster Team
 			case DTCT_XCHANGEMONSTERTEAM:
 				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				u8[0] = ReadUInt8((uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
+				u8[0] = ReadUInt8((const uint32_t**)&Rp);
 				
 				// Bounds OK?
 				if (u32[0] >= 0 && u32[0] < MAXPLAYERS)
@@ -652,9 +652,9 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Morph Player
 			case DTCT_XMORPHPLAYER:
 				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
 				for (i = 0; i < MAXPLAYERNAME; i++)
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 					
 				// Bounds OK?
 				if (u32[0] >= 0 && u32[0] < MAXPLAYERS)
@@ -666,22 +666,22 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			case DTCT_XPLAYERPREFSTR:
 			case DTCT_XPLAYERPREFINT:
 				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
+				u16[0] = LittleReadUInt16((const uint16_t**)&Rp);
 				
 				// Read String?
 				if (Command == DTCT_XPLAYERPREFSTR)
 				{
 					for (i = 0; i < MAXPLAYERNAME + MAXPLAYERNAME; i++)
-						NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+						NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
 					
 					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], (intptr_t)NameBuf);
 				}
 				
 				// Read Integer
-				else
+				else if (Command == DTCT_XPLAYERPREFINT)
 				{
-					i32[0] = LittleReadInt32((uint32_t**)&Rp);
+					i32[0] = LittleReadInt32((int32_t**)&Rp);
 					
 					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], i32[0]);
 				}
