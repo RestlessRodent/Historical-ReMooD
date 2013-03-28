@@ -637,6 +637,7 @@ static bool_t DS_RBSNet_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIO
 #define RBSRELDECAYADD					50		// Retransmit decay rate
 #define RBSRELMAXDECAY					5000	// Maximum decay retransmission
 #define RBSRELIABLETIMEOUT				120000	// Remove connection after 2 min
+#define RBSRELINPUTQUEUE				128		// Packets in input queue
 
 /* DS_ReliablePk_t -- Reliable packet */
 typedef struct DS_ReliablePk_s
@@ -651,15 +652,33 @@ typedef struct DS_ReliablePk_s
 	void* Data;									// Actual Data
 } DS_ReliablePk_t;
 
+/* DS_RelInputPk_t -- Reliable input packet */
+typedef struct DS_RelInputPk_s
+{
+	// Storage Information
+	char Header[5];								// Packer Header
+	I_HostAddress_t Address;					// Address
+	uintptr_t Size;								// Size
+	void* Data;									// Data
+	
+	// Reliable Info
+	bool_t IsAuth;								// Is Authentic
+	bool_t IsEaten;								// Being used
+} DS_RelInputPk_t;
+
+struct DS_RBSReliableData_s;
+
 /* DS_ReliableFlat_t -- Reliable storage area */
 typedef struct DS_ReliableFlat_s
 {
+	struct DS_RBSReliableData_s* Owner;			// Owner	
+	
 	uint32_t HostHash;							// Hash of host
 	I_HostAddress_t Address;					// Address of host
+	
 	DS_ReliablePk_t OutPks[RBSMAXRELIABLEKEEP];	// Output packets
-	//uint32_t KeepKeys[RBSMAXRELIABLEKEEP];	// Maximum Keep keys
+	
 	uint64_t GoCount;							// Go count (sent stuff)
-	D_BS_t* inStore;							// Input storage
 	uint64_t LastTime[2];						// Last IO time (stale connection)
 } DS_ReliableFlat_t;
 
@@ -676,7 +695,10 @@ typedef struct DS_RBSReliableData_s
 	size_t NumFlats;							// Number of flats
 	uint32_t RR;								// Round rover
 	
+	DS_RelInputPk_t InPks[RBSRELINPUTQUEUE];	// Packets read from wrapped stream
+	
 	D_BS_t* UnAuthBuf;							// Unauthorized buffer
+	
 	bool_t IsAuth;								// Is packet authorized
 	bool_t IsOnList;							// Is on auth list
 } DS_RBSReliableData_t;
@@ -707,9 +729,6 @@ static void DS_RBSReliable_KillFlat(DS_RBSReliableData_t* const a_Data, DS_Relia
 		
 		// Remove from list
 		a_Data->Flats[i] = NULL;
-		
-		// Destroy loopback stores
-		D_BSCloseStream(CurFlat->inStore);
 		
 		// Destroy and active holds
 		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
@@ -746,7 +765,13 @@ static void DS_RBSReliable_Reset(DS_RBSReliableData_t* const a_Data)
 		
 		// Kill it
 		DS_RBSReliable_KillFlat(a_Data, CurFlat);
-	}	
+	}
+	
+	/* Kill all contained data */
+	for (i = 0; i < RBSRELINPUTQUEUE; i++)
+		if (a_Data->InPks[i].Data)
+			Z_Free(a_Data->InPks[i].Data);
+	memset(a_Data->InPks, 0, sizeof(a_Data->InPks));
 }
 
 /* DS_RBSReliable_FlatByHost() -- Get flat by host address */
@@ -795,9 +820,9 @@ static DS_ReliableFlat_t* DS_RBSReliable_FlatByHost(DS_RBSReliableData_t* const 
 		a_Data->Flats[i] = CurFlat = Z_Malloc(sizeof(*CurFlat), PU_STATIC, NULL);
 		
 		// Setup
+		CurFlat->Owner = a_Data;
 		CurFlat->HostHash = CurHash;
 		memmove(&CurFlat->Address, a_Address, sizeof(I_HostAddress_t));
-		CurFlat->inStore = D_BSCreateLoopBackStream();
 		
 		// Return it
 		return CurFlat;	
@@ -826,6 +851,10 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 	uint16_t inSlot;
 	uint32_t inKey, inTime, inFTime, inSize;
 	
+	int32_t FirstSlot;
+	
+	DS_RelInputPk_t *IPKp;
+	
 	/* Get Data */
 	RelData = a_Stream->Data;
 	
@@ -838,65 +867,101 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 	memset(&Addr, 0, sizeof(Addr));
 	memset(NotActive, 0xFF, sizeof(NotActive));
 	
+	// Current time
 	ThisTime = I_GetTimeMS();
 	
-	/* Read input from the upper stream first */
-	// Any reliable data sent to us will have an ACK back.
-	// If we recieve an ACK, then clear the out packet specified.
-	while (D_BSPlayNetBlock(RelData->WrapStream, Header, &Addr))
+	/* Find first slot input can be read from */
+	for (FirstSlot = 0; FirstSlot < RBSRELINPUTQUEUE; FirstSlot++)
+		if (!RelData->InPks[FirstSlot].IsEaten)
+			break;
+	
+	/* Play blocks from the wrapped stream */
+	while (FirstSlot < RBSRELINPUTQUEUE)	// Too many packets in queue, wait for the future
 	{
-		// Clear input header
-		memset(inHeader, 0, sizeof(inHeader));
+		// Bounds here
+		IPKp = &RelData->InPks[FirstSlot];
 		
-		// Get current flat
-		CurFlat = DS_RBSReliable_FlatByHost(RelData, &Addr, false);
-		
-		// Is of the reliable type?
-		z = 0;
-		if (D_BSCompareHeader(Header, "RELY"))
-			z = 1;
-		
-		// Spoofed Reliable from someone?
-		if (!CurFlat && z)
+		// If this spot is taken, skip ahead
+		if (IPKp->IsEaten)
 		{
+			FirstSlot++;
+			continue;
 		}
 		
-		// Reliable Packet and allowed client
-		else if (CurFlat && z)
+		// Play single block (was while, but this is less intensive)
+		if (D_BSPlayNetBlock(RelData->WrapStream, Header, &Addr))
 		{
-			// Read Header
-			inCode = D_BSru8(RelData->WrapStream);
-			inSlot = D_BSru8(RelData->WrapStream);
-			inKey = D_BSru16(RelData->WrapStream);
-			inTime = D_BSru32(RelData->WrapStream);
-			inFTime = D_BSru32(RelData->WrapStream);
-			inSize = D_BSru16(RelData->WrapStream);
+			// Get flat for host
+			CurFlat = DS_RBSReliable_FlatByHost(RelData, &Addr, false);
 			
-			// Which Code?
-			switch (inCode)
+			// Reliable Data?
+			if (D_BSCompareHeader(Header, "RELY"))
 			{
-					// Packet
-				case 'P':
-					// Contained header
-					for (z = 0; z < 4; z++)
-						inHeader[z] = D_BSru8(RelData->WrapStream);
-			
-					// Base Block
-					D_BSBaseBlock(CurFlat->inStore, inHeader);
-			
-					// Write direct chunk
-					D_BSWriteChunk(CurFlat->inStore, &RelData->WrapStream->BlkData[RelData->WrapStream->ReadOff], inSize);
-			
-					// Record it
-					D_BSRecordBlock(CurFlat->inStore);
-		
-					// Flush
-					D_BSFlushStream(CurFlat->inStore);
+				// "Spoofed" or previously dropped, ignore them
+				if (!CurFlat)
+					continue;
+				
+				// Read reliable header
+				inCode = D_BSru8(RelData->WrapStream);
+				inSlot = D_BSru8(RelData->WrapStream);
+				inKey = D_BSru16(RelData->WrapStream);
+				inTime = D_BSru32(RelData->WrapStream);
+				inFTime = D_BSru32(RelData->WrapStream);
+				inSize = D_BSru16(RelData->WrapStream);
+				
+				// Invalid Code?
+				if (inCode != 'P' && inCode != 'A')
+					continue;	// Drop packet, who cares
+				
+				// Acknowledge Packet
+				else if (inCode == 'A')
+				{
+					// Slot out of bounds?
+					if (inSlot < 0 || inSlot >= RBSMAXRELIABLEKEEP)
+						continue;	// Drop
 					
-					// Reply with ACK
+					// Get packet data
+					PkP = &CurFlat->OutPks[inSlot];
+					
+					// Wrong key?
+					if ((inKey & UINT16_C(0xFFFF)) != (PkP->Key & UINT16_C(0xFFFF)))
+						continue;
+					
+					// Clear packet info
+					PkP->Key = 0;
+					PkP->Time = PkP->FirstTime = PkP->Decay = 0;
+					PkP->Transmit = 0;
+					PkP->Header[0] = PkP->Header[1] = PkP->Header[2] = PkP->Header[3] = 0;
+					PkP->Size = 0;
+					
+					if (PkP->Data)
+						Z_Free(PkP->Data);
+					PkP->Data = NULL;
+				}
+				
+				// Data Packet
+				else
+				{
+					// Read Header and size
+					for (i = 0; i < 4; i++)
+						IPKp->Header[i] = D_BSru8(RelData->WrapStream);
+					IPKp->Header[i] = 0;
+					
+					IPKp->Size = D_BSru16(RelData->WrapStream);
+					
+					// Set other info
+					memmove(&IPKp->Address, &Addr, sizeof(IPKp->Address));
+					IPKp->IsAuth = true;
+					IPKp->IsEaten = true;
+					FirstSlot++;	// Slot up for next run
+					
+					// Read data
+					IPKp->Data = Z_Malloc(IPKp->Size, PU_STATIC, NULL);
+					D_BSReadChunk(RelData->WrapStream, IPKp->Data, IPKp->Size);
+					
+					// Reply with ACK (to say we got it)
 					D_BSBaseBlock(RelData->WrapStream, "RELY");
-			
-					// Write protocol head
+					
 					D_BSwu8(RelData->WrapStream, 'A');	// A for ack
 					D_BSwu8(RelData->WrapStream, inSlot);	// Current slot
 					D_BSwu16(RelData->WrapStream, inKey);
@@ -905,77 +970,37 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 					D_BSwu16(RelData->WrapStream, inSize);
 					
 					D_BSRecordNetBlock(RelData->WrapStream, &CurFlat->Address);
+					
+					// Flush wrapped stream
 					D_BSFlushStream(RelData->WrapStream);
-					break;
-					
-					// Acknowledge
-				case 'A':
-					// Slot bounds check
-					if (inSlot >= 0 && inSlot < RBSMAXRELIABLEKEEP)
-					{
-						// Get current output
-						PkP = &CurFlat->OutPks[inSlot];
-						
-						// Same key?
-						if ((inKey & UINT16_C(0xFFFF)) == (PkP->Key & UINT16_C(0xFFFF)))
-						{
-							// If data set, nuke
-							if (PkP->Data)
-								Z_Free(PkP->Data);
-							PkP->Data = NULL;
-							
-							// Clear Data
-							PkP->Key = 0;
-							PkP->Time = 0;
-							PkP->FirstTime = 0;
-							PkP->Decay = 0;
-							PkP->Transmit = false;
-							memset(PkP->Header, 0, sizeof(PkP->Header));
-							PkP->Size = 0;
-						}
-					}
-					break;
-					
-					// Unknown
-				default:
-					break;
+				}
+			}
+			
+			// Un-Reliable
+			else
+			{
+				// Copy header
+				for (i = 0; i < 4; i++)
+					IPKp->Header[i] = Header[i];
+				IPKp->Header[i] = 0;
+				
+				IPKp->Size = RelData->WrapStream->BlkSize;
+				
+				// Set other info
+				memmove(&IPKp->Address, &Addr, sizeof(IPKp->Address));
+				IPKp->IsAuth = false;
+				IPKp->IsEaten = true;
+				FirstSlot++;	// Slot up for next run
+				
+				// Read data
+				IPKp->Data = Z_Malloc(IPKp->Size, PU_STATIC, NULL);
+				D_BSReadChunk(RelData->WrapStream, IPKp->Data, IPKp->Size);
 			}
 		}
 		
-		// Un-Reliable Packet, but an allowed client
-		else if (CurFlat && !z)
-		{
-			// Base Block
-			D_BSBaseBlock(CurFlat->inStore, RelData->WrapStream->BlkHeader);
-			
-			// Write Data 1:1
-			D_BSWriteChunk(CurFlat->inStore, RelData->WrapStream->BlkData, RelData->WrapStream->BlkSize);
-			
-			// Record it
-			D_BSRecordBlock(CurFlat->inStore);
-		
-			// Flush
-			D_BSFlushStream(CurFlat->inStore);
-		}
-		
-		// Not reliable, and not trusted either
-		else if (!CurFlat && !z)
-		{
-			// Base Block
-			D_BSBaseBlock(RelData->UnAuthBuf, RelData->WrapStream->BlkHeader);
-			
-			// Write Data 1:1
-			D_BSWriteChunk(RelData->UnAuthBuf, RelData->WrapStream->BlkData, RelData->WrapStream->BlkSize);
-			
-			// Record it
-			D_BSRecordNetBlock(RelData->UnAuthBuf, &Addr);
-		
-			// Flush
-			D_BSFlushStream(RelData->UnAuthBuf);		
-		}
-		
-		// Clear address for another cycle
-		memset(&Addr, 0, sizeof(Addr));
+		// No packets read, so no need to continue
+		else
+			break;
 	}
 	
 	/* Handle all data that needs outputting */
@@ -1016,52 +1041,6 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 		// Connection was killed
 		if (Kill)
 			continue;
-		
-#if 0
-		// Something was not active? free spot!
-		while (nai >= 0)
-		{
-			// Read location
-			pkc = NotActive[nai--];
-			
-			// Out of bounds?
-			if (pkc < 0 || pkc >= RBSMAXRELIABLEKEEP)
-				continue;
-			
-			// Pointer to output
-			PkP = &CurFlat->OutPks[pkc];
-			
-			// Read input from output stream
-			memset(PkP->Header, 0, sizeof(PkP->Header));
-			D_BSFlushStream(CurFlat->outStore);
-			if (!D_BSPlayBlock(CurFlat->outStore, PkP->Header))
-				break;	// Means nothing was in the loopback
-			
-			// Generate key and time
-			for (PkP->Key = 0; PkP->Key == 0;)	// cannot be zero!
-				PkP->Key = D_CMakePureRandom() & UINT16_C(0xFFFF);
-			PkP->Time = PkP->FirstTime = ThisTime;
-			PkP->Transmit = true;
-			
-			// Set data
-			PkP->Size = CurFlat->outStore->BlkSize;
-			
-			// Allocate Data Buffer?
-			if (!PkP->Data)
-				PkP->Data = Z_Malloc(RelData->TransSize, PU_STATIC, NULL);
-			else
-				memset(PkP->Data, 0, RelData->TransSize);
-			
-			// Determine bytes to copy
-			if (PkP->Size < RelData->TransSize)
-				CopyCount = PkP->Size;
-			else
-				CopyCount = RelData->TransSize;
-			
-			// Read entire chunk
-			D_BSReadChunk(CurFlat->outStore, PkP->Data, CopyCount);
-		}
-#endif
 		
 		// Transmit all packets needing transmission
 		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
@@ -1139,11 +1118,12 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 	if (!Flat)
 		return 0;
 
-#if 1
 	/* Go through output store */
 	// The previous code wrote to an output store, how terrible, and the same
 	// stream was never even flushed, so there would be insane spikes. Also,
 	// these spikes were viral, so you would spike out of control.
+	// So instead of just writing to a loop back block queue, send it directly
+	// but record the information for retransmissions.
 	for (FirstFree = Oldest = NULL, i = 0; i < RBSMAXRELIABLEKEEP; i++)
 	{
 		// Get
@@ -1175,7 +1155,7 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 	memset(Pack, 0, sizeof(*Pack));
 	
 	// Setup fields
-	Pack->Key = D_CMakePureRandom();
+	for (Pack->Key = 0; !Pack->Key; Pack->Key = D_CMakePureRandom() & UINT16_C(0xFFFF));
 	Pack->Time = Pack->FirstTime = I_GetTimeMS();
 	Pack->Decay = 0;
 	Pack->Transmit = true;
@@ -1192,20 +1172,6 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 	/* Flush reliable stream to transmit */
 	D_BSFlushStream(a_Stream);
 	
-#else
-	/* Write to output queue, stuff to be done, eventually... */
-	D_BSBaseBlock(Flat->outStore, a_Stream->BlkHeader);
-	
-	// Write entire data chunk
-	D_BSWriteChunk(Flat->outStore, a_Stream->BlkData, a_Stream->BlkSize);
-	
-	// Record it
-	D_BSRecordBlock(Flat->outStore);
-	
-	/* Flush it */
-	D_BSFlushStream(Flat->outStore);
-#endif
-	
 	/* Always successful */
 	return 1;
 }
@@ -1219,6 +1185,7 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	DS_ReliableFlat_t* CurFlat;
 	char Header[5];
 	bool_t SkipFlats;
+	DS_RelInputPk_t *IPKp;
 	
 	/* Get Data */
 	RelData = a_Stream->Data;
@@ -1227,77 +1194,42 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	if (!RelData)
 		return false;
 	
-	/* Init */
-	memset(Header, 0, sizeof(Header));
+	/* Flush ourself */
+	D_BSFlushStream(a_Stream);
 	
-	/* No communications performed, ever? */
-	SkipFlats = false;
-	if (!RelData->NumFlats)
-		SkipFlats = true;
-	
-	/* Always clear auth */
-	RelData->IsAuth = false;
-	
-	/* Setup stop point */
-	if (!SkipFlats)
-		Stop = RelData->RR % RelData->NumFlats;
-	
-	/* Go through all the rounds */
-	if (!SkipFlats)
-	{
-		Blipped = false;
-		for (RelData->RR = RelData->RR % RelData->NumFlats;
-				!Blipped || (Blipped && Stop != RelData->RR);
-				RelData->RR = (RelData->RR + 1) % RelData->NumFlats, Blipped = true)
-		{
-			// Get current flat
-			CurFlat = RelData->Flats[RelData->RR];
+	/* Go through the input buffer, round robin style */
+	Stop = RelData->RR;
+	while ((RelData->RR = (RelData->RR + 1) % RBSRELINPUTQUEUE) != Stop)
+	{	
+		// Ref
+		IPKp = &RelData->InPks[RelData->RR];
 		
-			// Nothing here?
-			if (!CurFlat)
-				continue;
+		// Nothing here
+		if (!IPKp->IsEaten)
+			continue;
 		
-			// Flush
-			D_BSFlushStream(CurFlat->inStore);
+		// Authentic?
+		RelData->IsAuth = IPKp->IsAuth;
 		
-			// Try playing back something
-			if (D_BSPlayBlock(CurFlat->inStore, Header))
-			{
-				// Current base
-				D_BSBaseBlock(a_Stream, Header);
-			
-				// Write chunk, the entire lo data
-				D_BSWriteChunk(a_Stream, CurFlat->inStore->BlkData, CurFlat->inStore->BlkSize);
-			
-				// Copy Address
-				memmove(a_Host, &CurFlat->Address, sizeof(I_HostAddress_t));
-				
-				// Set as authentic
-				RelData->IsAuth = true;
-			
-				// Something was played, so return
-				return true;
-			}
-		}
-	}
-	
-	/* Try playing back something in the unauthed buf */
-	if (D_BSPlayNetBlock(RelData->UnAuthBuf, Header, a_Host))
-	{
-		// Current base
-		D_BSBaseBlock(a_Stream, Header);
+		// Clone data
+		D_BSBaseBlock(a_Stream, IPKp->Header);
+		D_BSWriteChunk(a_Stream, IPKp->Data, IPKp->Size);
 		
-		// Write chunk, the entire lo data
-		D_BSWriteChunk(a_Stream, RelData->UnAuthBuf->BlkData, RelData->UnAuthBuf->BlkSize);
+		// Set address
+		if (a_Host)
+			memmove(a_Host, &IPKp->Address, sizeof(*a_Host));
 		
-		// Set as unauthentic
-		RelData->IsAuth = false;
+		// Free packet data
+		if (IPKp->Data)
+			Z_Free(IPKp->Data);
 		
-		// Something was played, so return
+		memset(IPKp, 0, sizeof(*IPKp));
+		
+		// Read something
 		return true;
 	}
 	
-	/* Nothing was played back */
+	/* No packets read at all! */
 	return false;
 }
 

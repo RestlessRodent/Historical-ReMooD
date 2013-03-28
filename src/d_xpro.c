@@ -1680,7 +1680,7 @@ static bool_t DXP_INFO(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		{
 			// Direct flags
 			D_BSwu8(BS, 1);
-			D_BSwu32(BS, XPlay->Flags;
+			D_BSwu32(BS, XPlay->Flags);
 		
 			// Stuff
 				// Name inside of the game
