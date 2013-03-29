@@ -770,6 +770,15 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	const char* PlName;
 	char c;
 	
+	static const struct
+	{
+		uint8_t Ver;
+		const char* Str;
+	} c_VerRuleList[] =
+	{
+		{0, NULL}
+	};
+	
 	/* Check */
 	if (!a_Current)
 		return false;
@@ -790,6 +799,12 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	Skill = WL_Sru8(a_Current->WLStream);
 	Episode = WL_Sru8(a_Current->WLStream);
 	Map = WL_Sru8(a_Current->WLStream);
+	
+	// Message
+	CONL_PrintF("Playing Legacy %i.%02i Demo\n",
+			VerMarker / 100,
+			VerMarker % 100
+		);
 	
 	/* Locate Map (Only before 1.27) */
 	if (VerMarker < 127)
@@ -975,8 +990,19 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		}
 	
 	/* Modify Settings required for level loading (as needed) */
-	// Set version to the specified value
+	P_XGSSetAllDefaults();
 	P_XGSSetVersionLevel(true, VerMarker);
+	
+	// Find rules to set
+	for (i = 0; c_VerRuleList[i].Ver; i++)
+		if (c_VerRuleList[i].Ver == VerMarker)
+		{
+			NG_SetRules(true, c_VerRuleList[i].Str);
+			break;
+		}
+		
+	// Set version to the specified value
+	//P_XGSSetVersionLevel(true, VerMarker);
 	P_XGSSetValue(true, PGS_GAMESKILL, Skill);
 	
 	// DM Before 1.27
@@ -1376,7 +1402,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 				// u16a = NetVar ID
 				// Buf = Value to set to
 			case XD_NETVAR:
-				u16a = ReadUInt16(&d);
+				u16a = LittleReadUInt16(&d);
 				
 				// Read value to change to
 				memset(Buf, 0, sizeof(Buf));
@@ -1674,7 +1700,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 				Data->OldCmd[a_PlayerNum].Std.angleturn <<= 8;
 			}
 			else
-				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_Sri16(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_Srli16(a_Current->WLStream);
 		
 		// Buttons
 		if (ZipTic & ZT_BUTTONS)
@@ -1728,7 +1754,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Aiming
 		if (ZipTic & ZT_AIMING)
-			Data->OldCmd[a_PlayerNum].Std.aiming = WL_Sri16(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.aiming = WL_Srli16(a_Current->WLStream);
 		
 		// Chat -- Not actually used?
 		if (ZipTic & ZT_CHAT)

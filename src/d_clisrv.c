@@ -257,9 +257,17 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 				// have a malformed save of sorts.
 			g_LockJW = true;
 			
+			// Legacy Demo Stuff
+			if (demoplayback)
+				G_DemoPreGTicker();
+			
 			// Run game ticker and increment the gametic
 			G_Ticker();
 			++gametic;
+			
+			// Legacy Demo Stuff
+			if (demoplayback)
+				G_DemoPostGTicker();
 			
 			// Can join people now
 			g_LockJW = false;
