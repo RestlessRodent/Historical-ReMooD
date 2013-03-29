@@ -121,34 +121,6 @@ void P_SetPsprite(player_t* player, int position, PI_stateid_t stnum)
 }
 
 //
-// P_CalcSwing
-//
-
-/* BP: UNUSED
-
-fixed_t         swingx;
-fixed_t         swingy;
-
-void P_CalcSwing (player_t*     player)
-{
-    fixed_t     swing;
-    int         angle;
-
-    // OPTIMIZE: tablify this.
-    // A LUT would allow for different modes,
-    //  and add flexibility.
-
-    swing = player->bob;
-
-    angle = (FINEANGLES/70*leveltime)&FINEMASK;
-    swingx = FixedMul ( swing, finesine[angle]);
-
-    angle = (FINEANGLES/70*leveltime+FINEANGLES/2)&FINEMASK;
-    swingy = -FixedMul ( swingx, finesine[angle]);
-}
-*/
-
-//
 // P_BringUpWeapon
 // Starts bringing the pending weapon up
 // from the bottom of the screen.
@@ -312,7 +284,7 @@ void P_DropWeapon(player_t* player)
 //
 void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t a_ArgC, PI_sargv_t* const a_ArgV)
 {
-	angle_t angle;
+	int32_t angle;
 	
 	// get out of attack state
 	if (player->mo->state == states[player->mo->info->RPlayerRangedAttackState] || player->mo->state == states[player->mo->info->RPlayerMeleeAttackState])

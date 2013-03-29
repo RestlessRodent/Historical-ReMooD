@@ -751,6 +751,11 @@ uint32_t G_CalcSyncCode(const bool_t a_Debug)
 			if (players[i].attackdown)
 				Code ^= 0x20;
 			
+			// Bobbing
+			Code ^= players[i].FlatBob;
+			Code ^= players[i].psprites[0].sx;
+			Code ^= players[i].psprites[0].sy;
+			
 			// By player object
 			if (players[i].mo)
 			{

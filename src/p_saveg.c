@@ -1000,6 +1000,7 @@ static void PS_SavePlayers(D_BS_t* const a_Str)
 		D_BSwi32(a_Str, This->viewheight);
 		D_BSwi32(a_Str, This->deltaviewheight);
 		D_BSwi32(a_Str, This->bob);
+		D_BSwi32(a_Str, This->FlatBob);
 		D_BSwu32(a_Str, This->aiming);
 		D_BSwi32(a_Str, This->health);
 		D_BSwi32(a_Str, This->armorpoints);
@@ -1167,6 +1168,7 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 		This->viewheight = D_BSri32(a_Str);
 		This->deltaviewheight = D_BSri32(a_Str);
 		This->bob = D_BSri32(a_Str);
+		This->FlatBob = D_BSri32(a_Str);
 		This->aiming = D_BSru32(a_Str);
 		This->health = D_BSri32(a_Str);
 		This->armorpoints = D_BSri32(a_Str);
@@ -1324,6 +1326,7 @@ static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 	D_BSwi32(a_Str, gamestate);
 	D_BSwi32(a_Str, gameaction);
 	D_BSwu64(a_Str, gametic);
+	D_BSwu64(a_Str, leveltime);
 	D_BSwu32(a_Str, g_CoreGame);
 	D_BSwu32(a_Str, g_IWADFlags);
 	D_BSwu8(a_Str, P_GetRandIndex());
@@ -1379,6 +1382,7 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 	gamestate = D_BSri32(a_Str);
 	gameaction = D_BSri32(a_Str);
 	gametic = D_BSru64(a_Str);
+	leveltime = D_BSru64(a_Str);
 	g_CoreGame = D_BSru32(a_Str);
 	g_IWADFlags = D_BSru32(a_Str);
 	P_SetRandIndex(D_BSru8(a_Str));
