@@ -696,6 +696,7 @@ typedef struct DS_RBSReliableData_s
 	uint32_t RR;								// Round rover
 	
 	DS_RelInputPk_t InPks[RBSRELINPUTQUEUE];	// Packets read from wrapped stream
+	uint32_t InWait;							// Packets waiting
 	
 	D_BS_t* UnAuthBuf;							// Unauthorized buffer
 	
@@ -772,6 +773,7 @@ static void DS_RBSReliable_Reset(DS_RBSReliableData_t* const a_Data)
 		if (a_Data->InPks[i].Data)
 			Z_Free(a_Data->InPks[i].Data);
 	memset(a_Data->InPks, 0, sizeof(a_Data->InPks));
+	a_Data->InWait = 0;
 }
 
 /* DS_RBSReliable_FlatByHost() -- Get flat by host address */
@@ -876,7 +878,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			break;
 	
 	/* Play blocks from the wrapped stream */
-	while (FirstSlot < RBSRELINPUTQUEUE)	// Too many packets in queue, wait for the future
+	while (FirstSlot < RBSRELINPUTQUEUE)
 	{
 		// Bounds here
 		IPKp = &RelData->InPks[FirstSlot];
@@ -940,14 +942,14 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 				}
 				
 				// Data Packet
-				else
+				else if (inCode == 'P')
 				{
 					// Read Header and size
 					for (i = 0; i < 4; i++)
 						IPKp->Header[i] = D_BSru8(RelData->WrapStream);
 					IPKp->Header[i] = 0;
 					
-					IPKp->Size = D_BSru16(RelData->WrapStream);
+					IPKp->Size = inSize;
 					
 					// Set other info
 					memmove(&IPKp->Address, &Addr, sizeof(IPKp->Address));
@@ -973,6 +975,9 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 					
 					// Flush wrapped stream
 					D_BSFlushStream(RelData->WrapStream);
+					
+					// Some waiting
+					RelData->InWait++;
 				}
 			}
 			
@@ -995,6 +1000,9 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 				// Read data
 				IPKp->Data = Z_Malloc(IPKp->Size, PU_STATIC, NULL);
 				D_BSReadChunk(RelData->WrapStream, IPKp->Data, IPKp->Size);
+					
+				// Some waiting
+				RelData->InWait++;
 			}
 		}
 		
@@ -1195,39 +1203,44 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 		return false;
 	
 	/* Flush ourself */
-	D_BSFlushStream(a_Stream);
+	if (RelData->InWait == 0)
+		D_BSFlushStream(a_Stream);
 	
 	/* Go through the input buffer, round robin style */
-	Stop = RelData->RR;
-	while ((RelData->RR = (RelData->RR + 1) % RBSRELINPUTQUEUE) != Stop)
-	{	
-		// Ref
-		IPKp = &RelData->InPks[RelData->RR];
+	Stop = ((RelData->RR - 1) + RBSRELINPUTQUEUE) % RBSRELINPUTQUEUE;
+	if (RelData->InWait > 0)
+		while ((RelData->RR = (RelData->RR + 1) % RBSRELINPUTQUEUE) != Stop)
+		{
+			// Ref
+			IPKp = &RelData->InPks[RelData->RR];
 		
-		// Nothing here
-		if (!IPKp->IsEaten)
-			continue;
+			// Nothing here
+			if (!IPKp->IsEaten)
+				continue;
 		
-		// Authentic?
-		RelData->IsAuth = IPKp->IsAuth;
+			// Authentic?
+			RelData->IsAuth = IPKp->IsAuth;
 		
-		// Clone data
-		D_BSBaseBlock(a_Stream, IPKp->Header);
-		D_BSWriteChunk(a_Stream, IPKp->Data, IPKp->Size);
+			// Clone data
+			D_BSBaseBlock(a_Stream, IPKp->Header);
+			D_BSWriteChunk(a_Stream, IPKp->Data, IPKp->Size);
 		
-		// Set address
-		if (a_Host)
-			memmove(a_Host, &IPKp->Address, sizeof(*a_Host));
+			// Set address
+			if (a_Host)
+				memmove(a_Host, &IPKp->Address, sizeof(*a_Host));
 		
-		// Free packet data
-		if (IPKp->Data)
-			Z_Free(IPKp->Data);
+			// Free packet data
+			if (IPKp->Data)
+				Z_Free(IPKp->Data);
 		
-		memset(IPKp, 0, sizeof(*IPKp));
+			memset(IPKp, 0, sizeof(*IPKp));
+			
+			// Less waiting
+			RelData->InWait--;
 		
-		// Read something
-		return true;
-	}
+			// Read something
+			return true;
+		}
 	
 	/* No packets read at all! */
 	return false;
