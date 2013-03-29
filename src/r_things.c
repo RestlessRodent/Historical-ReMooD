@@ -696,10 +696,10 @@ static void R_ProjectSprite(mobj_t* thing)
 	// Player Color Hacking
 	if (P_MobjIsPlayer(thing) || thing->FakeColor > 0)
 	{
+		Color = 0;
+		
 		if (P_GMIsTeam())
 		{
-			Color = 0;
-			
 			if (P_MobjIsPlayer(thing))
 				P_GetTeamInfo(P_GetMobjTeam(thing), &Color, NULL);
 			else
@@ -707,7 +707,10 @@ static void R_ProjectSprite(mobj_t* thing)
 		}
 		
 		else
-			Color = thing->player->skincolor;
+		{
+			if (thing->player)
+				Color = thing->player->skincolor;
+		}
 		
 		// Clear color and reset
 		vis->mobjflags &= ~MF_TRANSLATION;
