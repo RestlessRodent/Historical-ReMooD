@@ -1926,5 +1926,31 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 /* P_VerifyCoopSpy() -- Verify coop spy settings */
 void P_VerifyCoopSpy(void)
 {
+	int i;	
+	
+	/* Go through all splits */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Target not in game?
+		if (g_Splits[i].Display >= 0 && g_Splits[i].Display < MAXPLAYERS)
+			if (!playeringame[g_Splits[i].Display])
+			{
+				// If spectating, revert to spectator mode
+				if (g_Splits[i].Console < 0)
+					g_Splits[i].Display = -1;
+				
+				// If playing, go to our screen
+				else
+					g_Splits[i].Display = g_Splits[i].Console;
+			}
+		
+		// Just Spectating?
+		if (g_Splits[i].Console < 0)
+			continue;
+		
+		// Not on same team anymore?
+		if (!ST_SameTeam(&players[g_Splits[i].Console], &players[g_Splits[i].Display]))
+			g_Splits[i].Display = g_Splits[i].Console;
+	}
 }
 

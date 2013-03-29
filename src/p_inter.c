@@ -1688,8 +1688,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 //
 bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damage)
 {
-	unsigned ang;
-	int saved;
+	angle_t ang;
+	int32_t saved;
 	player_t* player;
 	fixed_t thrust;
 	bool_t takedamage;			// false on some case in teamplay
@@ -1760,7 +1760,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		 */
 		if (source && P_XGSVal(PGS_COROCKETZTHRUST) && (!P_XGSVal(PGS_COALLOWROCKETJUMPING) || !P_XGSVal(PGS_GAMEALLOWROCKETJUMP)))
 		{
-			int dist, z;
+			fixed_t dist, z;
 			
 			if (source == target)	// rocket in yourself (suicide)
 			{

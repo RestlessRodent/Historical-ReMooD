@@ -4357,7 +4357,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				{
 					g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
 					j++;
-				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_MobjOnSameTeam(players[g_Splits[SID].Console].mo, players[g_Splits[SID].Display].mo)));
+				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || (!ST_SameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display]))));
 				
 				// Change POV
 				SpyPOV = &players[g_Splits[SID].Display];

@@ -733,11 +733,19 @@ uint32_t G_CalcSyncCode(const bool_t a_Debug)
 		// Position, if object exists and playing
 		if (gamestate == GS_LEVEL)
 		{
+			// Player health
+			Code += players[i].health;
+			Code -= players[i].armorpoints;
+			
+			// By player object
 			if (players[i].mo)
 			{
 				Code ^= players[i].mo->x;
 				Code ^= players[i].mo->y;
 				Code ^= players[i].mo->z;
+				Code ^= players[i].mo->momx >> FRACBITS;
+				Code ^= players[i].mo->momy >> FRACBITS;
+				Code ^= players[i].mo->momz >> FRACBITS;
 				
 				if (a_Debug)
 				{

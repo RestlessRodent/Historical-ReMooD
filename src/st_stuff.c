@@ -313,6 +313,18 @@ bool_t ST_SameTeam(player_t* a, player_t* b)
 			return false;
 		}
 		
+		// Coop
+		else if (P_GMIsCoop())
+		{
+			// If counter-op, depends on monster player
+			if (P_GMIsCounter())
+				if (a->CounterOpPlayer != b->CounterOpPlayer)
+					return false;
+			
+			// Otherwise, same team
+			return true;
+		}
+		
 		// Otherwise not
 		else
 			return false;
