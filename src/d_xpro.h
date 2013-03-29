@@ -154,6 +154,7 @@ typedef struct D_XDesc_s
 			tic_t SRTime;						// SentReady Time
 			bool_t GotTics;						// Got tic commands
 			uint32_t SvMilli;					// Milli seconds on server
+			bool_t GotInGame;					// Got in Game
 		} Client;								// Client Stuff
 	
 		struct

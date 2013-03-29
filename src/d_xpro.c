@@ -852,22 +852,22 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 		
 			// Playing
 		case DXSL_PLAYING:
-			if (!a_Desc->CS.Client.GotTics)
+			if (!a_Desc->CS.Client.GotInGame)
 			{
 				if (!a_Desc->CS.Client.SentReady)
 				{
 					// Send request to server
 					D_BSBaseBlock(RelBS, "PLAY");
 					D_BSwu32(RelBS, D_XNetGetHostID());
-			
+		
 					// Send away!
 					D_BSRecordNetBlock(RelBS, HostAddr);
-				
+			
 					// Send ready
 					a_Desc->CS.Client.SentReady = true;
 					a_Desc->CS.Client.SRTime = g_ProgramTic + TICRATE;
 				}
-				
+			
 				// Remove sent ready?
 				if (g_ProgramTic >= a_Desc->CS.Client.SRTime)
 					a_Desc->CS.Client.SentReady = false;
@@ -1204,7 +1204,12 @@ static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	/* Already latched? */
 	if (a_EP->Latched)
+	{
+		// Tell them, they are already inside
+		D_BSBaseBlock(a_Desc->RelBS, "AIGM");
+		D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
 		return false;
+	}
 	
 	/* Clear active join from end point */
 	a_EP->ActiveJoinWindow = false;
@@ -1231,6 +1236,10 @@ static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		
 		// Message
 		CONL_OutputUT(CT_NETWORK, DSTR_DXP_PLAYERISPLAYING, "%s%s\n", XPlay->DisplayName, XPlay->AccountName);
+		
+		// Send in game message
+		D_BSBaseBlock(a_Desc->RelBS, "NIGM");
+		D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
 	}
 	
 	/* Success! */
@@ -1808,6 +1817,13 @@ static bool_t DXP_PREF(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
+/* DXP_NIGM() -- Now In Game */
+static bool_t DXP_NIGM(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	a_Desc->CS.Client.GotInGame = true;
+	return true;
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1846,6 +1862,8 @@ static const struct
 	{"FILE", DXP_FILE, PF_ONAUTH},
 	{"INFO", DXP_INFO, PF_MASTER | PF_NOREL},
 	{"PREF", DXP_PREF, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"NIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
+	{"AIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
 	
 	{NULL}
 };

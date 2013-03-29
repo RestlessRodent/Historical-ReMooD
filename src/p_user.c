@@ -1936,7 +1936,7 @@ void P_VerifyCoopSpy(void)
 			if (!playeringame[g_Splits[i].Display])
 			{
 				// If spectating, revert to spectator mode
-				if (g_Splits[i].Console < 0)
+				if (g_Splits[i].Console < 0 || !g_Splits[i].Active)
 					g_Splits[i].Display = -1;
 				
 				// If playing, go to our screen
@@ -1945,7 +1945,7 @@ void P_VerifyCoopSpy(void)
 			}
 		
 		// Just Spectating?
-		if (g_Splits[i].Console < 0)
+		if (g_Splits[i].Console < 0 || !g_Splits[i].Active)
 			continue;
 		
 		// Not on same team anymore?
