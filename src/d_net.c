@@ -569,6 +569,8 @@ static tic_t l_LastJW;							// Last Join Window
 static D_XNetTicBuf_t** l_TicStore;				// Tic Storage
 static size_t l_NumTicStore;					// Tics in storage
 
+static D_XPlayer_t* l_CacheSVXPlay;
+
 //l_SVMaxCatchup
 
 /*** FUNCTIONS ***/
@@ -1180,6 +1182,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 		}
 	
 	/* Clear network stuff */
+	// Server Cache
+	l_CacheSVXPlay = NULL;
+	
 	// Tics
 	
 	// Global Commands
@@ -1247,8 +1252,18 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 		pagetic = -1;
 	}
 	
+	/* Remove any remaining XPlayers */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+		{
+			Z_Free(g_XPlays[i]);
+			g_XPlays[i] = NULL;
+		}
+	
 	/* Done disconnecting */
 	DoingDiscon = false;
+	g_NetBoardDown = false;
+	P_SpecInit(-2);
 }
 
 /* DS_XNetMakeServPB() -- Callback for make player */
@@ -1415,21 +1430,21 @@ bool_t D_XNetIsServer(void)
 {
 	int32_t i;
 	
-	static int32_t XNISNum;
-	static D_XPlayer_t* XNISXPlay;
+	static int32_t XNISNum, XNISCount;
 	
 	/* If Dedicated, return true */
 	if (l_IsDedicated)
 		return true;
 	
 	/* Cached? */
-	if (XNISXPlay)
+	if (l_CacheSVXPlay)
 	{
 		// Now illegal?
-		if (XNISNum >= g_NumXPlays || XNISXPlay != g_XPlays[XNISNum])
+		if (XNISCount != g_NumXPlays || XNISNum >= g_NumXPlays || l_CacheSVXPlay != g_XPlays[XNISNum] || (l_CacheSVXPlay && (l_CacheSVXPlay->Flags & DXPF_DEFUNCT)))
 		{
-			XNISNum = 0;
-			XNISXPlay = NULL;
+			XNISCount = -1;
+			XNISNum = -1;
+			l_CacheSVXPlay = NULL;
 		}
 		
 		// Cached response
@@ -1441,11 +1456,12 @@ bool_t D_XNetIsServer(void)
 	for (i = 0; i < g_NumXPlays; i++)
 		if (g_XPlays[i])
 			if (g_XPlays[i]->Flags & DXPF_LOCAL)
-				if (!!(g_XPlays[i]->Flags & DXPF_SERVER))
+				if (!!((g_XPlays[i]->Flags & (DXPF_SERVER | DXPF_DEFUNCT)) == DXPF_SERVER))
 				{
 					// Cache response for more "speed"
+					XNISCount = g_NumXPlays;
 					XNISNum = i;
-					XNISXPlay = g_XPlays[i];
+					l_CacheSVXPlay = g_XPlays[i];
 					return true;
 				}
 	

@@ -1557,213 +1557,6 @@ void P_SpecTicker(void)
 	/* Title Screen Demo */
 	if (g_TitleScreenDemo)
 	{
-		// For each player split
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (g_Splits[i].Active)
-			{
-				// Player to modify
-				Mod = &l_SpecPlayers[i];
-				VPlay = &players[g_Splits[i].Console];
-				
-				// Camera Object
-				CamMo = Mod->mo;
-				
-				// Get subsector
-				CamMo->subsector = R_PointInSubsector(CamMo->x, CamMo->y);
-				
-				// Chase the player's object
-				ChaseThis = VPlay->mo;
-				
-				// Player is alive and has a BFG ball
-				if (VPlay->LastBFGBall && VPlay->health > 0)
-				{
-					// Chase and look after the ball
-					PeerThis = ChaseThis = VPlay->LastBFGBall;
-				}
-				
-				// Player is alive
-				else if (VPlay->health > 0)
-				{
-					DeadView = false;
-					
-					// If player is under attack or attacking
-					PeerThis = NULL;
-					
-					// First check attacker
-					AttackSpec = VPlay->attacker;
-					
-					if (!(AttackSpec && AttackSpec->health > 0 &&
-						P_CheckSight(VPlay->mo, AttackSpec)))
-						AttackSpec = NULL;
-					
-					// Now check attackee
-					AttackSpec = VPlay->Attackee;
-					
-					if (!(AttackSpec && AttackSpec->health > 0 &&
-						P_CheckSight(VPlay->mo, AttackSpec)))
-						AttackSpec = NULL;
-					
-					// It is OK
-					if (AttackSpec)
-					{
-						// Get attacker distance
-						Dist = P_AproxDistance(AttackSpec->x - ChaseThis->x,
-								AttackSpec->y - ChaseThis->y);
-					
-						// Object close by
-						if (Dist < FIXEDT_C(2048))
-							PeerThis = AttackSpec;
-					}
-				
-					// Otherwise stare at player object
-					if (!PeerThis)
-						PeerThis = VPlay->mo;
-				}
-				
-				// Player is dead
-				else
-				{
-					DeadView = true;
-					
-					// Chase killer
-					ChaseThis = VPlay->attacker;
-					
-					if (!ChaseThis)
-						ChaseThis = VPlay->mo;
-					
-					// Stare at player object
-					PeerThis = VPlay->mo;
-				}
-
-#if 1
-				// Get 128 units behind chase target
-				BCPos[0] = ChaseThis->x + FixedMul(
-						finecosine[ChaseThis->angle >> ANGLETOFINESHIFT],
-						-TSCAMDIST
-					);
-				BCPos[1] = ChaseThis->y + FixedMul(
-						finesine[ChaseThis->angle >> ANGLETOFINESHIFT],
-						-TSCAMDIST
-					);
-				
-				// Get Distance to chase target
-				CDist = P_AproxDistance(
-							CamMo->x - ChaseThis->x,
-							CamMo->y - ChaseThis->y
-						);
-				
-				// Get Distance to behind target
-				BCDist = P_AproxDistance(
-							CamMo->x - BCPos[0],
-							CamMo->y - BCPos[1]
-						);
-				
-				// If too far away from target, move to it
-					// Or it cannot be seen by the camera
-				if (!P_CheckSight(CamMo, ChaseThis) || (CDist > TSCAMDIST + BUDGEDIST) && !VPlay->attackdown)
-				{
-					ToPos[0] = ChaseThis->x;
-					ToPos[1] = ChaseThis->y;
-					ToDist = CDist / 16;
-				}
-				
-				// If really close, back off
-#if 0
-				else if (CDist < BUDGEDIST)
-				{
-					ToPos[0] = ChaseThis->x;
-					ToPos[1] = ChaseThis->y;
-					ToDist = -(CDist / 4);
-				}
-#endif
-				
-				// If close enough, move to behind target then
-				else
-				{
-					ToPos[0] = BCPos[0];
-					ToPos[1] = BCPos[1];
-					
-					if (VPlay->attackdown)
-						ToDist = BCDist / 8;
-					else
-						ToDist = BCDist / 32;
-				}
-				
-				// Move to location
-				Angle = R_PointToAngle2(CamMo->x, CamMo->y,
-					ToPos[0], ToPos[1]);
-				CamMo->x += FixedMul(finecosine[Angle >> ANGLETOFINESHIFT], ToDist);
-				CamMo->y += FixedMul(finesine[Angle >> ANGLETOFINESHIFT], ToDist);
-#else
-				// Get distance and angle to chase target
-				Dist = P_AproxDistance(
-						CamMo->x - ChaseThis->x,
-						CamMo->y - ChaseThis->y
-					);
-				
-				
-				// Move Camera closer to object chasing
-				if (DeadView || Dist > TSCAMDIST)
-				{
-					Dist /= 16;
-					
-					CamMo->x += FixedMul(finecosine[Angle >> ANGLETOFINESHIFT], Dist);
-					CamMo->y += FixedMul(finesine[Angle >> ANGLETOFINESHIFT], Dist);
-				}
-				
-				// Slowly drift camera behind chase object
-					// Location we want to drift to
-				VeerX = ChaseThis->x + FixedMul(finecosine[
-							ChaseThis->angle >> ANGLETOFINESHIFT], -TSCAMDIST);
-				VeerY = ChaseThis->y + FixedMul(finesine[
-							ChaseThis->angle >> ANGLETOFINESHIFT], -TSCAMDIST);
-					// Get distance to point
-				Dist = P_AproxDistance(
-						CamMo->x - VeerX,
-						CamMo->y - VeerY
-					);
-					// Reduce it alot!
-				Dist /= 32;
-					// Move
-				CamMo->x += FixedMul(finecosine[ChaseThis->angle >> ANGLETOFINESHIFT], Dist);
-				CamMo->y += FixedMul(finecosine[ChaseThis->angle >> ANGLETOFINESHIFT], Dist);
-#endif
-				Angle = R_PointToAngle2(CamMo->x, CamMo->y,
-					ChaseThis->x, ChaseThis->y);
-				PeerAngle = R_PointToAngle2(CamMo->x, CamMo->y,
-					PeerThis->x, PeerThis->y);
-
-				// Pan Camera to peer
-				MyAng = TBL_BAMToDeg(CamMo->angle);
-				TargAng = TBL_BAMToDeg(PeerAngle);
-				
-				// Get dual angles
-				DistX = abs(MyAng - TargAng);
-				DistY = abs((MyAng + 360) - TargAng);
-				
-				// Move in the smaller direction
-				if (DistY < DistX)
-					CamMo->angle += (ANGLE_1 * ((DistY / 4) >> FRACBITS));
-				else
-					CamMo->angle -= (ANGLE_1 * ((DistX / 4) >> FRACBITS));
-				
-				// Normalize Height
-				Dist = (CamMo->z - (ChaseThis->z + (ChaseThis->height >> 1))) >> 2;
-				CamMo->z -= Dist;
-				
-				// Raise above the floor
-				CamMo->subsector = R_PointInSubsector(CamMo->x, CamMo->y);
-				
-#if 0
-				if (CamMo->z < CamMo->subsector->sector->floorheight)
-					CamMo->z = CamMo->subsector->sector->floorheight;
-				else if (CamMo->z > CamMo->subsector->sector->ceilingheight)
-					CamMo->z = CamMo->subsector->sector->ceilingheight;
-#endif
-				
-				// Correct height
-				Mod->viewz = CamMo->z;
-			}
 	}
 	
 	/* Normal fake */
@@ -1894,7 +1687,19 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 	
 	/* No XPlayer? */
 	else if (!g_Splits[a_Screen].XPlayer)
-		return &players[g_Splits[a_Screen].Display];
+	{
+		if (playeringame[g_Splits[a_Screen].Display])
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Ilegal Display
+		g_Splits[a_Screen].Display = -1;
+		
+		// Try returning console player then
+		if (playeringame[g_Splits[a_Screen].Console])
+			return &players[g_Splits[a_Screen].Console];
+		else
+			return P_SpecGet(a_Screen);
+	}
 	
 	/* There is one */
 	else

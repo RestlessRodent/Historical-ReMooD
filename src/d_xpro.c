@@ -485,7 +485,15 @@ static void DS_HandleJoinWindow(D_XDesc_t* const a_Desc)
 					Joins[i]->ScreenToAdd = s;
 					
 					if (x < MAXPLAYERS * MAXSPLITSCREEN)
-						XJoins[x++] = D_XNetAddPlayer(DS_JWJoins, Joins[i], false);
+					{
+						XJoins[x] = D_XNetAddPlayer(DS_JWJoins, Joins[i], false);
+						
+						// Set their gametic
+						if (XJoins[x])
+							XJoins[x]->LastRanTic = gametic;
+						
+						x++;
+					}
 				}
 			}
 			
@@ -863,14 +871,17 @@ static void DS_DoClient(D_XDesc_t* const a_Desc)
 					// Send away!
 					D_BSRecordNetBlock(RelBS, HostAddr);
 			
-					// Send ready
+					// Send a second later, in case of drop
 					a_Desc->CS.Client.SentReady = true;
 					a_Desc->CS.Client.SRTime = g_ProgramTic + TICRATE;
 				}
 			
 				// Remove sent ready?
 				if (g_ProgramTic >= a_Desc->CS.Client.SRTime)
+				{
 					a_Desc->CS.Client.SentReady = false;
+					a_Desc->CS.Client.SRTime = 0;
+				}
 			}
 			break;
 		
@@ -1194,28 +1205,32 @@ static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 {
 	uint32_t HostID, i;
 	D_XPlayer_t* XPlay;
+	bool_t AlreadyIn;
+	
+	/* No endpoint? */
+	if (!a_EP)
+		return false;
 	
 	/* Read HostID */
 	HostID = D_BSru32(a_Desc->RelBS);
 	
 	// Check
-	if (!HostID)
+	if (!HostID || HostID != a_EP->HostID)
 		return false;
 	
 	/* Already latched? */
+	AlreadyIn = false;
 	if (a_EP->Latched)
-	{
-		// Tell them, they are already inside
-		D_BSBaseBlock(a_Desc->RelBS, "AIGM");
-		D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
-		return false;
-	}
+		AlreadyIn = true;
 	
 	/* Clear active join from end point */
-	a_EP->ActiveJoinWindow = false;
+	if (!AlreadyIn)
+	{
+		a_EP->ActiveJoinWindow = false;
 		
-	// Also set as latched
-	a_EP->Latched = true;
+		// Also set as latched
+		a_EP->Latched = true;
+	}
 	
 	/* Go through players */
 	for (i = 0; i < g_NumXPlays; i++)
@@ -1226,19 +1241,19 @@ static bool_t DXP_PLAY(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 		if (!XPlay)
 			continue;
 		
-		// HostID and from address must match
-		if (HostID != XPlay->HostID || !I_NetCompareHost(a_Addr, &XPlay->Socket.Address))
+		// HostID must match
+		if (a_EP->HostID != XPlay->HostID)
 			continue;
 		
 		// Set as ready now
 		XPlay->TransSave = true;
-		XPlay->LastRanTic = gametic;
 		
 		// Message
-		CONL_OutputUT(CT_NETWORK, DSTR_DXP_PLAYERISPLAYING, "%s%s\n", XPlay->DisplayName, XPlay->AccountName);
+		if (!AlreadyIn)
+			CONL_OutputUT(CT_NETWORK, DSTR_DXP_PLAYERISPLAYING, "%s%s\n", XPlay->DisplayName, XPlay->AccountName);
 		
 		// Send in game message
-		D_BSBaseBlock(a_Desc->RelBS, "NIGM");
+		D_BSBaseBlock(a_Desc->RelBS, (AlreadyIn ? "AIGM" : "NIGM"));
 		D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
 	}
 	
@@ -1820,7 +1835,8 @@ static bool_t DXP_PREF(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 /* DXP_NIGM() -- Now In Game */
 static bool_t DXP_NIGM(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
 {
-	a_Desc->CS.Client.GotInGame = true;
+	if (a_Desc->CS.Client.SyncLevel == DXSL_PLAYING)
+		a_Desc->CS.Client.GotInGame = true;
 	return true;
 }
 

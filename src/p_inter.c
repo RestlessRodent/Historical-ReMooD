@@ -1764,21 +1764,16 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			
 			if (source == target)	// rocket in yourself (suicide)
 			{
-				viewx = inflictor->x;
-				viewy = inflictor->y;
 				z = inflictor->z;
+				dist = R_PointToDist2(inflictor->x, inflictor->y, target->x, target->y);
 			}
 			else
 			{
-				viewx = source->x;
-				viewy = source->y;
 				z = source->z;
+				dist = R_PointToDist2(source->x, source->y, target->x, target->y);
 			}
-			dist = R_PointToDist(target->x, target->y);
 			
-			viewx = 0;
-			viewy = z;
-			ang = R_PointToAngle(dist, target->z);
+			ang = R_PointToAngle2(0, z, dist, target->z);
 			
 			ang >>= ANGLETOFINESHIFT;
 			amomz = FixedMul(thrust, finesine[ang]);
@@ -1846,7 +1841,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		if (damage < 1000)	// Allow telefrags!
 			if (!P_MobjDamageTeam(source, target, inflictor))
 				return false;
-		
+	
 	// Player Specific	
 	if (player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (target->flags & MF_CORPSE) == 0)
 	{

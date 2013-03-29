@@ -1318,8 +1318,8 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			if (a_Buffer->FlushFunc)
 			{
 				// Resize BigQ
-				Z_ResizeArray((void**)&Que, sizeof(Que), NumQ, NumQ + 1);
-				NumQ = Q + 1;
+				Z_ResizeArray((void**)&Que, sizeof(*Que), NumQ, NumQ + 1);
+				NumQ++;
 				
 				// Find size of line to write
 				z = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];	// EOL
@@ -1376,7 +1376,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 	if (a_Buffer->FlushFunc)
 		if (Que)
 		{
-			for (i = 0; i < Q; i++)
+			for (i = 0; i < NumQ; i++)
 			{
 				// Check
 				if (!Que[i])

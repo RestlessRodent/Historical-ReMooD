@@ -312,7 +312,8 @@ void P_DropWeapon(player_t* player)
 //
 void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t a_ArgC, PI_sargv_t* const a_ArgV)
 {
-
+	angle_t angle;
+	
 	// get out of attack state
 	if (player->mo->state == states[player->mo->info->RPlayerRangedAttackState] || player->mo->state == states[player->mo->info->RPlayerMeleeAttackState])
 	{
@@ -333,6 +334,9 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t
 		P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
 		return;
 	}
+	
+	int oad = player->attackdown;
+	
 	// check for fire
 	//  the missile launcher and bfg do not auto fire
 	if (player->cmd.Std.buttons & BT_ATTACK)
@@ -341,20 +345,23 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t
 		{
 			player->attackdown = true;
 			P_FireWeapon(player);
+			
+			if (oad != player->attackdown)
+				CONL_PrintF("## >> %i %i -> %i (%i)\n", (unsigned)gametic, oad, player->attackdown, __LINE__);
 			return;
 		}
 	}
 	else
 		player->attackdown = false;
-	{
-		int angle;
 		
-		// bob the weapon based on movement speed
-		angle = (128 * leveltime) & FINEMASK;
-		psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
-		angle &= FINEANGLES / 2 - 1;
-		psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
-	}
+	if (oad != player->attackdown)
+		CONL_PrintF("## >> %i %i -> %i (%i)\n", (unsigned)gametic, oad, player->attackdown, __LINE__);
+	
+	// bob the weapon based on movement speed
+	angle = (128 * leveltime) & FINEMASK;
+	psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
+	angle &= FINEANGLES / 2 - 1;
+	psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
 }
 
 // client prediction stuff
@@ -1077,5 +1084,4 @@ static struct
 } MaceSpots[MAX_MACE_SPOTS];
 
 fixed_t bulletslope;
-
 

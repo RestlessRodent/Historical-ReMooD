@@ -2805,6 +2805,9 @@ void G_StopDemoPlay(void)
 		D_AdvanceDemo();
 		gamestate = GS_DEMOSCREEN;
 	}
+	
+	// Not treated as title screen anymore?
+	g_TitleScreenDemo = false;
 }
 
 /* G_StopDemo() -- Stops recording demo */

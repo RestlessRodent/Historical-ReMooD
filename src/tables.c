@@ -55,9 +55,9 @@
 #define METHODE 0
 
 #if METHODE==0
-int SlopeDiv(unsigned num, unsigned den)
+angle_t SlopeDiv(angle_t num, angle_t den)
 {
-	unsigned ans;
+	angle_t ans;
 	
 	if (den < 512)
 		return SLOPERANGE;

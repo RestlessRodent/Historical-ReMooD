@@ -737,6 +737,9 @@ uint32_t G_CalcSyncCode(const bool_t a_Debug)
 			Code += players[i].health;
 			Code -= players[i].armorpoints;
 			
+			if (players[i].attackdown)
+				Code ^= 0x20;
+			
 			// By player object
 			if (players[i].mo)
 			{
