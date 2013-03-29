@@ -285,7 +285,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create);
 void D_XNetWipeBefores(const tic_t a_GameTic);
 void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_XNetTicBufVersion_t a_VersionNum);
-void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
+bool_t D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
 
 void D_XNetInit(void);
 uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player);

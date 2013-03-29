@@ -1292,7 +1292,8 @@ static bool_t DXP_TICS(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	// Only of valid size, no negative
 	if (a_Desc->RelBS->BlkSize > a_Desc->RelBS->ReadOff)
-		D_XNetDecodeTicBuf(&TicBuf, a_Desc->RelBS->BlkData + a_Desc->RelBS->ReadOff, a_Desc->RelBS->BlkSize - a_Desc->RelBS->ReadOff);
+		if (!D_XNetDecodeTicBuf(&TicBuf, a_Desc->RelBS->BlkData + a_Desc->RelBS->ReadOff, a_Desc->RelBS->BlkSize - a_Desc->RelBS->ReadOff))
+			CONL_PrintF("Tic buffer checksum mismatch on tic %u!\n", (unsigned)gametic);
 	
 	/* Don't need? */
 	if (TicBuf.GameTic < gametic)

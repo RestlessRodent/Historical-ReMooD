@@ -645,7 +645,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	/* If there is an alternative pickup function, use that */
 	if (special->AltTouchFunc)
 		return special->AltTouchFunc(special, toucher);
-		
+	
 	sound = sfx_itemup;
 	
 	player = NULL;

@@ -335,8 +335,6 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t
 		return;
 	}
 	
-	int oad = player->attackdown;
-	
 	// check for fire
 	//  the missile launcher and bfg do not auto fire
 	if (player->cmd.Std.buttons & BT_ATTACK)
@@ -345,17 +343,11 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t
 		{
 			player->attackdown = true;
 			P_FireWeapon(player);
-			
-			if (oad != player->attackdown)
-				CONL_PrintF("## >> %i %i -> %i (%i)\n", (unsigned)gametic, oad, player->attackdown, __LINE__);
 			return;
 		}
 	}
 	else
 		player->attackdown = false;
-		
-	if (oad != player->attackdown)
-		CONL_PrintF("## >> %i %i -> %i (%i)\n", (unsigned)gametic, oad, player->attackdown, __LINE__);
 	
 	// bob the weapon based on movement speed
 	angle = (128 * leveltime) & FINEMASK;

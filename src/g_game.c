@@ -701,6 +701,7 @@ extern tic_t g_WatchTic;
 uint32_t G_CalcSyncCode(const bool_t a_Debug)
 {
 	uint32_t i, Code;
+	PI_wep_t* Weap;
 	
 	/* Init */
 	Code = 0;
@@ -737,6 +738,16 @@ uint32_t G_CalcSyncCode(const bool_t a_Debug)
 			Code += players[i].health;
 			Code -= players[i].armorpoints;
 			
+			// Add Ammo
+			if (players[i].readyweapon >= 0 && players[i].readyweapon < NUMWEAPONS)
+			{
+				Weap = players[i].weaponinfo[players[i].readyweapon];
+				
+				if (Weap->ammo >= 0 && Weap->ammo < NUMAMMO)
+					Code += (players[i].ammo[Weap->ammo] & INT32_C(0x7F)) << INT32_C(6);
+			}
+			
+			// Attack Held Down
 			if (players[i].attackdown)
 				Code ^= 0x20;
 			

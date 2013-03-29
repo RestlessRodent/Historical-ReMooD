@@ -848,6 +848,7 @@ void P_PlayerThink(player_t* player)
 	
 	/* Clone Ping */
 	player->Ping = cmd->Ctrl.Ping;
+	player->BackupButtons = cmd->Std.buttons;
 	
 	/* Find screen for this player */
 	// This is the display player that is

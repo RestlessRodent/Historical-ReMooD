@@ -268,6 +268,7 @@ typedef struct player_s
 	
 	// Ping
 	uint16_t Ping;								// Player's Ping
+	uint32_t BackupButtons;
 } player_t;
 
 //

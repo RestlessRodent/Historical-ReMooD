@@ -631,6 +631,31 @@ void D_XNetWipeBefores(const tic_t a_GameTic)
 			}
 }
 
+/* D_XNetTicBufSum() -- Calculates checksum of Tic Buffer */
+uint32_t D_XNetTicBufSum(D_XNetTicBuf_t* const a_TicBuf,  const D_XNetTicBufVersion_t a_VersionNum, const uint32_t a_Players)
+{
+	int32_t i;
+	uint32_t RetVal = UINT32_C(0xDEADBEEF);
+	ticcmd_t* TicCmd;
+	
+	/* Go through players */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Commands
+		TicCmd = &a_TicBuf->Tics[i];
+		
+		// Not playing?
+		if (!(a_Players & (1 << i)))
+			continue;
+		
+		// XOR in buttons
+		RetVal ^= TicCmd->Std.buttons;
+	}
+	
+	/* Return calculated code */
+	return RetVal;
+}
+
 /* D_XNetEncodeTicBuf() -- Encodes tic buffer into more compact method */
 void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_XNetTicBufVersion_t a_VersionNum)
 {
@@ -811,6 +836,9 @@ void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, 
 			WriteUInt8(&p, dbP[j]);
 	}
 	
+	/* Checksum */
+	LittleWriteUInt32(&p, D_XNetTicBufSum(a_TicBuf, a_VersionNum, u32));
+	
 	/* Done */
 	*a_OutD = Buf;
 	*a_OutSz = p - Buf;
@@ -818,7 +846,7 @@ void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, 
 }
 
 /* D_XNetDecodeTicBuf() -- Decodes tic buffer */
-void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz)
+bool_t D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz)
 {
 #define BUFSIZE 16384
 	static uint8_t* Buf;
@@ -970,6 +998,9 @@ void D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_I
 		}
 	}
 	
+	/* Confirm checksum */
+	u32 = LittleReadUInt32(&p);
+	return (u32 == D_XNetTicBufSum(a_TicBuf, VersionNum, PIG));
 #undef BUFSIZE
 }
 
