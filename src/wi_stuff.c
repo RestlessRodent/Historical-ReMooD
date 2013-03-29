@@ -1658,7 +1658,8 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 				// Get raw value
 				Val = 0;
 				if (dp >= 0)
-					Val = (*l_DrawPlayers[dp].Ping) & TICPINGAMOUNTMASK;
+					if (l_DrawPlayers[dp].Ping)
+						Val = (*l_DrawPlayers[dp].Ping) & TICPINGAMOUNTMASK;
 				
 				Title = "PING";
 			}
