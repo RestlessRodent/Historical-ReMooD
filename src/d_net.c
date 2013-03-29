@@ -2517,7 +2517,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 					}
 				}
 				
-				// Blind copy as local
+				// Blind copy for remote/demo
 				else
 					strncpy(a_Player->ProfileUUID, Buf, MAXPLAYERNAME - 1);
 				break;

@@ -787,10 +787,6 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		
 		D_BSrs(a_Str, NameBuf, MAXPLAYERNAME);
 		
-		// Assign profile, if any
-		if (!XPlay->Profile)
-			XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
-		
 		// Playing a demo back, do not assign to screen
 		if (demoplayback)
 		{
@@ -835,7 +831,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				{
 					// Use said profile
 					if (g_Splits[i].Profile)
-						XPlay->Profile = g_Splits[i].Profile;
+						D_XNetChangeLocalProf(i, g_Splits[i].Profile);
 				}
 				
 				// Set common stuff
@@ -856,6 +852,13 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			// Make non-local but a server
 			XPlay->Flags &= ~DXPF_LOCAL;
 			XPlay->Flags |= DXPF_SERVER;
+		}
+		
+		// Client, and this is someone else
+		else if (OurHost != 0)
+		{
+			// Make non-local
+			XPlay->Flags &= ~DXPF_LOCAL;
 		}
 		
 		// Server load
@@ -902,6 +905,9 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 						g_Splits[XPlay->ScreenID].Display = -1;
 					}
 					
+					// Find profile
+					D_XNetChangeLocalProf(XPlay->ScreenID, D_FindProfileEx(XPlay->ProfileUUID));
+					
 					// Set profile and XPlayer
 					g_Splits[XPlay->ScreenID].ProcessID = XPlay->ClProcessID;
 					g_Splits[XPlay->ScreenID].Profile = XPlay->Profile;
@@ -928,8 +934,8 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		if (XPlay->Flags & DXPF_LOCAL)
 		{
 			// Assign profile, if any
-			if (!XPlay->Profile)
-				XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
+			//if (!XPlay->Profile)
+			//	XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
 			
 			// Set screen profile
 			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
