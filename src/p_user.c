@@ -110,6 +110,19 @@ void P_CalcHeight(player_t* player)
 	int angle;
 	subsector_t* SubS;
 	
+	/* Calculate Vanilla Bob Value */
+	// Otherwise, demos desyncs!
+	player->FlatBob = FixedMul(player->mo->momx, player->mo->momx) + FixedMul(player->mo->momy, player->mo->momy);
+	player->FlatBob >>= 2;
+	
+	// Maxed out bob?
+	if (player->FlatBob > MAXBOB)
+		player->FlatBob = MAXBOB;
+	
+	// Not on ground?
+	if ((player->mo->flags2 & MF2_FLY) && !onground)
+		player->FlatBob = FRACUNIT / 2;
+	
 	/* Base */
 	// Player
 	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
@@ -212,88 +225,6 @@ void P_CalcHeight(player_t* player)
 		
 	/* Translate back to height for death */
 	player->viewheight = player->viewz - player->mo->z;
-#if 0
-	int angle;
-	fixed_t bob;
-	fixed_t viewheight;
-	fixed_t Diff;
-	mobj_t* mo;
-	
-	// Regular movement bobbing
-	// (needs to be calculated for gun swing
-	// even if not on ground)
-	// OPTIMIZE: tablify angle
-	// Note: a LUT allows for effects
-	//  like a ramp with low health.
-	
-	mo = player->mo;
-	
-	player->bob = ((FixedMul(mo->momx, mo->momx) + FixedMul(mo->momy, mo->momy))) >> 2;
-	//player->bob = FixedMul(player->MoveMom, player->MoveMom) >> 2;
-	
-	if (player->bob > MAXBOB)
-		player->bob = MAXBOB;
-		
-	if (player->mo->flags2 & MF2_FLY && !onground)
-		player->bob = FRACUNIT / 2;
-		
-	if ((player->cheats & CF_NOMOMENTUM) || mo->z > mo->floorz)
-	{
-		//added:15-02-98: it seems to be useless code!
-		//player->viewz = player->mo->z + (cv_viewheight.value<<FRACBITS);
-		
-		//if (player->viewz > player->mo->ceilingz-4*FRACUNIT)
-		//    player->viewz = player->mo->ceilingz-4*FRACUNIT;
-		player->viewz = mo->z + player->viewheight;
-		return;
-	}
-	
-	angle = (FINEANGLES / 20 * localgametic) & FINEMASK;
-	bob = FixedMul(player->bob / 2, finesine[angle]);
-	
-	// move viewheight
-	viewheight = cv_viewheight.value << FRACBITS;	// default eye view height
-	
-	if (player->playerstate == PST_LIVE)
-	{
-		player->viewheight += player->deltaviewheight;
-		
-		if (player->viewheight > viewheight)
-		{
-			player->viewheight = viewheight;
-			player->deltaviewheight = 0;
-		}
-		
-		if (player->viewheight < viewheight / 2)
-		{
-			player->viewheight = viewheight / 2;
-			if (player->deltaviewheight <= 0)
-				player->deltaviewheight = 1;
-		}
-		
-		if (player->deltaviewheight)
-		{
-			player->deltaviewheight += FRACUNIT / 4;
-			if (!player->deltaviewheight)
-				player->deltaviewheight = 1;
-		}
-	}
-	
-	if (player->chickenTics)
-		player->viewz = mo->z + player->viewheight - (20 * FRACUNIT);
-	else
-		player->viewz = mo->z + player->viewheight + bob;
-		
-	if (player->mo->flags2& MF2_FEETARECLIPPED && player->playerstate != PST_DEAD && player->mo->z <= player->mo->floorz)
-	{
-		player->viewz -= FOOTCLIPSIZE;
-	}
-	
-	if (player->viewz > mo->ceilingz - 4 * FRACUNIT)
-		player->viewz = mo->ceilingz - 4 * FRACUNIT;
-	if (player->viewz < mo->floorz + 4 * FRACUNIT)
-		player->viewz = mo->floorz + 4 * FRACUNIT;
-#endif
 }
 
 //

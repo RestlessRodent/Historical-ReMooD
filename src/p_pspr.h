@@ -110,7 +110,6 @@ typedef struct
 	int32_t tics;
 	fixed_t sx;
 	fixed_t sy;
-	
 } pspdef_t;
 
 void P_OpenWeapons(void);

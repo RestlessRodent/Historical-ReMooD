@@ -351,24 +351,9 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t
 	
 	// bob the weapon based on movement speed
 	angle = (128 * leveltime) & FINEMASK;
-	psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
+	psp->sx = FRACUNIT + FixedMul(player->FlatBob, finecosine[angle]);
 	angle &= FINEANGLES / 2 - 1;
-	psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
-}
-
-// client prediction stuff
-void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t a_ArgC, PI_sargv_t* const a_ArgV)
-{
-	if ((void*)psp->state->action.acp2 == (void*)A_WeaponReady && psp->tics == psp->state->tics)
-	{
-		int angle;
-		
-		// bob the weapon based on movement speed
-		angle = (128 * localgametic) & FINEMASK;
-		psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
-		angle &= FINEANGLES / 2 - 1;
-		psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
-	}
+	psp->sy = WEAPONTOP + FixedMul(player->FlatBob, finesine[angle]);
 }
 
 /* P_ReduceAmmo() -- Reduces player ammo */

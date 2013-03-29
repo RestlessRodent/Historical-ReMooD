@@ -121,8 +121,10 @@ typedef struct player_s
 	fixed_t viewheight;
 	// Bob/squat speed.
 	fixed_t deltaviewheight;
+	
 	// bounded/scaled total momentum.
 	fixed_t bob;
+	fixed_t FlatBob;							// Flat bobbing value
 	
 	//added:16-02-98: mouse aiming, where the guy is looking at!
 	//                 It is updated with cmd->aiming.
@@ -321,6 +323,5 @@ typedef struct
 	
 } wbstartstruct_t;
 
-void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t a_ArgC, PI_sargv_t* const a_ArgV);
-
 #endif
+
