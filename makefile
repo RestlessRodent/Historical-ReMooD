@@ -209,6 +209,14 @@ ifeq (,$(strip $(__INT_ALLEGROLDFLAGS)))
 	endif
 endif
 
+### ALSA ###
+
+ifneq (,$(strip $(ALSA_LDFLAGS)))
+	export __INT_ALSALDFLAGS := $(ALSA_LDFLAGS)
+else
+	export __INT_ALSALDFLAGS := -lasound
+endif
+
 ### OPENGL ###
 
 #$(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
