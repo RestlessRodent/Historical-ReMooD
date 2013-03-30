@@ -275,6 +275,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{           "BADDEMO_NONHOSTDEMO", "Demo possibly not recorded by the host, if so then the demo will most likely fail to play back at all."},
 	{		  "BADDEMO_ILLEGALHEADER", "Demo contains an illegal header."},
 	{		  "BADDEMO_UNHANDLEDDATA", "Unhandled data labeled \"$1\"."},
+	{		"BADDEMO_OLDREMOODFORMAT", "Ancient ReMooD Demos not supported!"},
+	{	   "BADDEMO_TICDECODEPROBLEM", "Tic decoding error."},
 	
 	/*** D_PROF.C ***/
 	{			"DPROFC_ALREADYEXIST", "Profile \"$1\" already exists!"},

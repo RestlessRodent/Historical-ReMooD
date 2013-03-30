@@ -1918,7 +1918,7 @@ void I_Quit(void)
 	
 	// use this for 1.28 19990220 by Kin
 	I_ShutdownSystem();
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 
