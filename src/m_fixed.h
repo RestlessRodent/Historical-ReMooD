@@ -194,5 +194,13 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 		return (fixed_t)((((((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b)) & INT64_C(0xFFFFFFFF)));
 }
 
+/* FixedMod() -- Modulo */
+static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMod(fixed_t a, fixed_t b)
+{
+	fixed_t dVal = FixedDiv(a, b);
+	fixed_t iVal = dVal & 0xFFFF0000;
+	return a - FixedMul(dVal, iVal); 
+}
+
 #endif							/* __M_FIXED_H__ */
 

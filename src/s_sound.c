@@ -55,6 +55,22 @@
 void SetChannelsNum(void);
 void S_UpdateCVARVolumes(void);
 
+/****************
+*** CONSTANTS ***
+****************/
+
+// c_PCSpkFreq -- PC Speaker Frequencies
+static const int32_t c_PCSpkFreq[96] =
+{
+	0, 175, 180, 185, 190, 196, 202, 208, 214, 220, 226, 233, 240, 247, 254, 262,
+	269, 277, 285, 294, 302, 311, 320, 330, 339, 349, 359, 370, 381, 392, 403, 415, 
+	427, 440, 453, 466, 480, 494, 508, 523, 539, 554, 571, 587, 604, 622, 640, 659, 
+	679, 698, 719, 740, 762, 784, 807, 831, 855, 881, 907, 932, 961, 989, 1017, 1047, 
+	1078, 1110, 1142, 1176, 1210, 1244, 1282, 1318, 1357, 1397, 1439, 1480, 1524, 
+	1570, 1615, 1662, 1712, 1762, 1813, 1864, 1921, 1975, 2036, 2093, 2158, 2218, 
+	2286, 2353, 2420, 2491, 2566, 2640
+};
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -63,6 +79,7 @@ void S_UpdateCVARVolumes(void);
 typedef struct S_SoundChannel_s
 {
 	S_NoiseThinker_t* Origin;	// Source sound
+	fixed_t SoundFreq;			// Sound Frequency
 	fixed_t MoveRate;			// Rate at which to copy
 	fixed_t RateAdjust;			// Adjust the rate, somewhat
 	fixed_t Volume;				// Volume adjust
@@ -73,12 +90,15 @@ typedef struct S_SoundChannel_s
 	int Priority;				// Priority of the sound being played
 	int BasePriority;			// Priority of the original sound
 	bool_t Used;				// Channel is being used
+	bool_t Beep;				// PC Speaker
+	bool_t Ref;					// Reference channel (for PC speaker)
 	
 	// GhostlyDeath <September 21, 2011> -- Any sound length!
 	fixed_t RoveByte;			// Byte movement
 	int32_t CurrentByte;		// Current byte playing
 	int32_t StartByte;			// Byte to play at
 	int32_t StopByte;			// Byte to stop at
+	fixed_t BeepMove;			// Referenced beep movement
 } S_SoundChannel_t;
 
 /**************
@@ -173,6 +193,14 @@ CONL_StaticVar_t l_SNDRandomPitch =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
 	"snd_randompitch", DSTR_CVHINT_SNDRANDOMPITCH, CLVVT_STRING, "false",
+	NULL
+};
+
+// snd_pcspeaker -- Randomized sound pitch
+CONL_StaticVar_t l_SNDPCSpeaker =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"snd_pcspeaker", DSTR_CVHINT_SNDPCSPEAKER, CLVVT_STRING, "false",
 	NULL
 };
 
@@ -310,21 +338,25 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 }
 
 /* S_PlayEntryOnChannel() -- Plays a WAD entry on a channel */
-S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry, const bool_t a_Reverse)
+S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry, const bool_t a_Reverse, const bool_t a_PCSpeaker)
 {
 	uint16_t* p;
 	void* Data;
-	int32_t Header, Freq, Length;
+	int32_t Header, Freq, Length, HeaderSize;
 	size_t LumpLen;
+	S_SoundChannel_t* ThisChan;
 	
 	/* Check */
 	if (a_Channel >= l_NumDoomChannels || !a_Entry)
 		return NULL;
 		
+	ThisChan = &l_DoomChannels[a_Channel];
+		
 	/* Check length */
 	LumpLen = WX_GetEntrySize(a_Entry);
+	HeaderSize = (a_PCSpeaker ? 4 : 9);
 	
-	if (LumpLen < 9)
+	if (LumpLen < HeaderSize)
 		return NULL;
 		
 	/* Use entry */
@@ -332,77 +364,70 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	/* Read basic stuff */
 	p = Data;
-	Header = LittleReadUInt16(&p);
-	Freq = LittleReadUInt16(&p);
-	Length = LittleReadUInt16(&p);
+	
+	// Digital
+	if (!a_PCSpeaker)
+	{
+		Header = LittleReadUInt16(&p);
+		Freq = LittleReadUInt16(&p);
+		Length = LittleReadUInt16(&p);
+	}
+	
+	// PC Speaker
+	else
+	{
+		LittleReadUInt16(&p);	// discard header
+		Header = 3;
+		Freq = 140;
+		Length = LittleReadUInt16(&p);
+	}
 	
 	if (!Freq || !Length || Header != 3)
 		return NULL;
 	
 	/* Set channel info */
-	l_DoomChannels[a_Channel].Entry = a_Entry;
-	l_DoomChannels[a_Channel].Data = Data;
-	l_DoomChannels[a_Channel].Used = true;
-	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
-	l_DoomChannels[a_Channel].Priority = 127;
-	l_DoomChannels[a_Channel].BasePriority = 127;
-	
-	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
-	//l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t) Freq << FRACBITS, (fixed_t) l_Freq << FRACBITS);
+	ThisChan->SoundFreq = Freq << FRACBITS;
+	ThisChan->Entry = a_Entry;
+	ThisChan->Data = Data;
+	ThisChan->Used = true;
+	ThisChan->RateAdjust = 1 << FRACBITS;
+	ThisChan->Priority = 127;
+	ThisChan->BasePriority = 127;
+	ThisChan->Beep = a_PCSpeaker;
 	
 	/* Support for long sounds */
-	l_DoomChannels[a_Channel].RoveByte = 0;
-	l_DoomChannels[a_Channel].StartByte = 8;
-	l_DoomChannels[a_Channel].StopByte = LumpLen - 9;
+	ThisChan->RoveByte = 0;
+	ThisChan->StartByte = (HeaderSize - 1);
+	ThisChan->StopByte = LumpLen - HeaderSize;
+	ThisChan->BeepMove = 0;
+	
+	// Standard movement rates
+	if (a_PCSpeaker)
+		ThisChan->MoveRate = FixedDiv(l_Freq, 140 << FRACBITS);
+	else
+		ThisChan->MoveRate = ((Freq << 15) / (l_Freq >> 1));
 	
 	// Playing normal
 	if (!a_Reverse)
-	{
-		l_DoomChannels[a_Channel].CurrentByte = l_DoomChannels[a_Channel].StartByte;
-		l_DoomChannels[a_Channel].MoveRate = ((Freq << 15) / (l_Freq >> 1));
-	}
+		ThisChan->CurrentByte = ThisChan->StartByte;
 	
 	// Reversed
 	else
 	{
-		l_DoomChannels[a_Channel].CurrentByte = LumpLen - 10;
-		l_DoomChannels[a_Channel].MoveRate = -((Freq << 15) / (l_Freq >> 1));
+		ThisChan->CurrentByte = LumpLen - (HeaderSize + 1);
+		
+		ThisChan->MoveRate = -ThisChan->MoveRate;
 	}
 	
 	/* Return channel */
 	return &l_DoomChannels[a_Channel];
 }
 
-/* S_ReservedChannelPlay() -- Play sound on reserved channel */
-void S_ReservedChannelPlay(int sound_id, int volume, fixed_t MoveVal)
-{
-#define BUFSIZE 24
-	char Buf[BUFSIZE];
-	WX_WADEntry_t* Entry;
-	S_SoundChannel_t* Target;
-	
-	/* Obtain entry then play on said channel */
-	// Prefix with ds
-	snprintf(Buf, BUFSIZE, "ds%.6s", S_sfx[sound_id].name);
-	Entry = WX_EntryForName(NULL, Buf, false);
-	
-	// Try direct name
-	if (!Entry)
-		Entry = WX_EntryForName(NULL, S_sfx[sound_id].name, false);
-	Target = S_PlayEntryOnChannel(l_NumDoomChannels - 1, Entry, false);
-	
-	/* Modify Target */
-	if (Target)
-	{
-		Target->MoveRate = FixedMul(Target->MoveRate, FixedDiv(MoveVal, ((fixed_t)l_Freq) << FRACBITS));
-	}
-#undef BUFSIZE
-}
-
 /* S_StopChannel() -- Stop channel from playing */
 void S_StopChannel(const uint32_t a_Channel)
 {
 	size_t i;
+	S_SoundChannel_t* ThisChan;
 	
 	/* Check */
 	if (!l_SoundOK)
@@ -412,25 +437,30 @@ void S_StopChannel(const uint32_t a_Channel)
 	if (a_Channel >= l_NumDoomChannels)
 		return;
 		
+	ThisChan = &l_DoomChannels[a_Channel];
+		
 	/* Clear channel out */
 	// Clear stuff
-	l_DoomChannels[a_Channel].Origin = NULL;
-	l_DoomChannels[a_Channel].MoveRate = 1 << FRACBITS;
-	l_DoomChannels[a_Channel].Volume = 1 << FRACBITS;
-	l_DoomChannels[a_Channel].Entry = NULL;
-	l_DoomChannels[a_Channel].Data = NULL;
-	l_DoomChannels[a_Channel].SoundID = 0;
-	l_DoomChannels[a_Channel].Used = false;
-	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
-	l_DoomChannels[a_Channel].Priority = 0;
-	l_DoomChannels[a_Channel].BasePriority = 0;
-	l_DoomChannels[a_Channel].RoveByte = 0;
-	l_DoomChannels[a_Channel].CurrentByte = 0;
-	l_DoomChannels[a_Channel].StartByte = 0;
-	l_DoomChannels[a_Channel].StopByte = 0;
+	ThisChan->Origin = NULL;
+	ThisChan->MoveRate = 1 << FRACBITS;
+	ThisChan->Volume = 1 << FRACBITS;
+	ThisChan->Entry = NULL;
+	ThisChan->Data = NULL;
+	ThisChan->SoundID = 0;
+	ThisChan->Used = false;
+	ThisChan->RateAdjust = 1 << FRACBITS;
+	ThisChan->Priority = 0;
+	ThisChan->BasePriority = 0;
+	ThisChan->RoveByte = 0;
+	ThisChan->CurrentByte = 0;
+	ThisChan->StartByte = 0;
+	ThisChan->StopByte = 0;
+	ThisChan->Beep = false;
+	ThisChan->Ref = false;
+	ThisChan->BeepMove = 0;
 	
 	for (i = 0; i < 16; i++)
-		l_DoomChannels[a_Channel].ChanVolume[i] = 1 << FRACBITS;
+		ThisChan->ChanVolume[i] = 1 << FRACBITS;
 }
 
 /* S_SoundPlaying() -- Checks whether a sound is being played by the object */
@@ -482,6 +512,62 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	/* Check */
 	if (!l_SoundOK || sound_id < 0 || sound_id >= NUMSFX)
 		return;
+	
+	/* PC Speaker */
+	if (l_SNDPCSpeaker.Value->Int)
+	{
+		// Lock sound thread
+		I_SoundLockThread(true);
+		
+		// Get closest listener, emitter, and distance
+		Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
+		if (Dist < 0)
+			Dist = -Dist;
+		
+		// Too far?
+		if (Dist >= (1200 << FRACBITS))
+		{
+			I_SoundLockThread(false);
+			return;
+		}
+		
+		// Get sound info
+		RealID = sound_id;
+		if (S_sfx[sound_id].link)
+			RealID = S_sfx[sound_id].link - S_sfx;
+			
+		// Get DP sound
+		snprintf(Buf, BUFSIZE - 1, "dp%.6s", S_sfx[RealID].name);
+		Entry = WX_EntryForName(NULL, Buf, false);
+		
+		// Try to play (always channel zero)
+		Target = S_PlayEntryOnChannel(0, Entry, a_Reverse, true);
+		
+		// Failed to play
+		if (!Target)
+		{
+			// If this fails, always unlock just in case
+			I_SoundLockThread(false);
+			return;
+		}
+		
+		// Set extra stuff
+		Target->Origin = a_Origin;
+		Target->SoundID = sound_id;
+		Target->Volume = 1 << FRACBITS;
+		Target->Priority = MyP;
+		Target->Priority = S_sfx[sound_id].priority;
+		Target->Beep = true;
+		Target->Ref = false;
+		
+		// Setup base square wave sound
+		Target = S_PlayEntryOnChannel(l_NumDoomChannels - 1, WX_EntryForName(NULL, "dszzsqwv", false), false, false);
+		Target->Ref = true;
+		
+		// Done
+		I_SoundLockThread(false);
+		return;
+	}
 		
 	/* Get gamespeed */
 	// For slow motioning, cap to 0.25
@@ -557,7 +643,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	// Try direct name
 	if (!Entry)
 		Entry = WX_EntryForName(NULL, S_sfx[RealID].name, false);
-	Target = S_PlayEntryOnChannel(OnChannel, Entry, a_Reverse);
+	Target = S_PlayEntryOnChannel(OnChannel, Entry, a_Reverse, false);
 	
 	// Failed?
 	if (!Target)
@@ -573,6 +659,8 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	Target->Volume = 1 << FRACBITS;
 	Target->Priority = MyP;
 	Target->Priority = S_sfx[sound_id].priority;
+	Target->Beep = false;
+	Target->Ref = false;
 	
 	// Original volumes
 	for (i = 0; i < 16; i++)
@@ -704,7 +792,7 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* 
 	/* Reset Channel volumes, since all of them will be wiped */
 	for (i = 0; i < l_Channels; i++)
 		a_Channel->ChanVolume[i] = 1 << FRACBITS;
-		
+	
 	/* If the listener is the emitter, play all sounds normally */
 	// Since the channel volumes are already maxed, lower volume here
 	if (Listener == Emitter)
@@ -723,6 +811,16 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* 
 	if (ApproxDist < 0)
 		ApproxDist = 0;
 #endif
+
+	/* PC Speaker? */
+	if (a_Channel->Beep)
+	{
+		// Too far away?
+		if (ApproxDist >= (1200 << FRACBITS))
+			S_StopChannel(a_Channel - l_DoomChannels);
+		
+		return;
+	}
 	
 	// The volume of the sound is somewhere within 120-1,200 map units
 	DistVol = (1 << FRACBITS) - FixedMul(ApproxDist, 60);
@@ -842,6 +940,7 @@ void S_RegisterSoundStuff(void)
 	CONL_VarRegister(&l_SNDSpeakerSetup);
 	CONL_VarRegister(&l_SNDBufferSize);
 	CONL_VarRegister(&l_SNDRandomPitch);
+	CONL_VarRegister(&l_SNDPCSpeaker);
 	
 	// Everything was registered
 	cvRegged = true;
@@ -1143,7 +1242,8 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	size_t SoundLen, i, j;
 	uint8_t ReadSample;
 	uint16_t Mod;
-	fixed_t ActualRate, ModVolume[16];
+	fixed_t Freq, ActualRate, ModVolume[16];
+	S_SoundChannel_t* ThisChan, *RefChan;
 	
 	/* Check */
 	if (!l_Bits || !l_SoundOK)
@@ -1178,12 +1278,23 @@ void S_UpdateSounds(const bool_t a_Threaded)
 			WriteUInt16(&p, Mod);
 	else
 		memset(SoundBuf, 0x80, SoundLen);
+	
+	/* Find reference channel */
+	RefChan = NULL;
+	for (i = 0; i < l_NumDoomChannels; i++)
+		if (ThisChan->Used && ThisChan->Ref)
+		{
+			RefChan = &l_DoomChannels[i];
+			break;
+		}
 		
 	/* Write Sound Data */
 	for (i = 0; i < l_NumDoomChannels; i++)
 	{
-		// Only play channels being used
-		if (!l_DoomChannels[i].Used)
+		ThisChan = &l_DoomChannels[i];
+		
+		// Only play channels being used and not a reference channel
+		if (!ThisChan->Used || ThisChan->Ref)
 			continue;
 			
 		// Set p to start of buffer
@@ -1191,18 +1302,42 @@ void S_UpdateSounds(const bool_t a_Threaded)
 		
 		// Determine volume for all channels
 		for (j = 0; j < l_Channels; j++)
-			ModVolume[j] = FixedMul(FixedMul(l_DoomChannels[i].Volume, l_DoomChannels[i].ChanVolume[j]), l_GlobalSoundVolume);
-			
+			ModVolume[j] = FixedMul(FixedMul(ThisChan->Volume, ThisChan->ChanVolume[j]), l_GlobalSoundVolume);
+		
 		// Keep reading and mixing
-		ActualRate = FixedMul(l_DoomChannels[i].MoveRate, l_DoomChannels[i].RateAdjust);
-		for (; p < End && l_DoomChannels[i].CurrentByte < l_DoomChannels[i].StopByte && l_DoomChannels[i].CurrentByte >= l_DoomChannels[i].StartByte; l_DoomChannels[i].RoveByte += ActualRate)
+		ActualRate = FixedMul(ThisChan->MoveRate, ThisChan->RateAdjust);
+		for (; p < End && ThisChan->CurrentByte < ThisChan->StopByte && ThisChan->CurrentByte >= ThisChan->StartByte; ThisChan->RoveByte += ActualRate)
 		{
 			// Move byte ahead?
-			l_DoomChannels[i].CurrentByte += l_DoomChannels[i].RoveByte >> FRACBITS;
-			l_DoomChannels[i].RoveByte &= 0xFFFF;	// keep lower
+			ThisChan->CurrentByte += ThisChan->RoveByte >> FRACBITS;
+			ThisChan->RoveByte &= 0xFFFF;	// keep lower
 			
 			// Read sample bit from data
-			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[(l_DoomChannels[i].CurrentByte)];
+			if (ThisChan->Beep)
+			{
+				// If no reference, silence
+				if (!RefChan)
+					ReadSample = 128;
+				
+				else
+				{
+					// Get current frequency
+					Freq = ((fixed_t)(c_PCSpkFreq[((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)]])) << FRACBITS;
+					
+					// Get specific beep movement
+					if (Freq == 0)
+						ReadSample = 128;
+					else
+						ReadSample = ((uint8_t*)RefChan->Data)[FixedMul(ThisChan->BeepMove, RefChan->SoundFreq) >> FRACBITS];
+					
+					// Move beep ahead
+					ThisChan->BeepMove += FixedDiv(Freq, RefChan->SoundFreq);
+					ThisChan->BeepMove &= 0xFFFF;
+				}
+			}
+			
+			else
+				ReadSample = ((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)];
 			
 			// Write in
 			for (j = 0; j < l_Channels; j++)
@@ -1210,7 +1345,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 		}
 		
 		// Did the sound stop?
-		if (l_DoomChannels[i].CurrentByte >= l_DoomChannels[i].StopByte || l_DoomChannels[i].CurrentByte < l_DoomChannels[i].StartByte)
+		if (ThisChan->CurrentByte >= ThisChan->StopByte || ThisChan->CurrentByte < ThisChan->StartByte)
 			S_StopChannel(i);
 	}
 	

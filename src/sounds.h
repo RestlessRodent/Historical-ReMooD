@@ -347,6 +347,7 @@ typedef enum
 	sfx_secret,
 	sfx_elvcal,
 	sfx_gerror,
+	sfx_zzsqwv,
 	
 	// GhostlyDeath <August 31, 2012> -- Heretic Sounds
 	sfx_gldhit,

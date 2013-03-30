@@ -197,6 +197,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "CVHINT_SNDDENSITY", "Density of the sound to use, the higher the better."},
 	{			  "CVHINT_SNDBUFFERSIZE", "Size of the sound buffer in size."},
 	{			 "CVHINT_SNDRANDOMPITCH", "Randomly Pitch Sounds."},
+	{			   "CVHINT_SNDPCSPEAKER", "Simulate Doom PC Speaker Effects."},
 	{				"CVHINT_SNDCHANNELS", "Number of sound channels to play."},
 	{		"CVHINT_SNDRESERVEDCHANNELS", "Number of channels to keep in reserve."},
 	{			 "CVHINT_SNDSOUNDVOLUME", "The volume at which sounds play at."},
