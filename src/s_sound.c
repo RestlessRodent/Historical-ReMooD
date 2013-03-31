@@ -403,7 +403,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	// Standard movement rates
 	if (a_PCSpeaker)
-		ThisChan->MoveRate = FixedDiv(1 << FRACBITS, 140 << FRACBITS);//FixedDiv(140 << FRACBITS, l_Freq << FRACBITS);
+		ThisChan->MoveRate = FixedDiv(140 << FRACBITS, l_Freq << FRACBITS);
 	else
 		ThisChan->MoveRate = ((Freq << 15) / (l_Freq >> 1));
 	
@@ -1341,7 +1341,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 					ReadSample = ((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)];
 					if (ReadSample > 95)
 						ReadSample = 95;
-					Freq = ((fixed_t)c_PCSpkFreq[ReadSample]) << FRACBITS;
+					Freq = ((fixed_t)c_PCSpkFreq[ReadSample] >> 2) << FRACBITS;
 					
 					// Frequency division between beep freq and ref samples
 					FreqDiv = FixedDiv(Freq, RefSamp);
