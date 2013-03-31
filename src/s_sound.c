@@ -1297,10 +1297,10 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	if (RefChan)
 	{
 		// Number of reference samples
-		RefSamp = RefChan->StopByte - RefChan->StartByte;
+		RefSamp = (RefChan->StopByte - RefChan->StartByte) << FRACBITS;
 		
 		// Multiplier to get correct output
-		RefMul = FixedDiv(RefChan->SoundFreq, l_Freq << FRACBITS);
+		RefMul = FRACUNIT;//FixedDiv(RefChan->SoundFreq, l_Freq << FRACBITS);
 	}
 		
 	/* Write Sound Data */
@@ -1341,7 +1341,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 					ReadSample = ((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)];
 					if (ReadSample > 95)
 						ReadSample = 95;
-					Freq = ((fixed_t)c_PCSpkFreq[ReadSample] >> 2) << FRACBITS;
+					Freq = ((fixed_t)c_PCSpkFreq[ReadSample]) << FRACBITS;
 					
 					// Frequency division between beep freq and ref samples
 					FreqDiv = FixedDiv(Freq, RefSamp);
@@ -1350,14 +1350,16 @@ void S_UpdateSounds(const bool_t a_Threaded)
 					if (Freq == 0)
 						ReadSample = 128;
 					else
-						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->StartByte + (ThisChan->BeepMove >> FRACBITS)];
+						// I believe this is in error
+						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->StartByte + (FixedMul(ThisChan->BeepMove, RefSamp) >> FRACBITS)];
 					
 					// increase beep movement by frequency division
 					ThisChan->BeepMove += FixedMul(FreqDiv, RefMul);
+					ThisChan->BeepMove &= 0xFFFF;
 					
 					// If movement exceeds length, cut back
-					if (ThisChan->BeepMove >= (RefSamp << FRACBITS))
-						ThisChan->BeepMove = 0;
+					/*if (ThisChan->BeepMove >= (RefSamp))
+						ThisChan->BeepMove -= (RefSamp);*/
 				}
 			}
 			
