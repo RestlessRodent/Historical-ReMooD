@@ -403,7 +403,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	// Standard movement rates
 	if (a_PCSpeaker)
-		ThisChan->MoveRate = FixedDiv(140 << FRACBITS, l_Freq << FRACBITS);
+		ThisChan->MoveRate = FixedDiv(1 << FRACBITS, 140 << FRACBITS);//FixedDiv(140 << FRACBITS, l_Freq << FRACBITS);
 	else
 		ThisChan->MoveRate = ((Freq << 15) / (l_Freq >> 1));
 	
@@ -1242,6 +1242,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	size_t SoundLen, i, j;
 	uint8_t ReadSample;
 	uint16_t Mod;
+	fixed_t RefSamp, FreqDiv, RefMul;
 	fixed_t Freq, ActualRate, ModVolume[16];
 	S_SoundChannel_t* ThisChan, *RefChan;
 	
@@ -1291,6 +1292,16 @@ void S_UpdateSounds(const bool_t a_Threaded)
 			break;
 		}
 	}
+	
+	// Calculate reference channel info
+	if (RefChan)
+	{
+		// Number of reference samples
+		RefSamp = RefChan->StopByte - RefChan->StartByte;
+		
+		// Multiplier to get correct output
+		RefMul = FixedDiv(RefChan->SoundFreq, l_Freq << FRACBITS);
+	}
 		
 	/* Write Sound Data */
 	for (i = 0; i < l_NumDoomChannels; i++)
@@ -1323,23 +1334,30 @@ void S_UpdateSounds(const bool_t a_Threaded)
 				if (!RefChan)
 					ReadSample = 128;
 				
+				// Base sound on reference
 				else
 				{
 					// Get current frequency
 					ReadSample = ((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)];
 					if (ReadSample > 95)
 						ReadSample = 95;
-					Freq = c_PCSpkFreq[ReadSample];
+					Freq = ((fixed_t)c_PCSpkFreq[ReadSample]) << FRACBITS;
 					
-					// Get specific beep movement
+					// Frequency division between beep freq and ref samples
+					FreqDiv = FixedDiv(Freq, RefSamp);
+					
+					// Get sample of now
 					if (Freq == 0)
 						ReadSample = 128;
 					else
-						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->BeepMove >> FRACBITS];
+						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->StartByte + (ThisChan->BeepMove >> FRACBITS)];
 					
-					// Move beep around
-					ThisChan->BeepMove += FixedDiv(Freq << FRACBITS, RefChan->SoundFreq);
-					ThisChan->BeepMove = FixedMod(ThisChan->BeepMove, RefChan->SoundFreq);
+					// increase beep movement by frequency division
+					ThisChan->BeepMove += FixedMul(FreqDiv, RefMul);
+					
+					// If movement exceeds length, cut back
+					if (ThisChan->BeepMove >= (RefSamp << FRACBITS))
+						ThisChan->BeepMove = 0;
 				}
 			}
 			
