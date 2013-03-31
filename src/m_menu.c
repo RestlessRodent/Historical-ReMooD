@@ -2231,6 +2231,9 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 				// Exit ReMooD
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_EXITREMOOD));
 			Work->FSelect = M_QuitGame_ExitFSelect;
+			
+			// Call ticker once, to gray out
+			M_QuitGame_FTicker(Root);
 			break;
 		
 			// Unknown

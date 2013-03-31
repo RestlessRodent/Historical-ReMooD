@@ -403,7 +403,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	// Standard movement rates
 	if (a_PCSpeaker)
-		ThisChan->MoveRate = FixedDiv(l_Freq, 140 << FRACBITS);
+		ThisChan->MoveRate = FixedDiv(140 << FRACBITS, l_Freq << FRACBITS);
 	else
 		ThisChan->MoveRate = ((Freq << 15) / (l_Freq >> 1));
 	
@@ -1282,11 +1282,15 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	/* Find reference channel */
 	RefChan = NULL;
 	for (i = 0; i < l_NumDoomChannels; i++)
+	{
+		ThisChan = &l_DoomChannels[i];
+		
 		if (ThisChan->Used && ThisChan->Ref)
 		{
 			RefChan = &l_DoomChannels[i];
 			break;
 		}
+	}
 		
 	/* Write Sound Data */
 	for (i = 0; i < l_NumDoomChannels; i++)
@@ -1322,17 +1326,20 @@ void S_UpdateSounds(const bool_t a_Threaded)
 				else
 				{
 					// Get current frequency
-					Freq = ((fixed_t)(c_PCSpkFreq[((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)]])) << FRACBITS;
+					ReadSample = ((uint8_t*)ThisChan->Data)[(ThisChan->CurrentByte)];
+					if (ReadSample > 95)
+						ReadSample = 95;
+					Freq = c_PCSpkFreq[ReadSample];
 					
 					// Get specific beep movement
 					if (Freq == 0)
 						ReadSample = 128;
 					else
-						ReadSample = ((uint8_t*)RefChan->Data)[FixedMul(ThisChan->BeepMove, RefChan->SoundFreq) >> FRACBITS];
+						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->BeepMove >> FRACBITS];
 					
-					// Move beep ahead
-					ThisChan->BeepMove += FixedDiv(Freq, RefChan->SoundFreq);
-					ThisChan->BeepMove &= 0xFFFF;
+					// Move beep around
+					ThisChan->BeepMove += FixedDiv(Freq << FRACBITS, RefChan->SoundFreq);
+					ThisChan->BeepMove = FixedMod(ThisChan->BeepMove, RefChan->SoundFreq);
 				}
 			}
 			
