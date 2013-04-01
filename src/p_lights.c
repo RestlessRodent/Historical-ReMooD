@@ -250,50 +250,6 @@ int EV_TurnTagLightsOff(line_t* line)
 }
 
 //
-// TURN LINE'S TAG LIGHTS ON
-//
-int EV_LightTurnOn(line_t* line, int bright)
-{
-	int i;
-	int j;
-	sector_t* sector;
-	sector_t* temp;
-	line_t* templine;
-	
-	sector = sectors;
-	
-	for (i = 0; i < numsectors; i++, sector++)
-	{
-		int tbright = bright;	//SoM: 3/7/2000: Search for maximum per sector
-		
-		if (sector->tag == line->tag)
-		{
-			// bright = 0 means to search
-			// for highest light level
-			// surrounding sector
-			if (!bright)
-			{
-				for (j = 0; j < sector->linecount; j++)
-				{
-					templine = sector->lines[j];
-					temp = getNextSector(templine, sector);
-					
-					if (!temp)
-						continue;
-						
-					if (temp->lightlevel > tbright)	//SoM: 3/7/2000
-						tbright = temp->lightlevel;
-				}
-			}
-			sector->lightlevel = tbright;
-			if (!P_XGSVal(PGS_COBOOMSUPPORT))
-				bright = tbright;
-		}
-	}
-	return 1;
-}
-
-//
 // Spawn glowing light
 //
 

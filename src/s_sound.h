@@ -96,11 +96,18 @@ void S_FreeSfx(sfxinfo_t* sfx);
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume, const bool_t a_Reverse);
 int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id);
 
-void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
-void S_StartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
-void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
-void S_StartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname);
-void S_StopSound(S_NoiseThinker_t* a_Origin);
+void S_XStartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
+void S_XStartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
+void S_XStartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
+void S_XStartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname);
+void S_XStopSound(S_NoiseThinker_t* a_Origin);
+
+// To cancel out those annoying (expected S_NoiseThinker_t* but not mobj_t*)
+#define S_StartSound(o,i) S_XStartSound(((S_NoiseThinker_t*)(o)), (i))
+#define S_StartSoundRev(o,i) S_XStartSoundRev(((S_NoiseThinker_t*)(o)), (i))
+#define S_StartSoundName(o,i) S_XStartSoundName(((S_NoiseThinker_t*)(o)), (i))
+#define S_StartSoundNameRev(o,i) S_XStartSoundNameRev(((S_NoiseThinker_t*)(o)), (i))
+#define S_StopSound(o) S_XStopSound(((S_NoiseThinker_t*)(o)))
 
 void S_RepositionSounds(void);
 

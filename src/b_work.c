@@ -345,12 +345,12 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 	// really high!
 	if (ShoreHere && (a_Bot->ShoreIt >= a_Bot->NumShore || (a_Bot->GOAShorePri && ShoreHere->Priority >= (a_Bot->GOAShorePri << 1))))
 	{
-		CONL_PrintF("Shore to %s (%p) + %u/%u\n", ((mobj_t*)ShoreHere->Thinker)->info->RClassName, ShoreHere->Thinker, (unsigned)ShoreHere->ShoreFailWait, (unsigned)gametic);
+		//CONL_PrintF("Shore to %s (%p) + %u/%u\n", ((mobj_t*)ShoreHere->Thinker)->info->RClassName, ShoreHere->Thinker, (unsigned)ShoreHere->ShoreFailWait, (unsigned)gametic);
 		
 		// Build Path to target
 		if (B_ShorePath(a_Bot, a_Bot->Mo->x, a_Bot->Mo->y, *ShoreHere->XRef, *ShoreHere->YRef))
 		{
-			CONL_PrintF("OK!\n");
+			//CONL_PrintF("OK!\n");
 			B_ShoreApprove(a_Bot);
 			a_Bot->GOAShorePri = ShoreHere->Priority;
 		}
@@ -358,7 +358,7 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 		// Failed?
 		else
 		{
-			CONL_PrintF("Fail!\n");
+			//CONL_PrintF("Fail!\n");
 			// Wait 60 seconds for monsters, 10 for players before trying again
 			if (!P_MobjIsPlayer((mobj_t*)ShoreHere->Thinker))
 				ShoreHere->ShoreFailWait = gametic + (TICRATE * 60);

@@ -642,6 +642,107 @@ bool_t EV_DoFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object
 	return rtn;
 }
 
+/* EV_DoCeiling() -- Move a ceiling up/down and all around! */
+// 1: Type
+bool_t EV_DoCeiling(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int secnum;
+	int rtn;
+	sector_t* sec;
+	ceiling_t* ceiling;
+	
+	secnum = -1;
+	rtn = 0;
+	
+	//  Reactivate in-stasis ceilings...for certain types.
+	// This restarts a crusher after it has been stopped
+	switch (a_ArgV[0])
+	{
+		case fastCrushAndRaise:
+		case silentCrushAndRaise:
+		case crushAndRaise:
+			rtn = P_ActivateInStasisCeiling(a_Line);	//SoM: Return true if the crusher is activated
+		default:
+			break;
+	}
+	
+	while ((secnum = P_FindSectorFromLineTag(a_Line, secnum)) >= 0)
+	{
+		sec = &sectors[secnum];
+		
+		if (P_SectorActive(ceiling_special, sec))	//SoM: 3/6/2000
+			continue;
+			
+		// new door thinker
+		rtn = 1;
+		ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVSPEC, 0);
+		P_AddThinker(&ceiling->thinker, PTT_MOVECEILING);
+		sec->ceilingdata = ceiling;
+		ceiling->thinker.function.acp1 = (actionf_p1) T_MoveCeiling;
+		ceiling->sector = sec;
+		ceiling->crush = false;
+		
+		switch (a_ArgV[0])
+		{
+			case fastCrushAndRaise:
+				ceiling->crush = true;
+				ceiling->topheight = sec->ceilingheight;
+				ceiling->bottomheight = sec->floorheight + (8 * FRACUNIT);
+				ceiling->direction = -1;
+				ceiling->speed = CEILSPEED * 2;
+				break;
+				
+			case silentCrushAndRaise:
+			case crushAndRaise:
+				ceiling->crush = true;
+				ceiling->topheight = sec->ceilingheight;
+			case lowerAndCrush:
+			case lowerToFloor:
+				ceiling->bottomheight = sec->floorheight;
+				if (a_ArgV[0] != lowerToFloor)
+					ceiling->bottomheight += 8 * FRACUNIT;
+				ceiling->direction = -1;
+				ceiling->speed = CEILSPEED;
+				break;
+				
+			case raiseToHighest:
+				ceiling->topheight = P_FindHighestCeilingSurrounding(sec);
+				ceiling->direction = 1;
+				ceiling->speed = CEILSPEED;
+				break;
+				
+				//SoM: 3/6/2000: Added Boom types
+			case lowerToLowest:
+				ceiling->bottomheight = P_FindLowestCeilingSurrounding(sec);
+				ceiling->direction = -1;
+				ceiling->speed = CEILSPEED;
+				break;
+				
+			case lowerToMaxFloor:
+				ceiling->bottomheight = P_FindHighestFloorSurrounding(sec);
+				ceiling->direction = -1;
+				ceiling->speed = CEILSPEED;
+				break;
+				
+				// Instant-raise SSNTails 06-13-2002
+			case instantRaise:
+				ceiling->topheight = P_FindHighestCeilingSurrounding(sec);
+				ceiling->direction = 1;
+				ceiling->speed = INT_MAX / 2;	// Go too fast and you'll cause problems...
+				break;
+				
+			default:
+				break;
+				
+		}
+		
+		ceiling->tag = sec->tag;
+		ceiling->type = a_ArgV[0];
+		P_AddActiveCeiling(ceiling);
+	}
+	return rtn;
+}
+
 /* EV_DoCeilOrFloor() -- Moves ceiling or floor */
 // 1: Ceiling Type
 // 2: Floor Tyoe
@@ -652,7 +753,7 @@ bool_t EV_DoCeilOrFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	if (!a_ArgV[2])
 	{
 		// Do Ceiling
-		if (EV_DoCeiling(a_Line, a_ArgV[0]))
+		if (EV_DoCeiling(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, 1, &a_ArgV[0]))
 			return true;
 	
 		// Do Floor
@@ -667,7 +768,7 @@ bool_t EV_DoCeilOrFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	else
 	{
 		// Do ceiling then floor
-		EV_DoCeiling(a_Line, a_ArgV[0]);
+		EV_DoCeiling(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, 1, &a_ArgV[0]);
 		EV_DoFloor(a_Line, a_Side, a_Object, a_Type, a_Flags, a_UseAgain, 1, &a_ArgV[1]);
 		
 		// Always succeed?
@@ -1041,7 +1142,7 @@ bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* con
 			// Whether this is a player, and if so, a pointer to its player_t.
 			// Voodoo dolls are excluded by making sure thing->player->mo==thing.
 			player = NULL;
-			if (P_MobjIsPlayer(player))
+			if (P_MobjIsPlayer(a_Object))
 				player = a_Object->player && a_Object->player->mo == a_Object ? a_Object->player : NULL;
 			
 			// Whether walking towards first side of exit linedef steps down
@@ -1125,6 +1226,52 @@ bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* con
 		}
 	
 	return false;
+}
+
+/* EV_LightTurnOn() -- Turns a light on */
+// 1: Brightness
+bool_t EV_LightTurnOn(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int i;
+	int j;
+	sector_t* sector;
+	sector_t* temp;
+	line_t* templine;
+	int32_t tbright, bright;
+	
+	sector = sectors;
+	bright = a_ArgV[0];
+	
+	for (i = 0; i < numsectors; i++, sector++)
+	{
+		tbright = bright;	//SoM: 3/7/2000: Search for maximum per sector
+		
+		if (sector->tag == a_Line->tag)
+		{
+			// bright = 0 means to search
+			// for highest light level
+			// surrounding sector
+			if (!bright)
+			{
+				for (j = 0; j < sector->linecount; j++)
+				{
+					templine = sector->lines[j];
+					temp = getNextSector(templine, sector);
+					
+					if (!temp)
+						continue;
+						
+					if (temp->lightlevel > tbright)	//SoM: 3/7/2000
+						tbright = temp->lightlevel;
+				}
+			}
+			
+			sector->lightlevel = tbright;
+			if (!P_XGSVal(PGS_COBOOMSUPPORT))
+				bright = tbright;
+		}
+	}
+	return 1;
 }
 
 /*****************************************************************************/
@@ -1367,6 +1514,74 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{24, 0, LAT_SHOOT, PNLF_CLEARNOTBOOM, EV_DoFloor, 1,
 		{raiseFloor}},
 	
+	// Ceilings (EV_DoCeiling)
+		// Walk
+	{6, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoCeiling, 1,
+		{fastCrushAndRaise}},
+	{25, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoCeiling, 1,
+		{crushAndRaise}},
+	{44, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoCeiling, 1,
+		{lowerAndCrush}},
+	{141, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoCeiling, 1,
+		{silentCrushAndRaise}},
+		
+	{72, 0, LAT_WALK, PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerAndCrush}},
+	{73, 0, LAT_WALK, PNLF_RETRIG, EV_DoCeiling, 1,
+		{crushAndRaise}},
+	{77, 0, LAT_WALK, PNLF_RETRIG, EV_DoCeiling, 1,
+		{fastCrushAndRaise}},
+		
+	{145, 0, LAT_WALK, PNLF_BOOM, EV_DoCeiling, 1,
+		{lowerToFloor}},
+	{199, 0, LAT_WALK, PNLF_BOOM, EV_DoCeiling, 1,
+		{lowerToLowest}},
+	{200, 0, LAT_WALK, PNLF_BOOM, EV_DoCeiling, 1,
+		{lowerToMaxFloor}},
+		
+	{150, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{silentCrushAndRaise}},
+	{152, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerToFloor}},
+	{201, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerToLowest}},
+	{202, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerToMaxFloor}},
+		
+		// Switch
+	{41, 0, LAT_SWITCH, 0, EV_DoCeiling, 1,
+		{lowerToFloor}},
+	{49, 0, LAT_SWITCH, 0, EV_DoCeiling, 1,
+		{crushAndRaise}},
+	{164, 0, LAT_SWITCH, PNLF_BOOM, EV_DoCeiling, 1,
+		{fastCrushAndRaise}},
+	{165, 0, LAT_SWITCH, PNLF_BOOM, EV_DoCeiling, 1,
+		{silentCrushAndRaise}},
+	{167, 0, LAT_SWITCH, PNLF_BOOM, EV_DoCeiling, 1,
+		{lowerAndCrush}},
+	{203, 0, LAT_SWITCH, PNLF_BOOM, EV_DoCeiling, 1,
+		{lowerToLowest}},
+	{204, 0, LAT_SWITCH, PNLF_BOOM, EV_DoCeiling, 1,
+		{lowerToMaxFloor}},
+		
+	{183, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{fastCrushAndRaise}},
+	{184, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{crushAndRaise}},
+	{185, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{silentCrushAndRaise}},
+	{187, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerAndCrush}},
+	{205, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerToLowest}},
+	{206, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerToMaxFloor}},
+		
+	{43, 0, LAT_SWITCH, PNLF_RETRIG, EV_DoCeiling, 1,
+		{lowerToFloor}},
+		
+		// Gun
+	
 	// Raise Ceiling or lower floor (EV_DoCeilOrFloor)
 		// Walk
 	{40, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_DoCeilOrFloor, 3,
@@ -1493,7 +1708,40 @@ static const P_NLTrig_t c_LineTrigs[] =
 		{false, true, true}},
 	{267, 0, LAT_WALK, PNLF_MONSTER | PNLF_RETRIG | PNLF_BOOM, EV_SilentLineTeleport, 3,
 		{false, true, false}},
+	
+	// Lights (EV_LightTurnOn)
+		// Walk
+	{12, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_LightTurnOn, 1,
+		{0}},
+	{13, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_LightTurnOn, 1,
+		{255}},
+	{35, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_LightTurnOn, 1,
+		{255}},
 		
+	{79, 0, LAT_WALK, PNLF_RETRIG, EV_LightTurnOn, 1,
+		{35}},
+	{80, 0, LAT_WALK, PNLF_RETRIG, EV_LightTurnOn, 1,
+		{0}},
+	{81, 0, LAT_WALK, PNLF_RETRIG, EV_LightTurnOn, 1,
+		{255}},
+		
+		// Switch
+	{169, 0, LAT_SWITCH, PNLF_BOOM, EV_LightTurnOn, 1,
+		{0}},
+	{170, 0, LAT_SWITCH, PNLF_BOOM, EV_LightTurnOn, 1,
+		{35}},
+	{171, 0, LAT_SWITCH, PNLF_BOOM, EV_LightTurnOn, 1,
+		{255}},
+		
+	{192, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_LightTurnOn, 1,
+		{0}},
+		
+	{138, 0, LAT_SWITCH, PNLF_RETRIG, EV_LightTurnOn, 1,
+		{255}},
+	{139, 0, LAT_SWITCH, PNLF_RETRIG, EV_LightTurnOn, 1,
+		{35}},
+		
+		// Gun
 	
 #if 0
 	// Scrollers (EV_SpawnScroller)

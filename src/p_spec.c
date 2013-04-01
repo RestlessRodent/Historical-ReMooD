@@ -1054,17 +1054,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 	{
 		ok = 0;
 		
-		switch (line->special)
-		{
-			case 4:			// RAISE DOOR
-			case 10:			// PLAT DOWN-WAIT-UP-STAY TRIGGER
-			case 88:			// PLAT DOWN-WAIT-UP-STAY RETRIGGER
-				ok = 1;
-				break;
-				// SoM: 3/4/2000: Add boom compatibility for extra monster usable
-				// linedef types.
-				
-		}
 		//SoM: Anything can trigger this line!
 		if (line->flags & ML_ALLTRIGGER)
 			ok = 1;
@@ -1083,12 +1072,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			// All from here to RETRIGGERS.
 			
 			
-		case 6:
-			// Fast Ceiling Crush & Raise
-			if (EV_DoCeiling(line, fastCrushAndRaise) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
 		case 8:
 			// Build Stairs
 			if (EV_BuildStairs(line, build8) || !P_XGSVal(PGS_COBOOMSUPPORT))
@@ -1096,42 +1079,13 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			break;
 			
 			
-		case 12:
-			// Light Turn On - brightest near
-			if (EV_LightTurnOn(line, 0) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
-		case 13:
-			// Light Turn On 255
-			if (EV_LightTurnOn(line, 255) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
 		case 17:
 			// Start Light Strobing
 			if (EV_StartLightStrobing(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
-		case 25:
-			// Ceiling Crush and Raise
-			if (EV_DoCeiling(line, crushAndRaise) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
 			
-		case 35:
-			// Lights Very Dark
-			if (EV_LightTurnOn(line, 35) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
-			
-		case 44:
-			// Ceiling Crush
-			if (EV_DoCeiling(line, lowerAndCrush) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
 			
 			
 		case 54:
@@ -1160,12 +1114,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			break;
 			
 			
-		case 141:
-			// Silent Ceiling Crush & Raise
-			if (EV_DoCeiling(line, silentCrushAndRaise) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
 			//SoM: FraggleScript
 		case 273:				//(1sided)
 			if (side)
@@ -1188,40 +1136,13 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			break;
 			
 			// RETRIGGERS.  All from here till end.
-		case 72:
-			// Ceiling Crush
-			EV_DoCeiling(line, lowerAndCrush);
-			break;
-			
-		case 73:
-			// Ceiling Crush and Raise
-			EV_DoCeiling(line, crushAndRaise);
-			break;
 			
 		case 74:
 			// Ceiling Crush Stop
 			EV_CeilingCrushStop(line);
 			break;
 			
-		case 77:
-			// Fast Ceiling Crush & Raise
-			EV_DoCeiling(line, fastCrushAndRaise);
-			break;
 			
-		case 79:
-			// Lights Very Dark
-			EV_LightTurnOn(line, 35);
-			break;
-			
-		case 80:
-			// Light Turn On - brightest near
-			EV_LightTurnOn(line, 0);
-			break;
-			
-		case 81:
-			// Light Turn On 255
-			EV_LightTurnOn(line, 255);
-			break;
 			
 			
 		case 89:
@@ -1238,27 +1159,10 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						//SoM: 3/4/2000:Boom Walk once triggers.
 						//SoM: 3/4/2000:Yes this is "copied" code! I just cleaned it up. Did you think I was going to retype all this?!
 						
-					case 145:
-						// Lower Ceiling to Floor
-						if (EV_DoCeiling(line, lowerToFloor))
-							line->special = 0;
-						break;
 						
 					case 146:
 						// Lower Pillar, Raise Donut
 						if (EV_DoDonut(line))
-							line->special = 0;
-						break;
-						
-					case 199:
-						// Lower ceiling to lowest surrounding ceiling
-						if (EV_DoCeiling(line, lowerToLowest))
-							line->special = 0;
-						break;
-						
-					case 200:
-						// Lower ceiling to highest surrounding floor
-						if (EV_DoCeiling(line, lowerToMaxFloor))
 							line->special = 0;
 						break;
 						
@@ -1299,16 +1203,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						
 						//Boom added lots of linedefs to fill in the gaps in trigger types
 						
-					case 150:
-						// Start slow silent crusher
-						EV_DoCeiling(line, silentCrushAndRaise);
-						break;
-						
-						
-					case 152:
-						// Lower Ceiling to Floor
-						EV_DoCeiling(line, lowerToFloor);
-						break;
 						
 					case 256:
 						// Build stairs, step 8
@@ -1333,16 +1227,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 					case 157:
 						// Lights to dimmest near
 						EV_TurnTagLightsOff(line);
-						break;
-						
-					case 201:
-						// Lower ceiling to lowest surrounding ceiling
-						EV_DoCeiling(line, lowerToLowest);
-						break;
-						
-					case 202:
-						// Lower ceiling to highest surrounding floor
-						EV_DoCeiling(line, lowerToMaxFloor);
 						break;
 						
 					case 154:

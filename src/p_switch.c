@@ -397,19 +397,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			break;
 			
 			
-		case 41:
-			// Lower Ceiling to Floor
-			if (EV_DoCeiling(line, lowerToFloor))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-			
-		case 49:
-			// Ceiling Crush And Raise
-			if (EV_DoCeiling(line, crushAndRaise))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
 			
 		case 127:
 			// Build Stairs Turbo 16
@@ -458,24 +445,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						P_ChangeSwitchTexture(line, 0);
 						break;
 						
-					case 164:
-						// Start fast crusher
-						if (EV_DoCeiling(line, fastCrushAndRaise))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 165:
-						// Start slow silent crusher
-						if (EV_DoCeiling(line, silentCrushAndRaise))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-						
-					case 167:
-						// Lower floor and Crush
-						if (EV_DoCeiling(line, lowerAndCrush))
-							P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 168:
 						// Stop crusher
@@ -483,23 +452,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
-					case 169:
-						// Lights to brightest neighbor sector
-						EV_LightTurnOn(line, 0);
-						P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 170:
-						// Lights to near dark
-						EV_LightTurnOn(line, 35);
-						P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 171:
-						// Lights on full
-						EV_LightTurnOn(line, 255);
-						P_ChangeSwitchTexture(line, 0);
-						break;
 						
 					case 172:
 						// Start Lights Strobing
@@ -516,18 +468,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 					case 189:	//create texture change no motion type
 						// Texture Change Only (Trigger)
 						if (EV_DoChange(line, trigChangeOnly))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 203:
-						// Lower ceiling to lowest surrounding ceiling
-						if (EV_DoCeiling(line, lowerToLowest))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
-					case 204:
-						// Lower ceiling to highest surrounding floor
-						if (EV_DoCeiling(line, lowerToMaxFloor))
 							P_ChangeSwitchTexture(line, 0);
 						break;
 						
@@ -575,30 +515,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 183:
-						// Start fast crusher
-						if (EV_DoCeiling(line, fastCrushAndRaise))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 184:
-						// Start slow crusher
-						if (EV_DoCeiling(line, crushAndRaise))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 185:
-						// Start slow silent crusher
-						if (EV_DoCeiling(line, silentCrushAndRaise))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-						
-					case 187:
-						// Lower floor and Crush
-						if (EV_DoCeiling(line, lowerAndCrush))
-							P_ChangeSwitchTexture(line, 1);
-						break;
 						
 					case 188:
 						// Stop crusher
@@ -618,11 +534,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 192:
-						// Lights to brightest neighbor sector
-						EV_LightTurnOn(line, 0);
-						P_ChangeSwitchTexture(line, 1);
-						break;
 						
 					case 193:
 						// Start Lights Strobing
@@ -634,18 +545,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						// Lights to Dimmest Near
 						EV_TurnTagLightsOff(line);
 						P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 205:
-						// Lower ceiling to lowest surrounding ceiling
-						if (EV_DoCeiling(line, lowerToLowest))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 206:
-						// Lower ceiling to highest surrounding floor
-						if (EV_DoCeiling(line, lowerToMaxFloor))
-							P_ChangeSwitchTexture(line, 1);
 						break;
 						
 						
@@ -685,24 +584,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			break;
 			
 			// BUTTONS
-		case 43:
-			// Lower Ceiling to Floor
-			if (EV_DoCeiling(line, lowerToFloor))
-				P_ChangeSwitchTexture(line, 1);
-			break;
 			
-			
-		case 138:
-			// Light Turn On
-			EV_LightTurnOn(line, 255);
-			P_ChangeSwitchTexture(line, 1);
-			break;
-			
-		case 139:
-			// Light Turn Off
-			EV_LightTurnOn(line, 35);
-			P_ChangeSwitchTexture(line, 1);
-			break;
 			
 	}
 	

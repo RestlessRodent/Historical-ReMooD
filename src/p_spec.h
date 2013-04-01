@@ -184,8 +184,6 @@ void P_SpawnStrobeFlash(sector_t* sector, int fastOrSlow, int inSync);
 int EV_StartLightStrobing(line_t* line);
 int EV_TurnTagLightsOff(line_t* line);
 
-int EV_LightTurnOn(line_t* line, int bright);
-
 void T_Glow(glow_t* g);
 void P_SpawnGlowingLight(sector_t* sector);
 
@@ -517,8 +515,6 @@ void P_RemoveAllActiveCeilings(void);	//SoM: 3/9/2000
 #define MAXCEILINGS             30
 
 extern ceilinglist_t* activeceilings;	//SoM: 3/6/2000: New improved boom code.
-
-int EV_DoCeiling(line_t* line, ceiling_e type);
 
 void T_MoveCeiling(ceiling_t* ceiling);
 void P_AddActiveCeiling(ceiling_t* ceiling);
@@ -1327,6 +1323,8 @@ bool_t EV_DoLockedDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 
 bool_t EV_DoFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
+bool_t EV_DoCeiling(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
 bool_t EV_DoPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_Teleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
@@ -1334,6 +1332,8 @@ bool_t EV_Teleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 bool_t EV_SilentTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_LightTurnOn(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 /*****************************************************************************/
 

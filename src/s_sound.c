@@ -695,8 +695,8 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 #undef BUFSIZE
 }
 
-/* S_StartSound() -- Play a sound at full volume */
-void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
+/* S_XStartSound() -- Play a sound at full volume */
+void S_XStartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
 {
 	/* Check */
 	if (!l_SoundOK)
@@ -706,8 +706,8 @@ void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
 	S_StartSoundAtVolume(a_Origin, sound_id, 255, false);
 }
 
-/* S_StartSoundName() -- Start a sound based on name */
-void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname)
+/* S_XStartSoundName() -- Start a sound based on name */
+void S_XStartSoundName(S_NoiseThinker_t* a_Origin, char* soundname)
 {
 	/* Check */
 	if (!l_SoundOK)
@@ -716,8 +716,8 @@ void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname)
 	S_StartSound(a_Origin, S_SoundIDForName(soundname));
 }
 
-/* S_StartSoundRev() -- Play a sound at full volume (reversed) */
-void S_StartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
+/* S_XStartSoundRev() -- Play a sound at full volume (reversed) */
+void S_XStartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
 {
 	/* Check */
 	if (!l_SoundOK)
@@ -727,8 +727,8 @@ void S_StartSoundRev(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
 	S_StartSoundAtVolume(a_Origin, sound_id, 255, true);
 }
 
-/* S_StartSoundNameRev() -- Start a sound based on name (reversed) */
-void S_StartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname)
+/* S_XStartSoundNameRev() -- Start a sound based on name (reversed) */
+void S_XStartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname)
 {
 	/* Check */
 	if (!l_SoundOK)
@@ -737,8 +737,8 @@ void S_StartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname)
 	S_StartSoundRev(a_Origin, S_SoundIDForName(soundname));
 }
 
-/* S_StopSound() -- Stop sound being played by this object */
-void S_StopSound(S_NoiseThinker_t* a_Origin)
+/* S_XStopSound() -- Stop sound being played by this object */
+void S_XStopSound(S_NoiseThinker_t* a_Origin)
 {
 	int Found;
 	
