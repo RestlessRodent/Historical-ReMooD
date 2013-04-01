@@ -1775,19 +1775,41 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	else
 		CONL_OSKSetVisible(0, false);
 		
-	/* Only handle keyboard events */
-	if (a_Event->Type != IET_KEYBOARD)
-		return false;
+	/* Only handle keyboard events and keyed synthosk for P1 */
+	// keyboard
+	if (a_Event->Type == IET_KEYBOARD)
+	{
+		// Ignore release/up events
+		if (!a_Event->Data.Keyboard.Down)
+			return false;
 		
-	// Ignore release/up events
-	if (!a_Event->Data.Keyboard.Down)
-		return false;
+		// Remember key code and character
+		Code = a_Event->Data.Keyboard.KeyCode;
+	}
+	
+	// Synthetic OSK
+	else if (a_Event->Type == IET_SYNTHOSK)
+	{
+		// Only for P1
+		if (a_Event->Data.SynthOSK.PNum != 0)
+			return false;
 		
-	// Remember key code and character
-	Code = a_Event->Data.Keyboard.KeyCode;
+		// Ignore non-keycode events
+			// Handle character for the case of CONCTI
+		if (!a_Event->Data.SynthOSK.KeyCode && !a_Event->Data.SynthOSK.Character)
+			return false;
+		
+		// Extract code
+		Code = a_Event->Data.SynthOSK.KeyCode;
+	}
+	
+	// Do not handle
+	else
+		return false;
 	
 	/* Console is not active */
-	if (!CONL_IsActive() && (Code == IKBK_TILDE || Code == IKBK_GRAVE))
+	// Only open the console with the keyboard
+	if (!CONL_IsActive() && a_Event->Type == IET_KEYBOARD && (Code == IKBK_TILDE || Code == IKBK_GRAVE))
 	{
 		CONL_SetActive(true);
 		return true;
@@ -2314,7 +2336,8 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 				
 			// Clear event
 			memset(&FakeEvent, 0, sizeof(FakeEvent));
-		
+			
+#if 0
 			// Create fake keyboard event (P1 Only)
 			if (!a_PlayerNum)
 			{
@@ -2329,24 +2352,31 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 			// Synthetic command for other players
 			else
 			{
+#endif
 				FakeEvent.Type = IET_SYNTHOSK;
 				FakeEvent.Data.SynthOSK.PNum = a_PlayerNum;
 				FakeEvent.Data.SynthOSK.KeyCode = l_OSKLayout[r][c].IkbkKey[Shift];
 		
 				if (!VirtOnly || FakeEvent.Data.SynthOSK.KeyCode == IKBK_SPACE)
 					FakeEvent.Data.SynthOSK.Character = V_ExtMBToWChar(l_OSKLayout[r][c].UTFKey[Shift], NULL);
+#if 0
 			}
+#endif
 			
 			// Push it
 			I_EventExPush(&FakeEvent);
 			
+#if 0
 			// Let go of key
 			FakeEvent.Data.Keyboard.Down = false;
 			I_EventExPush(&FakeEvent);
+#endif
 			
-			// If it was shift, toggle shift
+#if 0
+			// If it was shift, toggle
 			if (FakeEvent.Data.Keyboard.KeyCode == IKBK_SHIFT)
 				l_OSKShift[a_Event->Data.SynthOSK.PNum] ^= 1;
+#endif
 		}
 	
 	/* Always eat as handled */

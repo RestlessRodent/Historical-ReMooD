@@ -467,14 +467,16 @@ void I_OsPolling(void)
 					
 					// OSK
 				case IET_SYNTHOSK:
-					CONL_PrintF("Event: SYNOSK Pl:%2u Ri:%+1i Dn:%+1i Pr:%u Sh:%u Dr:%08x Cn:%u\n",
+					CONL_PrintF("Event: SYNOSK Pl:%2u Ri:%+1i Dn:%+1i Pr:%u Sh:%u Dr:%08x Cn:%u Kc:%03X Ch:%c [aka %s]\n",
 							Event.Data.SynthOSK.PNum,
 							Event.Data.SynthOSK.Right,
 							Event.Data.SynthOSK.Down,
 							Event.Data.SynthOSK.Press,
 							Event.Data.SynthOSK.Shift,
 							Event.Data.SynthOSK.Direct,
-							Event.Data.SynthOSK.Cancel
+							Event.Data.SynthOSK.Cancel,
+				            Event.Data.SynthOSK.KeyCode, (Event.Data.SynthOSK.Character & 0x7F ? Event.Data.SynthOSK.Character & 0x7F : ' '),
+				            c_KeyNames[Event.Data.SynthOSK.KeyCode][0]
 						);
 					break;
 					
