@@ -290,6 +290,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "DPROFC_INDEXOUTOFRANGE", "Index $1 out of range."},
 	
 	/*** D_NET.C ***/
+	{			 "DNETC_CONNECTUSAGE", "Usage: $1 <hostname> (password)"},
+	{		   "DNETC_ADDPLAYERUSAGE", "Usage: $1 <profile> (screen) (joystick id)"},
 	{			"DNETC_PLAYERLISTENT", "$1 $2 $3{z"},
 	{				 "DNETC_BINDFAIL", "Failed to bind to \"$1\"."},
 	{		 "DNETC_SERVERCHANGENAME", "Server changed name to \"$1\"."},

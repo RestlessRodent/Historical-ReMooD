@@ -1341,10 +1341,18 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 {
 #define BUFSIZE 128
 	char Message[BUFSIZE];
-	const char* tNoun, *iNoun, *sNoun;
+	const char* tNoun, *iNoun, *sNoun, **chNoun;
 	bool_t tSpecial, iSpecial, sSpecial;
 	const char* SrcPrefix, *TargPrefix;
 	char SrcColor, TargColor;
+	
+	int32_t i, c, n, x;
+	char PLSource[MAXPLAYERNAME + 1];
+	char PLTarget[MAXPLAYERNAME + 1];
+	mobj_t** MoP;
+	char* NameBuf, *p;
+	uint16_t WChar;
+	size_t BSkip;
 	
 	/* Determine nouns of objects */
 	tNoun = PS_GetMobjNoun(target, &tSpecial, false, source);
@@ -1399,13 +1407,69 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			}
 	}
 	
+	/* Remap source and target? */
+	// This is for 3/4 split to make some room available
+	if (g_SplitScreen > 1)
+		for (i = 0; i < 2; i++)
+		{
+			// Source
+			if (!i)
+			{
+				MoP = &source;
+				NameBuf = PLSource;
+				chNoun = &sNoun;
+			}
+		
+			// Target
+			else
+			{
+				MoP = &target;
+				NameBuf = PLTarget;
+				chNoun = &tNoun;
+			}
+		
+			// No mobj?
+			if (!*MoP)
+				continue;
+		
+			// Not a player?
+			if (!P_MobjIsPlayer(*MoP))
+				continue;
+			
+			// Clear Buffer
+			memset(NameBuf, 0, MAXPLAYERNAME + 1);
+			
+			// Go through name
+			for (p = *chNoun, BSkip = 1, c = 0, n = 0; *p && c < 6; p += BSkip)
+			{
+				// Convert to wide
+				WChar = V_ExtMBToWChar(p, &BSkip);
+				
+				// End?
+				if (WChar == 0)
+					break;
+				
+				// Convert back to buffer
+				for (x = 0; x < BSkip; x++)
+					if (n <= MAXPLAYERNAME)
+						NameBuf[n++] = p[x];
+				
+				// If color code stuff, do not add
+				if (WChar < 0xF100 || WChar > 0xFFFF)
+					c++;
+			}
+			
+			// Set use new buffer
+			*chNoun = NameBuf;
+		}
+	
 	/* Print message */
 	// 3/4 Split
 	if (g_SplitScreen > 1)
 		if (target == source)
-			CONL_PrintF("\x7{%s%c%.6s{0< {2({3%.6s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
+			CONL_PrintF("\x7{%s%c%s{0< {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
 		else
-			CONL_PrintF("\x7{%s%c%.6s{0/{%s%c%.6s {2({3%.6s{2)\n", SrcPrefix, SrcColor, sNoun, TargPrefix, TargColor, tNoun, iNoun);
+			CONL_PrintF("\x7{%s%c%s{0/{%s%c%s {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, TargPrefix, TargColor, tNoun, iNoun);
 	
 	// 1/2 Split
 	else

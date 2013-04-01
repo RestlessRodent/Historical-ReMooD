@@ -214,6 +214,7 @@ typedef struct D_XPlayer_s
 	
 	uint32_t LookAngle, AimAngle;				// Angle Remember (for server)
 	bool_t GotBackup;							// Got backup command
+	bool_t DidPFromS;							// Did profile from screen
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */

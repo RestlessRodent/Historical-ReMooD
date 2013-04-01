@@ -346,14 +346,30 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	if (a_Bot)
 		return;
 	
+	/* Check */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+		return;
+	
 	/* Find first free slot */
 	// Find the last screened player
 	for (LastScreen = 0; LastScreen < MAXSPLITSCREEN; LastScreen++)
-		if (!D_ScrSplitHasPlayer(PlaceAt))
+		if (!D_ScrSplitHasPlayer(LastScreen))
 			break;
 	
 	// Place at the first wanted spot, unless already bound
-	PlaceAt = a_ScreenID;
+		// Assign joystick to player, can be in game
+	if (a_UseJoy && D_ScrSplitHasPlayer(a_ScreenID) && !g_Splits[a_ScreenID].JoyBound)
+		PlaceAt = a_ScreenID;
+	
+		// No joystick wanted
+	else
+	{
+		// Cannot fit any more players
+		if (LastScreen >= MAXSPLITSCREEN)
+			return;	
+		
+		PlaceAt = LastScreen;
+	}
 	
 	// If placement is after the last, cap to last
 		// So there is no gap in the screens
@@ -370,10 +386,9 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		BumpSplits = false;
 	
 	// Find Profile
-	Profile = D_FindProfileEx(a_Name);
-	
-	if (!Profile)
-		Profile = D_FindProfileEx("guest");
+	Profile = NULL;
+	if (a_Name)
+		Profile = D_FindProfileEx(a_Name);
 	
 	// Never redisplay
 		// Also if a player is not active, then reset the display status
@@ -389,7 +404,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	
 	// Bind stuff here
 	g_Splits[PlaceAt].Waiting = true;
-	//g_Splits[PlaceAt].Profile = Profile;
+	g_Splits[PlaceAt].Profile = Profile;
 	g_Splits[PlaceAt].JoyBound = a_UseJoy;
 	g_Splits[PlaceAt].JoyID = a_JoyID;
 	g_Splits[PlaceAt].ProcessID = ProcessID;
@@ -3472,7 +3487,10 @@ static int DS_XNetCmdConnect(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Requires at least 2 arguments */
 	if (a_ArgC < 2)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_CONNECTUSAGE, "%s\n", a_ArgV[0]);
 		return 1;
+	}
 	
 	/* Extract host and password */
 	Host = a_ArgV[1];
@@ -3495,6 +3513,39 @@ static int DS_XNetCmdConnect(const uint32_t a_ArgC, const char** const a_ArgV)
 	return 0;
 }
 
+/* DS_XNetCmdAddPlayer() -- Adds local player */
+static int DS_XNetCmdAddPlayer(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	const char* Profile;
+	int32_t Screen, Joy;
+	bool_t DoJoy;
+	
+	/* Need at least 1 arg */
+	if (a_ArgC < 2)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_ADDPLAYERUSAGE, "%s\n", a_ArgV[0]);
+		return 1;
+	}
+	
+	/* Read Arguments */
+	Screen = Joy = 0;
+	DoJoy = false;
+	Profile = a_ArgV[1];
+	
+	if (a_ArgC >= 3)
+		Screen = C_strtoi32(a_ArgV[2], NULL, 10);
+	
+	if (a_ArgC >= 4)
+	{
+		DoJoy = true;
+		Joy = C_strtoi32(a_ArgV[3], NULL, 10);
+	}
+	
+	/* Do a standard add player */
+	D_NCLocalPlayerAdd(Profile, false, Joy, Screen, DoJoy);
+	return 0;
+}
+
 /* D_XNetInit() -- Initializes the Extended Network Code */
 void D_XNetInit(void)
 {
@@ -3502,6 +3553,7 @@ void D_XNetInit(void)
 	CONL_AddCommand("root", DS_XNetRootCon);
 	
 	CONL_AddCommand("connect", DS_XNetCmdConnect);
+	CONL_AddCommand("addplayer", DS_XNetCmdAddPlayer);
 }
 
 /* D_XNetHandleEvent() -- Handle advanced events */
@@ -4563,6 +4615,7 @@ void D_XNetUpdate(void)
 	M_UIMenu_t* ProfMenu;
 	static tic_t LastSpecTic, LastPT;
 	ticcmd_t MergeTrunk;
+	bool_t NeedsSomething;
 	
 	static D_XPlayer_t DemoXPlay;
 	
@@ -4757,9 +4810,36 @@ void D_XNetUpdate(void)
 		if (ScrID >= MAXSPLITSCREEN)
 			ScrID = -1;
 		
+		
 		// No profile loaded?
 		if (ScrID >= 0)
-			if (!XPlay->Profile)
+		{
+			// Inactive?
+			if (!D_ScrSplitHasPlayer(ScrID))
+				continue;
+				
+			// No profile set? And not a bot
+			NeedsSomething = false;
+			if (!XPlay->Profile && !(XPlay->Flags & DXPF_BOT))
+				NeedsSomething = true;
+			
+			// See if split screen has a profile
+			if (NeedsSomething)
+				if (g_Splits[ScrID].Profile)
+				{
+					// Use this profile
+					if (!XPlay->DidPFromS)
+						D_XNetChangeLocalProf(ScrID, g_Splits[ScrID].Profile);
+					
+					// Did from screen
+					XPlay->DidPFromS = true;
+					
+					// Do not need request
+					NeedsSomething = false;
+				}
+			
+			// Even split player has no profile =(, use menu
+			if (NeedsSomething)
 			{
 				// Not in level
 				if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -4786,8 +4866,12 @@ void D_XNetUpdate(void)
 					M_ExPushMenu(ScrID, ProfMenu);
 					g_ResumeMenu++;
 				}
-				continue;
 			}
+			
+			// Do not build commands?
+			if (NeedsSomething)
+				continue;
+		}
 		
 		// Does not need profile
 		XPlay->StatusBits &= ~DXPSB_NEEDSPROFILE;

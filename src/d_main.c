@@ -2793,7 +2793,6 @@ void D_DoomMain(void)
 	g_EarlyBootConsole = false;
 	V_SetPalette(0);
 	
-	D_RegisterClientCommands();	//Hurdler: be sure that this is called before D_CheckNetGame
 	T_AddCommands();
 	R_RegisterEngineStuff();
 	S_RegisterSoundStuff();

@@ -65,65 +65,7 @@
 #include "i_util.h"
 #include "i_video.h"
 
-
 #include "b_bot.h"
-
-// ------
-// protos
-// ------
-void Command_Color_f(void);
-void Command_Name_f(void);
-
-void Command_WeaponPref(void);
-
-void TeamPlay_OnChange(void);
-void FragLimit_OnChange(void);
-void Deahtmatch_OnChange(void);
-void TimeLimit_OnChange(void);
-
-void Command_Playdemo_f(void);
-void Command_Timedemo_f(void);
-void Command_Stopdemo_f(void);
-void Command_Map_f(void);
-void Command_Restart_f(void);
-
-void Command_Pause(void);
-
-void Command_Frags_f(void);
-void Command_TeamFrags_f(void);
-void Command_Version_f(void);
-void Command_Quit_f(void);
-
-void Command_Water_f(void);
-void Command_ExitLevel_f(void);
-void Command_Load_f(void);
-void Command_Save_f(void);
-void Command_ExitGame_f(void);
-
-void Command_Kill(void);
-
-// =========================================================================
-//                           CLIENT VARIABLES
-// =========================================================================
-
-void CL_Player1Change(void);
-void CL_Player2Change(void);
-void CL_Player3Change(void);
-void CL_Player4Change(void);
-
-// =========================================================================
-//                           CLIENT STARTUP
-// =========================================================================
-
-// register client and server commands
-//
-void D_RegisterClientCommands(void)
-{
-}
-
-// =========================================================================
-//                            CLIENT STUFF
-// =========================================================================
 
 /*****************************
 *** EXTENDED NETWORK STUFF ***
