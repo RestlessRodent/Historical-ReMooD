@@ -40,6 +40,7 @@
 #include "s_sound.h"
 #include "z_zone.h"
 #include "p_demcmp.h"
+#include "p_nwline.h"
 
 #if 0
 //
@@ -69,6 +70,7 @@ int doorclosesound = sfx_dorcls;
 void T_VerticalDoor(vldoor_t* door)
 {
 	result_e res;
+	int32_t LightArg;
 	
 	switch (door->direction)
 	{
@@ -170,30 +172,8 @@ void T_VerticalDoor(vldoor_t* door)
 				// Hurdler: FIXME: there is a bug in map27 with door->line not being correct
 				//                 after a save game / load game
 				if (P_XGSVal(PGS_COBOOMSUPPORT) && door->line && door->line->tag)
-				{
-					if (door->line->special > GenLockedBase && (door->line->special & 6) == 6)
+					if ((door->line->special > GenLockedBase && (door->line->special & 6) == 6) || (P_NLSpecialXProp(door->line) & PNLXP_DOORLIGHT))
 						EV_TurnTagLightsOff(door->line);
-					else
-					{
-						switch (door->line->special)
-						{
-							case 1:
-							case 31:
-							case 26:
-							case 27:
-							case 28:
-							case 32:
-							case 33:
-							case 34:
-							case 117:
-							case 118:
-								EV_TurnTagLightsOff(door->line);
-								break;
-							default:
-								break;
-						}
-					}
-				}
 			}
 			else if (res == crushed)
 			{
@@ -242,32 +222,12 @@ void T_VerticalDoor(vldoor_t* door)
 					default:
 						break;
 				}
+				
 				//SoM: 3/6/2000: turn lighting on in tagged sectors of manual doors
+				LightArg = 0;
 				if (P_XGSVal(PGS_COBOOMSUPPORT) && door->line && door->line->tag)
-				{
-					if (door->line->special > GenLockedBase && (door->line->special & 6) == 6)	//jff 3/9/98 all manual doors
-						EV_LightTurnOn(door->line, 0);
-					else
-					{
-						switch (door->line->special)
-						{
-							case 1:
-							case 31:
-							case 26:
-							case 27:
-							case 28:
-							case 32:
-							case 33:
-							case 34:
-							case 117:
-							case 118:
-								EV_LightTurnOn(door->line, 0);
-								break;
-							default:
-								break;
-						}
-					}
-				}
+					if ((door->line->special > GenLockedBase && (door->line->special & 6) == 6) || (P_NLSpecialXProp(door->line) & PNLXP_DOORLIGHT))	//jff 3/9/98 all manual doors
+						EV_LightTurnOn(door->line, -1, NULL, LAT_FROMLINE, 0, NULL, 1, &LightArg);
 			}
 			break;
 	}

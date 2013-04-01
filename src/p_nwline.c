@@ -71,6 +71,8 @@ typedef struct P_NLTrig_s
 	P_NLTrigFunc_t TrigFunc;					// Trigger Function
 	uint32_t ArgC;								// Argument Count
 	int32_t ArgV[10];							// Arguments
+	
+	uint32_t PropFlags;							// Extra property flags
 } P_NLTrig_t;
 
 /****************
@@ -1282,25 +1284,25 @@ static const P_NLTrig_t c_LineTrigs[] =
 	// Manual Doors (EV_VerticalDoor)
 		// Switch
 	{1, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,
-		{1, sfx_doropn, normalDoor, 0, 0}},
+		{1, sfx_doropn, normalDoor, 0, 0}, PNLXP_DOORLIGHT},
 	{26, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
-		{1, sfx_None, normalDoor, 0, INFO_BLUEKEYCOMPAT}},
+		{1, sfx_None, normalDoor, 0, INFO_BLUEKEYCOMPAT}, PNLXP_DOORLIGHT},
 	{27, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
-		{1, sfx_None, normalDoor, 0, INFO_YELLOWKEYCOMPAT}},
+		{1, sfx_None, normalDoor, 0, INFO_YELLOWKEYCOMPAT}, PNLXP_DOORLIGHT},
 	{28, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
-		{1, sfx_None, normalDoor, 0, INFO_REDKEYCOMPAT}},
+		{1, sfx_None, normalDoor, 0, INFO_REDKEYCOMPAT}, PNLXP_DOORLIGHT},
 	{31, 0, LAT_SWITCH, PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
-		{0, sfx_doropn, dooropen, 0, 0}},
+		{0, sfx_doropn, dooropen, 0, 0}, PNLXP_DOORLIGHT},
 	{32, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
-		{0, sfx_None, dooropen, 0, INFO_BLUEKEYCOMPAT}},
+		{0, sfx_None, dooropen, 0, INFO_BLUEKEYCOMPAT}, PNLXP_DOORLIGHT},
 	{33, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
-		{0, sfx_None, dooropen, 0, INFO_REDKEYCOMPAT}},
+		{0, sfx_None, dooropen, 0, INFO_REDKEYCOMPAT}, PNLXP_DOORLIGHT},
 	{34, 0, LAT_SWITCH, PNLF_MONSTER | PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
-		{0, sfx_None, dooropen, 0, INFO_YELLOWKEYCOMPAT}},
+		{0, sfx_None, dooropen, 0, INFO_YELLOWKEYCOMPAT}, PNLXP_DOORLIGHT},
 	{117, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_IGNORETAG, EV_VerticalDoor, 5,
-		{1, sfx_bdopn, blazeRaise, VDOORSPEED * 4, 0}},
+		{1, sfx_bdopn, blazeRaise, VDOORSPEED * 4, 0}, PNLXP_DOORLIGHT},
 	{118, 0, LAT_SWITCH, PNLF_IGNORETAG, EV_VerticalDoor, 5,	// *1
-		{0, sfx_bdopn, blazeOpen, VDOORSPEED * 4, 0}},
+		{0, sfx_bdopn, blazeOpen, VDOORSPEED * 4, 0}, PNLXP_DOORLIGHT},
 	
 	// Standard Doors (EV_DoDoor)
 		// Walk
@@ -1838,6 +1840,37 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 	
 	/* Failed */
 	return false;
+}
+
+/* P_NLTrigForSpec() -- Trigger for special */
+P_NLTrig_t* P_NLTrigForSpec(const int32_t a_Spec)
+{
+	int32_t i;	
+	
+	/* Look through triggers for said line */
+	for (i = 0; c_LineTrigs[i].Start; i++)
+		if (a_Spec >= c_LineTrigs[i].Start && a_Spec <= (c_LineTrigs[i].Start + c_LineTrigs[i].Length))
+			return &c_LineTrigs[i];
+	
+	/* Not found */
+	return NULL;
+}
+
+/* P_NLSpecialXProp() -- Return X Property */
+uint32_t P_NLSpecialXProp(line_t* const a_Line)
+{
+	P_NLTrig_t* Trig;
+	
+	/* Check */
+	if (!a_Line)
+		return 0;
+	
+	/* Find trigger */
+	if (!(Trig = P_NLTrigForSpec(a_Line->special)))
+		return 0;	// Not found
+	
+	/* Return findings */
+	return Trig->PropFlags;
 }
 
 /* P_NLDefDoorCloseSnd() -- Returns the default door closing sound */

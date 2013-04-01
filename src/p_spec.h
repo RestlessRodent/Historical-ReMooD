@@ -860,9 +860,10 @@ typedef enum PGL_GenLockedDoorKind_e
 typedef enum EV_TryGenType_e
 {
 	LAT_WALK,									// Attempt to walk through
-	LAT_SWITCH,								// Attempt to switch
-	LAT_SHOOT,								// Attempt to shoot
+	LAT_SWITCH,									// Attempt to switch
+	LAT_SHOOT,									// Attempt to shoot
 	LAT_MAPSTART,								// Map Initialization
+	LAT_FROMLINE = LAT_SWITCH,					// From another line
 		
 	NUMEVTRYGENTYPES
 } EV_TryGenType_t;

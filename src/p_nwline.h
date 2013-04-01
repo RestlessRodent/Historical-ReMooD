@@ -40,6 +40,16 @@
 #include "p_local.h"
 #include "p_spec.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* P_NLExtraProp_t -- Extra properties of lines (flags) */
+typedef enum P_NLExtraProp_s
+{
+	PNLXP_DOORLIGHT		= UINT32_C(0x000001),	// Has manual door light
+} P_NLExtraProp_t;
+
 /**************
 *** STRUCTS ***
 **************/
@@ -51,6 +61,8 @@ typedef bool_t (*P_NLTrigFunc_t)(line_t* const a_Line, const int a_Side, mobj_t*
 ****************/
 
 bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
+
+uint32_t P_NLSpecialXProp(line_t* const a_Line);
 
 int32_t P_NLDefDoorCloseSnd(void);
 
