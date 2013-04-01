@@ -251,15 +251,16 @@ CONL_StaticVar_t l_SNDMusicVolume =
 *** LOCALS ***
 *************/
 
-static bool_t l_SoundOK = false;	// Did the sound start OK?
-static bool_t l_MusicOK = true;	// Same but for Music
-static int l_CurrentSong = 0;	// Current playing song handle
+static bool_t l_SoundOK = false;				// Did the sound start OK?
+static bool_t l_MusicOK = true;					// Same but for Music
+static int l_CurrentSong = 0;					// Current playing song handle
 static int l_Bits, l_Freq, l_Channels, l_Len;
-static S_SoundChannel_t* l_DoomChannels;	// Sound channels
-static size_t l_NumDoomChannels;	// Number of possible sound channels
-static size_t l_ReservedChannels;	// Reserved Channels
-static fixed_t l_GlobalSoundVolume;	// Global sound volume
-static bool_t l_ThreadedSound = false;	// Threaded sound
+static S_SoundChannel_t* l_DoomChannels;		// Sound channels
+static size_t l_NumDoomChannels;				// Number of possible sound channels
+static size_t l_ReservedChannels;				// Reserved Channels
+static fixed_t l_GlobalSoundVolume;				// Global sound volume
+static bool_t l_ThreadedSound = false;			// Threaded sound
+static bool_t l_DevSound;						// Developer Stuff
 
 /****************
 *** FUNCTIONS ***
@@ -1021,6 +1022,11 @@ void S_Init(int sfxVolume, int musicVolume)
 	if (!M_CheckParm("-nomusic"))
 		if (I_InitMusic())
 			l_MusicOK = true;
+	
+	/* Sound Debug */
+	l_DevSound = false;
+	if (M_CheckParm("-devsound") || M_CheckParm("-devsnd"))
+		l_DevSound = true;
 }
 
 /* S_StopSounds() -- Stops all playing sounds */
@@ -1350,8 +1356,12 @@ void S_UpdateSounds(const bool_t a_Threaded)
 					if (Freq == 0)
 						ReadSample = 128;
 					else
+#if 1
+						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->StartByte + (FixedMul(ThisChan->BeepMove, RefSamp) >> FRACBITS)];
+#else
 						// I believe this is in error
 						ReadSample = ((uint8_t*)RefChan->Data)[ThisChan->StartByte + (FixedMul(ThisChan->BeepMove, RefSamp) >> FRACBITS)];
+#endif
 					
 					// increase beep movement by frequency division
 					ThisChan->BeepMove += FixedMul(FreqDiv, RefMul);

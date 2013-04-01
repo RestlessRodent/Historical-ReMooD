@@ -1456,6 +1456,55 @@ void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const
 #undef BUFSIZE
 }
 
+/* D_XNetHostnameToAddrGID() -- Hostname to IP and GameID */
+bool_t D_XNetHostnameToAddrGID(const char* const a_Hostname, I_HostAddress_t* const a_Addr, uint32_t* const a_GameIDp)
+{
+	char* p, *Dup;
+	uint32_t GameID;
+	bool_t RetVal;	
+	
+	/* Check */
+	if (!a_Hostname || !a_Addr)
+		return false;
+	
+	/* Clear */
+	memset(a_Addr, 0, sizeof(*a_Addr));
+	if (a_GameIDp)
+		*a_GameIDp = 0;
+	
+	/* Duplicate Host */
+	Dup = Z_StrDup(a_Hostname, PU_STATIC, NULL);
+		
+	/* Find slash (Game ID) */
+	GameID = 0;
+	p = strchr(Dup, '/');
+	
+	// Found?
+	if (p)
+	{
+		// Remove and move up
+		*(p++) = 0;
+		
+		// Get the GameID
+		GameID = C_strtou32(p, NULL, 0);
+	}
+	
+	/* Resolve IP first */
+	RetVal = true;
+	if (!I_NetNameToHost(NULL, a_Addr, Dup))
+		RetVal = false;
+	
+	// Set GameID
+	if (a_GameIDp)
+		*a_GameIDp = GameID;
+	
+	/* Cleanup */
+	Z_Free(Dup);
+	
+	/* Return success or failure */
+	return RetVal;
+}
+
 /* D_XNetIsServer() -- Returns true if we are the server */
 bool_t D_XNetIsServer(void)
 {
@@ -3414,11 +3463,45 @@ static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
 
 int DS_XNetRootCon(const uint32_t a_ArgC, const char** const a_ArgV);
 
+/* DS_XNetCmdConnect() -- Connect to server */
+static int DS_XNetCmdConnect(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	const char* Host, *Pass;
+	I_HostAddress_t Addr;
+	uint32_t GameID;
+	
+	/* Requires at least 2 arguments */
+	if (a_ArgC < 2)
+		return 1;
+	
+	/* Extract host and password */
+	Host = a_ArgV[1];
+	Pass = NULL;
+	
+	if (a_ArgC >= 3)
+		Pass = a_ArgV[2];
+	
+	/* Resolve hostname for connect */
+	if (!D_XNetHostnameToAddrGID(Host, &Addr, &GameID))
+		return 1;
+	
+	// Disconnect
+	D_XNetDisconnect(false);
+	
+	// Now connect
+	D_XNetConnect(&Addr, GameID, false);
+	
+	/* Success? */
+	return 0;
+}
+
 /* D_XNetInit() -- Initializes the Extended Network Code */
 void D_XNetInit(void)
 {
 	CONL_AddCommand("xnet", DS_XNetCon);
 	CONL_AddCommand("root", DS_XNetRootCon);
+	
+	CONL_AddCommand("connect", DS_XNetCmdConnect);
 }
 
 /* D_XNetHandleEvent() -- Handle advanced events */
@@ -4813,16 +4896,6 @@ void D_XNetInitialServer(void)
 		
 		// Read hostname
 		strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
-		
-		// If there is a /, then extract the GameID
-		if (p = strchr(Buf, '/'))
-		{
-			// Remove the slash (host lookups will fail otherwise)
-			*(p++) = 0;
-			
-			// Translate the numeric game ID number (dec, hex, octal, etc.)
-			GameID = C_strtou32(p, NULL, 0);
-		}
 	}
 	
 	// Slave: Connecting to server
@@ -4833,16 +4906,6 @@ void D_XNetInitialServer(void)
 		
 		// Copy entire buffer
 		strncat(Buf, M_GetNextParm(), BUFSIZE - 1);
-		
-		// If there is a /, then extract the GameID
-		if (p = strchr(Buf, '/'))
-		{
-			// Remove the slash (host lookups will fail otherwise)
-			*(p++) = 0;
-			
-			// Translate the numeric game ID number (dec, hex, octal, etc.)
-			GameID = C_strtou32(p, NULL, 0);
-		}
 	}
 	
 	// Slave: Hosting server
@@ -4860,8 +4923,8 @@ void D_XNetInitialServer(void)
 	/* Determine hostname */
 	if (Buf[0])
 	{
-		// Resolve hostname
-		GotIP = I_NetNameToHost(NULL, &Addr, Buf);
+		// Get host and gameid
+		GotIP = D_XNetHostnameToAddrGID(Buf, &Addr, &GameID);		
 		
 		// Failed to get IP?
 		if (!GotIP)

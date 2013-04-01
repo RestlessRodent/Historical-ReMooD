@@ -201,6 +201,7 @@ typedef enum M_SMMenus_e
 	MSM_ADVANCEDCREATEGAME,						// Advanced Game Creation
 	MSM_QUITGAME,								// Quit Game
 	MSM_JOINUNLISTEDSERVER,						// Connect to Unlisted Server
+	MSM_OPTIONS,								// Options Menu
 	
 	NUMMSMMENUS
 } M_SMMenus_t;

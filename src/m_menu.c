@@ -2051,6 +2051,9 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work->SubMenu = MSM_NEWGAME;
 			
 			Work = MS_SMCreateImage(Root, 97, 80, V_ImageFindA("M_OPTION", VCP_DOOM));
+			Work->FSelect = M_SubMenu_FSelect;
+			Work->SubMenu = MSM_OPTIONS;
+			
 			Work = MS_SMCreateImage(Root, 97, 96, V_ImageFindA("M_LOADG", VCP_DOOM));
 			Work = MS_SMCreateImage(Root, 97, 112, V_ImageFindA("M_SAVEG", VCP_DOOM));
 			
@@ -2234,6 +2237,13 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Call ticker once, to gray out
 			M_QuitGame_FTicker(Root);
+			break;
+		
+			// Options Menu
+		case MSM_OPTIONS:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
 			break;
 		
 			// Unknown

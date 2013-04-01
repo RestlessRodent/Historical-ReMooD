@@ -1814,23 +1814,10 @@ void M_CTUS_ConnectFSelect(struct M_SWidget_s* const a_Widget)
 	if (!l_ConnectIP[0])
 		return;
 	
-	/* Find slash (Game ID) */
+	// Resolve host info
 	GameID = 0;
-	p = strchr(l_ConnectIP, '/');
-	
-	// Found?
-	if (p)
-	{
-		// Remove and move up
-		*(p++) = 0;
-		
-		// Get the GameID
-		GameID = C_strtou32(p, NULL, 0);
-	}
-	
-	/* Resolve IP first */
 	memset(&Addr, 0, sizeof(Addr));
-	if (!I_NetNameToHost(NULL, &Addr, l_ConnectIP))
+	if (!D_XNetHostnameToAddrGID(l_ConnectIP, &Addr, &GameID))
 		return;
 	
 	/* Pop all menus */

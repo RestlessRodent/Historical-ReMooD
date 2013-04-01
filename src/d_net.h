@@ -252,6 +252,7 @@ void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode);
 void D_XNetDisconnect(const bool_t a_FromDemo);
 void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotHost);
 void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotClient);
+bool_t D_XNetHostnameToAddrGID(const char* const a_Hostname, I_HostAddress_t* const a_Addr, uint32_t* const a_GameIDp);
 
 bool_t D_XNetIsServer(void);
 bool_t D_XNetIsConnected(void);
