@@ -367,6 +367,12 @@ static void GS_XAddPlayerCB(D_XPlayer_t* const a_Player, void* const a_Data)
 	strncpy(a_Player->AccountCookie, CopyFrom->AccountCookie, MAXPLAYERNAME);
 }
 
+// a_ChatPrefix -- Chat prefix for player screens
+static const char* const a_ChatPrefix[4] =
+{
+	"", "\x4", "\x5", "\x6"
+};
+
 /* GS_HandleExtraCommands() -- Handles extra commands */
 static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 {
@@ -391,7 +397,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	
 	B_Bot_t* NewBot;
 	
-	D_XPlayer_t* XPlayer;
+	D_XPlayer_t* XPlayer, *Target;
 	D_XPlayer_t Clone;
 	
 	/* Get pointer base */
@@ -684,6 +690,131 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 					i32[0] = LittleReadInt32((int32_t**)&Rp);
 					
 					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], i32[0]);
+				}
+				break;
+				
+				// Chat Fragment
+			case DTCT_XCHATFRAG:
+				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
+				u8[0] = ReadUInt8((const uint8_t**)&Rp);
+				u32[1] = LittleReadUInt32((const uint32_t**)&Rp);
+				
+				// Get source player
+				XPlayer = D_XNetPlayerByID(u32[0]);
+				
+				// Append to their chat line, what is in the buffer
+				j = 0;
+				if (XPlayer)
+					for (j = 0, i = 0; i < MAXTCCBUFSIZE; i++)
+					{
+						// Read character
+						u8[1] = ReadUInt8((const uint8_t**)&Rp);
+						
+						// Append visible chars
+						if (!j && u8[1])
+						{
+							if (XPlayer->ChatAt < MAXCHATLINE - 1)
+								XPlayer->ChatBuf[XPlayer->ChatAt++] = u8[1];
+							continue;
+						}
+						
+						// Already spoke?
+						if (j)
+							continue;
+						
+						// Spoken
+						j = 1;
+					}
+				
+				// Spoke?
+				for (i = 0; j && i < MAXSPLITSCREEN; i++)
+				{
+					// Split inactive?
+					if (!D_ScrSplitVisible(i))
+						continue;
+					
+					// Get XPlayer on split
+					Target = g_Splits[i].XPlayer;
+					
+					// No XPlayer on screen, but ignore missing XPlayer on demos
+					if (!demoplayback && !Target)
+						continue;
+					
+					// To Team
+					if (u8[0] == 1 || (XPlayer->InGameID >= 0 && u8[0] == 2))
+					{
+						// Get team of player
+						k = P_GetPlayerTeam(XPlayer->Player);
+						l = P_GetPlayerTeam(Target->Player);
+						
+						// Spectating or on different team
+						if (XPlayer != Target)
+							if (!Target->Player || (k == -1 || l == -1) || k != l)
+								continue;
+						
+						// Recolor team
+						u32[5] = k;
+						P_GetTeamInfo(k, &u32[5], NULL);
+						
+						// More than 10, use a
+						if (u32[5] >= 10)
+							u32[5] += 'a';
+						else
+							u32[5] += '0';
+						
+						// Colorized
+						CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATTEAM,
+								"%s%s%c",
+								a_ChatPrefix[i],
+								D_XNetGetPlayerName(XPlayer),
+								u32[5]
+							);
+					}
+					
+					// To Spectators
+					else if (u8[0] == 2 || (XPlayer->InGameID < 0 && u8[0] == 1))
+					{
+						// Screen is playing (not targetted to specs)
+						if (Target->Player || (j == -1 || k == -1) || j != k)
+							continue;
+						
+						// Send message
+						CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATSPEC,
+								"%s%s",
+								a_ChatPrefix[i],
+								D_XNetGetPlayerName(XPlayer)
+							);
+					}
+					
+					// To Individual
+					else if (u8[0] == 3)
+					{
+					}
+					
+					// To All
+					else
+						CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATALL,
+								"%s%s",
+								a_ChatPrefix[i],
+								D_XNetGetPlayerName(XPlayer)
+							);
+						
+					// Append actual message
+					CONL_PrintF("%s\n", XPlayer->ChatBuf);
+					
+					// If it worked, this would have been played
+					j = 2;
+				}
+				
+				// Really spoke?
+				if (j == 2)
+					S_StartSound(NULL, sfx_generic_chat);
+					
+				// Reset chat buffer
+				if (j)
+				{
+					XPlayer->ChatAt = 0;
+					memset(XPlayer->ChatBuf, 0, sizeof(XPlayer->ChatBuf));
 				}
 				break;
 				

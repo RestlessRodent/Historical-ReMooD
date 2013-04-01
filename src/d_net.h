@@ -130,6 +130,8 @@ typedef enum D_XNetTicBufVersion_s
 	DXNTBV_LATEST = DXNTBV_VER20130327,			// Lastest Version
 } D_XNetTicBufVersion_t;
 
+#define MAXCHATLINE 128							// Characters that can be said in one line
+
 /*** STRUCTURES ***/
 
 struct D_XPlayer_s;
@@ -215,6 +217,9 @@ typedef struct D_XPlayer_s
 	uint32_t LookAngle, AimAngle;				// Angle Remember (for server)
 	bool_t GotBackup;							// Got backup command
 	bool_t DidPFromS;							// Did profile from screen
+	
+	char ChatBuf[MAXCHATLINE];					// Chat buffer
+	int16_t ChatAt;								// Chat currently at
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -275,6 +280,8 @@ void D_XNetSendQuit(void);
 void D_XNetPartLocal(D_XPlayer_t* const a_Player);
 void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
 void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset);
+void D_XNetDirectChatEncode(const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message);
+void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char* const a_Message);
 
 void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile);
 
@@ -282,6 +289,7 @@ void D_XNetTryJoin(D_XPlayer_t* const a_Player);
 void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
 void D_XNetSetServerName(const char* const a_NewName);
 
+const char* D_XNetGetPlayerName(D_XPlayer_t* const a_Player);
 void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const D_XPlayerPref_t a_Pref, const intptr_t a_Value);
 
 D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create);
@@ -296,6 +304,8 @@ tic_t D_XNetTicsToRun(void);
 void D_XNetForceLag(void);
 void D_XNetPushJW(void);
 void D_XNetUpdate(void);
+void D_XNetChatDrawer(const int32_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+void D_XNetClearChat(const int32_t a_Screen);
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 
 void D_XNetInitialServer(void);

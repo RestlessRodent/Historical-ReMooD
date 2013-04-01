@@ -1886,7 +1886,14 @@ bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
 		if (Screen == 0 && a_Event->Type == IET_KEYBOARD &&
 			a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
 		{
-			M_SMSpawn(Screen, MSM_MAIN);
+			// Cheat, if P1 is chatting, cancel chat rather than popping menu up
+			if (g_Splits[Screen].ChatMode && D_ScrSplitHasPlayer(Screen))
+				D_XNetClearChat(Screen);
+			
+			// Otherwise, spawn main menu
+			else
+				M_SMSpawn(Screen, MSM_MAIN);
+			
 			return true;
 		}
 	}

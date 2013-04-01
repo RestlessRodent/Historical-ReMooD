@@ -271,7 +271,7 @@ typedef enum
 #define VFO_PCOLSET			0x10000000	// Player Color Specified
 #define VFO_PCOLMASK		0x0F000000	// Player Color Mapping
 #define VFO_PCOLSHIFT		24
-#define VFO_PCOL(x)			(((x) << VFO_PCOLSHIFT) & VFO_PCOLMASK)
+#define VFO_PCOL(x)			(VFO_PCOLSET | (((x) << VFO_PCOLSHIFT) & VFO_PCOLMASK))
 
 void V_MapGraphicalCharacters(void);
 

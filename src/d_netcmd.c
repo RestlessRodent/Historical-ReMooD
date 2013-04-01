@@ -172,6 +172,12 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Unique ID
 		// uint16 Preference Type
 		// int32  Preference Int
+	
+	// DTCT_XCHATFRAG, Player Chat
+	4 + 1 + 4 + MAXTCCBUFSIZE,
+		// uint32 Player Chatting
+		// uint8  Type of communication (0 = all, 1 = team, 2 = specs, 3 = indiv)
+		// uint32 Target player (if previous == 3)
 };
 
 /*** GLOBALS ***/
@@ -337,6 +343,9 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 		// Tell the server that the player is no longer going to be around
 		if (g_Splits[a_Split].XPlayer)
 			D_XNetPartLocal(g_Splits[a_Split].XPlayer);
+		
+		// Remove chat
+		D_XNetClearChat(a_Split);
 		
 		// Move splits down, to replace this split
 		for (i = a_Split; i < MAXSPLITSCREEN; i++)

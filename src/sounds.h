@@ -499,6 +499,7 @@ typedef enum
 	sfx_generic_menumove,
 	sfx_generic_menuslide,
 	sfx_generic_menufail,
+	sfx_generic_chat,
 	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

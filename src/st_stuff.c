@@ -302,11 +302,11 @@ bool_t ST_SameTeam(player_t* a, player_t* b)
 		if (P_GMIsTeam())
 		{
 			// One player is neutral?
-			if (a->VTeamColor <= -1 || b->VTeamColor <= -1)
+			if (P_GetPlayerTeam(a) <= -1 || P_GetPlayerTeam(b) <= -1)
 				return false;
 			
 			// Same VTeam?
-			if (a->VTeamColor == b->VTeamColor)
+			if (P_GetPlayerTeam(a) == P_GetPlayerTeam(b))
 				return true;
 			
 			// Not same team
@@ -810,6 +810,9 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	{
 		WI_DrawScoreBoard(false, DS_GetString(DSTR_STSTUFFC_SCOREBOARD), NULL);
 	}
+	
+	/* Chatting */
+	D_XNetChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
 #undef BUFSIZE
 }
 

@@ -3096,6 +3096,32 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 	return true;
 }
 
+/* P_GetPlayerTeam() -- Get team of player */
+int32_t P_GetPlayerTeam(struct player_s* const a_Player)
+{
+	bool_t VTeam;
+	
+	/* Check */
+	if (!a_Player)
+		return -1;
+		
+	/* Virtual Teams? */
+	VTeam = P_XGSVal(PGS_CONEWGAMEMODES);
+	
+	/* Get virtual team color */
+	if (VTeam)	// TODO FIXME: Team cap here
+		return a_Player->VTeamColor;
+	
+	// Old modes
+	else
+	{
+		if (P_XGSVal(PGS_GAMETEAMPLAY) == 2)
+			return a_Player->skin;
+		else
+			return a_Player->skincolor;
+	}
+}
+
 /* P_GetMobjTeam() -- Get object's team */
 int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 {
@@ -3116,7 +3142,7 @@ int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 		{
 			// Teams
 			if (P_GMIsTeam())
-				RetVal = a_Mo->player->VTeamColor;
+				RetVal = P_GetPlayerTeam(a_Mo->player);
 			
 			// No Teams
 			else
@@ -3138,7 +3164,7 @@ int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 	
 	/* Cap team to team limit */
 	if (VTeam)
-		RetVal = RetVal % 2;//RetVal = RetVal % P_XGSVal();
+		;//RetVal = RetVal % P_XGSVal();
 	
 	/* Return */
 	return RetVal;

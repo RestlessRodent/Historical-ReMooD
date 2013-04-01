@@ -1708,15 +1708,7 @@ static bool_t DXP_INFO(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 			D_BSwu32(BS, XPlay->Flags);
 		
 			// Stuff
-				// Name inside of the game
-			if (XPlay->InGameID >= 0 && XPlay->InGameID <= MAXPLAYERS && player_names[XPlay->InGameID][0])
-				D_BSws(BS, player_names[XPlay->InGameID]);
-				// Display name as spec
-			else if (XPlay->DisplayName[0])
-				D_BSws(BS, XPlay->DisplayName);
-				// Use account name if there is no display name
-			else
-				D_BSws(BS, XPlay->AccountName);
+			D_BSws(BS, D_XNetGetPlayerName(XPlay));
 			D_BSws(BS, XPlay->LoginUUID);
 			D_BSwi8(BS, XPlay->ScreenID);
 			D_BSwi16(BS, XPlay->InGameID);

@@ -112,6 +112,7 @@ typedef enum CONL_MessageType_e
 	CT_VIDHARDWARE,								// Video Hardware
 	CT_SCRIPTING,								// Scripts
 	CT_BOTS,									// Bots
+	CT_CHAT,									// Player Chat
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;

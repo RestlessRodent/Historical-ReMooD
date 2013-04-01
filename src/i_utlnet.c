@@ -738,7 +738,7 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 	if (bind(SockFD, Addr, SockLen) < 0)
 	{
 		// Show error
-		CONL_OutputUT(CT_NETWORK, DTSR_IUTLNET_BADUNIXBIND, "%i%s\n", errno, strerror(errno));
+		CONL_OutputUT(CT_NETWORK, DSTR_IUTLNET_BADUNIXBIND, "%i%s\n", errno, strerror(errno));
 		
 		// Close created socket
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN

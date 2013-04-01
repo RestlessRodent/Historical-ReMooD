@@ -586,6 +586,8 @@ static size_t l_NumTicStore;					// Tics in storage
 
 static D_XPlayer_t* l_CacheSVXPlay;
 
+static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
+
 //l_SVMaxCatchup
 
 /*** FUNCTIONS ***/
@@ -2195,6 +2197,86 @@ void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset)
 	}
 }
 
+/* D_XNetDirectChatEncode() -- Direct message encoding */
+// This creates commands from buffer
+void D_XNetDirectChatEncode(const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message)
+{
+	char* p;
+	int32_t Room;
+	uint8_t* Wp;
+	
+	/* Check */
+	if (!a_ID || !a_Message || !strlen(a_Message))
+		return;
+	
+	/* Encode message into multiple tics */
+	for (p = a_Message, Room = 0; *p; p++)
+	{
+		// No room? create new global
+		if (!Room)
+		{
+			if (!D_XNetGlobalTic(DTCT_XCHATFRAG, &Wp))
+				return;
+			LittleWriteUInt32((uint32_t**)&Wp, a_ID);
+			WriteUInt8((uint8_t**)&Wp, a_Mode);
+			LittleWriteUInt32((uint32_t**)&Wp, a_Target);
+			
+			Room = MAXTCCBUFSIZE;
+		}
+		
+		// Write single character and reduce the room available
+		WriteUInt8((uint8_t**)&Wp, *p);
+		Room--;
+	}
+}
+
+/* D_XNetSendChat() -- Send chat message */
+void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char* const a_Message)
+{
+	uint8_t Mode;
+	const char* p;
+	
+	/* No origin */
+	if (!a_Source || !a_Message)
+		return;
+	
+	/* Base pointer */
+	p = a_Message;
+	
+	/* Who should recieve message? */
+	if (a_Team)
+		if (!a_Source->Player)
+			Mode = 2;	// Spec
+		else
+			Mode = 1;	// Team
+	else
+		Mode = 0;		// Everyone
+	
+	/* Special commands */
+	// Force team chat?
+	if (!strncmp("/team ", p, 6))
+	{
+		Mode = 1;
+		p += 6;
+	}
+	
+	/* Limitize Value? */
+	// Team mode but no teams
+	if (Mode == 1 && !P_GMIsTeam())
+		Mode = 0;
+	
+	/* Server can directly encode message */
+	if (D_XNetIsServer())
+	{
+		D_XNetDirectChatEncode(a_Source->ID, Mode, 0, p);
+	}
+	
+	/* Otherwise, send request to server */
+	else
+	{
+	}
+}
+
 /* D_XNetChangeLocalProf() -- Change local screen to use this profile */
 void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile)
 {
@@ -2484,6 +2566,27 @@ void D_XNetSetServerName(const char* const a_NewName)
 	
 	/* Print */
 	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_SERVERCHANGENAME, "%s\n", a_NewName);
+}
+
+/* D_XNetGetPlayerName() -- Get name of player */
+const char* D_XNetGetPlayerName(D_XPlayer_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return NULL;
+	
+	/* Return correct name */
+		// Name of them inside
+	if (a_Player->InGameID >= 0 && a_Player->InGameID <= MAXPLAYERS && player_names[a_Player->InGameID][0])
+		return player_names[a_Player->InGameID];
+	
+		// Display name as spec
+	else if (a_Player->DisplayName[0])
+		return a_Player->DisplayName;
+	
+		// Use account name if there is no display name
+	else
+		return a_Player->AccountName;
 }
 
 /* D_XNetPlayerPref() -- Change preference of player */
@@ -3556,6 +3659,72 @@ void D_XNetInit(void)
 	CONL_AddCommand("addplayer", DS_XNetCmdAddPlayer);
 }
 
+/* DS_XNetCONCTIChatLine() -- For when enter is pressed */
+static bool_t DS_XNetCONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
+{
+	/* Handle chat string and send to server (or local) */
+	D_XNetSendChat(g_Splits[a_Input->Screen].XPlayer, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
+	
+	/* Leave Chat Mode */
+	// Done with it, no use
+	D_XNetClearChat(a_Input->Screen);
+	
+	/* always keep box */
+	return true;
+}
+
+/* D_XNetChatDrawer() -- Draws player chat */
+void D_XNetChatDrawer(const int32_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+{
+	uint32_t Flags;
+	
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return;
+	
+	/* Not chatting? */
+	if (!g_Splits[a_Screen].ChatMode)
+		return;
+	
+	/* Draw box */
+	if (l_ChatBox[a_Screen])
+	{	
+		// Base flags
+		Flags = 0;
+		
+		// If team chat, draw colorized!
+		if (g_Splits[a_Screen].ChatMode == 2 || g_Splits[a_Screen].ChatMode == 3)
+			if (!g_Splits[a_Screen].Active)		// Spec
+				Flags = VFO_COLOR(VEX_MAP_WHITE);
+			else		// Team
+			{
+				Flags = P_GetPlayerTeam(&players[g_Splits[a_Screen].Console]);
+				P_GetTeamInfo(Flags, &Flags, NULL);
+				Flags = VFO_PCOL(Flags);
+			}
+		
+		// Draw it
+		CONCTI_DrawInput(l_ChatBox[a_Screen], Flags, a_X, a_H - V_FontHeight(l_ChatBox[a_Screen]->Font), a_W);
+	}
+}
+
+/* D_XNetClearChat() -- Clears player chat */
+void D_XNetClearChat(const int32_t a_Screen)
+{
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return;
+	
+	/* Get out of chat mode */
+	g_Splits[a_Screen].ChatMode = 0;
+	g_Splits[a_Screen].ChatTargetID = 0;
+	g_Splits[a_Screen].ChatTimeOut = g_ProgramTic + (TICRATE >> 1);
+	
+	/* Remove line */
+	if (l_ChatBox[a_Screen])
+		CONCTI_SetText(l_ChatBox[a_Screen], "");
+}
+
 /* D_XNetHandleEvent() -- Handle advanced events */
 bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 {
@@ -3575,6 +3744,48 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 		memset(l_JoyButtons, 0, sizeof(l_JoyButtons));
 		memset(l_JoyAxis, 0, sizeof(l_JoyAxis));
 		return false;
+	}
+	
+	/* Handle chatting for players */
+	// Keyboard for P1 only
+	if (a_Event->Type == IET_KEYBOARD)
+		Bit = 1;
+	
+	// Synth OSK always work
+	else if (a_Event->Type == IET_SYNTHOSK)
+		Bit = a_Event->Data.SynthOSK.PNum + 1;
+	
+	// No player specified (mouse, joy, etc.)
+	else
+		Bit = 0;	// Non-chat stuff
+	
+	// Doing chat?
+	if (Bit && !demoplayback)
+	{
+		// Bit is off by one
+		Bit -= 1;
+		
+		// If they are chatting
+		if (g_Splits[Bit].ChatMode && D_ScrSplitHasPlayer(Bit))
+		{
+			// Cancel chat?
+			if ((a_Event->Type == IET_KEYBOARD && a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE && a_Event->Data.Keyboard.Down) || (a_Event->Type == IET_SYNTHOSK && a_Event->Data.SynthOSK.Cancel))
+			{
+				D_XNetClearChat(Bit);
+				return true;
+			}
+			
+			// Need to create chat box?
+			if (!l_ChatBox[Bit])
+			{
+				l_ChatBox[Bit] = CONCTI_CreateInput(16, DS_XNetCONCTIChatLine, &l_ChatBox[Bit]);
+				l_ChatBox[Bit]->Screen = Bit;
+				l_ChatBox[Bit]->Font = VFONT_SMALL;
+			}
+			
+			// Handle event for inputter
+			return CONCTI_HandleEvent(l_ChatBox[Bit], a_Event);
+		}
 	}
 	
 	/* Which kind of event? */
@@ -3940,6 +4151,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	int slot, j, l, k;
 	PI_wepid_t newweapon;
 	PI_wepid_t SlotList[MAXWEAPONSLOTS];
+	D_SplitInfo_t* SSplit;
 	
 	/* Check */
 	if (!a_NPp || !a_TicCmd)
@@ -3972,6 +4184,47 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		// Otherwise don't make any commands
 		else
 			return;
+	}
+	
+	// Quick ref
+	SSplit = &g_Splits[SID];
+	
+	/* Chatting? */
+	// Not in chat mode
+	if (!SSplit->ChatMode)
+	{
+		i = 0;
+
+		// To All
+		if (GAMEKEYDOWN(Profile, SID, DPEXIC_CHAT))
+			i = 1;
+
+		// To Team
+		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_TEAMCHAT))
+			i = 2;
+
+		// Starting chat?
+		if (i)
+		{
+			// Initiate Chat Mode
+			SSplit->ChatMode = i;
+			SSplit->ChatTargetID = 0;
+			
+			// If player 1 is chatting, let go of all keyboard keys
+				// Otherwise, stuck keys and re-chatting when chat is done!
+			if (SID == 0)
+				for (i = 0; i < NUMIKEYBOARDKEYS; i++)
+					l_KeyDown[i] = false;
+			
+			return;		// Do not continue processing events
+		}
+	}
+	
+	// In Chat mode
+	else
+	{
+		// Do not handle player events, make them not move as if all keys are down
+		return;
 	}
 	
 	/* Reset Some Things */
@@ -4022,12 +4275,12 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	
 	/* Player has joystick input? */
 	// Read input for all axis
-	if (SID >= 0 && SID < MAXSPLITSCREEN && g_Splits[SID].JoyBound)
-		if (g_Splits[SID].JoyID >= 1 && g_Splits[SID].JoyID <= MAXLOCALJOYS)
+	if (SID >= 0 && SID < MAXSPLITSCREEN && SSplit->JoyBound)
+		if (SSplit->JoyID >= 1 && SSplit->JoyID <= MAXLOCALJOYS)
 			for (i = 0; i < MAXJOYAXIS; i++)
 			{
 				// Modify with sensitivity
-				TargetMove = ((float)l_JoyAxis[g_Splits[SID].JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+				TargetMove = ((float)l_JoyAxis[SSplit->JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
 			
 				// Which movement to perform?
 				NegMod = 1;
@@ -4082,7 +4335,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 						NegMod = -1;
 						
 					case DPEXCMA_PANY:
-						BaseAM = (((double)l_JoyAxis[g_Splits[SID].JoyID - 1][i]) / ((double)32767.0)) * ((double)5856.0);
+						BaseAM = (((double)l_JoyAxis[SSplit->JoyID - 1][i]) / ((double)32767.0)) * ((double)5856.0);
 						BaseAM *= -1 * NegMod;
 						
 						// Make sure panning look is set
@@ -4095,7 +4348,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 						
 					case DPEXCMA_ANGPANY:
 						// Get angle to extract
-						TargetMove = abs(l_JoyAxis[g_Splits[SID].JoyID - 1][i]) >> 2;
+						TargetMove = abs(l_JoyAxis[SSplit->JoyID - 1][i]) >> 2;
 						
 						// Cap to valid precision in LUT
 						if (TargetMove >= 8192)
@@ -4108,7 +4361,7 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 						BaseAM *= -1 * NegMod;
 						
 						// Negative?
-						if (l_JoyAxis[g_Splits[SID].JoyID - 1][i] < 0)
+						if (l_JoyAxis[SSplit->JoyID - 1][i] < 0)
 							BaseAM *= -1;
 						
 						// Make sure panning look is set
@@ -4462,33 +4715,33 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_AUTOMAP))
 	{
 		// Don't flash the automap like crazy
-		if (!g_Splits[SID].MapKeyStillDown)
+		if (!SSplit->MapKeyStillDown)
 		{
 			// Map not active, activate
-			if (!g_Splits[SID].AutomapActive)
+			if (!SSplit->AutomapActive)
 			{
-				g_Splits[SID].AutomapActive = true;
-				g_Splits[SID].OverlayMap = false;
+				SSplit->AutomapActive = true;
+				SSplit->OverlayMap = false;
 			}
 			
 			// Is active
 			else
 			{
 				// Overlay now active, activate
-				if (!g_Splits[SID].OverlayMap)
-					g_Splits[SID].OverlayMap = true;
+				if (!SSplit->OverlayMap)
+					SSplit->OverlayMap = true;
 				
 				// Otherwise, stop the map
 				else
-					g_Splits[SID].AutomapActive = false;
+					SSplit->AutomapActive = false;
 			}
 			
 			// Place key down to prevent massive flashing
-			g_Splits[SID].MapKeyStillDown = true;
+			SSplit->MapKeyStillDown = true;
 		}
 	}
 	else
-		g_Splits[SID].MapKeyStillDown = false;
+		SSplit->MapKeyStillDown = false;
 	
 	// Coop Spy
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_COOPSPY))
@@ -4512,23 +4765,23 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				// Go through all players
 					// If watching self, find first player
 					// If watching someone, find next player
-				for (j = ((SpyPOV == SpyFake) ? 0 : g_Splits[SID].Display + 1); j < MAXPLAYERS; j++)
+				for (j = ((SpyPOV == SpyFake) ? 0 : SSplit->Display + 1); j < MAXPLAYERS; j++)
 					if (playeringame[j])
 					{
-						g_Splits[SID].Display = j;
-						SpyPOV = &players[g_Splits[SID].Display];
+						SSplit->Display = j;
+						SpyPOV = &players[SSplit->Display];
 						break;
 					}
 				
 				// Nobody?
 				if (j >= MAXPLAYERS)
 				{
-					g_Splits[SID].Display = -1;
+					SSplit->Display = -1;
 					SpyPOV = SpyFake;
 				}
 				
 				else
-					SpyPOV = &players[g_Splits[SID].Display];
+					SpyPOV = &players[SSplit->Display];
 			}
 			
 			// Normal Game Mode
@@ -4537,18 +4790,18 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				j = 0;
 				do
 				{
-					g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
+					SSplit->Display = (SSplit->Display + 1) % MAXPLAYERS;
 					j++;
-				} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || (!ST_SameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display]))));
+				} while (j < MAXPLAYERS && (!playeringame[SSplit->Display] || (!ST_SameTeam(&players[SSplit->Console], &players[SSplit->Display]))));
 				
 				// Change POV
-				SpyPOV = &players[g_Splits[SID].Display];
+				SpyPOV = &players[SSplit->Display];
 			}
 			
 			// Print Message
 			CONL_PrintF("%sYou are now watching %s.\n",
 					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
-					(SpyCon == SpyPOV ? "Yourself" : D_NCSGetPlayerName(g_Splits[SID].Display))
+					(SpyCon == SpyPOV ? "Yourself" : D_NCSGetPlayerName(SSplit->Display))
 				);
 			
 			// Reset timeout

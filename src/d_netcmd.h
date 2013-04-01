@@ -75,6 +75,10 @@ typedef struct D_SplitInfo_s
 	bool_t AutomapActive;						// Activated Automap
 	bool_t OverlayMap;							// Overlay automap
 	bool_t MapKeyStillDown;						// Automap key still down
+	
+	int8_t ChatMode;							// All? Spec? Team?
+	uint32_t ChatTargetID;						// Player to talk to
+	tic_t ChatTimeOut;							// Chat timeout
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/

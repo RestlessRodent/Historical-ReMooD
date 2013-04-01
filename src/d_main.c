@@ -1769,6 +1769,11 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			S_sfx[sfx_generic_menumove].link = &S_sfx[sfx_pstop];
 			S_sfx[sfx_generic_menuslide].link = &S_sfx[sfx_stnmov];
 			S_sfx[sfx_generic_menufail].link = &S_sfx[sfx_oof];
+			
+			if (g_IWADFlags & CIF_COMMERCIAL)
+				S_sfx[sfx_generic_chat].link = &S_sfx[sfx_radio];
+			else
+				S_sfx[sfx_generic_chat].link = &S_sfx[sfx_tink];
 			break;
 			
 			// Heretic
@@ -1779,6 +1784,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			S_sfx[sfx_generic_menumove].link = &S_sfx[sfx_switch];
 			S_sfx[sfx_generic_menuslide].link = &S_sfx[sfx_keyup];
 			S_sfx[sfx_generic_menufail].link = &S_sfx[sfx_oof];
+			S_sfx[sfx_generic_chat].link = &S_sfx[sfx_hchat];
 			break;
 			
 		default:

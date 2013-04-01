@@ -166,6 +166,7 @@ enum
 	DTCT_XSPECPLAYER,							// Spectate Player
 	DTCT_XPLAYERPREFSTR,						// Player Preference (String)
 	DTCT_XPLAYERPREFINT,						// Player Preference (Int)
+	DTCT_XCHATFRAG,								// Chat fragment
 	
 	NUMDTCT
 };

@@ -950,7 +950,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 		{
 #if !defined(__REMOOD_DEDICATED)
 			if (!g_DedicatedServer)
-				S_StartSound(0, (commercial ? sfx_radio : sfx_tink));
+				S_StartSound(0, sfx_generic_chat);
 #endif /* __REMOOD_DEDICATED */
 			
 			// Beep only
@@ -1570,6 +1570,7 @@ size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_
 		"VDHW",									// CT_VIDHARDWARE
 		"SCRI",									// CT_SCRIPTING
 		"BOTS",									// CT_BOTS
+		"CHAT",									// CT_CHAT
 	};
 	
 #define BUFSIZE 512
