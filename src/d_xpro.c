@@ -1833,6 +1833,54 @@ static bool_t DXP_NIGM(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	return true;
 }
 
+/* DXP_CHAT() -- Chat Message */
+static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+#define BUFSIZE 128
+	uint32_t Source, Target;
+	uint8_t Mode;	
+	D_XPlayer_t* XPlay, *XDest;
+	char Buf[BUFSIZE];
+	int32_t Len;
+	
+	/* Check */
+	if (!a_EP)
+		return false;
+	
+	/* Read Info */
+	Source = D_BSru32(a_Desc->RelBS);
+	Mode = D_BSru8(a_Desc->RelBS);
+	Target = D_BSru8(a_Desc->RelBS);
+	
+	memset(Buf, 0, sizeof(Buf));
+	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE);
+	
+	// Get source player
+	XPlay = D_XNetPlayerByID(Source);
+	XDest = D_XNetPlayerByID(Target);
+	
+	// Wrong host? indiv and no target?
+	if ((XPlay->HostID != a_EP->HostID) || (Mode == 3 && !XDest))
+		return false;
+	
+	// Length of current message
+	Len = strlen(Buf);
+	
+	// Needs cooling down?
+	if (g_ProgramTic + Len < XPlay->ChatCoolDown)
+		return false;
+	
+	// Set cooldown to length of string
+	XPlay->ChatCoolDown = g_ProgramTic + Len;
+	
+	/* Direct encode */
+	D_XNetDirectChatEncode(Source, Mode, Target, Buf);
+	
+	/* It worked */
+	return true;
+#undef BUFSIZE
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1873,6 +1921,7 @@ static const struct
 	{"PREF", DXP_PREF, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"NIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"AIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
+	{"CHAT", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
 	
 	{NULL}
 };

@@ -2235,6 +2235,9 @@ void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char
 {
 	uint8_t Mode;
 	const char* p;
+	D_BS_t* RelBS;
+	I_HostAddress_t* AddrP;
+	D_XPlayer_t* XTarget;
 	
 	/* No origin */
 	if (!a_Source || !a_Message)
@@ -2242,6 +2245,7 @@ void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char
 	
 	/* Base pointer */
 	p = a_Message;
+	XTarget = NULL;
 	
 	/* Who should recieve message? */
 	if (a_Team)
@@ -2274,6 +2278,23 @@ void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char
 	/* Otherwise, send request to server */
 	else
 	{
+		// Obtain route to server
+		RelBS = D_XBRouteToServer(NULL, &AddrP);
+		
+		if (RelBS)
+		{
+			// Base block data
+			D_BSBaseBlock(RelBS, "CHAT");
+			
+			// Write Chat Data
+			D_BSwu32(RelBS, a_Source->ID);
+			D_BSwu8(RelBS, Mode);
+			D_BSwu32(RelBS, (XTarget ? XTarget->ID : 0));
+			D_BSws(RelBS, p);
+			
+			// Send
+			D_BSRecordNetBlock(RelBS, AddrP);
+		}
 	}
 }
 
