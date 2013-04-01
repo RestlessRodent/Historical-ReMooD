@@ -2290,6 +2290,7 @@ void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char
 			D_BSwu32(RelBS, a_Source->ID);
 			D_BSwu8(RelBS, Mode);
 			D_BSwu32(RelBS, (XTarget ? XTarget->ID : 0));
+			D_BSwu32(RelBS, ++a_Source->ChatID);
 			D_BSws(RelBS, p);
 			
 			// Send

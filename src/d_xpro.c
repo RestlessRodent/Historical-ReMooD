@@ -1842,6 +1842,7 @@ static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	D_XPlayer_t* XPlay, *XDest;
 	char Buf[BUFSIZE];
 	int32_t Len;
+	uint32_t ChatID;
 	
 	/* Check */
 	if (!a_EP)
@@ -1851,6 +1852,7 @@ static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	Source = D_BSru32(a_Desc->RelBS);
 	Mode = D_BSru8(a_Desc->RelBS);
 	Target = D_BSru8(a_Desc->RelBS);
+	ChatID = D_BSru32(a_Desc->RelBS);
 	
 	memset(Buf, 0, sizeof(Buf));
 	D_BSrs(a_Desc->RelBS, Buf, BUFSIZE);
@@ -1863,6 +1865,10 @@ static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	if ((XPlay->HostID != a_EP->HostID) || (Mode == 3 && !XDest))
 		return false;
 	
+	// Already sent this or older message?
+	if (ChatID <= XPlay->ChatID)
+		return false;
+	
 	// Length of current message
 	Len = strlen(Buf);
 	
@@ -1872,6 +1878,7 @@ static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	
 	// Set cooldown to length of string
 	XPlay->ChatCoolDown = g_ProgramTic + Len;
+	XPlay->ChatID = ChatID;	// to prevent same message spam due to lag
 	
 	/* Direct encode */
 	D_XNetDirectChatEncode(Source, Mode, Target, Buf);
@@ -1921,7 +1928,7 @@ static const struct
 	{"PREF", DXP_PREF, PF_ONAUTH | PF_SERVER | PF_REL},
 	{"NIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"AIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
-	{"CHAT", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
+	{"CHAT", DXP_CHAT, PF_ONAUTH | PF_CLIENT | PF_REL},
 	
 	{NULL}
 };

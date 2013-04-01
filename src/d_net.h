@@ -221,6 +221,7 @@ typedef struct D_XPlayer_s
 	char ChatBuf[MAXCHATLINE];					// Chat buffer
 	int16_t ChatAt;								// Chat currently at
 	tic_t ChatCoolDown;							// Chat cooldown time
+	uint32_t ChatID;							// Chat ID Number
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
