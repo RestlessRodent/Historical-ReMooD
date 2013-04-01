@@ -2783,7 +2783,15 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	
 	// Not found?
 	if (!Entry)
+	{
+		// Stop demo, if one playing
+		G_StopDemoPlay();
+		
+		// If stuck in NULL state, go to title screen
+		if (gamestate == GS_NULL)
+			gamestate = GS_DEMOSCREEN;
 		return;
+	}
 	
 	/* Open stream */
 	Stream = WL_StreamOpen(Entry);
