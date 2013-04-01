@@ -1851,7 +1851,7 @@ static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 	/* Read Info */
 	Source = D_BSru32(a_Desc->RelBS);
 	Mode = D_BSru8(a_Desc->RelBS);
-	Target = D_BSru8(a_Desc->RelBS);
+	Target = D_BSru32(a_Desc->RelBS);
 	ChatID = D_BSru32(a_Desc->RelBS);
 	
 	memset(Buf, 0, sizeof(Buf));
