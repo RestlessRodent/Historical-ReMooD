@@ -3694,7 +3694,7 @@ void D_XNetChatDrawer(const int32_t a_Screen, const int32_t a_X, const int32_t a
 		
 		// If team chat, draw colorized!
 		if (g_Splits[a_Screen].ChatMode == 2 || g_Splits[a_Screen].ChatMode == 3)
-			if (!g_Splits[a_Screen].Active)		// Spec
+			if (!g_Splits[a_Screen].XPlayer || !g_Splits[a_Screen].XPlayer->Player)		// Spec
 				Flags = VFO_COLOR(VEX_MAP_WHITE);
 			else		// Team
 			{

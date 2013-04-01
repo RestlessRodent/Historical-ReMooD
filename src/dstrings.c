@@ -387,7 +387,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** G_GAME.C ***/
 	{				 "GGAMEC_CHATALL", "$1{1<{z$2{1> {z"},
 	{				"GGAMEC_CHATTEAM", "$1{x7$3<{z$2{z{x7$3 to team> {z"},
-	{				"GGAMEC_CHATSPEC", "$1{2<{z$2{z{2 to spec{1> {z"},
+	{				"GGAMEC_CHATSPEC", "$1{a<{z$2{z{a to spec> {z"},
 	{			   "GGAMEC_CHATINDIV", "$1{3<{z$2{z{3 to $3{z{3> {z"},
 	
 	/*** P_DEMCMP.C ***/

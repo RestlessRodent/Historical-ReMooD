@@ -775,7 +775,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 					else if (u8[0] == 2 || (XPlayer->InGameID < 0 && u8[0] == 1))
 					{
 						// Screen is playing (not targetted to specs)
-						if (Target->Player || (j == -1 || k == -1) || j != k)
+						if (Target->Player)
 							continue;
 						
 						// Send message
