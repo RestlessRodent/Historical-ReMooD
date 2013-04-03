@@ -4994,7 +4994,22 @@ void D_XNetUpdate(void)
 				a++;
 				
 				if (!g_Splits[i].XPlayer)
+				{
 					g_Splits[i].XPlayer = D_XNetLocalPlayerByPID(g_Splits[i].ProcessID);
+					
+					// Found it!? Elicit profile change
+					if (g_Splits[i].XPlayer)
+					{
+						if (g_Splits[i].Profile)
+							D_XNetChangeLocalProf(i, g_Splits[i].Profile);
+						
+						if (i >= g_SplitScreen)
+						{
+							g_SplitScreen = i;
+							R_ExecuteSetViewSize();
+						}
+					}
+				}
 			}
 		
 		// No local players? Give a local player, if possible

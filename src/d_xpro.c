@@ -214,7 +214,7 @@ void D_XPCalcConnection(D_XEndPoint_t* const a_EP)
 	
 	/* Fill info */
 	a_EP->NetSpeed.PacketGain = FixedMul(FixedDiv(Hit << FRACBITS, Total << FRACBITS), 100 << FRACBITS) >> FRACBITS;
-	a_EP->NetSpeed.PacketLoss = FixedMul((1 << FRACBITS) - a_EP->NetSpeed.PacketGain, 100 << FRACBITS) >> FRACBITS;
+	a_EP->NetSpeed.PacketLoss = 100 - a_EP->NetSpeed.PacketGain;
 	
 	CONL_PrintF("gain: %i, loss: %i\n", a_EP->NetSpeed.PacketGain, a_EP->NetSpeed.PacketLoss);
 }
@@ -240,7 +240,7 @@ static void DS_DumpSplitInfo(D_BS_t* const a_BS)
 	
 		// Process ID of screen
 		memset(Buf, 0, sizeof(Buf));
-		snprintf(Buf, BUFSIZE - 1, "pid+%i=%08x", i, g_Splits[i].ProcessID);
+		snprintf(Buf, BUFSIZE - 1, "pid+%i=0x%08x", i + 1, g_Splits[i].ProcessID);
 		D_BSws(a_BS, Buf);
 	
 		// Profile?
@@ -249,30 +249,33 @@ static void DS_DumpSplitInfo(D_BS_t* const a_BS)
 		// Dump profile info
 		if (Prof)
 		{
-			// UUID of profile
+			// All this this probably is not needed, because we can elicit
+			// preference changes once we grab the player.
+#if 0
 			memset(Buf, 0, sizeof(Buf));
-			snprintf(Buf, BUFSIZE - 1, "puuid+%i=%s", i, Prof->UUID);
-			D_BSws(a_BS, Buf);
-		
-			// Display Name
-			memset(Buf, 0, sizeof(Buf));
-			snprintf(Buf, BUFSIZE - 1, "pdn+%i=%s", i, Prof->DisplayName);
+			snprintf(Buf, BUFSIZE - 1, "puuid+%i=%s", i + 1, Prof->UUID);
 			D_BSws(a_BS, Buf);
 			
+			// Display Name
+			memset(Buf, 0, sizeof(Buf));
+			snprintf(Buf, BUFSIZE - 1, "pdn+%i=%s", i + 1, Prof->DisplayName);
+			D_BSws(a_BS, Buf);
+	
 			// Color
 			memset(Buf, 0, sizeof(Buf));
-			snprintf(Buf, BUFSIZE - 1, "pc+%i=%i", i, Prof->Color);
+			snprintf(Buf, BUFSIZE - 1, "pc+%i=%i", i + 1, Prof->Color);
 			D_BSws(a_BS, Buf);
 			
 			// CounterOp
 			memset(Buf, 0, sizeof(Buf));
-			snprintf(Buf, BUFSIZE - 1, "pcp+%i=%s", i, (Prof->CounterOp ? "true" : "false"));
+			snprintf(Buf, BUFSIZE - 1, "pcp+%i=%s", i + 1, (Prof->CounterOp ? "true" : "false"));
 			D_BSws(a_BS, Buf);
 			
 			// VTeam
 			memset(Buf, 0, sizeof(Buf));
-			snprintf(Buf, BUFSIZE - 1, "pvt+%i=%i", i, Prof->VTeam);
+			snprintf(Buf, BUFSIZE - 1, "pvt+%i=%i", i + 1, Prof->VTeam);
 			D_BSws(a_BS, Buf);
+#endif
 		}
 	}
 #undef BUFSIZE
@@ -313,6 +316,8 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		memset(Buf, 0, sizeof(Buf));
 		D_BSrs(a_BS, Buf, BUFSIZE - 1);
 		
+		CONL_PrintF(">> %s\n", Buf);
+		
 		// End of strings?
 		if (!Buf[0])
 			break;
@@ -336,13 +341,13 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		{
 			if ((Plus = strchr(Buf, '+')))
 				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
+					if (s > 0 && s <= MAXSPLITSCREEN)
 					{
-						Hold.Splits[s].Active = true;
-						Hold.Splits[s].ProcessID = C_strtou32(EqS, NULL, 0);
+						Hold.Splits[s - 1].Active = true;
+						Hold.Splits[s - 1].ProcessID = C_strtou32(EqS, NULL, 0);
 						
 						if (!ProcessID)
-							ProcessID = Hold.Splits[s].ProcessID;
+							ProcessID = Hold.Splits[s - 1].ProcessID;
 					}
 		}
 		
@@ -351,10 +356,10 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		{
 			if ((Plus = strchr(Buf, '+')))
 				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
+					if (s > 0 && s <= MAXSPLITSCREEN)
 					{
-						Hold.Splits[s].Active = true;
-						strncpy(Hold.Splits[s].ProfUUID, EqS, MAXUUIDLENGTH);
+						Hold.Splits[s - 1].Active = true;
+						strncpy(Hold.Splits[s - 1].ProfUUID, EqS, MAXUUIDLENGTH);
 					}
 		}
 		
@@ -363,10 +368,10 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		{
 			if ((Plus = strchr(Buf, '+')))
 				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
+					if (s > 0 && s <= MAXSPLITSCREEN)
 					{
-						Hold.Splits[s].Active = true;
-						strncpy(Hold.Splits[s].DispName, EqS, MAXPLAYERNAME);
+						Hold.Splits[s - 1].Active = true;
+						strncpy(Hold.Splits[s - 1].DispName, EqS, MAXPLAYERNAME);
 					}
 		}
 			
@@ -375,10 +380,10 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		{
 			if ((Plus = strchr(Buf, '+')))
 				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
+					if (s > 0 && s <= MAXSPLITSCREEN)
 					{
-						Hold.Splits[s].Active = true;
-						Hold.Splits[s].Color = C_strtou32(EqS, NULL, 0);
+						Hold.Splits[s - 1].Active = true;
+						Hold.Splits[s - 1].Color = C_strtou32(EqS, NULL, 0);
 					}
 		}
 			
@@ -387,10 +392,10 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		{
 			if ((Plus = strchr(Buf, '+')))
 				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
+					if (s > 0 && s <= MAXSPLITSCREEN)
 					{
-						Hold.Splits[s].Active = true;
-						Hold.Splits[s].VTeam = C_strtou32(EqS, NULL, 0);
+						Hold.Splits[s - 1].Active = true;
+						Hold.Splits[s - 1].VTeam = C_strtou32(EqS, NULL, 0);
 					}
 		}
 			
@@ -399,10 +404,10 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 		{
 			if ((Plus = strchr(Buf, '+')))
 				if ((s = C_strtoi32(Plus + 1, NULL, 10)))
-					if (s >= 0 && s < MAXSPLITSCREEN)
+					if (s > 0 && s <= MAXSPLITSCREEN)
 					{
-						Hold.Splits[s].Active = true;
-						Hold.Splits[s].CounterOp = INFO_BoolFromString(EqS);
+						Hold.Splits[s - 1].Active = true;
+						Hold.Splits[s - 1].CounterOp = INFO_BoolFromString(EqS);
 					}
 		}
 	}

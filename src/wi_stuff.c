@@ -1810,6 +1810,15 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 		else
 			strncpy(TempDP[NumTempDP].PlayerName, XPlay->AccountName, MAXPLAYERNAME - 1);
 		
+		// Determine if is local player (on screen)
+		for (k = 0; k < MAXSPLITSCREEN; k++)
+			if (XPlay == g_Splits[k].XPlayer)
+			{
+				TempDP[NumTempDP].LocalPlayer = true;
+				TempDP[NumTempDP].ScreenNum = k;
+				break;
+			}
+		
 		TempDP[NumTempDP].Spectator = true;
 		TempDP[NumTempDP].Ping = &XPlay->Ping;
 		TempDP[NumTempDP++].Rank = MAXPLAYERS + i;
