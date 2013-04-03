@@ -457,8 +457,10 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			
 					// Kill object, if it exists
 						// Don't remove it, corpse cleanup will get to it eventually
+						// Do not kill monster if counter-op
 					if (Mo)
-						P_KillMobj(Mo, Mo, Mo);
+						if (!P_GMIsCounter() || (P_GMIsCounter() && !players[u16[0]].CounterOpPlayer))
+							P_KillMobj(Mo, Mo, Mo);
 						
 					// Make XPlayer not play anymore
 					if (XPlayer)
@@ -589,8 +591,10 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			
 					// Kill object, if it exists
 						// Don't remove it, corpse cleanup will get to it eventually
+						// Do not kill in counter op, that is cheating
 					if (Mo)
-						P_KillMobj(Mo, Mo, Mo);
+						if (!P_GMIsCounter() || (P_GMIsCounter() && !players[u16[0]].CounterOpPlayer))
+							P_KillMobj(Mo, Mo, Mo);
 				}
 				
 				// Kick player from game (network wise)

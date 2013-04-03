@@ -1871,9 +1871,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// Below certain threshold,
 		// ignore damage in GOD mode, or with INVUL power.
 		if (damage < 1000 && ((player->cheats & CF_GODMODE) || player->powers[pw_invulnerability]))
-		{
 			return false;
-		}
 		
 		if (player->armortype)
 		{
@@ -1928,6 +1926,28 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			if (player == &players[g_Splits[0].Console])
 				I_Tactile(40, 10, 40 + (damage < 100 ? damage : 100) * 2);
 		}
+	}
+	
+	// GhostlyDeath <April 3, 2013> -- Damage count for monster players
+	else if (P_GMIsCounter() && target->player)
+	{
+		// Damage is fraction of life
+		saved = 0;	// in case of zero
+		if (target->info->spawnhealth > 0)
+			saved = FixedDiv(damage << FRACBITS, target->info->spawnhealth << FRACBITS);
+		saved = FixedMul(saved, 100 << FRACBITS);
+		saved >>= FRACBITS;
+		
+		// Cap to zero
+		if (saved < 0)
+			saved = 0;
+		
+		// Add red screen
+		target->player->damagecount += saved;
+		
+		// Do not fade for a really long time
+		if (target->player->damagecount > 100)
+			target->player->damagecount = 100;
 	}
 	
 	if (takedamage)

@@ -340,6 +340,7 @@ int32_t P_XGSGetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right);
 bool_t P_XGSRegisterStuff(void);
 bool_t P_XGSSetAllDefaults(void);
 bool_t P_XGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level);
+int32_t P_XGSRootSetValue(const P_XGSBitID_t a_Bit, const int32_t a_Value);
 int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int32_t a_Value);
 int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const char* const a_Value);
 

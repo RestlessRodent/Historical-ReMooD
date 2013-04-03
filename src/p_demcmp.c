@@ -1620,6 +1620,40 @@ static int32_t PS_XGSCapValue(const P_XGSBitID_t a_Bit, const int32_t a_Value, b
 	return a_Value;
 }
 
+/* P_XGSRootSetValue() -- Sets internally variable value */
+// This is used by the save games, so funcs are not called
+int32_t P_XGSRootSetValue(const P_XGSBitID_t a_Bit, const int32_t a_Value)
+{
+	P_XGSVariable_t* Var;
+	bool_t Valid;
+	int32_t Value;
+	
+	/* Get variable first */
+	Var = P_XGSVarForBit(a_Bit);
+	
+	// Nothing?
+	if (!Var)
+		return 0;
+	
+	/* Cap the value */
+	Valid = false;
+	Value = PS_XGSCapValue(a_Bit, a_Value, &Valid);
+	
+	// Not valid?
+	if (!Valid)
+		return 0;
+	
+	// Set it now
+	Var->WasSet = true;
+	Var->ActualVal = Value;
+	
+	/* Set string */
+	PS_EXGSValToStr(Var);
+	
+	/* Return the value */
+	return Var->ActualVal;
+}
+
 /* P_XGSSetValue() -- Sets value of variable */
 int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int32_t a_Value)
 {

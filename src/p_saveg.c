@@ -1413,7 +1413,7 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 			
 			// Get var
 			Var = P_XGSVarForBit(n);
-			P_XGSSetValue(true, i, n);
+			P_XGSRootSetValue(i, n);
 		}
 	}
 	

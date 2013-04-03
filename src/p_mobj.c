@@ -3331,15 +3331,17 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 	thinker_t* currentthinker;
 	mobj_t* mo;
 	mobj_t* Cands[MAXCTRLCANDIDATES];
-	size_t i, c;
+	mobj_t* Bodies[MAXCTRLCANDIDATES];
+	size_t i, c, b;
 	
 	/* Check */
 	if (!a_Player)
 		return;
 		
 	/* Clear Candidate List */
-	c = 0;
+	c = b = 0;
 	memset(Cands, 0, sizeof(Cands));
+	memset(Bodies, 0, sizeof(Bodies));
 	
 	/* Go through all thinkers */
 	// Figure out current thinker
@@ -3377,7 +3379,20 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 		
 		// Dead?
 		if (mo->health <= 0 || (mo->flags & MF_CORPSE))
+		{
+			// Add to bodies to resurrect list
+			if (b < MAXCTRLCANDIDATES)
+				if (!b)
+					Bodies[b++] = mo;
+				else
+				{
+					if (P_Random() & 1)
+						Bodies[b++] = mo;
+				}
+			
+			// Continue on
 			continue;
+		}
 		
 		// Candidate?
 		if (!c)
@@ -3393,16 +3408,28 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 	}
 	
 	/* Choose a random candidate */
-	if (c > 0)
+	// From assortment of living monsters
+	if (c > 0 || b > 0)
 	{
 		// Random
-		mo = Cands[P_Random() % c];
+		if (c > 0)
+			mo = Cands[P_Random() % c];
+		else
+			mo = Bodies[P_Random() % b];
+		
+		// Old body owns no player now
+		if (a_Player->mo)
+			a_Player->mo->player = NULL;
 		
 		// Take posession of this monster
-		if (a_Player->mo)
-			a_Player->mo->player = NULL;	// Old body owns no player now
 		a_Player->mo = mo;				// Use this new body
 		mo->player = a_Player;			// Set as this body
+		
+		// If monster is dead, revive it like in nightmare mode
+		if (c == 0)
+			P_NightmareRespawn(mo, true);
+		
+		// Force player alive
 		a_Player->playerstate = PST_LIVE;
 	
 		// Setup player health
