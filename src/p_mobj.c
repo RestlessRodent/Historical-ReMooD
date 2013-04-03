@@ -669,7 +669,7 @@ void P_ZMovement(mobj_t* mo)
 				// after hitting the ground (hard),
 				// and utter appropriate sound.
 				mo->player->deltaviewheight = mo->momz >> 3;
-				if (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+				if (P_MobjIsPlayer(mo))
 					S_StartSound(&mo->NoiseThinker, sfx_oof);
 			}
 			// set it once and not continuously
@@ -729,7 +729,7 @@ void P_ZMovement(mobj_t* mo)
 		mo->z = mo->ceilingz - mo->height;
 		
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
-		if (P_MobjIsPlayer(mo) && (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (P_XGSVal(PGS_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
+		if (P_MobjIsPlayer(mo) && (P_XGSVal(PGS_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
 			S_StartSound(&mo->NoiseThinker, sfx_ouch);
 		
 		if (mo->flags2 & MF2_BOUNCES)
@@ -977,7 +977,7 @@ static void PlayerLandedOnThing(mobj_t* mo, mobj_t* onmobj)
 	}
 	else if (mo->momz < -8 * FRACUNIT && !mo->player->chickenTics)
 	{
-		if (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		if (P_MobjIsPlayer(mo))
 			S_StartSound(&mo->NoiseThinker, sfx_oof);
 	}
 }
@@ -2973,9 +2973,9 @@ bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Determine if this is a standard player or a monster player */
 	IsThisPlayer = IsOtherPlayer = false;
-	if ((a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if (P_MobjIsPlayer(a_ThisMo))
 		IsThisPlayer = true;
-	if ((a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if (P_MobjIsPlayer(a_OtherMo))
 		IsOtherPlayer = true;
 	
 	/* Players are never on the same family */

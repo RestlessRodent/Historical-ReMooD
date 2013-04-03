@@ -774,7 +774,7 @@ static bool_t PIT_CheckThingDet(mobj_t* thing, void* a_Arg)
 			
 			// Explode, but do no damage.
 			// Let players missile other players.
-			if (!(thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+			if (!(P_MobjIsPlayer(thing)))
 				//DarkWolf95:November 21, 2003: Monsters Infight!
 				if (!P_XGSVal(PGS_FUNINFIGHTING))
 					return false;

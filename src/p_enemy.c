@@ -1370,7 +1370,7 @@ bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 		
 	
 	// GhostlyDeath <June 6, 2012> -- Player on same team as us?
-	if (thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+	if (P_MobjIsPlayer(thing))
 		if (P_MobjOnSameTeam(thing, TheVile))
 			return true;
 	

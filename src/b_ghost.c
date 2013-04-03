@@ -226,7 +226,7 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 	a_Bot->TicCmdPtr = a_TicCmd;
 	a_Bot->AtNode = B_NodeAtPos(a_Bot->Mo->x, a_Bot->Mo->y, a_Bot->Mo->z, true);
 	a_Bot->IsPlayer = false;
-	if (a_Bot->Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+	if (P_MobjIsPlayer(a_Bot->Mo))
 		a_Bot->IsPlayer = true;
 	
 	// At new location?

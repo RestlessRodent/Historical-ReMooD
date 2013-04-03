@@ -993,7 +993,7 @@ void P_MovePsprites(player_t* player)
 	PI_state_t* state;
 	
 	// GhostlyDeath <May 8, 2012> -- If playing as monster, do not move sprites
-	if (player->mo && !(player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	if (player->mo && !(P_MobjIsPlayer(player->mo)))
 	{
 		// Only handle attack button
 		if (player->cmd.Std.buttons & BT_ATTACK)

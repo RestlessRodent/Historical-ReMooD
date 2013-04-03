@@ -617,7 +617,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Monster? */
 	IsMonster = false;
 	if (!IsFake)
-		if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || !(DisplayP->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+		if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || !P_MobjIsPlayer(DisplayP->mo)))
 			IsMonster = true;
 	
 	/* Draw the automap */

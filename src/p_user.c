@@ -125,7 +125,7 @@ void P_CalcHeight(player_t* player)
 	
 	/* Base */
 	// Player
-	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+	if (P_MobjIsPlayer(player->mo))
 		if (player->ProfileEx)
 			ViewHeight = player->ProfileEx->ViewHeight;
 		else
@@ -943,7 +943,7 @@ void P_PlayerThink(player_t* player)
 	}
 		
 	// check special sectors : damage & secrets
-	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+	if (P_MobjIsPlayer(player->mo))
 		P_PlayerInSpecialSector(player);
 	
 	//

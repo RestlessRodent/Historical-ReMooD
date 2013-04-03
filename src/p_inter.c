@@ -1775,7 +1775,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	if (P_MobjIsPlayer(target))
 		player = target->player;
 	
-	if (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+	if (P_MobjIsPlayer(target))
 		if (P_XGSVal(PGS_GAMESKILL) == sk_baby || P_XGSVal(PGS_PLHALFDAMAGE))
 			damage >>= 1;		// take half damage in trainer mode
 	
@@ -1793,7 +1793,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	// inflict thrust and push the victim out of reach,
 	// thus kick away unless using the chainsaw.
 	if (inflictor
-	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !(source->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(P_MobjIsPlayer(source) && (source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST))))
+	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !P_MobjIsPlayer(source) || !(P_MobjIsPlayer(source) && (source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST))))
 	{
 		fixed_t amomx, amomy, amomz = 0;	//SoM: 3/28/2000
 		
@@ -1860,7 +1860,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	takedamage = false;
 	
 	// player specific
-	if (player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (target->flags & MF_CORPSE) == 0)
+	if (player && (P_MobjIsPlayer(target)) && (target->flags & MF_CORPSE) == 0)
 	{
 		// end of game hell hack
 		if (target->subsector->sector->special == 11 && damage >= target->health)
@@ -1907,12 +1907,12 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				return false;
 	
 	// Player Specific	
-	if (player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (target->flags & MF_CORPSE) == 0)
+	if (player && (P_MobjIsPlayer(target)) && (target->flags & MF_CORPSE) == 0)
 	{
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_XGSVal(PGS_CODISABLETEAMPLAY) ||	// support old demo version
 		        P_XGSVal(PGS_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
-		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(P_MobjIsPlayer(source) && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_GMIsDM() && (!P_GMIsTeam() || !P_MobjOnSameTeam(source->player->mo, player->mo))))
+		        source == target || !source || !(P_MobjIsPlayer(target)) || !(P_MobjIsPlayer(source) && P_MobjIsPlayer(source)) || (P_GMIsDM() && (!P_GMIsTeam() || !P_MobjOnSameTeam(source->player->mo, player->mo))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)

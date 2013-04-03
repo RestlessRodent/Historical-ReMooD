@@ -1058,7 +1058,7 @@ int EV_DoGenDoor(line_t* line, mobj_t* const a_Object)
 					if (door->direction > 0)
 					{
 						// Monsters never close doors
-						if (!(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+						if (!(P_MobjIsPlayer(a_Object)))
 							return 0;
 						
 						door->direction = -1;
@@ -2028,7 +2028,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 	/* See if object is a monster */
 	IsMonsterMo = false;
 	if (a_Mo)
-		IsMonsterMo = !(a_Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT);
+		IsMonsterMo = !(P_MobjIsPlayer(a_Mo));
 	
 	// Effects Monster?
 	EffectMonster = false;
