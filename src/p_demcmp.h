@@ -289,6 +289,7 @@ typedef enum P_XGSBitID_e
 	PGS_CTFNEEDFLAGATHOME,						// Need flag at home to score
 	PGS_COVARIABLEFRICTION,						// Boom Variable Friction
 	PGS_COALLOWPUSHERS,							// Allow Boom Pushers
+	PGS_PLMAXTEAMS,								// Max player teams
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;
@@ -312,7 +313,7 @@ typedef struct P_XGSVariable_s
 	P_XGSMenuCategory_t Category;				// Category for item
 	P_XGSDisplayAs_t DisplayAs;					// Display as this
 	const CONL_VarPossibleValue_t* Possible;	// Possible values
-	void (*ChangeFunc)(struct P_XGSVariable_s* const a_Bit);
+	void (*ChangeFunc)(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue);
 	
 	// Settings
 	bool_t WasSet;								// Was Set to value?
@@ -360,6 +361,13 @@ int32_t NG_GetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right);
 void NG_SetNextMap(const char* const a_Map);
 
 // Game Mode Operation
+bool_t P_GMSpecCoop(const int32_t a_Mode, const bool_t a_Team);
+bool_t P_GMSpecCounter(const int32_t a_Mode, const bool_t a_Team);
+bool_t P_GMSpecDM(const int32_t a_Mode, const bool_t a_Team);
+bool_t P_GMSpecLMS(const int32_t a_Mode, const bool_t a_Team);
+bool_t P_GMSpecTeam(const int32_t a_Mode, const bool_t a_Team);
+bool_t P_GMSpecCTF(const int32_t a_Mode, const bool_t a_Team);
+
 bool_t P_GMIsCoop(void);
 bool_t P_GMIsCounter(void);
 bool_t P_GMIsDM(void);

@@ -369,6 +369,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		"PSPECC_THREESECLEFT", "3 seconds left!"},
 	{		"PSPECC_TWOSECLEFT", "2 seconds left!"},
 	{		"PSPECC_ONESECLEFT", "1 second left!"},
+	{		"PSPECC_PLDEFECTED", "{z$1{z changed to team $2"},
 	
 	/*** P_INTER.c ***/
 	{	   "PINTERC_FRAGLIMITREACHED", "Frag limit reached."},
@@ -711,6 +712,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "D_PGS_COVARIABLEFRICTION", "Friction is able to be varied."},
 	{			 "M_PGS_COALLOWPUSHERS", "Allow Boom Pushers"},
 	{			 "D_PGS_COALLOWPUSHERS", "Enables push/puller objects to work."},
+	{			 "M_PGS_PLMAXTEAMS", "Max Teams"},
+	{			 "D_PGS_PLMAXTEAMS", "Maximum amount of teams that can exist at once."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

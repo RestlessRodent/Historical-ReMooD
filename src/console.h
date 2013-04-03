@@ -113,6 +113,7 @@ typedef enum CONL_MessageType_e
 	CT_SCRIPTING,								// Scripts
 	CT_BOTS,									// Bots
 	CT_CHAT,									// Player Chat
+	CT_PLAYERS,									// Players
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;

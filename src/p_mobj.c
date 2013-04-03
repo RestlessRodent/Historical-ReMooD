@@ -2950,6 +2950,37 @@ bool_t P_MobjIsPlayer(mobj_t* const a_Mo)
 	if (!a_Mo)
 		return false;
 	
+	/* New Game Modes */
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Counter-Op?
+		if (P_GMIsCounter())
+		{
+			// Will never be player
+			if (!a_Mo->player)
+				return false;
+			
+			// Determine the side they are on
+			if (a_Mo->player->CounterOpPlayer)
+				return false;
+			
+			// Otherwise, they are a player
+			return true;
+		}
+		
+		// Otherwise, only if player
+		else if (a_Mo->player)
+			return true;
+	}
+	
+	/* Old */
+	else
+	{
+		// Pretty much it
+		if (a_Mo->player)
+			return true;
+	}
+	
 	/* Is a player? */
 	if (a_Mo->player && (a_Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 		return true;
@@ -3110,7 +3141,7 @@ int32_t P_GetPlayerTeam(struct player_s* const a_Player)
 	
 	/* Get virtual team color */
 	if (VTeam)	// TODO FIXME: Team cap here
-		return a_Player->VTeamColor;
+		return a_Player->VTeamColor % P_XGSVal(PGS_PLMAXTEAMS);
 	
 	// Old modes
 	else
@@ -3164,7 +3195,7 @@ int32_t P_GetMobjTeam(mobj_t* const a_Mo)
 	
 	/* Cap team to team limit */
 	if (VTeam)
-		;//RetVal = RetVal % P_XGSVal();
+		RetVal = RetVal % P_XGSVal(PGS_PLMAXTEAMS);
 	
 	/* Return */
 	return RetVal;

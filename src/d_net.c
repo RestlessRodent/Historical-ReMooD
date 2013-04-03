@@ -2512,7 +2512,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Change variables */
 	// Set multiplayer mode, if player already exists
-	if (j > 0)
+	if (j > 0 && !P_XGSVal(PGS_COMULTIPLAYER))
 	{
 		P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
 		
@@ -2537,7 +2537,8 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	Player->XPlayer = XPlay;
 	Player->skincolor = a_JoinData->Color;
-	Player->VTeamColor = a_JoinData->CTFTeam;
+	
+	P_ChangePlVTeam(Player, a_JoinData->CTFTeam);
 	
 	// GhostlyDeath <December 28, 2012> -- Counter op
 	Player->CounterOpPlayer = false;
@@ -2695,17 +2696,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 				
 				// Change in game team
 				if (a_Player->Player)
-				{
-					i = a_Player->Player->VTeamColor;
-					a_Player->Player->VTeamColor = ModVal;
-					
-					// Evil Change of Team? Remove their object if they have one
-						// forces a reborn!
-					if (P_GMIsTeam() && P_XGSVal(PGS_CONEWGAMEMODES))
-						if (i != a_Player->Player->VTeamColor)
-							if (a_Player->Player->mo)
-								P_RemoveMobj(a_Player->Player->mo);
-				}
+					P_ChangePlVTeam(a_Player->Player, ModVal);
 				break;
 			
 				// Display Name

@@ -1419,7 +1419,7 @@ bool_t P_ExFinalizeLevel(void)
 	
 	/* Initialize current game mode */
 	if (P_XGSVal(PGS_CONEWGAMEMODES))
-		P_InitGameMode(P_XGSVal(PGS_GAMEMODE));
+		P_InitGameMode(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY), -1, false);
 	
 	/* Success! */
 	return true;

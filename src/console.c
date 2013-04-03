@@ -1571,6 +1571,7 @@ size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_
 		"SCRI",									// CT_SCRIPTING
 		"BOTS",									// CT_BOTS
 		"CHAT",									// CT_CHAT
+		"PLAY",									// CT_PLAYERS
 	};
 	
 #define BUFSIZE 512

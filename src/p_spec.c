@@ -2845,9 +2845,59 @@ mobj_t* g_CTFFlags[MAXSKINCOLORS + 1];			// Flags in Game
 
 /*** FUNCTIONS ***/
 
-/* P_InitGameMode() -- Initializes Game Mode */
-void P_InitGameMode(const P_GameMode_t a_Mode)
+/* P_ChangePlVTeam() -- Changes VTeam of player */
+void P_ChangePlVTeam(player_t* const a_Player, const int32_t a_NewTeam)
 {
+	int32_t OldTeam, NewTeam;	
+	const char* Name;
+	
+	/* New Game Modes Only */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+		return;
+	
+	/* Get capped old and new team */
+	OldTeam = a_Player->VTeamColor % P_XGSVal(PGS_PLMAXTEAMS);
+	NewTeam = a_NewTeam % P_XGSVal(PGS_PLMAXTEAMS);
+	
+	/* If non-team game, just set team */
+	if (!P_GMIsTeam())
+	{
+		a_Player->VTeamColor = NewTeam;
+		return;
+	}
+	
+	/* Otherwise, do stuff if team mismatch */
+	if (OldTeam != NewTeam)
+	{
+		// Set new team
+		a_Player->VTeamColor = NewTeam;
+		
+		// Remove their mobj, so they are forced to respawn
+		if (a_Player->mo)
+		{
+			P_RemoveMobj(a_Player->mo);
+			a_Player->mo = NULL;
+		}
+
+		// Show message
+		P_GetTeamInfo(a_Player->VTeamColor, NULL, &Name);
+		CONL_OutputUT(CT_PLAYERS, DSTR_PSPECC_PLDEFECTED, "%s%s\n",
+				player_names[a_Player - players],
+				Name
+			);
+	}
+}
+
+/* P_InitGameMode() -- Initializes Game Mode */
+void P_InitGameMode(const P_GameMode_t a_Mode, const bool_t a_Teams, const P_GameMode_t a_OldMode, const bool_t a_OldTeams)
+{
+	/* New Game Modes Only */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+		return;
+	
+	/* Re-Assign Players */
+	// This sets player teams, etc. murders all players, etc.
+	
 	/* Update Scores */
 	// This shows the game mode change
 	P_UpdateScores();

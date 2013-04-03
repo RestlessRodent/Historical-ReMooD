@@ -1363,7 +1363,8 @@ extern mobj_t* g_CTFFlags[MAXSKINCOLORS + 1];	// Flags in Game
 
 /*** FUNCTIONS ***/
 
-void P_InitGameMode(const P_GameMode_t a_Mode);
+void P_ChangePlVTeam(player_t* const a_Player, const int32_t a_NewTeam);
+void P_InitGameMode(const P_GameMode_t a_Mode, const bool_t a_Teams, const P_GameMode_t a_OldMode, const bool_t a_OldTeams);
 
 /*****************************************************************************/
 

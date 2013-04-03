@@ -177,19 +177,26 @@ const CONL_VarPossibleValue_t c_PEXGSPVKillCountMode[] =
 	{0, NULL},
 };
 
+/* c_PEXGSPVMaxTeams -- Max permitted teams */
+const CONL_VarPossibleValue_t c_PEXGSPVMaxTeams[] =
+{
+	// End
+	{1, "MINVAL"},
+	{16, "MAXVAL"},
+	{0, NULL},
+};
+
 /* c_PEXGSPVLastLookMP -- Last Look Modulo */
 const CONL_VarPossibleValue_t c_PEXGSPVLastLookMP[] =
 {
 	// Powers of 2
-	{1, "1"},
-	{2, "2"},
-	{4, "4"},
-	{8, "8"},
+	{4, "4"},									// Vanilla
+	{8, "8"},									// Older Legacy/CTFDoom
 	{16, "16"},
-	{32, "32"},	
+	{32, "32"},									// Legacy
 	
 	// End
-	{1, "MINVAL"},
+	{4, "MINVAL"},
 	{MAXPLAYERS, "MAXVAL"},
 	{0, NULL},
 };
@@ -242,7 +249,7 @@ static const P_XGSNiceVersion_t l_NiceVersions[] =
 };
 
 /* P_XGSChangeFunc_ITEMSKEEPWEAPONS() -- ITEMSKEEPWEAPONS Changed */
-void P_XGSChangeFunc_ITEMSKEEPWEAPONS(struct P_XGSVariable_s* const a_Bit)
+void P_XGSChangeFunc_ITEMSKEEPWEAPONS(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue)
 {
 	/* Weapons are now being keeped */
 	// So respawn them all
@@ -251,7 +258,7 @@ void P_XGSChangeFunc_ITEMSKEEPWEAPONS(struct P_XGSVariable_s* const a_Bit)
 }
 
 /* P_XGSChangeFunc_GAMEFRAGLIMIT() -- Frag Limit */
-void P_XGSChangeFunc_GAMEFRAGLIMIT(struct P_XGSVariable_s* const a_Bit)
+void P_XGSChangeFunc_GAMEFRAGLIMIT(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue)
 {
 	size_t i;
 
@@ -261,23 +268,46 @@ void P_XGSChangeFunc_GAMEFRAGLIMIT(struct P_XGSVariable_s* const a_Bit)
 			P_CheckFragLimit(&players[i]);
 }
 
+/* P_XGSChangeFunc_GAMETEAMPLAY() -- Teamplay change */
+void P_XGSChangeFunc_GAMETEAMPLAY(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue)
+{
+	/* If new modes are not compatible, this setting has no effect */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+		return;
+	
+	
+	/* Otherwise init mode */
+	P_InitGameMode(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY), P_XGSVal(PGS_GAMEMODE), a_OldValue);
+}
+
 /* P_XGSChangeFunc_GAMEMODE() -- Game Mode Change */
-void P_XGSChangeFunc_GAMEMODE(struct P_XGSVariable_s* const a_Bit)
+void P_XGSChangeFunc_GAMEMODE(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue)
 {
 	/* If new modes are not compatible, this setting has no effect */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
 		return;
 	
 	/* Otherwise init mode */
-	P_InitGameMode(P_XGSVal(PGS_GAMEMODE));
+	P_InitGameMode(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY), a_OldValue, P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
 /* P_XGSChangeFunc_CONEWGAMEMODES() -- New Game Mode Compat */
-void P_XGSChangeFunc_CONEWGAMEMODES(struct P_XGSVariable_s* const a_Bit)
+void P_XGSChangeFunc_CONEWGAMEMODES(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue)
 {
 	/* If set, init new mode */
 	if (P_XGSVal(PGS_CONEWGAMEMODES))
-		P_InitGameMode(P_XGSVal(PGS_GAMEMODE));
+		P_InitGameMode(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY), -1, false);
+}
+
+/* P_XGSChangeFunc_PLMAXTEAMS() -- Max teams change */
+void P_XGSChangeFunc_PLMAXTEAMS(struct P_XGSVariable_s* const a_Bit, const int32_t a_OldValue)
+{
+	int32_t i;
+	
+	/* Go through all players inside and change their team to their own team */
+	// This will weed out any off ended teams and shove them on a lower team
+	for (i = 0; i < MAXPLAYERS; i++)
+		P_ChangePlVTeam(&players[i], players[i].VTeamColor);
 }
 
 // l_GSVars -- Game state variables
@@ -698,7 +728,7 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 
 	{PEXGST_INTEGER, PGS_GAMETEAMPLAY, "game_teamplay", DSTR_M_PGS_GAMETEAMPLAY,
 		DSTR_D_PGS_GAMETEAMPLAY, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVTeamPlay, NULL},
+		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVTeamPlay, P_XGSChangeFunc_GAMETEAMPLAY},
 
 	{PEXGST_INTEGER, PGS_GAMETEAMDAMAGE, "game_teamdamage", DSTR_M_PGS_GAMETEAMDAMAGE,
 		DSTR_D_PGS_GAMETEAMDAMAGE, PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
@@ -932,6 +962,10 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_COALLOWPUSHERS, "co_allowpushers", DSTR_M_PGS_COALLOWPUSHERS,
 		DSTR_D_PGS_COALLOWPUSHERS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PGS_PLMAXTEAMS, "pl_maxteams", DSTR_M_PGS_PLMAXTEAMS,
+		DSTR_D_PGS_PLMAXTEAMS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {2, 2}, 2,
+		PEXGSMC_PLAYERS, PEXGSDA_INTEGER, c_PEXGSPVMaxTeams, P_XGSChangeFunc_PLMAXTEAMS},
 };
 
 /*** FUNCTIONS ***/
@@ -1590,7 +1624,7 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 {
 	P_XGSVariable_t* Var;
 	bool_t Valid;
-	int32_t Value;
+	int32_t Value, OldValue;
 	
 	/* Get variable first */
 	Var = P_XGSVarForBit(a_Bit);
@@ -1599,6 +1633,12 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	if (!Var)
 		return 0;
 	
+	/* Get Old Value */
+	if (Var->WasSet)
+		OldValue = Var->ActualVal;
+	else
+		OldValue = Var->DefaultVal;
+	
 	/* Permitted to change value? */
 	if (!a_Master)
 	{
@@ -1606,9 +1646,7 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 		D_XNetChangeVar(a_Bit, a_Value);
 		
 		// Return the previous value
-		if (Var->WasSet)
-			return Var->ActualVal;
-		return Var->DefaultVal;
+		return OldValue;
 	}
 	
 	/* Cap the value */
@@ -1617,11 +1655,7 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	
 	// Not valid?
 	if (!Valid)
-	{
-		if (Var->WasSet)
-			return Var->ActualVal;
-		return Var->DefaultVal;
-	}
+		return OldValue;
 	
 	// Set it now
 	Var->WasSet = true;
@@ -1632,7 +1666,7 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	
 	/* Call value change function */
 	if (Var->ChangeFunc)
-		Var->ChangeFunc(Var);
+		Var->ChangeFunc(Var, OldValue);
 	
 	/* Return the value */
 	return Var->ActualVal;
@@ -2117,11 +2151,101 @@ void NG_SetNextMap(const char* const a_Map)
 *** GAME MODE OPERATION ***
 **************************/
 
+/*** CONSTANTS ***/
+
+/* P_GameModeFlags_t -- Game mode flags */
+typedef enum P_GameModeFlags_e
+{
+	PGMF_COOP		= UINT32_C(0x00000001),	// Coop Mode
+	PGMF_COUNTER	= UINT32_C(0x00000002),	// Counter-Op
+	PGMF_LIVES		= UINT32_C(0x00000004),	// Has Lives
+	PGMF_TEAM		= UINT32_C(0x00000008),	// Teams (if set, always on)
+	PGMF_CANTEAM	= UINT32_C(0x00000010),	// Can be teamed
+	PGMF_CTF		= UINT32_C(0x00000020),	// CTF
+} P_GameModeFlags_t;
+
+// c_ModeInfo[] -- Game mode info
+static const struct
+{
+	int32_t Mode;
+	uint32_t Flags;
+} c_ModeInfo[NUMPGAMEMODES] =
+{
+	{PGM_COOP, PGMF_COOP},
+	{PGM_COUNTEROP, PGMF_COOP | PGMF_COUNTER},
+	{PGM_DM, PGMF_CANTEAM},
+	{PGM_CTF, PGMF_TEAM},
+	{PGM_FLAGTAG, PGMF_CANTEAM},
+	{PGM_KOTH, PGMF_CANTEAM},
+	{PGM_POPACAP, PGMF_CANTEAM},
+	{PGM_LMS, PGMF_LIVES | PGMF_CANTEAM},
+	{PGM_SURVIVAL, PGMF_COOP | PGMF_LIVES},
+	
+	{PGM_CUSTOM, 0},
+};
+
+/*** FUNCTIONS ***/
+
+/* PS_GMGetFlags() -- Gets flags for mode */
+uint32_t PS_GMGetFlags(const P_GameMode_t a_Mode, const bool_t a_Team)
+{
+	uint32_t Flags;
+	
+	/* Check */
+	if (a_Mode < 0 || a_Mode >= NUMPGAMEMODES)
+		return 0;
+	
+	/* Get flags */
+	Flags = c_ModeInfo[a_Mode].Flags;
+	
+	// Modify for teams
+	if (Flags & PGMF_CANTEAM)
+		if (a_Team)
+			Flags |= PGMF_TEAM;
+	
+	/* Return flags */
+	return Flags;
+}
+
+/* P_GMSpecCoop() -- Specified mode is coop */
+bool_t P_GMSpecCoop(const int32_t a_Mode, const bool_t a_Team)
+{
+	return !!(PS_GMGetFlags(a_Mode, a_Team) & PGMF_COOP);
+}
+
+/* P_GMSpecCounter() -- Counter-op mode */
+bool_t P_GMSpecCounter(const int32_t a_Mode, const bool_t a_Team)
+{
+	return !!(PS_GMGetFlags(a_Mode, a_Team) & PGMF_COUNTER);
+}
+
+/* P_GMSpecDM() -- Is some DM mode */
+bool_t P_GMSpecDM(const int32_t a_Mode, const bool_t a_Team)
+{
+	return !!((PS_GMGetFlags(a_Mode, a_Team) & PGMF_COOP) == 0);
+}
+
+/* P_GMSpecLMS() -- Is LMS */
+bool_t P_GMSpecLMS(const int32_t a_Mode, const bool_t a_Team)
+{
+	return !!(PS_GMGetFlags(a_Mode, a_Team) & PGMF_LIVES);
+}
+
+/* P_GMSpecTeam() -- Has teams */
+bool_t P_GMSpecTeam(const int32_t a_Mode, const bool_t a_Team)
+{
+	return !!(PS_GMGetFlags(a_Mode, a_Team) & PGMF_TEAM);
+}
+
+/* P_GMSpecCTF() -- CTF Mode */
+bool_t P_GMSpecCTF(const int32_t a_Mode, const bool_t a_Team)
+{
+	return !!(PS_GMGetFlags(a_Mode, a_Team) & PGMF_CTF);
+}
+
 /* P_GMIsCoop() -- Single-Player/Coop */
 bool_t P_GMIsCoop(void)
 {
-	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
-	
 	/* Old Settings */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
 	{
@@ -2132,37 +2256,25 @@ bool_t P_GMIsCoop(void)
 	
 	/* Game Modes */
 	else
-	{
-		if (Mode == PGM_COOP || Mode == PGM_COUNTEROP || Mode == PGM_SURVIVAL)
-			return true;
-		return false;
-	}
+		return P_GMSpecCoop(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
 /* P_GMIsCounter() -- Is Counter-Op */
 bool_t P_GMIsCounter(void)
 {
-	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
-	
 	/* Old Settings */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
-	{
 		// Counter-Op Not Supported
 		return false;
-	}
 	
 	/* Game Modes */
 	else
-	{
-		return !!(Mode == PGM_COUNTEROP);
-	}
+		return P_GMSpecCounter(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
 /* P_GMIsDM() -- Is Deathmatch Mode */
 bool_t P_GMIsDM(void)
 {
-	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
-	
 	/* Old Settings */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
 	{
@@ -2170,47 +2282,30 @@ bool_t P_GMIsDM(void)
 		if (P_XGSVal(PGS_GAMEDEATHMATCH))
 			return true;
 		
-		
 		return false;
 	}
 	
 	/* Game Modes */
 	else
-	{
-		// Opposite of Coop
-		return !P_GMIsCoop();
-	}
+		return P_GMSpecDM(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
 /* P_GMIsLMS() -- Is Last Man Standing Mode */
 bool_t P_GMIsLMS(void)
 {
-	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
-	
 	/* Old Settings */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
-	{
 		// Legacy has no concept of LMS
 		return false;
-	}
 	
 	/* Game Modes */
 	else
-	{
-		// LMS modes or Survival
-		if (Mode == PGM_LMS || Mode == PGM_SURVIVAL)
-			return true;
-		
-		// Otherwise not LMS
-		return false;
-	}
+		return P_GMSpecLMS(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
 /* P_GMIsTeam() -- Is Team Mode */
 bool_t P_GMIsTeam(void)
 {
-	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
-	
 	/* Old Settings */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
 	{
@@ -2223,32 +2318,19 @@ bool_t P_GMIsTeam(void)
 	
 	/* Game Modes */
 	else
-	{
-		// CTF, TeamDM, TeamLMS
-		if (P_GMIsCTF() || ((Mode == PGM_DM || Mode == PGM_LMS) && P_XGSVal(PGS_GAMETEAMPLAY)))
-			return true;
-		
-		return false;
-	}
+		return P_GMSpecTeam(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
 /* P_GMIsCTF() -- Is CTF Mode */
 bool_t P_GMIsCTF(void)
 {
-	P_GameMode_t Mode = P_XGSVal(PGS_GAMEMODE);
-	
 	/* Old Settings */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
-	{
 		// CTF Not Supported
 		return false;
-	}
 	
 	/* Game Modes */
 	else
-	{
-		// Only one setting is CTF
-		return !!(Mode == PGM_CTF);
-	}
+		return P_GMSpecCTF(P_XGSVal(PGS_GAMEMODE), P_XGSVal(PGS_GAMETEAMPLAY));
 }
 
