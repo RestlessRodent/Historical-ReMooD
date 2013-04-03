@@ -832,6 +832,13 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 					// Use said profile
 					if (g_Splits[i].Profile)
 						D_XNetChangeLocalProf(i, g_Splits[i].Profile);
+					
+					// Screens need increasing?
+					if (i >= g_SplitScreen)
+					{
+						g_SplitScreen = i;
+						R_ExecuteSetViewSize();
+					}
 				}
 				
 				// Set common stuff
