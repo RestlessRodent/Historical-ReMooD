@@ -1040,6 +1040,10 @@ void R_DrawPlayerSprites(void)
 	if (viewplayer->mo && !P_MobjIsPlayer(viewplayer->mo))
 		return;
 	
+	// Check subsector exists
+	if (!viewplayer->mo->subsector)
+		return;
+	
 	// get light level
 	if (viewplayer->mo->subsector->sector->numlights)
 	{

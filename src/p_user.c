@@ -805,7 +805,7 @@ void P_PlayerThink(player_t* player)
 	if (!player->mo)
 	{
 		// Counter-Op Player?
-		if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
+		if (P_GMIsCounter() && player->CounterOpPlayer)
 			P_ControlNewMonster(player);
 		
 		// Still bad? Then the middle of nowhere is better than nothing
@@ -850,7 +850,7 @@ void P_PlayerThink(player_t* player)
 		if (gametic >= player->SuicideDelay)
 		{
 			// If playing as monster
-			if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
+			if (P_GMIsCounter() && player->CounterOpPlayer)
 				P_ControlNewMonster(player);
 			
 			// A player, but only if suicides are enabled

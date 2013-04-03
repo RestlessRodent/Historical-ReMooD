@@ -117,6 +117,7 @@ typedef enum D_XPlayerPref_e
 	DXPP_HEXENCLASS,							// Hexen Class
 	DXPP_PROFILEUUID,							// Profile UUID
 	DXPP_ACCOUNTNAME,							// Acount Name
+	DXPP_COUNTEROP,								// Counter Op?
 } D_XPlayerPref_t;
 
 /* D_XNetTicBufVersion_t -- TicBuf version number */

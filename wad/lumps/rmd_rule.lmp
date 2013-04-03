@@ -33,6 +33,9 @@ co_multiplayer=1
 game_spawnmultiplayer=1
 item_keepweapons=1
 
+[counter]
+game_mode=counterop
+
 [demo_vanilla109]
 co_newgamemodes=0
 co_enablebloodsplats=0

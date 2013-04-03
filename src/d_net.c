@@ -2342,6 +2342,7 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 	D_XNetPlayerPref(XPlay, false, DXPP_SKINCOLOR, a_Profile->Color);
 	D_XNetPlayerPref(XPlay, false, DXPP_VTEAM, a_Profile->VTeam);
 	D_XNetPlayerPref(XPlay, false, DXPP_HEXENCLASS, a_Profile->HexenClass);
+	D_XNetPlayerPref(XPlay, false, DXPP_COUNTEROP, a_Profile->CounterOp);
 }
 
 /* D_XNetTryJoin() -- Player attempt to join game */
@@ -2539,11 +2540,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	Player->skincolor = a_JoinData->Color;
 	
 	P_ChangePlVTeam(Player, a_JoinData->CTFTeam);
-	
-	// GhostlyDeath <December 28, 2012> -- Counter op
-	Player->CounterOpPlayer = false;
-	if (a_JoinData->Flags & DTCJF_MONSTERTEAM)
-		Player->CounterOpPlayer = true;
+	P_ChangeCounterOp(Player, !!(a_JoinData->Flags & DTCJF_MONSTERTEAM));
 	
 	if (a_JoinData->DisplayName[0])
 		D_NetSetPlayerName(k, a_JoinData->DisplayName);
@@ -2572,7 +2569,7 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	
 	/* Spawn player into game */
 	// Control monster, initially
-	if (Player->CounterOpPlayer && P_XGSVal(PGS_MONENABLEPLAYASMONSTER))
+	if (P_GMIsCounter() && Player->CounterOpPlayer)
 		P_ControlNewMonster(Player);
 	
 	// Spawn them normally
@@ -2639,6 +2636,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 			// Integer
 		case DXPP_SKINCOLOR:
 		case DXPP_VTEAM:
+		case DXPP_COUNTEROP:
 			StrValue = false;
 			ModVal = a_Value;
 			break;
@@ -2696,7 +2694,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 				
 				// Change in game team
 				if (a_Player->Player)
-					P_ChangePlVTeam(a_Player->Player, ModVal);
+					P_ChangePlVTeam(a_Player->Player, a_Player->VTeam);
 				break;
 			
 				// Display Name
@@ -2752,6 +2750,14 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 				// Hexen Class
 			case DXPP_HEXENCLASS:
 				strncpy(a_Player->HexenClass, Buf, MAXPLAYERNAME - 1);
+				break;
+				
+				// Counter-Op Player
+			case DXPP_COUNTEROP:
+				a_Player->CounterOp = !!ModVal;
+				
+				if (a_Player->Player)
+					P_ChangeCounterOp(a_Player->Player, a_Player->CounterOp);
 				break;
 		}
 	}

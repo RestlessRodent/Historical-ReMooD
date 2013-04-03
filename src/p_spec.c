@@ -2845,6 +2845,80 @@ mobj_t* g_CTFFlags[MAXSKINCOLORS + 1];			// Flags in Game
 
 /*** FUNCTIONS ***/
 
+/* P_ForcePlayerRespawn() -- Forces respawn of player */
+void P_ForcePlayerRespawn(player_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Reborn or monster switch? */
+	// Counter-Op Player
+	if (P_GMIsCounter() && a_Player->CounterOpPlayer)
+		P_ControlNewMonster(a_Player);
+	
+	// Other kind of player
+	else
+	{
+		// Clear object stuff
+		if (a_Player->mo)
+			P_RemoveMobj(a_Player->mo);
+		
+		// Force them to respawn
+		a_Player->playerstate = PST_REBORN;
+		G_DoReborn(a_Player - players);
+	}
+}
+
+/* P_ChangeCounterOp() -- Changes counter-op of player */
+void P_ChangeCounterOp(player_t* const a_Player, const bool_t a_Setting)
+{
+	bool_t OldSetting, NewSetting;
+	
+	/* New Game Modes Only */
+	if (!P_XGSVal(PGS_CONEWGAMEMODES))
+		return;
+	
+	/* Get old and new */
+	OldSetting = a_Player->CounterOpPlayer;
+	NewSetting = !!a_Setting;
+	
+	/* If non-counter op, just set it */
+	if (!P_GMIsCounter())
+	{
+		a_Player->CounterOpPlayer = NewSetting;
+		return;
+	}
+	
+	/* Otherwise, respawn or whatever */
+	if (OldSetting != NewSetting)
+	{
+		// Change
+		a_Player->CounterOpPlayer = NewSetting;
+		
+		// Was as a monster
+		if (OldSetting)
+		{
+			// Unlink reference, do not want to remove monster
+			if (a_Player->mo)
+			{
+				a_Player->mo->player = NULL;
+				a_Player->mo = NULL;
+			}
+		}
+		
+		// Was a player
+		else
+		{
+			if (a_Player->mo)
+				P_RemoveMobj(a_Player->mo);
+		}
+		
+		// Force respawn
+		P_ForcePlayerRespawn(a_Player);
+	}
+}
+
 /* P_ChangePlVTeam() -- Changes VTeam of player */
 void P_ChangePlVTeam(player_t* const a_Player, const int32_t a_NewTeam)
 {
@@ -2871,13 +2945,6 @@ void P_ChangePlVTeam(player_t* const a_Player, const int32_t a_NewTeam)
 	{
 		// Set new team
 		a_Player->VTeamColor = NewTeam;
-		
-		// Remove their mobj, so they are forced to respawn
-		if (a_Player->mo)
-		{
-			P_RemoveMobj(a_Player->mo);
-			a_Player->mo = NULL;
-		}
 
 		// Show message
 		P_GetTeamInfo(a_Player->VTeamColor, NULL, &Name);
@@ -2885,18 +2952,60 @@ void P_ChangePlVTeam(player_t* const a_Player, const int32_t a_NewTeam)
 				player_names[a_Player - players],
 				Name
 			);
+		
+		// Force them to respawn on the new team
+		P_ForcePlayerRespawn(a_Player);
 	}
 }
 
 /* P_InitGameMode() -- Initializes Game Mode */
 void P_InitGameMode(const P_GameMode_t a_Mode, const bool_t a_Teams, const P_GameMode_t a_OldMode, const bool_t a_OldTeams)
 {
+	int32_t i;
+	bool_t a, b;
+	
 	/* New Game Modes Only */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
 		return;
 	
 	/* Re-Assign Players */
 	// This sets player teams, etc. murders all players, etc.
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+		{
+			// Switching Counter op?
+			a = P_GMSpecCounter(a_OldMode, a_OldTeams);
+			b = P_GMSpecCounter(a_Mode, a_Teams);
+			
+			// Coop -> Counter: 
+			if (!a && b)
+			{
+				// If counter op player, remove their mo
+				if (players[i].CounterOpPlayer)
+				{
+					if (players[i].mo)
+						P_RemoveMobj(players[i].mo);
+					
+					P_ForcePlayerRespawn(&players[i]);
+				}
+			}
+			
+			// Counter -> Coop: Respawn any monster players
+			else if (a && !b)
+			{
+				// Unset player forcing a respawn
+				if (players[i].CounterOpPlayer)
+				{
+					if (players[i].mo)
+					{
+						players[i].mo->player = NULL;
+						players[i].mo = NULL;
+					}
+					
+					P_ForcePlayerRespawn(&players[i]);
+				}
+			}
+		}
 	
 	/* Update Scores */
 	// This shows the game mode change

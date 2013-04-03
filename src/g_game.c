@@ -1045,7 +1045,7 @@ void G_Ticker(void)
 				if (players[i].playerstate == PST_REBORN)
 				{
 					// Player is on monster's side
-					if (players[i].CounterOpPlayer)
+					if (P_GMIsCounter() && players[i].CounterOpPlayer)
 						P_ControlNewMonster(&players[i]);
 						
 					// Otherwise make player
@@ -1204,7 +1204,7 @@ void G_PlayerReborn(int player)
 	bool_t autoaim;
 	int skin;					//Fab: keep same skin
 	int32_t TotalFrags, TotalDeaths;
-	bool_t Given;
+	bool_t Given, CounterOp;
 	
 	PEp = players[player].ProfileEx;
 	XPl = players[player].XPlayer;
@@ -1231,6 +1231,7 @@ void G_PlayerReborn(int player)
 	//memcpy(favoritweapon, players[player].favoritweapon, NUMWEAPONS);
 	autoaim = players[player].autoaim_toggle;
 	skin = players[player].skin;
+	CounterOp = players[player].CounterOpPlayer;
 	
 	p = &players[player];
 	memset(p, 0, sizeof(*p));
@@ -1265,6 +1266,7 @@ void G_PlayerReborn(int player)
 	players[player].maxammo = maxammo;
 	
 	// save player config truth reborn
+	players[player].CounterOpPlayer = CounterOp;
 	players[player].VTeamColor = VTeamColor;
 	players[player].skincolor = skincolor;
 	players[player].originalweaponswitch = originalweaponswitch;

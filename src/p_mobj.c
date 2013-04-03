@@ -1943,7 +1943,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
 		if (!P_GMIsDM() && ((playeringame[pid] && !players[pid].mo) || P_XGSVal(PGS_COVOODOODOLLS)))
-			if (!players[pid].CounterOpPlayer)
+			if (!(P_GMIsCounter() && players[pid].CounterOpPlayer))
 				P_SpawnPlayer(mthing);
 		
 		return;

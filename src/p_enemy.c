@@ -704,14 +704,13 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const PI_sargc_t a_A
 	sfxid_t SoundID;
 	
 	// GhostlyDeath <April 29, 2012> -- If a player move to movement state
-	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER))
-		if (actor->player)
-		{
-			actor->threshold = 0;
-			S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RSeeSound));
-			P_SetMobjState(actor, actor->info->seestate);
-			return;
-		}
+	if (P_GMIsCounter() && !P_MobjIsPlayer(actor) && actor->player)
+	{
+		actor->threshold = 0;
+		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RSeeSound));
+		P_SetMobjState(actor, actor->info->seestate);
+		return;
+	}
 	
 	actor->threshold = 0;		// any shot will wake up
 	targ = actor->subsector->sector->soundtarget;
@@ -797,7 +796,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const PI_sargc_t a_
 	
 	// GhostlyDeath <June 23, 2012> -- Controlled monster?
 	Controlled = false;
-	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && actor->player)
+	if (P_GMIsCounter() && !P_MobjIsPlayer(actor) && actor->player)
 		Controlled = true;
 	
 	// GhostlyDeath <June 17, 2012> -- Get Skill
@@ -935,7 +934,7 @@ nomissile:
 void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const PI_sargc_t a_ArgC, PI_sargv_t* const a_ArgV)
 {
 	// GhostlyDeath <April 29, 2012> -- Player controlled monsters
-	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && actor->player)
+	if (P_GMIsCounter() && !P_MobjIsPlayer(actor) && actor->player)
 	{
 		P_AimLineAttack(actor, actor->angle, MISSILERANGE, NULL);
 		actor->target = linetarget;

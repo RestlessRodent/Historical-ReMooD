@@ -307,7 +307,8 @@ void P_XGSChangeFunc_PLMAXTEAMS(struct P_XGSVariable_s* const a_Bit, const int32
 	/* Go through all players inside and change their team to their own team */
 	// This will weed out any off ended teams and shove them on a lower team
 	for (i = 0; i < MAXPLAYERS; i++)
-		P_ChangePlVTeam(&players[i], players[i].VTeamColor);
+		if (playeringame[i])
+			P_ChangePlVTeam(&players[i], players[i].VTeamColor);
 }
 
 // l_GSVars -- Game state variables
@@ -1869,6 +1870,18 @@ void NG_FromCLine(void)
 	else if (M_CheckParm("-ctf"))
 	{
 		if (NG_SetRules(false, "ctf"))
+			l_NGAutoStart = true;
+	}
+	
+	// Counter-Op
+	else if (M_CheckParm("-counterop"))
+	{
+		// Set Coop Rules First
+		if (NG_SetRules(false, "coop"))
+			l_NGAutoStart = true;
+		
+		// Then counter
+		if (NG_SetRules(false, "counter"))
 			l_NGAutoStart = true;
 	}
 	
