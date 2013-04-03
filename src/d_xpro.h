@@ -44,6 +44,8 @@
 *** CONSTANTS ***
 ****************/
 
+#define NUMLAGSTATPROBES				10		// Probe 10 times
+
 /* D_XSyncLevel_t -- Synchronization level */
 typedef enum D_XSyncLevel_e
 {
@@ -73,6 +75,23 @@ typedef struct D_XNetConnType_s
 	uint16_t TicCluster;						// Game tics to cluster at once
 	uint16_t TicGlide;							// Tics to glide
 } D_XNetConnType_t;
+
+/* D_XNetLagStat_t -- Lag statistic */
+typedef struct D_XNetLagStat_e
+{
+	uint32_t ID;								// ID Code
+	uint8_t Sent;								// Count Sent
+	uint8_t Recv;								// Recieved
+	
+	struct
+	{
+		tic_t sendPTic;							// Sent program tic
+		uint32_t sendMS;						// Sent MS
+		
+		tic_t recvPTic;							// Recv program tic
+		uint32_t recvMS;						// Recv MS
+	} Probes[NUMLAGSTATPROBES];					// Lag probes
+} D_XNetLagStat_t;
 
 /* D_XEndPoint_t -- Endpoint connection */
 typedef struct D_XEndPoint_s
@@ -108,6 +127,9 @@ typedef struct D_XEndPoint_s
 	tic_t PongPT;								// Pong Program Tic
 	uint32_t PongMS;							// Pong Milliseconds
 	uint32_t ClMS;								// Client Milliseconds
+	
+	tic_t LastLagStat;							// Last lag statistic
+	D_XNetLagStat_t LagStat;					// Lag Stat for this client
 } D_XEndPoint_t;
 
 /* D_XDesc_t -- Socket descriptor */
@@ -155,6 +177,8 @@ typedef struct D_XDesc_s
 			bool_t GotTics;						// Got tic commands
 			uint32_t SvMilli;					// Milli seconds on server
 			bool_t GotInGame;					// Got in Game
+			
+			D_XNetLagStat_t OurLagStat;			// Our local lag stat
 		} Client;								// Client Stuff
 	
 		struct

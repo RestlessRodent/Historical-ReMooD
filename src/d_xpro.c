@@ -67,6 +67,8 @@ typedef struct D_XWADCheck_s
 bool_t g_LockJW = false;						// Lock the join window
 
 extern CONL_StaticVar_t l_SVJoinWindow;
+extern CONL_StaticVar_t l_SVLagStat;
+extern CONL_StaticVar_t l_SVMaxClients;
 
 /*************
 *** LOCALS ***
@@ -231,6 +233,18 @@ static bool_t DS_BringInClient(D_XDesc_t* const a_Desc, const char* const a_Head
 	uint32_t ProcessID;
 	D_XEndPoint_t* EP;
 	D_XEndPoint_t Hold;
+	
+	/* Determine max clients limit */
+	for (s = i = 0; i < g_NumXEP; i++)
+		if (g_XEP[i])
+			s++;
+	
+	// Passed max?
+	if (s >= l_SVMaxClients.Value->Int)
+	{
+		D_XPSendDisconnect(a_Desc, a_Desc->StdBS, a_Addr, "The number of permitted clients has been exceeded.");
+		return false;
+	}
 	
 	/* Init Settings */
 	ProcessID = 0;
@@ -669,6 +683,10 @@ static void DS_DoServer(D_XDesc_t* const a_Desc)
 {
 	/* Handle join windows */
 	DS_HandleJoinWindow(a_Desc);
+	
+	/* Lag Stat Clients */
+	tic_t LastLagStat;							// Last lag statistic
+	D_XNetLagStat_t LagStat;					// Lag Stat for this client
 }
 
 /* DS_DoClient() -- Handles client connection */

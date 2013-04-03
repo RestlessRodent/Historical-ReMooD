@@ -652,11 +652,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				// Bounds OK?
 				if (u32[0] >= 0 && u32[0] < MAXPLAYERS)
 					if (playeringame[u32[0]])
-					{
-						players[u32[0]].CounterOpPlayer = false;
-						if (u8[0])
-							players[u32[0]].CounterOpPlayer = true;
-					}
+						P_ChangeCounterOp(&players[u32[0]], u8[0]);
 				break;
 				
 				// Morph Player

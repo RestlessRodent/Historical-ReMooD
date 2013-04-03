@@ -50,6 +50,7 @@
 #include "m_misc.h"
 #include "m_fixed.h"
 #include "p_saveg.h"
+#include "p_demcmp.h"
 
 /**********************
 *** UPPER CONSTANTS ***
@@ -452,6 +453,11 @@ int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	uint32_t Hash;
 	uintptr_t ComNum;
+	CONL_ConVariable_t* VarFind;
+	P_XGSVariable_t* GameVar;
+	char* GiantString;
+	int32_t i, n, w, RetVal;
+	char OldVarVal[PEXGSSTRBUFSIZE];
 	
 	/* Check */
 	if (!a_ArgC || !a_ArgV)
@@ -467,7 +473,84 @@ int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	// Check, if not found try variables
 	if (ComNum >= l_CONLNumCommands)
 	{
-		return 1;	// not found
+		// Return failure by default
+		RetVal = 1;
+		
+		// Variable and game vars only really accept a single input, so concat all argvs
+		// together into one giant string
+		GiantString = NULL;
+		for (i = 1, n = 0; i < a_ArgC; i++)
+		{
+			// Get Length
+			w = strlen(a_ArgV[i]) + 3;
+			
+			// Resize
+			Z_ResizeArray((void**)&GiantString, sizeof(*GiantString),
+				n, n + w);
+			
+			// Concat
+			n += w;
+			strncat(GiantString, a_ArgV[i], n - 1);
+			
+			// Add extra space?
+			if (i + 1 < a_ArgC)
+				strncat(GiantString, " ", n - 1);
+		}
+		
+		// Try finding variable
+		VarFind = (CONL_ConVariable_t*)Z_HashFindEntry(l_CONLVariableHashes, Hash, (const void*)a_ArgV[0], false);
+		
+		// Found variable (and only registered ones)
+		if (VarFind && VarFind->StaticLink)
+		{
+			// Print value if name was just said
+			if (a_ArgC == 1)
+				CONL_PrintF("%s: %s\n", VarFind->StaticLink->VarName, VarFind->StaticLink->Value->String);
+			
+			// Otherwise, set value
+			else
+				CONL_VarSetStr(VarFind->StaticLink, GiantString);
+			
+			// Always exit as successful
+			RetVal = 0;
+		}
+		
+		// Try game variable instead
+		else
+		{
+			GameVar = P_XGSVarForName(a_ArgV[0]);
+		
+			// Found
+			if (GameVar)
+			{
+				// Print value of variable if only variable said
+				if (a_ArgC == 1)
+					CONL_PrintF("%s: %s\n", GameVar->Name, GameVar->StrVal);
+				
+				// Otherwise set variable value
+				else
+				{
+					strncpy(OldVarVal, GameVar->StrVal, PEXGSSTRBUFSIZE - 1);
+					OldVarVal[PEXGSSTRBUFSIZE - 1] = 0;
+					
+					P_XGSSetValueStr(false, GameVar->BitID, GiantString);
+					
+					CONL_PrintF("%s changed from \"%s\" to \"%s\".\n",
+							GameVar->Name,
+							OldVarVal,
+							GiantString//GameVar->StrVal
+						);
+				}
+					
+				// Always exit as successful
+				RetVal = 0;
+			}
+		}
+		
+		// Cleanup and quit
+		if (GiantString)
+			Z_Free(GiantString);
+		return RetVal;	// not found
 	}
 	
 	/* Execute */

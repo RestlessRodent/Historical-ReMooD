@@ -161,8 +161,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
 	{			   "CVHINT_SVMAXCLIENTS", "The maximum amount of clients that may join the game."},
 	{			   "CVHINT_SVJOINWINDOW", "Amount of time in seconds between each join window interval."},
+	{				  "CVHINT_SVLAGSTAT", "Amount of time in minutes between each lag check for a client."},
 	{				  "CVHINT_SVREADYBY", "Amount of time in seconds before a client is disconnected for lagging out."},
-	{			   "CVHINT_SVMAXCATCHUP", "Maximum amount of time to catchup when playing as the server, after this threshold catchup stops."},
+	{			   "CVHINT_SVMAXCATCHUP", "Maximum amount of time to catchup when playing as the server, after this threshold catchup stops and waiting for players appears."},
 	{		   "CVHINT_SVMAXDEMOCATCHUP", "Maximum amount of time to catchup when playing a demo, after this threshold catchup stops."},
 	{		  "CVHINT_SVLAGTHRESHEXPIRE", "Time in seconds before the lag threshold expires."},
 	

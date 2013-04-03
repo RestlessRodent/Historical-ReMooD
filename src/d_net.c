@@ -201,7 +201,7 @@ CONL_StaticVar_t l_SVJoinPassword =
 CONL_StaticVar_t l_SVMaxClients =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
-	"sv_maxclients", DSTR_CVHINT_SVMAXCLIENTS, CLVVT_INTEGER, "32",
+	"sv_maxclients", DSTR_CVHINT_SVMAXCLIENTS, CLVVT_INTEGER, "48",
 	NULL
 };
 
@@ -210,6 +210,14 @@ CONL_StaticVar_t l_SVJoinWindow =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
 	"sv_joinwindow", DSTR_CVHINT_SVJOINWINDOW, CLVVT_INTEGER, "10",
+	NULL
+};
+
+// sv_lagstat -- Time in minutes before re-stat for lag
+CONL_StaticVar_t l_SVLagStat =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_lagstat", DSTR_CVHINT_SVLAGSTAT, CLVVT_INTEGER, "5",
 	NULL
 };
 
@@ -311,6 +319,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVJoinPassword);
 	CONL_VarRegister(&l_SVMaxClients);
 	CONL_VarRegister(&l_SVJoinWindow);
+	CONL_VarRegister(&l_SVLagStat);
 	CONL_VarRegister(&l_SVReadyBy);
 	CONL_VarRegister(&l_SVLagThreshExpire);
 	CONL_VarRegister(&l_SVMaxCatchup);

@@ -107,7 +107,12 @@ static int ROOT_ListPlayers(const uint32_t a_ArgC, const char** const a_ArgV)
 			continue;
 		
 		// Print
-		CONL_PrintF("%2i: (P%i) %s^%s [%08x]\n", i, XPlay->InGameID, XPlay->AccountName, XPlay->AccountServer, XPlay->ID);
+		CONL_PrintF("%2i: ", i);
+		
+		if (XPlay->Player)
+			CONL_PrintF("(P%i) ", XPlay->InGameID);
+		
+		CONL_PrintF("%s^%s [%08x]\n", XPlay->AccountName, XPlay->AccountServer, XPlay->ID);
 	}
 	
 	/* Always Works */
