@@ -42,6 +42,7 @@
 #include "p_saveg.h"
 #include "g_game.h"
 #include "p_demcmp.h"
+#include "st_stuff.h"
 
 /*****************
 *** STRUCTURES ***
@@ -161,6 +162,61 @@ void D_XPRequestScreen(const int32_t a_ScreenID)
 	/* Range Cap? */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
 		return;
+}
+
+/* D_XPCalcConnection() -- Calculates Connection */
+void D_XPCalcConnection(D_XEndPoint_t* const a_EP)
+{
+	int32_t Hit, Missed;
+	int32_t Total, i, bn;
+	D_XNetLagStat_t* Stat;
+	uint32_t MSBits[NUMLAGSTATPROBES];
+	uint32_t CLBits[NUMLAGSTATPROBES];
+	
+	/* Check */
+	if (!a_EP)
+		return;
+	
+	/* Init */
+	Stat = &a_EP->LagStat;
+	bn = 0;
+	memset(MSBits, 0, sizeof(MSBits));
+	
+	/* Calculate Total */
+	if (a_EP->LagNLSP < NUMLAGSTATPROBES)
+		Total = a_EP->LagNLSP;
+	else
+		Total = NUMLAGSTATPROBES;
+	
+	// Sent cap?
+	if (a_EP->LagSent < Total)
+		Total = a_EP->LagSent;
+	
+	/* Go through and find hit/miss, high low */
+	Hit = Missed = 0;
+	for (i = 0; i < Total; i++)
+	{
+		// If hit, calculate 
+		if (Stat->Probes[i].Got)
+		{
+			// yay!
+			Hit++;
+			
+			// Add to ms counts
+			CLBits[bn] = Stat->Probes[i].recvMS;
+			MSBits[bn++] = Stat->Probes[i].sendMS;
+		}
+		
+		// Missed (packet loss)
+		else
+			Missed++;
+	}
+	
+	/* Fill info */
+	a_EP->NetSpeed.PacketGain = FixedMul(FixedDiv(Hit << FRACBITS, Total << FRACBITS), 100 << FRACBITS) >> FRACBITS;
+	a_EP->NetSpeed.PacketLoss = FixedMul((1 << FRACBITS) - a_EP->NetSpeed.PacketGain, 100 << FRACBITS) >> FRACBITS;
+	
+	CONL_PrintF("gain: %i, loss: %i\n", a_EP->NetSpeed.PacketGain, a_EP->NetSpeed.PacketLoss);
 }
 
 /* DS_DumpSplitInfo() -- Dumps split info into packet */
@@ -681,12 +737,74 @@ static void DS_DoSlave(D_XDesc_t* const a_Desc)
 /* DS_DoServer() -- Handles server connection */
 static void DS_DoServer(D_XDesc_t* const a_Desc)
 {
+	int32_t i;
+	D_XEndPoint_t* EP;
+	
 	/* Handle join windows */
 	DS_HandleJoinWindow(a_Desc);
 	
-	/* Lag Stat Clients */
-	tic_t LastLagStat;							// Last lag statistic
-	D_XNetLagStat_t LagStat;					// Lag Stat for this client
+	/* For each connection */
+	for (i = 0; i < g_NumXEP; i++)
+	{
+		// Check endpoint
+		EP = g_XEP[i];
+		
+		if (!EP)
+			continue;
+		
+		// Begin sending new stat?
+		if (g_ProgramTic >= EP->LastLagStat)
+		{
+			// Reset fields
+			EP->LagNextBit = 0;
+			EP->LagBitNum = 0;
+			EP->LastLagStat = 0;
+			EP->LagSent = 0;
+			
+			memset(&EP->LagStat, 0, sizeof(EP->LagStat));
+			
+			while (EP->LagStatID == 0)
+				EP->LagStatID = D_CMakePureRandom();
+			
+			// Next stat will be in difference specified
+			EP->LastLagStat = g_ProgramTic + (l_SVLagStat.Value->Int * TICRATE * 60);
+		}
+		
+		// Send individual stat thingies on shitty channel
+		if (g_ProgramTic >= EP->LagNextBit)
+		{
+			// Need to send bits
+			if (EP->LagBitNum < NUMLAGSTATPROBES)
+			{
+				D_BSBaseBlock(a_Desc->StdBS, "LAGP");
+				
+				D_BSwu32(a_Desc->StdBS, EP->LagStatID);
+				D_BSwu8(a_Desc->StdBS, EP->LagBitNum);
+				D_BSwu64(a_Desc->StdBS, g_ProgramTic);
+				D_BSwu32(a_Desc->StdBS, I_GetTimeMS());
+				
+				D_BSRecordNetBlock(a_Desc->StdBS, &EP->Addr);
+				
+				// Increment
+				EP->LagBitNum++;
+				EP->LagSent++;
+			}
+			
+			// Request lag stat from client, to determine lag stuff
+			else if (EP->LagBitNum == NUMLAGSTATPROBES)
+			{
+				D_BSBaseBlock(a_Desc->RelBS, "LAGR");
+				
+				D_BSRecordNetBlock(a_Desc->RelBS, &EP->Addr);
+				
+				// Increment
+				EP->LagBitNum++;
+			}
+			
+			// Increase time by a second
+			EP->LagNextBit = g_ProgramTic + (TICRATE >> 1);
+		}
+	}
 }
 
 /* DS_DoClient() -- Handles client connection */
@@ -1906,6 +2024,138 @@ static bool_t DXP_CHAT(D_XDesc_t* const a_Desc, const char* const a_Header, cons
 #undef BUFSIZE
 }
 
+/* DXP_LAGP() -- Lag Probe */
+static bool_t DXP_LAGP(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	D_XNetLagStat_t* Stat;
+	uint32_t ID, MS;
+	uint8_t Num;
+	tic_t Tic;
+	
+	tic_t OurPT;
+	uint32_t OurMS;
+	
+	/* Obtain stat */
+	Stat = &a_Desc->CS.Client.OurLagStat;
+	
+	// Read in
+	ID = D_BSru32(a_Desc->RelBS);
+	Num = D_BSru8(a_Desc->RelBS);
+	Tic = D_BSru64(a_Desc->RelBS);
+	MS = D_BSru32(a_Desc->RelBS);
+	
+	OurPT = g_ProgramTic;
+	OurMS = I_GetTimeMS();
+	
+	/* If different ID, purge */
+	if (Stat->ID != ID)
+		memset(Stat, 0, sizeof(*Stat));
+	
+	/* Set fields */
+	// ID and count
+	Stat->ID = ID;
+	
+	// Probe number
+	if (Num >= 0 && Num < NUMLAGSTATPROBES)
+		if (!Stat->Probes[Num].Got)	// once is enough
+		{
+			// Got it now
+			Stat->Probes[Num].Got = true;
+			
+			// Set inners
+			Stat->Probes[Num].sendPTic = Tic;
+			Stat->Probes[Num].sendMS = MS;
+			Stat->Probes[Num].recvPTic = OurPT;
+			Stat->Probes[Num].recvMS = OurMS;
+			
+			// Increase count
+			Stat->Count++;
+		}
+	
+	return true;
+}
+
+/* DXP_LAGR() -- Request lag probe results */
+static bool_t DXP_LAGR(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	int32_t i;
+	D_XNetLagStat_t* Stat;
+	
+	/* Obtain stat */
+	Stat = &a_Desc->CS.Client.OurLagStat;
+	
+	/* Send back to server */
+	D_BSBaseBlock(a_Desc->RelBS, "LAGS");
+	
+	D_BSwu32(a_Desc->RelBS, Stat->ID);
+	D_BSwu8(a_Desc->RelBS, Stat->Count);
+	D_BSwu8(a_Desc->RelBS, NUMLAGSTATPROBES);
+	
+	for (i = 0; i < NUMLAGSTATPROBES; i++)
+	{
+		D_BSwu8(a_Desc->RelBS, Stat->Probes[i].Got);
+		
+		D_BSwu64(a_Desc->RelBS, Stat->Probes[i].sendPTic);
+		D_BSwu32(a_Desc->RelBS, Stat->Probes[i].sendMS);
+		
+		D_BSwu64(a_Desc->RelBS, Stat->Probes[i].recvPTic);
+		D_BSwu32(a_Desc->RelBS, Stat->Probes[i].recvMS);
+	}
+	
+	D_BSRecordNetBlock(a_Desc->RelBS, a_Addr);
+	
+	/* Done */
+	return true;
+}
+
+/* DXP_LAGS() -- Lag probe results are in */
+static bool_t DXP_LAGS(D_XDesc_t* const a_Desc, const char* const a_Header, const uint32_t a_Flags, I_HostAddress_t* const a_Addr, D_XEndPoint_t* const a_EP)
+{
+	int32_t i;
+	D_XNetLagStat_t* Stat;
+	uint32_t ID;
+	uint8_t Count, NLSP;
+	
+	/* Check EP */
+	if (!a_EP)
+		return false;
+	
+	/* Obtain stat */
+	Stat = &a_EP->LagStat;
+	
+	// Read Header
+	ID = D_BSru32(a_Desc->RelBS);
+	Count = D_BSru8(a_Desc->RelBS);
+	NLSP = D_BSru8(a_Desc->RelBS);
+	
+	// Same ID?
+	if (ID == Stat->ID)
+		return false;	// already got it
+	
+	// Clear
+	memset(Stat, 0, sizeof(*Stat));
+	
+	// Set
+	Stat->ID = ID;
+	Stat->Count = Count;
+	a_EP->LagNLSP = NLSP;
+	
+	// Read fields
+	for (i = 0; i < NLSP && i < NUMLAGSTATPROBES; i++)
+	{
+		Stat->Probes[i].Got = D_BSru8(a_Desc->RelBS);
+		
+		Stat->Probes[i].sendPTic = D_BSru64(a_Desc->RelBS);
+		Stat->Probes[i].sendMS = D_BSru32(a_Desc->RelBS);
+		
+		Stat->Probes[i].recvPTic = D_BSru64(a_Desc->RelBS);
+		Stat->Probes[i].recvMS = D_BSru32(a_Desc->RelBS);
+	}
+	
+	/* Calculate Net Config */
+	D_XPCalcConnection(a_EP);
+}
+
 /* D_CSPackFlag_t -- Packet flags */
 typedef enum D_CSPackFlag_e
 {
@@ -1947,6 +2197,9 @@ static const struct
 	{"NIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"AIGM", DXP_NIGM, PF_ONAUTH | PF_CLIENT | PF_REL},
 	{"CHAT", DXP_CHAT, PF_ONAUTH | PF_SERVER | PF_REL},
+	{"LAGP", DXP_LAGP, PF_ONAUTH | PF_CLIENT},
+	{"LAGR", DXP_LAGR, PF_ONAUTH | PF_CLIENT | PF_REL},
+	{"LAGS", DXP_LAGS, PF_ONAUTH | PF_SERVER | PF_REL},
 	
 	{NULL}
 };

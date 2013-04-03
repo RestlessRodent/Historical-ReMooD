@@ -44,7 +44,7 @@
 *** CONSTANTS ***
 ****************/
 
-#define NUMLAGSTATPROBES				10		// Probe 10 times
+#define NUMLAGSTATPROBES				20		// Probe 10 times
 
 /* D_XSyncLevel_t -- Synchronization level */
 typedef enum D_XSyncLevel_e
@@ -80,11 +80,12 @@ typedef struct D_XNetConnType_s
 typedef struct D_XNetLagStat_e
 {
 	uint32_t ID;								// ID Code
-	uint8_t Sent;								// Count Sent
-	uint8_t Recv;								// Recieved
+	uint8_t Count;								// Send/Recieved
 	
 	struct
 	{
+		bool_t Got;								// Got
+		
 		tic_t sendPTic;							// Sent program tic
 		uint32_t sendMS;						// Sent MS
 		
@@ -128,8 +129,22 @@ typedef struct D_XEndPoint_s
 	uint32_t PongMS;							// Pong Milliseconds
 	uint32_t ClMS;								// Client Milliseconds
 	
+	uint32_t LagStatID;							// Lag stat ID
 	tic_t LastLagStat;							// Last lag statistic
 	D_XNetLagStat_t LagStat;					// Lag Stat for this client
+	tic_t LagNextBit;							// Next lag bit
+	int32_t LagBitNum;							// Last bit sent
+	int32_t LagNLSP;							// Stat probe count
+	int32_t LagSent;							// Sent count
+	
+	struct
+	{
+		int8_t PacketGain;						// Packet Gain
+		int8_t PacketLoss;						// Packet Loss
+		
+		uint8_t SendDUP;						// Send duplication
+		uint8_t RecvDUP;						// Receive duplication
+	} NetSpeed;									// Network speed stuff
 } D_XEndPoint_t;
 
 /* D_XDesc_t -- Socket descriptor */
@@ -212,6 +227,7 @@ void D_XPDropXPlay(D_XPlayer_t* const a_XPlay, const char* const a_Reason);
 void D_XPRunConnection(void);
 void D_XPSendDisconnect(D_XDesc_t* const a_Desc, D_BS_t* const a_BS, I_HostAddress_t* const a_Addr, const char* const a_Reason);
 void D_XPRequestScreen(const int32_t a_ScreenID);
+void D_XPCalcConnection(D_XEndPoint_t* const a_EP);
 
 void D_XPRunCS(D_XDesc_t* const a_Desc);
 void D_XPGotFile(D_XDesc_t* const a_Desc, const char* const a_Path, const char* const a_Sum, const uint32_t a_Size, I_HostAddress_t* const a_Addr, const tic_t a_TimeStart, const tic_t a_TimeEnd);
