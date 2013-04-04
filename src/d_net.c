@@ -1416,7 +1416,7 @@ void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, c
 			// Create initial player for server, but not for P1
 				// P1 already has one
 			if (i)
-				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)g_Splits[i].ProcessID, false);
+				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, (void*)&g_Splits[i].ProcessID, false);
 			
 			// Assign player
 			g_Splits[i].XPlayer = SPlay;
