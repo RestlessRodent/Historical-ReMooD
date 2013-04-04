@@ -1398,10 +1398,13 @@ int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut)
 {
 	char Buf[PATH_MAX];
 	static CONL_VarPossibleValue_t* IWADListPV;
-	int32_t i, j, ThisWAD, n;
+	int32_t i, j, ThisWAD, n, k;
 	D_IWADInfoEx_t* Info;
 	const char* SubField;
 	bool_t Found;
+	
+	const char** OKList;
+	size_t OKn;
 	
 	/* If list exists, return that */
 	if (IWADListPV)
@@ -1424,6 +1427,8 @@ int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut)
 	Info = NULL;
 	ThisWAD = 0;
 	n = 0;
+	OKList = NULL;
+	OKn = 0;
 	
 	do
 	{
@@ -1443,12 +1448,33 @@ int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut)
 				if (!SubField)
 					break;
 				
+				// If it exists in the OK list ignore
+				for (k = 0; k < OKn; k++)
+					if (strcasecmp(SubField, OKList[k]) == 0)
+					{
+						k = -1;
+						break;
+					}
+				
 				// See if it exists
-				memset(Buf, 0, sizeof(Buf));
-				if (WL_LocateWAD(SubField, Info->MD5Sum, Buf, PATH_MAX - 1))
+				if (k >= 0)
 				{
-					Found = true;
-					break;	// No need to continue
+					// Clear
+					memset(Buf, 0, sizeof(Buf));
+					
+					// Try to find it
+					if (WL_LocateWAD(SubField, Info->MD5Sum, Buf, PATH_MAX - 1))
+					{
+						// Add to OK list to cancel out name
+							// this is so we do not bother checking other versions
+							// of WADs like doom.wad
+						Z_ResizeArray((void**)&OKList, sizeof(*OKList),
+							OKn, OKn + 1);
+						OKList[OKn++] = SubField;
+				
+						Found = true;
+						break;	// No need to continue
+					}
 				}
 			}
 			

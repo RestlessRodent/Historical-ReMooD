@@ -1074,20 +1074,71 @@ static void WLS_AppendToList(const char* const a_Path, const size_t a_Limit)
 /* WLS_CheckWADSum() -- WAD MD5 Check */
 static bool_t WLS_CheckWADSum(char* const a_OutPath, const size_t a_OutSize, void* const a_Data)
 {
-	const char* CheckSum;
+#define SUMBUF 4096
+	const char* CheckSumComp;
+	I_File_t* File;
+	uint64_t Len, i, n;
+	MD5_CTX MD5Sum;
+	static uint8_t* l_SumBuf;
+	uint8_t RawSum[16];
+	uint32_t CheckSum[4];
+	char CheckSumChars[35];
 	
 	/* Get sums */
 	// To compare against
-	CheckSum = a_Data;
+	CheckSumComp = a_Data;
 	
 	// No sum?
-	if (!CheckSum)
+	if (!CheckSumComp)
 		return true;
 	
 	/* Message */
 	CONL_OutputUT(CT_WDATA, DSTR_WWADC_CHECKINGTHESUM, "%s\n", a_OutPath);
 	
+	/* Try opening file */
+	if (!(File = I_FileOpen(a_OutPath, IFM_READ)))
+		return false;	// oops
+	
+	// Determine length of file
+	I_FileSeek(File, 0, true);
+	Len = I_FileTell(File);
+	I_FileSeek(File, 0, false);
+	
+	/* Determine checksums */
+	// Create buffer?
+	if (!l_SumBuf)
+		l_SumBuf = Z_Malloc(SUMBUF, PU_STATIC, NULL);
+	
+	// Init MD5
+	memset(&MD5Sum, 0, sizeof(MD5Sum));
+	MD5_Init(&MD5Sum);
+	
+	// Simple Sum + MD5
+	for (i = 0; i < Len; i += SUMBUF)
+	{
+		// Read bytes
+		n = I_FileRead(File, l_SumBuf, SUMBUF);
+		
+		// MD5
+		MD5_Update(&MD5Sum, l_SumBuf, n);
+	}
+	
+	// Finalize MD5
+	memset(RawSum, 0, sizeof(RawSum));
+	memset(CheckSum, 0, sizeof(CheckSum));
+	MD5_Final(RawSum, &MD5Sum);
+	
+	for (i = 0; i < 16; i++)
+		CheckSum[i >> 2] |= ((uint32_t)RawSum[i]) << (((3 - i) & 3) << 3);
+	
+	memset(CheckSumChars, 0, sizeof(CheckSumChars));
+	snprintf(CheckSumChars, 33, "%08x%08x%08x%08x", CheckSum[0], CheckSum[1], CheckSum[2], CheckSum[3]);
+	
+	/* Compare sum */
+	if (strcasecmp(CheckSumChars, CheckSumComp))
+		return false;
 	return true;
+#undef SUMBUF
 }
 
 /* WL_LocateWAD() -- Finds WAD on the disk */
