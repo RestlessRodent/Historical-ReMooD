@@ -713,8 +713,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "D_PGS_COVARIABLEFRICTION", "Friction is able to be varied."},
 	{			 "M_PGS_COALLOWPUSHERS", "Allow Boom Pushers"},
 	{			 "D_PGS_COALLOWPUSHERS", "Enables push/puller objects to work."},
-	{			 "M_PGS_PLMAXTEAMS", "Max Teams"},
-	{			 "D_PGS_PLMAXTEAMS", "Maximum amount of teams that can exist at once."},
+	{			 	 "M_PGS_PLMAXTEAMS", "Max Teams"},
+	{			 	 "D_PGS_PLMAXTEAMS", "Maximum amount of teams that can exist at once."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

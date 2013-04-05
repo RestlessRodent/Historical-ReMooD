@@ -171,24 +171,6 @@ void P_ActivateInStasis(int tag)
 	}
 }
 
-//SoM: 3/7/2000: use Boom code insted.
-int EV_StopPlat(line_t* line)
-{
-	platlist_t* pl;
-	
-	for (pl = activeplats; pl; pl = pl->next)
-	{
-		plat_t* plat = pl->plat;
-		
-		if (plat->status != in_stasis && plat->tag == line->tag)
-		{
-			plat->oldstatus = plat->status;
-			plat->status = in_stasis;
-			plat->thinker.function.acv = (actionf_v) NULL;
-		}
-	}
-	return 1;
-}
 
 //SoM: 3/7/2000: No more limits!
 void P_AddActivePlat(plat_t* plat)

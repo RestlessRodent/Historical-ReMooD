@@ -1072,12 +1072,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			// All from here to RETRIGGERS.
 			
 			
-		case 8:
-			// Build Stairs
-			if (EV_BuildStairs(line, build8) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
 			
 		case 17:
 			// Start Light Strobing
@@ -1087,23 +1081,9 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			
 			
 			
-			
-		case 54:
-			// Platform Stop
-			if (EV_StopPlat(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
 		case 104:
 			// Turn lights off in sector(tag)
 			if (EV_TurnTagLightsOff(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
-			
-		case 100:
-			// Build Stairs Turbo 16
-			if (EV_BuildStairs(line, turbo16) || !P_XGSVal(PGS_COBOOMSUPPORT))
 				line->special = 0;
 			break;
 			
@@ -1132,13 +1112,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			// RETRIGGERS.  All from here till end.
 			
 			
-			
-			
-		case 89:
-			// Platform Stop
-			EV_StopPlat(line);
-			break;
-			
 			// SoM:3/4/2000: Extended Boom W* triggers.
 		default:
 			if (P_XGSVal(PGS_COBOOMSUPPORT))
@@ -1148,12 +1121,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						//SoM: 3/4/2000:Boom Walk once triggers.
 						//SoM: 3/4/2000:Yes this is "copied" code! I just cleaned it up. Did you think I was going to retype all this?!
 						
-						
-					case 146:
-						// Lower Pillar, Raise Donut
-						if (EV_DoDonut(line))
-							line->special = 0;
-						break;
 						
 						
 					case 153:
@@ -1192,21 +1159,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 						
 						//Boom added lots of linedefs to fill in the gaps in trigger types
 						
-						
-					case 256:
-						// Build stairs, step 8
-						EV_BuildStairs(line, build8);
-						break;
-						
-					case 257:
-						// Build stairs, step 16
-						EV_BuildStairs(line, turbo16);
-						break;
-						
-					case 155:
-						// Lower Pillar, Raise Donut
-						EV_DoDonut(line);
-						break;
 						
 					case 156:
 						// Start lights strobing

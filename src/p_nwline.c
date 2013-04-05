@@ -90,7 +90,6 @@ typedef struct P_NLTrig_s
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
 {
 	player_t* player;
-	int secnum;
 	sector_t* sec;
 	vldoor_t* door;
 	P_PMType_t MsgType;
@@ -165,7 +164,6 @@ bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_O
 	
 	// if the sector has an active thinker, use it
 	sec = sides[a_Line->sidenum[1]].sector;
-	secnum = sec - sectors;
 	
 	/* Rebound Door? */
 	if (sec->ceilingdata)		//SoM: 3/6/2000
@@ -1296,8 +1294,244 @@ bool_t EV_CeilingCrushStop(line_t* const a_Line, const int a_Side, mobj_t* const
 		}
 	}
 	
-	return false;
+	return rtn;
 }
+
+/* EV_BuildStairs() -- BUILD A STAIRCASE! */
+bool_t EV_BuildStairs(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int secnum;
+	int osecnum;
+	int height;
+	int i;
+	int newsecnum;
+	int texture;
+	int ok;
+	int rtn;
+	
+	sector_t* sec;
+	sector_t* tsec;
+	
+	floormove_t* floor;
+	
+	fixed_t stairsize;
+	fixed_t speed;
+	
+	secnum = -1;
+	rtn = 0;
+	
+	// start a stair at each sector tagged the same as the linedef
+	while ((secnum = P_FindSectorFromLineTag(a_Line, secnum)) >= 0)
+	{
+		sec = &sectors[secnum];
+		
+		// don't start a stair if the first step's floor is already moving
+		if (P_SectorActive(floor_special, sec))
+			continue;
+			
+		// create new floor thinker for first step
+		rtn = 1;
+		floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
+		sec->floordata = floor;
+		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+		floor->direction = 1;
+		floor->sector = sec;
+		floor->type = buildStair;	//jff 3/31/98 do not leave uninited
+		
+		// set up the speed and stepsize according to the stairs type
+		switch (a_ArgV[0])
+		{
+			case build8:
+				speed = FLOORSPEED / 4;
+				stairsize = 8 * FRACUNIT;
+				if (P_XGSVal(PGS_COBOOMSUPPORT))
+					floor->crush = false;	//jff 2/27/98 fix uninitialized crush field
+				break;
+			case turbo16:
+				speed = FLOORSPEED * 4;
+				stairsize = 16 * FRACUNIT;
+				if (P_XGSVal(PGS_COBOOMSUPPORT))
+					floor->crush = true;	//jff 2/27/98 fix uninitialized crush field
+				break;
+			default:
+				speed = FLOORSPEED;
+				stairsize = a_ArgV[0];
+				if (P_XGSVal(PGS_COBOOMSUPPORT))
+					floor->crush = true;	//jff 2/27/98 fix uninitialized crush field
+				break;
+		}
+		floor->speed = speed;
+		height = sec->floorheight + stairsize;
+		floor->floordestheight = height;
+		
+		texture = sec->floorpic;
+		osecnum = secnum;		//jff 3/4/98 preserve loop index
+		
+		// Find next sector to raise
+		//   1. Find 2-sided line with same sector side[0] (lowest numbered)
+		//   2. Other side is the next sector to raise
+		//   3. Unless already moving, or different texture, then stop building
+		do
+		{
+			ok = 0;
+			for (i = 0; i < sec->linecount; i++)
+			{
+				if (!((sec->lines[i])->flags & ML_TWOSIDED))
+					continue;
+					
+				tsec = (sec->lines[i])->frontsector;
+				newsecnum = tsec - sectors;
+				
+				if (secnum != newsecnum)
+					continue;
+					
+				tsec = (sec->lines[i])->backsector;
+				if (!tsec)
+					continue;	//jff 5/7/98 if no backside, continue
+				newsecnum = tsec - sectors;
+				
+				// if sector's floor is different texture, look for another
+				if (tsec->floorpic != texture)
+					continue;
+					
+				if (!P_XGSVal(PGS_COBOOMSUPPORT))	// jff 6/19/98 prevent double stepsize
+					height += stairsize;	// jff 6/28/98 change demo compatibility
+					
+				// if sector's floor already moving, look for another
+				if (P_SectorActive(floor_special, tsec))	//jff 2/22/98
+					continue;
+					
+				if (P_XGSVal(PGS_COBOOMSUPPORT))	// jff 6/19/98 increase height AFTER continue
+					height += stairsize;	// jff 6/28/98 change demo compatibility
+					
+				sec = tsec;
+				secnum = newsecnum;
+				
+				// create and initialize a thinker for the next step
+				floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
+				P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
+				
+				sec->floordata = floor;	//jff 2/22/98
+				floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+				floor->direction = 1;
+				floor->sector = sec;
+				floor->speed = speed;
+				floor->floordestheight = height;
+				floor->type = buildStair;	//jff 3/31/98 do not leave uninited
+				//jff 2/27/98 fix uninitialized crush field
+				if (P_XGSVal(PGS_COBOOMSUPPORT))
+					floor->crush = ((a_ArgV[0] == build8) ? false : true);
+				ok = 1;
+				break;
+			}
+		}
+		while (ok);				// continue until no next step is found
+		secnum = osecnum;		//jff 3/4/98 restore loop index
+	}
+	
+	return rtn;
+}
+
+/* EV_StopPlat() -- Stops a moving platform */
+bool_t EV_StopPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	platlist_t* pl;
+	
+	for (pl = activeplats; pl; pl = pl->next)
+	{
+		plat_t* plat = pl->plat;
+		
+		if (plat->status != in_stasis && plat->tag == a_Line->tag)
+		{
+			plat->oldstatus = plat->status;
+			plat->status = in_stasis;
+			plat->thinker.function.acv = (actionf_v) NULL;
+		}
+	}
+	
+	return true;
+}
+
+/* EV_DoDonut() -- Handle donut function: lower pillar, raise surrounding pool, both to height,; texture and type of the sector surrounding the pool.; Passed the linedef that triggered the donut; Returns whether a thinker was created */
+bool_t EV_DoDonut(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	sector_t* s1;
+	sector_t* s2;
+	sector_t* s3;
+	int secnum;
+	int rtn;
+	int i;
+	floormove_t* floor;
+	
+	secnum = -1;
+	rtn = 0;
+	// do function on all sectors with same tag as linedef
+	while ((secnum = P_FindSectorFromLineTag(a_Line, secnum)) >= 0)
+	{
+		s1 = &sectors[secnum];	// s1 is pillar's sector
+		
+		// do not start the donut if the pillar is already moving
+		if (P_SectorActive(floor_special, s1))	//jff 2/22/98
+			continue;
+			
+		s2 = getNextSector(s1->lines[0], s1);	// s2 is pool's sector
+		if (!s2)
+			continue;			// note lowest numbered line around
+		// pillar must be two-sided
+		
+		// do not start the donut if the pool is already moving
+		if (P_XGSVal(PGS_COBOOMSUPPORT) && P_SectorActive(floor_special, s2))
+			continue;			//jff 5/7/98
+			
+		// find a two sided line around the pool whose other side isn't the pillar
+		for (i = 0; i < s2->linecount; i++)
+		{
+			//jff 3/29/98 use true two-sidedness, not the flag
+			// killough 4/5/98: changed demo_compatibility to compatibility
+			if (!P_XGSVal(PGS_COBOOMSUPPORT))
+			{
+				if ((!s2->lines[i]->flags & ML_TWOSIDED) || (s2->lines[i]->backsector == s1))
+					continue;
+			}
+			else if (!s2->lines[i]->backsector || s2->lines[i]->backsector == s1)
+				continue;
+				
+			rtn = 1;			//jff 1/26/98 no donut action - no switch change on return
+			
+			s3 = s2->lines[i]->backsector;	// s3 is model sector for changes
+			
+			//  Spawn rising slime
+			floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
+			P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
+			s2->floordata = floor;	//jff 2/22/98
+			floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+			floor->type = donutRaise;
+			floor->crush = false;
+			floor->direction = 1;
+			floor->sector = s2;
+			floor->speed = FLOORSPEED / 2;
+			floor->texture = s3->floorpic;
+			floor->newspecial = 0;
+			floor->floordestheight = s3->floorheight;
+			
+			//  Spawn lowering donut-hole pillar
+			floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
+			P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
+			s1->floordata = floor;	//jff 2/22/98
+			floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+			floor->type = lowerFloor;
+			floor->crush = false;
+			floor->direction = -1;
+			floor->sector = s1;
+			floor->speed = FLOORSPEED / 2;
+			floor->floordestheight = s3->floorheight;
+			break;
+		}
+	}
+	return rtn;
+}
+
 
 /*****************************************************************************/
 
@@ -1779,6 +2013,53 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{168, 0, LAT_SWITCH, PNLF_BOOM, EV_CeilingCrushStop, 0,
 		{0}},
 	{188, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_BOOM, EV_CeilingCrushStop, 0,
+		{0}},
+	
+	// Stairs (EV_BuildStairs)
+		// Walk
+	{8, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_BuildStairs, 1,
+		{build8}},
+	{100, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_BuildStairs, 1,
+		{turbo16}},
+	{256, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_BuildStairs, 1,
+		{build8}},
+	{257, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_BuildStairs, 1,
+		{turbo16}},
+	
+		// Switch
+	{7, 0, LAT_SWITCH, 0, EV_BuildStairs, 1,
+		{build8}},
+	{127, 0, LAT_SWITCH, 0, EV_BuildStairs, 1,
+		{turbo16}},
+	{258, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_BuildStairs, 1,
+		{build8}},
+	{259, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_BuildStairs, 1,
+		{turbo16}},
+	
+	// Stop Platform (EV_StopPlat)
+		// Walk
+	{54, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_StopPlat, 0,
+		{0}},
+	{89, 0, LAT_WALK, PNLF_RETRIG, EV_StopPlat, 0,
+		{0}},
+		
+		// Switch
+	{163, 0, LAT_SWITCH, 0, EV_StopPlat, 0,
+		{0}},
+	{182, 0, LAT_SWITCH, PNLF_RETRIG, EV_StopPlat, 0,
+		{0}},
+	
+	// Donut (EV_DoDonut)
+		// Walk
+	{146, 0, LAT_WALK, PNLF_BOOM, EV_DoDonut, 0,
+		{0}},
+	{155, 0, LAT_WALK, PNLF_BOOM | PNLF_RETRIG, EV_DoDonut, 0,
+		{0}},
+		
+		// Switch
+	{9, 0, LAT_SWITCH, 0, EV_DoDonut, 0,
+		{0}},
+	{191, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoDonut, 0,
 		{0}},
 	
 #if 0

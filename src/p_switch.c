@@ -384,37 +384,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			// break;
 			
 			// SWITCHES
-		case 7:
-			// Build Stairs
-			if (EV_BuildStairs(line, build8))
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
-		case 9:
-			// Change Donut
-			if (EV_DoDonut(line))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-			
-			
-		case 127:
-			// Build Stairs Turbo 16
-			if (EV_BuildStairs(line, turbo16))
-				P_ChangeSwitchTexture(line, 0);
-			break;
-			
-		case 99:
-		
-		case 133:
-			// BlzOpenDoor BLUE
-		case 135:
-			// BlzOpenDoor RED
-		case 137:
-			// BlzOpenDoor YELLOW
-			if (EV_DoLockedDoor(line, blazeOpen, thing, 4 * VDOORSPEED))
-				P_ChangeSwitchTexture(line, 0);
-			break;
 			
 			
 			//SoM: FraggleScript!
@@ -438,12 +408,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						// added linedef types to fill all functions out so that
 						// all possess SR, S1, WR, W1 types
 						
-						
-					case 163:
-						// Stop Moving floor
-						EV_StopPlat(line);
-						P_ChangeSwitchTexture(line, 0);
-						break;
 						
 						
 						
@@ -503,22 +467,10 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						break;
 						
 						
-					case 182:
-						// Stop Moving floor
-						EV_StopPlat(line);
-						P_ChangeSwitchTexture(line, 1);
-						break;
-						
 						
 					case 190:	//jff 3/15/98 create texture change no motion type
 						// Texture Change Only (Trigger)
 						if (EV_DoChange(line, trigChangeOnly))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 191:
-						// Lower Pillar, Raise Donut
-						if (EV_DoDonut(line))
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
@@ -554,17 +506,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 							P_ChangeSwitchTexture(line, 1);
 						break;
 						
-					case 258:
-						// Build stairs, step 8
-						if (EV_BuildStairs(line, build8))
-							P_ChangeSwitchTexture(line, 1);
-						break;
-						
-					case 259:
-						// Build stairs, step 16
-						if (EV_BuildStairs(line, turbo16))
-							P_ChangeSwitchTexture(line, 1);
-						break;
 						
 						// end of added SR linedef types
 						

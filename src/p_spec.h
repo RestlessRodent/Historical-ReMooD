@@ -109,7 +109,7 @@ int P_CheckTag(line_t* line);
 //
 // SPECIAL
 //
-int EV_DoDonut(line_t* line);
+
 
 //
 // P_LIGHTS
@@ -317,7 +317,6 @@ void T_PlatRaise(plat_t* plat);
 
 void P_AddActivePlat(plat_t* plat);
 void P_RemoveActivePlat(plat_t* plat);
-int EV_StopPlat(line_t* line);
 void P_ActivateInStasis(int tag);
 
 //
@@ -641,8 +640,6 @@ typedef enum
 } result_e;
 
 result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush, int floorOrCeiling, int direction);
-
-int EV_BuildStairs(line_t* line, stair_e type);
 
 int EV_DoChange(line_t* line, change_e changetype);	//SoM: 3/16/2000
 
@@ -1336,6 +1333,12 @@ bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* con
 bool_t EV_LightTurnOn(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_CeilingCrushStop(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_BuildStairs(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_StopPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_DoDonut(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 /*****************************************************************************/
 
