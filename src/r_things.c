@@ -1041,7 +1041,7 @@ void R_DrawPlayerSprites(void)
 		return;
 	
 	// Check subsector exists
-	if (!viewplayer->mo->subsector)
+	if (!viewplayer->mo->subsector || !viewplayer->mo->info)
 		return;
 	
 	// get light level
@@ -1249,8 +1249,9 @@ static void R_CreateDrawNodes()
 						
 					for (i = x1; i <= x2; i++)
 					{
-						if (r2->seg->frontscale[i] > rover->scale)
-							break;
+						if (i <= MAXSEGS)
+							if (r2->seg->frontscale[i] > rover->scale)
+								break;
 					}
 					if (i > x2)
 						continue;

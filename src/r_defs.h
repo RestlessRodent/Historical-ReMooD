@@ -811,7 +811,7 @@ typedef struct
 } cliprange_t;
 
 //SoM: 3/28/2000: Fix from boom.
-#define MAXSEGS (vid.width/2+1)
+#define MAXSEGS (vid.width /*/ 2*/ + 1)
 
 extern cliprange_t* solidsegs;
 extern drawseg_t* drawsegs;

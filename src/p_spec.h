@@ -1340,6 +1340,8 @@ bool_t EV_StopPlat(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 
 bool_t EV_DoDonut(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
+bool_t EV_SpawnFakeFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
 /*****************************************************************************/
 
 /*** CONSTANTS ***/

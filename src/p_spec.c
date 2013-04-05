@@ -1711,13 +1711,31 @@ size_t g_NumPFakeFloors = 0;					// Number of them
 /* P_GetIDFromFFloor() -- Gets the ID of a fake floor */
 int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor)
 {
+	int32_t i;
+	
+	/* NULL? */
+	if (!a_FFloor)
+		return -1;
+	
+	/* Look in list */
+	for (i = 0; i < g_NumPFakeFloors; i++)
+		if (g_PFakeFloors[i])
+			if (g_PFakeFloors[i] == a_FFloor)
+				return i;
+	
+	/* Not Found */
 	return -1;
 }
 
 /* P_GetFFloorFromID() -- Gets the floor from the ID */
 ffloor_t* P_GetFFloorFromID(const int32_t a_ID)
 {
-	return NULL;
+	/* Illegal? */
+	if (a_ID < 0 || a_ID >= g_NumPFakeFloors)
+		return NULL;
+	
+	/* Return array ref */
+	return g_PFakeFloors[a_ID];
 }
 
 /* P_AddFFloor() -- Adds new 3D floor */
@@ -1807,9 +1825,13 @@ void P_SpawnSpecials(void)
 		P_ProcessSpecialSectorEx(LAT_MAPSTART, NULL, NULL, sector, false);
 	}
 	
-	//P_SpawnScrollers();			//Add generalized scrollers
-	//P_SpawnFriction();			//New friction model using linedefs
-	//P_SpawnPushers();			//New pusher model using linedefs
+	/* Spawn Line Specials */
+	P_NLCreateStartLines();
+	
+#if 0
+	P_SpawnScrollers();			//Add generalized scrollers
+	P_SpawnFriction();			//New friction model using linedefs
+	P_SpawnPushers();			//New pusher model using linedefs
 	
 	/* Go through all lines and spawn map specials */
 	for (j = PMSS_BASE + 1; j <= PMSS_GENERAL; j++)
@@ -1823,6 +1845,7 @@ void P_SpawnSpecials(void)
 			if (P_NLTrigger(&lines[i], j, NULL, LAT_MAPSTART, 0, NULL))
 				lines[i].special = 0;	// Clear special
 		}
+#endif
 }
 
 /*

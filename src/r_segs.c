@@ -1053,9 +1053,10 @@ void R_RenderSegLoop(void)
 			}
 		}
 		
-		if (numffloors)
+		if (numffloors && rw_x <= MAXSEGS)
 		{
 			firstseg->frontscale[rw_x] = frontscale[rw_x];
+			
 			for (i = 0; i < numffloors; i++)
 			{
 				if (ffloor[i].height < viewz)

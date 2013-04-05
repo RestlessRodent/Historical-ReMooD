@@ -1298,6 +1298,7 @@ bool_t EV_CeilingCrushStop(line_t* const a_Line, const int a_Side, mobj_t* const
 }
 
 /* EV_BuildStairs() -- BUILD A STAIRCASE! */
+// 1: Type
 bool_t EV_BuildStairs(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
 {
 	int secnum;
@@ -1532,6 +1533,19 @@ bool_t EV_DoDonut(line_t* const a_Line, const int a_Side, mobj_t* const a_Object
 	return rtn;
 }
 
+/* EV_SpawnFakeFloor() -- Spawns fake floor */
+// 1: Flags
+bool_t EV_SpawnFakeFloor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	int32_t s;
+	
+	/* Make floors for all tagged sectors */
+	for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+		P_AddFakeFloor(&sectors[s], a_Line->frontsector, a_Line, a_ArgV[0]);
+	
+	/* That was easy */
+	return true;
+}
 
 /*****************************************************************************/
 
@@ -2062,6 +2076,26 @@ static const P_NLTrig_t c_LineTrigs[] =
 	{191, 0, LAT_SWITCH, PNLF_BOOM | PNLF_RETRIG, EV_DoDonut, 0,
 		{0}},
 	
+	// Spawn Fake Floors (EV_SpawnFakeFloor)
+	{281, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_SOLID | FF_RENDERALL | FF_CUTLEVEL}},
+	{289, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_SOLID | FF_RENDERALL | FF_NOSHADE | FF_CUTLEVEL}},
+	{300, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_SOLID | FF_RENDERALL | FF_NOSHADE | FF_TRANSLUCENT | FF_EXTRA | FF_CUTEXTRA}},
+	{301, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_RENDERALL | FF_TRANSLUCENT | FF_SWIMMABLE | FF_BOTHPLANES | FF_ALLSIDES | FF_CUTEXTRA | FF_EXTRA | FF_DOUBLESHADOW | FF_CUTSPRITES}},
+	{302, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_RENDERALL | FF_FOG | FF_BOTHPLANES | FF_INVERTPLANES | FF_ALLSIDES | FF_INVERTSIDES | FF_CUTEXTRA | FF_EXTRA | FF_DOUBLESHADOW | FF_CUTSPRITES}},
+	{303, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_CUTSPRITES}},
+	{304, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_RENDERALL | FF_SWIMMABLE | FF_BOTHPLANES | FF_ALLSIDES | FF_CUTEXTRA | FF_EXTRA | FF_DOUBLESHADOW | FF_CUTSPRITES}},
+	{305, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_CUTSPRITES | FF_DOUBLESHADOW}},
+	{306, 0, LAT_MAPSTART, 0, EV_SpawnFakeFloor, 1,
+		{FF_EXISTS | FF_SOLID}},
+	
 #if 0
 	// Scrollers (EV_SpawnScroller)
 	{48, 0, LAT_MAPSTART, 0, EV_SpawnScroller, 5,
@@ -2092,6 +2126,10 @@ bool_t P_NLTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Objec
 			
 			// Check trigger compatibility
 			if (a_Type != c_LineTrigs[i].TrigType)
+				return false;
+			
+			// Ignore map start types
+			if (a_Type != LAT_MAPSTART && c_LineTrigs[i].TrigType == LAT_MAPSTART)
 				return false;
 			
 			// Lacks Boom Support?
@@ -2171,6 +2209,49 @@ P_NLTrig_t* P_NLTrigForSpec(const int32_t a_Spec)
 	
 	/* Not found */
 	return NULL;
+}
+
+/* P_NLCreateStartLines() -- Triggers map starting lines */
+void P_NLCreateStartLines(void)
+{
+	static const P_NLTrigFunc_t l_TrigOrder[2][2] =
+	{
+		// TODO FIXME: Scrollers
+		// TODO FIXME: Friction
+		// TODO FIXME: Pushers
+		
+		{EV_SpawnFakeFloor, NULL},
+		
+		{NULL},	// End
+	};
+	
+	int32_t i, j, Stage;
+	P_NLTrig_t* Trig;
+	
+	/* Trigger all specials for each line */
+	for (Stage = 0; l_TrigOrder[Stage][0]; Stage++)
+		for (i = 0; i < numlines; i++)
+		{
+			// Ignore non-specials
+			if (!lines[i].special)
+				continue;
+			
+			// Get line trigger
+			Trig = P_NLTrigForSpec(lines[i].special);
+		
+			// No trigger
+			if (!Trig)
+				continue;
+		
+			// Not on map start
+			if (Trig->TrigType != LAT_MAPSTART)
+				continue;
+			
+			// Check sub-stage
+			for (j = 0; l_TrigOrder[Stage][j]; j++)
+				if (l_TrigOrder[Stage][j] == Trig->TrigFunc)
+					Trig->TrigFunc(&lines[i], -1, NULL, LAT_MAPSTART, NULL, true, Trig->ArgC, Trig->ArgV);
+		}
 }
 
 /* P_NLSpecialXProp() -- Return X Property */
