@@ -1480,7 +1480,7 @@ void MS_Label_DDraw(struct M_SWidget_s* const a_Widget)
 	}
 	
 	/* Draw String */
-	V_DrawStringA(a_Widget->Data.Label.Font, Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
+	a_Widget->dw = V_DrawStringA(a_Widget->Data.Label.Font, Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
 	
 	/* Draw value */
 	// Possible Value
@@ -2040,8 +2040,16 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 	/* Which menu to spawn? */
 	switch (a_MenuID)
 	{
-			// Main Menu (Doom)
+			// Main Menu Wrapper
 		case MSM_MAIN:
+			if (g_CoreGame == CG_DOOM)
+				M_SMSpawn(a_ScreenID, MSM_MAINDOOM);
+			else if (g_CoreGame == CG_HERETIC)
+				M_SMSpawn(a_ScreenID, MSM_MAINHERETIC);
+			break;
+		
+			// Main Menu (Doom)
+		case MSM_MAINDOOM:
 			// Create initial box
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			
@@ -2070,6 +2078,10 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Start on new game
 			Root->CursorOn = 1;
+			break;
+			
+			// Heretic Main Menu
+		case MSM_MAINHERETIC:
 			break;
 			
 			// New Game
@@ -2186,6 +2198,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			i = M_HelpInitIWADList(&Possible);
 			Work = MS_SMCreatePossSlide(Root, VFONT_SMALL, 0, VALUEFLAGS, DS_GetStringRef(DSTR_MENUCREATEGAME_IWADTITLE), Possible);
 			Work->Data.Label.Pivot = i;
+			Work->Option = MCGO_IWAD;
 			
 			// Start Game
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUCREATEGAME_STARTGAME));

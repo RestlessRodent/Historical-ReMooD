@@ -1094,12 +1094,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				line->special = 0;
 			break;
 			
-		case 57:
-			// Ceiling Crush Stop
-			if (EV_CeilingCrushStop(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
-				line->special = 0;
-			break;
-			
 		case 104:
 			// Turn lights off in sector(tag)
 			if (EV_TurnTagLightsOff(line) || !P_XGSVal(PGS_COBOOMSUPPORT))
@@ -1136,11 +1130,6 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 			break;
 			
 			// RETRIGGERS.  All from here till end.
-			
-		case 74:
-			// Ceiling Crush Stop
-			EV_CeilingCrushStop(line);
-			break;
 			
 			
 			

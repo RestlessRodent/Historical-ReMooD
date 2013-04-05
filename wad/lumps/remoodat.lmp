@@ -35411,6 +35411,7 @@ MapWeapon "BetaBFG"
 // CLIP -- Clip
 MapTouchSpecial "CLIP"
 {
+	IsDoom "true";
 	Message "DEP_GOTCLIP";
 	GiveAmmo "Clip";
 	IsKeepIfNotNeeded "true";
@@ -35419,6 +35420,7 @@ MapTouchSpecial "CLIP"
 // ROCK -- Rocket
 MapTouchSpecial "ROCK"
 {
+	IsDoom "true";
 	Message "DEP_GOTROCKET";
 	GiveAmmo "Rocket";
 	IsKeepIfNotNeeded "true";
@@ -35427,6 +35429,7 @@ MapTouchSpecial "ROCK"
 // CELL -- Cells
 MapTouchSpecial "CELL"
 {
+	IsDoom "true";
 	Message "DEP_GOTCELL";
 	GiveAmmo "Cell";
 	IsKeepIfNotNeeded "true";
@@ -35435,6 +35438,7 @@ MapTouchSpecial "CELL"
 // SHEL -- Shells
 MapTouchSpecial "SHEL"
 {
+	IsDoom "true";
 	Message "DEP_GOTSHELLS";
 	GiveAmmo "Shell";
 	IsKeepIfNotNeeded "true";
@@ -35443,6 +35447,7 @@ MapTouchSpecial "SHEL"
 // AMMO -- Box of Bullets
 MapTouchSpecial "AMMO"
 {
+	IsDoom "true";
 	Message "DEP_GOTCLIPBOX";
 	GiveAmmo "Clip";
 	IsKeepIfNotNeeded "true";
@@ -35452,6 +35457,7 @@ MapTouchSpecial "AMMO"
 // BROK -- Box of Rockets
 MapTouchSpecial "BROK"
 {
+	IsDoom "true";
 	Message "DEP_GOTROCKBOX";
 	GiveAmmo "Rocket";
 	IsKeepIfNotNeeded "true";
@@ -35461,6 +35467,7 @@ MapTouchSpecial "BROK"
 // CELP -- Box of Cells
 MapTouchSpecial "CELP"
 {
+	IsDoom "true";
 	Message "DEP_GOTCELLBOX";
 	GiveAmmo "Cell";
 	IsKeepIfNotNeeded "true";
@@ -35470,6 +35477,7 @@ MapTouchSpecial "CELP"
 // SBOX -- Box of Shells
 MapTouchSpecial "SBOX"
 {
+	IsDoom "true";
 	Message "DEP_GOTSHELLBOX";
 	GiveAmmo "Shell";
 	IsKeepIfNotNeeded "true";
@@ -35479,6 +35487,7 @@ MapTouchSpecial "SBOX"
 // BPAK -- Backpack
 MapTouchSpecial "BPAK"
 {
+	IsDoom "true";
 	Message "DEP_GOTBACKPACK";
 	GiveAmmo "All";
 	AmmoMul "1";
@@ -35489,6 +35498,7 @@ MapTouchSpecial "BPAK"
 // BFUG -- BFG9000
 MapTouchSpecial "BFUG"
 {
+	IsDoom "true";
 	Message "DEP_GOTBFG9000";
 	GiveWeapon "BFGNineK";
 	PickupSound "wpnup";
@@ -35498,6 +35508,7 @@ MapTouchSpecial "BFUG"
 // BBFG -- Press Release BFG9000
 MapTouchSpecial "BBFG"
 {
+	IsDoom "true";
 	Message "ITEM_GOTPRESSRELEASEBFG";
 	GiveWeapon "BetaBFG";
 	PickupSound "wpnup";
@@ -35507,6 +35518,7 @@ MapTouchSpecial "BBFG"
 // MGUN -- Chaingun
 MapTouchSpecial "MGUN"
 {
+	IsDoom "true";
 	Message "DEP_GOTCHAINGUN";
 	GiveWeapon "Chaingun";
 	PickupSound "wpnup";
@@ -35516,6 +35528,7 @@ MapTouchSpecial "MGUN"
 // CSAW -- Chainsaw
 MapTouchSpecial "CSAW"
 {
+	IsDoom "true";
 	Message "DEP_GOTCHAINSAW";
 	GiveWeapon "Chainsaw";
 	PickupSound "wpnup";
@@ -35525,6 +35538,7 @@ MapTouchSpecial "CSAW"
 // LAUN -- Rocket Launcher
 MapTouchSpecial "LAUN"
 {
+	IsDoom "true";
 	Message "DEP_GOTLAUNCHER";
 	GiveWeapon "RocketLauncher";
 	PickupSound "wpnup";
@@ -35534,6 +35548,7 @@ MapTouchSpecial "LAUN"
 // PLAS -- Plasma Rifle
 MapTouchSpecial "PLAS"
 {
+	IsDoom "true";
 	Message "DEP_GOTPLASMA";
 	GiveWeapon "PlasmaRifle";
 	PickupSound "wpnup";
@@ -35543,6 +35558,7 @@ MapTouchSpecial "PLAS"
 // SGN2 -- Super Shotgun
 MapTouchSpecial "SGN2"
 {
+	IsDoom "true";
 	Message "DEP_GOTSHOTGUN2";
 	GiveWeapon "SuperShotgun";
 	PickupSound "wpnup";
@@ -35552,6 +35568,7 @@ MapTouchSpecial "SGN2"
 // SHOT -- Shotgun
 MapTouchSpecial "SHOT"
 {
+	IsDoom "true";
 	Message "DEP_GOTSHOTGUN";
 	GiveWeapon "Shotgun";
 	PickupSound "wpnup";
@@ -35561,6 +35578,7 @@ MapTouchSpecial "SHOT"
 // LAUN -- Rocket Launcher
 MapTouchSpecial "LAUN"
 {
+	IsDoom "true";
 	Message "DEP_GOTLAUNCHER";
 	GiveWeapon "RocketLauncher";
 	PickupSound "wpnup";
@@ -35570,6 +35588,7 @@ MapTouchSpecial "LAUN"
 // ARM1 -- Green Armor
 MapTouchSpecial "ARM1"
 {
+	IsDoom "true";
 	Message "DEP_GOTARMOR";
 	ArmorClass "1";
 	ArmorAmount "100";
@@ -35582,6 +35601,7 @@ MapTouchSpecial "ARM1"
 // ARM2 -- Blue Armor
 MapTouchSpecial "ARM2"
 {
+	IsDoom "true";
 	Message "DEP_GOTMEGA";
 	ArmorClass "2";
 	ArmorAmount "200";
@@ -35593,6 +35613,7 @@ MapTouchSpecial "ARM2"
 // BON1 -- Health Bonus
 MapTouchSpecial "BON1"
 {
+	IsDoom "true";
 	Message "DEP_GOTHTHBONUS";
 	HealthAmount "1";
 	IsCapMaxStat "true";
@@ -35601,6 +35622,7 @@ MapTouchSpecial "BON1"
 // BON2 -- Armor Bonus
 MapTouchSpecial "BON2"
 {
+	IsDoom "true";
 	Message "DEP_GOTARMBONUS";
 	ArmorClass "1";
 	ArmorAmount "1";
@@ -35611,6 +35633,7 @@ MapTouchSpecial "BON2"
 // SOUL -- Soulsphere
 MapTouchSpecial "SOUL"
 {
+	IsDoom "true";
 	Message "DEP_GOTSUPER";
 	HealthAmount "100";
 	IsCapMaxStat "true";
@@ -35620,6 +35643,7 @@ MapTouchSpecial "SOUL"
 // MEGA -- Megasphere
 MapTouchSpecial "MEGA"
 {
+	IsDoom "true";
 	Message "DEP_GOTMSPHERE";
 	HealthAmount "200";
 	ArmorClass "2";
@@ -35632,6 +35656,7 @@ MapTouchSpecial "MEGA"
 // MEDI -- Med-Kit
 MapTouchSpecial "MEDI"
 {
+	IsDoom "true";
 	Message "DEP_GOTMEDIKIT";
 	HealthAmount "25";
 	IsCapNormStat "true";
@@ -35641,6 +35666,7 @@ MapTouchSpecial "MEDI"
 // STIM -- Stim-Pack
 MapTouchSpecial "STIM"
 {
+	IsDoom "true";
 	Message "DEP_GOTSTIM";
 	HealthAmount "10";
 	IsCapNormStat "true";
@@ -35650,6 +35676,7 @@ MapTouchSpecial "STIM"
 // BKEY -- Blue Key
 MapTouchSpecial "BKEY"
 {
+	IsDoom "true";
 	Message "DEP_GOTBLUECARD";
 	GiveKey "BlueCard";
 	IsKeepInMultiplayer "true";
@@ -35659,6 +35686,7 @@ MapTouchSpecial "BKEY"
 // YKEY -- Yellow Key
 MapTouchSpecial "YKEY"
 {
+	IsDoom "true";
 	Message "DEP_GOTYELWCARD";
 	GiveKey "YellowCard";
 	IsKeepInMultiplayer "true";
@@ -35668,6 +35696,7 @@ MapTouchSpecial "YKEY"
 // RKEY -- Yellow Key
 MapTouchSpecial "RKEY"
 {
+	IsDoom "true";
 	Message "DEP_GOTREDCARD";
 	GiveKey "RedCard";
 	IsKeepInMultiplayer "true";
@@ -35677,6 +35706,7 @@ MapTouchSpecial "RKEY"
 // BSKU -- Blue Skull
 MapTouchSpecial "BSKU"
 {
+	IsDoom "true";
 	Message "DEP_GOTBLUESKUL";
 	GiveKey "BlueSkull";
 	IsKeepInMultiplayer "true";
@@ -35686,6 +35716,7 @@ MapTouchSpecial "BSKU"
 // YSKU -- Yellow Skull
 MapTouchSpecial "YSKU"
 {
+	IsDoom "true";
 	Message "DEP_GOTYELWSKUL";
 	GiveKey "YellowSkull";
 	IsKeepInMultiplayer "true";
@@ -35695,6 +35726,7 @@ MapTouchSpecial "YSKU"
 // RSKU -- Yellow Skull
 MapTouchSpecial "RSKU"
 {
+	IsDoom "true";
 	Message "DEP_GOTREDSKUL";
 	GiveKey "RedSkull";
 	IsKeepInMultiplayer "true";

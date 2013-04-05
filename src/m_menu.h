@@ -193,7 +193,7 @@ void M_DoMappedVars(void);
 /* M_SMMenus_t -- Possible Menus */
 typedef enum M_SMMenus_e
 {
-	MSM_MAIN,									// Main menu (Doom)
+	MSM_MAINDOOM,								// Main menu (Doom)
 	MSM_NEWGAME,								// New Game
 	MSM_SKILLSELECTDOOM,						// Select Skill (Doom)
 	MSM_EPISELECTDOOM,							// Select Episode (Doom)
@@ -202,6 +202,8 @@ typedef enum M_SMMenus_e
 	MSM_QUITGAME,								// Quit Game
 	MSM_JOINUNLISTEDSERVER,						// Connect to Unlisted Server
 	MSM_OPTIONS,								// Options Menu
+	MSM_MAINHERETIC,							// Main Menu (Heretic)
+	MSM_MAIN,									// Main Menu alias
 	
 	NUMMSMMENUS
 } M_SMMenus_t;

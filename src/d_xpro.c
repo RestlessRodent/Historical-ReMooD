@@ -214,6 +214,12 @@ void D_XPCalcConnection(D_XEndPoint_t* const a_EP)
 	
 	/* Fill info */
 	a_EP->NetSpeed.PacketGain = FixedMul(FixedDiv(Hit << FRACBITS, Total << FRACBITS), 100 << FRACBITS) >> FRACBITS;
+	
+	if (a_EP->NetSpeed.PacketGain > 100)
+		a_EP->NetSpeed.PacketGain = 100;
+	else if (a_EP->NetSpeed.PacketGain < 0)
+		a_EP->NetSpeed.PacketGain = 0;
+	
 	a_EP->NetSpeed.PacketLoss = 100 - a_EP->NetSpeed.PacketGain;
 	
 	CONL_PrintF("gain: %i, loss: %i\n", a_EP->NetSpeed.PacketGain, a_EP->NetSpeed.PacketLoss);

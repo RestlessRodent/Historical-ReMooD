@@ -2758,6 +2758,7 @@ PI_keyid_t INFO_GetKeyByName(const char* const a_Name)
 		return g_RMODNumKeys;
 	
 	/* Search by name */
+	// Game
 	for (i = 0; i < g_RMODNumKeys; i++)
 		if (g_RMODKeys[i])
 			if (strcasecmp(g_RMODKeys[i]->ClassName, a_Name) == 0)

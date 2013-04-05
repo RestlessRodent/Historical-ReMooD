@@ -446,12 +446,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						break;
 						
 						
-					case 168:
-						// Stop crusher
-						if (EV_CeilingCrushStop(line))
-							P_ChangeSwitchTexture(line, 0);
-						break;
-						
 						
 					case 172:
 						// Start Lights Strobing
@@ -515,12 +509,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 						P_ChangeSwitchTexture(line, 1);
 						break;
 						
-						
-					case 188:
-						// Stop crusher
-						if (EV_CeilingCrushStop(line))
-							P_ChangeSwitchTexture(line, 1);
-						break;
 						
 					case 190:	//jff 3/15/98 create texture change no motion type
 						// Texture Change Only (Trigger)

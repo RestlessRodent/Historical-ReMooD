@@ -140,9 +140,6 @@ void P_BringUpWeapon(player_t* player)
 		
 	if (player->pendingweapon == wp_nochange)
 		player->pendingweapon = player->readyweapon;
-	
-	if (player->weaponinfo[player->pendingweapon]->BringUpSound)
-		S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->pendingweapon]->BringUpSound));
 		
 	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (player->pendingweapon >= NUMWEAPONS)
@@ -150,6 +147,9 @@ void P_BringUpWeapon(player_t* player)
 		CONL_PrintF("WARNING - P_BringUpWeapon: %i (player->pendingweapon) >= %i (%s:%i).\n", player->pendingweapon, NUMWEAPONS, __FILE__, __LINE__);
 		return;
 	}
+	
+	if (player->weaponinfo[player->pendingweapon]->BringUpSound)
+		S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->pendingweapon]->BringUpSound));
 	
 	newstate = player->weaponinfo[player->pendingweapon]->upstate;
 	

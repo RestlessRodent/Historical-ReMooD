@@ -519,7 +519,6 @@ extern ceilinglist_t* activeceilings;	//SoM: 3/6/2000: New improved boom code.
 void T_MoveCeiling(ceiling_t* ceiling);
 void P_AddActiveCeiling(ceiling_t* ceiling);
 void P_RemoveActiveCeiling(ceiling_t* ceiling);
-int EV_CeilingCrushStop(line_t* line);
 int P_ActivateInStasisCeiling(line_t* line);
 
 //
@@ -1335,6 +1334,8 @@ bool_t EV_SilentTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a
 bool_t EV_SilentLineTeleport(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 bool_t EV_LightTurnOn(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
+
+bool_t EV_CeilingCrushStop(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
 
 /*****************************************************************************/
 

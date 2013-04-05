@@ -1276,6 +1276,29 @@ bool_t EV_LightTurnOn(line_t* const a_Line, const int a_Side, mobj_t* const a_Ob
 	return 1;
 }
 
+/* EV_CeilingCrushStop() -- Stop a ceiling from crushing! */
+bool_t EV_CeilingCrushStop(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV)
+{
+	ceilinglist_t* cl;
+	ceiling_t* ceiling;
+	bool_t rtn = false;
+	
+	for (cl = activeceilings; cl; cl = cl->next)
+	{
+		ceiling = cl->ceiling;
+		
+		if (ceiling->direction != 0 && ceiling->tag == a_Line->tag)
+		{
+			ceiling->olddirection = ceiling->direction;
+			ceiling->direction = 0;
+			ceiling->thinker.function.acv = (actionf_v) NULL;
+			rtn = true;
+		}
+	}
+	
+	return false;
+}
+
 /*****************************************************************************/
 
 // c_LineTrigs -- Static line triggers
@@ -1744,6 +1767,19 @@ static const P_NLTrig_t c_LineTrigs[] =
 		{35}},
 		
 		// Gun
+	
+	// Stop Crushers (EV_CeilingCrushStop)
+		// Walk
+	{57, 0, LAT_WALK, PNLF_CLEARNOTBOOM, EV_CeilingCrushStop, 0,
+		{0}},
+	{74, 0, LAT_WALK, PNLF_RETRIG, EV_CeilingCrushStop, 0,
+		{0}},
+		
+		// Switch
+	{168, 0, LAT_SWITCH, PNLF_BOOM, EV_CeilingCrushStop, 0,
+		{0}},
+	{188, 0, LAT_SWITCH, PNLF_RETRIG | PNLF_BOOM, EV_CeilingCrushStop, 0,
+		{0}},
 	
 #if 0
 	// Scrollers (EV_SpawnScroller)

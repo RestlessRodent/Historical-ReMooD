@@ -11,6 +11,16 @@ typedef enum M_SWidFlags_e
 	MSWF_DISABLED		= UINT32_C(0x00000004),	// Disabled
 } M_SWidFlags_t;
 
+/* M_CreateGameOpts_e -- Create game options */
+enum M_CreateGameOpts_e
+{
+	MCGO_NULL,
+	
+	MCGO_IWAD,
+	
+	NUMMCGO
+};
+
 /*****************
 *** STRUCTURES ***
 *****************/

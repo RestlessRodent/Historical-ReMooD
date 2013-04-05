@@ -265,32 +265,6 @@ int P_ActivateInStasisCeiling(line_t* line)
 	return rtn;
 }
 
-//
-// EV_CeilingCrushStop
-// Stop a ceiling from crushing!
-//
-//SoM: 3/6/2000: use improved Boom code
-int EV_CeilingCrushStop(line_t* line)
-{
-	int rtn = 0;
-	
-	ceilinglist_t* cl;
-	
-	for (cl = activeceilings; cl; cl = cl->next)
-	{
-		ceiling_t* ceiling = cl->ceiling;
-		
-		if (ceiling->direction != 0 && ceiling->tag == line->tag)
-		{
-			ceiling->olddirection = ceiling->direction;
-			ceiling->direction = 0;
-			ceiling->thinker.function.acv = (actionf_v) NULL;
-			rtn = 1;
-		}
-	}
-	return rtn;
-}
-
 // SoM: 3/6/2000: Extra, boom only function.
 //
 // P_RemoveAllActiveCeilings()

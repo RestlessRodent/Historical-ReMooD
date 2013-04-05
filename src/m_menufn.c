@@ -1772,18 +1772,103 @@ void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
 
 /* --- ADVANCED CREATE GAME MENU --- */
 
+extern const void* g_ReMooDPtr;
+
 /* M_ACG_CreateFSelect() -- Start Game is selected */
 void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget)
 {
-	/* Pop All Menus */
-	M_StackPopAll();
+	M_SWidget_t* Parent;
+	M_SWidget_t* Map[NUMMCGO];
+	int32_t i;
+	D_IWADInfoEx_t* IWADInfo, *ThisIWAD;
+	char Path[PATH_MAX];
+	const char* Field;
+	bool_t LatchedIWAD;
+	const WL_WADFile_t* WAD, *OldIWAD;
+	
+	/* Map options to widgets */
+	memset(Map, 0, sizeof(Map));
+	Parent = a_Widget->Parent;
+	for (i = 0; i < Parent->NumKids; i++)
+		if (Parent->Kids[i])
+			if (Parent->Kids[i]->Option > 0 && Parent->Kids[i]->Option < NUMMCGO)
+				Map[Parent->Kids[i]->Option] = Parent->Kids[i];
 	
 	/* Disconnect */
 	D_XNetDisconnect(false);
 	
-	/* Change IWAD, if need be */
+	/* Lock OCCB */
+	WL_LockOCCB(true);
+	
+	/* Change WADS, if need be */
+	// IWAD
+	if (Map[MCGO_IWAD])
+	{
+		// Get IWADs in use
+		IWADInfo = D_GetIWADInfoByNum(Map[MCGO_IWAD]->Data.Label.Possible[Map[MCGO_IWAD]->Data.Label.Pivot].IntVal);
+		ThisIWAD = D_GetThisIWAD();
+		
+		// Different IWADs?
+		if (IWADInfo != ThisIWAD)
+		{
+			// First get the existing IWAD
+			OldIWAD = WL_IterateVWAD(NULL, true);
+			
+			// Pop all wads possible
+			while (WL_PopWAD())
+				;
+			
+			// Push IWAD
+			for (i = 0, LatchedIWAD = false; ; i++)
+			{
+				// Get field?
+				Field = D_FieldNumber(IWADInfo->BaseName, i);
+				
+				// End?
+				if (!Field)
+					break;
+				
+				// Determine path
+				memset(Path, 0, sizeof(Path));
+				if ((LatchedIWAD = WL_LocateWAD(Field, IWADInfo->MD5Sum, Path, PATH_MAX - 1)))
+				{
+					// Try opening
+					WAD = WL_OpenWAD(Path, NULL);
+					
+					if (!WAD)
+						LatchedIWAD = false;
+					else
+						break;
+				}
+			}
+			
+			// Got IWAD?
+			if (LatchedIWAD && WAD)
+				WL_PushWAD(WAD);
+			
+			// Otherwise, push old IWAD
+			else
+				WL_PushWAD(OldIWAD);
+			
+			// Push ReMooD.WAD			
+			WL_PushWAD(g_ReMooDPtr);
+		}
+	}
+	
+	// PWADs
+	
+	/* UnLock OCCB */
+	WL_LockOCCB(false);
+	
+	// Clean up any unused WADs
+	WL_CloseNotStacked();
 	
 	/* Set new game options */
+	
+	/* Pop All Menus */
+	M_StackPopAll();
+	
+	/* Add any local players */
 	
 	/* Setup Server */
 	D_XNetMakeServer(false /*TODO*/, NULL, 0, false);
