@@ -631,7 +631,8 @@ void SF_PlayerKeys()
 			return;
 		}
 		t_return.type = svt_int;
-		t_return.value.i = (players[playernum].cards & (1 << keynum)) ? 1 : 0;
+		// GhostlyDeath -- cards no longer exist, commented
+		t_return.value.i = 0;//(players[playernum].cards & (1 << keynum)) ? 1 : 0;
 		return;
 	}
 	else
@@ -661,10 +662,12 @@ void SF_PlayerKeys()
 		}
 		givetake = intvalue(t_argv[2]);
 		t_return.type = svt_int;
+#if 0	// GhostlyDeath -- cards no longer exist, commented
 		if (givetake)
 			players[playernum].cards |= (1 << keynum);
 		else
 			players[playernum].cards &= ~(1 << keynum);
+#endif
 		t_return.value.i = 0;
 		return;
 	}

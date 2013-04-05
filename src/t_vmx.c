@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2012-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -29,63 +27,17 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Items: key cards, artifacts, weapon, ammunition.
+// DESCRIPTION: Virtual Machine Execution and ByteCode Layer
 
-#ifndef __D_ITEMS__
-#define __D_ITEMS__
+/***************
+*** INCLUDES ***
+***************/
 
-#include "doomdef.h"
-#include "m_fixed.h"
-#include "info.h"
+#include "t_vm.h"
 
-// ==================================
-// Difficulty/skill settings/filters.
-// ==================================
+/****************
+*** FUNCTIONS ***
+****************/
 
-// Skill flags.
-#define MTF_EASY                1
-#define MTF_NORMAL              2
-#define MTF_HARD                4
 
-// Deaf monsters/do not react to sound.
-#define MTF_AMBUSH              8
-
-//Hurdler: special option to tell the things has been spawned by an FS
-#define MTF_FS_SPAWNED    0x1000
-
-#define NUMINVENTORYSLOTS  14
-#define MAXARTECONT        16
-typedef struct
-{
-	uint8_t type;
-	uint8_t count;
-} inventory_t;
-
-// Power up artifacts.
-typedef enum
-{
-	pw_invulnerability,
-	pw_strength,
-	pw_invisibility,
-	pw_ironfeet,
-	pw_allmap,
-	pw_infrared,
-	
-	NUMPOWERS
-} powertype_t;
-
-//
-// Power up durations,
-//  how many seconds till expiration,
-//  assuming TICRATE is 35 ticks/second.
-//
-typedef enum
-{
-	INVULNTICS = (30 * TICRATE),
-	INVISTICS = (60 * TICRATE),
-	INFRATICS = (120 * TICRATE),
-	IRONTICS = (60 * TICRATE)
-} powerduration_t;
-
-#endif
 

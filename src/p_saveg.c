@@ -1012,7 +1012,6 @@ static void PS_SavePlayers(D_BS_t* const a_Str)
 		D_BSwi32(a_Str, This->health);
 		D_BSwi32(a_Str, This->armorpoints);
 		D_BSwu8(a_Str, This->armortype);
-		D_BSwu32(a_Str, This->cards);
 		D_BSwu8(a_Str, This->backpack);
 		D_BSwu16(a_Str, This->addfrags);
 		for (j = 0; j < MAXPLAYERS; j++)
@@ -1180,7 +1179,6 @@ static bool_t PS_LoadPlayers(D_BS_t* const a_Str)
 		This->health = D_BSri32(a_Str);
 		This->armorpoints = D_BSri32(a_Str);
 		This->armortype = D_BSru8(a_Str);
-		This->cards = D_BSru32(a_Str);
 		This->backpack = D_BSru8(a_Str);
 		This->addfrags = D_BSru16(a_Str);
 		for (j = 0; j < MAXPLAYERS; j++)

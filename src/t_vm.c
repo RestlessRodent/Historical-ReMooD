@@ -334,14 +334,21 @@ static bool_t TVMS_PopScope(struct TVM_State_s* const a_State, char* const a_Des
 }
 
 /* TVMS_CreateVar() -- Creates a variable */
-static bool_t TVMS_CreateVar(struct TVM_State_s* const a_State, char* const a_Type, const char* const a_Name)
+static bool_t TVMS_CreateVar(struct TVM_State_s* const a_State, char* const a_Type, const char* const a_Name, TVM_CCVarInfo_t** const a_Info)
 {
+	/* Check */
+	if (!a_Info)
+	{
+		a_State->ErrorStr = "No info passed";
+		return false;
+	}	
+	
 	CONL_PrintF("?? Declare `%s` as type `%s`\n", a_Name, a_Type);
 	return true;
 }
 
 /* TVMS_LSEval() -- Evaluation of LegacyScript expression */
-static bool_t TVMS_LSEval(struct TVM_State_s* const a_State, TVM_TokenChain_t** a_List, int32_t a_Count, int32_t a_Start, int32_t a_End)
+static bool_t TVMS_LSEval(struct TVM_State_s* const a_State, TVM_TokenChain_t** a_List, int32_t a_Count, int32_t a_Start, int32_t a_End, TVM_CCVarInfo_t* const a_PlaceHere)
 {
 	int32_t i;
 	
@@ -369,12 +376,14 @@ static bool_t TVMS_SolveExpr(struct TVM_State_s* const a_State, TVM_TokenChain_t
 	TVM_TokenChain_t* DeclareAs;
 	int32_t Count;
 	bool_t RetVal;
+	TVM_CCVarInfo_t* Var;
 	
 	/* Convert expression to list */
 	// Init
 	List = NULL;
 	Count = 0;
 	DeclareAs = NULL;
+	Var = NULL;
 	
 	// Rove and append to list
 	for (Rover = a_Chain; Rover; Rover = Rover->Next)
@@ -412,7 +421,12 @@ static bool_t TVMS_SolveExpr(struct TVM_State_s* const a_State, TVM_TokenChain_t
 				}
 				
 				// Create new variable
-				TVMS_CreateVar(a_State, DeclareAs->Text, Rover->Text);
+				if (!TVMS_CreateVar(a_State, DeclareAs->Text, Rover->Text, &Var))
+				{
+					if (List)
+						Z_Free(List);
+					return false;
+				}
 				
 				// Not declaring anymore
 				DeclareAs = NULL;
@@ -427,7 +441,7 @@ static bool_t TVMS_SolveExpr(struct TVM_State_s* const a_State, TVM_TokenChain_t
 	}
 	
 	/* Call sub handler */
-	RetVal = TVMS_LSEval(a_State, List, Count, 0, Count - 1);
+	RetVal = TVMS_LSEval(a_State, List, Count, 0, Count - 1, Var);
 	
 	/* Cleanup */
 	if (List)

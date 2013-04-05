@@ -1868,7 +1868,6 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	// give all cards in death match mode
 	if (P_GMIsDM() || P_XGSVal(PGS_PLSPAWNWITHALLKEYS))
 	{
-		p->cards = it_allkeys;
 		p->KeyCards[0] = 0;
 		p->KeyCards[0] = p->KeyCards[1] = ~p->KeyCards[0];
 	}

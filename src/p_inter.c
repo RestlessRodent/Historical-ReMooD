@@ -390,19 +390,6 @@ bool_t P_GiveArmor(player_t* player, int armortype)
 }
 
 //
-// P_GiveCard
-//
-static bool_t P_GiveCard(player_t* player, card_t card)
-{
-	if (player->cards & card)
-		return false;
-		
-	player->bonuscount = BONUSADD;
-	player->cards |= card;
-	return true;
-}
-
-//
 // P_GivePower
 //
 bool_t P_GivePower(player_t* player, int /*powertype_t */ power)

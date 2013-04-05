@@ -15,7 +15,7 @@ C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
  ReMooD is a source port of Doom Legacy 1.42. It aims to provide the classic
  Legacy Experience with new features and more stability.
  
- Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+ Copyright (C) 2011-2013 GhostlyDeath <ghostlydeath@remood.org>
  
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -55,8 +55,6 @@ mark as completed, too bad there is no ASCII checkmark.
  * sounds:		Fix the sound code for WL and add support for SNDINFO or another
  				similar format. (Needed for Hexen anyway)
  
- * w_wad:		Remove the old W_ and WX_ code, it is very old.
- 
  * p_info:		Remove the old info interface and use the new one, which is
  				much better and more dynamic. Also, implement the remaining
  				stuff needed to parse info on a level.
@@ -65,20 +63,8 @@ mark as completed, too bad there is no ASCII checkmark.
  				cheats done are not a huge mess. Could also add a single cheat
  				command that can access all cheats ("cheats list" anyone?).
  
- * d_prof:		Rewrite the profile subsystem and make it so it isn't a giant
- 				old console code hack. It should be better and independent along
- 				with the ability to be placed in new config files and to have it
- 				transferrable over the net. Also, make per player configs and
- 				key binds along with alternative configs (such as when playing
- 				with someone else) and if two players share the same keys, then
- 				show a list of conflicts so they don't screw each other over.
- 
  * m_menu:		Rewrite the drawing stuff so it is much better, with the super
  				new widget code.
- 
- * command:		Remove all this junk.
- 
- * console:		Move all the variables to the new system.
  
  * g_*,p_*:		Make game settings semi-console bound but not exactly console
  				bound, this way demos and such along with network environments
@@ -86,8 +72,6 @@ mark as completed, too bad there is no ASCII checkmark.
  
  * g_state:		Merge this file into something else, it virtually has nothing
  				here and just holds game state defines for some reason.
- 
- * md5:			Use a better algorithm?
  
  * p_mobj:		Make per object P_Random() and possibly map based P_Random().
  				Fully synced for synced games and per object/thinker for async
@@ -101,8 +85,6 @@ mark as completed, too bad there is no ASCII checkmark.
  
  * p_???:		Fixup Vanilla and older Legacy Demo suports so the ancient
  				demos play.
- 
- * p_fab:		Remove this file and put the stuff elsewhere.
  
  * p_*:			Merge all the door, specials, plats, etc. code into a single
  				RMOD possibly source and make it event based so that less code
@@ -127,14 +109,32 @@ mark as completed, too bad there is no ASCII checkmark.
  
  * p_inter:		Reimplement player weapon order.
  
- * p_pspr:		Put RMOD related stuff into info (weapons, ammo, etc.)
- 
  * d_items:		Merge into info.
 
 ###############################################################################
  END ACTUAL TODO LIST
 
 COMPLETED TODOS:
+ 
+ * d_prof:		Rewrite the profile subsystem and make it so it isn't a giant
+ 				old console code hack. It should be better and independent along
+ 				with the ability to be placed in new config files and to have it
+ 				transferrable over the net. Also, make per player configs and
+ 				key binds along with alternative configs (such as when playing
+ 				with someone else) and if two players share the same keys, then
+ 				show a list of conflicts so they don't screw each other over.
+ 
+ * command:		Remove all this junk.
+ 
+ * console:		Move all the variables to the new system.
+ 
+ * md5:			Use a better algorithm?
+ 
+ * p_fab:		Remove this file and put the stuff elsewhere.
+ 
+ * p_pspr:		Put RMOD related stuff into info (weapons, ammo, etc.)
+ 
+ * w_wad:		Remove the old W_ and WX_ code, it is very old.
 
  * p_spec/intr:	Make line triggers and sector specials dynamic in RMOD so that
  				pages and pages of switch statements are removed.

@@ -1150,13 +1150,14 @@ void G_PlayerFinishLevel(int player)
 				p->inventory[i].count = 1;
 	
 	p->weaponinfo = wpnlev1info;	// cancel power weapons
-	p->cards = 0;
 	p->mo->flags &= ~MF_SHADOW;	// cancel invisibility
 	p->extralight = 0;			// cancel gun flashes
 	p->fixedcolormap = 0;		// cancel ir gogles
 	p->damagecount = 0;			// no palette changes
 	p->bonuscount = 0;
 	p->PalChoice = 0;
+	
+	p->KeyCards[0] = p->KeyCards[1] = NULL;
 	
 	if (p->chickenTics)
 	{

@@ -52,6 +52,17 @@ typedef enum TVM_Namespace_e
 	NUMTVMNAMESPACES
 } TVM_Namespace_t;
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* TVM_CCVarInfo_t -- Compiler variable info */
+typedef struct TVM_CCVarInfo_e
+{
+	char* const Name;							// Base name of variable
+	char* const Type;							// Type of variable
+} TVM_CCVarInfo_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
