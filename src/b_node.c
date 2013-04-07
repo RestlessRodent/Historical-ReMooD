@@ -1137,8 +1137,8 @@ void B_ShoreApprove(B_Bot_t* a_Bot)
 	a_Bot->ShoreIt = a_Bot->WorkIt;
 	
 	/* Debug */
-	for (i = 0; i < a_Bot->NumShore; i++)
-		P_SpawnMobj(a_Bot->Shore[i]->Pos[0], a_Bot->Shore[i]->Pos[1], a_Bot->Shore[i]->Pos[2], INFO_GetTypeByName("ItemFog"));
+	/*for (i = 0; i < a_Bot->NumShore; i++)
+		P_SpawnMobj(a_Bot->Shore[i]->Pos[0], a_Bot->Shore[i]->Pos[1], a_Bot->Shore[i]->Pos[2], INFO_GetTypeByName("ItemFog"));*/
 	
 	/* Clear work pointers */
 	a_Bot->Work = NULL;

@@ -347,10 +347,11 @@ bool_t D_CheckNetGame(void)
 void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
 	uint32_t ProcessID, LastScreen;
-	int32_t PlaceAt;
+	int32_t PlaceAt, i, UngrabbedScreen;
 	D_ProfileEx_t* Profile;
 	const B_BotTemplate_t* BotTemplate;
 	bool_t BumpSplits;
+	D_XPlayer_t* XPlay;
 	
 	/* No bots */
 	if (a_Bot)
@@ -359,12 +360,25 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	/* Check */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
 		return;
+		
+	// Find Profile
+	Profile = NULL;
+	if (a_Name)
+		Profile = D_FindProfileEx(a_Name);
 	
 	/* Find first free slot */
 	// Find the last screened player
+	UngrabbedScreen = -1;
 	for (LastScreen = 0; LastScreen < MAXSPLITSCREEN; LastScreen++)
+	{
 		if (!D_ScrSplitHasPlayer(LastScreen))
 			break;
+		
+		// If the split has no profile and profile IS being added, take over
+		if (UngrabbedScreen == -1)
+			if (!g_Splits[i].Profile)
+				UngrabbedScreen = i;
+	}
 	
 	// Place at the first wanted spot, unless already bound
 		// Assign joystick to player, can be in game
@@ -378,7 +392,10 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		if (LastScreen >= MAXSPLITSCREEN)
 			return;	
 		
-		PlaceAt = LastScreen;
+		if (UngrabbedScreen != -1)
+			PlaceAt = UngrabbedScreen;
+		else
+			PlaceAt = LastScreen;
 	}
 	
 	// If placement is after the last, cap to last
@@ -394,11 +411,6 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	BumpSplits = true;
 	if (D_ScrSplitHasPlayer(PlaceAt))
 		BumpSplits = false;
-	
-	// Find Profile
-	Profile = NULL;
-	if (a_Name)
-		Profile = D_FindProfileEx(a_Name);
 	
 	// Never redisplay
 		// Also if a player is not active, then reset the display status
@@ -5154,7 +5166,7 @@ void D_XNetUpdate(void)
 				
 				// See where the menu is
 				a = M_ExFirstMenuSpot(ScrID, ProfMenu);
-			
+				
 				// Not in first spot?
 				if (a != 0)
 				{
