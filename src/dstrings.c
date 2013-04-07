@@ -715,6 +715,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "D_PGS_COALLOWPUSHERS", "Enables push/puller objects to work."},
 	{			 	 "M_PGS_PLMAXTEAMS", "Max Teams"},
 	{			 	 "D_PGS_PLMAXTEAMS", "Maximum amount of teams that can exist at once."},
+	{			   "M_PGS_PLMAXPLAYERS", "Max Players"},
+	{			   "D_PGS_PLMAXPLAYERS", "Maximum amount of players that can be playing at one time."},
+	
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

@@ -290,6 +290,7 @@ typedef enum P_XGSBitID_e
 	PGS_COVARIABLEFRICTION,						// Boom Variable Friction
 	PGS_COALLOWPUSHERS,							// Allow Boom Pushers
 	PGS_PLMAXTEAMS,								// Max player teams
+	PGS_PLMAXPLAYERS,							// Max players inside
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

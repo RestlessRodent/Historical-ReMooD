@@ -96,14 +96,6 @@ void P_SetPsprite(player_t* player, int position, PI_stateid_t stnum)
 			if (psp->tics > 1)
 				psp->tics = 1;
 		
-		/* UNUSED
-		   if (state->misc1)
-		   {
-		   // coordinate set
-		   psp->sx = state->misc1 << FRACBITS;
-		   psp->sy = state->misc2 << FRACBITS;
-		   }
-		 */
 		// Call action routine.
 		// Modified handling.
 		if (state->action.acp5)

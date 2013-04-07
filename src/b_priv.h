@@ -47,6 +47,7 @@
 #include "p_mobj.h"
 #include "t_ini.h"
 #include "b_bot.h"
+#include "r_defs.h"
 
 /****************
 *** CONSTANTS ***
@@ -135,7 +136,7 @@ typedef struct B_BotGOA_s
 	bool_t Ignore;							// Ignore like it did not exist
 	fixed_t Dist;							// Distance to object (if applicable)
 	tic_t ShoreFailWait;					// Time to wait if a shore fails here
-	fixed_t* XRef, *YRef;					// References to locations
+	fixed_t* XRef, *YRef, *ZRef;			// References to locations
 	
 	union
 	{
@@ -160,7 +161,7 @@ typedef struct B_BotTarget_s
 	bool_t MoveTarget;						// Movement target
 	tic_t ExpireTic;						// Action expires at this time
 	int32_t Priority;						// Priority
-	fixed_t x, y;							// X/Y Target
+	fixed_t x, y, z;						// X/Y Target
 	uintptr_t Key;							// Key
 } B_BotTarget_t;
 
@@ -184,6 +185,8 @@ struct B_GhostBot_s
 	bool_t IsPlayer;							// Bot is a player
 	tic_t MonsterForceTic;						// Force attack/move timeout
 	bool_t MonsterForce;						// Force attack/move
+	
+	tic_t SMTimeout;							// When shore move times out
 	
 	B_ShoreNode_t** Shore;						// Shore Nodes
 	uint32_t NumShore;							// Number of shore nodes
@@ -217,11 +220,13 @@ typedef struct B_Node_s
 {
 	fixed_t x;									// X Position
 	fixed_t y;									// Y Position
+	fixed_t z;
 	
 	fixed_t FloorZ;								// Z of floor
 	fixed_t CeilingZ;							// Z of ceiling
 	
 	subsector_t* SubS;							// Subsector here
+	ffloor_t* FFloor;							// Floor placed on
 	
 	uint32_t CheckID;							// Check ID of node
 	
@@ -271,7 +276,7 @@ struct B_ShoreNode_s
 /* B_PTPData_t -- Point to point path data */
 typedef struct B_PTPData_s
 {
-	fixed_t x, y;								// Origin X/Y coords
+	fixed_t x, y, z;							// Origin X/Y coords
 } B_PTPData_t;
 
 /*************
@@ -312,20 +317,22 @@ extern size_t l_NumLocalBots;					// Number of them
 int B_Random(B_Bot_t* const a_Bot);
 
 /*** B_NODE.C ***/
+fixed_t B_XYZDist(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_z1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_z2);
+
 uint16_t B_NodePtoAT(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2);
 void B_NodeLAD(int32_t* const a_OutX, int32_t* const a_OutY, const angle_t a_Angle);
 void B_NodeLD(int32_t* const a_OutX, int32_t* const a_OutY, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_X2, const fixed_t a_Y2);
 bool_t B_NodeNLD(const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2);
 void B_NodeMoveAim(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side);
 bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const a_End, const bool_t a_FirstTime);
-bool_t B_NodePtoP(B_Bot_t* const a_Bot, B_PTPData_t* const a_PathData, const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2);
+bool_t B_NodePtoP(B_Bot_t* const a_Bot, B_PTPData_t* const a_PathData, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_Z1, const fixed_t a_X2, const fixed_t a_Y2, const fixed_t a_Z2);
 B_Node_t* B_NodeAtPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, const bool_t a_Any);
 
 void B_ShoreClear(B_Bot_t* a_Bot, const bool_t a_Work);
 B_ShoreNode_t* B_ShorePop(B_Bot_t* a_Bot, const bool_t a_Work);
 B_ShoreNode_t* B_ShoreAdd(B_Bot_t* a_Bot, const bool_t a_Work, const B_ShoreType_t a_Type, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
 void B_ShoreApprove(B_Bot_t* a_Bot);
-bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY);
+bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_FromZ, const fixed_t a_ToX, const fixed_t a_ToY, const fixed_t a_ToZ);
 
 /*** B_WORK.C ***/
 bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID);

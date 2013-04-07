@@ -186,6 +186,15 @@ const CONL_VarPossibleValue_t c_PEXGSPVMaxTeams[] =
 	{0, NULL},
 };
 
+/* c_PEXGSPVMaxPlayers -- Max permitted players */
+const CONL_VarPossibleValue_t c_PEXGSPVMaxPlayers[] =
+{
+	// End
+	{1, "MINVAL"},
+	{MAXPLAYERS, "MAXVAL"},
+	{0, NULL},
+};
+
 /* c_PEXGSPVLastLookMP -- Last Look Modulo */
 const CONL_VarPossibleValue_t c_PEXGSPVLastLookMP[] =
 {
@@ -967,6 +976,10 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_PLMAXTEAMS, "pl_maxteams", DSTR_M_PGS_PLMAXTEAMS,
 		DSTR_D_PGS_PLMAXTEAMS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {2, 2}, 2,
 		PEXGSMC_PLAYERS, PEXGSDA_INTEGER, c_PEXGSPVMaxTeams, P_XGSChangeFunc_PLMAXTEAMS},
+	
+	{PEXGST_INTEGER, PGS_PLMAXPLAYERS, "pl_maxplayers", DSTR_M_PGS_PLMAXPLAYERS,
+		DSTR_D_PGS_PLMAXPLAYERS, PEXGSGM_ANY, PEXGSDR_ATLEAST, 0, {MAXPLAYERS, MAXPLAYERS}, MAXPLAYERS,
+		PEXGSMC_PLAYERS, PEXGSDA_INTEGER, c_PEXGSPVMaxPlayers, NULL},
 	
 };
 

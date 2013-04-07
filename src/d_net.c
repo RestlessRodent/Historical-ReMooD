@@ -346,7 +346,8 @@ bool_t D_CheckNetGame(void)
 /* D_NCLocalPlayerAdd() -- Adds a local player */
 void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
-	uint32_t ProcessID, PlaceAt, LastScreen;
+	uint32_t ProcessID, LastScreen;
+	int32_t PlaceAt;
 	D_ProfileEx_t* Profile;
 	const B_BotTemplate_t* BotTemplate;
 	bool_t BumpSplits;

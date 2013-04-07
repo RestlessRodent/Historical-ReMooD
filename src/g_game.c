@@ -500,6 +500,15 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 					
 				for (i = 0; i < MAXPLAYERNAME; i++)
 					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
+					
+				// Count players inside
+				for (i = 0, j = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i])
+						j++;
+				
+				// Max player limit reached?
+				if (j >= P_XGSVal(PGS_PLMAXPLAYERS))
+					continue;
 				
 				// Build structure
 				memset(&JoinDat, 0, sizeof(JoinDat));

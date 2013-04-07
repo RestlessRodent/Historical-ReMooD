@@ -41,6 +41,12 @@
 *** FUNCTIONS ***
 ****************/
 
+/* B_XYZDist() -- X/Y/Z Distance */
+fixed_t B_XYZDist(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_z1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_z2)
+{
+	return P_AproxDistance(P_AproxDistance(a_x2 - a_x1, a_y2 - a_y1), a_z2 - a_z1);
+}
+
 /* B_NodePtoAT() -- Convert points to angle turn */
 uint16_t B_NodePtoAT(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
 {
@@ -305,12 +311,14 @@ B_Node_t* B_NodeAtPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, c
 		CurrentNode = UniMatrix->Nodes[i];
 		
 		// Get distance
-		Dist = P_AproxDistance(a_X - CurrentNode->x, a_Y - CurrentNode->y);
+		Dist = B_XYZDist(a_X, a_Y, Z, CurrentNode->x, CurrentNode->y, CurrentNode->z);
 		
 		// Too high?
+#if 0
 		if (!a_Any)
 			if (CurrentNode->FloorZ > (Z + (24 >> FRACBITS)))
 				continue;
+#endif
 		
 		// Distance is close (and is in stepping range)
 		if (Dist < BOTMINNODEDIST)
@@ -333,12 +341,12 @@ B_Node_t* B_NodeAtPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, c
 }
 
 /* B_NodeCreate() -- Creates node at point */
-B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y)
+B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z)
 {
 	B_Node_t* New;
 	subsector_t* SubS;
 	size_t i;
-	fixed_t RealX, RealY;
+	fixed_t RealX, RealY, RealZ;
 	bool_t Failed;
 	B_Unimatrix_t* ThisMatrix;
 	B_Node_t *NearNode;
@@ -360,6 +368,12 @@ B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y)
 	// If nothing is there, forget it
 	if (!SubS)
 		return NULL;
+	
+	// Localize floor location
+	if (a_Z == ONFLOORZ)
+		RealZ = SubS->sector->floorheight;
+	else
+		RealZ = a_Z;
 	
 	// Too many nodes in subsector?
 	if (SubS->NumBotNodes >= MAXNODESPERSUBSEC)
@@ -422,6 +436,7 @@ B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y)
 	// Init
 	New->x = RealX;
 	New->y = RealY;
+	New->z = RealZ;
 	New->FloorZ = l_GFloorZ;
 	New->CeilingZ = l_GCeilingZ;
 	New->SubS = SubS;
@@ -478,7 +493,7 @@ B_Node_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y)
 /* B_NFTData_t -- Node first traverse data */
 typedef struct B_NFTData_s
 {
-	fixed_t x, y;								// X/Y Data
+	fixed_t x, y, z;								// X/Y Data
 } B_NFTData_t;
 
 /* B_NodeFirstTrav() -- Helps determine whether point is reachable */
@@ -565,6 +580,7 @@ bool_t B_NodeNtoN(B_Bot_t* const a_Bot, B_Node_t* const a_Start, B_Node_t* const
 		memset(&NFT, 0, sizeof(NFT));
 		NFT.x = a_Start->x;
 		NFT.y = a_Start->y;
+		NFT.z = a_Start->z;
 		
 		// Draw line to node (slower)
 		if (!P_PathTraverse(
@@ -636,13 +652,14 @@ static bool_t B_NodePtoPTrav(intercept_t* in, void* const a_Data)
 }
 
 /* B_NodePtoP() -- Checks whether position to position is possible */
-bool_t B_NodePtoP(B_Bot_t* const a_Bot, B_PTPData_t* const a_PathData, const int32_t a_X1, const int32_t a_Y1, const int32_t a_X2, const int32_t a_Y2)
+bool_t B_NodePtoP(B_Bot_t* const a_Bot, B_PTPData_t* const a_PathData, const fixed_t a_X1, const fixed_t a_Y1, const fixed_t a_Z1, const fixed_t a_X2, const fixed_t a_Y2, const fixed_t a_Z2)
 {
 	/* Initialize Data */
 	if (a_PathData)
 	{
 		a_PathData->x = a_X1;
 		a_PathData->y = a_Y1;
+		a_PathData->z = a_Z1;
 	}
 	
 	/* Draw line to node, if that fails, drop out */
@@ -883,117 +900,6 @@ void B_GHOST_Ticker(void)
 		return;
 	}
 	
-#if 0
-	if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
-	{
-		// Debug
-		if (g_BotDebug)
-			CONL_PrintF("GHOSTBOT: Building links for %u\n", (unsigned)l_SSBuildChain);
-		
-		// Go through unimatrixes chain
-		for (zz = 0; zz < 20; zz++)
-			if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
-			{
-				// Get Current
-				UniMatrix = &l_UMGrid[l_SSBuildChain++];
-				
-				// Go through all nodes here
-				for (i = 0; i < UniMatrix->NumNodes; i++)
-				{
-					// Get current node
-					CurrentNode = UniMatrix->Nodes[i];
-					
-					// Project all around node to find other nodes
-					for (x = -1; x <= 1; x++)
-						for (y = -1; y <= 1; y++)
-						{
-							// Zero?
-							if (x == 0 || y == 0)
-								continue;
-							
-							// Determine lox
-							lox = x + 1;
-							loy = y + 1;
-							
-							// If a node is already here, ignore
-							if (CurrentNode->Links[lox][loy].Node)
-								continue;
-							
-							// Setup loop
-							NearNode = NULL;
-							dx = CurrentNode->x;
-							dy = CurrentNode->y;
-							j = 0;
-							
-							// Node searching loop
-							while (!NearNode && ++j < 10)
-							{
-								// Add coordinate
-								dx += (BOTMINNODEDIST * x);
-								dy += (BOTMINNODEDIST * y);
-								
-								// Try and locate nearby nodes
-								NearNode = B_NodeAtPos(dx, dy, CurrentNode->FloorZ, !!j);
-								
-								// No Node found?
-								if (!NearNode)
-									continue;
-									
-								// If node is self, ignore
-								if (NearNode == CurrentNode)
-								{
-									NearNode = NULL;
-									continue;
-								}
-							
-								// Get link angle between targets
-									// This will determine whether or not this node
-									// in said direction is compatible for this dir.
-									// If this check is not done, then a node that
-									// should face west might really be east.
-									// This fixes problems where the bot wants to
-									// move east, but moves west instead.
-								B_NodeLD(&uX, &uY, CurrentNode->x, CurrentNode->y, NearNode->x, NearNode->y);
-							
-								if (!B_NodeNLD(x, y, uX, uY))
-								{
-									NearNode = NULL;
-									continue;
-								}
-							
-								// Check to see if path can be traversed
-								if (!B_NodeNtoN(NULL, CurrentNode, NearNode, true))
-								{
-									NearNode = NULL;
-									continue;
-								}
-							}
-							
-							// Completely failed?
-							if (!NearNode || j >= 10)
-								continue;
-							
-							// Movement to node is possible, link it
-							CurrentNode->Links[lox][loy].Node = NearNode;
-							CurrentNode->Links[lox][loy].Dist = P_AproxDistance(
-									dx - CurrentNode->x, dy - CurrentNode->y);
-							
-							// Set back reference, but only if the near node has
-							// nothing already
-							if (!NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Node)
-							{
-								NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Node = CurrentNode;
-								NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Dist = CurrentNode->Links[lox][loy].Dist;
-							}
-						}
-				}
-			}
-		
-		// For next time
-		return;
-	}
-#endif
-	
 	// All done!
 	l_SSAllDone = true;
 }
@@ -1146,13 +1052,10 @@ B_ShoreNode_t* B_ShoreAdd(B_Bot_t* a_Bot, const bool_t a_Work, const B_ShoreType
 	New->UniM = BS_UnimatrixAtPos(a_X, a_Y);
 	
 	// On the floor?
-	if (a_Z == ONFLOORZ)
-	{
-		if (New->SubS)
-			New->Pos[2] = New->SubS->sector->floorheight;
-		else
-			New->Pos[2] = a_Z;
-	}
+	if (a_Z == ONFLOORZ && New->SubS)
+		New->Pos[2] = New->SubS->sector->floorheight;
+	else
+		New->Pos[2] = a_Z;
 	
 	New->BotNode = B_NodeAtPos(a_X, a_Y, New->Pos[2], true);
 	
@@ -1223,6 +1126,8 @@ void B_ShoreClear(B_Bot_t* a_Bot, const bool_t a_Work)
 /* B_ShoreApprove() -- Moves work to shore */
 void B_ShoreApprove(B_Bot_t* a_Bot)
 {
+	int32_t i;
+	
 	/* Free shore, if any */
 	B_ShoreClear(a_Bot, false);
 	
@@ -1231,6 +1136,10 @@ void B_ShoreApprove(B_Bot_t* a_Bot)
 	a_Bot->NumShore = a_Bot->NumWork;
 	a_Bot->ShoreIt = a_Bot->WorkIt;
 	
+	/* Debug */
+	for (i = 0; i < a_Bot->NumShore; i++)
+		P_SpawnMobj(a_Bot->Shore[i]->Pos[0], a_Bot->Shore[i]->Pos[1], a_Bot->Shore[i]->Pos[2], INFO_GetTypeByName("ItemFog"));
+	
 	/* Clear work pointers */
 	a_Bot->Work = NULL;
 	a_Bot->NumWork = a_Bot->WorkIt = 0;
@@ -1238,13 +1147,13 @@ void B_ShoreApprove(B_Bot_t* a_Bot)
 
 /* B_ShorePath() -- Builds a path from point 1 to point 2 */
 // Returns false, if not possible
-bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_ToX, const fixed_t a_ToY)
+bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY, const fixed_t a_FromZ, const fixed_t a_ToX, const fixed_t a_ToY, const fixed_t a_ToZ)
 {
 #define BUFSIZE 128
 #define MAXFAILS 64
 	int32_t i, x, b, Fails;
 	B_ShoreNode_t* SNode;
-	B_Node_t* RoverNode, *DestNode, *Near;
+	B_Node_t* RoverNode, *DestNode, *Near, *RootNode;
 	I_File_t* File;
 	char Buf[BUFSIZE];
 	int32_t DirX, DirY, ArrX, ArrY;
@@ -1266,15 +1175,15 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 	B_ShoreClear(a_Bot, true);
 	
 	/* Add Head Position */
-	SNode = B_ShoreAdd(a_Bot, true, BST_HEAD, a_FromX, a_FromY, ONFLOORZ);
+	SNode = B_ShoreAdd(a_Bot, true, BST_HEAD, a_FromX, a_FromY, a_FromZ);
 	
 	/* Generate Path to Target */
 	// This is A* like, I do not have the internet currently but I do have
 	// a general idea of how the algorithm works.
 	
 	// Initialize
-	RoverNode = SNode->BotNode;		// Start at the starting point
-	DestNode = B_NodeAtPos(a_ToX, a_ToY, ONFLOORZ, true);
+	RootNode = RoverNode = SNode->BotNode;		// Start at the starting point
+	DestNode = B_NodeAtPos(a_ToX, a_ToY, a_ToZ, true);
 	Fails = 0;
 	
 	// If no target/source node, not pathable
@@ -1318,11 +1227,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 				//if (B_NodePtoP(a_Bot, &PTP, RoverNode->x, RoverNode->y, Near->x, Near->y))
 				{
 					DirChoice[x].OK = true;
-					DirChoice[x].DistToGoal =
-						P_AproxDistance(
-								Near->x - DestNode->x,
-								Near->y - DestNode->y
-							);
+					DirChoice[x].DistToGoal = B_XYZDist(Near->x, Near->y, (RootNode == RoverNode ? a_FromZ : Near->z), DestNode->x, DestNode->y, DestNode->z);
 					DirChoice[x].LoX = ArrX;
 					DirChoice[x].LoY = ArrY;
 					DirChoice[x].Node = Near;
@@ -1359,7 +1264,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 			
 			// Drop a shore node here
 			RoverNode = DirChoice[b].Node;
-			SNode = B_ShoreAdd(a_Bot, true, BST_NODE, RoverNode->x, RoverNode->y, ONFLOORZ);
+			SNode = B_ShoreAdd(a_Bot, true, BST_NODE, RoverNode->x, RoverNode->y, RoverNode->z);
 			
 			// Set the node as checked
 			RoverNode->CheckID = CheckID;
@@ -1389,7 +1294,7 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 	}
 	
 	/* Add Tail Position */
-	SNode = B_ShoreAdd(a_Bot, true, BST_TAIL, a_ToX, a_ToY, ONFLOORZ);
+	SNode = B_ShoreAdd(a_Bot, true, BST_TAIL, a_ToX, a_ToY, a_ToZ);
 	
 	/* Debug Dump */
 	if (g_BotDebug)

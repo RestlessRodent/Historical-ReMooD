@@ -44,6 +44,7 @@
 #include "z_zone.h"
 #include "i_util.h"
 #include "p_info.h"
+#include "p_local.h"
 
 /*****************
 *** STRUCTURES ***
@@ -557,7 +558,7 @@ void SN_PolyFigureOutSide(SN_Poly_t** const a_A, SN_Poly_t** const a_B, int32_t 
 }
 
 typedef struct B_GhostNode_s* B_GhostNode_t;
-B_GhostNode_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y);
+B_GhostNode_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
 
 /* SNS_SubSPointOnSide() -- which side point is on */
 static int32_t SNS_SubSPointOnSide(SN_Point_t* const a_Point, void* const a_Data)
@@ -626,7 +627,7 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 	a_SubS->CenterY = POLYFTOFIXED(cA.v[1]);
 	
 	// Add node there
-	B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]));
+	B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), ONFLOORZ);
 }
 
 /* SNS_NodePointOnSide() -- which side point is on */

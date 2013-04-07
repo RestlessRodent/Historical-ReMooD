@@ -348,17 +348,18 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 		//CONL_PrintF("Shore to %s (%p) + %u/%u\n", ((mobj_t*)ShoreHere->Thinker)->info->RClassName, ShoreHere->Thinker, (unsigned)ShoreHere->ShoreFailWait, (unsigned)gametic);
 		
 		// Build Path to target
-		if (B_ShorePath(a_Bot, a_Bot->Mo->x, a_Bot->Mo->y, *ShoreHere->XRef, *ShoreHere->YRef))
+		if (B_ShorePath(a_Bot, a_Bot->Mo->x, a_Bot->Mo->y, a_Bot->Mo->z, *ShoreHere->XRef, *ShoreHere->YRef, *ShoreHere->ZRef))
 		{
-			//CONL_PrintF("OK!\n");
+			CONL_PrintF("OK!\n");
 			B_ShoreApprove(a_Bot);
+			a_Bot->SMTimeout = gametic + (TICRATE * 3);
 			a_Bot->GOAShorePri = ShoreHere->Priority;
 		}
 		
 		// Failed?
 		else
 		{
-			//CONL_PrintF("Fail!\n");
+			CONL_PrintF("Fail!\n");
 			// Wait 60 seconds for monsters, 10 for players before trying again
 			if (!P_MobjIsPlayer((mobj_t*)ShoreHere->Thinker))
 				ShoreHere->ShoreFailWait = gametic + (TICRATE * 60);
@@ -416,6 +417,7 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 			{
 				FreeTarg->x = *BarrelTarg->XRef;
 				FreeTarg->y = *BarrelTarg->YRef;
+				FreeTarg->z = *BarrelTarg->ZRef;
 			}
 			
 			// Shooting at object
@@ -423,6 +425,7 @@ bool_t B_WorkGOAAct(B_Bot_t* a_Bot, const size_t a_JobID)
 			{
 				FreeTarg->x = *ShootAt->XRef;
 				FreeTarg->y = *ShootAt->YRef;
+				FreeTarg->z = *ShootAt->ZRef;
 			}
 		}
 	}
@@ -552,6 +555,7 @@ bool_t B_WorkGOAUpdate(B_Bot_t* a_Bot, const size_t a_JobID)
 				New->Data.Mo.Seen = P_CheckSight(a_Bot->Mo, Mo);
 				New->XRef = &Mo->x;
 				New->YRef = &Mo->y;
+				New->ZRef = &Mo->z;
 				
 				if (Type == BBGOAT_ENEMY)
 				{
@@ -599,7 +603,8 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 	
 	/* If target is reached, clear targets */
 	// Also check if we still even desire this thing we are moving twords
-	if ((a_Bot->ConfirmDesireF && !a_Bot->ConfirmDesireF(a_Bot)) || a_Bot->ShoreIt >= a_Bot->NumShore)
+	// Or we are idling at this node for too long
+	if ((a_Bot->ConfirmDesireF && !a_Bot->ConfirmDesireF(a_Bot)) || a_Bot->ShoreIt >= a_Bot->NumShore || gametic >= a_Bot->SMTimeout)
 	{
 		B_ShoreClear(a_Bot, true);
 		a_Bot->Jobs[a_JobID].Sleep = gametic + (TICRATE);
@@ -653,7 +658,7 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 	
 	/* See if the node we are chasing at can be traversed to */
 	memset(&PDat, 0, sizeof(PDat));
-	if (!B_NodePtoP(a_Bot, &PDat, Mo->x, Mo->y, This->Pos[0], This->Pos[1]))
+	if (!B_NodePtoP(a_Bot, &PDat, Mo->x, Mo->y, Mo->z, This->Pos[0], This->Pos[1], This->Pos[2]))
 	{
 		// It is not, so clear the path we made
 		B_ShoreClear(a_Bot, true);
@@ -669,12 +674,24 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 		// Set position to this target
 		ShoreTarg->x = This->Pos[0];
 		ShoreTarg->y = This->Pos[1];
+		ShoreTarg->z = This->Pos[2];
 		
 		// If near the target, iterate
-		Dist = P_AproxDistance(Mo->x - ShoreTarg->x, Mo->y - ShoreTarg->y);
+		CONL_PrintF("IS (%f, %f, %f) by (%f, %f, %f)?\n",
+				FIXED_TO_FLOAT(Mo->x),
+				FIXED_TO_FLOAT(Mo->y),
+				FIXED_TO_FLOAT(Mo->z),
+				FIXED_TO_FLOAT(ShoreTarg->x),
+				FIXED_TO_FLOAT(ShoreTarg->y),
+				FIXED_TO_FLOAT(ShoreTarg->z)
+			);
+		Dist = B_XYZDist(Mo->x, Mo->y, Mo->z, ShoreTarg->x, ShoreTarg->y, ShoreTarg->z);
 		
 		if (Dist < FIXEDT_C(24))
+		{
 			a_Bot->ShoreIt++;
+			a_Bot->SMTimeout = gametic + (TICRATE * 3);
+		}
 #if 0
 	}
 	
@@ -908,7 +925,7 @@ bool_t B_WorkFindGoodies(B_Bot_t* a_Bot, const size_t a_JobID)
 			// Object is fine?
 			if (OK)
 			{
-				Dist = P_AproxDistance(Mo->x - Rover->x, Mo->y - Rover->y);
+				Dist = B_XYZDist(Mo->x, Mo->y, Mo->z, Rover->x, Rover->y, Rover->z);
 				
 				// If no object set, use that here or if it is close
 				if (!Desires[i].Thing || Dist < Desires[i].Dist)
@@ -972,8 +989,11 @@ bool_t B_WorkFindGoodies(B_Bot_t* a_Bot, const size_t a_JobID)
 		}
 		
 		// Move to destination
-		if (B_ShorePath(a_Bot, Mo->x, Mo->y, PickupTarget->x, PickupTarget->y))
+		if (B_ShorePath(a_Bot, Mo->x, Mo->y, Mo->z, PickupTarget->x, PickupTarget->y, PickupTarget->z))
+		{
 			B_ShoreApprove(a_Bot);
+			a_Bot->SMTimeout = gametic + (TICRATE * 3);
+		}
 	}
 	
 	/* Done with job, probably */
