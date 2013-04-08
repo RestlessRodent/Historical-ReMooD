@@ -505,10 +505,7 @@ void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t a_Arg
 		player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
 		
 		// GhostlyDeath <October 21, 2012> -- Turn to face, locally
-		if (player->XPlayer)
-			if (player->XPlayer->ScreenID >= 0 &&
-					player->XPlayer->ScreenID < MAXSPLITSCREEN)
-				localangle[player->XPlayer->ScreenID] = player->mo->angle;
+		P_UpdateViewAngles(player->mo);
 	}
 }
 
@@ -564,10 +561,7 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const PI_sargc_t a_ArgC,
 		}
 		
 		// GhostlyDeath <October 21, 2012> -- Turn to face, locally
-		if (player->XPlayer)
-			if (player->XPlayer->ScreenID >= 0 &&
-					player->XPlayer->ScreenID < MAXSPLITSCREEN)
-				localangle[player->XPlayer->ScreenID] = angle;
+		P_UpdateViewAngles(player->mo);
 	}
 	
 	player->mo->flags |= MF_JUSTATTACKED;

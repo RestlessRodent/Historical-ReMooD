@@ -1294,6 +1294,42 @@ void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char**
 	}
 }
 
+/* P_UpdateViewAngles() -- Updates viewing angles of a player for this mo */
+void P_UpdateViewAngles(mobj_t* const a_Mo)
+{
+	int32_t i, Console;
+	D_XPlayer_t* XPlay;
+	
+	/* Check */
+	if (!a_Mo)
+		return;
+	
+	/* Only for players */
+	if (!a_Mo->player)
+		return;
+	
+	// Get some info
+	Console = a_Mo->player - players;
+	
+	/* Change for the correct player */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Console player mismatch?
+		if (g_Splits[i].Console != Console)
+			continue;
+		
+		// Get XPlayer
+		XPlay = g_Splits[i].XPlayer;
+		
+		// Not defined to this player
+		if (XPlay && XPlay->Player != a_Mo->player)
+			continue;
+		
+		// Set
+		localangle[i] = a_Mo->angle;
+	}
+}
+
 /*** SPECTATOR PLAYER ***/
 
 static player_t l_SpecPlayers[MAXSPLITSCREEN];	// Fake Player

@@ -126,6 +126,8 @@ void P_MoveSpirit(player_t* p, ticcmd_t* cmd, int realtics);
 void P_UpdateScores(void);
 void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char** const a_Name);
 
+void P_UpdateViewAngles(mobj_t* const a_Mo);
+
 //
 // P_MOBJ
 //

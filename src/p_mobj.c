@@ -870,10 +870,7 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 		mo->player->playerstate = PST_LIVE;
 		
 		// Find local screen for player and correct angle
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (g_Splits[i].Active)
-				if (mo->player == &players[g_Splits[i].Console])
-					localangle[i] = mo->angle;
+		P_UpdateViewAngles(mo);	
 	}
 	
 	// Remove it
@@ -1823,13 +1820,10 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	mobj->angle = ANG45 * (mthing->angle / 45);
 	
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (g_Splits[i].Active)
-			if (playernum == g_Splits[i].Console)
-				localangle[i] = mobj->angle;
-			
 	mobj->player = p;
 	mobj->health = p->health;
+	
+	P_UpdateViewAngles(mobj);
 	
 	p->mo = mobj;
 	p->playerstate = PST_LIVE;
@@ -3435,13 +3429,7 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 		a_Player->health = mo->health;
 	
 		// Set local angle
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (g_Splits[i].Active)
-				if (g_Splits[i].Console == a_Player - players)
-				{
-					localangle[i] = mo->angle;
-					break;
-				}
+		P_UpdateViewAngles(mo);
 		
 		// Clear weapon shot
 		mo->RXShotWithWeapon = -1;
