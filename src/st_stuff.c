@@ -54,6 +54,7 @@
 #include "p_info.h"
 #include "wi_stuff.h"
 #include "m_menu.h"
+#include "d_prof.h"
 
 //protos
 void ST_createWidgets(void);
@@ -512,6 +513,43 @@ void ST_changeDemoView(void)
 
 /*****************************************************************************/
 
+/*** CONSTANTS ***/
+
+// c_DefMapColors -- Default automap colors
+static const uint32_t c_DefMapColors[NUMPROFAUTOMAPCOLORS][3] =
+{
+	{0, 0, 0},									// DPAMC_BACKGROUND
+	{0, 0, 0},									// DPAMC_YOURPLAYER
+	{0, 0, 0},									// DPAMC_THING
+	{0, 0, 0},									// DPAMC_ALLYTHING
+	{0, 0, 0},									// DPAMC_ENEMYTHING
+	{0, 0, 0},									// DPAMC_PICKUP
+	{0, 0, 0},									// DPAMC_SOLIDWALL
+	{0, 0, 0},									// DPAMC_FLOORSTEP
+	{0, 0, 0},									// DPAMC_CEILSTEP
+	{0, 0, 0},									// DPAMC_TRIGGER
+	{0, 0, 0},									// DPAMC_UNMAPPED
+	{0, 0, 0},									// DPAMC_GRID
+};
+
+/*** GLOBALS ***/
+
+extern fixed_t g_GlobalBoundBox[4];				// Global bounding box
+
+/*** STRUCTURES ***/
+
+/* ST_MapDrawInfo_t -- Automap drawing info */
+typedef struct ST_MapDrawInfo_s
+{
+	int32_t Scr;								// Screen being drawn
+	fixed_t BaseCo[2];							// Base coordinate offsets
+	D_SplitInfo_t* Split;						// Player Split (view window)
+	D_ProfileEx_t* Profile;						// Profile of player
+	int32_t Rect[4];							// Screen rectangle
+	int32_t Size[2];							// Size of screen
+	uint32_t (*Color)[NUMPROFAUTOMAPCOLORS][3];	// Automap colors
+} ST_MapDrawInfo_t;
+
 /*** PRIVATE FUNCTIONS ***/
 
 /* STS_SBX() -- Status Bar X */
@@ -536,21 +574,39 @@ static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, in
 	return FixedMul(c << FRACBITS, FixedMul(327, a_H << FRACBITS)) >> FRACBITS;
 }
 
+/* STS_DrawMapLine() -- Draws map line */
+static void STS_DrawMapLine(ST_MapDrawInfo_t* a_Info, const fixed_t a_Xa, const fixed_t a_Ya, const fixed_t a_Xb, const fixed_t a_Yb)
+{
+}
+
 /* STS_DrawPlayerMap() -- Draws player automap */
 static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
 {
-	D_ProfileEx_t* Profile;
+	ST_MapDrawInfo_t Info;
 	
-	/* Get profile of player */
-	Profile = a_ConsoleP->ProfileEx;
+	/* Fill Info */
+	memset(&Info, 0, sizeof(Info));
+	
+	Info.Scr = a_PID;
+	Info.BaseCo[0] = g_GlobalBoundBox[BOXLEFT];
+	Info.BaseCo[1] = g_GlobalBoundBox[BOXTOP];
+	Info.Split = &g_Splits[a_PID];
+	Info.Profile = Info.Split->Profile;
+	Info.Rect[0] = a_X;
+	Info.Rect[1] = a_Y;
+	Info.Rect[2] = a_X + a_W;
+	Info.Rect[3] = a_Y + a_H;
+	Info.Size[0] = a_W;
+	Info.Size[1] = a_H;
+	Info.Color = c_DefMapColors;
 	
 	/* Draw something */
-	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 10, 10, 30);	// H
-	VHW_HUDDrawLine(VHWRGB(255,0,0), 30, 10, 10, 30);	// H
-	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 20, 30, 20);	// H
+	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 10, 10, 30);	// |
+	VHW_HUDDrawLine(VHWRGB(255,0,0), 30, 10, 30, 30);	//   |
+	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 20, 30, 20);	//  -
 	
 	/* Current Level Name */
-	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
+	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Info.Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
 }
 
 extern bool_t g_NetBoardDown;
@@ -626,7 +682,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	{
 		// Draw black box?
 		if (!g_Splits[a_PID].OverlayMap)
-			VHW_HUDDrawBox(0, 0, 0, 0, a_X, a_Y, a_X + a_W, a_X + a_H);
+			VHW_HUDDrawBox(0, 0, 0, 0, a_X, a_Y, a_X + a_W, a_Y + a_H);
 		
 		// Used subroutine
 		STS_DrawPlayerMap(a_PID, a_X, a_Y, a_W, a_H, a_ConsoleP, a_DisplayP);

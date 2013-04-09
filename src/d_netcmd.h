@@ -72,13 +72,17 @@ typedef struct D_SplitInfo_s
 	
 	uint8_t RequestSent;						// Sent join request
 	tic_t GiveUpAt;								// Give up joining at this time
-	bool_t AutomapActive;						// Activated Automap
 	bool_t OverlayMap;							// Overlay automap
 	bool_t MapKeyStillDown;						// Automap key still down
 	
 	int8_t ChatMode;							// All? Spec? Team?
 	uint32_t ChatTargetID;						// Player to talk to
 	tic_t ChatTimeOut;							// Chat timeout
+	
+	// Automap Stuff
+	bool_t AutomapActive;						// Activated Automap
+	fixed_t MapBaseOff[2];						// Offset to level base
+	fixed_t MapZoom;							// Zoom in the map
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/

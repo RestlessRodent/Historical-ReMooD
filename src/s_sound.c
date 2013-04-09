@@ -517,6 +517,19 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	/* PC Speaker */
 	if (l_SNDPCSpeaker.Value->Int)
 	{
+		// Get sound info
+		RealID = sound_id;
+		if (S_sfx[sound_id].link)
+			RealID = S_sfx[sound_id].link - S_sfx;
+			
+		// Get DP sound
+		snprintf(Buf, BUFSIZE - 1, "dp%.6s", S_sfx[RealID].name);
+		Entry = WX_EntryForName(NULL, Buf, false);
+		
+		// Whoops!
+		if (!Entry)
+			return;
+		
 		// Lock sound thread
 		I_SoundLockThread(true);
 		
@@ -531,15 +544,6 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 			I_SoundLockThread(false);
 			return;
 		}
-		
-		// Get sound info
-		RealID = sound_id;
-		if (S_sfx[sound_id].link)
-			RealID = S_sfx[sound_id].link - S_sfx;
-			
-		// Get DP sound
-		snprintf(Buf, BUFSIZE - 1, "dp%.6s", S_sfx[RealID].name);
-		Entry = WX_EntryForName(NULL, Buf, false);
 		
 		// Try to play (always channel zero)
 		Target = S_PlayEntryOnChannel(0, Entry, a_Reverse, true);
@@ -584,6 +588,43 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	// The further the sound is the lower the priority
 	MyP = S_sfx[sound_id].priority;
 	MyP = FixedMul(MyP << FRACBITS, (1 << FRACBITS) - FixedMul(Dist, 60)) >> FRACBITS;
+	
+	/* Obtain entry then play on said channel */
+	// Get real sound
+	RealID = sound_id;
+	if (S_sfx[sound_id].link)
+		RealID = S_sfx[sound_id].link - S_sfx;
+	
+	// Prefix with ds
+	snprintf(Buf, BUFSIZE - 1, "ds%.6s", S_sfx[RealID].name);
+	Entry = WX_EntryForName(NULL, Buf, false);
+	
+	// Try direct name
+	if (!Entry)
+	{
+		Entry = WX_EntryForName(NULL, S_sfx[RealID].name, false);
+		
+		// oh well
+		if (!Entry)
+			return;
+	}
+	
+	// Random sound pitch?
+	if (l_SNDRandomPitch.Value->Int)
+	{
+		// Get value to adjust
+		RPA = FixedDiv((fixed_t) M_Random() << FRACBITS, 127 << FRACBITS);
+		
+		// Cap to 0.75 .. 1.25
+		if (RPA <= 49152)
+			RPA = 49152;
+		else if (RPA >= 81920)
+			RPA = 81920;
+	}
+	
+	// Just multiply by 1.0
+	else
+		RPA = FRACUNIT;
 	
 	/* Lock sound thread */
 	I_SoundLockThread(true);
@@ -631,19 +672,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	else
 		OnChannel--;
 		
-	/* Obtain entry then play on said channel */
-	// Get real sound
-	RealID = sound_id;
-	if (S_sfx[sound_id].link)
-		RealID = S_sfx[sound_id].link - S_sfx;
-	
-	// Prefix with ds
-	snprintf(Buf, BUFSIZE - 1, "ds%.6s", S_sfx[RealID].name);
-	Entry = WX_EntryForName(NULL, Buf, false);
-	
-	// Try direct name
-	if (!Entry)
-		Entry = WX_EntryForName(NULL, S_sfx[RealID].name, false);
+	/* Play entry on channel */
 	Target = S_PlayEntryOnChannel(OnChannel, Entry, a_Reverse, false);
 	
 	// Failed?
@@ -666,22 +695,9 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 	// Original volumes
 	for (i = 0; i < 16; i++)
 		Target->ChanVolume[i] = FixedDiv(volume << FRACBITS, 255 << FRACBITS);
-		
-	// Random sound pitch?
-	if (l_SNDRandomPitch.Value->Int)
-	{
-		// Get value to adjust
-		RPA = FixedDiv((fixed_t) M_Random() << FRACBITS, 127 << FRACBITS);
-		
-		// Cap to 0.75 .. 1.25
-		if (RPA <= 49152)
-			RPA = 49152;
-		else if (RPA >= 81920)
-			RPA = 81920;
-			
-		// Modify move rate to random pitch change
-		Target->MoveRate = FixedMul(Target->MoveRate, RPA);
-	}
+	
+	// Modify move rate to random pitch change
+	Target->MoveRate = FixedMul(Target->MoveRate, RPA);
 	
 	// Game Speed modifier
 	Target->MoveRate = FixedMul(Target->MoveRate, GS);

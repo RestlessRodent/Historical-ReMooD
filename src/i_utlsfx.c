@@ -177,7 +177,6 @@ typedef struct I_MUS2MIDData_s
 	I_MusicDriver_t* RealDriver;
 	int RealHandle;
 	int LocalHandle;
-	bool_t FeedMessages;
 	uint8_t* Data;
 	size_t Size;
 	size_t Pos;
@@ -513,6 +512,10 @@ bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 	// Not found?
 	if (!MIDIDriver)
 		return false;
+	
+	// Only permit feeders
+	if (!Local->RealDriver->RawMIDI)
+		return false;
 		
 	/* Otherwise allocate data for MUS2MID converter */
 	a_Driver->Size = sizeof(*Local);
@@ -520,18 +523,9 @@ bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 	
 	// Set the driver
 	Local->RealDriver = MIDIDriver;
-	
-	/* If the driver supports messaging, we can just play MUSes as it */
-	if (Local->RealDriver->RawMIDI)
-		Local->FeedMessages = true;
-		
-	// Otherwise we have to convert to a full MIDI then pipe it through
-	else
-		Local->FeedMessages = false;
 		
 	/* Feeding? */
-	if (Local->FeedMessages)
-		CONL_PrintF("I_MUS2MID_Init: Feeding messages into %s.\n", Local->RealDriver->Name);
+	CONL_PrintF("I_MUS2MID_Init: Feeding messages into %s.\n", Local->RealDriver->Name);
 		
 	return true;
 }
@@ -610,29 +604,21 @@ void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 		return;
 		
 	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-		// Reset base time and set paused
-		Local->BaseTime = 0;
-		Local->PausePlay = true;
-		
-		// End everything pretty much
-		for (i = 0; i < 16; i++)
-		{
-			// Turn off all notes
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x7B;
-			MIDIMsg.b[2] = 0;
-			
-			if (Local->RealDriver->RawMIDI)
-				Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-		}
-	}
+	// Reset base time and set paused
+	Local->BaseTime = 0;
+	Local->PausePlay = true;
 	
-	/* Full convert mode */
-	else
+	// End everything pretty much
+	for (i = 0; i < 16; i++)
 	{
+		// Turn off all notes
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x7B;
+		MIDIMsg.b[2] = 0;
+		
+		if (Local->RealDriver->RawMIDI)
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
 	}
 }
 
@@ -661,16 +647,8 @@ void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 		return;
 		
 	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-		Local->BaseTime = 0;
-		Local->PausePlay = false;
-	}
-	
-	/* Full convert mode */
-	else
-	{
-	}
+	Local->BaseTime = 0;
+	Local->PausePlay = false;
 }
 
 /* IS_MUS2MID_FullReset() -- Fully resets keyboard */
@@ -684,72 +662,64 @@ static void IS_MUS2MID_FullReset(struct I_MusicDriver_s* const a_Driver, I_MUS2M
 	} MIDIMsg;
 	
 	/* Feeding */
-	if (a_Local->FeedMessages)
-	{
-		// Clear time
-		a_Local->BaseTime = 0;
-		
-		// Reset All
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xFF;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
-		
-		// End everything pretty much
-		for (i = 0; i < 16; i++)
-		{
-			// Turn off all notes
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x7B;
-			MIDIMsg.b[2] = 0;
-			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-		
-			// Turn off sustain
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x40;
-			MIDIMsg.b[2] = 0;
-			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-		
-			// Reset all controllers
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0x79;
-			MIDIMsg.b[2] = 0;
-			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-			
-			// Bank all to zero
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 0;
-			MIDIMsg.b[2] = (i == 9 ? 127 : 0);
-			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-			
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xB0 | i;
-			MIDIMsg.b[1] = 32;
-			MIDIMsg.b[2] = 0;
-			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-			
-			// Change all to first program
-			MIDIMsg.u = 0;
-			MIDIMsg.b[0] = 0xC0 | i;
-			MIDIMsg.b[1] = 0;
-			a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 2);
-		}
+	// Clear time
+	a_Local->BaseTime = 0;
 	
+	// Reset All
+	MIDIMsg.u = 0;
+	MIDIMsg.b[0] = 0xFF;
+	a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
+	
+	// End everything pretty much
+	for (i = 0; i < 16; i++)
+	{
+		// Turn off all notes
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x7B;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+	
+		// Turn off sustain
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x40;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+	
+		// Reset all controllers
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x79;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+		// Bank all to zero
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0;
+		MIDIMsg.b[2] = (i == 9 ? 127 : 0);
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 32;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+		// Change all to first program
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xC0 | i;
+		MIDIMsg.b[1] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 2);
+	}
+
 #if 0
-		// Reset All
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xFF;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
+	// Reset All
+	MIDIMsg.u = 0;
+	MIDIMsg.b[0] = 0xFF;
+	a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
 #endif
-	}
-	
-	/* Not Feeding */
-	else
-	{
-	}
 }
 
 /* I_MUS2MID_Stop() -- Stops a song from playing and seeks to start (stop []) */
@@ -773,15 +743,7 @@ void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 		return;
 		
 	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-		IS_MUS2MID_FullReset(a_Driver, Local);
-	}
-	
-	/* Full convert mode */
-	else
-	{
-	}
+	IS_MUS2MID_FullReset(a_Driver, Local);
 	
 	/* No longer playing */
 	Local->Playing = false;
@@ -806,16 +768,6 @@ uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Ha
 	// Check handle
 	if (a_Handle != Local->LocalHandle)
 		return 0;
-		
-	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-	}
-	
-	/* Full convert mode */
-	else
-	{
-	}
 	
 	return 0;
 }
@@ -839,16 +791,7 @@ void I_MUS2MID_Seek(struct I_MusicDriver_s* const a_Driver, const int a_Handle, 
 	// Check handle
 	if (a_Handle != Local->LocalHandle)
 		return;
-		
-	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-	}
 	
-	/* Full convert mode */
-	else
-	{
-	}
 }
 
 /* I_MUS2MID_Play() -- Plays a song */
@@ -896,15 +839,7 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 		Local->Vols[i] = 127;
 		
 	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-		IS_MUS2MID_FullReset(a_Driver, Local);
-	}
-	
-	/* Full convert mode */
-	else
-	{
-	}
+	IS_MUS2MID_FullReset(a_Driver, Local);
 	
 	/* Playing */
 	Local->Playing = true;
@@ -933,23 +868,12 @@ void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 		return;
 		
 	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-		// Always tell driver to be at full volume
-		if (Local->RealDriver->Volume)
-			Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, 255);
-			
-		// Set volume scale
-		Local->VolScale = FixedDiv(((fixed_t) Vol) << FRACBITS, 255 << FRACBITS);
-	}
-	
-	/* Full convert mode */
-	else
-	{
-		// Tell driver the volume I want
-		if (Local->RealDriver->Volume)
-			Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, Vol);
-	}
+	// Always tell driver to be at full volume
+	if (Local->RealDriver->Volume)
+		Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, 255);
+		
+	// Set volume scale
+	Local->VolScale = FixedDiv(((fixed_t) Vol) << FRACBITS, 255 << FRACBITS);
 }
 
 /* I_MUS2MID_Update() -- Updates playing music */
@@ -986,31 +910,23 @@ void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics
 	}
 	
 	/* Feeder mode */
-	if (Local->FeedMessages)
-	{
-		// Get time in millis
-		MSTime = a_Tics;
-		
-		// Constant play loop
-		while (Local->LocalTime <= MSTime)
-		{
-			// Read a message
-			if (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
-			{
-				// Send message
-				Local->RealDriver->RawMIDI(Local->RealDriver, Out, OutSize);
-				
-				// Add Delta to the local time
-				Local->LocalTime += Delta;
-			}
-			else				// Something went bad =(
-				Local->LocalTime = MSTime;
-		}
-	}
+	// Get time in millis
+	MSTime = a_Tics;
 	
-	/* Full convert mode */
-	else
+	// Constant play loop
+	while (Local->LocalTime <= MSTime)
 	{
+		// Read a message
+		if (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
+		{
+			// Send message
+			Local->RealDriver->RawMIDI(Local->RealDriver, Out, OutSize);
+			
+			// Add Delta to the local time
+			Local->LocalTime += Delta;
+		}
+		else				// Something went bad =(
+			Local->LocalTime = MSTime;
 	}
 }
 
@@ -1037,6 +953,47 @@ static I_MusicDriver_t l_MUS2MIDDriver =
 	I_MUS2MID_Volume,
 	NULL,
 	I_MUS2MID_Update
+};
+
+/***************************
+*** STANDARD MIDI PLAYER ***
+***************************/
+
+/* I_StdMIDI_Init() -- Initializes a driver */
+static bool_t I_StdMIDI_Init(struct I_MusicDriver_s* const a_Driver)
+{
+	return false;
+}
+
+/* I_StdMIDI_Destroy() -- Destroys a driver */
+static bool_t I_StdMIDI_Destroy(struct I_MusicDriver_s* const a_Driver)
+{
+	return false;
+}
+
+// l_StdMIDIDriver -- StdMIDI Driver
+static I_MusicDriver_t l_StdMIDIDriver =
+{
+	/* Data */
+	"ReMooD Standard Midi",
+	"stdmidi",
+	1 << IMT_MIDI,
+	false,
+	25,
+	
+	/* Handlers */
+	I_StdMIDI_Init,
+	I_StdMIDI_Destroy,
+	NULL,//I_StdMIDI_Success,
+	NULL,//I_StdMIDI_Pause,
+	NULL,//I_StdMIDI_Resume,
+	NULL,//I_StdMIDI_Stop,
+	NULL,//I_StdMIDI_Length,
+	NULL,//I_StdMIDI_Seek,
+	NULL,//I_StdMIDI_Play,
+	NULL,//I_StdMIDI_Volume,
+	NULL,
+	NULL,//I_StdMIDI_Update
 };
 
 /****************************
@@ -1869,6 +1826,10 @@ bool_t I_InitMusic(void)
 	// ReMooD MUS2MID Driver
 	if (!I_AddMusicDriver(&l_MUS2MIDDriver))
 		CONL_PrintF("I_InitMusic: Failed to add the MUS2MID driver, you will not hear MUS music.\n");
+	
+	// Standard MIDI Driver
+	if (!I_AddMusicDriver(&l_StdMIDIDriver))
+		CONL_PrintF("I_InitMusic: Failed to add the standard MIDI driver, you will not hear MIDI music.\n");
 		
 	/* Return only if music drivers were loaded */
 	return !!l_NumMusicDrivers;

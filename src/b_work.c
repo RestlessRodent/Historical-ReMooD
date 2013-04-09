@@ -677,14 +677,14 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 		ShoreTarg->z = This->Pos[2];
 		
 		// If near the target, iterate
-		CONL_PrintF("IS (%f, %f, %f) by (%f, %f, %f)?\n",
+		/*CONL_PrintF("IS (%f, %f, %f) by (%f, %f, %f)?\n",
 				FIXED_TO_FLOAT(Mo->x),
 				FIXED_TO_FLOAT(Mo->y),
 				FIXED_TO_FLOAT(Mo->z),
 				FIXED_TO_FLOAT(ShoreTarg->x),
 				FIXED_TO_FLOAT(ShoreTarg->y),
 				FIXED_TO_FLOAT(ShoreTarg->z)
-			);
+			);*/
 		Dist = B_XYZDist(Mo->x, Mo->y, Mo->z, ShoreTarg->x, ShoreTarg->y, ShoreTarg->z);
 		
 		if (Dist < FIXEDT_C(24))

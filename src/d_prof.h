@@ -43,15 +43,6 @@
 
 /*** CONSTANTS ***/
 
-/* D_ProfileExType_t -- Profile Type */
-typedef enum D_ProfileExType_e
-{
-	DPEXT_LOCAL,								// Local player
-	DPEXT_NETWORK,								// Network player
-	DPEXT_BOT,									// Bot player
-	
-	NUMDPROFILEEXTYPES
-} D_ProfileExType_t;
 
 /* D_ProfileExFlags_t -- Extended profile flags */
 typedef enum D_ProfileExFlags_e
@@ -169,6 +160,25 @@ typedef enum D_ProfileExCtrlMA_e
 	NUMDPROFILEEXCTRLMAS
 } D_ProfileExCtrlMA_t;
 
+/* D_ProfAutoMapColors_t -- Automap colors */
+typedef enum D_ProfAutoMapColors_e
+{
+	DPAMC_BACKGROUND,							// Background Color
+	DPAMC_YOURPLAYER,							// Your Color
+	DPAMC_THING,								// Thing Color
+	DPAMC_ALLYTHING,							// Ally Thing Color
+	DPAMC_ENEMYTHING,							// Enemy Thing Color
+	DPAMC_PICKUP,								// Pickup Item
+	DPAMC_SOLIDWALL,							// Wall
+	DPAMC_FLOORSTEP,							// Floor Step
+	DPAMC_CEILSTEP,								// Ceiling Step
+	DPAMC_TRIGGER,								// Trigger line
+	DPAMC_UNMAPPED,								// Unmapped line
+	DPAMC_GRID,									// Blockmap grid color
+	
+	NUMPROFAUTOMAPCOLORS
+} D_ProfAutoMapColors_t;
+
 #define MAXALTAXIS		3
 #define MAXMOUSEAXIS	2
 #define MAXJOYAXIS		8
@@ -202,7 +212,6 @@ struct mobj_s;
 typedef struct D_ProfileEx_s
 {
 	/* Profile Related */
-	D_ProfileExType_t Type;						// Type of profile
 	uint32_t Flags;								// Flags for profile controller
 	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
 	char AccountName[MAXPLAYERNAME];			// Local account name (selection limited)

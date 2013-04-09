@@ -404,6 +404,8 @@ typedef struct P_RMODKey_s
 	uint32_t Bit;
 	uint32_t BitNum;
 	uint8_t Group;
+	
+	uint32_t RGB[3];								// Key Color
 } PI_key_t;
 
 extern size_t g_RMODNumKeys;

@@ -543,6 +543,10 @@ static const INFO_REMOODATValEntry_t c_INFOKeyTables[] =
 	{"Icon", IRVT_STRING, offsetof(PI_key_t, ImageName)},
 	{"Color", IRVT_STRING, offsetof(PI_key_t, ColorName)},
 	
+	{"Red", IRVT_INT32, offsetof(PI_key_t, RGB[0])},
+	{"Green", IRVT_INT32, offsetof(PI_key_t, RGB[1])},
+	{"Blue", IRVT_INT32, offsetof(PI_key_t, RGB[2])},
+	
 	{NULL},
 };
 

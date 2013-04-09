@@ -33444,6 +33444,10 @@ MapKey "BlueCard"
 	
 	Color "Blue";
 	Icon "stkeys0";
+	
+	Red "0";
+	Green "0";
+	Blue "255";
 }
 
 MapKey "BlueSkull"
@@ -33453,6 +33457,10 @@ MapKey "BlueSkull"
 	
 	Color "Blue";
 	Icon "stkeys3";
+	
+	Red "0";
+	Green "0";
+	Blue "255";
 }
 
 MapKey "YellowCard"
@@ -33462,6 +33470,10 @@ MapKey "YellowCard"
 	
 	Color "Yellow";
 	Icon "stkeys1";
+	
+	Red "255";
+	Green "255";
+	Blue "0";
 }
 
 MapKey "YellowSkull"
@@ -33471,6 +33483,10 @@ MapKey "YellowSkull"
 	
 	Color "Yellow";
 	Icon "stkeys4";
+	
+	Red "255";
+	Green "255";
+	Blue "0";
 }
 
 MapKey "RedCard"
@@ -33481,6 +33497,10 @@ MapKey "RedCard"
 	BoomId "1";
 	Color "Red";
 	Icon "stkeys2";
+	
+	Red "255";
+	Green "0";
+	Blue "0";
 }
 
 MapKey "RedSkull"
@@ -33490,6 +33510,10 @@ MapKey "RedSkull"
 	
 	Color "Red";
 	Icon "stkeys5";
+	
+	Red "255";
+	Green "0";
+	Blue "0";
 }
 
 // ************
