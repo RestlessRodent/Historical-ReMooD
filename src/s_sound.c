@@ -529,21 +529,18 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volu
 		// Whoops!
 		if (!Entry)
 			return;
-		
-		// Lock sound thread
-		I_SoundLockThread(true);
-		
+			
 		// Get closest listener, emitter, and distance
 		Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
 		if (Dist < 0)
 			Dist = -Dist;
-		
+			
 		// Too far?
 		if (Dist >= (1200 << FRACBITS))
-		{
-			I_SoundLockThread(false);
 			return;
-		}
+		
+		// Lock sound thread
+		I_SoundLockThread(true);
 		
 		// Try to play (always channel zero)
 		Target = S_PlayEntryOnChannel(0, Entry, a_Reverse, true);
