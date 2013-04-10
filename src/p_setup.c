@@ -251,6 +251,10 @@ bool_t P_ExClearLevel(void)
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
 	
+	/* Clear split automap zoom */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		g_Splits[i].MapZoom = 0;
+	
 	/* Wipe Player Stuff */
 	for (i = 0; i < MAXPLAYERS; i++)
 	{

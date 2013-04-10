@@ -332,9 +332,9 @@ typedef struct
 	
 	// Texture indices.
 	// We do not maintain names here.
-	short toptexture;
-	short bottomtexture;
-	short midtexture;
+	int32_t toptexture;
+	int32_t bottomtexture;
+	int32_t midtexture;
 	
 	// Sector the SideDef is facing.
 	sector_t* sector;
@@ -375,13 +375,13 @@ typedef struct line_s
 	fixed_t dy;
 	
 	// Animation related.
-	short flags;
+	uint16_t flags;
 	uint32_t special;
-	short tag;
+	uint16_t tag;
 	
 	// Visual appearance: SideDefs.
 	//  sidenum[1] will be -1 if one sided
-	short sidenum[2];
+	int32_t sidenum[2];
 	
 	// Neat. Another bounding box, for the extent
 	//  of the LineDef.
@@ -422,6 +422,8 @@ typedef struct line_s
 	int SwitchSounds[2];						// Switch Sounds to use
 } line_t;
 
+struct SN_Poly_s;
+
 //
 // A SubSector.
 // References a Sector.
@@ -444,6 +446,7 @@ typedef struct subsector_s
 	fixed_t CenterX, CenterY;
 	struct B_Node_s** BotNodes;					// Bot nodes in subsector
 	uint8_t NumBotNodes;							// Number of nodes
+	struct SN_Poly_s* Poly;						// Polygon
 } subsector_t;
 
 // SoM: 3/6/200

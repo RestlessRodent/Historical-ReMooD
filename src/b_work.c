@@ -588,7 +588,7 @@ bool_t B_WorkShoreMove(B_Bot_t* a_Bot, const size_t a_JobID)
 	B_Node_t* Node;
 	mobj_t* Mo;
 	int32_t i;
-	fixed_t Dist;
+	fixed_t Dist, ZDist;
 	B_PTPData_t PDat;
 	
 	/* Get Object */

@@ -354,7 +354,7 @@ void B_GHOST_Think(B_Bot_t* const a_Bot, ticcmd_t* const a_TicCmd)
 			);
 			
 		// So close that we are in stopping distance
-		if (TargDist <= FIXEDT_C(24))
+		if (TargDist <= FIXEDT_C(16))
 			MoveTarg = -1;
 	}
 	
@@ -808,5 +808,85 @@ int CLC_DumpNodes(const uint32_t a_ArgC, const char** const a_ArgV)
 	/* Suppose it worked */
 	return 0;
 #undef BUFSIZE
+}
+
+/* B_DrawBotLines() -- Draws bot lines */
+// This is navigation helpers for the automap
+void B_DrawBotLines(void* const a_Data, void (*a_DrawFunc)(void* const, const fixed_t, const fixed_t, const fixed_t, const fixed_t, const uint8_t, const uint8_t, const uint8_t))
+{
+	int32_t p, n, j;
+	D_XPlayer_t* XPlay;
+	B_Bot_t* Data;
+	uint32_t R, G, B;
+	B_ShoreNode_t* It, *Next;
+	
+	/* Go through all players */
+	for (p = 0; p < MAXPLAYERS; p++)
+	{
+		// Not ingame?
+		if (!playeringame[p])
+			continue;
+		
+		// Get xplayer
+		XPlay = players[p].XPlayer;
+		
+		if (!XPlay)
+			continue;
+		
+		// Not a bot
+		if (!(XPlay->Flags & DXPF_BOT))
+			continue;
+		
+		// Get Data
+		Data = XPlay->BotData;
+		
+		if (!Data)
+			continue;
+		
+		// Not shoring
+		if (!Data->NumShore || !Data->Shore)
+			continue;
+		
+		// Go through nodes
+		for (n = 0; n < Data->NumShore - 1; n++)
+		{
+			It = Data->Shore[n];
+			Next = Data->Shore[n + 1];
+			
+			if (!It || !Next)
+				continue;
+			
+			// Determine Color
+				// Passed node already
+			if (Data->ShoreIt > 0 && n < Data->ShoreIt - 1)
+				continue;
+				
+				// Node we are traversing
+			else if (Data->ShoreIt == 0 || n == Data->ShoreIt - 1)
+			{
+				R = B = 255;
+				G = 0;
+			}
+				
+				// Active shore
+			else if (n == Data->ShoreIt)
+			{
+				j = (g_ProgramTic & 0x7F) << 1;
+				R = j;
+				G = j + 63;
+				B = j + 127;
+			}
+			
+				// Future
+			else
+			{
+				R = 0;
+				G = B = 255;
+			}
+			
+			// Draw line
+			a_DrawFunc(a_Data, It->Pos[0], It->Pos[1], Next->Pos[0], Next->Pos[1], R, G, B);
+		}
+	}
 }
 

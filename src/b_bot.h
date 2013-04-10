@@ -79,6 +79,7 @@ typedef struct B_BotTemplate_s
 extern bool_t g_BotDebug;						// Debugging Bots
 
 /*** B_GHOST.C ***/
+
 extern fixed_t g_GlobalBoundBox[4];				// Global bounding box
 extern bool_t g_GotBots;						// Got a bot?
 
@@ -87,6 +88,7 @@ extern bool_t g_GotBots;						// Got a bot?
 ****************/
 
 /*** B_BOT.C ***/
+
 B_Bot_t* B_InitBot(const B_BotTemplate_t* a_Template);
 B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
 
@@ -97,6 +99,7 @@ void B_InitNodes(void);
 void B_ClearNodes(void);
 
 /*** B_GHOST.C ***/
+
 void B_InitBotCodes(void);
 
 void B_GHOST_Ticker(void);
@@ -111,6 +114,8 @@ B_BotTemplate_t* B_GHOST_RandomTemplate(void);
 
 void B_XDestroyBot(B_Bot_t* const a_BotData);
 void B_RemoveThinker(thinker_t* const a_Thinker);
+
+void B_DrawBotLines(void* const a_Data, void (*a_DrawFunc)(void* const, const fixed_t, const fixed_t, const fixed_t, const fixed_t, const uint8_t, const uint8_t, const uint8_t));
 
 #endif /* __B_BOT_H__ */
 

@@ -55,6 +55,9 @@
 #include "wi_stuff.h"
 #include "m_menu.h"
 #include "d_prof.h"
+#include "sn_polyg.h"
+#include "sn_main.h"
+#include "b_bot.h"
 
 //protos
 void ST_createWidgets(void);
@@ -520,16 +523,18 @@ static const uint32_t c_DefMapColors[NUMPROFAUTOMAPCOLORS][3] =
 {
 	{0, 0, 0},									// DPAMC_BACKGROUND
 	{0, 0, 0},									// DPAMC_YOURPLAYER
-	{0, 0, 0},									// DPAMC_THING
+	{63, 255, 63},								// DPAMC_THING
 	{0, 0, 0},									// DPAMC_ALLYTHING
 	{0, 0, 0},									// DPAMC_ENEMYTHING
 	{0, 0, 0},									// DPAMC_PICKUP
-	{0, 0, 0},									// DPAMC_SOLIDWALL
-	{0, 0, 0},									// DPAMC_FLOORSTEP
-	{0, 0, 0},									// DPAMC_CEILSTEP
-	{0, 0, 0},									// DPAMC_TRIGGER
-	{0, 0, 0},									// DPAMC_UNMAPPED
-	{0, 0, 0},									// DPAMC_GRID
+	{255, 0, 0},								// DPAMC_SOLIDWALL
+	{168, 168, 0},								// DPAMC_FLOORSTEP
+	{255, 127, 0},								// DPAMC_CEILSTEP
+	{255, 255, 0},								// DPAMC_TRIGGER
+	{96, 96, 127},								// DPAMC_UNMAPPED
+	{63, 63, 63},								// DPAMC_GRID
+	{127, 127, 127},							// DPAMC_INVISODWALL
+	{255, 255, 255},							// DPAMC_DEFAULT
 };
 
 /*** GLOBALS ***/
@@ -548,6 +553,11 @@ typedef struct ST_MapDrawInfo_s
 	int32_t Rect[4];							// Screen rectangle
 	int32_t Size[2];							// Size of screen
 	uint32_t (*Color)[NUMPROFAUTOMAPCOLORS][3];	// Automap colors
+	player_t* POV;								// Point of view
+	fixed_t CenterAt[2];						// Center coordinates at
+	fixed_t Scale;								// Scale
+	bool_t DoRot;								// Do rotation
+	angle_t RotAngle;							// Rotation angle
 } ST_MapDrawInfo_t;
 
 /*** PRIVATE FUNCTIONS ***/
@@ -574,22 +584,89 @@ static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, in
 	return FixedMul(c << FRACBITS, FixedMul(327, a_H << FRACBITS)) >> FRACBITS;
 }
 
-/* STS_DrawMapLine() -- Draws map line */
-static void STS_DrawMapLine(ST_MapDrawInfo_t* a_Info, const fixed_t a_Xa, const fixed_t a_Ya, const fixed_t a_Xb, const fixed_t a_Yb)
+/* SYS_MapToScreen() -- Translate map coordinates to screen */
+static void SYS_MapToScreen(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, const fixed_t a_Y, fixed_t* const a_OX, fixed_t* const a_OY)
 {
+	fixed_t CenterX, CenterY, tx, ty;
+	angle_t AnS;
+	
+	/* Calculate center of screen */
+	CenterX = (a_Info->Rect[0] + (a_Info->Size[0] >> 1)) << FRACBITS;
+	CenterY = (a_Info->Rect[1] + (a_Info->Size[1] >> 1)) << FRACBITS;
+	
+	/* Project */
+	*a_OX = FixedMul(a_X - a_Info->CenterAt[0], a_Info->Scale);
+	*a_OY = FixedMul(a_Info->CenterAt[1] - a_Y, a_Info->Scale);
+	
+	/* Rotate? */
+	if (a_Info->DoRot)
+	{
+		// Offset angle because it is map correct
+		AnS = (a_Info->RotAngle - ANG90) >> ANGLETOFINESHIFT;
+		
+		// Calculate, use temporary otherwise the map will look cool
+		tx = FixedMul(*a_OX, finecosine[AnS]) - FixedMul(*a_OY, finesine[AnS]);
+		ty = FixedMul(*a_OX, finesine[AnS]) + FixedMul(*a_OY, finecosine[AnS]);
+		
+		// Set values back
+		*a_OX = tx;
+		*a_OY = ty;
+	}
+	
+	/* Modify to map to center of screen */
+	*a_OX += CenterX;
+	*a_OY += CenterY;
+}
+
+/* STS_DrawMapLine() -- Draws map line */
+static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, const fixed_t a_Ya, const fixed_t a_Xb, const fixed_t a_Yb, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
+{
+	fixed_t p[2][2], c[2];
+	register int i, j;
+		
+	/* Project Coordinates */
+	// Map to screen
+	SYS_MapToScreen(a_Info, a_Xa, a_Ya, &p[0][0], &p[0][1]);
+	SYS_MapToScreen(a_Info, a_Xb, a_Yb, &p[1][0], &p[1][1]);
+	
+	/* Draw */
+	// Scale to screen duplication count
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < 2; j++)
+			p[i][j] = FixedMul(p[i][j], (j ? vid.fxdupy : vid.fxdupx));
+	
+	// Draw it
+	VHW_HUDDrawLine(VHWRGB(a_R,a_G,a_B), (p[0][0] >> FRACBITS) + a_Info->Rect[0], (p[0][1] >> FRACBITS) + a_Info->Rect[1], (p[1][0] >> FRACBITS) + a_Info->Rect[0], (p[1][1] >> FRACBITS) + a_Info->Rect[1]);
+}
+
+/* STS_DrawMapThing() -- Draws map thing */
+static void STS_DrawMapThing(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Radius, const angle_t a_Angle, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
+{
+	STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y - a_Radius, a_X + a_Radius, a_Y - a_Radius, a_R, a_G, a_B);
+	STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y - a_Radius, a_X + a_Radius, a_Y + a_Radius, a_R, a_G, a_B);
+	STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y + a_Radius, a_R, a_G, a_B);
+	STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y - a_Radius, a_R, a_G, a_B);
 }
 
 /* STS_DrawPlayerMap() -- Draws player automap */
 static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
 {
 	ST_MapDrawInfo_t Info;
+	int32_t i;
+	line_t* Line;
+	uint32_t (*rgb)[3];
+	sector_t* Front, *Back;
+	thinker_t* Thinker;
+	mobj_t* Mo;
+	subsector_t* SubS;
+	fixed_t XSize, YSize;
 	
 	/* Fill Info */
 	memset(&Info, 0, sizeof(Info));
 	
 	Info.Scr = a_PID;
 	Info.BaseCo[0] = g_GlobalBoundBox[BOXLEFT];
-	Info.BaseCo[1] = g_GlobalBoundBox[BOXTOP];
+	Info.BaseCo[1] = g_GlobalBoundBox[BOXBOTTOM];
 	Info.Split = &g_Splits[a_PID];
 	Info.Profile = Info.Split->Profile;
 	Info.Rect[0] = a_X;
@@ -599,11 +676,125 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	Info.Size[0] = a_W;
 	Info.Size[1] = a_H;
 	Info.Color = c_DefMapColors;
+	Info.POV = P_SpecGetPOV(Info.Scr);
+	Info.DoRot = true;
+	Info.RotAngle = (Info.POV->mo ? Info.POV->mo->angle : 0);
 	
-	/* Draw something */
-	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 10, 10, 30);	// |
-	VHW_HUDDrawLine(VHWRGB(255,0,0), 30, 10, 30, 30);	//   |
-	VHW_HUDDrawLine(VHWRGB(255,0,0), 10, 20, 30, 20);	//  -
+	/* Initialize Map Zoom? */
+	if (!Info.Split->MapZoom)
+	{
+		// Size of entire map
+		XSize = g_GlobalBoundBox[BOXRIGHT] - g_GlobalBoundBox[BOXLEFT];
+		YSize = g_GlobalBoundBox[BOXTOP] - g_GlobalBoundBox[BOXBOTTOM];
+		
+		// Use larger size
+		if (YSize > XSize)
+			XSize = YSize;
+		
+		// Default so that 1/4th of the map is visible at once
+		Info.Split->MapZoom = 1 << (FRACBITS - 2);
+	}
+	
+	// Set scale
+	Info.Scale = Info.Split->MapZoom;
+	
+	// Free movement mode
+	if (Info.Split->MapFreeMode)
+	{
+		Info.CenterAt[0] = Info.Split->MapPos[0];
+		Info.CenterAt[1] = Info.Split->MapPos[1];
+	}
+	
+	// Follow POV
+	else
+	{
+		if (Info.POV->mo)
+		{
+			Info.CenterAt[0] = Info.Split->MapPos[0] = Info.POV->mo->x;
+			Info.CenterAt[1] = Info.Split->MapPos[1] = Info.POV->mo->y;
+		}
+	}
+	
+	/* Draw the map */
+	for (i = 0; i < numlines; i++)
+	{
+		Line = &lines[i];
+		
+		// Base color
+		rgb = (*Info.Color)[DPAMC_DEFAULT];
+		
+		// Not visible?
+		
+		// Change color or don't draw?
+			// Trigger line
+		if (Line->special)
+		{
+			rgb = (*Info.Color)[DPAMC_TRIGGER];
+		}
+		
+			// Inert Wall
+		else
+		{
+			// Get sector sides
+			Front = Line->frontsector;
+			Back = Line->backsector;
+			
+				// Double sided and not blocking
+			if (Front && Back && !(Line->flags & ML_BLOCKING))
+			{
+				
+				// Floor difference?
+				if (Front->floorheight != Back->floorheight)
+					rgb = (*Info.Color)[DPAMC_FLOORSTEP];
+				
+				// Ceiling diff?
+				else if (Front->ceilingheight != Back->ceilingheight)
+					rgb = (*Info.Color)[DPAMC_CEILSTEP];
+				
+				// Normal
+				else
+					rgb = (*Info.Color)[DPAMC_INVISODWALL];
+			}
+		
+			else
+				rgb = (*Info.Color)[DPAMC_SOLIDWALL];
+		}
+		
+		// Draw it
+		STS_DrawMapLine(&Info, Line->v1->x, Line->v1->y, Line->v2->x, Line->v2->y, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+	}
+	
+	/* Snow Debug Stuff */
+	if (g_SnowBug)
+		SN_DrawPolyLines(&Info, STS_DrawMapLine);
+	
+	/* Bot Debug Stuff */
+	if (g_BotDebug)
+		B_DrawBotLines(&Info, STS_DrawMapLine);
+	
+	/* Draw things on it */
+	for (i = 0; i < numsectors; i++)
+	{
+		Front = &sectors[i];
+		
+		// Get object list
+		for (Mo = Front->thinglist; Mo; Mo = Mo->snext)
+		{
+			// Default color
+			rgb = (*Info.Color)[DPAMC_THING];
+		
+			// Draw thing
+			STS_DrawMapThing(&Info, Mo->x, Mo->y, Mo->radius, Mo->angle, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+		}
+	}
+	
+	/* Draw players */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Skip non playing or missing object
+		if (!playeringame[i] || !players[i].mo)
+			continue;
+	}
 	
 	/* Current Level Name */
 	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Info.Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));

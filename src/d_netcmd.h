@@ -81,8 +81,9 @@ typedef struct D_SplitInfo_s
 	
 	// Automap Stuff
 	bool_t AutomapActive;						// Activated Automap
-	fixed_t MapBaseOff[2];						// Offset to level base
 	fixed_t MapZoom;							// Zoom in the map
+	bool_t MapFreeMode;							// Free movement mode
+	fixed_t MapPos[2];							// Map position
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/

@@ -175,6 +175,8 @@ typedef enum D_ProfAutoMapColors_e
 	DPAMC_TRIGGER,								// Trigger line
 	DPAMC_UNMAPPED,								// Unmapped line
 	DPAMC_GRID,									// Blockmap grid color
+	DPAMC_DEFAULT,								// Default Color
+	DPAMC_INVISODWALL,							// Invisible double wall
 	
 	NUMPROFAUTOMAPCOLORS
 } D_ProfAutoMapColors_t;

@@ -52,6 +52,7 @@
 ****************/
 
 void SN_PolygonizeLevel(void);
+void SN_DrawPolyLines(void* const a_Data, void (*a_DrawFunc)(void* const, const fixed_t, const fixed_t, const fixed_t, const fixed_t, const uint8_t, const uint8_t, const uint8_t));
 
 #endif /* __SN_POLYG_H__ */
 

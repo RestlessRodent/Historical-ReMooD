@@ -533,11 +533,11 @@ void SN_PolyFigureOutSide(SN_Poly_t** const a_A, SN_Poly_t** const a_B, int32_t 
 		Weight[i] -= Sides[i][1];
 	}
 		
-	CONL_PrintF("[%i, %i], [%i, %i]; w = %i, %i\n",
+	/*CONL_PrintF("[%i, %i], [%i, %i]; w = %i, %i\n",
 			Sides[0][0], Sides[0][1],
 			Sides[1][0], Sides[1][1],
 			Weight[0], Weight[1]
-		);
+		);*/
 	
 	/* Move polygons based on weight */
 	// A heavier than B
@@ -628,6 +628,9 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 	
 	// Add node there
 	B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), ONFLOORZ);
+	
+	// Set polygon
+	a_SubS->Poly = Keeper;
 }
 
 /* SNS_NodePointOnSide() -- which side point is on */
@@ -726,4 +729,53 @@ void SN_PolygonizeLevel(void)
 	SN_DiscardPoly(RootPoly);
 }
 
+/* SN_DrawPolyLines() -- Debug drawing polygons */
+void SN_DrawPolyLines(void* const a_Data, void (*a_DrawFunc)(void* const, const fixed_t, const fixed_t, const fixed_t, const fixed_t, const uint8_t, const uint8_t, const uint8_t))
+{
+	int32_t i, j, k;
+	SN_Poly_t* Poly;
+	uint32_t RGB[3] = {63, 0, 0};
+	SN_Point_t* PtA, *PtB;
+	
+	for (i = 0; i < numsubsectors; i++)
+	{
+		// Get poly
+		Poly = subsectors[i].Poly;
+		
+		// None?
+		if (!Poly)
+			continue;
+		
+		// Move color ahead
+		RGB[0] += 63;
+		
+		if (RGB[0] > 255)
+		{
+			RGB[1] += 63;
+			RGB[0] = 0;
+			
+			if (RGB[1] > 255)
+			{
+				RGB[2] += 63;
+				RGB[1] = 0;
+				
+				if (RGB[2] > 255)
+				{
+					RGB[0] = 63;
+					RGB[1] = 0;
+					RGB[2] = 0;
+				}
+			}
+		}
+		
+		// Draw each point
+		for (j = 0; j < Poly->NumPts; j++)
+		{
+			PtA = Poly->Pts[j];
+			PtB = Poly->Pts[(j + 1) % Poly->NumPts];
+			
+			a_DrawFunc(a_Data, POLYFTOFIXED(PtA->v[0]), POLYFTOFIXED(PtA->v[1]), POLYFTOFIXED(PtB->v[0]), POLYFTOFIXED(PtB->v[1]), RGB[0], RGB[1], RGB[2]);
+		}
+	}
+}
 

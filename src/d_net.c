@@ -417,7 +417,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	if (!demoplayback)
 		if (!g_Splits[PlaceAt].Active)
 		{
-			g_Splits[PlaceAt].Console = 0;
+			g_Splits[PlaceAt].Console = -1;
 			g_Splits[PlaceAt].Display = -1;
 		}
 	
@@ -5041,6 +5041,10 @@ void D_XNetUpdate(void)
 				if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
 				{
 					XPlay->ScreenID = 0;
+					if (XPlay->Player)
+						g_Splits[0].Console = XPlay->Player - players;
+					else
+						g_Splits[0].Console = -1;
 					g_Splits[0].Display = -1;
 					g_Splits[0].Waiting = true;
 					g_Splits[0].XPlayer = XPlay;

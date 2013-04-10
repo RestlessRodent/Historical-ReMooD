@@ -133,8 +133,8 @@ void VHW_SIDX_HUDDrawLine(const vhwrgb_t a_RGB, int32_t a_X1, int32_t a_Y1, int3
 	for (cp = 0; cp <= np; cp++)
 	{
 		// Put Pixel
-		//if (x >= 0
-		vBase[(y * Pitch) + x] = Color;
+		if (x >= 0 && x < vid.width && y >= 0 && y < vid.height)
+			vBase[(y * Pitch) + x] = Color;
 		
 		n += na;
 		
