@@ -251,6 +251,7 @@ static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_H
 		// IPv4
 		if (a_Host->IPvX == INIPVN_IPV4)
 		{
+			// Init
 			((struct sockaddr_in*)a_Native)->sin_family = AF_INET;
 			((struct sockaddr_in*)a_Native)->sin_port = htons(a_Host->Port);
 		
@@ -814,6 +815,7 @@ static size_t IS_NetRecvWrap(I_NetSocket_t* const a_Socket, I_HostAddress_t* con
 	
 	/* Receive from socket */
 	SockLen = sizeof(Addr);
+	memset(&Addr, 0, sizeof(Addr));
 	
 	RetVal = recvfrom(a_Socket->SockFD, a_OutData, a_Len, __REMOOD_DONTWAITMSG | (a_Peek ? MSG_PEEK : 0), (struct sockaddr*)&Addr, &SockLen);
 	
@@ -870,6 +872,7 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	
 	/* Recieve from which socket? */
 	// Convert address to host
+	memset(&Addr, 0, sizeof(Addr));
 	IS_ConvertHost(true, a_Host, &Addr);
 	
 	// Receive from it

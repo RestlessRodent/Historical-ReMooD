@@ -584,11 +584,23 @@ static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, in
 	return FixedMul(c << FRACBITS, FixedMul(327, a_H << FRACBITS)) >> FRACBITS;
 }
 
-/* SYS_MapToScreen() -- Translate map coordinates to screen */
-static void SYS_MapToScreen(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, const fixed_t a_Y, fixed_t* const a_OX, fixed_t* const a_OY)
+/* STS_Rotate() -- Rotates something? */
+static void STS_Rotate(const fixed_t a_X, const fixed_t a_Y, const angle_t a_Angle, fixed_t* const a_OX, fixed_t* const a_OY)
 {
-	fixed_t CenterX, CenterY, tx, ty;
 	angle_t AnS;
+
+	/* Get LUT value */
+	AnS = a_Angle >> ANGLETOFINESHIFT;
+	
+	/* Perform matrix rotation */
+	*a_OX = FixedMul(a_X, finecosine[AnS]) - FixedMul(a_Y, finesine[AnS]);
+	*a_OY = FixedMul(a_X, finesine[AnS]) + FixedMul(a_Y, finecosine[AnS]);
+}
+
+/* STS_MapToScreen() -- Translate map coordinates to screen */
+static void STS_MapToScreen(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, const fixed_t a_Y, fixed_t* const a_OX, fixed_t* const a_OY)
+{
+	fixed_t CenterX, CenterY;
 	
 	/* Calculate center of screen */
 	CenterX = (a_Info->Rect[0] + (a_Info->Size[0] >> 1)) << FRACBITS;
@@ -600,18 +612,7 @@ static void SYS_MapToScreen(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, c
 	
 	/* Rotate? */
 	if (a_Info->DoRot)
-	{
-		// Offset angle because it is map correct
-		AnS = (a_Info->RotAngle - ANG90) >> ANGLETOFINESHIFT;
-		
-		// Calculate, use temporary otherwise the map will look cool
-		tx = FixedMul(*a_OX, finecosine[AnS]) - FixedMul(*a_OY, finesine[AnS]);
-		ty = FixedMul(*a_OX, finesine[AnS]) + FixedMul(*a_OY, finecosine[AnS]);
-		
-		// Set values back
-		*a_OX = tx;
-		*a_OY = ty;
-	}
+		STS_Rotate(*a_OX, *a_OY, a_Info->RotAngle - ANG90, a_OX, a_OY);
 	
 	/* Modify to map to center of screen */
 	*a_OX += CenterX;
@@ -626,8 +627,8 @@ static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, 
 		
 	/* Project Coordinates */
 	// Map to screen
-	SYS_MapToScreen(a_Info, a_Xa, a_Ya, &p[0][0], &p[0][1]);
-	SYS_MapToScreen(a_Info, a_Xb, a_Yb, &p[1][0], &p[1][1]);
+	STS_MapToScreen(a_Info, a_Xa, a_Ya, &p[0][0], &p[0][1]);
+	STS_MapToScreen(a_Info, a_Xb, a_Yb, &p[1][0], &p[1][1]);
 	
 	/* Draw */
 	// Scale to screen duplication count
