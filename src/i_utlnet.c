@@ -883,12 +883,10 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	memset(&Addr, 0, sizeof(Addr));
 	IS_ConvertHost(true, a_Host, &Addr, &SockLen);
 	
-	// On Non-BSD systems, use convert hosts' SockLen because on Mac OS X
+	// On BSD systems, use convert hosts' SockLen because on Mac OS X
 	// if SockLen != sizeof(struct sockaddr_in(6)) sendto will EINVAL
 	// It seems Linux does not give a damn about the length however.
-#if __REMOOD_SOCKLEVEL != __REMOOD_SOCKBSD
-	SockLen = sizeof(Addr);
-#endif
+	//SockLen = sizeof(Addr);	// so just ignore it really then
 	
 	// Send data
 	RetVal = sendto(a_Socket->SockFD, a_InData, a_Len, __REMOOD_DONTWAITMSG, (struct sockaddr*)&Addr, SockLen);
