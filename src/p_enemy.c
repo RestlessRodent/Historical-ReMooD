@@ -632,19 +632,9 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 		// Monster FFA is disabled
 		if (!(P_XGSVal(PGS_FUNMONSTERFFA)))
 		{
-			// If infighting is DISABLED, then target only other families
-			if (!P_XGSVal(PGS_FUNINFIGHTING))
-			{
-				if (P_MobjOnSameFamily(actor, mo))
-					continue;
-			}
-			
-			// Otherwise see if they are on the same team
-			else
-			{
-				if (P_MobjOnSameTeam(actor, mo))
-					continue;
-			}
+			// Only target monsters on another team
+			if (P_MobjOnSameTeam(actor, mo))
+				continue;
 		}
 		
 		// Otherwise, monster FFA enabled
