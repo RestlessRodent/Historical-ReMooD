@@ -108,6 +108,8 @@ side_t* sides;
 int nummapthings;
 mapthing_t* mapthings;
 
+extern mobj_t* g_LFPRover;
+
 /*
 typedef struct mapdata_s {
     int             numvertexes;
@@ -323,6 +325,9 @@ bool_t P_ExClearLevel(void)
 	spechit_max = NULL;
 	spechit = NULL;
 	numspechit = 0;
+	
+	// LFP Rover
+	g_LFPRover = &thinkercap;
 	
 	// Cheats
 	g_CheatFlags = 0;

@@ -57,6 +57,12 @@
 #include "r_sky.h"
 #include "p_inter.h"
 
+/**************
+*** GLOBALS ***
+**************/
+
+extern mobj_t* g_LFPRover;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -198,11 +204,15 @@ static int32_t PS_GetThinkerID(thinker_t* const a_Thinker)
 	if (!a_Thinker)
 		return -1;
 	
+	/* Is cap? */
+	if (a_Thinker == &thinkercap)
+		return 0;
+	
 	/* Thinker Loop */
 	for (RetVal = 0, Rover = thinkercap.next; Rover != &thinkercap; Rover = Rover->next, RetVal++)
 		// Is this one?
 		if (Rover == a_Thinker)
-			return RetVal;
+			return RetVal + 1;
 	
 	/* Not in chain? */
 	return -2;
@@ -218,10 +228,14 @@ static thinker_t* PS_GetThinkerFromID(const int32_t a_ID)
 	if (a_ID < 0)
 		return NULL;
 	
+	/* Is cap? */
+	if (a_ID == 0)
+		return &thinkercap;
+	
 	/* Thinker Loop */
 	for (i = 0, Rover = thinkercap.next; Rover != &thinkercap; Rover = Rover->next, i++)
 		// Is this one?
-		if (i == a_ID)
+		if (i + 1 == a_ID)
 			return Rover;
 	
 	/* Not found */
@@ -1335,6 +1349,7 @@ static bool_t PS_SaveGameState(D_BS_t* const a_Str)
 	D_BSwu32(a_Str, g_CoreGame);
 	D_BSwu32(a_Str, g_IWADFlags);
 	D_BSwu8(a_Str, P_GetRandIndex());
+	D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)g_LFPRover));
 	
 	// Record
 	D_BSRecordBlock(a_Str);
@@ -1391,6 +1406,7 @@ static bool_t PS_LoadGameState(D_BS_t* const a_Str)
 	g_CoreGame = D_BSru32(a_Str);
 	g_IWADFlags = D_BSru32(a_Str);
 	P_SetRandIndex(D_BSru8(a_Str));
+	g_LFPRover = (intptr_t)D_BSri32(a_Str);
 	
 	/* Read Vars */
 	for (;;)
@@ -2797,6 +2813,9 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	}
 	
 	/* Handle Reference Links (if any) */
+	// Player look last
+	g_LFPRover = (void*)PS_GetThinkerFromID((intptr_t)g_LFPRover);
+	
 	// Players
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])

@@ -1443,6 +1443,8 @@ tic_t itemrespawntime[ITEMQUESIZE];
 int iquehead;
 int iquetail;
 
+extern mobj_t* g_LFPRover;
+
 void P_RemoveMobj(mobj_t* mobj)
 {
 	size_t i;
@@ -1450,6 +1452,10 @@ void P_RemoveMobj(mobj_t* mobj)
 	
 	if (!mobj)
 		return;
+	
+	/* Remove from active target */
+	if (mobj == g_LFPRover)
+		g_LFPRover = &thinkercap;
 		
 	/* Remove object from bots */
 	B_RemoveThinker(mobj);
