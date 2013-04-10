@@ -514,7 +514,7 @@ bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 		return false;
 	
 	// Only permit feeders
-	if (!Local->RealDriver->RawMIDI)
+	if (!MIDIDriver->RawMIDI)
 		return false;
 		
 	/* Otherwise allocate data for MUS2MID converter */

@@ -1547,6 +1547,7 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 	while (PackData->InAt + 6 > PackData->InEnd)
 	{
 		// Init
+		memset(Header, 0, sizeof(Header));
 		memset(&Addr, 0, sizeof(Addr));
 		
 		// Try reading from wrapped stream
@@ -1998,6 +1999,8 @@ bool_t D_BSCompareHeader(const char* const a_A, const char* const a_B)
 // This used to return void, but I need it to return true for the SaveGame code
 bool_t D_BSBaseBlock(D_BS_t* const a_Stream, const char* const a_Header)
 {
+	int32_t i;
+	
 	/* Check */
 	if (!a_Stream || !a_Header)
 		return false;
@@ -2015,7 +2018,8 @@ bool_t D_BSBaseBlock(D_BS_t* const a_Stream, const char* const a_Header)
 	a_Stream->ReadOff = 0;
 	
 	// Copy header
-	memmove(a_Stream->BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
+	for (i = 0; i < 4; i++)
+		a_Stream->BlkHeader[i] = a_Header[i];
 	
 	/* Success */
 	return true;
