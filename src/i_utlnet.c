@@ -240,7 +240,7 @@ bool_t I_InitNetwork(void)
 
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 /* IS_ConvertHost() -- Converts hostname */
-static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_Host, struct sockaddr_storage* const a_Native)
+static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_Host, struct sockaddr_storage* const a_Native, socklen_t* const a_Len)
 {
 	size_t i;
 	uint32_t T4;
@@ -262,6 +262,10 @@ static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_H
 			// Flip in
 			((struct sockaddr_in*)a_Native)->sin_addr.s_addr = htonl(T4);
 			
+			// Set length
+			if (a_Len)
+				*a_Len = sizeof(struct sockaddr_in);
+			
 			// Success!
 			return true;
 		}
@@ -277,6 +281,10 @@ static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_H
 				((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i] = a_Host->Host.v6.Addr.b[i];
 				
 			((struct sockaddr_in6*)a_Native)->sin6_scope_id = a_Host->Host.v6.Scope;
+			
+			// Set length
+			if (a_Len)
+				*a_Len = sizeof(struct sockaddr_in6);
 			
 			// Success!
 			return true;
@@ -499,7 +507,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 	//	return false;
 	
 	/* Convert */
-	IS_ConvertHost(false, a_Host, (const struct sockaddr*)Ent->h_addr);
+	IS_ConvertHost(false, a_Host, (const struct sockaddr*)Ent->h_addr, NULL);
 	a_Host->Port = MatchPort;
 	
 	/* Success! */
@@ -710,7 +718,7 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 		
 		// Lookup Host?
 		if (a_Host && a_Host->IPvX == INIPVN_IPV6)
-			IS_ConvertHost(true, a_Host, &In6);
+			IS_ConvertHost(true, a_Host, &In6, NULL);
 			
 		// Set Port
 		In6.sin6_family = AF_INET6;
@@ -726,7 +734,7 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 		
 		// Lookup Host?
 		if (a_Host && a_Host->IPvX == INIPVN_IPV4)
-			IS_ConvertHost(true, a_Host, &In4);
+			IS_ConvertHost(true, a_Host, &In4, NULL);
 		
 		// Set Port
 		In4.sin_family = AF_INET;
@@ -824,7 +832,7 @@ static size_t IS_NetRecvWrap(I_NetSocket_t* const a_Socket, I_HostAddress_t* con
 		return 0;
 	
 	// Convert address to host
-	IS_ConvertHost(false, a_Host, &Addr);
+	IS_ConvertHost(false, a_Host, &Addr, NULL);
 	
 	/* Return written bytes */
 	return RetVal;
@@ -873,11 +881,16 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	/* Recieve from which socket? */
 	// Convert address to host
 	memset(&Addr, 0, sizeof(Addr));
-	IS_ConvertHost(true, a_Host, &Addr);
+	IS_ConvertHost(true, a_Host, &Addr, &SockLen);
 	
-	// Receive from it
+	// On Non-BSD systems, use convert hosts' SockLen because on Mac OS X
+	// if SockLen != sizeof(struct sockaddr_in(6)) sendto will EINVAL
+	// It seems Linux does not give a damn about the length however.
+#if __REMOOD_SOCKLEVEL != __REMOOD_SOCKBSD
 	SockLen = sizeof(Addr);
+#endif
 	
+	// Send data
 	RetVal = sendto(a_Socket->SockFD, a_InData, a_Len, __REMOOD_DONTWAITMSG, (struct sockaddr*)&Addr, SockLen);
 	
 	// Error?
