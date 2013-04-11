@@ -604,8 +604,8 @@ static void STS_MapToScreen(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, c
 	fixed_t CenterX, CenterY;
 	
 	/* Calculate center of screen */
-	CenterX = (a_Info->Rect[0] + (a_Info->Size[0] >> 1)) << FRACBITS;
-	CenterY = (a_Info->Rect[1] + (a_Info->Size[1] >> 1)) << FRACBITS;
+	CenterX = (a_Info->Size[0] >> 1) << FRACBITS;
+	CenterY = (a_Info->Size[1] >> 1) << FRACBITS;
 	
 	/* Project */
 	*a_OX = FixedMul(a_X - a_Info->CenterAt[0], a_Info->Scale);
@@ -631,14 +631,42 @@ static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, 
 	STS_MapToScreen(a_Info, a_Xa, a_Ya, &p[0][0], &p[0][1]);
 	STS_MapToScreen(a_Info, a_Xb, a_Yb, &p[1][0], &p[1][1]);
 	
-	/* Draw */
+	/* Place onto screen */
+	// Convert to int
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < 2; j++)
+			p[i][j] = p[i][j] >>= FRACBITS;
+	
+	// Translate
+	for (i = 0; i < 2; i++)
+	{
+		p[i][0] += a_Info->Rect[0];
+		p[i][1] += a_Info->Rect[1];
+	}
+	
+	// Both ends off left?
+	if (p[0][0] < a_Info->Rect[0] && p[1][0] < a_Info->Rect[0])
+		return;
+	
+	// Both ends off right
+	if (p[0][0] >= a_Info->Rect[2] && p[1][0] >= a_Info->Rect[2])
+		return;
+	
+	// Both ends off bottom
+	if (p[0][1] < a_Info->Rect[1] && p[1][1] < a_Info->Rect[1])
+		return;
+	
+	// Both ends off top
+	if (p[0][1] >= a_Info->Rect[3] && p[1][1] >= a_Info->Rect[3])
+		return;
+		
 	// Scale to screen duplication count
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 2; j++)
 			p[i][j] = FixedMul(p[i][j], (j ? vid.fxdupy : vid.fxdupx));
 	
 	// Draw it
-	VHW_HUDDrawLine(VHWRGB(a_R,a_G,a_B), (p[0][0] >> FRACBITS) + a_Info->Rect[0], (p[0][1] >> FRACBITS) + a_Info->Rect[1], (p[1][0] >> FRACBITS) + a_Info->Rect[0], (p[1][1] >> FRACBITS) + a_Info->Rect[1]);
+	VHW_HUDDrawLine(VHWRGB(a_R,a_G,a_B), p[0][0], p[0][1], p[1][0], p[1][1]);
 }
 
 /* STS_DrawMapThing() -- Draws map thing */
