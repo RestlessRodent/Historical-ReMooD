@@ -524,9 +524,9 @@ static const uint32_t c_DefMapColors[NUMPROFAUTOMAPCOLORS][3] =
 	{0, 0, 0},									// DPAMC_BACKGROUND
 	{0, 0, 0},									// DPAMC_YOURPLAYER
 	{63, 255, 63},								// DPAMC_THING
-	{0, 0, 0},									// DPAMC_ALLYTHING
-	{0, 0, 0},									// DPAMC_ENEMYTHING
-	{0, 0, 0},									// DPAMC_PICKUP
+	{63, 255, 255},								// DPAMC_ALLYTHING
+	{255, 63, 63},								// DPAMC_ENEMYTHING
+	{255, 255, 0},								// DPAMC_PICKUP
 	{255, 0, 0},								// DPAMC_SOLIDWALL
 	{168, 168, 0},								// DPAMC_FLOORSTEP
 	{255, 127, 0},								// DPAMC_CEILSTEP
@@ -554,6 +554,7 @@ typedef struct ST_MapDrawInfo_s
 	int32_t Size[2];							// Size of screen
 	uint32_t (*Color)[NUMPROFAUTOMAPCOLORS][3];	// Automap colors
 	player_t* POV;								// Point of view
+	mobj_t* POVMo;								// Object of POV
 	fixed_t CenterAt[2];						// Center coordinates at
 	fixed_t Scale;								// Scale
 	bool_t DoRot;								// Do rotation
@@ -641,12 +642,80 @@ static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, 
 }
 
 /* STS_DrawMapThing() -- Draws map thing */
-static void STS_DrawMapThing(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Radius, const angle_t a_Angle, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
+static void STS_DrawMapThing(ST_MapDrawInfo_t* const a_Info, mobj_t* a_Mo, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Radius, const angle_t a_Angle)
 {
-	STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y - a_Radius, a_X + a_Radius, a_Y - a_Radius, a_R, a_G, a_B);
-	STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y - a_Radius, a_X + a_Radius, a_Y + a_Radius, a_R, a_G, a_B);
-	STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y + a_Radius, a_R, a_G, a_B);
-	STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y - a_Radius, a_R, a_G, a_B);
+	int8_t Shape;
+	fixed_t x, y, c, d, l, m;
+	uint32_t (*rgb)[3];
+	int32_t PNum;
+	
+	/* Base Colors */
+	rgb = (*a_Info->Color)[DPAMC_THING];
+	PNum = a_Info->POV - players;
+	
+	/* If object is shootable or a missile, make an arrow */
+	Shape = 0;		// Square by default
+	if ((a_Mo->flags & MF_SHOOTABLE) || (a_Mo->flags & MF_MISSILE))
+		Shape = 1;	// Arrow
+	else if (a_Mo->flags & MF_PICKUP)
+	{
+		// Based on pickup type, change the shape
+	}
+	
+	/* Recolorize */
+	// Pickupable
+	if (a_Mo->flags & MF_SPECIAL)
+		rgb = (*a_Info->Color)[DPAMC_PICKUP];
+	
+	// Non-Pickupable
+	else
+	{
+		// Can be shot, so teamify
+		if (a_Mo->flags & MF_SHOOTABLE)
+		{
+			// This is not from a spectator (specs don't really care for allies, etc.)
+			if (PNum >= 0 && PNum < MAXPLAYERS)
+			{
+				if (P_MobjOnSameTeam(a_Info->POVMo, a_Mo))
+					rgb = (*a_Info->Color)[DPAMC_ALLYTHING];
+				else
+					rgb = (*a_Info->Color)[DPAMC_ENEMYTHING];
+			}
+		}
+	}
+	
+	/* How is the object represented? */
+	// An arrow
+	if (Shape == 1)
+	{
+		STS_Rotate(-(a_Radius >> 1), -a_Radius, a_Angle - ANG90, &l, &m);
+		l += a_X;
+		m += a_Y;
+		STS_Rotate((a_Radius >> 1), -a_Radius, a_Angle - ANG90, &c, &d);
+		c += a_X;
+		d += a_Y;
+		STS_Rotate(0, a_Radius, a_Angle - ANG90, &x, &y);
+		x += a_X;
+		y += a_Y;
+		
+		// Back line
+		STS_DrawMapLine(a_Info, l, m, c, d, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+		
+		// Right Side
+		STS_DrawMapLine(a_Info, c, d, x, y, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+		
+		// Left Side
+		STS_DrawMapLine(a_Info, x, y, l, m, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+	}
+	
+	// A nice box
+	else
+	{
+		STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y - a_Radius, a_X + a_Radius, a_Y - a_Radius, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+		STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y - a_Radius, a_X + a_Radius, a_Y + a_Radius, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+		STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y + a_Radius, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+		STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y - a_Radius, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
+	}
 }
 
 /* STS_DrawPlayerMap() -- Draws player automap */
@@ -678,8 +747,9 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	Info.Size[1] = a_H;
 	Info.Color = c_DefMapColors;
 	Info.POV = P_SpecGetPOV(Info.Scr);
+	Info.POVMo = Info.POV->mo;
 	Info.DoRot = true;
-	Info.RotAngle = (Info.POV->mo ? Info.POV->mo->angle : 0);
+	Info.RotAngle = (Info.POVMo ? Info.POVMo->angle : 0);
 	
 	/* Initialize Map Zoom? */
 	if (!Info.Split->MapZoom)
@@ -778,15 +848,9 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	{
 		Front = &sectors[i];
 		
-		// Get object list
+		// Get object list and draw all objects
 		for (Mo = Front->thinglist; Mo; Mo = Mo->snext)
-		{
-			// Default color
-			rgb = (*Info.Color)[DPAMC_THING];
-		
-			// Draw thing
-			STS_DrawMapThing(&Info, Mo->x, Mo->y, Mo->radius, Mo->angle, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
-		}
+			STS_DrawMapThing(&Info, Mo, Mo->x, Mo->y, Mo->radius, Mo->angle);
 	}
 	
 	/* Draw players */
