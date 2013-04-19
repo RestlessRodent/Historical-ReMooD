@@ -623,8 +623,10 @@ static void STS_MapToScreen(ST_MapDrawInfo_t* const a_Info, const fixed_t a_X, c
 /* STS_DrawMapLine() -- Draws map line */
 static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, const fixed_t a_Ya, const fixed_t a_Xb, const fixed_t a_Yb, const uint8_t a_R, const uint8_t a_G, const uint8_t a_B)
 {
-	fixed_t p[2][2], c[2];
+	fixed_t p[2][2], m, xx, yy, c, b;
 	register int i, j;
+	int xDiff, yDiff;
+	uint32_t Mask;
 		
 	/* Project Coordinates */
 	// Map to screen
@@ -635,7 +637,7 @@ static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, 
 	// Convert to int
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 2; j++)
-			p[i][j] = p[i][j] >>= FRACBITS;
+			p[i][j] = p[i][j] >> FRACBITS;
 	
 	// Translate
 	for (i = 0; i < 2; i++)
@@ -644,26 +646,91 @@ static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, 
 		p[i][1] += a_Info->Rect[1];
 	}
 	
-	// Both ends off left?
-	if (p[0][0] < a_Info->Rect[0] && p[1][0] < a_Info->Rect[0])
-		return;
+	// If any coordinate is out of bounds on the screen it needs to be snipped
+	Mask = 0;
+	if (p[0][0] < a_Info->Rect[0])	Mask |= 0x01;
+	if (p[0][0] >= a_Info->Rect[2]) Mask |= 0x02;
+	if (p[1][0] < a_Info->Rect[0])	Mask |= 0x04;
+	if (p[1][0] >= a_Info->Rect[2]) Mask |= 0x08;
+	if (p[0][1] < a_Info->Rect[1])	Mask |= 0x10;
+	if (p[0][1] >= a_Info->Rect[3]) Mask |= 0x20;
+	if (p[1][1] < a_Info->Rect[1])	Mask |= 0x40;
+	if (p[1][1] >= a_Info->Rect[3]) Mask |= 0x80;
 	
-	// Both ends off right
-	if (p[0][0] >= a_Info->Rect[2] && p[1][0] >= a_Info->Rect[2])
-		return;
-	
-	// Both ends off bottom
-	if (p[0][1] < a_Info->Rect[1] && p[1][1] < a_Info->Rect[1])
-		return;
-	
-	// Both ends off top
-	if (p[0][1] >= a_Info->Rect[3] && p[1][1] >= a_Info->Rect[3])
-		return;
+	// Something was off screen
+	if (Mask)
+	{
+		// Both ends off bottom
+		if ((Mask & 0xA0) == 0xA0)
+			return;
 		
+		// Both ends off top
+		if ((Mask & 0x50) == 0x50)
+			return;
+		
+		// Both ends off right
+		if ((Mask & 0x0A) == 0x0A)
+			return;
+		
+		// Both ends off left
+		if ((Mask & 0x05) == 0x05)
+			return;
+		
+		// Get X difference
+		xDiff = p[1][0] - p[0][0];
+		
+		// Vertical line
+		if (!xDiff)
+		{
+			if (Mask & 0x10)
+				p[0][1] = a_Info->Rect[1];
+			if (Mask & 0x20)
+				p[0][1] = a_Info->Rect[3] - 1;
+			if (Mask & 0x40)
+				p[1][1] = a_Info->Rect[1];
+			if (Mask & 0x80)
+				p[1][1] = a_Info->Rect[3] - 1;
+		}
+		
+		// Non-Vertical Line
+		else
+		{
+			// Get y difference
+			yDiff = (p[1][1] - p[0][1]);
+			
+			// Get slope
+			m = FixedDiv(yDiff << FRACBITS, xDiff << FRACBITS);
+			
+			// Horizontal line
+			if (m == 0)
+			{
+				if (Mask & 0x01)
+					p[0][0] = a_Info->Rect[0];
+				if (Mask & 0x02)
+					p[0][0] = a_Info->Rect[2] - 1;
+				if (Mask & 0x04)
+					p[1][0] = a_Info->Rect[0];
+				if (Mask & 0x08)
+					p[1][0] = a_Info->Rect[2] - 1;
+			}
+			
+			// Diagonal line
+			else
+			{
+				// Calculate for b = y - mx
+				b = (p[0][1] << FRACBITS) - FixedMul(m, (p[0][0] << FRACBITS));
+				
+				// Calculate for y = mx + b
+				// Calculate for x = (y - b) / m;
+				
+			}
+		}
+	}
+	
 	// Scale to screen duplication count
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 2; j++)
-			p[i][j] = FixedMul(p[i][j], (j ? vid.fxdupy : vid.fxdupx));
+			p[i][j] = FixedMul(p[i][j] << FRACBITS, (j ? vid.fxdupy : vid.fxdupx)) >> FRACBITS;
 	
 	// Draw it
 	VHW_HUDDrawLine(VHWRGB(a_R,a_G,a_B), p[0][0], p[0][1], p[1][0], p[1][1]);
