@@ -1089,7 +1089,7 @@ static bool_t WLS_CheckWADSum(char* const a_OutPath, const size_t a_OutSize, voi
 	CheckSumComp = a_Data;
 	
 	// No sum?
-	if (!CheckSumComp)
+	if (!CheckSumComp || (CheckSumComp && !strlen(CheckSumComp)))
 		return true;
 	
 	/* Message */

@@ -1215,7 +1215,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	{
 		"Doom II: Hell on Earth",
 		"doom2\0doomii\0doomtwo\0commercial\0hellonearth\0\0",
-		"doom2.wad\0freedoom.wad\0freedm.wad\0\0",
+		"doom2.wad\0\0",
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
 		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
@@ -1341,6 +1341,28 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		
 		doom,
 		shareware
+	},
+	
+	// FreeDoom
+	{
+		"FreeDoom",
+		"freedoom2\0freedoomii\0freedoomtwo\0freecommercial\0freehellonearth\0\0",
+		"freedoom.wad\0freedm.wad\0\0",
+		NULL,
+		NULL,
+		NULL,
+		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		0,
+		0,
+		
+		CG_DOOM,
+		false,
+		"MI_FDOM2",
+		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
+		"map##",
+		
+		doom2,
+		commercial
 	},
 	
 	// Heretic Extended
@@ -1682,25 +1704,36 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 		}
 		
 		// Conf = 40 :: Simple sum matches
-		if (strcasecmp(c_IWADInfos[i].SimpleSum, BaseWAD->SimpleSumChars) == 0)
-		{
-			Confidence[i] += 40;
-			TotalScore += 40;
-		}
+		if (c_IWADInfos[i].SimpleSum)
+			if (strcasecmp(c_IWADInfos[i].SimpleSum, BaseWAD->SimpleSumChars) == 0)
+			{
+				Confidence[i] += 40;
+				TotalScore += 40;
+			}
+		
+		// Conf = 100 :: MD5 sum matches
+		if (c_IWADInfos[i].MD5Sum)
+			if (strcasecmp(c_IWADInfos[i].MD5Sum, BaseWAD->CheckSumChars) == 0)
+			{
+				Confidence[i] += 40;
+				TotalScore += 40;
+			}
 		
 		// Conf = 15 :: Size
-		if (BaseWAD->__Private.__Size == c_IWADInfos[i].Size)
-		{
-			Confidence[i] += 15;
-			TotalScore += 15;
-		}
+		if (c_IWADInfos[i].Size)
+			if (BaseWAD->__Private.__Size == c_IWADInfos[i].Size)
+			{
+				Confidence[i] += 15;
+				TotalScore += 15;
+			}
 		
 		// Conf = 15 :: NumLumps
-		if (BaseWAD->NumEntries == c_IWADInfos[i].NumLumps)
-		{
-			Confidence[i] += 15;
-			TotalScore += 15;
-		}
+		if (c_IWADInfos[i].NumLumps)
+			if (BaseWAD->NumEntries == c_IWADInfos[i].NumLumps)
+			{
+				Confidence[i] += 15;
+				TotalScore += 15;
+			}
 		
 		// Conf = 1 :: Lumps in WAD
 		for (j = 0;; j++)
