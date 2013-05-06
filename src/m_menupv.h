@@ -40,14 +40,15 @@ struct M_SWidget_s
 	int32_t dx, dy;								// Draw X/Y
 	int32_t dw, dh;								// Draw W/H
 	
-	M_SWidget_t* Parent;					// Parent Widget
+	M_SWidget_t* Parent;						// Parent Widget
 	
-	M_SWidget_t** Kids;					// Kid Widgets
+	M_SWidget_t** Kids;							// Kid Widgets
 	int32_t NumKids;							// Number of kids
 	
 	int32_t CursorOn;							// Curson on which kid?
 	M_SMMenus_t SubMenu;						// SubMenu to open
 	int32_t Option;								// Option
+	D_Prof_t* Prof;								// Profile to modify
 	
 	// Drawing
 	void (*DCursor)(M_SWidget_t* const, M_SWidget_t* const);
@@ -123,5 +124,8 @@ void M_QuitGame_FTicker(M_SWidget_t* const a_Widget);
 void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget);
 bool_t M_CTUS_BoxCallBack(struct CONCTI_Inputter_s*, const char* const);
 void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget);
+
 void M_ProfMan_FTicker(M_SWidget_t* const a_Widget);
+bool_t M_ProfMan_CreateProf(M_SWidget_t* const a_Widget);
+bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget);
 

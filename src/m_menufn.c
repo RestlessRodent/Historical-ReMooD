@@ -1994,6 +1994,9 @@ void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
 		{
 			Wid->Data.Label.Ref = NULL;
 			Wid->Flags |= MSWF_NOSELECT | MSWF_DISABLED;
+			
+			if (Wid->CursorOn == i + 1)
+				Wid->CursorOn = 0;
 			continue;
 		}
 		
@@ -2004,7 +2007,75 @@ void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
 		Prof->AccountRef = Prof->AccountName;
 		Prof->DisplayRef = Prof->DisplayName;
 		Wid->Data.Label.Ref = &Prof->AccountRef;
-	}	
+	}
+}
+
+/* M_ProfMan_CreateProf() -- Create profile */
+bool_t M_ProfMan_CreateProf(M_SWidget_t* const a_Widget)
+{
+	char Buf[MAXPLAYERNAME];
+	int32_t i;
+	D_Prof_t* Prof;
+	M_SWidget_t* Sub;
+	
+	/* Add basic profile with generic no name */
+	// Find player to setup
+	for (Prof = NULL, i = 0; i < 9999; i++)
+	{
+		// Make temp name
+		snprintf(Buf, MAXPLAYERNAME - 1, "player%i", i + 1);
+		Buf[MAXPLAYERNAME - 1] = 0;
+		
+		// See if profile exists
+		if ((Prof = D_FindProfileEx(Buf)))
+		{
+			Prof = NULL;
+			continue;
+		}
+		
+		// Does not exist
+		break;
+	}
+	
+	/* Create profile with said name */
+	Prof = D_CreateProfileEx(Buf);
+	
+	// Failed for some reason?
+	if (!Prof)
+		return true;
+	
+	/* See if profile is in slot */
+	for (i = 0; i < MAXPROFCONST; i++)
+		if (g_ProfList[i] == Prof)
+			break;
+	
+	// Not in first n profiles
+	if (i >= MAXPROFCONST)
+		return true;
+	
+	/* Go straight to modification setup */
+	Sub = M_SMSpawn(a_Widget->Screen, MSM_PROFMOD);
+	
+	if (Sub)
+		Sub->Prof = Prof;
+	
+	/* Success! */
+	return true;
+}
+
+/* M_ProfMan_IndvFSel() -- Going to modify profile */
+bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget)
+{
+	M_SWidget_t* Sub;
+	
+	/* Create submenu to modify profile */
+	Sub = M_SMSpawn(a_Widget->Screen, MSM_PROFMOD);
+	
+	if (Sub)
+		Sub->Prof = g_ProfList[a_Widget->Option];
+	
+	/* Success? */
+	return true;
 }
 
 /* ----------------------- */

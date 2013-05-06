@@ -2022,7 +2022,7 @@ void M_SMTicker(void)
 }
 
 /* M_SMSpawn() -- Spawns menu for player */
-void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
+void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 {
 #define SUBMENUFLAGS (VFO_COLOR(VEX_MAP_BRIGHTWHITE))
 #define SORTFLAGS (VFO_COLOR(VEX_MAP_ORANGE))
@@ -2033,7 +2033,7 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 	
 	/* Check */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || a_MenuID < 0 || a_MenuID >= NUMMSMMENUS)
-		return;
+		return NULL;
 	
 	/* Init */
 	Root = NULL;
@@ -2283,13 +2283,22 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 			// Add create profile option
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUOPTION_CREATEPROF));
+			Work->FSelect = M_ProfMan_CreateProf;
 			
 			// Create MAXPROFCONST menu slots for profiles
 			for (i = 0; i < MAXPROFCONST; i++)
 			{
 				Work = MS_SMCreateLabel(Root, VFONT_SMALL, 0, DS_GetStringRef(DSTR_MENU_NULLSPACE));
 				Work->Option = i;
+				Work->FSelect = M_ProfMan_IndvFSel;
 			}
+			break;
+		
+			// Modify profile
+		case MSM_PROFMOD:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
 			break;
 		
 			// Unknown
@@ -2303,6 +2312,9 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 		Root->Screen = a_ScreenID;
 		MS_SMStackPush(a_ScreenID, Root);
 	}
+	
+	/* Return created menu */
+	return Root;
 #undef SUBMENUFLAGS
 #undef SORTFLAGS
 }

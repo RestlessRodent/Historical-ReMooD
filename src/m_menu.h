@@ -205,6 +205,7 @@ typedef enum M_SMMenus_e
 	MSM_MAINHERETIC,							// Main Menu (Heretic)
 	MSM_MAIN,									// Main Menu alias
 	MSM_PROFMAN,								// Profile Manager
+	MSM_PROFMOD,								// Modify Profile
 	
 	NUMMSMMENUS
 } M_SMMenus_t;
@@ -218,7 +219,7 @@ bool_t M_SMGenSynth(const int32_t a_ScreenID);
 bool_t M_SMFreezeGame(void);
 void M_SMDrawer(void);
 void M_SMTicker(void);
-void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID);
+void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID);
 
 #endif
 
