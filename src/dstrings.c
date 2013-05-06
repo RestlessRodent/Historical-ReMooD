@@ -132,6 +132,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		   "MENUCREATEGAME_IWADTITLE", "IWAD"},
 	{		   "MENUCREATEGAME_STARTGAME", "Start Game!"},
 	
+	{			  "MENUOPTION_MANAGEPROF", "Manage Profiles"},
+	{			  "MENUOPTION_CREATEPROF", "Create Profile..."},
+	
 	{				"UIGENERAL_DONTCARE", "Don't Care!"},
 	{					 "UIGENERAL_YES", "Yes"},
 	{					  "UIGENERAL_NO", "No"},

@@ -25,8 +25,10 @@ enum M_CreateGameOpts_e
 *** STRUCTURES ***
 *****************/
 
+typedef struct M_SWidget_s M_SWidget_t;
+
 /* M_SWidget_t -- Simple menu widget */
-typedef struct M_SWidget_s
+struct M_SWidget_s
 {
 	uint32_t Flags;								// Widget Flags
 	int32_t Screen;								// Screen
@@ -38,9 +40,9 @@ typedef struct M_SWidget_s
 	int32_t dx, dy;								// Draw X/Y
 	int32_t dw, dh;								// Draw W/H
 	
-	struct M_SWidget_s* Parent;					// Parent Widget
+	M_SWidget_t* Parent;					// Parent Widget
 	
-	struct M_SWidget_s** Kids;					// Kid Widgets
+	M_SWidget_t** Kids;					// Kid Widgets
 	int32_t NumKids;							// Number of kids
 	
 	int32_t CursorOn;							// Curson on which kid?
@@ -48,17 +50,17 @@ typedef struct M_SWidget_s
 	int32_t Option;								// Option
 	
 	// Drawing
-	void (*DCursor)(struct M_SWidget_s* const, struct M_SWidget_s* const);
-	void (*DDraw)(struct M_SWidget_s* const);
+	void (*DCursor)(M_SWidget_t* const, M_SWidget_t* const);
+	void (*DDraw)(M_SWidget_t* const);
 	
 	// Functions
-	void (*FDestroy)(struct M_SWidget_s* const);
-	bool_t (*FEvent)(struct M_SWidget_s* const, const I_EventEx_t* const);
-	bool_t (*FLeftRight)(struct M_SWidget_s* const, const int32_t);
-	bool_t (*FUpDown)(struct M_SWidget_s* const, const int32_t);
-	bool_t (*FSelect)(struct M_SWidget_s* const);
-	bool_t (*FCancel)(struct M_SWidget_s* const);
-	void (*FTicker)(struct M_SWidget_s* const);
+	void (*FDestroy)(M_SWidget_t* const);
+	bool_t (*FEvent)(M_SWidget_t* const, const I_EventEx_t* const);
+	bool_t (*FLeftRight)(M_SWidget_t* const, const int32_t);
+	bool_t (*FUpDown)(M_SWidget_t* const, const int32_t);
+	bool_t (*FSelect)(M_SWidget_t* const);
+	bool_t (*FCancel)(M_SWidget_t* const);
+	void (*FTicker)(M_SWidget_t* const);
 	
 	union
 	{
@@ -95,7 +97,7 @@ typedef struct M_SWidget_s
 			bool_t OldSteal;					// Old Steal Input
 		} TextBox;
 	} Data;										// Widget Data
-} M_SWidget_t;
+};
 
 /****************
 *** FUNCTIONS ***
@@ -107,18 +109,19 @@ void M_StackPopAll(void);
 
 int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut);
 
-void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub);
-bool_t M_SubMenu_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget);
-bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget);
-void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget);
-void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget);
+void M_MainMenu_DCursor(M_SWidget_t* const a_Widget, M_SWidget_t* const a_Sub);
+bool_t M_SubMenu_FSelect(M_SWidget_t* const a_Widget);
+bool_t M_NewGameClassic_FSelect(M_SWidget_t* const a_Widget);
+bool_t M_NewGameEpi_FSelect(M_SWidget_t* const a_Widget);
+bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget);
+bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget);
+bool_t M_QuitGame_StopWatchFSelect(M_SWidget_t* const a_Widget);
+bool_t M_QuitGame_StopRecordFSelect(M_SWidget_t* const a_Widget);
+bool_t M_QuitGame_LogOffFSelect(M_SWidget_t* const a_Widget);
+bool_t M_QuitGame_ExitFSelect(M_SWidget_t* const a_Widget);
+void M_QuitGame_FTicker(M_SWidget_t* const a_Widget);
+void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget);
 bool_t M_CTUS_BoxCallBack(struct CONCTI_Inputter_s*, const char* const);
-void M_CTUS_ConnectFSelect(struct M_SWidget_s* const a_Widget);
+void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget);
+void M_ProfMan_FTicker(M_SWidget_t* const a_Widget);
 

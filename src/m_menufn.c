@@ -1519,7 +1519,7 @@ int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut)
 /* --- NEW GAME MENU --- */
 
 /* M_MainMenu_DCursor() -- Draws cursor over item */
-void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* const a_Sub)
+void M_MainMenu_DCursor(M_SWidget_t* const a_Widget, M_SWidget_t* const a_Sub)
 {
 	bool_t SkullNum;
 	
@@ -1541,14 +1541,14 @@ void M_MainMenu_DCursor(struct M_SWidget_s* const a_Widget, struct M_SWidget_s* 
 }
 
 /* M_SubMenu_FSelect() -- Opens submenu */
-bool_t M_SubMenu_FSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_SubMenu_FSelect(M_SWidget_t* const a_Widget)
 {
 	M_SMSpawn(a_Widget->Screen, a_Widget->SubMenu);
 	return true;
 }
 
 /* M_NewGameClassic_FSelect() -- Classic is selected at the top menu */
-bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_NewGameClassic_FSelect(M_SWidget_t* const a_Widget)
 {
 	/* Clear next game vars */
 	NG_ResetVars();
@@ -1610,7 +1610,7 @@ bool_t M_NewGameClassic_FSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* M_NewGameEpi_FSelect() -- Episode Selected */
-bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_NewGameEpi_FSelect(M_SWidget_t* const a_Widget)
 {
 #define BUFSIZE 8
 	char Buf[BUFSIZE];
@@ -1622,7 +1622,7 @@ bool_t M_NewGameEpi_FSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* M_NewGameSkill_FSelect() -- Selects skill */
-bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 {
 	NG_SetVarValue(PGS_GAMESKILL, a_Widget->Option);
 	
@@ -1656,7 +1656,7 @@ bool_t M_NewGameSkill_FSelect(struct M_SWidget_s* const a_Widget)
 /* --- QUIT GAME MENU --- */
 
 /* M_QuitGame_DisconFSelect() -- Disconnect from server */
-bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Disconnect from Netgame */
 	D_XNetDisconnect(false);
@@ -1665,7 +1665,7 @@ bool_t M_QuitGame_DisconFSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* M_QuitGame_StopWatchFSelect() -- Stop watching demo */
-bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_QuitGame_StopWatchFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Stop Demo from Playing */
 	if (demoplayback)
@@ -1677,7 +1677,7 @@ bool_t M_QuitGame_StopWatchFSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* M_QuitGame_StopRecordFSelect() -- Stop recording demo */
-bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_QuitGame_StopRecordFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Stop Demo from Recording */
 	if (demorecording)
@@ -1689,20 +1689,20 @@ bool_t M_QuitGame_StopRecordFSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* M_QuitGame_LogOffFSelect() -- Stop recording demo */
-bool_t M_QuitGame_LogOffFSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_QuitGame_LogOffFSelect(M_SWidget_t* const a_Widget)
 {
 	return true;
 }
 
 /* M_QuitGame_ExitFSelect() -- Stop recording demo */
-bool_t M_QuitGame_ExitFSelect(struct M_SWidget_s* const a_Widget)
+bool_t M_QuitGame_ExitFSelect(M_SWidget_t* const a_Widget)
 {
 	I_Quit();
 	return true;
 }
 
 /* M_QuitGame_FTicker() -- Ticker for quit game */
-void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
+void M_QuitGame_FTicker(M_SWidget_t* const a_Widget)
 {
 	size_t i;
 	M_SWidget_t* Kid;
@@ -1775,7 +1775,7 @@ void M_QuitGame_FTicker(struct M_SWidget_s* const a_Widget)
 extern const void* g_ReMooDPtr;
 
 /* M_ACG_CreateFSelect() -- Start Game is selected */
-void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget)
+void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget)
 {
 	M_SWidget_t* Parent;
 	M_SWidget_t* Map[NUMMCGO];
@@ -1884,7 +1884,7 @@ void M_ACG_CreateFSelect(struct M_SWidget_s* const a_Widget)
 static char l_ConnectIP[CONNECTIPSIZE];
 
 /* M_CTUS_ConnectFSelect() -- Connect Selected */
-void M_CTUS_ConnectFSelect(struct M_SWidget_s* const a_Widget)
+void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget)
 {
 	int32_t i;
 	M_SWidget_t* Wid;
@@ -1969,5 +1969,14 @@ bool_t M_CTUS_BoxCallBack(struct CONCTI_Inputter_s* a_Inputter, const char* cons
 }
 
 /* ---------------------------------- */
+
+/* --- PROFILE MANAGER --- */
+
+/* M_ProfMan_FTicker() -- Ticker for profile list */
+void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
+{
+}
+
+/* ----------------------- */
 
 

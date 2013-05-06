@@ -1299,7 +1299,7 @@ static M_SWidget_t* MS_SMCreateBox(M_SWidget_t* const a_Parent, const int32_t a_
 }
 
 /* MS_SMTBFDDraw() -- Draw Text Box */
-static void MS_SMTBFDDraw(struct M_SWidget_s* const a_Widget)
+static void MS_SMTBFDDraw(M_SWidget_t* const a_Widget)
 {
 	uint32_t Flags;
 	
@@ -1323,7 +1323,7 @@ static void MS_SMTBFDDraw(struct M_SWidget_s* const a_Widget)
 }
 
 /* MS_SMTBFEvent() -- Text Box Event */
-static bool_t MS_SMTBFEvent(struct M_SWidget_s* const a_Widget, const I_EventEx_t* const a_Event)
+static bool_t MS_SMTBFEvent(M_SWidget_t* const a_Widget, const I_EventEx_t* const a_Event)
 {
 	bool_t RetVal;
 	
@@ -1385,7 +1385,7 @@ static bool_t MS_SMTBFEvent(struct M_SWidget_s* const a_Widget, const I_EventEx_
 }
 
 /* MS_SMTBFSelect() -- Text Box Selected */
-static void MS_SMTBFSelect(struct M_SWidget_s* const a_Widget)
+static void MS_SMTBFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Steal input if not selected */
 	if (!a_Widget->Data.TextBox.StealInput)
@@ -1393,7 +1393,7 @@ static void MS_SMTBFSelect(struct M_SWidget_s* const a_Widget)
 }
 
 /* MS_SMTBFTicker() -- Text Box Ticker */
-static void MS_SMTBFTicker(struct M_SWidget_s* const a_Widget)
+static void MS_SMTBFTicker(M_SWidget_t* const a_Widget)
 {
 	/* Change of stolen input? */
 	if (a_Widget->Data.TextBox.StealInput != a_Widget->Data.TextBox.OldSteal)
@@ -1404,7 +1404,7 @@ static void MS_SMTBFTicker(struct M_SWidget_s* const a_Widget)
 }
 
 /* MS_SMTBFDestroy() -- Box destroyed */
-static void MS_SMTBFDestroy(struct M_SWidget_s* const a_Widget)
+static void MS_SMTBFDestroy(M_SWidget_t* const a_Widget)
 {
 	/* Destroy Inputter */
 	CONCTI_DestroyInput(a_Widget->Data.TextBox.Inputter);
@@ -1455,7 +1455,7 @@ static M_SWidget_t* MS_SMCreateTextBox(M_SWidget_t* const a_Parent, const VideoF
 }
 
 /* MS_Label_DDraw() -- Draws Label */
-void MS_Label_DDraw(struct M_SWidget_s* const a_Widget)
+void MS_Label_DDraw(M_SWidget_t* const a_Widget)
 {
 	uint32_t Flags, ValFlags;
 	int32_t Width;
@@ -1549,7 +1549,7 @@ static M_SWidget_t* MS_SMCreateCVarSlide(M_SWidget_t* const a_Parent, const Vide
 }
 
 /* MS_PossSlideFLeftRight() -- L/R Possible Slide */
-static bool_t MS_PossSlideFLeftRight(struct M_SWidget_s* const a_Widget, const int32_t a_Right)
+static bool_t MS_PossSlideFLeftRight(M_SWidget_t* const a_Widget, const int32_t a_Right)
 {	
 	int32_t n;	
 	
@@ -1588,7 +1588,7 @@ static M_SWidget_t* MS_SMCreatePossSlide(M_SWidget_t* const a_Parent, const Vide
 }
 
 /* MS_Image_DDraw() -- Draws Image */
-void MS_Image_DDraw(struct M_SWidget_s* const a_Widget)
+void MS_Image_DDraw(M_SWidget_t* const a_Widget)
 {
 	V_ImageDraw(0, a_Widget->Data.Image.Pic, a_Widget->dx, a_Widget->dy, NULL);
 }
@@ -2263,6 +2263,25 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 		case MSM_OPTIONS:
 			// Create initial box
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Create profile manager
+				// Disconnect
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUOPTION_MANAGEPROF));
+			Work->FSelect = M_SubMenu_FSelect;
+			Work->SubMenu = MSM_PROFMAN;
+			
+			break;
+			
+			// Profile Manager
+		case MSM_PROFMAN:
+			// Create initial box
+			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
+			
+			// Add menu ticker
+			Root->FTicker = M_ProfMan_FTicker;
+			
+			// Add create profile option
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUOPTION_CREATEPROF));
 			
 			break;
 		

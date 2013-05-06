@@ -204,6 +204,7 @@ typedef enum M_SMMenus_e
 	MSM_OPTIONS,								// Options Menu
 	MSM_MAINHERETIC,							// Main Menu (Heretic)
 	MSM_MAIN,									// Main Menu alias
+	MSM_PROFMAN,								// Profile Manager
 	
 	NUMMSMMENUS
 } M_SMMenus_t;
