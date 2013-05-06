@@ -2010,6 +2010,8 @@ void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
 	}
 }
 
+D_Prof_t* g_DoProf = NULL;
+
 /* M_ProfMan_CreateProf() -- Create profile */
 bool_t M_ProfMan_CreateProf(M_SWidget_t* const a_Widget)
 {
@@ -2054,6 +2056,7 @@ bool_t M_ProfMan_CreateProf(M_SWidget_t* const a_Widget)
 		return true;
 	
 	/* Go straight to modification setup */
+	g_DoProf = Prof;
 	Sub = M_SMSpawn(a_Widget->Screen, MSM_PROFMOD);
 	
 	if (Sub)
@@ -2069,6 +2072,7 @@ bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget)
 	M_SWidget_t* Sub;
 	
 	/* Create submenu to modify profile */
+	g_DoProf = g_ProfList[a_Widget->Option];
 	Sub = M_SMSpawn(a_Widget->Screen, MSM_PROFMOD);
 	
 	if (Sub)
@@ -2076,6 +2080,29 @@ bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget)
 	
 	/* Success? */
 	return true;
+}
+
+/* M_ProfMan_AcctBCB() -- Callback for account name */
+bool_t M_ProfMan_AcctBCB(struct CONCTI_Inputter_s* a_Inputter, const char* const a_Str)
+{
+	M_SWidget_t* Widget;
+	
+	/* Empty string? */
+	if (!a_Str || !a_Str[0])
+		return false;
+	
+	/* No longer steal focus */
+	Widget = (M_SWidget_t*)a_Inputter->DataRef;
+	Widget->Data.TextBox.StealInput = false;
+	
+	/* Attempt rename of profile */
+	D_ProfRename(Widget->Parent->Prof, a_Str);
+	
+	// Set text to account name regardless if change failed
+	CONCTI_SetText(a_Inputter, Widget->Parent->Prof->AccountName);
+	
+	/* Return false, do not want box destroyed */
+	return false;
 }
 
 /* ----------------------- */

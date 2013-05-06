@@ -256,15 +256,53 @@ void D_ProfFixAccountName(char* const a_Buffer)
 #undef BUFSIZE
 }
 
+/* D_ProfRename() -- Rename profile account */
+bool_t D_ProfRename(D_Prof_t* a_Prof, const char* const a_NewName)
+{
+	char FixedName[MAXPLAYERNAME];
+	
+	/* Check */
+	if (!a_Prof || !a_NewName)
+		return false;
+	
+	/* Fix name */
+	strncpy(FixedName, a_NewName, MAXPLAYERNAME - 1);
+	FixedName[MAXPLAYERNAME - 1] = 0;
+	
+	// Fixup
+	D_ProfFixAccountName(FixedName);
+	
+	// Already exists?
+	if (D_FindProfileEx(FixedName))
+		return false;
+	
+	/* Change Name */
+	memmove(a_Prof->AccountName, FixedName, sizeof(char) * MAXPLAYERNAME);
+	return true;
+}
+
 /* D_CreateProfileEx() -- Create Profile */
 D_Prof_t* D_CreateProfileEx(const char* const a_Name)
 {
+	char FixedName[MAXPLAYERNAME];
 	D_Prof_t* New;
 	size_t i;
 	char Char;
 	
 	/* Check */
 	if (!a_Name)
+		return NULL;
+		
+	/* Correct Name */
+	// Copy
+	strncpy(FixedName, a_Name, MAXPLAYERNAME - 1);
+	FixedName[MAXPLAYERNAME - 1] = 0;
+	
+	// Fix
+	D_ProfFixAccountName(FixedName);
+	
+	// Already exists?
+	if (D_FindProfileEx(FixedName))
 		return NULL;
 	
 	/* Allocate */
@@ -289,11 +327,8 @@ D_Prof_t* D_CreateProfileEx(const char* const a_Name)
 	New->InstanceID = D_CMakePureRandom();
 	
 	/* Copy Name */
-	strncpy(New->AccountName, a_Name, MAXPLAYERNAME - 1);
+	strncpy(New->AccountName, FixedName, MAXPLAYERNAME - 1);
 	strncpy(New->DisplayName, a_Name, MAXPLAYERNAME - 1);
-	
-	// Correct Name
-	D_ProfFixAccountName(New->AccountName);
 	
 	/* Set Default Options */
 	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY;

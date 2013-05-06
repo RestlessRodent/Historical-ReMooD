@@ -269,6 +269,7 @@ extern D_Prof_t* g_ProfList[MAXPROFCONST];
 
 void D_ProfFixAccountName(char* const a_Buffer);
 
+bool_t D_ProfRename(D_Prof_t* a_Prof, const char* const a_NewName);
 D_Prof_t* D_CreateProfileEx(const char* const a_Name);
 
 D_Prof_t* D_FindProfileEx(const char* const a_Name);

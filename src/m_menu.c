@@ -2299,6 +2299,14 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Create initial box
 			Root = MS_SMCreateBox(NULL, 0, 0, 320, 200);
 			
+			// Create profile name thing
+			Work = MS_SMCreateTextBox(Root, VFONT_SMALL, 0, M_ProfMan_AcctBCB);
+			
+			if (Work)
+			{
+				if (g_DoProf)
+					CONCTI_SetText(Work->Data.TextBox.Inputter, g_DoProf->AccountName);
+			}
 			break;
 		
 			// Unknown

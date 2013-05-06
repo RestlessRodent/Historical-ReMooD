@@ -100,6 +100,12 @@ struct M_SWidget_s
 	} Data;										// Widget Data
 };
 
+/**************
+*** GLOBALS ***
+**************/
+
+extern D_Prof_t* g_DoProf;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -128,4 +134,5 @@ void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget);
 void M_ProfMan_FTicker(M_SWidget_t* const a_Widget);
 bool_t M_ProfMan_CreateProf(M_SWidget_t* const a_Widget);
 bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget);
+bool_t M_ProfMan_AcctBCB(struct CONCTI_Inputter_s*, const char* const);
 
