@@ -2638,7 +2638,7 @@ void D_DoomMain(void)
 	int startepisode;
 	int startmap;
 	bool_t autostart;
-	D_ProfileEx_t* GuestProf;
+	D_Prof_t* GuestProf;
 	char* PWADArg = NULL;
 	char WADPath[256];
 	char* v;
@@ -2689,6 +2689,10 @@ void D_DoomMain(void)
 	
 	// Game Model to use
 	D_InitModelMode();
+	
+	// Clear global profile list
+	for (i = 0; i < MAXPROFCONST; i++)
+		g_ProfList[i] = NULL;
 	
 	// Profiles are considered somewhat core
 	GuestProf = D_CreateProfileEx("guest");	// Create guest account

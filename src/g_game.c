@@ -381,7 +381,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	
 	int i, j, k, l;
 	
-	D_ProfileEx_t* Profile;
+	D_Prof_t* Profile;
 	player_t* Player;
 	mobj_t* Mo;
 	D_XJoinPlayerData_t JoinDat;
@@ -1204,7 +1204,7 @@ void G_PlayerReborn(int player)
 	tic_t SuicideDelay;
 	bool_t* RandGuns;
 	
-	D_ProfileEx_t* PEp;
+	D_Prof_t* PEp;
 	D_XPlayer_t* XPl;
 	
 	//from Boris

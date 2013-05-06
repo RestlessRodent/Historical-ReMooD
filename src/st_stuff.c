@@ -549,7 +549,7 @@ typedef struct ST_MapDrawInfo_s
 	int32_t Scr;								// Screen being drawn
 	fixed_t BaseCo[2];							// Base coordinate offsets
 	D_SplitInfo_t* Split;						// Player Split (view window)
-	D_ProfileEx_t* Profile;						// Profile of player
+	D_Prof_t* Profile;						// Profile of player
 	int32_t Rect[4];							// Screen rectangle
 	int32_t Size[2];							// Size of screen
 	uint32_t (*Color)[NUMPROFAUTOMAPCOLORS][3];	// Automap colors
@@ -564,7 +564,7 @@ typedef struct ST_MapDrawInfo_s
 /*** PRIVATE FUNCTIONS ***/
 
 /* STS_SBX() -- Status Bar X */
-static int32_t STS_SBX(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, int32_t a_W, const int32_t a_H)
+static int32_t STS_SBX(D_Prof_t* const a_Profile, const int32_t a_Coord, int32_t a_W, const int32_t a_H)
 {
 	int c = a_Coord;
 	
@@ -575,7 +575,7 @@ static int32_t STS_SBX(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, in
 }
 
 /* STS_SBY() -- Status Bar Y */
-static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, int32_t a_W, const int32_t a_H)
+static int32_t STS_SBY(D_Prof_t* const a_Profile, const int32_t a_Coord, int32_t a_W, const int32_t a_H)
 {
 	int c = a_Coord;
 	
@@ -968,7 +968,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
 	player_t* ConsoleP, *DisplayP;
-	D_ProfileEx_t* Profile;
+	D_Prof_t* Profile;
 	V_Image_t* vi;
 	VideoFont_t Font;
 	PI_wepid_t ReadyWeapon;

@@ -165,7 +165,7 @@ static const struct
 	D_PDST_t Type;
 } c_ProfDataStat[] =
 {
-#define QUICKDS(x,s) {#x, offsetof(D_ProfileEx_t, x), s}
+#define QUICKDS(x,s) {#x, offsetof(D_Prof_t, x), s}
 	QUICKDS(DisplayName, PDST_STRING),
 	QUICKDS(Color, PDST_UINT8),
 	QUICKDS(VTeam, PDST_UINT8),
@@ -206,11 +206,12 @@ static const struct
 
 /*** GLOBALS ***/
 
-D_ProfileEx_t* g_KeyDefaultProfile = NULL;		// Profile with our key defaults
+D_Prof_t* g_KeyDefaultProfile = NULL;			// Profile with our key defaults
+D_Prof_t* g_ProfList[MAXPROFCONST];				// Constant profile list
 
 /*** LOCALS ***/
 
-static D_ProfileEx_t* l_FirstProfile = NULL;	// First in chain
+static D_Prof_t* l_FirstProfile = NULL;	// First in chain
 
 static bool_t l_DefaultCtrlsMapped = false;
 static D_ProfileExCtrlMA_t l_DefaultMouseAxis[MAXALTAXIS][MAXMOUSEAXIS];		// Mouse Axis Movement
@@ -256,9 +257,9 @@ void D_ProfFixAccountName(char* const a_Buffer)
 }
 
 /* D_CreateProfileEx() -- Create Profile */
-D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
+D_Prof_t* D_CreateProfileEx(const char* const a_Name)
 {
-	D_ProfileEx_t* New;
+	D_Prof_t* New;
 	size_t i;
 	char Char;
 	
@@ -268,6 +269,14 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// find new slot in list
+	for (i = 0; i < MAXPROFCONST; i++)
+		if (!g_ProfList[i])
+		{
+			g_ProfList[i] = New;
+			break;
+		}
 	
 	/* Set properties */
 	// UUID (hopefully random)
@@ -533,11 +542,11 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 }
 
 /* D_FindProfileEx() -- Locates a profile */
-D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
+D_Prof_t* D_FindProfileEx(const char* const a_Name)
 {
-	D_ProfileEx_t* Rover;
+	D_Prof_t* Rover;
 	
-	D_ProfileEx_t* Best;
+	D_Prof_t* Best;
 	int32_t BestN;
 	char* a, *b;
 	
@@ -571,9 +580,9 @@ D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
 }
 
 /* D_FindProfileExByInstance() -- Find profile instance ID */
-D_ProfileEx_t* D_FindProfileExByInstance(const uint32_t a_ID)
+D_Prof_t* D_FindProfileExByInstance(const uint32_t a_ID)
 {
-	D_ProfileEx_t* Rover;
+	D_Prof_t* Rover;
 	
 	/* Rove */
 	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
@@ -728,7 +737,7 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 }
 
 /* DS_ReloadValue() -- Reloads value into profile */
-static void DS_ReloadValue(D_ProfileEx_t* const a_Profile, const char* const a_Option, const char* const a_Value)
+static void DS_ReloadValue(D_Prof_t* const a_Profile, const char* const a_Option, const char* const a_Value)
 {
 	int i;
 	void* Ptr;
@@ -852,7 +861,7 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 	char Buf[BUFSIZE];
 	char BufB[BUFSIZE];
 	char EscapeUUID[BUFSIZE];
-	D_ProfileEx_t* Rover;
+	D_Prof_t* Rover;
 	int i, j, k;
 	
 	/* Check */
@@ -968,7 +977,7 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 #define BUFSIZE 256
 	char BufA[BUFSIZE];
 	char BufB[BUFSIZE];
-	D_ProfileEx_t* New;
+	D_Prof_t* New;
 	int i, j, k;
 	D_ProfileExCtrlMA_t* TMA;
 	

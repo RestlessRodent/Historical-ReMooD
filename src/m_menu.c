@@ -1480,7 +1480,8 @@ void MS_Label_DDraw(M_SWidget_t* const a_Widget)
 	}
 	
 	/* Draw String */
-	a_Widget->dw = V_DrawStringA(a_Widget->Data.Label.Font, Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
+	if (a_Widget->Data.Label.Ref)
+		a_Widget->dw = V_DrawStringA(a_Widget->Data.Label.Font, Flags, *a_Widget->Data.Label.Ref, a_Widget->dx, a_Widget->dy);
 	
 	/* Draw value */
 	// Possible Value
@@ -2283,6 +2284,12 @@ void M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			// Add create profile option
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUOPTION_CREATEPROF));
 			
+			// Create MAXPROFCONST menu slots for profiles
+			for (i = 0; i < MAXPROFCONST; i++)
+			{
+				Work = MS_SMCreateLabel(Root, VFONT_SMALL, 0, DS_GetStringRef(DSTR_MENU_NULLSPACE));
+				Work->Option = i;
+			}
 			break;
 		
 			// Unknown

@@ -231,7 +231,7 @@ static void DS_DumpSplitInfo(D_BS_t* const a_BS)
 #define BUFSIZE 64
 	char Buf[BUFSIZE];
 	int i;
-	D_ProfileEx_t* Prof;
+	D_Prof_t* Prof;
 	
 	/* Check */
 	if (!a_BS)

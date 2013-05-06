@@ -348,7 +348,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 {
 	uint32_t ProcessID, LastScreen;
 	int32_t PlaceAt, i, UngrabbedScreen;
-	D_ProfileEx_t* Profile;
+	D_Prof_t* Profile;
 	const B_BotTemplate_t* BotTemplate;
 	bool_t BumpSplits;
 	D_XPlayer_t* XPlay;
@@ -2371,7 +2371,7 @@ void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const
 void D_XNetTryJoin(D_XPlayer_t* const a_Player)
 {
 	const B_BotTemplate_t* BotTemplate;
-	D_ProfileEx_t* Profile;
+	D_Prof_t* Profile;
 	ticcmd_t* Placement;
 	void* Wp;
 	int32_t i;
@@ -2637,7 +2637,7 @@ void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const
 #define BUFSIZE (MAXPLAYERNAME + MAXPLAYERNAME + 1)
 	char Buf[BUFSIZE];
 	bool_t StrValue;
-	D_ProfileEx_t* Prof;
+	D_Prof_t* Prof;
 	int32_t i, ModVal;
 	
 	ticcmd_t* Place;
@@ -4049,7 +4049,7 @@ static uint8_t DS_XNetNextWeapon(player_t* player, int step)
 }
 
 /* GAMEKEYDOWN() -- Checks if a key is down */
-static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
+static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
 {
 	static bool_t Recoursed;
 	int8_t MoreDown;
@@ -4182,7 +4182,7 @@ int16_t G_ClipAimingPitch(int32_t* aiming);
 void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 {
 #define MAXWEAPONSLOTS 12
-	D_ProfileEx_t* Profile;
+	D_Prof_t* Profile;
 	player_t* Player, *SpyCon, *SpyPOV, *SpyFake;
 	int32_t TargetMove;
 	size_t i, PID, SID;

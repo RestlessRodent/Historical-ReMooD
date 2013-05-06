@@ -491,7 +491,7 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 #define BUFSIZE 128
 	int32_t LocalPlayer, i, s;
 	char Buf[BUFSIZE];
-	D_ProfileEx_t* Prof;
+	D_Prof_t* Prof;
 	uint8_t Color;
 	
 	/* Check */

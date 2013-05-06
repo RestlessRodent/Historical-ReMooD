@@ -245,7 +245,7 @@ typedef struct player_s
 	mobj_t* Attackee;							// Thing being attacked
 	
 	/*** EXTENDED STUFF ***/
-	D_ProfileEx_t* ProfileEx;					// Extended Profiles
+	D_Prof_t* ProfileEx;					// Extended Profiles
 	D_XPlayer_t* XPlayer;						// Extended Player
 	
 	// Health

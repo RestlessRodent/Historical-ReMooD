@@ -43,6 +43,7 @@
 
 /*** CONSTANTS ***/
 
+#define MAXPROFCONST 12							// Max quick access profiles
 
 /* D_ProfileExFlags_t -- Extended profile flags */
 typedef enum D_ProfileExFlags_e
@@ -210,7 +211,7 @@ typedef enum D_ProfAutoMapColors_e
 
 struct mobj_s;
 
-/* D_ProfileEx_t -- Extended Profile */
+/* D_Prof_t -- Extended Profile */
 typedef struct D_ProfileEx_s
 {
 	/* Profile Related */
@@ -255,20 +256,23 @@ typedef struct D_ProfileEx_s
 	uint8_t ColorLock[4];						// Door Lock Colors
 	uint8_t VTeam;								// Virtual Team
 	bool_t CounterOp;							// CounterOp player
-} D_ProfileEx_t;
+	
+	char* AccountRef, *DisplayRef;				// References to own name
+} D_Prof_t;
 
 /*** GLOBALS ***/
 
-extern D_ProfileEx_t* g_KeyDefaultProfile;
+extern D_Prof_t* g_KeyDefaultProfile;
+extern D_Prof_t* g_ProfList[MAXPROFCONST];
 
 /*** FUNCTIONS ***/
 
 void D_ProfFixAccountName(char* const a_Buffer);
 
-D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);
+D_Prof_t* D_CreateProfileEx(const char* const a_Name);
 
-D_ProfileEx_t* D_FindProfileEx(const char* const a_Name);
-D_ProfileEx_t* D_FindProfileExByInstance(const uint32_t a_ID);
+D_Prof_t* D_FindProfileEx(const char* const a_Name);
+D_Prof_t* D_FindProfileExByInstance(const uint32_t a_ID);
 
 void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data);
 int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV);

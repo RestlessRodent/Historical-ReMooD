@@ -607,7 +607,7 @@ CONL_StaticVar_t l_StaticMapVars[][MAXSPLITSCREEN] =
 bool_t MS_CurProfBack(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_SVar)
 {
 	static bool_t Rec;
-	D_ProfileEx_t* Prof;
+	D_Prof_t* Prof;
 	
 	/* Prevent infinite recursion */
 	// Say if guest does not exist!
@@ -630,7 +630,7 @@ bool_t MS_CurProfBack(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a
 /* MS_CurProfSlide() -- Value Slid */
 bool_t MS_CurProfSlide(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_SVar, const int32_t a_Right)
 {
-	D_ProfileEx_t* Prof, *NewProf;
+	D_Prof_t* Prof, *NewProf;
 	
 	/* Get current profile */
 	Prof = D_FindProfileEx(a_SVar->Value->String);
@@ -791,7 +791,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	int32_t i, j;
 	P_LevelInfoEx_t* LInfo;
 	CONL_StaticVar_t* SVar;
-	D_ProfileEx_t* Prof;
+	D_Prof_t* Prof;
 	
 	/* Quit Prompt */
 	if (strcasecmp(a_ArgV[0], "m_quitprompt") == 0)
@@ -1765,7 +1765,7 @@ void M_QuitGame_FTicker(M_SWidget_t* const a_Widget)
 			Kid->Flags &= ~MSWF_NOSELECT;
 	}
 	
-	return true;
+	return;
 }
 
 /* ---------------------- */
@@ -1973,8 +1973,38 @@ bool_t M_CTUS_BoxCallBack(struct CONCTI_Inputter_s* a_Inputter, const char* cons
 /* --- PROFILE MANAGER --- */
 
 /* M_ProfMan_FTicker() -- Ticker for profile list */
+// This function dynamically recreates the menu to list all profiles
 void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
 {
+	int32_t i;
+	M_SWidget_t* Wid;
+	D_Prof_t* Prof;
+	
+	/* Go through sub options */
+	for (i = 0; i < MAXPROFCONST; i++)
+	{
+		// Get widget
+		Wid = a_Widget->Kids[i + 1];
+		
+		// Get profile
+		Prof = g_ProfList[i];
+		
+		// If not profile, disable selection
+		if (!Prof)
+		{
+			Wid->Data.Label.Ref = NULL;
+			Wid->Flags |= MSWF_NOSELECT | MSWF_DISABLED;
+			continue;
+		}
+		
+		// Allow selection
+		Wid->Flags &= ~(MSWF_NOSELECT | MSWF_DISABLED);
+		
+		// Set profile to name
+		Prof->AccountRef = Prof->AccountName;
+		Prof->DisplayRef = Prof->DisplayName;
+		Wid->Data.Label.Ref = &Prof->AccountRef;
+	}	
 }
 
 /* ----------------------- */
