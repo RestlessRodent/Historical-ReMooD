@@ -4125,7 +4125,6 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize, const
 //  * Make it faster in some respects (use memcpy when drawing raw images)
 void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap, uint8_t* const a_DestBuffer, const uint32_t a_DestPitch, const uint32_t a_DestWidth, const uint32_t a_DestHeight, const fixed_t a_VidXScaleX, const fixed_t a_VidXScaleY, const double a_VidFScaleX, const double a_VidFScaleY)
 {
-
 //#define __REMOOD_OLDDRAW
 #define __REMOOD_ONESHORT
 

@@ -440,7 +440,7 @@ void I_GetEvent(void)
 		i = (Key & 0x7F00) >> 8;
 		
 		// If the key is already pressed, set it as repeated
-		Repeat = ! !Shifties[i];
+		Repeat = !!Shifties[i];
 		
 		// Set to 1 in Shifties (always presses here)
 		Shifties[i] = 1;
