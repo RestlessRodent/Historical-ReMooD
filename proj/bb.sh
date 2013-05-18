@@ -547,7 +547,14 @@ do
 			# Copy Files we want
 			cp ../sys/gcw.dsk default.gcw0.desktop
 			cp ../sys/gcw.png remood.png
-			cp ../bin/remood.elf remood.elf
+			if [ -f ../bin/remood-dbg.elf ]
+			then
+				cp ../bin/remood-dbg.elf remood.elf
+				sed 's/\(Name=.*\)/\1 Debug/' < default.gcw0.desktop > /tmp/xx$$
+				mv /tmp/xx$$ default.gcw0.desktop
+			else
+				cp ../bin/remood.elf remood.elf
+			fi
 			cp ../bin/remood.wad remood.wad
 			cp ../doc/AUTHORS AUTHORS
 			cp ../doc/LICENSE LICENSE
