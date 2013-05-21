@@ -1206,6 +1206,10 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	if (RelData->InWait == 0)
 		D_BSFlushStream(a_Stream);
 	
+	// No data read
+	if (RelData->InWait == 0)
+		return false;
+	
 	/* Go through the input buffer, round robin style */
 	Stop = ((RelData->RR - 1) + RBSRELINPUTQUEUE) % RBSRELINPUTQUEUE;
 	while (RelData->InWait > 0)
