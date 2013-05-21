@@ -137,6 +137,9 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	// Update music
 	I_UpdateMusic();
 	
+	// Update events
+	I_OsPolling();
+	
 	/* Init */
 	LocalTic = 0;
 	ThisMS = I_GetTimeMS();
