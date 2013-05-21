@@ -44,3 +44,13 @@
 *** FUNCTIONS ***
 ****************/
 
+bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name)
+{
+	return true;
+}
+
+bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID)
+{
+	return true;
+}
+

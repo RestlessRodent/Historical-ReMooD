@@ -626,12 +626,12 @@ void G_Ticker(void)
 	if (demoplayback)
 		G_ReadDemoGlobalTicCmd(&GlobalCmd);
 	else
-		D_XNetMultiTics(&GlobalCmd, false, -1);
+		;//D_XNetMultiTics(&GlobalCmd, false, -1);
 	
 	// Write Global Tic Commands
 	if (demorecording)
 		G_WriteDemoGlobalTicCmd(&GlobalCmd);
-	D_XNetMultiTics(&GlobalCmd, true, -1);
+	//D_XNetMultiTics(&GlobalCmd, true, -1);
 	
 	/* Player Commands */
 	// Read Individual Player Tic Commands
@@ -646,12 +646,12 @@ void G_Ticker(void)
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
-				D_XNetMultiTics(cmd, false, i);
+				;//D_XNetMultiTics(cmd, false, i);
 			
 			// Write Command
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
-			D_XNetMultiTics(cmd, true, i);
+			//D_XNetMultiTics(cmd, true, i);
 			
 			// Copy Ping
 			players[i].Ping = cmd->Ctrl.Ping;
@@ -668,7 +668,7 @@ void G_Ticker(void)
 		G_WriteEndTic(NowCode);
 	
 	// Networking
-	D_XNetFinalCmds(gametic, NowCode);
+	//D_XNetFinalCmds(gametic, NowCode);
 	
 	/* If playing a demo, check code comparison */
 	// Also make sure the demo supports the ReMooD sync code, otherwise there
@@ -738,7 +738,7 @@ void G_Ticker(void)
 			GS_HandleExtraCommands(cmd, i);
 	
 	/* Remove defunct XPlayer */
-	D_XNetClearDefunct();
+	//D_XNetClearDefunct();
 	
 	// Set new time
 	g_DemoTime = gametic;
@@ -750,7 +750,7 @@ void G_Ticker(void)
 			// Title Screen Demo Fun
 			P_SpecTicker();
 			
-			B_GHOST_Ticker();
+			//B_GHOST_Ticker();
 			P_Ticker();			// tic the game
 			ST_Ticker();
 			ST_TickerEx();

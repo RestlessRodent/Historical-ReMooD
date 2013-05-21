@@ -1889,7 +1889,7 @@ bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
 		{
 			// Cheat, if P1 is chatting, cancel chat rather than popping menu up
 			if (g_Splits[Screen].ChatMode && D_ScrSplitHasPlayer(Screen))
-				D_XNetClearChat(Screen);
+				;//D_XNetClearChat(Screen);
 			
 			// Otherwise, spawn main menu
 			else

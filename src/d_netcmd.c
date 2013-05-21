@@ -341,11 +341,11 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 	if (!a_Demo)
 	{
 		// Tell the server that the player is no longer going to be around
-		if (g_Splits[a_Split].XPlayer)
-			D_XNetPartLocal(g_Splits[a_Split].XPlayer);
+		//if (g_Splits[a_Split].XPlayer)
+		//	D_XNetPartLocal(g_Splits[a_Split].XPlayer);
 		
 		// Remove chat
-		D_XNetClearChat(a_Split);
+		//D_XNetClearChat(a_Split);
 		
 		// Move splits down, to replace this split
 		for (i = a_Split; i < MAXSPLITSCREEN; i++)

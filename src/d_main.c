@@ -262,16 +262,6 @@ void D_Display(void)
 		case GS_FINALE:
 			F_Drawer();
 			break;
-		
-			// GhostlyDeath <June 21, 2012> -- Waiting for players
-		case GS_WAITINGPLAYERS:
-			D_WaitingPlayersDrawer();
-			break;
-			
-			// GhostlyDeath <August 24, 2012> -- Waiting for join window
-		case GS_WAITFORJOINWINDOW:
-			D_WFJWDrawer();
-			break;
 			
 		case GS_DEMOSCREEN:
 			D_PageDrawer(pagename);
@@ -486,7 +476,6 @@ void D_Display(void)
 	
 	// GhostlyDeath <March 10, 2013> -- Run a tic on wipe (for networking)
 	TryRunTics(0, NULL);
-	D_XNetForceLag();	// force lag so the game doesn't speed up after wipe
 	g_IgnoreWipeTics = 1;	// And start ignoring wipe tics
 	
 	wipestart = I_GetTime() - 1;
@@ -509,11 +498,6 @@ void D_Display(void)
 		I_OsPolling();
 		I_UpdateNoBlit();
 		M_ExUIDrawer();
-		
-		// GhostlyDeath <March 27, 2013> -- Update network here to prevent lag outs
-		if (!i)	// But not every draw, wastes updates
-			D_XNetUpdate();
-		i = !i;
 		
 		if (!noblit)
 			I_FinishUpdate();		// page flip or blit buffer
@@ -603,7 +587,7 @@ void D_DoomLoop(void)
 	}
 	
 	// Auto start?
-	else if (NG_IsAutoStart() || D_XNetIsServer() || D_XNetIsConnected())
+	else if (NG_IsAutoStart())
 	{
 		// Do nothing?
 	}
@@ -771,7 +755,7 @@ void D_DoomLoop(void)
 				I_WaitVBL(TICSPERMS - DiffTime);
 				
 				// Update network state when leaving loop
-				D_XNetUpdate();
+				//D_XNetUpdate();
 			}
 		}
 	}
@@ -2091,7 +2075,7 @@ void D_JoySpecialTicker(void)
 			if (WantForJoy[i])
 			{
 				// Add local player (super handled)
-				D_NCLocalPlayerAdd(NULL, false, WantForJoy[i], i, true);
+				//D_NCLocalPlayerAdd(NULL, false, WantForJoy[i], i, true);
 		
 				// Clear time
 				l_JoyTime[WantForJoy[i] - 1] = 0;
@@ -2487,8 +2471,8 @@ void D_DoomMain(void)
 	M_SMInit();							// Simple Menus
 	G_PrepareDemoStuff();				// Demos
 	M_DoMappedVars();					// Mapped Vars
-	B_InitBotCodes();					// Initialize bot coding
-	D_CheckNetGame();					// initialize net game
+	//B_InitBotCodes();					// Initialize bot coding
+	//D_CheckNetGame();					// initialize net game
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
@@ -2698,14 +2682,14 @@ void D_DoomMain(void)
 	// Initial Server?
 		// XNIS() calls XNMS() which calls NG_ApplyVars()
 	//if (NG_IsAutoStart())
-		D_XNetInitialServer();
+		//D_XNetInitialServer();
 	
 	// Process all + parms
 		// Commands like other things
 	M_PushSpecialParameters();
 	
 	// Warp to map and reset new vars
-	if (NG_IsAutoStart() || D_XNetIsServer())
+	if (NG_IsAutoStart()/* || D_XNetIsServer()*/)
 	{
 		NG_WarpMap();
 		

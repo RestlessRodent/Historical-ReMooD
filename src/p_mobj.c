@@ -1458,7 +1458,7 @@ void P_RemoveMobj(mobj_t* mobj)
 		g_LFPRover = &thinkercap;
 		
 	/* Remove object from bots */
-	B_RemoveThinker(mobj);
+	//B_RemoveThinker(mobj);
 	
 	// GhostlyDeath <May 8, 2012> -- Remove from queue
 	P_RemoveFromBodyQueue(mobj);

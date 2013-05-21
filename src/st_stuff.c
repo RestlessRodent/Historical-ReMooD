@@ -960,7 +960,7 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Info.Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
 }
 
-extern bool_t g_NetBoardDown;
+//extern bool_t g_NetBoardDown;
 
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
 static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
@@ -1213,13 +1213,15 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	}
 	
 	/* Scoreboard */
+#if 0
 	if (/*(XPlay && XPlay->Scores) ||*/ (a_PID == 0 && g_NetBoardDown))
 	{
 		WI_DrawScoreBoard(false, DS_GetString(DSTR_STSTUFFC_SCOREBOARD), NULL);
 	}
+#endif
 	
 	/* Chatting */
-	D_XNetChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
+	//D_XNetChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
 #undef BUFSIZE
 }
 
@@ -1276,6 +1278,9 @@ void ST_DrawPlayerBarsEx(void)
 			// Missing player?
 			if (!ConsoleP)
 				ConsoleP = P_SpecGet(p);
+			
+			if (!DisplayP)
+				DisplayP = ConsoleP;
 			
 			// Modify palette?
 			if (g_SplitScreen <= 0)	// Only 1 player inside

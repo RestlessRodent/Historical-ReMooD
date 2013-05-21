@@ -907,10 +907,10 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		// Do the runs for a local game
 		for (j = 0; j < MAXSPLITSCREEN; j++)
 			M_ExPopAllMenus(j);
-		D_XNetDisconnect(false);
+		//D_XNetDisconnect(false);
 		P_XGSSetAllDefaults();
-		D_XNetMakeServer(false, NULL, 0, false);
-		D_XNetChangeMap(a_ArgV[1], true);
+		//D_XNetMakeServer(false, NULL, 0, false);
+		//D_XNetChangeMap(a_ArgV[1], true);
 		
 		// It worked, hopefully
 		return 0;
@@ -939,7 +939,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 			
 			if (Prof)
 			{
-				D_XNetChangeLocalProf(i, Prof);
+				//D_XNetChangeLocalProf(i, Prof);
 				M_ExPopAllMenus(i);
 			}
 			return 0;
@@ -1642,7 +1642,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 	}
 	
 	/* Make Game Now */
-	D_XNetMakeServer(false, NULL, 0, false);
+	//D_XNetMakeServer(false, NULL, 0, false);
 	NG_ApplyVars();
 	NG_WarpMap();
 	
@@ -1659,7 +1659,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Disconnect from Netgame */
-	D_XNetDisconnect(false);
+	//D_XNetDisconnect(false);
 	M_StackPopAll();
 	return true;
 }
@@ -1795,7 +1795,7 @@ void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget)
 				Map[Parent->Kids[i]->Option] = Parent->Kids[i];
 	
 	/* Disconnect */
-	D_XNetDisconnect(false);
+	//D_XNetDisconnect(false);
 	
 	/* Lock OCCB */
 	WL_LockOCCB(true);
@@ -1871,7 +1871,7 @@ void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget)
 	/* Add any local players */
 	
 	/* Setup Server */
-	D_XNetMakeServer(false /*TODO*/, NULL, 0, false);
+	//D_XNetMakeServer(false /*TODO*/, NULL, 0, false);
 	
 	/* Add any bots */
 }
@@ -1928,17 +1928,17 @@ void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget)
 	// Resolve host info
 	GameID = 0;
 	memset(&Addr, 0, sizeof(Addr));
-	if (!D_XNetHostnameToAddrGID(l_ConnectIP, &Addr, &GameID))
+	if (true)//if (!D_XNetHostnameToAddrGID(l_ConnectIP, &Addr, &GameID))
 		return;
 	
 	/* Pop all menus */
 	M_StackPopAll();
 	
 	/* Do Disconnect First */
-	D_XNetDisconnect(false);
+	//D_XNetDisconnect(false);
 	
 	/* Now try to connect */
-	D_XNetConnect(&Addr, GameID, false);
+	//D_XNetConnect(&Addr, GameID, false);
 }
 
 /* M_CTUS_BoxCallBack() -- Callback for enter on the box */

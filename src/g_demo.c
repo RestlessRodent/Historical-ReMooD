@@ -2201,7 +2201,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* c
 			D_BSReadChunk(Data->CBs, Data->Chunk, u16);
 			
 			// Now Decode
-			if (!D_XNetDecodeTicBuf(&Data->StoreTics, Data->Chunk, u16))
+			if (false)//if (!D_XNetDecodeTicBuf(&Data->StoreTics, Data->Chunk, u16))
 				G_DemoProblem(false, DSTR_BADDEMO_TICDECODEPROBLEM, "\n");
 			
 			// Copy Code
@@ -2400,7 +2400,7 @@ static int CLC_PlayDemo(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Disconnect */
-	D_XNetDisconnect(false);
+	//D_XNetDisconnect(false);
 	
 	/* Stop old demos from playing */
 	G_StopDemo();
@@ -2641,7 +2641,7 @@ void G_StopDemoPlay(void)
 	/* If not a server playing demos (demoplayback server) */
 	// Disconnect from "ourself"
 	if (!l_DemoServer)
-		D_XNetDisconnect(true);
+		;//D_XNetDisconnect(true);
 	
 	/* What to do? */
 	QuitDoom = Advance = false;
@@ -2806,7 +2806,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	/* If not a server playing demos (demoplayback server) */
 	// We need to switch to a server state before demos can be played.
 	if (!l_DemoServer)
-		D_XNetDisconnect(true);
+		;//D_XNetDisconnect(true);
 	
 	/* Reset Spectating watchers */
 	for (i = 0; i < MAXSPLITSCREEN; i++)

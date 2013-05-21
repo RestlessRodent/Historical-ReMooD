@@ -506,8 +506,8 @@ void I_OsPolling(void)
 		if (M_ExUIHandleEvent(&Event))
 			continue;
 			
-		if (D_XNetHandleEvent(&Event))
-			continue;
+		//if (D_XNetHandleEvent(&Event))
+		//	continue;
 	}
 }
 
@@ -1914,8 +1914,8 @@ void I_Quit(void)
 	}
 	
 	// Disconnect from network game
-	D_XNetSendQuit();
-	D_XNetDisconnect(false);
+	//D_XNetSendQuit();
+	//D_XNetDisconnect(false);
 	D_QuitNetGame();
 	
 	// use this for 1.28 19990220 by Kin

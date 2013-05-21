@@ -2736,7 +2736,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 bool_t P_SaveToStream(D_BS_t* const a_Str)
 {
 	/* Force Lag */
-	D_XNetForceLag();
+	//D_XNetForceLag();
 
 	/* If on title screen, or demo, die. */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
@@ -2762,6 +2762,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	bool_t OK;
 	int32_t i;
 	
+#if 0
 	/* Force Lag */
 	D_XNetForceLag();
 	
@@ -2780,6 +2781,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 			(D_XNetIsServer())
 			)
 			D_XNetDisconnect(false);
+#endif
 	
 	// Switch to the WFGS screen
 	gamestate = GS_WAITINGPLAYERS;
@@ -2809,11 +2811,11 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	if (OK)
 		OK = PS_LoadDummy(a_Str, true);
 	
-	// Did not worked
+	// Did not work
 	if (!OK)
 	{
 		P_ExClearLevel();
-		D_XNetDisconnect(false);
+		//D_XNetDisconnect(false);
 		return false;
 	}
 	
@@ -2849,7 +2851,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		skyflatnum = R_GetFlatNumForName("F_SKY1");
 		
 		// Bot Nodes
-		B_InitNodes();
+		//B_InitNodes();
 		
 		// Correct player angles
 			// This is so you are still facing the desired angle when you load

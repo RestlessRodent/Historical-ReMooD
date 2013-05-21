@@ -152,8 +152,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	if (singletics)
 		realtics = 1;
 	
-	D_XNetUpdate();
-	
 	if (demoplayback)
 	{
 		neededtic = gametic + realtics;
@@ -239,7 +237,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			XXSNAR = 1;
 	}
 	else
-		XXSNAR = D_XNetTicsToRun();
+		XXSNAR = 1;//D_XNetTicsToRun();
 	
 	/* Set tics that were run */
 	if (a_TicRunCount)

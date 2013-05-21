@@ -1374,7 +1374,7 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 /* P_SpecGetPOV() -- Get player point of view */
 struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 {
-	return NULL;
+	return &players[0];
 }
 
 /* P_VerifyCoopSpy() -- Verify coop spy settings */
