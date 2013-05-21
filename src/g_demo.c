@@ -2259,7 +2259,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32
 	OutS = 0;
 	
 	// Encode the store to the buffer
-	D_XNetEncodeTicBuf(&Data->StoreTics, &OutD, &OutS, DXNTBV_LATEST);
+	//D_XNetEncodeTicBuf(&Data->StoreTics, &OutD, &OutS, DXNTBV_LATEST);
 	
 	// Fail?
 	if (!OutD)

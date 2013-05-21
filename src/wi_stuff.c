@@ -1714,6 +1714,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 /* WI_BuildScoreBoard() -- Builds the scoreboard */
 void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter)
 {
+#if 0
 #define MAXSBLIMIT (MAXPLAYERS + MAXPLAYERS + 1)
 
 	int i, j, k;
@@ -1918,6 +1919,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 	/* Re-Rank */
 	for (i = 0; i < l_NumDrawPlayers; i++)
 		l_DrawPlayers[i].Rank = i;
+#endif
 }
 
 /* WI_initVariables() -- Initializes variables */

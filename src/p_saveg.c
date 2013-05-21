@@ -670,6 +670,7 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 /* PS_SaveNetState() -- Saves networked state */
 static void PS_SaveNetState(D_BS_t* const a_Str)
 {
+#if 0
 	size_t i;
 	D_XPlayer_t* XPlay;
 	B_BotTemplate_t* BotTemp;
@@ -731,11 +732,13 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 	
 	/* Record */
 	D_BSRecordBlock(a_Str);
+#endif
 }
 
 /* PS_LoadNetState() -- Loads networked state */
 static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 {
+#if 0
 	uint32_t OurHost, SaveHost;
 	int32_t i;
 	uint8_t Code;
@@ -974,6 +977,8 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	}
 	
 	/* Success! */
+	return true;
+#endif
 	return true;
 }
 

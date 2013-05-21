@@ -1297,37 +1297,6 @@ void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char**
 /* P_UpdateViewAngles() -- Updates viewing angles of a player for this mo */
 void P_UpdateViewAngles(mobj_t* const a_Mo)
 {
-	int32_t i, Console;
-	D_XPlayer_t* XPlay;
-	
-	/* Check */
-	if (!a_Mo)
-		return;
-	
-	/* Only for players */
-	if (!a_Mo->player)
-		return;
-	
-	// Get some info
-	Console = a_Mo->player - players;
-	
-	/* Change for the correct player */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-	{
-		// Console player mismatch?
-		if (g_Splits[i].Console != Console)
-			continue;
-		
-		// Get XPlayer
-		XPlay = g_Splits[i].XPlayer;
-		
-		// Not defined to this player
-		if (XPlay && XPlay->Player != a_Mo->player)
-			continue;
-		
-		// Set
-		localangle[i] = a_Mo->angle;
-	}
 }
 
 /*** SPECTATOR PLAYER ***/
@@ -1338,101 +1307,6 @@ static mobj_t l_SpecMobjs[MAXSPLITSCREEN];		// Fake Mobj
 /* P_SpecInitOne() -- Initializes single player */
 static void P_SpecInitOne(const int32_t a_PlayerNum)
 {
-	int i;
-	mapthing_t* MapThing;
-	mobj_t* AnotherMo;
-	subsector_t* SubS;
-	D_XPlayer_t* XPlay;
-	
-	/* Check */
-	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
-		return;
-	
-	/* Only During Levels */
-	if (gamestate != GS_LEVEL)
-		return;
-	
-	/* Reset */
-	memset(&l_SpecPlayers[a_PlayerNum], 0, sizeof(l_SpecPlayers[a_PlayerNum]));
-	memset(&l_SpecMobjs[a_PlayerNum], 0, sizeof(l_SpecMobjs[a_PlayerNum]));
-	
-	/* Find a map thing to initialize the view from */
-	MapThing = NULL;
-	AnotherMo = NULL;
-	
-	// Try existing players
-	for (i = 0; i < MAXPLAYERS && !AnotherMo; i++)
-		if (playeringame[i])
-			if (players[i].mo)
-				AnotherMo = players[i].mo;
-	
-	// Try player starts first
-	if (!MapThing)
-		for (i = 0; i < MAXPLAYERS && !MapThing; i++)
-			MapThing = playerstarts[i];
-	
-	// Then deathmatch starts
-	if (!MapThing)
-		for (i = 0; i < MAX_DM_STARTS && !MapThing; i++)
-			MapThing = deathmatchstarts[i];
-	
-	/* Initialize each player */
-	// Quick
-	i = a_PlayerNum;
-	
-	// Bind objects
-	l_SpecPlayers[i].mo = &l_SpecMobjs[i];
-	l_SpecMobjs[i].player = &l_SpecPlayers[i];
-	
-	// Player has object
-	if (AnotherMo)
-	{
-		l_SpecMobjs[i].x = AnotherMo->x;
-		l_SpecMobjs[i].y = AnotherMo->y;
-		l_SpecMobjs[i].z = AnotherMo->z + (AnotherMo->height >> 1);
-		l_SpecMobjs[i].angle = AnotherMo->angle;
-	}
-	
-	// Only if MapThing is set
-	else if (MapThing)
-	{
-		// Set Initial Position
-		l_SpecMobjs[i].x = ((fixed_t)MapThing->x) << 16;
-		l_SpecMobjs[i].y = ((fixed_t)MapThing->y) << 16;
-	
-		// Calculate Z position
-		l_SpecMobjs[i].subsector = SubS = R_PointInSubsector(l_SpecMobjs[i].x, l_SpecMobjs[i].y);
-		l_SpecMobjs[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight - SubS->sector->floorheight) >> 1);
-		
-		// Angle
-		l_SpecMobjs[i].angle = MapThing->angle * ANGLE_1;
-	}
-	
-	// Correct View Hieght
-	l_SpecPlayers[i].viewz = l_SpecMobjs[i].z;
-	
-	// Set viewing angle correctly, if not playing
-	if (!g_Splits[i].Active)
-		localangle[i] = l_SpecMobjs[i].angle;
-	
-	// Don't apply heretic friction to the spectator
-	l_SpecPlayers[i].mo->RXFlags[1] |= MFREXB_NOHERETICFRICT;
-	
-	/* Map fake screens to XPlayers */
-	for (i = 0; i < g_NumXPlays; i++)
-	{
-		// Get
-		XPlay = g_XPlays[i];
-		
-		// Missing?
-		if (!XPlay)
-			continue;
-		
-		// Local?
-		if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT | DXPF_DEFUNCT)) == DXPF_LOCAL)
-			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
-				l_SpecPlayers[XPlay->ScreenID].XPlayer = XPlay;
-	}
 }
 
 
@@ -1485,97 +1359,9 @@ struct player_s* P_SpecGet(const int32_t a_Screen)
 	return &l_SpecPlayers[a_Screen];
 }
 
-/* P_SpecDelXPlayer() -- Deletes XPlayer in screen */
-void P_SpecDelXPlayer(D_XPlayer_t* const a_XPlay)
-{
-	int i;
-	
-	/* Check */
-	if (!a_XPlay)
-		return;
-	
-	/* Go through */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (l_SpecPlayers[i].XPlayer == a_XPlay)
-		{
-			// Nuke
-			l_SpecPlayers[i].XPlayer = NULL;
-			
-			// Re-init spec spot
-			P_SpecInitOne(i);
-		}
-}
-
 /* P_SpecTicker() -- Ticks fake players */
 void P_SpecTicker(void)
 {
-#define TSCAMDIST FIXEDT_C(128)
-#define BUDGEDIST FIXEDT_C(32)
-#define TSMOVEUNIT FIXEDT_C(16)
-	int32_t i;
-	player_t* Mod, *VPlay;
-	mobj_t* ChaseThis, *PeerThis, *CamMo, *AttackSpec;
-	fixed_t Dist, DistX, DistY, ToMove, MyAng, TargAng;
-	fixed_t VeerX, VeerY;
-	angle_t Angle, PeerAngle;
-	bool_t DeadView;
-	
-	fixed_t ToDist, ToPos[2], BCPos[2], CDist, BCDist;
-	
-	/* Title Screen Demo */
-	if (g_TitleScreenDemo)
-	{
-	}
-	
-	/* Normal fake */
-	else
-	{
-		// Apply momentum
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-		{
-			// Get Objects
-			Mod = &l_SpecPlayers[i];
-			CamMo = Mod->mo;
-			
-			// No object?
-			if (!CamMo)
-				continue;
-			
-			// No XPlayer? Correct
-			if (!Mod->XPlayer)
-				Mod->XPlayer = g_Splits[i].XPlayer;
-			
-			// Flying
-			CamMo->momz = Mod->flyheight << 16;
-			if (Mod->flyheight)
-				Mod->flyheight >>= 1;
-			
-			// Apply momentum to object
-			CamMo->x += CamMo->momx;
-			CamMo->y += CamMo->momy;
-			CamMo->z += CamMo->momz;
-			
-			// Reduce momentum (for friction)
-			CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
-			CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
-			
-			// Set sound thinker
-			CamMo->NoiseThinker.x = CamMo->x;
-			CamMo->NoiseThinker.y = CamMo->y;
-			CamMo->NoiseThinker.z = CamMo->z;
-			CamMo->NoiseThinker.momx = CamMo->momx;
-			CamMo->NoiseThinker.momy = CamMo->momy;
-			CamMo->NoiseThinker.momz = CamMo->momz;
-			CamMo->NoiseThinker.Angle = CamMo->angle;
-			CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
-			CamMo->NoiseThinker.Volume = FIXEDT_C(1);
-			
-			// Set Camera Z
-			Mod->TargetViewZ = Mod->viewz = CamMo->z;
-		}
-	}
-#undef TSCAMDIST
-#undef TSMOVEUNIT
 }
 
 void P_Thrust(player_t* player, angle_t angle, fixed_t move);
@@ -1583,147 +1369,16 @@ void P_Thrust(player_t* player, angle_t angle, fixed_t move);
 /* P_SpecRunTics() -- Tic commands on screen */
 void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 {
-	player_t* Play;
-	mobj_t* Mo;
-	
-	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN || !a_TicCmd)
-		return;
-	
-	/* Player to modify */
-	Play = &l_SpecPlayers[a_Screen];
-	Mo = Play->mo;
-	
-	// Oops!
-	if (!Mo)
-		return;
-	
-	/* Modify local angles from tic command */
-	//localangle[a_Screen] += a_TicCmd->Std.BaseAngleTurn << 16;
-	localangle[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAngleTurn << UINT32_C(16);
-	
-	// Modify Aiming Angle
-	if (a_TicCmd->Std.buttons & BT_RESETAIM)
-		localaiming[a_Screen] = 0;
-	else
-	{
-		// Panning Look
-		if (a_TicCmd->Std.buttons & BT_PANLOOK)
-			localaiming[a_Screen] = (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
-		
-		// Standard Look
-		else
-			localaiming[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
-	}
-	
-	/* Set object looking angles to local */
-	Mo->angle = localangle[a_Screen];
-	Play->aiming = localaiming[a_Screen];
-	
-	/* Set Momentums */
-	Mo->subsector = &subsectors[0];
-	P_Thrust(Play, Mo->angle, a_TicCmd->Std.forwardmove * 2048);
-	P_Thrust(Play, Mo->angle - ANG90, a_TicCmd->Std.sidemove * 2048);
-	
-	/* Flying */
-	Play->flyheight = ((fixed_t)a_TicCmd->Std.FlySwim) * 2;
 }
 
 /* P_SpecGetPOV() -- Get player point of view */
 struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 {
-	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
-		return NULL;
-	
-	/* Demo playing back? */
-	if (demoplayback)
-	{
-		// Always return first POV, or standard screen POV for other players
-		if (g_TitleScreenDemo || a_Screen > 0)
-			return &players[g_Splits[a_Screen].Display];
-		
-		// Otherwise, return spec view
-		else
-		{
-			if (g_Splits[0].Display == -1 || !playeringame[g_Splits[0].Display])
-				return P_SpecGet(0);
-			else
-				return &players[g_Splits[a_Screen].Display];
-		}
-	}
-	
-	/* No XPlayer? */
-	else if (!g_Splits[a_Screen].XPlayer)
-	{
-		if (playeringame[g_Splits[a_Screen].Display])
-			return &players[g_Splits[a_Screen].Display];
-		
-		// Ilegal Display
-		g_Splits[a_Screen].Display = -1;
-		
-		// Try returning console player then
-		if (playeringame[g_Splits[a_Screen].Console])
-			return &players[g_Splits[a_Screen].Console];
-		else
-			return P_SpecGet(a_Screen);
-	}
-	
-	/* There is one */
-	else
-		// Not playing? Return spectator
-		if ((demoplayback && g_TitleScreenDemo) || !g_Splits[a_Screen].XPlayer->Player)
-			if (g_Splits[a_Screen].Display < 0 ||
-				g_Splits[a_Screen].Display >= MAXPLAYERS ||
-				!playeringame[g_Splits[a_Screen].Display] || (demoplayback && g_TitleScreenDemo))
-				return P_SpecGet(a_Screen);
-			else
-				return &players[g_Splits[a_Screen].Display];
-		
-		// Playing, return display
-		else if (playeringame[g_Splits[a_Screen].Display])
-			return &players[g_Splits[a_Screen].Display];
-		
-		// Return standard player
-		else
-		{
-			g_Splits[a_Screen].Display = players - g_Splits[a_Screen].XPlayer->Player;
-			return g_Splits[a_Screen].XPlayer->Player;
-		}
-	
-	/* Failed */
-	// This is never reached, but for GCC
 	return NULL;
 }
 
 /* P_VerifyCoopSpy() -- Verify coop spy settings */
 void P_VerifyCoopSpy(void)
 {
-	int i;	
-	
-	/* Go through all splits */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-	{
-		// Target not in game?
-		if (g_Splits[i].Display >= 0 && g_Splits[i].Display < MAXPLAYERS)
-			if (!playeringame[g_Splits[i].Display])
-			{
-				// If spectating, revert to spectator mode
-				if (g_Splits[i].Console < 0 || !g_Splits[i].Active)
-					g_Splits[i].Display = -1;
-				
-				// If playing, go to our screen
-				else
-					g_Splits[i].Display = g_Splits[i].Console;
-			}
-		
-		// Just Spectating?
-		if (g_Splits[i].Console < 0 || !g_Splits[i].Active)
-			continue;
-		
-		// Not on same team anymore?
-		if (!ST_SameTeam(&players[g_Splits[i].Console], &players[g_Splits[i].Display]))
-			g_Splits[i].Display = g_Splits[i].Console;
-	}
 }
 

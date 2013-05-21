@@ -44,7 +44,6 @@
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
-#include "d_xpro.h"
 
 //
 // NETWORKING
@@ -255,8 +254,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			// Do not do join windows in the middle of a tic!
 				// Otherwise they will miss the tic and lag out! Not to mention
 				// have a malformed save of sorts.
-			g_LockJW = true;
-			
+				
 			// Legacy Demo Stuff
 			if (demoplayback)
 				G_DemoPreGTicker();
@@ -270,7 +268,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 				G_DemoPostGTicker();
 			
 			// Can join people now
-			g_LockJW = false;
 			
 			// Single tics? -timedemo
 			if (singletics)

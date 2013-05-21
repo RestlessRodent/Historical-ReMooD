@@ -698,6 +698,8 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 	}
 }
 
+extern fixed_t g_GlobalBoundBox[4];
+
 /* SN_PolygonizeLevel() -- Polygonizes the level */
 void SN_PolygonizeLevel(void)
 {

@@ -1,3 +1,4 @@
+#if 0
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
@@ -889,4 +890,4 @@ void B_DrawBotLines(void* const a_Data, void (*a_DrawFunc)(void* const, const fi
 		}
 	}
 }
-
+#endif

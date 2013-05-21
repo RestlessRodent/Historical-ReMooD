@@ -1,3 +1,4 @@
+#if 0
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
@@ -1355,3 +1356,4 @@ bool_t B_ShorePath(B_Bot_t* a_Bot, const fixed_t a_FromX, const fixed_t a_FromY,
 #undef MAXDEPTH
 }
 
+#endif

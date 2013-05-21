@@ -597,6 +597,8 @@ static void PS_ExThingInit(mapthing_t* const a_Thing, const uint32_t a_Flags)
 		P_SpawnMapThing(a_Thing);	
 }
 
+fixed_t g_GlobalBoundBox[4];					// Global bounding box
+
 /* PS_ExMungeNodeData() -- Munges together node data */
 void PS_ExMungeNodeData(void)
 {

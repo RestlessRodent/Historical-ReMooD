@@ -935,8 +935,8 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 		SN_DrawPolyLines(&Info, STS_DrawMapLine);
 	
 	/* Bot Debug Stuff */
-	if (g_BotDebug)
-		B_DrawBotLines(&Info, STS_DrawMapLine);
+	//if (g_BotDebug)
+	//	B_DrawBotLines(&Info, STS_DrawMapLine);
 	
 	/* Draw things on it */
 	for (i = 0; i < numsectors; i++)
@@ -974,7 +974,6 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	PI_wepid_t ReadyWeapon;
 	PI_ammoid_t AmmoType;
 	bool_t BigLetters, IsMonster;
-	D_XPlayer_t* XPlay;
 	bool_t IsFake, OK;
 	uint32_t i, j, k;
 	PI_key_t* DrawKey;
@@ -1007,7 +1006,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		IsFake = true;
 	
 	// Net player
-	XPlay = ConsoleP->XPlayer;
+	//XPlay = ConsoleP->XPlayer;
 	
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;
@@ -1214,7 +1213,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	}
 	
 	/* Scoreboard */
-	if ((XPlay && XPlay->Scores) || (a_PID == 0 && g_NetBoardDown))
+	if (/*(XPlay && XPlay->Scores) ||*/ (a_PID == 0 && g_NetBoardDown))
 	{
 		WI_DrawScoreBoard(false, DS_GetString(DSTR_STSTUFFC_SCOREBOARD), NULL);
 	}
@@ -1271,8 +1270,8 @@ void ST_DrawPlayerBarsEx(void)
 					ConsoleP = NULL;
 			}
 			else
-				ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
-			DisplayP = P_SpecGetPOV(p);//&players[g_Splits[p].Display];
+				ConsoleP = NULL;//g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
+			DisplayP = NULL;//P_SpecGetPOV(p);//&players[g_Splits[p].Display];
 			
 			// Missing player?
 			if (!ConsoleP)

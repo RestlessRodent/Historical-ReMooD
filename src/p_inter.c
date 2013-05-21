@@ -1648,8 +1648,6 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		// GhostlyDeath <December 28, 2012> -- Reset aiming angle on death
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 			if (D_ScrSplitHasPlayer(i))
-				if (g_Splits[i].XPlayer &&
-					g_Splits[i].XPlayer->Player == target->player)
 				localaiming[i] = 0;
 	}
 	
