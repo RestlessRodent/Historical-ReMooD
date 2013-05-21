@@ -491,7 +491,6 @@ void D_Display(void)
 	
 	wipestart = I_GetTime() - 1;
 	y = wipestart + 2 * TICRATE;	// init a timeout
-	i = 1;
 	do
 	{
 		do
