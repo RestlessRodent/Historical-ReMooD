@@ -284,19 +284,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	// Not behind so sleep
 	else if (!singletics)
 	{
-#if 0
-		// Get time difference
-		DiffMS = ThisMS - LastMS;
-		
-		// Cap
-		if (DiffMS > 100)
-			DiffMS = 100;
-		
-		if (DiffMS > (TICSPERMS >> 1))
-			I_WaitVBL(DiffMS - (TICSPERMS >> 2));
-		
-		//I_WaitVBL(20);
-#endif
 	}
 }
 
