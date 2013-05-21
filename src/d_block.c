@@ -872,6 +872,90 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 	// Current time
 	ThisTime = I_GetTimeMS();
 	
+	/* Handle all data that needs outputting */
+	for (i = 0; i < RelData->NumFlats; i++)
+	{
+		// Get current
+		CurFlat = RelData->Flats[i];
+		
+		// Missing?
+		if (!CurFlat)
+			continue;
+		
+		// Go through the active chain
+		nai = -1;
+		for (Kill = false, j = 0; j < RBSMAXRELIABLEKEEP; j++)
+		{
+			// Not active?
+			if (!CurFlat->OutPks[j].Key)
+			{
+				if (nai < (RBSMAXRELIABLEKEEP >> 1))
+					NotActive[++nai] = j;
+				continue;
+			}
+			
+			// Retransmit?
+			if (ThisTime - CurFlat->OutPks[j].Time > (RBSRELIABLERETRAN + CurFlat->OutPks[j].Decay))
+				CurFlat->OutPks[j].Transmit = true;
+			
+			// Packet timeout? Possibly a now headless connection
+			if (ThisTime - CurFlat->OutPks[j].FirstTime > RBSRELIABLETIMEOUT)
+			{
+				Kill = true;
+				DS_RBSReliable_KillFlat(RelData, CurFlat);
+				break;
+			}
+		}
+		
+		// Connection was killed
+		if (Kill)
+			continue;
+		
+		// Transmit all packets needing transmission
+		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
+		{
+			// Not active?
+			if (!CurFlat->OutPks[j].Key)
+				continue;
+			
+			// Not being transmitted
+			if (!CurFlat->OutPks[j].Transmit)
+				continue;
+				
+			// Pointer to output
+			PkP = &CurFlat->OutPks[j];
+			
+			// Do not transmit again
+			PkP->Transmit = false;
+			PkP->Time = ThisTime;	// Set current time for better retrans
+			PkP->Decay += RBSRELDECAYADD;	// Decay transmission
+			
+			if (PkP->Decay >= RBSRELMAXDECAY)
+				PkP->Decay = RBSRELMAXDECAY;
+			
+			// Write base block for wrapped stream
+			D_BSBaseBlock(RelData->WrapStream, "RELY");
+			
+			// Write protocol head
+			D_BSwu8(RelData->WrapStream, 'P');	// P for packet
+			D_BSwu8(RelData->WrapStream, j);	// Current slot
+			D_BSwu16(RelData->WrapStream, PkP->Key);
+			D_BSwu32(RelData->WrapStream, PkP->Time);
+			D_BSwu32(RelData->WrapStream, PkP->FirstTime);
+			D_BSwu16(RelData->WrapStream, PkP->Size);
+			
+			// Block Header
+			for (z = 0; z < 4; z++)
+				D_BSwu8(RelData->WrapStream, PkP->Header[z]);
+			
+			// Actual Data
+			D_BSWriteChunk(RelData->WrapStream, PkP->Data, PkP->Size);
+			
+			// Transmit to remote host
+			D_BSRecordNetBlock(RelData->WrapStream, &CurFlat->Address);
+		}
+	}
+	
 	/* Find first slot input can be read from */
 	for (FirstSlot = 0; FirstSlot < RBSRELINPUTQUEUE; FirstSlot++)
 		if (!RelData->InPks[FirstSlot].IsEaten)
@@ -1011,90 +1095,6 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			break;
 	}
 	
-	/* Handle all data that needs outputting */
-	for (i = 0; i < RelData->NumFlats; i++)
-	{
-		// Get current
-		CurFlat = RelData->Flats[i];
-		
-		// Missing?
-		if (!CurFlat)
-			continue;
-		
-		// Go through the active chain
-		nai = -1;
-		for (Kill = false, j = 0; j < RBSMAXRELIABLEKEEP; j++)
-		{
-			// Not active?
-			if (!CurFlat->OutPks[j].Key)
-			{
-				if (nai < (RBSMAXRELIABLEKEEP >> 1))
-					NotActive[++nai] = j;
-				continue;
-			}
-			
-			// Retransmit?
-			if (ThisTime - CurFlat->OutPks[j].Time > (RBSRELIABLERETRAN + CurFlat->OutPks[j].Decay))
-				CurFlat->OutPks[j].Transmit = true;
-			
-			// Packet timeout? Possibly a now headless connection
-			if (ThisTime - CurFlat->OutPks[j].FirstTime > RBSRELIABLETIMEOUT)
-			{
-				Kill = true;
-				DS_RBSReliable_KillFlat(RelData, CurFlat);
-				break;
-			}
-		}
-		
-		// Connection was killed
-		if (Kill)
-			continue;
-		
-		// Transmit all packets needing transmission
-		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
-		{
-			// Not active?
-			if (!CurFlat->OutPks[j].Key)
-				continue;
-			
-			// Not being transmitted
-			if (!CurFlat->OutPks[j].Transmit)
-				continue;
-				
-			// Pointer to output
-			PkP = &CurFlat->OutPks[j];
-			
-			// Do not transmit again
-			PkP->Transmit = false;
-			PkP->Time = ThisTime;	// Set current time for better retrans
-			PkP->Decay += RBSRELDECAYADD;	// Decay transmission
-			
-			if (PkP->Decay >= RBSRELMAXDECAY)
-				PkP->Decay = RBSRELMAXDECAY;
-			
-			// Write base block for wrapped stream
-			D_BSBaseBlock(RelData->WrapStream, "RELY");
-			
-			// Write protocol head
-			D_BSwu8(RelData->WrapStream, 'P');	// P for packet
-			D_BSwu8(RelData->WrapStream, j);	// Current slot
-			D_BSwu16(RelData->WrapStream, PkP->Key);
-			D_BSwu32(RelData->WrapStream, PkP->Time);
-			D_BSwu32(RelData->WrapStream, PkP->FirstTime);
-			D_BSwu16(RelData->WrapStream, PkP->Size);
-			
-			// Block Header
-			for (z = 0; z < 4; z++)
-				D_BSwu8(RelData->WrapStream, PkP->Header[z]);
-			
-			// Actual Data
-			D_BSWriteChunk(RelData->WrapStream, PkP->Data, PkP->Size);
-			
-			// Transmit to remote host
-			D_BSRecordNetBlock(RelData->WrapStream, &CurFlat->Address);
-		}
-	}
-	
 	/* Flush the wrapped stream */
 	// This is so any data that was written is sent
 	D_BSFlushStream(RelData->WrapStream);
@@ -1145,7 +1145,7 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 			break;	// For speed, since we found one, no sense!
 		}
 		
-		// Older? Bug every 49 days, but no too much of a worry
+		// Older? Bug every 49 days, but not too much of a worry
 		if (!Oldest || Pack->FirstTime < Oldest->FirstTime)
 			Oldest = Pack;
 	}
