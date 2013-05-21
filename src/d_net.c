@@ -610,6 +610,9 @@ static D_XPlayer_t* l_CacheSVXPlay;
 
 static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
 
+static D_XNetTicSheet_t** l_Cookies;			// Cookies
+static size_t l_NumCookies;						// Number of cookies
+
 //l_SVMaxCatchup
 
 /*** FUNCTIONS ***/
@@ -617,57 +620,82 @@ static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
 extern int demosequence;
 extern int pagetic;
 
-/* D_XNetBufForTic() -- Get buffer for tic */
-D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create)
+/* D_XNetGetSheet() -- Return sheet with this ID */
+D_XNetTicSheet_t* D_XNetGetSheet(const uint8_t a_ID)
 {
 	size_t i;
 	
-	/* Look in list */
-	for (i = 0; i < l_NumTicStore; i++)
-		if (l_TicStore[i])
-			if (l_TicStore[i]->GameTic == a_GameTic)
-				return l_TicStore[i];
+	/* Go through sheets */
+	for (i = 0; i < l_NumCookies; i++)
+		if (l_Cookies[i])
+			if (l_Cookies[i]->TopID == a_ID)
+				return l_Cookies[i];
 	
-	/* Not Worth it? */
-	if (a_GameTic < gametic)
-		return NULL;
-	
-	/* Do not create? */
-	if (!a_Create)
-		return NULL;
-	
-	/* Allocate new spot */
-	for (i = 0; i < l_NumTicStore; i++)
-		if (!l_TicStore[i])
-			break;
-	
-	// End?
-	if (i >= l_NumTicStore)
-	{
-		Z_ResizeArray((void**)&l_TicStore, sizeof(*l_TicStore),
-			l_NumTicStore, l_NumTicStore + 1);
-		i = l_NumTicStore++;
-	}
-	
-	// Place here
-	l_TicStore[i] = Z_Malloc(sizeof(*l_TicStore[i]), PU_STATIC, NULL);
-	l_TicStore[i]->GameTic = a_GameTic;
-	return l_TicStore[i];
+	/* Not found */
+	return NULL;
 }
 
-/* D_XNetWipeBefores() -- Wipe tics all before this tic */
-void D_XNetWipeBefores(const tic_t a_GameTic)
-{	
+/* D_XNetCreateSheet() -- Creates new sheet */
+D_XNetTicSheet_t* D_XNetCreateSheet(const uint8_t a_ID)
+{
+	D_XNetTicSheet_t* New;
 	size_t i;
 	
-	/* Erase all in store */
-	for (i = 0; i < l_NumTicStore; i++)
-		if (l_TicStore[i])
-			if (l_TicStore[i]->GameTic < a_GameTic)
+	/* Do not create duplicate sheets */
+	if ((New = D_XNetGetSheet(a_ID)))
+		return New;
+	
+	/* Allocate new sheet */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Setup base data
+	New->TopID = a_ID;
+	
+	/* Add to chain */
+	for (i = 0; i < l_NumCookies; i++)
+		if (!l_Cookies[i])
+		{
+			l_Cookies[i] = New;
+			break;
+		}
+	
+	// Missed
+	if (i >= l_NumCookies)
+	{
+		Z_ResizeArray((void**)&l_Cookies, sizeof(*l_Cookies), l_NumCookies, l_NumCookies + 1);
+		l_Cookies[l_NumCookies++] = New;
+	}
+	
+	/* Return fresh */
+	return New;
+}
+
+/* D_XNetInitSheet() -- initializes sheeting */
+void D_XNetInitSheet(const uint8_t a_ID)
+{
+	size_t i, j;
+	
+	/* Clear old sheets */
+	if (l_Cookies)
+	{
+		for (i = 0; i < l_NumCookies; i++)
+			if (l_Cookies[i])
 			{
-				Z_Free(l_TicStore[i]);
-				l_TicStore[i] = NULL;
+				for (j = 0; j < 32; j++)
+					if (l_Cookies[i]->Store[j].Enc)
+						Z_Free(l_Cookies[i]->Store[j].Enc);
+				Z_Free(l_Cookies[i]);
 			}
+		
+		Z_Free(l_Cookies);
+		l_Cookies = NULL;
+	}
+}
+
+/* D_XNetCalcSheetNumForTic() -- Calculates used sheet for tic */
+uint8_t D_XNetCalcSheetNumForTic(const tic_t a_Tic)
+{
+	return (((a_Tic >> TICT_C(5)) + TICT_C(1)) & TICT_C(0xFF));
 }
 
 /* D_XNetTicBufSum() -- Calculates checksum of Tic Buffer */
@@ -1046,28 +1074,27 @@ bool_t D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a
 /* D_XNetPlaceTicCmd() -- Place tic command in store */
 void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_Cmd)
 {
-	D_XNetTicBuf_t* Buf;
+	D_XNetTicSheet_t* Sheet;
 	int32_t Player;
+	uint8_t ID, Run;
 	
-	/* Check */
-	if (!a_Cmd)
-		return;
+	/* Calculate sheet number for this tic */
+	ID = D_XNetCalcSheetNumForTic(a_GameTic);
+	Run = a_GameTic & 31;
 	
-	/* Get Buffer */
-	Buf = D_XNetBufForTic(a_GameTic, true);
-	
-	// Not there?
-	if (!Buf)
-		return;
-	
+	// Find sheet, if any
+	if (!(Sheet = D_XNetGetSheet(ID)))
+		// Create sheet
+		Sheet = D_XNetCreateSheet(ID);
+		
 	/* Correct player */
 	if (a_Player < 0 || a_Player >= MAXPLAYERS)
 		Player = MAXPLAYERS;
 	else
 		Player = a_Player;
 	
-	/* Place in specific location */
-	memmove(&Buf->Tics[Player], a_Cmd, sizeof(Buf->Tics[Player]));
+	/* Copy data to this sheet */
+	memmove(&Sheet->Store[Run].TicBuf.Tics[Player], a_Cmd, sizeof(*a_Cmd));
 }
 
 /* D_XNetSendTicToHost() -- Sends tic to XPlayer */
@@ -1185,21 +1212,38 @@ void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode)
 	D_BS_t* BS;
 	I_HostAddress_t* AddrP;
 	
+	D_XNetTicSheet_t* TopSheet;
+	uint8_t SheetID;
+	uint32_t Mask;
+	
+	uint8_t* Dp;
+	uint32_t Sp;
+	
 	/* If server, store into buffer */
 	if (D_XNetIsServer())
 	{
-		// Get Buffer
-		Buf = D_XNetBufForTic(a_GameTic, false);
-		
-		// Not there?
-		if (!Buf)
+		// Get top sheet
+		SheetID = D_XNetCalcSheetNumForTic(a_GameTic);
+		if (!(TopSheet = D_XNetGetSheet(SheetID)))
 			return;
-			
+		Mask = (a_GameTic) & 31;
+		
+		// Set mask
+		TopSheet->Mask |= 1 << Mask;
+		
+		// Get Buffer
+		Buf = &TopSheet->Store[Mask].TicBuf;
+		
 		// Place sync code there
 		Buf->SyncCode = a_SyncCode;
 		
-		// Send to all
-		D_XNetSendTicToHost(Buf, NULL);
+		// Encode buffer
+		D_XNetEncodeTicBuf(Buf, &Dp, &Sp, DXNTBV_LATEST);
+		
+		// Copy
+		TopSheet->Store[Mask].Len = Sp;
+		TopSheet->Store[Mask].Enc = Z_Malloc(TopSheet->Store[Mask].Len, PU_STATIC, NULL);
+		memmove(TopSheet->Store[Mask].Enc, Dp, TopSheet->Store[Mask].Len);
 	}
 	
 	/* If client, tell server the sync code for this gametic */
@@ -1311,7 +1355,7 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 		D_XBSocketDestroy();
 	
 	/* Wipe all the old tics */
-	D_XNetWipeBefores((tic_t)-1);
+	D_XNetInitSheet(0);
 	
 	/* Go back to the title screen */
 	if (!a_FromDemo)
@@ -2902,6 +2946,10 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 	D_XPlayer_t* XPlay;
 	D_XNetTicBuf_t* Buf;
 	
+	D_XNetTicSheet_t* TopSheet;
+	uint8_t SheetID;
+	uint32_t Mask;
+	
 	/* We are the server */
 	if (D_XNetIsServer())
 	{
@@ -3035,22 +3083,21 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 		// Reading
 		else
 		{
-			// Get tic that we want
-			Buf = D_XNetBufForTic(gametic, false);
-		
-			// That tic better be found!
-			if (Buf)
-			{
-				// Copy specific player
-				memmove(a_TicCmd, &Buf->Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
-			}
+			// Get top sheet
+			SheetID = D_XNetCalcSheetNumForTic(gametic);
+			TopSheet = D_XNetGetSheet(SheetID);
+			Mask = (gametic) & 31;
 			
-			// If not, disconnect
-			else
+			// Bad?
+			if (!TopSheet || !(TopSheet->Mask & (1 << Mask)))
 			{
 				CONL_OutputUT(CT_NETWORK, DSTR_DNETC_INVALIDTIC, "%u\n", (unsigned int)gametic);
 				D_XNetDisconnect(false);
+				return;
 			}
+			
+			// Return player command
+			memmove(a_TicCmd, &TopSheet->Store[Mask].TicBuf.Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
 		}
 	}
 }
@@ -3072,6 +3119,10 @@ tic_t D_XNetTicsToRun(void)
 	static tic_t ReqThresh;
 	D_BS_t* BS;
 	I_HostAddress_t* AddrP;
+	
+	D_XNetTicSheet_t* TopSheet;
+	uint8_t SheetID;
+	uint32_t Mask;
 	
 	/* Initialize */
 	// Get current tic
@@ -3119,106 +3170,39 @@ tic_t D_XNetTicsToRun(void)
 			// If not, freeze the game until everyone catches up some
 		Lagging = NonLocal = false;
 		
+		// Get top sheet
+		SheetID = D_XNetCalcSheetNumForTic(gametic);
+		TopSheet = D_XNetGetSheet(SheetID);
+	
+		// Go through all XPlayers
 		for (i = 0; i < g_NumXPlays; i++)
 		{
-			// Get current
-			XPlay = g_XPlays[i];
-			
-			// Not here?
-			if (!XPlay)
+			// Get
+			if (!(XPlay = g_XPlays[i]))
 				continue;
 			
-			// Ignore defunct players
-			if (XPlay->Flags & DXPF_DEFUNCT)
+			// Ignore local, bots, or defunct
+			if (XPlay->Flags & (DXPF_LOCAL | DXPF_BOT | DXPF_DEFUNCT))
 				continue;
 			
-			// Ignore Bots
-			if (XPlay->Flags & DXPF_BOT)
+			// Get host
+			if (!(Host = D_XNetPlayerByXPlayerHost(XPlay)))
 				continue;
 			
-			// Clear not cause of lag
-			XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
-			
-			// Non-Local
-			if ((XPlay->Flags & DXPF_LOCAL) == 0)
+			// No save sent, No sheet, behind in another sheet
+			if (!Host->TransSave || !TopSheet || Host->CookieID != TopSheet->TopID)
 			{
-				// One savegame transmit per host
-				NonLocal = true;
-				Host = D_XNetPlayerByXPlayerHost(XPlay);
-				
-				// Time behind
-				if (Host->LastRanTic >= gametic)
-					BehindCount	= 0;
-				else
-					BehindCount = gametic - Host->LastRanTic;
-				
-				// Reasons for lag:
-					// Save game not transmitted?
-				if ((!Host->TransSave) ||
-					(BehindCount >= l_SVMaxCatchup.Value->Int))
-				{
-					Lagging = true;
-					XPlay->StatusBits |= DXPSB_CAUSEOFLAG;
-				}
-				
-				// Not lagging
-				else
-					XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
+				Lagging = true;
+				XPlay->StatusBits |= DXPSB_CAUSEOFLAG;
 			}
 			
-			// Check lag stop/start
-			if (XPlay->StatusBits & DXPSB_CAUSEOFLAG)
-			{
-				// Set initial timer
-				if (!XPlay->LagStart)
-				{
-					XPlay->LagStart = g_ProgramTic;
-					
-					// Threshold prevents lag abuse
-					if (XPlay->LagThreshold)
-						XPlay->LagKill = XPlay->LagThreshold;
-					
-					else
-						XPlay->LagKill = XPlay->LagStart + (l_SVReadyBy.Value->Int * TICRATE);
-				}
-				
-				// If lag timer is past the threshold, kick
-				else if (g_ProgramTic >= XPlay->LagKill)
-				{
-					snprintf(ErrBuf, BUFSIZE - 1, "Timed out. ( @ %u - %u)", (unsigned)Host->LastRanTic, (unsigned)gametic);
-					D_XNetKickPlayer(XPlay, ErrBuf, false);
-				}
-			}
-			
-			// If not lagging, clear indicators
+			// Not lagging
 			else
-			{
-				// If we were lagging, then set the threshold
-				if (XPlay->LagStart)
-				{
-					XPlay->LagThreshExpire = g_ProgramTic + (l_SVLagThreshExpire.Value->Int * TICRATE);
-					XPlay->LagThreshold = XPlay->LagKill;
-					XPlay->LagKill = 0;
-				}
-				
-				XPlay->LagStart = 0;
-				XPlay->LagKill = 0;
-				
-				// Threshold expires?
-				if (g_ProgramTic >= XPlay->LagThreshExpire)
-				{
-					XPlay->LagThreshExpire = 0;
-					XPlay->LagThreshold = 0;
-				}
-			}
+				XPlay->StatusBits &= ~DXPSB_CAUSEOFLAG;
 		}
 		
-		// If dedicated, always NonLocal
-		if (l_IsDedicated)
-			NonLocal = true;
-		
-		// See if we are acting as a internet server
-		if (D_XBHasConnection())
+		// If dedicated, always NonLocal, if we are acting as a internet server
+		if (l_IsDedicated || D_XBHasConnection())
 			NonLocal = true;
 		
 		// No other clients in game?
@@ -3257,9 +3241,7 @@ tic_t D_XNetTicsToRun(void)
 		}
 		
 		// Wipe old gametics we don't care about
-		if (gametic > l_SVMaxCatchup.Value->Int + 1)
-			D_XNetWipeBefores(gametic - l_SVMaxCatchup.Value->Int);
-			
+		
 		// Get time difference
 		Diff = ThisTic - l_XNLastPTic;
 		l_XNLastPTic = ThisTic;
@@ -3288,47 +3270,26 @@ tic_t D_XNetTicsToRun(void)
 			
 		else
 		{
-			// Count tics in buffer
-			Diff = 0;
-			while ((Buf = D_XNetBufForTic(gametic + Diff, false)))
-				Diff++;
-			
-			// Remove all tics before gametic
-			if (gametic > 1)
-				D_XNetWipeBefores(gametic - 1);
-			
-			// Return available count
-			if (Diff > 0)
+			// See how many tics it is possible to obtain
+			for (Diff = 0; Diff < ((gametic + 31) & 31); Diff++)
 			{
-				ReqThresh = 0;
-				return Diff;
+				// Get top sheet
+				SheetID = D_XNetCalcSheetNumForTic(gametic + Diff);
+				if (!(TopSheet = D_XNetGetSheet(SheetID)))
+					return Diff;
+				Mask = (gametic + Diff) & 31;
+			
+				// No sheet?
+				if (!TopSheet)
+					return Diff;
+			
+				// Mask is not set
+				if (!(TopSheet->Mask & (1 << Mask)))
+					return Diff;
 			}
 			
-			// Otherwise, ask server for those missing tics
-			else
-			{
-				// Request Threshold once
-				if (!ReqThresh)
-					// Set threshold
-					ReqThresh = g_ProgramTic + l_CLReqTicDelay.Value->Int + 1;
-				
-				// Wait until obtained threshold
-				else if (g_ProgramTic >= ReqThresh)
-				{
-					// Request tic from server
-					BS = D_XBRouteToServer(NULL, &AddrP);
-					
-					if (BS)
-					{
-						D_BSBaseBlock(BS, "TREQ");
-						D_BSwcu64(BS, gametic);
-						D_BSRecordNetBlock(BS, AddrP);
-					}
-					
-					// Remove threshold to wait again
-					ReqThresh = 0;
-				}
-			}
+			// Return difference
+			return Diff;
 		}
 	}
 	

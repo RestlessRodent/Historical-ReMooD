@@ -320,6 +320,8 @@
 // A valid tic
 typedef uint64_t tic_t;
 
+#define TICT_C(x) UINT64_C(x)
+
 /******************************************
 *** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***
 ******************************************/

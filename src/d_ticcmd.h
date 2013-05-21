@@ -222,5 +222,19 @@ typedef struct D_XNetTicBuf_s
 	uint32_t PIGRevMask;						// Player in reverse game mask
 } D_XNetTicBuf_t;
 
+/* D_XNetTicSheet_t -- Tic cookie sheet */
+typedef struct D_XNetTicSheet_s
+{
+	uint8_t TopID;								// Top cookie ID
+	tic_t BaseTic;								// Base tic number
+	uint32_t Mask;								// Fill mask for sheet
+	struct
+	{
+		D_XNetTicBuf_t TicBuf;					// Tic Buffer
+		uint8_t* Enc;							// Encoded data
+		size_t Len;								// Length
+	} Store[32];								// Store of tics
+} D_XNetTicSheet_t;
+
 #endif
 

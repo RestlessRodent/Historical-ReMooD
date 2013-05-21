@@ -223,6 +223,9 @@ typedef struct D_XPlayer_s
 	int16_t ChatAt;								// Chat currently at
 	tic_t ChatCoolDown;							// Chat cooldown time
 	uint32_t ChatID;							// Chat ID Number
+	
+	uint8_t CookieID;							// ID of local cookie set
+	uint32_t CookieOK;							// Cookies OK
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -295,8 +298,11 @@ void D_XNetSetServerName(const char* const a_NewName);
 const char* D_XNetGetPlayerName(D_XPlayer_t* const a_Player);
 void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const D_XPlayerPref_t a_Pref, const intptr_t a_Value);
 
-D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create);
-void D_XNetWipeBefores(const tic_t a_GameTic);
+D_XNetTicSheet_t* D_XNetGetSheet(const uint8_t a_ID);
+D_XNetTicSheet_t* D_XNetCreateSheet(const uint8_t a_ID);
+void D_XNetInitSheet(const uint8_t a_ID);
+uint8_t D_XNetCalcSheetNumForTic(const tic_t a_Tic);
+
 void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_XNetTicBufVersion_t a_VersionNum);
 bool_t D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
 
