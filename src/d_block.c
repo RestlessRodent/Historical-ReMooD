@@ -1208,16 +1208,14 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 	
 	/* Go through the input buffer, round robin style */
 	Stop = ((RelData->RR - 1) + RBSRELINPUTQUEUE) % RBSRELINPUTQUEUE;
-	if (RelData->InWait > 0)
-		while ((RelData->RR = (RelData->RR + 1) % RBSRELINPUTQUEUE) != Stop)
+	while (RelData->InWait > 0)
+	{
+		// Ref
+		IPKp = &RelData->InPks[RelData->RR];
+		
+		// If data is here
+		if (IPKp->IsEaten)
 		{
-			// Ref
-			IPKp = &RelData->InPks[RelData->RR];
-		
-			// Nothing here
-			if (!IPKp->IsEaten)
-				continue;
-		
 			// Authentic?
 			RelData->IsAuth = IPKp->IsAuth;
 		
@@ -1241,6 +1239,11 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 			// Read something
 			return true;
 		}
+		
+		// Go to next robin
+		if ((RelData->RR = (RelData->RR + 1) % RBSRELINPUTQUEUE) == Stop)
+			return false;
+	}
 	
 	/* No packets read at all! */
 	return false;
