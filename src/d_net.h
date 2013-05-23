@@ -43,6 +43,14 @@
 #include "i_net.h"
 #include "i_util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+#if !defined(MAXUUIDLENGTH)
+	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
+#endif
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -51,30 +59,28 @@ struct D_BS_s;
 struct D_ProfileEx_s;
 struct B_BotTemplate_s;
 
+/* D_SNPort_t -- Port which controls a specific player or a spectator */
+typedef struct D_SNPort_s
+{
+	player_t* Player;							// Player
+	
+} D_SNPort_t;
+
+/* D_SNHost_t -- Host which controls a set of playing players */
+typedef struct D_SNHost_s
+{
+	D_SNPort_t** Ports;							// Ports
+	int32_t NumPorts;							// Number of ports
+} D_SNHost_t;
+
 /*****************
 *** PROTOTYPES ***
 *****************/
 
-bool_t D_CheckNetGame(void);
-
 bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
 bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 
-/******************************
-*** NEW EXTENDED NETWORKING ***
-******************************/
 
-/*** CONSTANTS ***/
-
-#if !defined(MAXUUIDLENGTH)
-	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
-#endif
-
-/*** STRUCTURES ***/
-
-/*** GLOBALS ***/
-
-/*** FUNCTIONS ***/
 
 #endif							/* __D_NET_H__ */
 

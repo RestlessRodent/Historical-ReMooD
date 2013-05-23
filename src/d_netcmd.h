@@ -65,7 +65,6 @@ typedef struct D_SplitInfo_s
 	int32_t Display;							// Display Player
 	uint32_t ProcessID;							// Local Processing ID
 	struct D_ProfileEx_s* Profile;				// Player Profile
-	struct D_XPlayer_s* XPlayer;				// X Player
 	
 	bool_t JoyBound;							// Joystick Bound
 	uint32_t JoyID;								// Joystick ID
