@@ -1439,6 +1439,76 @@ struct player_s* P_SpecGet(const int32_t a_Screen)
 /* P_SpecTicker() -- Ticks fake players */
 void P_SpecTicker(void)
 {
+	int32_t i;
+	ticcmd_t Merged;
+	D_SNPort_t* Port;
+	player_t* Mod;
+	mobj_t* CamMo;
+	
+	/* Run tics for all screens */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitHasPlayer(i))
+		{
+			// Port of player
+			Port = g_Splits[i].Port;
+			
+			// No port or is playing?
+			if (!Port || Port->Player)
+				continue;
+			
+			// Merge tics to be run
+			memset(&Merged, 0, sizeof(Merged));
+			D_XNetMergeTics(&Merged, Port->LocalBuf, Port->LocalAt);
+			Port->LocalAt = 0;
+			memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+			
+			// Run them
+			P_SpecRunTics(i, &Merged);
+		}
+	
+	/* Apply momentum */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Get Objects
+		Mod = &l_SpecPlayers[i];
+		CamMo = Mod->mo;
+		
+		// No object?
+		if (!CamMo)
+			continue;
+		
+		// No XPlayer? Correct
+		if (!Mod->Port)
+			Mod->Port = g_Splits[i].Port;
+		
+		// Flying
+		CamMo->momz = Mod->flyheight << 16;
+		if (Mod->flyheight)
+			Mod->flyheight >>= 1;
+		
+		// Apply momentum to object
+		CamMo->x += CamMo->momx;
+		CamMo->y += CamMo->momy;
+		CamMo->z += CamMo->momz;
+		
+		// Reduce momentum (for friction)
+		CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
+		CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
+		
+		// Set sound thinker
+		CamMo->NoiseThinker.x = CamMo->x;
+		CamMo->NoiseThinker.y = CamMo->y;
+		CamMo->NoiseThinker.z = CamMo->z;
+		CamMo->NoiseThinker.momx = CamMo->momx;
+		CamMo->NoiseThinker.momy = CamMo->momy;
+		CamMo->NoiseThinker.momz = CamMo->momz;
+		CamMo->NoiseThinker.Angle = CamMo->angle;
+		CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
+		CamMo->NoiseThinker.Volume = FIXEDT_C(1);
+		
+		// Set Camera Z
+		Mod->TargetViewZ = Mod->viewz = CamMo->z;
+	}
 }
 
 void P_Thrust(player_t* player, angle_t angle, fixed_t move);
@@ -1446,6 +1516,50 @@ void P_Thrust(player_t* player, angle_t angle, fixed_t move);
 /* P_SpecRunTics() -- Tic commands on screen */
 void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 {
+	player_t* Play;
+	mobj_t* Mo;
+	
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN || !a_TicCmd)
+		return;
+	
+	/* Player to modify */
+	Play = &l_SpecPlayers[a_Screen];
+	Mo = Play->mo;
+	
+	// Oops!
+	if (!Mo)
+		return;
+	
+	/* Modify local angles from tic command */
+	//localangle[a_Screen] += a_TicCmd->Std.BaseAngleTurn << 16;
+	localangle[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAngleTurn << UINT32_C(16);
+	
+	// Modify Aiming Angle
+	if (a_TicCmd->Std.buttons & BT_RESETAIM)
+		localaiming[a_Screen] = 0;
+	else
+	{
+		// Panning Look
+		if (a_TicCmd->Std.buttons & BT_PANLOOK)
+			localaiming[a_Screen] = (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
+		
+		// Standard Look
+		else
+			localaiming[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
+	}
+	
+	/* Set object looking angles to local */
+	Mo->angle = localangle[a_Screen];
+	Play->aiming = localaiming[a_Screen];
+	
+	/* Set Momentums */
+	Mo->subsector = &subsectors[0];
+	P_Thrust(Play, Mo->angle, a_TicCmd->Std.forwardmove * 2048);
+	P_Thrust(Play, Mo->angle - ANG90, a_TicCmd->Std.sidemove * 2048);
+	
+	/* Flying */
+	Play->flyheight = ((fixed_t)a_TicCmd->Std.FlySwim) * 2;
 }
 
 /* P_SpecGetPOV() -- Get player point of view */

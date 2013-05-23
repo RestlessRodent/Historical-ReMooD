@@ -506,8 +506,8 @@ void I_OsPolling(void)
 		if (M_ExUIHandleEvent(&Event))
 			continue;
 			
-		//if (D_XNetHandleEvent(&Event))
-		//	continue;
+		if (D_SNHandleEvent(&Event))
+			continue;
 	}
 }
 

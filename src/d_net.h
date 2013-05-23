@@ -124,7 +124,7 @@ void D_SNRemovePort(D_SNPort_t* const a_Port);
 D_SNPort_t* D_SNRequestPort(void);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
-void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
+void D_SNSetPortProfile(D_SNPort_t* const a_Port, struct D_ProfileEx_s* const a_Profile);
 
 /*** GAME CONTROL ***/
 
@@ -133,6 +133,11 @@ void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
 /*** DRAWERS ***/
 
 void D_SNDrawLobby(void);
+
+/*** BUILD TIC COMMANDS ***/
+
+bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event);
+void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
 
 #endif							/* __D_NET_H__ */
 

@@ -80,6 +80,11 @@ typedef struct D_SplitInfo_s
 	uint32_t ChatTargetID;						// Player to talk to
 	tic_t ChatTimeOut;							// Chat timeout
 	
+	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
+	int32_t Scores;								// Scoreboard showing
+	bool_t Turned180;							// Did 180 degre turn
+	
 	// Automap Stuff
 	bool_t AutomapActive;						// Activated Automap
 	fixed_t MapZoom;							// Zoom in the map

@@ -41,6 +41,7 @@
 #include "r_main.h"
 #include "p_info.h"
 #include "g_game.h"
+#include "d_prof.h"
 
 /****************
 *** CONSTANTS ***
@@ -374,9 +375,22 @@ void D_SNUpdateLocalPorts(void)
 		// Is a player
 		else
 		{
+			// Get split
+			Split = NULL;
+			if (Port->Screen >= 0 && Port->Screen < MAXSPLITSCREEN)
+				Split = &g_Splits[Port->Screen];
+			
 			// If no profile set, ask for one
 			if (!Port->Profile)
 			{
+				// If split has profile, use that
+				if (Split->Profile)
+					D_SNSetPortProfile(Port, Split->Profile);
+				
+				// Otherwise ask
+				else
+				{
+				}
 			}
 			
 			// Add tic commands for this port
@@ -754,9 +768,21 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 	}
 }
 
-/* D_SNPortTicCmd() -- Builds tic command for port */
-void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
+/* D_SNSetPortProfile() -- Set port profile */
+void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile)
 {
+	/* Check */
+	if (!a_Port)
+		return;
+	
+	/* Set it locally */
+	a_Port->Profile = a_Profile;
+	
+	// Clone to screen
+	if (a_Port->Screen >= 0 && a_Port->Screen < MAXSPLITSCREEN)
+		g_Splits[a_Port->Screen].Profile = a_Profile;
+	
+	/* Broadcast information to everyone else */
 }
 
 /*** GAME CONTROL ***/
