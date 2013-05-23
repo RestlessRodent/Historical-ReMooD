@@ -98,6 +98,7 @@ void D_SNUpdate(void);
 
 /*** PORT CONTROL ***/
 
+bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 
 /*** GAME CONTROL ***/

@@ -179,6 +179,9 @@ bool_t D_SNIsConnected(void)
 /* D_SNStartServer() -- Starts local server */
 bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 {
+	int32_t i;
+	const char* ProfN;
+	
 	/* Disconnect first */
 	D_SNDisconnect(false);
 	
@@ -192,6 +195,16 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	/* Set game settings */
 	NG_ApplyVars();
 	
+	/* Add local profile players */
+	for (i = 0; i < a_NumLocal; i++)
+	{
+		// Get profile to add from
+		ProfN = a_Profs[i];
+		
+		// Add profile to screens
+		D_SNAddLocalPlayer(ProfN, 0, i, false);
+	}
+	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
 	
@@ -202,6 +215,8 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 /* D_SNServerInit() -- Initializes Server Mode */
 bool_t D_SNServerInit(void)
 {
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
 	const char* PProfs[MAXPLAYERS];
 	int32_t np, i;
 	
@@ -231,6 +246,18 @@ bool_t D_SNServerInit(void)
 				PProfs[0] = M_GetNextParm();
 	}
 	
+	/* Add more players, if they are set */
+	for (i = 1; i < MAXPLAYERS; i++)
+	{
+		// Command to check for (-pX)
+		snprintf(Buf, BUFSIZE - 1, "-p%i", i + 1);
+		
+		// See if argument is set
+		if (M_CheckParm(Buf))
+			if (M_IsNextParm())
+				PProfs[np++] = M_GetNextParm();
+	}
+	
 	/* Networked or local? */
 	// Command line local game
 	if (NG_IsAutoStart())
@@ -242,6 +269,7 @@ bool_t D_SNServerInit(void)
 	
 	/* No server started */
 	return false;
+#undef BUFSIZE
 }
 
 /*** LOOP ***/
@@ -252,6 +280,92 @@ void D_SNUpdate(void)
 }
 
 /*** PORT CONTROL ***/
+
+/* D_SNAddLocalPlayer() -- Adds local player to game */
+bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
+{
+	uint32_t LastScreen;
+	int32_t PlaceAt, i, UngrabbedScreen;
+	D_Prof_t* Profile;
+	bool_t BumpSplits;
+	
+	/* Check */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+		return false;
+		
+	// Find Profile
+	Profile = NULL;
+	if (a_Name)
+		Profile = D_FindProfileEx(a_Name);
+	
+	/* Find first free slot */
+	// Find the last screened player
+	UngrabbedScreen = -1;
+	for (LastScreen = 0; LastScreen < MAXSPLITSCREEN; LastScreen++)
+	{
+		if (!D_ScrSplitHasPlayer(LastScreen))
+			break;
+		
+		// If the split has no profile and profile IS being added, take over
+		if (UngrabbedScreen == -1)
+			if (!g_Splits[i].Profile)
+				UngrabbedScreen = i;
+	}
+	
+	// Place at the first wanted spot, unless already bound
+		// Assign joystick to player, can be in game
+	if (a_UseJoy && D_ScrSplitHasPlayer(a_ScreenID) && !g_Splits[a_ScreenID].JoyBound)
+		PlaceAt = a_ScreenID;
+	
+		// No joystick wanted
+	else
+	{
+		// Cannot fit any more players
+		if (LastScreen >= MAXSPLITSCREEN)
+			return false;	
+		
+		if (UngrabbedScreen != -1)
+			PlaceAt = UngrabbedScreen;
+		else
+			PlaceAt = LastScreen;
+	}
+	
+	/* If not a bot, bind to a local screen */
+	// Bump splits? Not if a screen has a player (controlling keyboarder)
+	BumpSplits = true;
+	if (D_ScrSplitHasPlayer(PlaceAt))
+		BumpSplits = false;
+	
+	// Never redisplay
+		// Also if a player is not active, then reset the display status
+	if (!demoplayback)
+		if (!g_Splits[PlaceAt].Active)
+		{
+			g_Splits[PlaceAt].Console = -1;
+			g_Splits[PlaceAt].Display = -1;
+		}
+	
+	g_Splits[PlaceAt].RequestSent = false;
+	g_Splits[PlaceAt].GiveUpAt = 0;
+	
+	// Bind stuff here
+	g_Splits[PlaceAt].Waiting = true;
+	g_Splits[PlaceAt].Profile = Profile;
+	g_Splits[PlaceAt].JoyBound = a_UseJoy;
+	g_Splits[PlaceAt].JoyID = a_JoyID;
+	
+	// Resize Splits
+	if (BumpSplits)
+		if (!demoplayback)
+		{
+			if (PlaceAt >= g_SplitScreen)
+				g_SplitScreen = ((int)PlaceAt);// - 1;
+			R_ExecuteSetViewSize();
+		}
+	
+	/* Added OK */
+	return true;
+}
 
 /* D_SNTics() -- Handles tic commands */
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
