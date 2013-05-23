@@ -203,6 +203,10 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 		
 		// Add profile to screens
 		D_SNAddLocalPlayer(ProfN, 0, i, false);
+		
+		// If first player, do not steal
+		if (!i && !ProfN)
+			g_Splits[0].DoNotSteal = true;
 	}
 	
 	/* Calculate Split-screen */
@@ -235,27 +239,24 @@ bool_t D_SNServerInit(void)
 	// Otherwise, set 1 player
 	else
 	{
+		// Not dedicated
 		l_DedSv = false;
 		
-		// 1 player inside
-		np = 1;
+		// Add more players, if they are set
+		for (np = 0, i = 0; i < MAXPLAYERS; i++)
+		{
+			// Command to check for (-pX)
+			snprintf(Buf, BUFSIZE - 1, "-p%i", i + 1);
 		
-		// If -p1 is specified, use the indicated profile there
-		if (M_CheckParm("-p1"))
-			if (M_IsNextParm())
-				PProfs[0] = M_GetNextParm();
-	}
-	
-	/* Add more players, if they are set */
-	for (i = 1; i < MAXPLAYERS; i++)
-	{
-		// Command to check for (-pX)
-		snprintf(Buf, BUFSIZE - 1, "-p%i", i + 1);
-		
-		// See if argument is set
-		if (M_CheckParm(Buf))
-			if (M_IsNextParm())
-				PProfs[np++] = M_GetNextParm();
+			// See if argument is set
+			if (M_CheckParm(Buf))
+				if (M_IsNextParm())
+					PProfs[np++] = M_GetNextParm();
+			
+			// If player 1 missing?
+			if (i == 0 && !np)
+				np = 1;
+		}
 	}
 	
 	/* Networked or local? */
@@ -308,8 +309,8 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 		
 		// If the split has no profile and profile IS being added, take over
 		if (UngrabbedScreen == -1)
-			if (!g_Splits[i].Profile)
-				UngrabbedScreen = i;
+			if (!g_Splits[LastScreen].Profile && !g_Splits[LastScreen].DoNotSteal)
+				UngrabbedScreen = LastScreen;
 	}
 	
 	// Place at the first wanted spot, unless already bound
