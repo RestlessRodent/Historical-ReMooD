@@ -1264,7 +1264,7 @@ void ST_DrawPlayerBarsEx(void)
 		if (D_ScrSplitVisible(p) || (demoplayback && g_Splits[p].Active))
 		{
 			// Get players to draw for
-			if (!g_Splits[p].XPlayer)
+			if (!g_Splits[p].Port)
 			{
 				if (g_Splits[p].Console >= 0  && g_Splits[p].Console < MAXPLAYERS && playeringame[g_Splits[p].Console])
 					ConsoleP = &players[g_Splits[p].Console];

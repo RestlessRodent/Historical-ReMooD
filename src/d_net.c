@@ -40,6 +40,7 @@
 #include "p_demcmp.h"
 #include "r_main.h"
 #include "p_info.h"
+#include "g_game.h"
 
 /****************
 *** CONSTANTS ***
@@ -167,10 +168,6 @@ void D_SNDisconnect(const bool_t a_FromDemo)
 	// Do not double disconnect
 	InDis = true;
 	
-	/* Clear the global buffer */
-	l_GlobalAt = -1;
-	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
-	
 	/* Clear hosts */
 	l_MyHost = NULL;
 	if (l_Hosts)
@@ -181,8 +178,13 @@ void D_SNDisconnect(const bool_t a_FromDemo)
 		Z_Free(l_Hosts);
 	}
 	
+	// Clear pointers
 	l_Hosts = NULL;
 	l_NumHosts = 0;
+	
+	/* Clear the global buffer */
+	l_GlobalAt = -1;
+	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
 	
 	/* Done disconnecting */
 	InDis = true;
@@ -302,6 +304,8 @@ void D_SNUpdateLocalPorts(void)
 {
 	int32_t i;
 	D_SplitInfo_t* Split;
+	D_SNPort_t* Port;
+	ticcmd_t* TicCmdP;
 	
 	/* Do not perform this when not connected */
 	if (!l_Connected)
@@ -354,6 +358,45 @@ void D_SNUpdateLocalPorts(void)
 			{
 			}
 		}
+	
+	/* Go throgh local ports */
+	for (i = 0; i < l_MyHost->NumPorts; i++)
+	{
+		// No port here?
+		if (!(Port = l_MyHost->Ports[i]))
+			continue;
+			
+		// If bot, run bot commands
+		if (Port->Bot)
+		{
+		}
+		
+		// Is a player
+		else
+		{
+			// If no profile set, ask for one
+			if (!Port->Profile)
+			{
+			}
+			
+			// Add tic commands for this port
+			else
+			{
+				// Place tic command at last spot, when possible
+				TicCmdP = NULL;
+				if (Port->LocalAt < MAXLBTSIZE - 1)
+					TicCmdP = &Port->LocalBuf[Port->LocalAt++];
+				else
+					TicCmdP = &Port->LocalBuf[0];
+				
+				// Clear Tic command before rebuilding
+				memset(TicCmdP, 0, sizeof(*TicCmdP));
+				
+				// Build tic commands
+				D_SNPortTicCmd(Port, TicCmdP);
+			}
+		}
+	}
 }
 
 /* D_SNUpdate() -- Updates network state */
@@ -368,6 +411,22 @@ void D_SNUpdate(void)
 }
 
 /*** HOST CONTROL ***/
+
+/* D_SNHostByID() -- Finds host by ID */
+D_SNHost_t* D_SNHostByID(const uint32_t a_ID)
+{
+	int32_t i;
+	D_SNHost_t* Host;
+	
+	/* Through host list */
+	for (i = 0; i < l_NumHosts; i++)
+		if ((Host = l_Hosts[i]))
+			if (Host->ID == a_ID)
+				return Host;
+	
+	/* Not found */
+	return NULL;
+}
 
 /* D_SNCreateHost() -- Creates new host */
 D_SNHost_t* D_SNCreateHost(void)
@@ -421,6 +480,25 @@ void D_SNDestroyHost(D_SNHost_t* const a_Host)
 }
 
 /*** PORT CONTROL ***/
+
+/* D_SNPortByID() -- Finds port by ID */
+D_SNPort_t* D_SNPortByID(const uint32_t a_ID)
+{
+	int32_t i, j;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	
+	/* Through host list */
+	for (i = 0; i < l_NumHosts; i++)
+		if ((Host = l_Hosts[i]))
+			for (j = 0; j < Host->NumPorts; j++)
+				if ((Port = Host->Ports[i]))
+					if (Port->ID == a_ID)
+						return Port;
+	
+	/* Not found */
+	return NULL;
+}
 
 /* D_SNAddPort() -- Add port to host */
 D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host)
@@ -481,6 +559,7 @@ D_SNPort_t* D_SNRequestPort(void)
 {
 	int32_t i;
 	D_SNPort_t* Port;
+	uint32_t ID;
 	
 	/* No local host */
 	if (!l_MyHost)
@@ -501,7 +580,20 @@ D_SNPort_t* D_SNRequestPort(void)
 	/* In network situation, ask for one */
 	// If server, can just create our own port
 	if (l_Server)
-		return D_SNAddPort(l_MyHost);
+	{
+		// Add port
+		Port = D_SNAddPort(l_MyHost);
+		
+		// Set port ID
+		do
+		{
+			ID = D_CMakePureRandom();
+		} while (!ID || D_SNPortByID(ID) || D_SNHostByID(ID));
+		Port->ID = ID;
+		
+		// Return it
+		return Port;
+	}
 	
 	// Otherwise, need to send some packets
 	else
@@ -601,6 +693,8 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 /* D_SNTics() -- Handles tic commands */
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
+	D_SNPort_t* Port;
+	
 	/* If not writing, clear tic command */
 	if (!a_Write)
 		memset(a_TicCmd, 0, sizeof(a_TicCmd));
@@ -639,6 +733,14 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 			// Player
 			else
 			{
+				// Get port for this player
+				if (!(Port = players[a_Player].Port))
+					return;	// oops!
+				
+				// Merge all the local stuff
+				D_XNetMergeTics(a_TicCmd, Port->LocalBuf, Port->LocalAt);
+				Port->LocalAt = 0;
+				memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
 			}
 		}
 	}
@@ -652,6 +754,10 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 	}
 }
 
+/* D_SNPortTicCmd() -- Builds tic command for port */
+void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
+{
+}
 
 /*** GAME CONTROL ***/
 

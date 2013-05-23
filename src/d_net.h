@@ -51,6 +51,8 @@
 	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
 #endif
 
+#define MAXLBTSIZE						16		// Max tics in local buffer
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -69,6 +71,10 @@ typedef struct D_SNPort_s
 	D_SNHost_t* Host;							// Controlling host
 	int32_t Screen;								// Screen number
 	bool_t Bot;									// Bot controls this port
+	struct D_ProfileEx_s* Profile;				// Profile of player
+	uint32_t ID;								// ID of Port
+	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
+	int8_t LocalAt;								// Currently Place At...
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -77,6 +83,7 @@ struct D_SNHost_s
 	D_SNPort_t** Ports;							// Ports
 	int32_t NumPorts;							// Number of ports
 	bool_t Local;								// Local host
+	uint32_t ID;								// ID of host
 };
 
 /*****************
@@ -105,16 +112,19 @@ void D_SNUpdate(void);
 
 /*** HOST CONTROL ***/
 
+D_SNHost_t* D_SNHostByID(const uint32_t a_ID);
 D_SNHost_t* D_SNCreateHost(void);
 void D_SNDestroyHost(D_SNHost_t* const a_Host);
 
 /*** PORT CONTROL ***/
 
+D_SNPort_t* D_SNPortByID(const uint32_t a_ID);
 D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host);
 void D_SNRemovePort(D_SNPort_t* const a_Port);
 D_SNPort_t* D_SNRequestPort(void);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
+void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
 
 /*** GAME CONTROL ***/
 

@@ -29,8 +29,6 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Code
 
-
-
 #include "doomdef.h"
 #include "dstrings.h"
 #include "d_main.h"
