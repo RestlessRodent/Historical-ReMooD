@@ -2054,7 +2054,7 @@ void NG_WarpMap(void)
 {
 	/* Switch to new map? */
 	if (l_NGNewMap[0])
-		;//D_XNetChangeMap(l_NGNewMap, true);
+		D_SNChangeMap(l_NGNewMap, true);
 }
 
 /* NG_ApplyVars() -- Applies set variables */

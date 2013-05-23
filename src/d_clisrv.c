@@ -130,15 +130,37 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	static bool_t ToggleUp;
 	tic_t LocalTic, TargetTic;
 	int STRuns;
+	static tic_t LastSpecTic, LastPT;
 	
 	tic_t XXLocalTic, XXSNAR;
 	static tic_t LastNCSNU = (tic_t)-1;
+	
+	/* Basic loop stuff */
+	// Update time
+	if (singletics)
+		g_ProgramTic = gametic;
+	else
+		g_ProgramTic = I_GetTimeMS() / TICRATE;
+		
+	// This stuff is only important once a program tic
+	if (LastPT != g_ProgramTic)
+	{
+		CONL_Ticker();
+		D_JoySpecialTicker();
+		M_SMTicker();				// Simple Menu Ticker
+		
+		LastPT = g_ProgramTic;
+	}
 	
 	// Update music
 	I_UpdateMusic();
 	
 	// Update events
 	I_OsPolling();
+	D_ProcessEvents();
+	
+	// Update network
+	D_SNUpdate();
 	
 	/* Init */
 	LocalTic = 0;

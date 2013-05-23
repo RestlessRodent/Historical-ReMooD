@@ -14,6 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
+// Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
@@ -28,61 +29,47 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Doom/Hexen game states
+// DESCRIPTION: Network drawing stuff
 
-#ifndef __G_STATE__
-#define __G_STATE__
+/***************
+*** INCLUDES ***
+***************/
 
-#include "doomtype.h"
+#include "d_net.h"
+#include "dstrings.h"
+#include "v_video.h"
+#include "console.h"
 
-// skill levels
-typedef enum
+/****************
+*** CONSTANTS ***
+****************/
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+/* D_SNDrawLobby() -- Draws the lobby */
+void D_SNDrawLobby(void)
 {
-	sk_baby,
-	sk_easy,
-	sk_medium,
-	sk_hard,
-	sk_nightmare
-} G_Skill_t;
-
-// the current state of the game
-typedef enum
-{
-	GS_NULL = 0,				// at begin
-	GS_LEVEL,					// we are playing
-	GS_INTERMISSION,			// gazing at the intermission screen
-	GS_FINALE,					// game final animation
-	GS_DEMOSCREEN,				// looking at a demo
-	//legacy
-	GS_DEDICATEDSERVER,			// added 27-4-98 : new state for dedicated server
-	GS_WAITINGPLAYERS,			// added 3-9-98 : waiting player in net game
+	static V_Image_t* BGImage;
 	
-	// GhostlyDeath <May 17, 2012> -- Waiting for join window
-	GS_WAITFORJOINWINDOW,						// Player must wait to join
+	/* Draw a nice picture */
+	// Load it first
+	if (!BGImage)
+		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
 	
-} G_State_t;
-
-typedef enum
-{
-	ga_nothing,
-	ga_completed,
-	ga_worlddone,
-	//HeXen
+	// Draw it
+	V_ImageDraw(0, BGImage, 0, 0, NULL);
 	
-	/*
-	   ga_initnew,
-	   ga_newgame,
-	   ga_loadgame,
-	   ga_savegame,
-	   ga_leavemap,
-	   ga_singlereborn
-	 */
-} G_Action_t;
+	/* Draw Text */
+	// Notice
+	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFGS_TITLE), 10, 10);
+	
+	/* Draw Mouse */
+	CONL_DrawMouse();
+}
 
-extern G_State_t gamestate;
-extern G_Action_t gameaction;
-extern G_Skill_t gameskill;
-
-extern bool_t demoplayback;
-
-#endif							//__G_STATE__

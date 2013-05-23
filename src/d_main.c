@@ -262,6 +262,11 @@ void D_Display(void)
 		case GS_FINALE:
 			F_Drawer();
 			break;
+		
+			// Lobby
+		case GS_WAITINGPLAYERS:
+			D_SNDrawLobby();
+			break;
 			
 		case GS_DEMOSCREEN:
 			D_PageDrawer(pagename);
@@ -587,7 +592,7 @@ void D_DoomLoop(void)
 	}
 	
 	// Auto start?
-	else if (NG_IsAutoStart())
+	else if (NG_IsAutoStart() || D_SNIsConnected())
 	{
 		// Do nothing?
 	}
@@ -2679,10 +2684,8 @@ void D_DoomMain(void)
 			NG_SetAutoStart(true);
 		}
 	
-	// Initial Server?
-		// XNIS() calls XNMS() which calls NG_ApplyVars()
-	//if (NG_IsAutoStart())
-		//D_XNetInitialServer();
+	// Initialize server
+	D_SNServerInit();
 	
 	// Process all + parms
 		// Commands like other things

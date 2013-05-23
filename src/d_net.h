@@ -62,8 +62,8 @@ struct B_BotTemplate_s;
 /* D_SNPort_t -- Port which controls a specific player or a spectator */
 typedef struct D_SNPort_s
 {
-	player_t* Player;							// Player
-	
+	char Name[MAXPLAYERNAME];					// Name of player
+	struct player_s* Player;					// Player controlling
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -80,7 +80,33 @@ typedef struct D_SNHost_s
 bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
 bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 
+/*** GLOBAL TICS ***/
 
+bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp);
+bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* const a_TicCmd);
+
+/*** SERVER CONTROL ***/
+
+void D_SNDisconnect(const bool_t a_FromDemo);
+bool_t D_SNIsConnected(void);
+bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs);
+bool_t D_SNServerInit(void);
+
+/*** LOOP ***/
+
+void D_SNUpdate(void);
+
+/*** PORT CONTROL ***/
+
+void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
+
+/*** GAME CONTROL ***/
+
+void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
+
+/*** DRAWERS ***/
+
+void D_SNDrawLobby(void);
 
 #endif							/* __D_NET_H__ */
 

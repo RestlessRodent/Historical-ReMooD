@@ -626,12 +626,12 @@ void G_Ticker(void)
 	if (demoplayback)
 		G_ReadDemoGlobalTicCmd(&GlobalCmd);
 	else
-		;//D_XNetMultiTics(&GlobalCmd, false, -1);
+		D_SNTics(&GlobalCmd, false, -1);
 	
 	// Write Global Tic Commands
 	if (demorecording)
 		G_WriteDemoGlobalTicCmd(&GlobalCmd);
-	//D_XNetMultiTics(&GlobalCmd, true, -1);
+	D_SNTics(&GlobalCmd, true, -1);
 	
 	/* Player Commands */
 	// Read Individual Player Tic Commands
@@ -646,12 +646,12 @@ void G_Ticker(void)
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
-				;//D_XNetMultiTics(cmd, false, i);
+				D_SNTics(cmd, false, i);
 			
 			// Write Command
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
-			//D_XNetMultiTics(cmd, true, i);
+			D_SNTics(cmd, true, i);
 			
 			// Copy Ping
 			players[i].Ping = cmd->Ctrl.Ping;

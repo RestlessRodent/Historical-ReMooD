@@ -2400,7 +2400,7 @@ static int CLC_PlayDemo(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Disconnect */
-	//D_XNetDisconnect(false);
+	D_SNDisconnect(false);
 	
 	/* Stop old demos from playing */
 	G_StopDemo();
@@ -2641,7 +2641,7 @@ void G_StopDemoPlay(void)
 	/* If not a server playing demos (demoplayback server) */
 	// Disconnect from "ourself"
 	if (!l_DemoServer)
-		;//D_XNetDisconnect(true);
+		;D_SNDisconnect(true);
 	
 	/* What to do? */
 	QuitDoom = Advance = false;
@@ -2806,7 +2806,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	/* If not a server playing demos (demoplayback server) */
 	// We need to switch to a server state before demos can be played.
 	if (!l_DemoServer)
-		;//D_XNetDisconnect(true);
+		;D_SNDisconnect(true);
 	
 	/* Reset Spectating watchers */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
