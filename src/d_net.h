@@ -59,19 +59,25 @@ struct D_BS_s;
 struct D_ProfileEx_s;
 struct B_BotTemplate_s;
 
+typedef struct D_SNHost_s D_SNHost_t;
+
 /* D_SNPort_t -- Port which controls a specific player or a spectator */
 typedef struct D_SNPort_s
 {
 	char Name[MAXPLAYERNAME];					// Name of player
 	struct player_s* Player;					// Player controlling
+	D_SNHost_t* Host;							// Controlling host
+	int32_t Screen;								// Screen number
+	bool_t Bot;									// Bot controls this port
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
-typedef struct D_SNHost_s
+struct D_SNHost_s
 {
 	D_SNPort_t** Ports;							// Ports
 	int32_t NumPorts;							// Number of ports
-} D_SNHost_t;
+	bool_t Local;								// Local host
+};
 
 /*****************
 *** PROTOTYPES ***
@@ -94,10 +100,19 @@ bool_t D_SNServerInit(void);
 
 /*** LOOP ***/
 
+void D_SNUpdateLocalPorts(void);
 void D_SNUpdate(void);
+
+/*** HOST CONTROL ***/
+
+D_SNHost_t* D_SNCreateHost(void);
+void D_SNDestroyHost(D_SNHost_t* const a_Host);
 
 /*** PORT CONTROL ***/
 
+D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host);
+void D_SNRemovePort(D_SNPort_t* const a_Port);
+D_SNPort_t* D_SNRequestPort(void);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 

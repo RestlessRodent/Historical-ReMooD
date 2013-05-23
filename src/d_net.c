@@ -58,6 +58,10 @@ static bool_t l_Server;							// We are server
 static ticcmd_t l_GlobalBuf[MAXGLOBALBUFSIZE];	// Global buffer
 static int32_t l_GlobalAt = -1;					// Position Global buf is at
 
+static D_SNHost_t* l_MyHost;					// This games host
+static D_SNHost_t** l_Hosts;					// Hosts
+static int32_t l_NumHosts;						// Number of hosts
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -154,6 +158,7 @@ bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* co
 void D_SNDisconnect(const bool_t a_FromDemo)
 {
 	static bool_t InDis;	
+	int32_t i;
 	
 	/* If disconnected already, stop */
 	if (InDis)
@@ -165,6 +170,19 @@ void D_SNDisconnect(const bool_t a_FromDemo)
 	/* Clear the global buffer */
 	l_GlobalAt = -1;
 	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	
+	/* Clear hosts */
+	l_MyHost = NULL;
+	if (l_Hosts)
+	{
+		// Individual host
+		for (i = 0; i < l_NumHosts; i++)
+			D_SNDestroyHost(l_Hosts[i]);
+		Z_Free(l_Hosts);
+	}
+	
+	l_Hosts = NULL;
+	l_NumHosts = 0;
 	
 	/* Done disconnecting */
 	InDis = true;
@@ -211,6 +229,10 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
+	
+	/* Add local host player */
+	l_MyHost = D_SNCreateHost();
+	l_MyHost->Local = true; // must be local
 	
 	/* Created */
 	return true;
@@ -275,12 +297,220 @@ bool_t D_SNServerInit(void)
 
 /*** LOOP ***/
 
+/* D_SNUpdateLocalPorts() -- Updates local ports */
+void D_SNUpdateLocalPorts(void)
+{
+	int32_t i;
+	D_SplitInfo_t* Split;
+	
+	/* Do not perform this when not connected */
+	if (!l_Connected)
+		return;
+	
+	/* Go through local screens */
+	if (!l_DedSv)	// Dedicated server only has bots
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+		{
+			// Does not have player
+			if (!D_ScrSplitHasPlayer(i))
+				continue;
+		
+			// Quick
+			Split = &g_Splits[i];
+		
+			// Screen has no port
+			if (!Split->Port)
+			{
+				// If request not sent
+				if (!Split->RequestSent)
+				{
+					// Sent and give up in 5 sconds
+					Split->RequestSent = true;
+					Split->GiveUpAt = g_ProgramTic + (TICRATE * 5);
+				}
+			
+				// Request sent
+				else
+				{
+					// Ran out of time?
+					if (g_ProgramTic >= Split->GiveUpAt)
+					{
+						D_NCRemoveSplit(i, false);
+						i--;
+						continue;
+					}
+				}
+			
+				// Try to grab a port
+				Split->Port = D_SNRequestPort();
+			
+				// If grabbed, set local screen ID
+				if (Split->Port)
+					Split->Port->Screen = i;
+			}
+		
+			// Screen has no profile
+			else if (!Split->Profile)
+			{
+			}
+		}
+}
+
 /* D_SNUpdate() -- Updates network state */
 void D_SNUpdate(void)
 {
+	/* Do not update in demo */
+	if (demoplayback)
+		return;	
+	
+	/* Update ports */
+	D_SNUpdateLocalPorts();
+}
+
+/*** HOST CONTROL ***/
+
+/* D_SNCreateHost() -- Creates new host */
+D_SNHost_t* D_SNCreateHost(void)
+{
+	D_SNHost_t* New;
+	int32_t i;
+	
+	/* Allocate new */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Place into list */
+	for (i = 0; i < l_NumHosts; i++)
+		if (!l_Hosts[i])
+			return l_Hosts[i] = New;
+	
+	/* Need to resize */
+	Z_ResizeArray((void**)&l_Hosts, sizeof(*l_Hosts), l_NumHosts, l_NumHosts + 1);
+	return l_Hosts[l_NumHosts++] = New;
+}
+
+/* D_SNDestroyHost() -- Destroys host */
+void D_SNDestroyHost(D_SNHost_t* const a_Host)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Host)
+		return;
+	
+	/* Remove from list */
+	for (i = 0; i < l_NumHosts; i++)
+		if (l_Hosts[i] == a_Host)
+			l_Hosts[i] = NULL;
+	
+	// This is our host?
+	if (a_Host == l_MyHost)
+		l_MyHost = NULL;
+	
+	/* Cleanup host */
+	// Clear ports
+	if (a_Host->Ports)
+	{
+		for (i = 0; i < a_Host->NumPorts; i++)
+			if (a_Host->Ports[i])
+				D_SNRemovePort(a_Host->Ports[i]);
+		Z_Free(a_Host->Ports);
+	}
+	
+	// Free
+	Z_Free(a_Host);
 }
 
 /*** PORT CONTROL ***/
+
+/* D_SNAddPort() -- Add port to host */
+D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host)
+{
+	D_SNPort_t* New;
+	int32_t i;
+	
+	/* Check */
+	if (!a_Host)
+		return NULL;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Add to list
+	for (i = 0; i < a_Host->NumPorts; i++)
+		if (!a_Host->Ports[i])
+		{
+			a_Host->Ports[i] = New;
+			break;
+		}
+	
+	// Need to resize
+	if (i >= a_Host->NumPorts)
+	{
+		Z_ResizeArray((void**)&a_Host->Ports, sizeof(*a_Host->Ports), a_Host->NumPorts, a_Host->NumPorts + 1);
+		a_Host->Ports[a_Host->NumPorts++] = New;
+	}
+	
+	/* Return fresh port */
+	return New;
+}
+
+/* D_SNRemovePort() -- Removes port */
+void D_SNRemovePort(D_SNPort_t* const a_Port)
+{
+	D_SNHost_t* Host;
+	int32_t i;
+	
+	/* Check */
+	if (!a_Port)
+		return;
+	
+	/* Get host */
+	Host = a_Port->Host;
+	
+	/* Remove from host list */
+	for (i = 0; i < Host->NumPorts; i++)
+		if (Host->Ports[i] == a_Port)
+			Host->Ports[i] = NULL;
+	
+	/* Free */
+	Z_Free(a_Port);
+}
+
+/* D_SNRequestPort() -- Requests port from server */
+D_SNPort_t* D_SNRequestPort(void)
+{
+	int32_t i;
+	D_SNPort_t* Port;
+	
+	/* No local host */
+	if (!l_MyHost)
+		return NULL;
+	
+	/* Go through and see if any ports are not used */
+	for (i = 0; i < l_MyHost->NumPorts; i++)
+	{
+		// See if port is in this spot
+		if (!(Port = l_MyHost->Ports[i]))
+			continue;
+		
+		// If not a bot and is free, use this one
+		if (Port->Screen < 0 && !Port->Bot)
+			return Port;
+	}
+	
+	/* In network situation, ask for one */
+	// If server, can just create our own port
+	if (l_Server)
+		return D_SNAddPort(l_MyHost);
+	
+	// Otherwise, need to send some packets
+	else
+	{
+	}
+	
+	/* No port found, yet */
+	return NULL;
+}
 
 /* D_SNAddLocalPlayer() -- Adds local player to game */
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
