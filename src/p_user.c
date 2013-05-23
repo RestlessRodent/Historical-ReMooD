@@ -1307,8 +1307,85 @@ static mobj_t l_SpecMobjs[MAXSPLITSCREEN];		// Fake Mobj
 /* P_SpecInitOne() -- Initializes single player */
 static void P_SpecInitOne(const int32_t a_PlayerNum)
 {
+	int i;
+	mapthing_t* MapThing;
+	mobj_t* AnotherMo;
+	subsector_t* SubS;
+	
+	/* Check */
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+		return;
+	
+	/* Only During Levels */
+	if (gamestate != GS_LEVEL)
+		return;
+	
+	/* Reset */
+	memset(&l_SpecPlayers[a_PlayerNum], 0, sizeof(l_SpecPlayers[a_PlayerNum]));
+	memset(&l_SpecMobjs[a_PlayerNum], 0, sizeof(l_SpecMobjs[a_PlayerNum]));
+	
+	/* Find a map thing to initialize the view from */
+	MapThing = NULL;
+	AnotherMo = NULL;
+	
+	// Try existing players
+	for (i = 0; i < MAXPLAYERS && !AnotherMo; i++)
+		if (playeringame[i])
+			if (players[i].mo)
+				AnotherMo = players[i].mo;
+	
+	// Try player starts first
+	if (!MapThing)
+		for (i = 0; i < MAXPLAYERS && !MapThing; i++)
+			MapThing = playerstarts[i];
+	
+	// Then deathmatch starts
+	if (!MapThing)
+		for (i = 0; i < MAX_DM_STARTS && !MapThing; i++)
+			MapThing = deathmatchstarts[i];
+	
+	/* Initialize each player */
+	// Quick
+	i = a_PlayerNum;
+	
+	// Bind objects
+	l_SpecPlayers[i].mo = &l_SpecMobjs[i];
+	l_SpecMobjs[i].player = &l_SpecPlayers[i];
+	
+	// Player has object
+	if (AnotherMo)
+	{
+		l_SpecMobjs[i].x = AnotherMo->x;
+		l_SpecMobjs[i].y = AnotherMo->y;
+		l_SpecMobjs[i].z = AnotherMo->z + (AnotherMo->height >> 1);
+		l_SpecMobjs[i].angle = AnotherMo->angle;
+	}
+	
+	// Only if MapThing is set
+	else if (MapThing)
+	{
+		// Set Initial Position
+		l_SpecMobjs[i].x = ((fixed_t)MapThing->x) << 16;
+		l_SpecMobjs[i].y = ((fixed_t)MapThing->y) << 16;
+	
+		// Calculate Z position
+		l_SpecMobjs[i].subsector = SubS = R_PointInSubsector(l_SpecMobjs[i].x, l_SpecMobjs[i].y);
+		l_SpecMobjs[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight - SubS->sector->floorheight) >> 1);
+		
+		// Angle
+		l_SpecMobjs[i].angle = MapThing->angle * ANGLE_1;
+	}
+	
+	// Correct View Hieght
+	l_SpecPlayers[i].viewz = l_SpecMobjs[i].z;
+	
+	// Set viewing angle correctly, if not playing
+	if (!g_Splits[i].Active)
+		localangle[i] = l_SpecMobjs[i].angle;
+	
+	// Don't apply heretic friction to the spectator
+	l_SpecPlayers[i].mo->RXFlags[1] |= MFREXB_NOHERETICFRICT;
 }
-
 
 /* P_SpecInit() -- Initializes the fake player */
 void P_SpecInit(const int32_t a_PlayerNum)
@@ -1374,7 +1451,65 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 /* P_SpecGetPOV() -- Get player point of view */
 struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 {
-	return &players[0];
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* Demo playing back? */
+	if (demoplayback)
+	{
+		// Always return first POV, or standard screen POV for other players
+		if (g_TitleScreenDemo || a_Screen > 0)
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Otherwise, return spec view
+		else
+		{
+			if (g_Splits[0].Display == -1 || !playeringame[g_Splits[0].Display])
+				return P_SpecGet(0);
+			else
+				return &players[g_Splits[a_Screen].Display];
+		}
+	}
+	
+	/* No XPlayer? */
+	else if (true)
+	{
+		if (playeringame[g_Splits[a_Screen].Display])
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Ilegal Display
+		g_Splits[a_Screen].Display = -1;
+		
+		// Try returning console player then
+		if (playeringame[g_Splits[a_Screen].Console])
+			return &players[g_Splits[a_Screen].Console];
+		else
+			return P_SpecGet(a_Screen);
+	}
+	
+	/* There is one */
+	else
+		// Not playing? Return spectator
+		if ((demoplayback && g_TitleScreenDemo))
+			if (g_Splits[a_Screen].Display < 0 ||
+				g_Splits[a_Screen].Display >= MAXPLAYERS ||
+				!playeringame[g_Splits[a_Screen].Display] || (demoplayback && g_TitleScreenDemo))
+				return P_SpecGet(a_Screen);
+			else
+				return &players[g_Splits[a_Screen].Display];
+		
+		// Playing, return display
+		else if (playeringame[g_Splits[a_Screen].Display])
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Return standard player
+		else
+			return &players[g_Splits[a_Screen].Console];
+	
+	/* Failed */
+	// This is never reached, but for GCC
+	return NULL;
 }
 
 /* P_VerifyCoopSpy() -- Verify coop spy settings */
