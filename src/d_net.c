@@ -416,12 +416,31 @@ void D_SNUpdateLocalPorts(void)
 /* D_SNUpdate() -- Updates network state */
 void D_SNUpdate(void)
 {
+	int32_t h, p;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	
 	/* Do not update in demo */
 	if (demoplayback)
 		return;	
 	
 	/* Update ports */
 	D_SNUpdateLocalPorts();
+	
+	/* Server only ahead */
+	if (!l_Server)
+		return;
+	
+	/* Go through all hosts and ports */
+	for (h = 0; h < l_NumHosts; h++)
+		if ((Host = l_Hosts[h]))
+		{
+			// Go through ports
+			for (p = 0; p < Host->NumPorts; p++)
+				if ((Port = Host->Ports[p]))
+				{
+				}
+		}
 }
 
 /*** HOST CONTROL ***/
