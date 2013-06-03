@@ -1140,9 +1140,11 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Destroy old surface */
+#if 0
 	if (l_SDLSurface)
 		SDL_FreeSurface(l_SDLSurface);
 	l_SDLSurface = NULL;
+#endif
 	
 	/* Find flags to set */
 	SDLFlags = SDL_HWPALETTE | SDL_DOUBLEBUF;
