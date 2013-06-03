@@ -191,6 +191,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "CVHINT_VIDDRAWFPS", "Draw frames per second on the screen."},
 	
 	{			   "CVHINT_IENABLEMOUSE", "Enable mouse input."},
+	{		"CVHINT_INOFAKEDOUBLEBUFFER", "Do not fake double buffering (will cause tearing if your hardware is not capable of double buffering)."},
 	{			"CVHINT_IENABLEJOYSTICK", "Enable joystick input."},
 	{				"CVHINT_IOSSMIDIDEV", "OSS device to use when playing MIDI music. (Pathname to MIDI device such as /dev/midi)"},
 	{			   "CVHINT_IALSAMIDIDEV", "ALSA device to use when playing MIDI music. (Client:Port to MIDI device such as 128:0)"},

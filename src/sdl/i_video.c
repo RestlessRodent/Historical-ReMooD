@@ -636,6 +636,14 @@ static bool_t l_DblBuf = false;					// Double buffering
 
 static bool_t l_SDLGL = false;
 
+// i_sdlinternalbuffer -- Always use SDL buffering even if it is single buffered
+CONL_StaticVar_t l_SDLInternalBuffer =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"i_forcedoublebuffer", DSTR_CVHINT_INOFAKEDOUBLEBUFFER, CLVVT_STRING, "false",
+	NULL
+};
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -1177,11 +1185,8 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	/* Allocate Buffer */
 	// Double?
 	l_DblBuf = false;
-	if (l_SDLSurface->flags & SDL_DOUBLEBUF)
+	if ((l_SDLSurface->flags & SDL_DOUBLEBUF) || !l_SDLInternalBuffer.Value->Int)
 		l_DblBuf = true;
-	
-	// Force double buf mode
-	l_DblBuf = true;
 	
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), l_DblBuf, l_SDLGL);
 	
@@ -1218,6 +1223,9 @@ void I_StartupGraphics(void)
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
+	
+	/* Register force internal double buffer */
+	CONL_VarRegister(&l_SDLInternalBuffer);
 		
 	/* Initialize SDL */
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
