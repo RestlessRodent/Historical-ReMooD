@@ -632,6 +632,7 @@ static bool_t l_MouseOn = false;	// Is the mouse on?
 static bool_t l_DoGrab = false;	// Grab mouse?
 static IS_JoystickInfo_t* l_Joys = NULL;	// Joystick Info
 static size_t l_NumJoys = 0;	// Joystick Count
+static bool_t l_DblBuf = false;					// Double buffering
 
 static bool_t l_SDLGL = false;
 
@@ -719,7 +720,7 @@ void I_GetEvent(void)
 				{
 					// Remeber unicode key (hack)
 					ExEvent[0].Data.Keyboard.Character = LastUnic[Key];
-					LastUnic[Key];
+					LastUnic[Key] = 0;
 				}
 				
 				// Set down state
@@ -984,7 +985,7 @@ void I_FinishUpdate(void)
 		return;
 	
 	/* No Double Buffering? */
-	if ((l_SDLSurface->flags & SDL_DOUBLEBUF) == 0)
+	if (!l_DblBuf)
 	{
 		// Lock surface
 		SDL_LockSurface(l_SDLSurface);
@@ -1136,12 +1137,16 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Destroy old buffer */
+#if 0
 	if (!l_SDLGL)
 		I_VideoUnsetBuffer();		// Remove old buffer if any
+#endif
 	
 	/* Destroy old surface */
+#if 0
 	if (l_SDLSurface)
 		SDL_FreeSurface(l_SDLSurface);
+#endif
 	l_SDLSurface = NULL;
 	
 	/* Find flags to set */
@@ -1170,7 +1175,15 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), !!(l_SDLSurface->flags & SDL_DOUBLEBUF), l_SDLGL);
+	// Double?
+	l_DblBuf = false;
+	if (l_SDLSurface->flags & SDL_DOUBLEBUF)
+		l_DblBuf = true;
+	
+	// Force double buf mode
+	l_DblBuf = true;
+	
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), l_DblBuf, l_SDLGL);
 	
 	/* Initialize Mode */
 	VHW_Init((l_SDLGL ? VHWMODE_OPENGL : VHWMODE_IDXSOFT));
@@ -1236,8 +1249,10 @@ void I_StartupGraphics(void)
 void I_ShutdownGraphics(void)
 {
 	/* Destroy old surface */
+#if 0
 	if (l_SDLSurface)
 		SDL_FreeSurface(l_SDLSurface);
+#endif
 	l_SDLSurface = NULL;
 	
 	/* Destroy icon ='( */
