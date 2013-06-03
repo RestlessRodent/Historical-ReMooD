@@ -1136,15 +1136,17 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Destroy old buffer */
+#if 0
 	if (!l_SDLGL)
 		I_VideoUnsetBuffer();		// Remove old buffer if any
+#endif
 	
 	/* Destroy old surface */
 #if 0
 	if (l_SDLSurface)
 		SDL_FreeSurface(l_SDLSurface);
-	l_SDLSurface = NULL;
 #endif
+	l_SDLSurface = NULL;
 	
 	/* Find flags to set */
 	SDLFlags = SDL_HWPALETTE | SDL_DOUBLEBUF;
@@ -1238,8 +1240,10 @@ void I_StartupGraphics(void)
 void I_ShutdownGraphics(void)
 {
 	/* Destroy old surface */
+#if 0
 	if (l_SDLSurface)
 		SDL_FreeSurface(l_SDLSurface);
+#endif
 	l_SDLSurface = NULL;
 	
 	/* Destroy icon ='( */
