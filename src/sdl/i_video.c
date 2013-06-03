@@ -640,7 +640,7 @@ static bool_t l_SDLGL = false;
 CONL_StaticVar_t l_SDLInternalBuffer =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
-	"i_forcedoublebuffer", DSTR_CVHINT_INOFAKEDOUBLEBUFFER, CLVVT_STRING, "false",
+	"i_nofakedoublebuffer", DSTR_CVHINT_INOFAKEDOUBLEBUFFER, CLVVT_STRING, "false",
 	NULL
 };
 

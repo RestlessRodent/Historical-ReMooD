@@ -152,9 +152,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		LastPT = g_ProgramTic;
 	}
 	
-	// Update music
-	I_UpdateMusic();
-	
 	// Update events
 	I_OsPolling();
 	D_ProcessEvents();

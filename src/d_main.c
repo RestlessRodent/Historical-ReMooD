@@ -448,7 +448,6 @@ void D_Display(void)
 	// GhostlyDeath <May 5, 2012> -- Update Music
 	I_UpdateMusic();
 	
-	
 	//I_BeginProfile();
 	if (!noblit)
 		I_FinishUpdate();			// page flip or blit buffer
