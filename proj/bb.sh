@@ -533,8 +533,7 @@ do
 			fi
 			
 			# Build
-			if ! make $MAKEFLAGS $
-			DEBUGOPT CC="$GCWTCROOT/usr/bin/mipsel-gcw0-linux-uclibc-gcc" USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL -D__REMOOD_MODEL=1 -D__REMOOD_NOALSAMIDI" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
+			if ! make $MAKEFLAGS $DEBUGOPT CC="$GCWTCROOT/usr/bin/mipsel-gcw0-linux-uclibc-gcc" USEINTERFACE=sdl CFLAGS="-I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/SDL -D__REMOOD_OPENGL_CANCEL -D__REMOOD_MODEL=1 -D__REMOOD_NOALSAMIDI" OPENGL_LDFLAGS="-D__REMOOD_OPENGL_CANCEL" EXESUFFIX=".elf" CONFIGPREFIX="I$GCWTCROOT/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/"
 			then
 				echo "$COOLPREFIX Build failed" 1>&2
 				exit 1
