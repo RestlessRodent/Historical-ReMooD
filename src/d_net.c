@@ -528,7 +528,7 @@ D_SNPort_t* D_SNPortByID(const uint32_t a_ID)
 	for (i = 0; i < l_NumHosts; i++)
 		if ((Host = l_Hosts[i]))
 			for (j = 0; j < Host->NumPorts; j++)
-				if ((Port = Host->Ports[i]))
+				if ((Port = Host->Ports[j]))
 					if (Port->ID == a_ID)
 						return Port;
 	
@@ -970,6 +970,9 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	if (p >= MAXPLAYERS)
 		return;
 	
+	// Go back to port
+	Port = a_Port;
+	
 	/* Make this port own this player now */
 	Port->Player = &players[p];
 	
@@ -979,6 +982,8 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 		Port->Player = NULL;	// whoops!!
 		return;
 	}
+	
+	CONL_PrintF("Add for %x %x\n", Host->ID, Port->ID);
 	
 	// Fill
 	LittleWriteUInt32((uint32_t**)&Wp, Host->ID);

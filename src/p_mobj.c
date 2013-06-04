@@ -1767,6 +1767,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	mobj_t* mobj;
 	int i;
 	int32_t TeamColor;
+	D_SNPort_t* Port;
 	
 	if (!mthing)
 	{
@@ -1887,6 +1888,17 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		P_TeleportMove(mobj, mobj->x, mobj->y);
 		mobj->reactiontime = 0;	// Don't telefreeze
 	}
+	
+	/* Set local angle, if applicable */
+	if ((Port = p->Port))
+		if (Port->Host && Port->Host->Local)
+			for (i = 0; i < MAXSPLITSCREEN; i++)
+				if (D_ScrSplitHasPlayer(i))
+					if (g_Splits[i].Port == p->Port)
+					{
+						localaiming[i] = 0;
+						localangle[i] = p->mo->angle;
+					}
 }
 
 //
