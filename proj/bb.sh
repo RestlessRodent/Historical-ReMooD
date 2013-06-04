@@ -502,12 +502,12 @@ do
 ###############################################################################
 		gcw)
 			echo "$COOLPREFIX Building GCW Default Binary" 1>&2
-			export DEBUGOPT="" "$BBROOT/bb.sh" gcw-core
+			DEBUGOPT="BLAHBLAH=1" "$BBROOT/bb.sh" gcw-core
 			;;
 		
 		gcw-debug)
 			echo "$COOLPREFIX Building GCW DEBUG Binary" 1>&2
-			export DEBUGOPT="DEBUG=1" "$BBROOT/bb.sh" gcw-core
+			DEBUGOPT="DEBUG=1" "$BBROOT/bb.sh" gcw-core
 			;;
 			
 		gcw-core)
