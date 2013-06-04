@@ -1035,6 +1035,15 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	/* Update Scores */
 	P_UpdateScores();
 	
+	/* Spawn player into game */
+	// Control monster, initially
+	if (P_GMIsCounter() && Player->CounterOpPlayer)
+		P_ControlNewMonster(Player);
+	
+	// Spawn them normally
+	else
+		G_DoReborn(a_PID);
+	
 	/* Bind to split screens, if any on the local side */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (D_ScrSplitVisible(i))
@@ -1048,7 +1057,12 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 				Split->Active = true;
 				Split->Waiting = false;
 				Split->Console = Split->Display = a_PID;
+				
 				localaiming[i] = 0;
+				if (Player->mo)
+					localangle[i] = Player->mo->angle;
+				else
+					localangle[i] = 0;
 			}
 		}
 }
