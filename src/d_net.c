@@ -564,6 +564,9 @@ D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host)
 		a_Host->Ports[a_Host->NumPorts++] = New;
 	}
 	
+	/* Set host */
+	New->Host = a_Host;
+	
 	/* Return fresh port */
 	return New;
 }
@@ -729,7 +732,9 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 /* D_SNTics() -- Handles tic commands */
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
+	D_SNHost_t* Host;
 	D_SNPort_t* Port;
+	int32_t h, p;
 	
 	/* If not writing, clear tic command */
 	if (!a_Write)
@@ -771,12 +776,66 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 			{
 				// Get port for this player
 				if (!(Port = players[a_Player].Port))
-					return;	// oops!
+				{
+					// Slower code?
+					for (h = 0; h < l_NumHosts; h++)
+						if ((Host = l_Hosts[h]))
+							for (p = 0; p < Host->NumPorts; p++)
+								if (Host->Ports[p] && Host->Ports[p]->Player == &players[a_Player])
+								{
+									Port = Host->Ports[p];
+									break;
+								}
+					
+					if (!Port)
+						return;	// oops!
+				}
 				
 				// Merge all the local stuff
 				D_XNetMergeTics(a_TicCmd, Port->LocalBuf, Port->LocalAt);
 				Port->LocalAt = 0;
 				memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+				
+				// Handle local angles, if a local player
+				if (Port->Host && Port->Host->Local)
+				{
+					// Find screen number
+					for (h = 0; h < MAXSPLITSCREEN; h++)
+						if (D_ScrSplitHasPlayer(h))
+							if (g_Splits[h].Port == Port)
+								break;
+					
+					if (h < MAXSPLITSCREEN)
+					{
+						// Absolute Angles
+						if (P_XGSVal(PGS_COABSOLUTEANGLE))
+						{
+							localangle[h] += a_TicCmd->Std.BaseAngleTurn << 16;
+							a_TicCmd->Std.angleturn = localangle[h] >> 16;
+						}
+	
+						// Doom Angles
+						else
+							a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
+				
+						// Aiming Angle
+						if (a_TicCmd->Std.buttons & BT_RESETAIM)
+							localaiming[h] = 0;
+						else
+						{
+							// Panning Look
+							if (a_TicCmd->Std.buttons & BT_PANLOOK)
+								localaiming[h] = a_TicCmd->Std.BaseAiming << 16;
+						
+							// Standard Look
+							else
+								localaiming[h] += a_TicCmd->Std.BaseAiming << 16;
+						}
+					
+						// Clip aiming pitch to not exceed bounds
+						a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[h]);
+					}
+				}
 			}
 		}
 	}
@@ -1031,7 +1090,8 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	Port->Player = Player = G_AddPlayer(a_PID);
 	
 	// Set local fields
-		
+	Player->Port = Port;
+	
 	/* Update Scores */
 	P_UpdateScores();
 	

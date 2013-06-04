@@ -852,6 +852,7 @@ void G_PlayerReborn(int player)
 	bool_t* RandGuns;
 	
 	D_Prof_t* PEp;
+	D_SNPort_t* Port;
 	
 	//from Boris
 	int32_t skincolor, VTeamColor;
@@ -863,6 +864,7 @@ void G_PlayerReborn(int player)
 	bool_t Given, CounterOp;
 	
 	PEp = players[player].ProfileEx;
+	Port = players[player].Port;
 	
 	memcpy(frags, players[player].frags, sizeof(frags));
 	addfrags = players[player].addfrags;
@@ -961,6 +963,7 @@ void G_PlayerReborn(int player)
 		p->ammo[i] = ammoinfo[i]->StartingAmmo;
 	
 	players[player].ProfileEx = PEp;
+	players[player].Port = Port;
 	
 	for (i = 0; i < NUMAMMO; i++)
 		p->maxammo[i] = ammoinfo[i]->MaxAmmo;
