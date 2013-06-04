@@ -1464,6 +1464,10 @@ void P_SpecTicker(void)
 			
 			// Run them
 			P_SpecRunTics(i, &Merged);
+			
+			// If use is down, request join
+			if (Merged.Ctrl.Type == 0 && Merged.Std.buttons & BT_USE)
+				D_SNPortRequestJoin(Port);
 		}
 	
 	/* Apply momentum */

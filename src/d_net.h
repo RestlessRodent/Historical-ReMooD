@@ -75,6 +75,7 @@ typedef struct D_SNPort_s
 	uint32_t ID;								// ID of Port
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
+	bool_t WillJoin;							// Will join game
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -125,10 +126,13 @@ D_SNPort_t* D_SNRequestPort(void);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 void D_SNSetPortProfile(D_SNPort_t* const a_Port, struct D_ProfileEx_s* const a_Profile);
+void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
+void D_SNPortTryJoin(D_SNPort_t* const a_Port);
 
 /*** GAME CONTROL ***/
 
 void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
+void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
 
 /*** DRAWERS ***/
 

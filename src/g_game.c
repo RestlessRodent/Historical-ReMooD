@@ -409,6 +409,11 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 		// Which command?
 		switch (Command)
 		{
+				// Simple Network Commands
+			case DTCT_SNJOINPLAYER:
+				D_SNHandleGT(Command, &Rp);
+				break;
+				
 				// Map Changes
 			case DTCT_MAPCHANGE:
 				// Read Data

@@ -439,6 +439,9 @@ void D_SNUpdate(void)
 			for (p = 0; p < Host->NumPorts; p++)
 				if ((Port = Host->Ports[p]))
 				{
+					// If will join is set, try joining this port
+					if (Port->WillJoin)
+						D_SNPortTryJoin(Port);
 				}
 		}
 }
@@ -804,6 +807,126 @@ void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile)
 	/* Broadcast information to everyone else */
 }
 
+/* D_SNPortRequestJoin() -- Request join on the server */
+void D_SNPortRequestJoin(D_SNPort_t* const a_Port)
+{
+	int32_t ActN, HypoN, LocN;
+	int32_t h, p;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	
+	/* Check */
+	if (!a_Port)
+		return;
+	
+	/* Go through other ports to count players inside */
+	ActN = HypoN = 0;
+	for (h = 0; h < l_NumHosts; h++)
+		if ((Host = l_Hosts[h]))
+			for (p = 0; p < Host->NumPorts; p++)
+				if ((Port = Host->Ports[p]))
+				{
+					if (!Port->Player && Port->WillJoin)
+						HypoN++;
+					if (Port->Player)
+						ActN++;
+				}
+	
+	// Add actual to hypo
+	HypoN += ActN;
+	
+	/* Perform join */
+	// If server, does not exactly care
+	if (l_Server)
+	{
+		// No Room
+		if (ActN >= MAXPLAYERS)
+			return;
+		
+		// If port is bot, always allow
+		if (a_Port->Bot)
+			a_Port->WillJoin = true;
+		
+		// Otherwise, only allow if split screens are free
+		Host = l_MyHost;
+		LocN = 0;
+		for (p = 0; p < Host->NumPorts; p++)
+			if ((Port = Host->Ports[p]))
+				if (!Port->Bot && Port->Player)
+					LocN++;
+		
+		// There is room
+		if (LocN < MAXSPLITSCREEN)
+			a_Port->WillJoin = true;
+	}
+	
+	// Client must request it
+	else
+	{
+	}
+}
+
+/* D_SNPortTryJoin() -- Try to join port game */
+void D_SNPortTryJoin(D_SNPort_t* const a_Port)
+{
+	int32_t h, p;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	D_SNPort_t* PortMap[MAXPLAYERS];
+	uint8_t* Wp;
+	
+	/* Only server can do this */
+	if (!l_Server)
+		return;
+	
+	/* Check */
+	if (!a_Port)
+		return;
+	
+	/* Do not join if already playing */
+	if (a_Port->Player)
+		return;
+	
+	/* Unmark will join */
+	a_Port->WillJoin = false;
+	
+	/* Go through other ports and map players */
+	// Clear
+	memset(PortMap, 0, sizeof(PortMap));
+	
+	// Loop
+	for (h = 0; h < l_NumHosts; h++)
+		if ((Host = l_Hosts[h]))
+			for (p = 0; p < Host->NumPorts; p++)
+				if ((Port = Host->Ports[p]))
+					if (Port->Player)
+						PortMap[Port->Player - players] = Port;
+	
+	/* Find free player spot */
+	for (p = 0; p < MAXPLAYERS; p++)
+		if (!PortMap[p])
+			break;
+	
+	// No room
+	if (p >= MAXPLAYERS)
+		return;
+	
+	/* Make this port own this player now */
+	Port->Player = &players[p];
+	
+	/* Create join packet */
+	if (!D_SNExtCmdInGlobal(DTCT_SNJOINPLAYER, &Wp))
+	{
+		Port->Player = NULL;	// whoops!!
+		return;
+	}
+	
+	// Fill
+	LittleWriteUInt32((uint32_t**)&Wp, Host->ID);
+	LittleWriteUInt32((uint32_t**)&Wp, Port->ID);
+	WriteUInt8((uint8_t**)&Wp, p);
+}
+
 /*** GAME CONTROL ***/
 
 /* D_SNChangeMap() -- Changes the map */
@@ -850,4 +973,121 @@ void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset)
 	}
 }
 
+/* D_SNHandleGTJoinPlayer() -- Handle join player */
+static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	int32_t i, n;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	player_t* Player;
+	D_SplitInfo_t* Split;
+	
+	/* Out of bounds? */
+	if (a_PID < 0 || a_PID >= MAXPLAYERS)
+		return;
+	
+	/* Already taken */
+	if (playeringame[a_PID])
+		return;
+	
+	/* Count existing players in game */
+	for (i = n = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			n++;
+	
+	// Set multiplayer mode and spawn multiplayer junk
+	if (n > 0 && !P_XGSVal(PGS_COMULTIPLAYER))
+	{
+		P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
+		P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
+	}
+	
+	/* If no host exists, create one */
+	if (!(Host = a_Host))
+	{
+		// Base
+		Host = D_SNCreateHost();
+		
+		// Set pointers and such
+		Host->ID = a_HID;
+		Host->Local = false;
+	}
+	
+	/* If no port exists, create one */
+	if (!(Port = a_Port))
+	{
+		// Base
+		Port = D_SNAddPort(Host);
+		
+		// Fields
+		Port->ID = a_UID;
+		Port->Bot = false;
+	}
+	
+	/* Mark in game */
+	playeringame[a_PID] = true;
+	
+	/* Create player in the game */
+	Port->Player = Player = G_AddPlayer(a_PID);
+	
+	// Set local fields
+		
+	/* Update Scores */
+	P_UpdateScores();
+	
+	/* Bind to split screens, if any on the local side */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitVisible(i))
+		{
+			// Current split
+			Split = &g_Splits[i];
+			
+			// Matches port
+			if (Split->Port == Port)
+			{
+				Split->Active = true;
+				Split->Waiting = false;
+				Split->Console = Split->Display = a_PID;
+				localaiming[i] = 0;
+			}
+		}
+}
+
+/* D_SNHandleGT() -- Handles game command IDs */
+void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
+{
+	uint32_t HID, ID, i;
+	uint8_t PID;
+	D_SNPort_t* Port;
+	D_SNHost_t* Host;
+	
+	/* Check */
+	if (!a_ID || !a_PP)
+		return;
+	
+	/* All start with ID and PID */
+	HID = LittleReadUInt32((const uint32_t**)a_PP);
+	ID = LittleReadUInt32((const uint32_t**)a_PP);
+	PID = ReadUInt8((const uint8_t**)a_PP);
+	
+	// Find port and host
+	Port = D_SNPortByID(ID);
+	
+	Host = NULL;
+	if (Port)
+		Host = Port->Host;
+	
+	/* Which Command? */
+	switch (a_ID)
+	{
+			// Player Joins Game
+		case DTCT_SNJOINPLAYER:
+			D_SNHandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Unknown!?!
+		default:
+			break;
+	}
+}
 

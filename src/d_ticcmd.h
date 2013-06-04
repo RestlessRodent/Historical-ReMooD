@@ -151,6 +151,11 @@ void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID);
 enum
 {
 	DTCT_NULL,									// NULL
+	
+	// Simple Networking
+	DTCT_SNJOINPLAYER,							// Player Joins
+	
+	// Old Basic
 	DTCT_JOIN,									// Join Sub Command
 	DTCT_MAPCHANGE,								// Change the map
 	DTCT_GAMEVAR,								// Game Variable

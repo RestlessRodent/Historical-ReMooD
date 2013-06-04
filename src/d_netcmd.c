@@ -85,6 +85,12 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	// NULL
 	0,
 	
+	// DTCT_SNJOINPLAYER
+	4 + 4 + 1,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+	
 	// JOIN
 	4 + 2 + 4 + 4 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
 		// uint32 HostID
