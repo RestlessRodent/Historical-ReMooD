@@ -42,6 +42,7 @@
 #include "p_info.h"
 #include "g_game.h"
 #include "d_prof.h"
+#include "d_netmst.h"
 
 /****************
 *** CONSTANTS ***
@@ -426,6 +427,9 @@ void D_SNUpdate(void)
 	
 	/* Update ports */
 	D_SNUpdateLocalPorts();
+	
+	/* HTTP Interface */
+	I_UpdateHTTPSpy();
 	
 	/* Server only ahead */
 	if (!l_Server)
