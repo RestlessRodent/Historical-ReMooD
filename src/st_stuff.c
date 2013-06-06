@@ -59,6 +59,8 @@
 #include "sn_main.h"
 #include "b_bot.h"
 
+#include "st_doom.h"
+
 //protos
 void ST_createWidgets(void);
 
@@ -1272,8 +1274,8 @@ void ST_DrawPlayerBarsEx(void)
 					ConsoleP = NULL;
 			}
 			else
-				ConsoleP = NULL;//g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
-			DisplayP = NULL;//P_SpecGetPOV(p);//&players[g_Splits[p].Display];
+				ConsoleP = g_Splits[p].Port->Player;//&players[g_Splits[p].Console];
+			DisplayP = P_SpecGetPOV(p);//&players[g_Splits[p].Display];
 			
 			// Missing player?
 			if (!ConsoleP)
