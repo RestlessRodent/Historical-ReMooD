@@ -845,7 +845,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				PickedUp = true;
 			
 				// Change armor class?
-				CONL_PrintF("AC = %i\n", Current->ArmorClass);
 				if (Current->ArmorClass)
 				{
 					// Get target armor class
@@ -862,13 +861,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 						Amount = Current->ArmorClass;
 					else
 						Amount = player->armortype;
-					
-					CONL_PrintF("P = %i, A = %i, M = %i, C = %i\n",
-							player->armortype,
-							Amount,
-							Max,
-							Current->ArmorClass
-						);
 				
 					// Change armor
 					player->armortype = Amount;
