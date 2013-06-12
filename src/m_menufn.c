@@ -1642,7 +1642,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 	}
 	
 	/* Make Game Now */
-	//D_XNetMakeServer(false, NULL, 0, false);
+	D_SNStartServer(0, NULL);
 	NG_ApplyVars();
 	NG_WarpMap();
 	
@@ -1659,7 +1659,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Disconnect from Netgame */
-	//D_XNetDisconnect(false);
+	D_SNDisconnect(false);
 	M_StackPopAll();
 	return true;
 }

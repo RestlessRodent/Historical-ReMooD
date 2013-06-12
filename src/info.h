@@ -452,7 +452,7 @@ typedef struct P_RMODTouchSpecial_s
 	PI_keyid_t ActGiveKey;
 	
 	/* Health */
-	int8_t ArmorClass;							// Armor Class
+	int32_t ArmorClass;							// Armor Class
 	int32_t ArmorAmount;						// Armor Amount
 	int32_t HealthAmount;						// Health Amount
 	
