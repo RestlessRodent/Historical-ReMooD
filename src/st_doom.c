@@ -46,7 +46,6 @@
 
 static bool_t l_BarInit;
 static V_Image_t* l_ImgBackFace;
-static int32_t l_BarHeight[MAXSPLITSCREEN];
 
 /****************
 *** FUNCTIONS ***
@@ -63,6 +62,10 @@ void ST_InitDoomBar(void)
 /* ST_DoomModShape() -- Modifies shape of view bar */
 void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile)
 {
+	fixed_t gsy;
+	int32_t sbh;
+	int32_t y, h;
+	
 	/* Initilialize Bar */
 	if (!l_BarInit)
 	{
@@ -70,7 +73,21 @@ void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y,
 		l_BarInit = true;
 	}
 	
-	*a_H -= l_BarHeight[a_PID];
+	/* Initialize sizing specification */
+	// Screen real position
+	y = a_Y;
+	h = a_H;
+	
+	// Status bar is scaled to screen
+	if (true)
+		gsy = vid.fxdupy;
+	
+	// Status bar is not scaled to screen
+	else
+		gsy = 1 << FRACBITS;
+	
+	// Top of bar
+	*a_H -= FixedMul(l_ImgBackFace->Height << FRACBITS, gsy) >> FRACBITS;
 }
 
 /* ST_DoomBar() -- Doom Status Bar */
@@ -119,7 +136,7 @@ void ST_DoomBar(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const 
 	}
 	
 	// Top of bar
-	l_BarHeight[a_PID] = sbh = FixedMul(l_ImgBackFace->Height << FRACBITS, gsy) >> FRACBITS;
+	sbh = FixedMul(l_ImgBackFace->Height << FRACBITS, gsy) >> FRACBITS;
 	sbtop = y + (h - sbh);
 	
 	/* Draw backface */

@@ -1240,6 +1240,15 @@ static const struct
 	{STS_DrawPlayerBarEx, NULL},
 };
 
+/* ST_GetDefaultBar() -- Returns the default status bar */
+D_ProfBarType_t ST_GetDefaultBar(void)
+{
+	/*if (g_SplitScreen < 0)
+		return DPBT_DEFAULT;
+	else*/
+		return DPBT_REMOOD;
+}
+
 /* ST_GetScreenCDP() -- Get console, display, and profile */
 void ST_GetScreenCDP(const int32_t a_Split, player_t** const a_ConsolePP, player_t** const a_DisplayPP, D_Prof_t** const a_ProfP)
 {
@@ -1334,7 +1343,7 @@ void ST_DrawPlayerBarsEx(void)
 			
 			// Otherwise, draw the standard bar
 			else
-				c_STBars[DBPT_DEFAULT].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
+				c_STBars[ST_GetDefaultBar()].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)
@@ -1513,18 +1522,24 @@ void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* cons
 			break;
 	}
 	
-	/* Profile status bar */
-	if (Prof && Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+	/* Reshape window, if only 1 player is playing */
+	if (g_SplitScreen < 0)
 	{
-		if (c_STBars[Prof->BarType].Shape)
-			c_STBars[Prof->BarType].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
-	}
+		// Viewsize rescale
+		
+		// Status bar reshape
+		if (Prof && Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+		{
+			if (c_STBars[Prof->BarType].Shape)
+				c_STBars[Prof->BarType].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+		}
 	
-	// Otherwise, use the standard bar
-	else
-	{
-		if (c_STBars[DBPT_DEFAULT].Shape)
-			c_STBars[DBPT_DEFAULT].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+		// Otherwise, use the standard bar
+		else
+		{
+			if (c_STBars[ST_GetDefaultBar()].Shape)
+				c_STBars[ST_GetDefaultBar()].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+		}
 	}
 }
 

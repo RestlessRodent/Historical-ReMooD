@@ -554,6 +554,7 @@ D_Prof_t* D_CreateProfileEx(const char* const a_Name)
 	New->CamSpeed = 16384;						// Camera Speed
 	New->TransSBar = false;						// Transparent status bar
 	New->ScaledSBar = false;					// Scaled status bar
+	New->BarType = DPBT_REMOOD;
 	
 	// Autorun on GCW
 	if (g_ModelMode == DMM_GCW)

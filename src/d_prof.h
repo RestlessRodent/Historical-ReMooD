@@ -186,11 +186,11 @@ typedef enum D_ProfAutoMapColors_e
 typedef enum D_ProfBarType_e
 {
 	DPBT_DOOM,
-	DBPT_REMOOD,
+	DPBT_REMOOD,
 	
 	NUMPROFBARS,
 	
-	DBPT_DEFAULT = DPBT_DOOM,
+	DPBT_DEFAULT = DPBT_REMOOD,
 } D_ProfBarType_t;
 
 #define MAXALTAXIS		3
