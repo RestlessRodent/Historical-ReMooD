@@ -965,7 +965,7 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 //extern bool_t g_NetBoardDown;
 
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
-static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
+static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile)
 {
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
@@ -1229,13 +1229,21 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 
 /*** FUNCTIONS ***/
 
+// c_STBars -- Status bar implementations
+static const ST_BarFunc_t c_STBars[NUMPROFBARS] =
+{
+	ST_DoomBar,
+	STS_DrawPlayerBarEx,
+};
+
 /* ST_DrawPlayerBarsEx() -- Draw player status bars */
 void ST_DrawPlayerBarsEx(void)
 {
 	player_t* ConsoleP, *DisplayP;
-	int p, x, y, w, h;
+	int p, x, y, w, h, i;
 	bool_t BigLetters;
 	static uint32_t LastPal;	// Lowers palette change (faster drawing)
+	D_Prof_t* Prof;
 	
 	/* Screen division? */
 	// Initial
@@ -1293,9 +1301,21 @@ void ST_DrawPlayerBarsEx(void)
 					LastPal = DisplayP->PalChoice;
 				}
 			}
-	
-			// Draw Bar
-			STS_DrawPlayerBarEx(p, x, y, w, h, ConsoleP, DisplayP);
+			
+			// Which bar to draw?
+			for (i = 0; i < 2; i++)
+			{
+				Prof = NULL;
+				if (i == 0 && g_Splits[p].Port && g_Splits[p].Profile)
+					Prof = g_Splits[p].Profile;
+				else if (i == 1 && ConsoleP->ProfileEx)
+					Prof = ConsoleP->ProfileEx;
+				
+				if (Prof)
+					if (Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+						c_STBars[Prof->BarType](p, x, y, w, h, ConsoleP, DisplayP, Prof);
+			}
+			
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)

@@ -199,6 +199,7 @@ static const struct
 	QUICKDS(LookSpring, PDST_BOOL),
 	QUICKDS(JoyAutoRun, PDST_BOOL),
 	QUICKDS(CounterOp, PDST_BOOL),
+	QUICKDS(BarType, PDST_UINT8),
 	
 	{"", 0, 0},
 #undef QUICKDS

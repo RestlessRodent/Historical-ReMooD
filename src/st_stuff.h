@@ -126,6 +126,10 @@ void SB_Init(void);
 
 /*****************************************************************************/
 
+/*** STRUCTURES ***/
+
+typedef void (*ST_BarFunc_t)(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile);
+
 /*** FUNCTIONS ***/
 
 void ST_DrawPlayerBarsEx(void);

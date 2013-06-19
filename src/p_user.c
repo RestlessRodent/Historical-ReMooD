@@ -1555,6 +1555,7 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	
 	/* Set object looking angles to local */
 	Mo->angle = localangle[a_Screen];
+	G_ClipAimingPitch(&localaiming[a_Screen]);
 	Play->aiming = localaiming[a_Screen];
 	
 	/* Set Momentums */

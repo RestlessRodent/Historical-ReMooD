@@ -182,6 +182,17 @@ typedef enum D_ProfAutoMapColors_e
 	NUMPROFAUTOMAPCOLORS
 } D_ProfAutoMapColors_t;
 
+/* D_ProfBarType_t -- Status bar type */
+typedef enum D_ProfBarType_e
+{
+	DPBT_DOOM,
+	DBPT_REMOOD,
+	
+	NUMPROFBARS,
+	
+	DBPT_DEFAULT = DPBT_DOOM,
+} D_ProfBarType_t;
+
 #define MAXALTAXIS		3
 #define MAXMOUSEAXIS	2
 #define MAXJOYAXIS		8
@@ -256,8 +267,8 @@ typedef struct D_ProfileEx_s
 	uint8_t ColorLock[4];						// Door Lock Colors
 	uint8_t VTeam;								// Virtual Team
 	bool_t CounterOp;							// CounterOp player
-	
 	char* AccountRef, *DisplayRef;				// References to own name
+	uint8_t BarType;							// Type of status bar
 } D_Prof_t;
 
 /*** GLOBALS ***/
