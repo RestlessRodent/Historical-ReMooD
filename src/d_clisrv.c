@@ -259,7 +259,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			XXSNAR = 1;
 	}
 	else
-		XXSNAR = 1;//D_XNetTicsToRun();
+		XXSNAR = D_SNOkTics();
 	
 	/* Set tics that were run */
 	if (a_TicRunCount)

@@ -1916,6 +1916,7 @@ void I_Quit(void)
 	// Disconnect from network game
 	//D_XNetSendQuit();
 	//D_XNetDisconnect(false);
+	D_SNDisconnect(false, "Quit ReMooD");
 	D_QuitNetGame();
 	
 	// use this for 1.28 19990220 by Kin

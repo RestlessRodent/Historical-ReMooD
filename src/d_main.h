@@ -49,6 +49,7 @@ typedef struct D_IWADInfoEx_s
 {
 	/* Base Info */
 	const char* NiceTitle;						// Nice IWAD Title name
+	const char* NetName;						// Network Name
 	const char* ForceNames;						// Names for forcing [conf = 500]
 	const char* BaseName;						// WAD Basename [conf = 5]
 	const char* SimpleSum;						// Simple sum of WAD [conf = 40]

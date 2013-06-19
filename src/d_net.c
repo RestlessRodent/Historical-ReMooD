@@ -157,11 +157,34 @@ bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* co
 
 /*** SERVER CONTROL ***/
 
-/* D_SNDisconnect() -- Disconnects from server */
-void D_SNDisconnect(const bool_t a_FromDemo)
+void D_SNDropAllClients(const char* const a_Reason)
 {
-	static bool_t InDis;	
+	static bool_t Dropping;
 	int32_t i;
+	D_SNHost_t* Host;
+	
+	/* Do not double drop */
+	if (Dropping)
+		return;
+	Dropping = true;
+	
+	/* Clear hosts */
+	if (l_Hosts)
+		for (i = 0; i < l_NumHosts; i++)
+			if ((Host = l_Hosts[i]))
+				if (!Host->Local && !Host->Cleanup)
+					D_SNDisconnectHost(Host, (a_Reason ? a_Reason : "Server disconnect"));
+	
+	/* Done dropping */
+	Dropping = false;
+}
+
+/* D_SNDisconnect() -- Disconnects from server */
+void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
+{
+	static bool_t InDis;
+	D_SNHost_t* Host;
+	int i;
 	
 	/* If disconnected already, stop */
 	if (InDis)
@@ -171,22 +194,68 @@ void D_SNDisconnect(const bool_t a_FromDemo)
 	InDis = true;
 	
 	/* Clear hosts */
-	l_MyHost = NULL;
+	D_SNDropAllClients(a_Reason);
+	
+	/* Terminate network connection */
+	D_SNNetTerm(a_Reason);
+	
+	/* Destroy hosts */
 	if (l_Hosts)
 	{
 		// Individual host
 		for (i = 0; i < l_NumHosts; i++)
-			D_SNDestroyHost(l_Hosts[i]);
+			if ((Host = l_Hosts[i]))
+				D_SNDestroyHost(Host);
+		
 		Z_Free(l_Hosts);
+		l_NumHosts = 0;
 	}
 	
 	// Clear pointers
+	l_MyHost = NULL;
 	l_Hosts = NULL;
 	l_NumHosts = 0;
 	
 	/* Clear the global buffer */
 	l_GlobalAt = -1;
 	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	
+	/* Clear flags */
+	l_Connected = l_Server = false;
+	
+	/* Done disconnecting */
+	InDis = true;
+}
+
+/* D_SNPartialDisconnect() -- Partial Disconnect */
+void D_SNPartialDisconnect(const char* const a_Reason)
+{
+	static bool_t InDis;	
+	int32_t i;
+	D_SNHost_t* Host;
+	
+	/* If disconnected already, stop */
+	if (InDis)
+		return;
+	
+	/* Terminate network connection */
+	D_SNNetTerm(a_Reason);
+	
+	/* Clear the global buffer */
+	l_GlobalAt = -1;
+	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	
+	/* Magically become the server */
+	l_Server = l_Connected = true;
+	
+	// Cleanup other players
+	for (i = 0; i < l_NumHosts; i++)
+		if ((Host = l_Hosts[i]))
+			if (!Host->Local)	// Cleanup non-local players
+			{
+				Host->Cleanup = true;
+				strncpy(Host->QuitReason, "Partial disconnect", MAXQUITREASON);
+			}
 	
 	/* Done disconnecting */
 	InDis = true;
@@ -195,33 +264,43 @@ void D_SNDisconnect(const bool_t a_FromDemo)
 /* D_SNIsConnected() -- Connected to server */
 bool_t D_SNIsConnected(void)
 {
-	return l_Server || l_Connected;
+	return l_Connected;
 }
 
-/* D_SNStartServer() -- Starts local server */
-bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
+/* D_SNSetConnected() -- Set connection status */
+void D_SNSetConnected(const bool_t a_Set)
+{
+	l_Connected = a_Set;
+}
+
+/* D_SNIsServer() -- Is connected */
+bool_t D_SNIsServer(void)
+{
+	return l_Server;
+}
+
+/* D_SNStartWaiting() -- Start waiting */
+void D_SNStartWaiting(void)
+{
+	gamestate = /*wipegamestate =*/ GS_WAITINGPLAYERS;
+	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
+}
+
+/* D_SNAddLocalProfiles() -- Adds local profile */
+void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 {
 	int32_t i;
 	const char* ProfN;
 	
-	/* Disconnect first */
-	D_SNDisconnect(false);
+	/* Check */
+	if (!a_Profs)
+		return;
 	
-	/* Set flags */
-	l_Server = l_Connected = true;
-	
-	/* Set the proper gamestate */
-	gamestate = wipegamestate = GS_WAITINGPLAYERS;
-	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
-	
-	/* Set game settings */
-	NG_ApplyVars();
-	
-	/* Add local profile players */
+	/* Go through names */
 	for (i = 0; i < a_NumLocal; i++)
 	{
 		// Get profile to add from
-		ProfN = a_Profs[i];
+		ProfN = a_Profs[i];	// might be NULL
 		
 		// Add profile to screens
 		D_SNAddLocalPlayer(ProfN, 0, i, false);
@@ -230,6 +309,25 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 		if (!i && !ProfN)
 			g_Splits[0].DoNotSteal = true;
 	}
+}
+
+/* D_SNStartServer() -- Starts local server */
+bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
+{
+	/* Disconnect first */
+	D_SNDisconnect(false, "Starting server");
+	
+	/* Set flags */
+	l_Server = true;
+	
+	/* Set the proper gamestate */
+	D_SNStartWaiting();
+	
+	/* Set game settings */
+	NG_ApplyVars();
+	
+	/* Add local profile players */
+	D_SNAddLocalProfiles(a_NumLocal, a_Profs);
 	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
@@ -249,6 +347,9 @@ bool_t D_SNServerInit(void)
 	char Buf[BUFSIZE];
 	const char* PProfs[MAXPLAYERS];
 	int32_t np, i;
+	char* Addr;
+	uint16_t Port;
+	bool_t Anti;
 	
 	/* Clear initial profiles */
 	memset(PProfs, 0, sizeof(PProfs));
@@ -285,12 +386,85 @@ bool_t D_SNServerInit(void)
 		}
 	}
 	
+	/* Anti-Connection */
+	Anti = false;
+	if (M_CheckParm("-anti"))
+		Anti = true;
+	
 	/* Networked or local? */
 	// Command line local game
 	if (NG_IsAutoStart())
 	{
 		// Start Server
 		D_SNStartServer(np, PProfs);
+		
+		// Initial Command line server?
+		if (M_CheckParm("-host"))
+		{
+			// Address to bind to, if any
+			if (M_IsNextParm())
+				Addr = M_GetNextParm();
+			else
+				Addr = NULL;
+			
+			// Port
+			if (M_CheckParm("-port") && M_IsNextParm())
+				Port = C_strtoi32(M_GetNextParm(), NULL, 10);
+			else
+				Port = __REMOOD_BASEPORT;
+			
+			// Create
+			D_SNNetCreate(!Anti, Addr, Port);
+			
+			// Normal server is always connected
+			if (!Anti)
+				l_Connected = true;
+		}
+		
+		// Local Game
+		else
+			l_Connected = true;
+		
+		// Warp to map
+		NG_WarpMap();
+		
+		// Successfully started
+		return true;
+	}
+	
+	/* Wanting to connect to remote server */
+	else if (M_CheckParm("-connect"))
+	{
+		// Address to bind to, if any
+		if (M_IsNextParm())
+			Addr = M_GetNextParm();
+		else
+			Addr = NULL;
+		
+		// Port
+		if (M_CheckParm("-port") && M_IsNextParm())
+			Port = C_strtoi32(M_GetNextParm(), NULL, 10);
+		else if (Anti)
+			Port = __REMOOD_BASEPORT;
+		else
+			do
+			{
+				Port = D_CMakePureRandom();
+			} while (Port <= 32767 || Port >= 65534);
+		
+		// Create
+		D_SNAddLocalProfiles(np, PProfs);
+		D_SNNetCreate(Anti, Addr, Port);
+		
+		// Normal client is never connected
+		if (Anti)
+			l_Connected = true;
+		
+		// Make waiting for player
+		D_SNStartWaiting();
+		
+		// Started something
+		NG_SetAutoStart(true);
 		return true;
 	}
 	
@@ -361,8 +535,18 @@ void D_SNUpdateLocalPorts(void)
 			}
 		}
 	
+	/* My host not set? */
+	if (!l_MyHost && !demoplayback)
+		for (i = 0; i < l_NumHosts; i++)
+			if (l_Hosts[i])
+				if (l_Hosts[i]->Local)
+				{
+					l_MyHost = l_Hosts[i];
+					break;
+				}
+	
 	/* Go throgh local ports */
-	for (i = 0; i < l_MyHost->NumPorts; i++)
+	for (i = 0; l_MyHost && i < l_MyHost->NumPorts; i++)
 	{
 		// No port here?
 		if (!(Port = l_MyHost->Ports[i]))
@@ -431,6 +615,9 @@ void D_SNUpdate(void)
 	/* HTTP Interface */
 	I_UpdateHTTPSpy();
 	
+	/* Network Socket */
+	D_SNDoTrans();
+	
 	/* Server only ahead */
 	if (!l_Server)
 		return;
@@ -451,6 +638,26 @@ void D_SNUpdate(void)
 }
 
 /*** HOST CONTROL ***/
+
+/* D_SNHostByAddr() -- Finds host by address */
+D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host)
+{
+	int32_t i;
+	D_SNHost_t* Host;
+	
+	/* Check */
+	if (!a_Host)
+		return NULL;
+	
+	/* Through host list */
+	for (i = 0; i < l_NumHosts; i++)
+		if ((Host = l_Hosts[i]))
+			if (I_NetCompareHost(&Host->Addr, a_Host))
+				return Host;
+	
+	/* Not found */
+	return NULL;
+}
 
 /* D_SNHostByID() -- Finds host by ID */
 D_SNHost_t* D_SNHostByID(const uint32_t a_ID)

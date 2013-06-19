@@ -52,6 +52,7 @@
 #endif
 
 #define MAXLBTSIZE						16		// Max tics in local buffer
+#define MAXQUITREASON					128		// Reason for quit
 
 /*****************
 *** STRUCTURES ***
@@ -85,6 +86,9 @@ struct D_SNHost_s
 	int32_t NumPorts;							// Number of ports
 	bool_t Local;								// Local host
 	uint32_t ID;								// ID of host
+	I_HostAddress_t Addr;						// Host Address
+	bool_t Cleanup;								// Cleanup host
+	char QuitReason[MAXQUITREASON];				// Reason for leaving
 };
 
 /*****************
@@ -101,8 +105,14 @@ bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* co
 
 /*** SERVER CONTROL ***/
 
-void D_SNDisconnect(const bool_t a_FromDemo);
+void D_SNDropAllClients(const char* const a_Reason);
+void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason);
+void D_SNPartialDisconnect(const char* const a_Reason);
 bool_t D_SNIsConnected(void);
+void D_SNSetConnected(const bool_t a_Set);
+bool_t D_SNIsServer(void);
+void D_SNStartWaiting(void);
+void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs);
 bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs);
 bool_t D_SNServerInit(void);
 
@@ -113,6 +123,7 @@ void D_SNUpdate(void);
 
 /*** HOST CONTROL ***/
 
+D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host);
 D_SNHost_t* D_SNHostByID(const uint32_t a_ID);
 D_SNHost_t* D_SNCreateHost(void);
 void D_SNDestroyHost(D_SNHost_t* const a_Host);
@@ -142,6 +153,15 @@ void D_SNDrawLobby(void);
 
 bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event);
 void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
+
+/*** TRANSMISSION ***/
+
+int32_t D_SNOkTics(void);
+bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);
+void D_SNNetTerm(const char* const a_Reason);
+bool_t D_SNHasSocket(void);
+void D_SNDoTrans(void);
+void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
 
 #endif							/* __D_NET_H__ */
 

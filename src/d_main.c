@@ -548,7 +548,7 @@ void D_DoomLoop(void)
 	}
 	
 	// Auto start?
-	else if (NG_IsAutoStart() || D_SNIsConnected())
+	else if (NG_IsAutoStart() || D_SNIsConnected() || D_SNHasSocket())
 	{
 		// Do nothing?
 	}
@@ -916,6 +916,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom II: Hell on Earth
 	{
 		"Doom II: Hell on Earth",
+		"doom2",
 		"doom2\0doomii\0doomtwo\0commercial\0hellonearth\0\0",
 		"doom2.wad\0\0",
 		"6ff4def4bd24c6943540c790fbfe2642",
@@ -938,6 +939,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// TNT Evilution
 	{
 		"TNT: Evilution",
+		"tnt",
 		"tnt\0evilution\0\0",
 		"tnt.wad\0\0",
 		"109bf7725eeb8b11cc30cd42c81d9ae4",
@@ -960,6 +962,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// The Plutonia Experiment
 	{
 		"The Plutonia Experiment",
+		"plutonia",
 		"plutonia\0theplutoniaexperiment\0plutoniaexperiment\0\0",
 		"plutonia.wad\0\0",
 		"7ee851eb6711fa859dd3c649402382d5",
@@ -982,6 +985,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// The Ultimate Doom
 	{
 		"The Ultimate Doom",
+		"ultimatedoom",
 		"ultimatedoom\0udoom\0doomu\0retail\0thyfleshconsumed\0tfc\0\0",
 		"doom.wad\0doomu.wad\0ultfdoom.wad\0\0",
 		"befb2905b2b5df3e43a36e84e920f71f",
@@ -1004,6 +1008,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom Registered
 	{
 		"Doom Registered",
+		"doom",
 		"registereddoom\0doomregistered\0doomr\0rdoom\0registered\0\0",
 		"doom.wad\0doomr.wad\0\0",
 		"69abda21496c137592f70edb9e3f08fe",
@@ -1026,6 +1031,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom Shareware
 	{
 		"Doom Shareware",
+		"sharewaredoom",
 		"sharewaredoom\0doomshareware\0shareware\0doom1\0kneedeepinthedead\0kditd\0\0",
 		"doom1.wad\0\0",
 		"b9e51b0a0174fb0f52f0f641a06164d7",
@@ -1048,6 +1054,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// FreeDoom
 	{
 		"FreeDoom",
+		"freedoom",
 		"freedoom2\0freedoomii\0freedoomtwo\0freecommercial\0freehellonearth\0\0",
 		"freedoom.wad\0freedm.wad\0\0",
 		NULL,
@@ -1070,6 +1077,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Heretic Extended
 	{
 		"Heretic: Shadow of the Serpent Riders",
+		"hereticext",
 		"hereticssr\0hereticsotsr\0hereticsosr\0\0",
 		"heretic.wad\0blasphem.wad\0\0",
 		"29ec38a4b4a0892a70dee3b8c81d7dee:3117e399cdb4298eaa3941625f4b2923",
@@ -1098,7 +1106,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Hexen Shareware
 
 	/* Last */
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, 0, "", 0}
+	{NULL, "indeterminate", NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, 0, "", 0}
 };
 
 // l_BlockSums -- Checksums to disallow downloading from
@@ -2648,12 +2656,8 @@ void D_DoomMain(void)
 	M_PushSpecialParameters();
 	
 	// Warp to map and reset new vars
-	if (NG_IsAutoStart()/* || D_XNetIsServer()*/)
-	{
-		NG_WarpMap();
-		
+	if (NG_IsAutoStart())
 		NG_ResetVars();
-	}
 
 	// ++ args are done at the first gametic	
 	

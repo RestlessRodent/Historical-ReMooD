@@ -334,7 +334,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** IP_*.c ***/
 	{			     "DXP_CONNECTING", "{zConnecting to {9$1{z..."},
-	{				  "DXP_CLCONNECT", "{z{9$1{z has connected {6$2{z player$3!"},
+	{				  "DXP_CLCONNECT", "{z{9$1{z has connected!"},
 	{				  "DXP_DISCONNED", "{zDisconnected, reason: \"{9$1\"."},
 	{				  "DXP_WADHEADER", "{zWADs used by server:"},
 	{				   "DXP_WADENTRY", "{z [{4$3{z] {9$1 {z({3$2{z)"},
