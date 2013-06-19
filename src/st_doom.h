@@ -48,6 +48,7 @@
 ****************/
 
 void ST_DoomBar(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile);
+ void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile);
 
 /*****************************************************************************/
 

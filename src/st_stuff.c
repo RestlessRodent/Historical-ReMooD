@@ -1230,11 +1230,54 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 /*** FUNCTIONS ***/
 
 // c_STBars -- Status bar implementations
-static const ST_BarFunc_t c_STBars[NUMPROFBARS] =
+static const struct
 {
-	ST_DoomBar,
-	STS_DrawPlayerBarEx,
+	ST_BarFunc_t Bar;
+	ST_ModShapeFunc_t Shape;
+} c_STBars[NUMPROFBARS] =
+{
+	{ST_DoomBar, ST_DoomModShape},
+	{STS_DrawPlayerBarEx, NULL},
 };
+
+/* ST_GetScreenCDP() -- Get console, display, and profile */
+void ST_GetScreenCDP(const int32_t a_Split, player_t** const a_ConsolePP, player_t** const a_DisplayPP, D_Prof_t** const a_ProfP)
+{
+	int i;
+	
+	/* Check */
+	if (a_Split < 0 || a_Split >= MAXSPLITSCREEN)
+		return;
+	
+	// Get players to draw for
+	if (!g_Splits[a_Split].Port)
+	{
+		if (g_Splits[a_Split].Console >= 0  && g_Splits[a_Split].Console < MAXPLAYERS && playeringame[g_Splits[a_Split].Console])
+			(*a_ConsolePP) = &players[g_Splits[a_Split].Console];
+		else
+			(*a_ConsolePP) = NULL;
+	}
+	else
+		(*a_ConsolePP) = g_Splits[a_Split].Port->Player;//&players[g_Splits[a_Split].Console];
+	(*a_DisplayPP) = P_SpecGetPOV(a_Split);//&players[g_Splits[a_Split].Display];
+	
+	// Missing player?
+	if (!(*a_ConsolePP))
+		(*a_ConsolePP) = P_SpecGet(a_Split);
+	
+	if (!(*a_DisplayPP))
+		(*a_DisplayPP) = (*a_ConsolePP);
+	
+	/* Find profile */
+	(*a_ProfP) = NULL;
+	for (i = 0; i < 2 && !(*a_ProfP); i++)
+	{
+		if (i == 0 && g_Splits[a_Split].Port && g_Splits[a_Split].Profile)
+			(*a_ProfP) = g_Splits[a_Split].Profile;
+		else if (i == 1 && (*a_ConsolePP)->ProfileEx)
+			(*a_ProfP) = (*a_ConsolePP)->ProfileEx;
+	}
+}
 
 /* ST_DrawPlayerBarsEx() -- Draw player status bars */
 void ST_DrawPlayerBarsEx(void)
@@ -1273,24 +1316,7 @@ void ST_DrawPlayerBarsEx(void)
 		// Split player active
 		if (D_ScrSplitVisible(p) || (demoplayback && g_Splits[p].Active))
 		{
-			// Get players to draw for
-			if (!g_Splits[p].Port)
-			{
-				if (g_Splits[p].Console >= 0  && g_Splits[p].Console < MAXPLAYERS && playeringame[g_Splits[p].Console])
-					ConsoleP = &players[g_Splits[p].Console];
-				else
-					ConsoleP = NULL;
-			}
-			else
-				ConsoleP = g_Splits[p].Port->Player;//&players[g_Splits[p].Console];
-			DisplayP = P_SpecGetPOV(p);//&players[g_Splits[p].Display];
-			
-			// Missing player?
-			if (!ConsoleP)
-				ConsoleP = P_SpecGet(p);
-			
-			if (!DisplayP)
-				DisplayP = ConsoleP;
+			ST_GetScreenCDP(p, &ConsoleP, &DisplayP, &Prof);
 			
 			// Modify palette?
 			if (g_SplitScreen <= 0)	// Only 1 player inside
@@ -1302,20 +1328,13 @@ void ST_DrawPlayerBarsEx(void)
 				}
 			}
 			
-			// Which bar to draw?
-			for (i = 0; i < 2; i++)
-			{
-				Prof = NULL;
-				if (i == 0 && g_Splits[p].Port && g_Splits[p].Profile)
-					Prof = g_Splits[p].Profile;
-				else if (i == 1 && ConsoleP->ProfileEx)
-					Prof = ConsoleP->ProfileEx;
-				
-				if (Prof)
-					if (Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
-						c_STBars[Prof->BarType](p, x, y, w, h, ConsoleP, DisplayP, Prof);
-			}
+			// If profile was found and bar type is legal
+			if (Prof && Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+				c_STBars[Prof->BarType].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
 			
+			// Otherwise, draw the standard bar
+			else
+				c_STBars[DBPT_DEFAULT].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)
@@ -1442,6 +1461,71 @@ bool_t ST_ExSoloViewScaledSBar(void)
 int32_t ST_ExViewBarHeight(void)
 {
 	return 0;
+}
+
+/* ST_CalcScreen() -- Calculates render screen size for local player */
+void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H)
+{
+	player_t* ConsoleP, *DisplayP;
+	D_Prof_t* Prof;
+	int right, bottom;
+	
+	/* Check */
+	if (a_ThisPlayer < 0 || a_ThisPlayer >= MAXSPLITSCREEN)
+		return;	
+	
+	/* Get players */
+	ConsoleP = DisplayP = NULL;
+	Prof = NULL;
+	ST_GetScreenCDP(a_ThisPlayer, &ConsoleP, &DisplayP, &Prof);
+	
+	/* How many splits? */
+	switch (g_SplitScreen)
+	{
+			// 3/4 Player
+		case 2:
+		case 3:
+			right = a_ThisPlayer & 1;
+			bottom = (a_ThisPlayer >> 1) & 1;
+		
+			*a_X = (vid.width >> 1) * right;
+			*a_Y = (vid.height >> 1) * bottom;
+			*a_W = vid.width >> 1;
+			*a_H = vid.height >> 1;
+			break;
+			
+			// 2 Player
+		case 1:
+			bottom = a_ThisPlayer & 1;
+			
+			*a_X = 0;
+			*a_Y = (vid.height >> 1) * bottom;
+			*a_W = vid.width;
+			*a_H = vid.height >> 1;
+			break;
+			
+			// 1 Player
+		default:
+			*a_X = 0;
+			*a_Y = 0;
+			*a_W = vid.width;
+			*a_H = vid.height;
+			break;
+	}
+	
+	/* Profile status bar */
+	if (Prof && Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+	{
+		if (c_STBars[Prof->BarType].Shape)
+			c_STBars[Prof->BarType].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+	}
+	
+	// Otherwise, use the standard bar
+	else
+	{
+		if (c_STBars[DBPT_DEFAULT].Shape)
+			c_STBars[DBPT_DEFAULT].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+	}
 }
 
 /* ST_CheckDrawGameView() -- Checks if game view can be drawn */

@@ -205,6 +205,7 @@ void D_Display(void)
 	bool_t redrawsbar, CoolDemo;
 	bool_t viewactivestate = false;
 	V_Image_t* PausePic;
+	int32_t Junk;
 	
 	if (dedicated)
 		return;
@@ -303,75 +304,31 @@ void D_Display(void)
 		}
 		
 		// draw the view directly
-		/*if (!automapactive || automapoverlay)*/
-		{
-			// Cool demos?
-			CoolDemo = (demoplayback && g_TitleScreenDemo);
-			
-			// added 16-6-98: render the second screen
-			switch (g_SplitScreen)
-			{
-					// 3/4 Player split
-				case 2:
-				case 3:
-					for (i = 0; i < 4; i++)
-					{
-						activeylookup = ylookup4[i];
-						
-						if (i % 2 == 1)
-							viewwindowx = vid.width / 2;
-						else
-							viewwindowx = 0;
-						
-						if (i > 1)
-							viewwindowy = vid.height / 2;
-						else
-							viewwindowy = 0;
-						
-						if (ST_CheckDrawGameView(i))	
-							R_RenderPlayerView(P_SpecGetPOV(i), i);
-						
-#if 0
-							V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0,
-									((i == 1 || i == 3) ? vid.width >> 1 : 0),
-							        ((i == 2 || i == 3) ? vid.height >> 1 : 0),
-							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
-							        (((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
-								);
-#endif
-								
-						viewwindowx = 0;
-						viewwindowy = 0;
-					}
-					break;
-					
-					// 1 Full, 2 player split
-				case 1:
-					viewwindowy = vid.height / 2;
-					activeylookup = ylookup;
-					memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
-					
-					if (ST_CheckDrawGameView(1))
-						R_RenderPlayerView(P_SpecGetPOV(1), 1);
-					
-					//V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
-						
-					viewwindowy = 0;
-					activeylookup = ylookup;
-					memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
-				case 0:
-				default:
-					activeylookup = ylookup;
-					
-					// Real Player
-					if (ST_CheckDrawGameView(0))
-						R_RenderPlayerView(P_SpecGetPOV(0), 0);
-					break;
-			}
-		}
+		CoolDemo = (demoplayback && g_TitleScreenDemo);
 		
-		/*if (automapactive && automapoverlay)
-			AM_Drawer();*/
+		// Better render loop
+		for (i = 0; i < g_SplitScreen + 1; i++)
+			if (ST_CheckDrawGameView(i))
+			{
+				// Calc screen size
+				ST_CalcScreen(i, &viewwindowx, &viewwindowy, &Junk, &Junk);
+			
+				// Use certain y lookup
+				if (g_SplitScreen >= 2)
+					activeylookup = ylookup4[i];
+				else if (g_SplitScreen == 1)
+				{
+					if (i == 1)
+						activeylookup = ylookup2;
+					else
+						activeylookup = ylookup1;
+				}
+				else
+					activeylookup = ylookup;
+			
+				// Draw game view
+				R_RenderPlayerView(P_SpecGetPOV(i), i);
+			}
 		
 		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
 		ST_DrawPlayerBarsEx();

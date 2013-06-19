@@ -672,12 +672,17 @@ void R_ExecuteSetViewSize_DOOM(void)
 	int setdetail;
 	
 	int aspectx;				//added:02-02-98:for aspect ratio calc. below...
+	int32_t Junk;
 	
 	// GhostlyDeath <April 25, 2008> -- Fix crash when using server subsystem for the client
 	if (!graphics_started)
 		return;
 		
 	setsizeneeded = false;
+	
+	/* Calculate based on status bar screen size */
+	//void ST_CalcScreen(const int32_t a_ThisPlayer, &Junk, &Junk, vieww, int32_t* const a_H);
+	
 	// no reduced view in splitscreen mode
 	if (g_SplitScreen && l_RViewSize.Value->Int < 11)
 		CONL_VarSetInt(&l_RViewSize, 11);
@@ -1072,67 +1077,6 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 	//  but does not draw on side views
 	if (!viewangleoffset && !player->camera.chase && (!player->ProfileEx || (player->ProfileEx && player->ProfileEx->DrawPSprites)) && !script_camera_on)
 		R_DrawPlayerSprites();
-		
-	// GhostlyDeath -- warp the view
-	// ylookup is the row and columnofs is the column in the row
-#if 0
-	if (((!cv_chasecam.value && player->mo && player->mo->eflags & MF_UNDERWATER) ||
-	(cv_chasecam.value && camera.mo && camera.mo->eflags & MF_UNDERWATER)) && (g_SplitScreen <= 0))
-	{
-		for (y = 0; y < viewheight; y++)
-		{
-			a = (gametic % 32) - 16;
-			
-			if (a < 0)
-				c = 0;
-			else
-				c = 1;
-				
-			if (c)
-			{
-				a += 2;
-				if (a > 16)
-					c = 0;
-			}
-			else
-			{
-				a -= 2;
-				if (a < -16)
-					c = 1;
-			}
-			
-			for (x = 0; x < viewwidth; x++)
-			{
-				//a = ((gametic) % (viewwidth / 16)) - (viewheight / 32);// + (x % ((viewwidth / 8)) / 2);
-				b = a;
-				if (b < 0)
-					b += (gametic + (x >> 2)) % 16;
-				else
-					b -= (gametic + (x >> 2)) % 16;
-				if (b < -16)
-					b = -16;
-				else if (b > 16)
-					b = 16;
-					
-				while (b + y < 0)
-					b++;
-				while (b + y > viewheight - (viewheight / 32))
-					b--;
-					
-				if (ylookup[y + b])
-				{
-					if (b < 0)
-						*(ylookup[y + b] + columnofs[x]) = *(ylookup[y] + columnofs[x]);
-					else
-						*(ylookup[y] + columnofs[x]) = *(ylookup[y + b] + columnofs[x]);
-				}
-			}
-		}
-	}
-#endif
-	
-	// GhostlyDeath <May 6, 2012> -- Network Update
-	//D_SyncNetUpdate();
 	
 	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 	

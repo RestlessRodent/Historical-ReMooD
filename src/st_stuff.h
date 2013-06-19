@@ -129,9 +129,12 @@ void SB_Init(void);
 /*** STRUCTURES ***/
 
 typedef void (*ST_BarFunc_t)(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile);
+typedef void (*ST_ModShapeFunc_t)(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile);
 
 /*** FUNCTIONS ***/
 
+void ST_GetScreenCDP(const int32_t a_Split, player_t** const a_ConsolePP, player_t** const a_DisplayPP, D_Prof_t** const a_ProfP);
+void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H);
 void ST_DrawPlayerBarsEx(void);
 void ST_InitEx(void);
 void ST_TickerEx(void);
