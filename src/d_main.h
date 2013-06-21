@@ -70,6 +70,13 @@ typedef struct D_IWADInfoEx_s
 	int mode;									// Deprecated mode
 } D_IWADInfoEx_t;
 
+/**************
+*** GLOBALS ***
+**************/
+
+extern int pagetic;
+extern int demosequence;
+
 /************
 *** OTHER ***
 ************/

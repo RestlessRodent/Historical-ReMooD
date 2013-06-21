@@ -305,6 +305,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			   "DNETC_HOSTRESSIX", "Host \"$1\" resolves to $2$3:$4:$5:$6:$7%$8 (v6)."},
 	{			   "DNETC_INVALIDTIC", "Attempted to gather tic $1 but it was not found."},
 	
+	/*** D_TRANS.C ***/
+	{			  "DNETC_PARTIALDISC", "Partial Disconnect ($1{z)."},
+	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},

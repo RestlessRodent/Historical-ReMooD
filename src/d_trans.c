@@ -191,6 +191,9 @@ void D_SNNetTerm(const char* const a_Reason)
 	I_NetCloseSocket(l_Sock);
 	l_Sock = NULL;
 	
+	/* Clear host */
+	memset(&l_HostAddr, 0, sizeof(l_HostAddr));
+	
 	/* Disconnect message */
 	CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Reason);
 }
@@ -209,13 +212,21 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 	if (!l_BS || !a_Host || !D_SNIsServer() || a_Host->Local)
 		return;
 	
+	/* Already cleaning up */
+	if (a_Host->Cleanup)
+		return;
+	
 	/* Cleanup */
 	a_Host->Cleanup = true;
-	strncpy(a_Host->QuitReason, a_Reason, MAXQUITREASON);
+	strncpy(a_Host->QuitReason, (a_Reason ? a_Reason : "No Reason"), MAXQUITREASON);
+	a_Host->QuitReason[MAXQUITREASON - 1] = 0;
+	
+	/* Show they disconnected */
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s\n", a_Host->QuitReason);
 	
 	/* Send them a packet */
 	D_BSBaseBlock(l_BS, "QUIT");
-	D_BSws(l_BS, a_Reason);
+	D_BSws(l_BS, a_Host->QuitReason);
 	for (i = 0; i < 5; i++)
 		D_BSRecordNetBlock(l_BS, &a_Host->Addr);
 }
@@ -462,7 +473,7 @@ void DT_QUIT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	}
 	
 	/* If we are the server, and this host is local do not disconnect */
-	if (D_SNIsServer() && a_Host && a_Host->Local)
+	else if (D_SNIsServer() && a_Host && a_Host->Local)
 		return;
 	
 	/* Cleanup remote client if non-local (they quit) */
@@ -472,10 +483,7 @@ void DT_QUIT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	/* Otherwise, perform a partial disconnect */
 	// As long as we are not the server!
 	else if (!D_SNIsServer())
-	{
-		
 		D_SNPartialDisconnect(Buf);
-	}
 #undef BUFSIZE
 }
 

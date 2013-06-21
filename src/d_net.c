@@ -43,6 +43,8 @@
 #include "g_game.h"
 #include "d_prof.h"
 #include "d_netmst.h"
+#include "p_setup.h"
+#include "d_main.h"
 
 /****************
 *** CONSTANTS ***
@@ -172,8 +174,7 @@ void D_SNDropAllClients(const char* const a_Reason)
 	if (l_Hosts)
 		for (i = 0; i < l_NumHosts; i++)
 			if ((Host = l_Hosts[i]))
-				if (!Host->Local && !Host->Cleanup)
-					D_SNDisconnectHost(Host, (a_Reason ? a_Reason : "Server disconnect"));
+				D_SNDisconnectHost(Host, (a_Reason ? a_Reason : "Server disconnect"));
 	
 	/* Done dropping */
 	Dropping = false;
@@ -192,6 +193,18 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	
 	// Do not double disconnect
 	InDis = true;
+	
+	/* Stop demo playing */
+	if (!a_FromDemo)
+		if (demoplayback)
+		{
+			singledemo = false;
+			G_StopDemoPlay();
+		}
+	
+	/* Remove splits */
+	if (l_Connected)
+		D_NCResetSplits(a_FromDemo);
 	
 	/* Clear hosts */
 	D_SNDropAllClients(a_Reason);
@@ -216,6 +229,13 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	l_Hosts = NULL;
 	l_NumHosts = 0;
 	
+	/* Initialize some players some */
+	for (i = 0; i < MAXPLAYERS; i++)
+		G_InitPlayer(&players[i]);
+	
+	/* Destroy the level */
+	P_ExClearLevel();
+	
 	/* Clear the global buffer */
 	l_GlobalAt = -1;
 	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
@@ -223,8 +243,17 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	/* Clear flags */
 	l_Connected = l_Server = false;
 	
+	/* Go back to the title screen */
+	if (!a_FromDemo)
+	{
+		gamestate = GS_DEMOSCREEN;
+		
+		demosequence = -1;
+		pagetic = -1;
+	}
+	
 	/* Done disconnecting */
-	InDis = true;
+	InDis = false;
 }
 
 /* D_SNPartialDisconnect() -- Partial Disconnect */
@@ -237,6 +266,9 @@ void D_SNPartialDisconnect(const char* const a_Reason)
 	/* If disconnected already, stop */
 	if (InDis)
 		return;
+	
+	/* Show message */
+	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PARTIALDISC, "%s\n", (a_Reason ? a_Reason : "No Reason"));
 	
 	/* Terminate network connection */
 	D_SNNetTerm(a_Reason);
@@ -258,7 +290,7 @@ void D_SNPartialDisconnect(const char* const a_Reason)
 			}
 	
 	/* Done disconnecting */
-	InDis = true;
+	InDis = false;
 }
 
 /* D_SNIsConnected() -- Connected to server */
