@@ -1264,9 +1264,11 @@ void I_ShutdownGraphics(void)
 	l_SDLSurface = NULL;
 	
 	/* Destroy icon ='( */
+#if 0
 	if (l_Icon)
 		SDL_FreeSurface(l_Icon);
 	l_Icon = NULL;
+#endif
 	
 	/* Quit graphics mode */
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
