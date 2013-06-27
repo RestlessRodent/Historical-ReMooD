@@ -1249,6 +1249,7 @@ static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 	/* Setup the source/dest */
 	Data->Source.client = Data->ClientID;
 	Data->Source.port = Data->PortID;
+	FCl = 0;
 	
 	// Extract client:port from string
 	if (l_IALSAMidiDev.Value->String && strlen(l_IALSAMidiDev.Value->String) > 0)
@@ -1333,6 +1334,7 @@ static bool_t IS_ALSAMidi_Init(struct I_MusicDriver_s* const a_Driver)
 		// Delete Port and close handle
 		snd_seq_delete_simple_port(Data->Handle, Data->PortID);
 		snd_seq_close(Data->Handle);
+		Data->Handle = NULL;
 		return false;
 	}
 	
@@ -1354,7 +1356,7 @@ static bool_t IS_ALSAMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
 	Data = a_Driver->Data;
 	
 	// Never worked?
-	if (Data->Err < 0)
+	if (Data->Err < 0 || !Data->Handle)
 		return false;
 	
 	/* Delete Port */
@@ -1362,6 +1364,7 @@ static bool_t IS_ALSAMidi_Destroy(struct I_MusicDriver_s* const a_Driver)
 	
 	/* Close Handle */
 	snd_seq_close(Data->Handle);
+	Data->Handle = NULL;
 	
 	/* Success? */
 	return true;

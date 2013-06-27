@@ -357,6 +357,7 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	
 	/* Set game settings */
 	NG_ApplyVars();
+	NG_WarpMap();
 	
 	/* Add local profile players */
 	D_SNAddLocalProfiles(a_NumLocal, a_Profs);
@@ -370,6 +371,20 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	
 	/* Created */
 	return true;
+}
+
+/* D_SNStartLocalServer() -- Starts local server (just sets connected) */
+bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs)
+{
+	/* Normal statr */
+	if (D_SNStartServer(a_NumLocal, a_Profs))
+	{
+		l_Connected = true;
+		return true;
+	}
+	
+	/* Failed */
+	return false;
 }
 
 /* D_SNServerInit() -- Initializes Server Mode */

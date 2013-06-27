@@ -4331,8 +4331,8 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				// Draw for count
 				if (TransMap)
 				{
-					for (i = 0; i < c && dP < dPend; i++)
-						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
+					for (i = 0; i < c; i++)
+						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT && dP < dPend; ESXy += YFrac, sxY += YFrac)
 						{
 							Pixel = sP[i];
 							*(dP) = TransMap[(ColorMap[ColorMapE[Pixel]] << 8) + (*dP)];
@@ -4341,8 +4341,8 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				}
 				else
 				{
-					for (i = 0; i < c && dP < dPend; i++)
-						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
+					for (i = 0; i < c; i++)
+						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT && dP < dPend; ESXy += YFrac, sxY += YFrac)
 						{
 							Pixel = sP[i];
 							*(dP) = ColorMap[ColorMapE[Pixel]];

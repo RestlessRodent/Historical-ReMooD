@@ -1642,9 +1642,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 	}
 	
 	/* Make Game Now */
-	D_SNStartServer(0, NULL);
-	NG_ApplyVars();
-	NG_WarpMap();
+	D_SNStartLocalServer(0, NULL);
 	
 	/* Kill all menus */
 	M_StackPopAll();

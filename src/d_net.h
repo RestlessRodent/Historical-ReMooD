@@ -114,6 +114,7 @@ bool_t D_SNIsServer(void);
 void D_SNStartWaiting(void);
 void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs);
 bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs);
+bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs);
 bool_t D_SNServerInit(void);
 
 /*** LOOP ***/

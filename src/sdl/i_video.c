@@ -1145,10 +1145,8 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		return false;
 		
 	/* Destroy old buffer */
-#if 0
 	if (!l_SDLGL)
 		I_VideoUnsetBuffer();		// Remove old buffer if any
-#endif
 	
 	/* Destroy old surface */
 #if 0
@@ -1261,14 +1259,11 @@ void I_ShutdownGraphics(void)
 	if (l_SDLSurface)
 		SDL_FreeSurface(l_SDLSurface);
 #endif
-	l_SDLSurface = NULL;
 	
 	/* Destroy icon ='( */
-#if 0
 	if (l_Icon)
 		SDL_FreeSurface(l_Icon);
 	l_Icon = NULL;
-#endif
 	
 	/* Quit graphics mode */
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -1297,7 +1292,7 @@ size_t I_ProbeJoysticks(void)
 	const char* NameID;
 	
 	/* Init Joysticks */
-	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0)
 		return 0;
 		
 	// Enable event states
