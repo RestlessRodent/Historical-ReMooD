@@ -154,11 +154,13 @@ enum
 	
 	// Simple Networking
 	DTCT_SNJOINPLAYER,							// Player Joins
+	DTCT_MAPCHANGE,								// Change the map
+	DTCT_GAMEVAR,								// Game Variable
+	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
+	DTCT_XMORPHPLAYER,							// Morph Player
 	
 	// Old Basic
 	DTCT_JOIN,									// Join Sub Command
-	DTCT_MAPCHANGE,								// Change the map
-	DTCT_GAMEVAR,								// Game Variable
 	DTCT_PART,									// Part Game
 	DTCT_ADDSPEC,								// Add Spectator
 	
@@ -166,8 +168,6 @@ enum
 	DTCT_XKICKPLAYER,							// Kick Player
 	DTCT_XADDPLAYER,							// Adds a new player
 	DTCT_XJOINPLAYER,							// Joins player
-	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
-	DTCT_XMORPHPLAYER,							// Morph Player
 	DTCT_XSPECPLAYER,							// Spectate Player
 	DTCT_XPLAYERPREFSTR,						// Player Preference (String)
 	DTCT_XPLAYERPREFINT,						// Player Preference (Int)

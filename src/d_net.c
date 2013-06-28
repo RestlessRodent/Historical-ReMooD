@@ -589,6 +589,10 @@ void D_SNUpdateLocalPorts(void)
 			else if (!Split->Profile)
 			{
 			}
+			
+			// If port has no profile, set it
+			else if (!Split->Port->Profile)
+				D_SNSetPortProfile(Split->Port, Split->Profile);
 		}
 		
 		// No local players in game (always create one)
@@ -1139,6 +1143,7 @@ void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile)
 		g_Splits[a_Port->Screen].Profile = a_Profile;
 	
 	/* Broadcast information to everyone else */
+	// This also sets in game details, if playing, etc.
 }
 
 /* D_SNPortRequestJoin() -- Request join on the server */
