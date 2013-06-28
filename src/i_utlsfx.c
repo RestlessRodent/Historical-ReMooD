@@ -216,6 +216,64 @@ static I_SoundDriver_t* l_CurSoundDriver;	// Current sound driver
 *** MUS2MID VIRTUAL DRIVER ***
 *****************************/
 
+typedef union I_MUS2MIDMsg_u
+{
+	uint32_t u;
+	uint8_t b[4];
+} I_MUS2MIDMsg_t;
+
+/* I_MUS2MID_EndSounds() -- Ends mus2mid sounds */
+static void I_MUS2MID_EndSounds(I_MUS2MIDData_t* const a_Local)
+{
+	int i;
+	I_MUS2MIDMsg_t MIDIMsg;
+	
+	/* For all channels */
+	for (i = 0; i < 16; i++)
+	{
+		// Turn off all notes
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x7B;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+	
+		// Turn off sustain
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x40;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+	
+		// Reset all controllers
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0x79;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+		// Bank all to zero
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 0;
+		MIDIMsg.b[2] = (i == 9 ? 127 : 0);
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xB0 | i;
+		MIDIMsg.b[1] = 32;
+		MIDIMsg.b[2] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+		
+		// Change all to first program
+		MIDIMsg.u = 0;
+		MIDIMsg.b[0] = 0xC0 | i;
+		MIDIMsg.b[1] = 0;
+		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 2);
+	}
+
+}
+
 /* I_MUS2MID_MUSReadNextMessage() -- Reads the next message from a MIDI */
 // a_OutData: The 4 byte midi message
 // a_OutSize: How many bytes of the 4 byte message used
@@ -229,12 +287,7 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 	uint8_t Event;
 	uint8_t Key, VolUse;
 	uint16_t Code;
-	
-	union
-	{
-		uint32_t u;
-		uint8_t b[4];
-	} MIDIMsg;
+	I_MUS2MIDMsg_t MIDIMsg;
 	
 	/* Check */
 	if (!a_Local || !a_OutData || !a_OutSize || !a_Delta)
@@ -265,6 +318,9 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 		// Reset to start
 		a_Local->Pos = a_Local->MusStart;
 		*a_Delta = 1;
+		
+		I_MUS2MID_EndSounds(a_Local);
+		
 		return true;
 	}
 	
@@ -464,6 +520,8 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			Last = false;		// Clear last, don't want to handle it
 			*a_Delta = 1;		// Break from loop, kinda
 			a_Local->Pos = a_Local->MusStart;	// Back to start
+			
+			I_MUS2MID_EndSounds(a_Local);
 			break;
 			
 			// Unknown
@@ -582,11 +640,7 @@ void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
 	I_MUS2MIDData_t* Local;
 	size_t i;
-	union
-	{
-		uint32_t u;
-		uint8_t b[4];
-	} MIDIMsg;
+	I_MUS2MIDMsg_t MIDIMsg;
 	
 	/* Check */
 	if (!a_Driver)
@@ -608,18 +662,7 @@ void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	Local->BaseTime = 0;
 	Local->PausePlay = true;
 	
-	// End everything pretty much
-	for (i = 0; i < 16; i++)
-	{
-		// Turn off all notes
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xB0 | i;
-		MIDIMsg.b[1] = 0x7B;
-		MIDIMsg.b[2] = 0;
-		
-		if (Local->RealDriver->RawMIDI)
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
-	}
+	I_MUS2MID_EndSounds(Local);
 }
 
 /* I_MUS2MID_Resume() -- Resumes a song (play >) */
@@ -655,11 +698,7 @@ void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 static void IS_MUS2MID_FullReset(struct I_MusicDriver_s* const a_Driver, I_MUS2MIDData_t* const a_Local)
 {
 	size_t i;
-	union
-	{
-		uint32_t u;
-		uint8_t b[4];
-	} MIDIMsg;
+	I_MUS2MIDMsg_t MIDIMsg;
 	
 	/* Feeding */
 	// Clear time
@@ -670,50 +709,8 @@ static void IS_MUS2MID_FullReset(struct I_MusicDriver_s* const a_Driver, I_MUS2M
 	MIDIMsg.b[0] = 0xFF;
 	a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 1);
 	
-	// End everything pretty much
-	for (i = 0; i < 16; i++)
-	{
-		// Turn off all notes
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xB0 | i;
-		MIDIMsg.b[1] = 0x7B;
-		MIDIMsg.b[2] = 0;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
+	I_MUS2MID_EndSounds(a_Local);
 	
-		// Turn off sustain
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xB0 | i;
-		MIDIMsg.b[1] = 0x40;
-		MIDIMsg.b[2] = 0;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-	
-		// Reset all controllers
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xB0 | i;
-		MIDIMsg.b[1] = 0x79;
-		MIDIMsg.b[2] = 0;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-		
-		// Bank all to zero
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xB0 | i;
-		MIDIMsg.b[1] = 0;
-		MIDIMsg.b[2] = (i == 9 ? 127 : 0);
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-		
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xB0 | i;
-		MIDIMsg.b[1] = 32;
-		MIDIMsg.b[2] = 0;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 3);
-		
-		// Change all to first program
-		MIDIMsg.u = 0;
-		MIDIMsg.b[0] = 0xC0 | i;
-		MIDIMsg.b[1] = 0;
-		a_Local->RealDriver->RawMIDI(a_Local->RealDriver, MIDIMsg.u, 2);
-	}
-
 #if 0
 	// Reset All
 	MIDIMsg.u = 0;
@@ -799,11 +796,7 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 {
 	I_MUS2MIDData_t* Local;
 	size_t i;
-	union
-	{
-		uint32_t u;
-		uint8_t b[4];
-	} MIDIMsg;
+	I_MUS2MIDMsg_t MIDIMsg;
 	
 	/* Check */
 	if (!a_Driver)

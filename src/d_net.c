@@ -525,10 +525,11 @@ bool_t D_SNServerInit(void)
 /* D_SNUpdateLocalPorts() -- Updates local ports */
 void D_SNUpdateLocalPorts(void)
 {
-	int32_t i;
+	int32_t i, pc;
 	D_SplitInfo_t* Split;
 	D_SNPort_t* Port;
 	ticcmd_t* TicCmdP;
+	char* Profs[1];
 	
 	/* Do not perform this when not connected */
 	if (!l_Connected)
@@ -536,12 +537,20 @@ void D_SNUpdateLocalPorts(void)
 	
 	/* Go through local screens */
 	if (!l_DedSv)	// Dedicated server only has bots
+	{
+		// No players in game
+		pc = 0;
+		
+		// Go through all screens
 		for (i = 0; i < MAXSPLITSCREEN; i++)
 		{
 			// Does not have player
 			if (!D_ScrSplitHasPlayer(i))
 				continue;
-		
+			
+			// Increase local player count
+			pc++;
+			
 			// Quick
 			Split = &g_Splits[i];
 		
@@ -581,6 +590,14 @@ void D_SNUpdateLocalPorts(void)
 			{
 			}
 		}
+		
+		// No local players in game (always create one)
+		if (!pc)
+		{
+			Profs[0] = NULL;
+			D_SNAddLocalProfiles(1, Profs);
+		}
+	}
 	
 	/* My host not set? */
 	if (!l_MyHost && !demoplayback)
