@@ -60,7 +60,7 @@ void ST_InitDoomBar(void)
 #define IDFLAGS (VEX_NOSCALESTART)
 
 /* ST_DoomModShape() -- Modifies shape of view bar */
-void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile)
+void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile)
 {
 	fixed_t gsy;
 	int32_t sbh;
@@ -91,7 +91,7 @@ void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y,
 }
 
 /* ST_DoomBar() -- Doom Status Bar */
-void ST_DoomBar(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile)
+void ST_DoomBar(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile)
 {
 	fixed_t sx, sy, gsx, gsy;
 	int32_t sbx, sbh, sbtop;

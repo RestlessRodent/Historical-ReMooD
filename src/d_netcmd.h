@@ -56,6 +56,11 @@ void Command_ExitGame_f(void);
 
 /*** STRUCTURES ***/
 
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
 /* D_SplitInfo_t -- Split Screen Info */
 typedef struct D_SplitInfo_s
 {
@@ -64,7 +69,7 @@ typedef struct D_SplitInfo_s
 	int32_t Console;							// The console player
 	int32_t Display;							// Display Player
 	uint32_t ProcessID;							// Local Processing ID
-	struct D_ProfileEx_s* Profile;				// Player Profile
+	D_Prof_t* Profile;				// Player Profile
 	struct D_SNPort_s* Port;					// Control Port
 	bool_t DoNotSteal;							// Do not steal port
 	
@@ -90,6 +95,10 @@ typedef struct D_SplitInfo_s
 	fixed_t MapZoom;							// Zoom in the map
 	bool_t MapFreeMode;							// Free movement mode
 	fixed_t MapPos[2];							// Map position
+	
+	// Profile Select
+	bool_t SelProfile;							// Selecting profile
+	D_Prof_t* AtProf;							// At this profile
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/

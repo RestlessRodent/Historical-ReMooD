@@ -965,7 +965,7 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 //extern bool_t g_NetBoardDown;
 
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
-static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, struct D_ProfileEx_s* a_Profile)
+static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile)
 {
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
@@ -1296,6 +1296,7 @@ void ST_DrawPlayerBarsEx(void)
 	bool_t BigLetters;
 	static uint32_t LastPal;	// Lowers palette change (faster drawing)
 	D_Prof_t* Prof;
+	D_SplitInfo_t* Split;
 	
 	/* Screen division? */
 	// Initial
@@ -1320,8 +1321,11 @@ void ST_DrawPlayerBarsEx(void)
 	}
 	
 	/* Draw each player */
-	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
+	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1) && p < MAXSPLITSCREEN; p++)
 	{
+		// Reference split
+		Split = &g_Splits[p];
+		
 		// Split player active
 		if (D_ScrSplitVisible(p) || (demoplayback && g_Splits[p].Active))
 		{
@@ -1344,6 +1348,17 @@ void ST_DrawPlayerBarsEx(void)
 			// Otherwise, draw the standard bar
 			else
 				c_STBars[ST_GetDefaultBar()].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
+		}
+		
+		// Profile selection
+		if (Split->SelProfile)
+		{
+			// Text
+			V_DrawStringA(
+					VFONT_LARGE, 0, "Select Profile",
+					x,
+					y
+				);
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)

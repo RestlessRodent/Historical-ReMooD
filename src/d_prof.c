@@ -257,6 +257,12 @@ void D_ProfFixAccountName(char* const a_Buffer)
 #undef BUFSIZE
 }
 
+/* D_ProfFirst() -- Returns the first profile */
+D_Prof_t* D_ProfFirst(void)
+{
+	return l_FirstProfile;
+}
+
 /* D_ProfRename() -- Rename profile account */
 bool_t D_ProfRename(D_Prof_t* a_Prof, const char* const a_NewName)
 {

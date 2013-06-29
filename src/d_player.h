@@ -108,6 +108,12 @@ struct D_SNPort_s;
 // ========================================================================
 //                          PLAYER STRUCTURE
 // ========================================================================
+
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
 typedef struct player_s
 {
 	mobj_t* mo;

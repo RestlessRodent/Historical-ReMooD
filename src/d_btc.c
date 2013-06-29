@@ -166,6 +166,8 @@ bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event)
 			// Handle event for inputter
 			return CONCTI_HandleEvent(l_ChatBox[Bit], a_Event);
 		}
+		
+		// Profile select
 	}
 	
 	/* Which kind of event? */

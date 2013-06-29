@@ -222,8 +222,13 @@ typedef enum D_ProfBarType_e
 
 struct mobj_s;
 
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
 /* D_Prof_t -- Extended Profile */
-typedef struct D_ProfileEx_s
+struct D_Prof_s
 {
 	/* Profile Related */
 	uint32_t Flags;								// Flags for profile controller
@@ -245,8 +250,8 @@ typedef struct D_ProfileEx_s
 	int32_t AutoGrabJoy;						// Auto-Grab Joystick
 	
 	/* Profile Chains */
-	struct D_ProfileEx_s* Prev;					// Previous link
-	struct D_ProfileEx_s* Next;					// Next link
+	D_Prof_t* Prev;					// Previous link
+	D_Prof_t* Next;					// Next link
 	
 	/* Other stuff */
 	uint8_t ColorPickup;						// Color for pickups
@@ -269,7 +274,7 @@ typedef struct D_ProfileEx_s
 	bool_t CounterOp;							// CounterOp player
 	char* AccountRef, *DisplayRef;				// References to own name
 	uint8_t BarType;							// Type of status bar
-} D_Prof_t;
+};
 
 /*** GLOBALS ***/
 
@@ -279,6 +284,8 @@ extern D_Prof_t* g_ProfList[MAXPROFCONST];
 /*** FUNCTIONS ***/
 
 void D_ProfFixAccountName(char* const a_Buffer);
+
+D_Prof_t* D_ProfFirst(void);
 
 bool_t D_ProfRename(D_Prof_t* a_Prof, const char* const a_NewName);
 D_Prof_t* D_CreateProfileEx(const char* const a_Name);

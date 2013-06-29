@@ -59,10 +59,14 @@
 *****************/
 
 struct D_BS_s;
-struct D_ProfileEx_s;
 struct B_BotTemplate_s;
 
 typedef struct D_SNHost_s D_SNHost_t;
+
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
 
 /* D_SNPort_t -- Port which controls a specific player or a spectator */
 typedef struct D_SNPort_s
@@ -72,7 +76,7 @@ typedef struct D_SNPort_s
 	D_SNHost_t* Host;							// Controlling host
 	int32_t Screen;								// Screen number
 	bool_t Bot;									// Bot controls this port
-	struct D_ProfileEx_s* Profile;				// Profile of player
+	D_Prof_t* Profile;				// Profile of player
 	uint32_t ID;								// ID of Port
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
@@ -137,7 +141,7 @@ void D_SNRemovePort(D_SNPort_t* const a_Port);
 D_SNPort_t* D_SNRequestPort(void);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
-void D_SNSetPortProfile(D_SNPort_t* const a_Port, struct D_ProfileEx_s* const a_Profile);
+void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
 void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
 void D_SNPortTryJoin(D_SNPort_t* const a_Port);
 

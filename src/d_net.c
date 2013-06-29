@@ -338,8 +338,8 @@ void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 		D_SNAddLocalPlayer(ProfN, 0, i, false);
 		
 		// If first player, do not steal
-		if (!i && !ProfN)
-			g_Splits[0].DoNotSteal = true;
+		//if (!i && !ProfN)
+			g_Splits[i].DoNotSteal = true;
 	}
 }
 
@@ -392,7 +392,7 @@ bool_t D_SNServerInit(void)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
-	const char* PProfs[MAXPLAYERS];
+	const char* PProfs[MAXSPLITSCREEN];
 	int32_t np, i;
 	char* Addr;
 	uint16_t Port;
@@ -417,7 +417,7 @@ bool_t D_SNServerInit(void)
 		l_DedSv = false;
 		
 		// Add more players, if they are set
-		for (np = 0, i = 0; i < MAXPLAYERS; i++)
+		for (np = 0, i = 0; i < MAXSPLITSCREEN; i++)
 		{
 			// Command to check for (-pX)
 			snprintf(Buf, BUFSIZE - 1, "-p%i", i + 1);
@@ -426,6 +426,8 @@ bool_t D_SNServerInit(void)
 			if (M_CheckParm(Buf))
 				if (M_IsNextParm())
 					PProfs[np++] = M_GetNextParm();
+				else
+					PProfs[np++] = NULL;	// No name selected
 			
 			// If player 1 missing?
 			if (i == 0 && !np)
@@ -525,7 +527,7 @@ bool_t D_SNServerInit(void)
 /* D_SNUpdateLocalPorts() -- Updates local ports */
 void D_SNUpdateLocalPorts(void)
 {
-	int32_t i, pc;
+	int32_t i, j, pc;
 	D_SplitInfo_t* Split;
 	D_SNPort_t* Port;
 	ticcmd_t* TicCmdP;
@@ -588,6 +590,30 @@ void D_SNUpdateLocalPorts(void)
 			// Screen has no profile
 			else if (!Split->Profile)
 			{
+				// Setup selection if not selecting
+				if (!Split->SelProfile)
+				{
+					// If default profile exists, use that (if nobody else is using it)
+					if (g_KeyDefaultProfile)
+					{
+						// Go through other screens
+						for (j = 0; j < MAXSPLITSCREEN; j++)
+							if (i != j && D_ScrSplitHasPlayer(j))
+								if (g_Splits[j].Profile == g_KeyDefaultProfile)
+									break;
+						
+						// Nobody is using default
+						if (j >= MAXSPLITSCREEN)
+							Split->Profile = g_KeyDefaultProfile;
+					}
+				
+					// Start selecting if no profile found
+					if (!Split->Profile)
+					{
+						Split->SelProfile = true;
+						Split->AtProf = D_ProfFirst();
+					}
+				}
 			}
 			
 			// If port has no profile, set it
