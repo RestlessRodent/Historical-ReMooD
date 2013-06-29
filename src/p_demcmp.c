@@ -1828,13 +1828,28 @@ void NG_ResetVars(void)
 /* NG_FromCLine() -- Set vars from command line */
 void NG_FromCLine(void)
 {
-	int32_t a, b, i;
+#define BUFSIZE 8
+	char Buf[BUFSIZE];
+	int32_t a, b, i, LocalP;
 	char* p;
 	bool_t Multi;
 	
 	/* Multiplayer? */
+	// Count player screen things by command line (-p1, -p2, ...)
+	for (LocalP = 0, i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Make parameter name
+		snprintf(Buf, BUFSIZE, "-p%i", i + 1);
+		
+		// If it exists
+		if (M_CheckParm(Buf))
+			LocalP++;
+	}
+	
+	// No multiplayer at first
 	Multi = false;
-	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated"))
+	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated") ||
+		LocalP >= 2)
 		Multi = true;
 	
 	/* Force automatic start? */
@@ -2047,6 +2062,17 @@ void NG_FromCLine(void)
 		NG_SetVarValue(PGS_GAMETEAMPLAY, 2);
 		l_NGAutoStart = true;
 	}
+	
+	// More than 1 player
+	if (Multi/*LocalP >= 2*/)
+	{
+		// Multiplayer guns and weapons
+		NG_SetVarValue(PGS_COMULTIPLAYER, 1);
+		NG_SetVarValue(PGS_GAMESPAWNMULTIPLAYER, 1);
+		
+		l_NGAutoStart = true;
+	}
+#undef BUFSIZE
 }
 
 /* NG_WarpMap() -- Warp to map */

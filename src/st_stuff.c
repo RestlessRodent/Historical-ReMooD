@@ -1356,9 +1356,16 @@ void ST_DrawPlayerBarsEx(void)
 			// Text
 			V_DrawStringA(
 					VFONT_LARGE, 0, "Select Profile",
-					x,
-					y
+					x + 5,
+					y + 5
 				);
+			
+			if (Split->AtProf)
+				V_DrawStringA(
+						VFONT_SMALL, 0, Split->AtProf->DisplayName,
+						x + 5,
+						y + 10 + V_FontHeight(VFONT_LARGE)
+					);
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)

@@ -217,8 +217,11 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	{
 		// Individual host
 		for (i = 0; i < l_NumHosts; i++)
+		{
 			if ((Host = l_Hosts[i]))
 				D_SNDestroyHost(Host);
+			l_Hosts[i] = NULL;
+		}
 		
 		Z_Free(l_Hosts);
 		l_NumHosts = 0;
