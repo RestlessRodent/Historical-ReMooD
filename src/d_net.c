@@ -370,6 +370,7 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	
 	/* Add local host player */
 	l_MyHost = D_SNCreateHost();
+	l_MyHost->ID = D_CMakePureRandom();
 	l_MyHost->Local = true; // must be local
 	
 	/* Created */
@@ -780,6 +781,9 @@ D_SNHost_t* D_SNCreateHost(void)
 	
 	/* Allocate new */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Initialize */
+	New->Save.Slot = -1;
 	
 	/* Place into list */
 	for (i = 0; i < l_NumHosts; i++)

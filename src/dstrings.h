@@ -306,6 +306,8 @@ typedef enum UnicodeStringID_e
 	
 	/* d_trans.c */
 	DSTR_DNETC_PARTIALDISC,
+	DSTR_DTRANSC_GETWAD,
+	DSTR_DTRANSC_BLACKLIST,
 	
 	/* d_rmod.c */
 	DSTR_DRMOD_NAMESPACENOTINWAD,

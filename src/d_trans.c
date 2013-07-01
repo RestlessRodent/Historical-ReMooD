@@ -38,6 +38,7 @@
 #include "doomstat.h"
 #include "d_main.h"
 #include "console.h"
+#include "p_info.h"
 
 /****************
 *** CONSTANTS ***
@@ -49,6 +50,7 @@ typedef enum D_ClientStage_e
 	DCS_LISTWADS,
 	DCS_CHECKWADS,
 	DCS_DOWNLOADWADS,
+	DCS_SWITCHWADS,
 	DCS_REQUESTSAVE,
 	DCS_GETSAVE,
 	
@@ -69,6 +71,7 @@ typedef struct D_WADChain_s
 	char Sum[CHAINSIZE];
 	const WL_WADFile_t* WAD;
 	struct D_WADChain_s* Prev;
+	bool_t Want;								// Wants
 } D_WADChain_t;
 
 /*************
@@ -80,6 +83,7 @@ static I_HostAddress_t l_HostAddr;
 static D_BS_t* l_BS;
 static D_WADChain_t* l_WADTail;
 static D_ClientStage_t l_Stage;
+static uint8_t l_IsIWADMap, l_IsFreeDoom, l_IWADMission;
 
 /****************
 *** FUNCTIONS ***
@@ -265,7 +269,11 @@ void D_SNDoServer(D_BS_t* const a_BS)
 /* D_SNDoClient() -- Do client stuff */
 void D_SNDoClient(D_BS_t* const a_BS)
 {
-	static tic_t WADTimeout, SaveTimeout;	
+	static tic_t WADTimeout, SaveTimeout;
+	D_WADChain_t* CWAD, *FirstCWAD;
+	const WL_WADFile_t* WAD, *ExtraWAD;
+	int32_t i, j, k, l;
+	D_IWADInfoEx_t* Info;
 	
 	/* Which stage? */
 	switch (l_Stage)
@@ -282,25 +290,170 @@ void D_SNDoClient(D_BS_t* const a_BS)
 			
 			// Check local WADs
 		case DCS_CHECKWADS:
+			// No WADs? Now we are feeling OK!
+			if (!l_WADTail)
+			{
+				l_Stage = DCS_REQUESTSAVE;
+				return;
+			}
+			
+			// Go through all WADs
+			FirstCWAD = 0;
+			i = j = k = l = 0;
+			for (CWAD = l_WADTail; CWAD; CWAD = CWAD->Prev)
+			{
+				// First?
+				if (!CWAD->Prev && !FirstCWAD)
+					FirstCWAD = CWAD->Prev;
+				
+				// Count of WADs
+				i++;
+				
+				// If WAD is loaded, ignore
+				if (CWAD->WAD)
+					continue;
+				
+				// Otherwise, try to find the WAD file for this
+				if (!(WAD = WL_OpenWAD(CWAD->Full, CWAD->Sum)))
+					if (!(WAD = WL_OpenWAD(CWAD->DOS, CWAD->Sum)))
+						if (!l_IsFreeDoom || (l_IsFreeDoom && !(WAD = WL_OpenWAD(CWAD->DOS, NULL))))	// Try by name if the server is using FreeDoom (maybe we have it too?)
+						{
+							// Need to download
+							CONL_OutputUT(CT_NETWORK, DSTR_DTRANSC_GETWAD, "%s\n",
+								CWAD->Full);
+						
+							// Want this now, provided not a blacklisted sum
+							if (!D_CheckWADBlacklist(CWAD->Sum))
+							{
+								j++;
+								CWAD->Want = true;
+							}
+							else
+								CONL_OutputUT(CT_NETWORK, DSTR_DTRANSC_BLACKLIST, "%s\n",
+									CWAD->Full);
+						
+							// Try other WADs
+							continue;
+						}
+				
+				// Got this WAD
+				if (WAD)
+				{
+					CWAD->WAD = WAD;
+					k++;
+				}
+			}
+			
+			// Need at least one WAD file
+			if (j > 0)
+			{
+				// Client joins server, client gets...
+				// v Client \ Server > | Doom | Doom II | Free1 | Free2 |
+				// --------------------+------+---------+-------+-------+
+				// Doom                | PLAY | KICK    | PLAY* | KICK  |
+				// Doom II             | KICK | PLAY    | KICK  | PLAY* |
+				// FreeDoom (Doom)     | PLAY*| KICK    | PLAY  | KICK  |
+				// FreeDoom (Doom II)  | KICK | PLAY*   | KICK  | PLAY  |
+				// * = Not playing IWAD Level
+				
+				// You AWLAYS need an IWAD (even if it is just shareware or FreeDoom)
+				if (!FirstCWAD->WAD)
+				{
+					// Current IWAD selected
+					WAD = WL_IterateVWAD(NULL, true);
+					
+					// Get Info
+					if (!(Info = D_GetThisIWAD()))
+					{
+						D_SNDisconnect(false, "No information on current IWAD being used.");
+						return;
+					}
+					
+					// Are we FreeDooming?
+					i = 0;
+					if (Info->Flags & CIF_FREEDOOM)
+						i = 1;
+					
+					// Mode mismatch (Doom vs Doom 2 vs Heretic vs Hexen vs ...)
+					if (Info->mission != l_IWADMission)
+					{
+						D_SNDisconnect(false, "Playing different game (e.g. Doom vs Doom 2).");
+						return;
+					}
+					
+					// Server is FreeDooming
+					if (l_IsFreeDoom)
+					{
+						// If server is on IWAD level and we are not FreeDooming
+						if (l_IsIWADMap && !i)
+						{
+							D_SNDisconnect(false, "Cannot Retail on a FreeDoom level.");
+							return;
+						}
+						
+						// Server is on some PWAD, so that is OK
+						else
+						{
+							FirstCWAD->WAD = WAD;
+							j--;
+						}
+					}
+					
+					// Server is not FreeDooming
+					else
+					{
+						// If server is on an IWAD level, just die
+						if (l_IsIWADMap)
+						{
+							D_SNDisconnect(false, "Cannot FreeDoom on a Retail level.");
+							return;
+						}
+						
+						// Otherwise, use equiv. FreeDoom WAD (or Plutonia/TNT??)
+						else
+						{
+							FirstCWAD->WAD = WAD;
+							j--;
+						}
+					}
+				}
+				
+				// Go to download stage (if still unresolved)
+				if (j > 0)
+					l_Stage = DCS_DOWNLOADWADS;
+			}
+			
+			// No WADs needed
+			else
+				l_Stage = DCS_SWITCHWADS;
+			
+			//l_IsFreeDoom;
+			//l_IsIWADMap;
+			//l_IWADMission;
 			break;
 			
 			// Download WADs
 		case DCS_DOWNLOADWADS:
 			D_SNDisconnect(false, "Downloading WADs not implemented");
 			break;
+		
+		case DCS_SWITCHWADS:
+			CONL_PrintF("Switching WADs...\n");
+			l_Stage++;
+			break;
 			
 			// Request save game
 		case DCS_REQUESTSAVE:
-			break;
-		
-			// Get savegame
-		case DCS_GETSAVE:
 			if (g_ProgramTic < SaveTimeout)
 				return;
 			
 			SaveTimeout = g_ProgramTic + TICRATE;
 			D_BSBaseBlock(a_BS, "SAVE");
 			D_BSRecordNetBlock(a_BS, &l_HostAddr);
+			break;
+		
+			// Get savegame
+		case DCS_GETSAVE:
 			break;
 			
 			// Unknown Stage
@@ -376,14 +529,36 @@ void DT_HELO(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 /* DT_LIST() -- List WADS */
 void DT_LIST(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
-	const WL_WADFile_t* Rover;
+	const WL_WADFile_t* Rover, *First;
 	int32_t i;
+	D_IWADInfoEx_t* Info;
 	
 	/* Reply with wad list */
 	D_BSBaseBlock(a_BS, "WADL");
 	
+	// If playing a level and that level is an IWAD map
+		// This is for FreeDoom to prevent joining when the IWAD mismatches.
+	First = WL_IterateVWAD(NULL, true);
+	if (g_CurrentLevelInfo && g_CurrentLevelInfo->WAD == First)
+		D_BSwu8(a_BS, 1);
+	else
+		D_BSwu8(a_BS, 0);
+	
+	// Doing a FreeDoom game (allow FreeDoomers with differing FreeDoom.WADs)
+	Info = D_GetThisIWAD();
+	if (Info && (Info->Flags & CIF_FREEDOOM))
+		D_BSwu8(a_BS, 1);
+	else
+		D_BSwu8(a_BS, 0);
+	
+	// Mission of IWAD
+	if (Info)
+		D_BSwu8(a_BS, Info->mission);
+	else
+		D_BSwu8(a_BS, 0);
+	
 	// Send WAD Order
-	for (Rover = WL_IterateVWAD(NULL, true), i = 0; Rover; Rover = WL_IterateVWAD(Rover, true), i++)
+	for (Rover = First, i = 0; Rover; Rover = WL_IterateVWAD(Rover, true), i++)
 	{
 		// Ignore ReMooD.WAD
 		if (i == 1)
@@ -427,6 +602,11 @@ void DT_WADL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	l_WADTail = NULL;
 	CONL_OutputUT(CT_NETWORK, DSTR_DXP_WADHEADER, "\n");
 	
+	// Is this an IWAD map? What about FreeDoom?
+	l_IsIWADMap = D_BSru8(a_BS);
+	l_IsFreeDoom = D_BSru8(a_BS);
+	l_IWADMission = D_BSru8(a_BS);
+	
 	// Read in contents
 	for (;;)
 	{
@@ -445,7 +625,7 @@ void DT_WADL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		// Print
 		CONL_OutputUT(CT_NETWORK, DSTR_DXP_WADENTRY, "%s%s%s\n", Temp.DOS, Temp.Full, Temp.Sum);
 		
-		// Try to find WAD by sum
+		// Try to find WAD by sum (not by name, in case of renames??)
 		for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
 			if (!strcasecmp(Temp.Sum, WAD->CheckSumChars))
 			{
@@ -498,6 +678,25 @@ void DT_QUIT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 #undef BUFSIZE
 }
 
+/* DT_SAVE() -- Requests save game */
+void DT_SAVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	/* Check */
+	if (!D_SNIsServer() || !a_Host || a_Host->Local)
+		return;
+	
+	/* If already has save, ignore */
+	if (a_Host->Save.Has)
+		return;
+	
+	/* If save not wanted, give them it */
+	if (!a_Host->Save.Want)
+	{
+		// Now wants
+		a_Host->Save.Want = true;
+	}
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -515,6 +714,7 @@ static const struct
 	{{"LIST"}, DT_LIST, false},
 	{{"WADL"}, DT_WADL, true},
 	{{"QUIT"}, DT_QUIT, false},
+	{{"SAVE"}, DT_SAVE, false},
 	
 	{{{0}}}
 };

@@ -76,7 +76,7 @@ typedef struct D_SNPort_s
 	D_SNHost_t* Host;							// Controlling host
 	int32_t Screen;								// Screen number
 	bool_t Bot;									// Bot controls this port
-	D_Prof_t* Profile;				// Profile of player
+	D_Prof_t* Profile;							// Profile of player
 	uint32_t ID;								// ID of Port
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
@@ -93,6 +93,13 @@ struct D_SNHost_s
 	I_HostAddress_t Addr;						// Host Address
 	bool_t Cleanup;								// Cleanup host
 	char QuitReason[MAXQUITREASON];				// Reason for leaving
+	
+	struct
+	{
+		bool_t Want;							// Wants save
+		bool_t Has;								// Has save
+		int32_t Slot;							// Transmit slot
+	} Save;										// Savegame status
 };
 
 /*****************

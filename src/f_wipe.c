@@ -357,8 +357,12 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 			(*wipes[wipeno * 3 + 2]) (width, height, ticks);
 			
 			// GhostlyDeath <June 4, 2010> -- Free wipe buffers
-			Z_Free(wipe_scr_start);
-			Z_Free(wipe_scr_end);
+			if (wipe_scr_start)
+				Z_Free(wipe_scr_start);
+			if (wipe_scr_end)
+				Z_Free(wipe_scr_end);
+			wipe_scr_start = NULL;
+			wipe_scr_end = NULL;
 		}
 	}
 	else
@@ -367,8 +371,12 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 		(*wipes[wipeno * 3 + 2]) (width, height, -ticks);
 		
 		// GhostlyDeath <June 4, 2010> -- Free wipe buffers
-		Z_Free(wipe_scr_start);
-		Z_Free(wipe_scr_end);
+		if (wipe_scr_start)
+			Z_Free(wipe_scr_start);
+		if (wipe_scr_end)
+			Z_Free(wipe_scr_end);
+		wipe_scr_start = NULL;
+		wipe_scr_end = NULL;
 		return true;
 	}
 	

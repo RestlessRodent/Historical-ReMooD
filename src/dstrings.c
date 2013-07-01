@@ -307,6 +307,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** D_TRANS.C ***/
 	{			  "DNETC_PARTIALDISC", "Partial Disconnect ($1{z)."},
+	{				 "DTRANSC_GETWAD", "Will download WAD \"%s\"."},
+	{			  "DTRANSC_BLACKLIST", "WAD \"%s\" is on blacklist, not downloading.\n"},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
