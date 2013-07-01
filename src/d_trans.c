@@ -49,6 +49,7 @@ typedef enum D_ClientStage_e
 	DCS_LISTWADS,
 	DCS_CHECKWADS,
 	DCS_DOWNLOADWADS,
+	DCS_REQUESTSAVE,
 	DCS_GETSAVE,
 	
 	DCS_PLAYINGGAME
@@ -264,7 +265,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 /* D_SNDoClient() -- Do client stuff */
 void D_SNDoClient(D_BS_t* const a_BS)
 {
-	static tic_t WADTimeout;	
+	static tic_t WADTimeout, SaveTimeout;	
 	
 	/* Which stage? */
 	switch (l_Stage)
@@ -287,9 +288,19 @@ void D_SNDoClient(D_BS_t* const a_BS)
 		case DCS_DOWNLOADWADS:
 			D_SNDisconnect(false, "Downloading WADs not implemented");
 			break;
+			
+			// Request save game
+		case DCS_REQUESTSAVE:
+			break;
 		
 			// Get savegame
 		case DCS_GETSAVE:
+			if (g_ProgramTic < SaveTimeout)
+				return;
+			
+			SaveTimeout = g_ProgramTic + TICRATE;
+			D_BSBaseBlock(a_BS, "SAVE");
+			D_BSRecordNetBlock(a_BS, &l_HostAddr);
 			break;
 			
 			// Unknown Stage
