@@ -95,7 +95,7 @@ static int BlindDone = 0;
 int wipe_initBlindsXForm(int width, int height, int ticks)
 {
 	BlindDone = 0;
-	BlindMarks = Z_Malloc(sizeof(bool_t) * vid.width, PU_STATIC, &BlindMarks);
+	BlindMarks = Z_Malloc(sizeof(bool_t) * width, PU_STATIC, &BlindMarks);
 	memcpy(wipe_scr, wipe_scr_start, width * height * scr_bpp);
 	return 0;
 }
@@ -295,7 +295,7 @@ int wipe_StartScreen(int x, int y, int width, int height)
 		return 0;
 	
 	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
-	wipe_scr_start = Z_Malloc(vid.width * vid.height * vid.bpp, PU_STATIC, &wipe_scr_start);
+	wipe_scr_start = Z_Malloc(width * height * vid.bpp, PU_STATIC, &wipe_scr_start);
 	//wipe_scr_start = screens[2];
 	
 	I_ReadScreen(wipe_scr_start);
@@ -311,7 +311,7 @@ int wipe_EndScreen(int x, int y, int width, int height)
 		return 0;
 		
 	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
-	wipe_scr_end = Z_Malloc(vid.width * vid.height * vid.bpp, PU_STATIC, &wipe_scr_end);
+	wipe_scr_end = Z_Malloc(width * height * vid.bpp, PU_STATIC, &wipe_scr_end);
 	//wipe_scr_end = screens[3];
 	
 	I_ReadScreen(wipe_scr_end);

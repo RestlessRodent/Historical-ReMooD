@@ -213,6 +213,7 @@ bool_t D_SNHasSocket(void)
 void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 {
 	int i;
+	
 	/* Check */
 	if (!l_BS || !a_Host || !D_SNIsServer() || a_Host->Local)
 		return;
@@ -227,7 +228,7 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 	a_Host->QuitReason[MAXQUITREASON - 1] = 0;
 	
 	/* Show they disconnected */
-	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s\n", a_Host->QuitReason);
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n", "???", a_Host->QuitReason);
 	
 	/* Send them a packet */
 	D_BSBaseBlock(l_BS, "QUIT");
@@ -304,7 +305,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 			{
 				// First?
 				if (!CWAD->Prev && !FirstCWAD)
-					FirstCWAD = CWAD->Prev;
+					FirstCWAD = CWAD;
 				
 				// Count of WADs
 				i++;
@@ -319,15 +320,13 @@ void D_SNDoClient(D_BS_t* const a_BS)
 						if (!l_IsFreeDoom || (l_IsFreeDoom && !(WAD = WL_OpenWAD(CWAD->DOS, NULL))))	// Try by name if the server is using FreeDoom (maybe we have it too?)
 						{
 							// Need to download
+							j++;
 							CONL_OutputUT(CT_NETWORK, DSTR_DTRANSC_GETWAD, "%s\n",
 								CWAD->Full);
 						
 							// Want this now, provided not a blacklisted sum
 							if (!D_CheckWADBlacklist(CWAD->Sum))
-							{
-								j++;
 								CWAD->Want = true;
-							}
 							else
 								CONL_OutputUT(CT_NETWORK, DSTR_DTRANSC_BLACKLIST, "%s\n",
 									CWAD->Full);
