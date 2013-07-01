@@ -71,6 +71,7 @@ typedef struct D_WADChain_s
 	char Sum[CHAINSIZE];
 	const WL_WADFile_t* WAD;
 	struct D_WADChain_s* Prev;
+	struct D_WADChain_s* Next;
 	bool_t Want;								// Wants
 } D_WADChain_t;
 
@@ -386,7 +387,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 						// If server is on IWAD level and we are not FreeDooming
 						if (l_IsIWADMap && !i)
 						{
-							D_SNDisconnect(false, "Cannot Retail on a FreeDoom level.");
+							D_SNDisconnect(false, "Incompatible IWAD level.");
 							return;
 						}
 						
@@ -404,7 +405,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 						// If server is on an IWAD level, just die
 						if (l_IsIWADMap)
 						{
-							D_SNDisconnect(false, "Cannot FreeDoom on a Retail level.");
+							D_SNDisconnect(false, "Incompatible IWAD level.");
 							return;
 						}
 						
@@ -437,7 +438,71 @@ void D_SNDoClient(D_BS_t* const a_BS)
 			break;
 		
 		case DCS_SWITCHWADS:
-			CONL_PrintF("Switching WADs...\n");
+			// Do not need to redo
+			j = 0;
+			
+			// Find first WAD
+			FirstCWAD = NULL;
+			for (CWAD = l_WADTail; CWAD; CWAD = CWAD->Prev)
+			{
+				// First?
+				if (!CWAD->Prev && !FirstCWAD)
+					FirstCWAD = CWAD;
+			}
+			
+			// Go through WADs owned by server and see if they differ.
+				// If there is any difference, then WADs need to be cycled
+			for (WAD = NULL, i = 0, CWAD = FirstCWAD; CWAD; CWAD = CWAD->Next, i++)
+			{
+				// Get current WAD
+				WAD = WL_IterateVWAD(WAD, true);
+				
+				// Link for ReMooD.WAD
+				if (!i)
+					ExtraWAD = WL_IterateVWAD(WAD, true);
+				else
+					ExtraWAD = WAD;
+				
+				// WAD is not matched
+				if (CWAD->WAD != WAD || (!CWAD->Next != !WL_IterateVWAD(ExtraWAD, true)))
+				{
+					j = 1;
+					break;
+				}
+				
+				// Skip ReMooD.WAD
+				if (!i)
+					WAD = WL_IterateVWAD(WAD, true);
+			}
+			
+			// Need to redo
+			if (j)
+			{
+				// Lock OCCB
+				WL_LockOCCB(true);
+			
+				// Remember ReMooD.WAD
+				WAD = WL_IterateVWAD(WL_IterateVWAD(NULL, true), true);
+			
+				// Pop all WADs
+				while (WL_PopWAD())
+					;
+				
+				// Go through CWADs and repop
+				for (i = 0, CWAD = FirstCWAD; CWAD; CWAD = CWAD->Next, i++)
+				{
+					WL_PushWAD(CWAD->WAD);
+					
+					// Push ReMooD.WAD back on the stack
+					if (!i)
+						WL_PushWAD(WAD);
+				}
+				
+				// Unlock OCCB
+				WL_LockOCCB(false);
+			}
+		
+			// Go to next stage
 			l_Stage++;
 			break;
 			
@@ -637,6 +702,8 @@ void DT_WADL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		memmove(Rover, &Temp, sizeof(*Rover));
 		
 		// Chain in
+		if (l_WADTail)
+			l_WADTail->Next = Rover;
 		Rover->Prev = l_WADTail;
 		l_WADTail = Rover;
 	}
