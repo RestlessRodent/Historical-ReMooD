@@ -121,6 +121,28 @@ static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 extern bool_t advancedemo;
 static int load;
 
+/* D_RunSingleTic() -- Single tic is run */
+void D_RunSingleTic(void)
+{
+	// Do not do join windows in the middle of a tic!
+		// Otherwise they will miss the tic and lag out! Not to mention
+		// have a malformed save of sorts.
+		
+	// Legacy Demo Stuff
+	if (demoplayback)
+		G_DemoPreGTicker();
+	
+	// Run game ticker and increment the gametic
+	G_Ticker();
+	++gametic;
+	
+	// Legacy Demo Stuff
+	if (demoplayback)
+		G_DemoPostGTicker();
+	
+	// Can join people now
+}
+
 /* TryRunTics() -- Attempts to run a single tic */
 void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 {
@@ -183,11 +205,12 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		tictoclear = firstticstosend;
 	}
 	
+	// Get current time
+	LocalTic = I_GetTime();
+	
 	// Title screen?
 	if (gamestate == GS_DEMOSCREEN)
 	{
-		LocalTic = I_GetTime();
-		
 		// No update needed?
 		if (LocalTic <= LastTic)
 		{
@@ -210,8 +233,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	// Connecting?
 	else if (gamestate == GS_WAITFORJOINWINDOW)
 	{
-		LocalTic = I_GetTime();
-		
 		// No update needed?
 		if (LocalTic <= LastTic)
 		{
@@ -225,13 +246,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	}
 	
 	/* While the client is behind, update it to catch up */
-	
-	// Update Tics
-	//D_NCSNetUpdateSingleTic();
-	
-	// Get current time
-	LocalTic = I_GetTime();
-	
 	// While the game is behind, update it
 	if (demoplayback)
 	{
@@ -259,7 +273,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			XXSNAR = 1;
 	}
 	else
-		XXSNAR = D_SNOkTics();
+		XXSNAR = D_SNOkTics(&LocalTic, &LastTic);
 	
 	/* Set tics that were run */
 	if (a_TicRunCount)
@@ -271,23 +285,8 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		// Run tick loops
 		while ((XXSNAR--) > 0)
 		{
-			// Do not do join windows in the middle of a tic!
-				// Otherwise they will miss the tic and lag out! Not to mention
-				// have a malformed save of sorts.
-				
-			// Legacy Demo Stuff
-			if (demoplayback)
-				G_DemoPreGTicker();
-			
-			// Run game ticker and increment the gametic
-			G_Ticker();
-			++gametic;
-			
-			// Legacy Demo Stuff
-			if (demoplayback)
-				G_DemoPostGTicker();
-			
-			// Can join people now
+			// Run single tic
+			D_RunSingleTic();
 			
 			// Single tics? -timedemo
 			if (singletics)

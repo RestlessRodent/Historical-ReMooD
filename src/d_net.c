@@ -67,6 +67,9 @@ static D_SNHost_t* l_MyHost;					// This games host
 static D_SNHost_t** l_Hosts;					// Hosts
 static int32_t l_NumHosts;						// Number of hosts
 
+D_SNHost_t*** g_HostsP = &l_Hosts;
+int32_t* g_NumHostsP = &l_NumHosts;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -98,7 +101,7 @@ bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp)
 	if (l_GlobalAt < 0)
 	{
 		l_GlobalAt = 0;
-		memset(&l_GlobalBuf[l_GlobalAt], 0, sizeof(&l_GlobalBuf[l_GlobalAt]));
+		memset(&l_GlobalBuf[l_GlobalAt], 0, sizeof(l_GlobalBuf[l_GlobalAt]));
 	}
 	
 	/* First attempt to grab, from first set */
@@ -317,7 +320,17 @@ bool_t D_SNIsServer(void)
 /* D_SNStartWaiting() -- Start waiting */
 void D_SNStartWaiting(void)
 {
-	gamestate = /*wipegamestate =*/ GS_WAITINGPLAYERS;
+	/* Wipe from title screen */
+	if (gamestate == GS_DEMOSCREEN)
+		wipegamestate = GS_DEMOSCREEN;
+	
+	/* Change gamestate */
+	gamestate = GS_WAITINGPLAYERS;
+
+	/* Wipe into level? */
+	// Only wipe from outside (title, etc.)
+	if (wipegamestate == GS_NULL)
+		wipegamestate = gamestate;
 	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
 }
 
@@ -372,6 +385,9 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	l_MyHost = D_SNCreateHost();
 	l_MyHost->ID = D_CMakePureRandom();
 	l_MyHost->Local = true; // must be local
+	
+	/* Force run a single tic */
+	D_RunSingleTic();
 	
 	/* Created */
 	return true;

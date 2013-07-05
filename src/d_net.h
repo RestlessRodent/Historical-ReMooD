@@ -99,6 +99,9 @@ struct D_SNHost_s
 		bool_t Want;							// Wants save
 		bool_t Has;								// Has save
 		int32_t Slot;							// Transmit slot
+		tic_t TicTime;							// Time for savetic
+		tic_t PTimer;							// Program Timer
+		bool_t Latched;							// Latched
 	} Save;										// Savegame status
 };
 
@@ -168,7 +171,7 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
 
 /*** TRANSMISSION ***/
 
-int32_t D_SNOkTics(void);
+int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
 bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);
 void D_SNNetTerm(const char* const a_Reason);
 bool_t D_SNHasSocket(void);

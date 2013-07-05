@@ -75,6 +75,14 @@ typedef struct D_WADChain_s
 	bool_t Want;								// Wants
 } D_WADChain_t;
 
+/**************
+*** GLOBALS ***
+**************/
+
+extern D_SNHost_t*** g_HostsP;
+extern int32_t* g_NumHostsP;
+extern int32_t g_IgnoreWipeTics;
+
 /*************
 *** LOCALS ***
 *************/
@@ -91,8 +99,11 @@ static uint8_t l_IsIWADMap, l_IsFreeDoom, l_IWADMission;
 ****************/
 
 /* D_SNOkTics() -- Tics that can be run by the game */
-int32_t D_SNOkTics(void)
+int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 {
+	int32_t i;
+	D_SNHost_t* Host;	
+	
 	/* Do not move forward if not connected */
 	if (!D_SNIsConnected())
 		return 0;	
@@ -100,7 +111,42 @@ int32_t D_SNOkTics(void)
 	/* Server */
 	if (D_SNIsServer())
 	{
-		return 1;
+		// Go through hosts
+		for (i = 0; i < (*g_NumHostsP); i++)
+			if ((Host = (*g_HostsP)[i]))
+			{
+				// Remote has no save game?
+				if (!Host->Local && !Host->Save.Has && Host->Save.Want && gametic >= Host->Save.TicTime)
+				{
+					// Not latched
+					if (!Host->Save.Latched)
+					{
+						Host->Save.PTimer = g_ProgramTic;
+						Host->Save.Latched = true;
+					}
+					
+					// Reset time and delay until transfer
+					*a_LastP = *a_LocalP;
+					return 0;
+				}
+			}
+		
+		// Not enough time has passed
+		if (*a_LocalP <= *a_LastP)
+			return 0;
+		
+		// Ignore tics during wipe
+		if (g_IgnoreWipeTics)
+		{
+			g_IgnoreWipeTics = false;
+			*a_LastP = *a_LocalP;
+			return 0;
+		}
+		
+		// Keep running normal time
+		i = *a_LocalP - *a_LastP;
+		*a_LastP = *a_LocalP;
+		return i;
 	}
 	
 	/* Client */
@@ -426,10 +472,6 @@ void D_SNDoClient(D_BS_t* const a_BS)
 			// No WADs needed
 			else
 				l_Stage = DCS_SWITCHWADS;
-			
-			//l_IsFreeDoom;
-			//l_IsIWADMap;
-			//l_IWADMission;
 			break;
 			
 			// Download WADs
@@ -760,6 +802,7 @@ void DT_SAVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	{
 		// Now wants
 		a_Host->Save.Want = true;
+		a_Host->Save.TicTime = gametic + (TICRATE - (gametic % TICRATE));
 	}
 }
 
