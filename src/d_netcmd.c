@@ -91,18 +91,6 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32	ID
 		// uint8	PlayerID
 	
-	// JOIN
-	4 + 2 + 4 + 4 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 HostID
-		// uint16 players[] Spot
-		// uint32 Symbols
-		// uint32 Profile Instance
-		// uint32 Process ID
-		// uint32 Unique ID
-		// uint8  Color
-		// uint8* Name
-		// uint8* Hexen Class
-	
 	// MAP CHANGE
 	1 + 8,
 		// uint8  Flags
@@ -113,45 +101,6 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Code
 		// int32  New Value
 	
-	// DTCT_PART, Player Leaves
-	1 + 4,
-		// uint8  Going to spectate
-		// uint32 Viewport UUID
-	
-	// DTCT_ADDSPEC, Add Spectator
-	4 + 4 + MAXPLAYERNAME,
-		// uint32 Unique ID
-		// uint32 Host ID
-		// uint8* Account Name
-	
-	// DTCT_XKICKPLAYER, Kick Player
-	2 + 4 + MAXTCCBUFSIZE,
-		// uint16 In Game ID
-		// uint32 Unique ID
-		// uint8* Reason (MAXTCCBUFSIZE)
-	
-	// DTCT_XADDPLAYER, Add Player
-	4 + 4 + 4 + 1 + 4 + 4 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 Unique ID
-		// uint32 Host ID
-		// uint32 Process ID
-		// uint8  Screen ID
-		// uint32 Reserved (set to zero)
-		// uint32 Conveyed Flags
-		// uint8* Account Name + Cookie
-	
-	// DTCT_XJOINPLAYER, Join Player
-	4 + 4 + 4 + 4 + 1 + 1 + 4 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 Player ID
-		// uint32 Process ID
-		// uint32 Host ID
-		// uint32 Flags
-		// uint8  Color
-		// uint8  CTF Team
-		// uint32 Skin Name Hash
-		// uint8* Display Name
-		// uint8* Hexen Class
-	
 	// DTCT_XCHANGEMONSTERTEAM, Change Monster Team
 	4 + 1,
 		// uint32 Player ID
@@ -161,29 +110,6 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	4 + MAXPLAYERNAME,
 		// uint32 Player ID
 		// uint8* Class to morph to
-	
-	// DTCT_XSPECPLAYER, Spectates Player
-	2 + 4,
-		// uint16 Player ID
-		// uint32 Unique ID
-	
-	// DTCT_XPLAYERPREFSTR, Player Preference (Str)
-	4 + 2 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 Unique ID
-		// uint16 Preference Type
-		// uint8* Preference String
-	
-	// DTCT_XPLAYERPREFINT, Player Preference (Int)
-	4 + 2 + 4,
-		// uint32 Unique ID
-		// uint16 Preference Type
-		// int32  Preference Int
-	
-	// DTCT_XCHATFRAG, Player Chat
-	4 + 1 + 4 + MAXTCCBUFSIZE,
-		// uint32 Player Chatting
-		// uint8  Type of communication (0 = all, 1 = team, 2 = specs, 3 = indiv)
-		// uint32 Target player (if previous == 3)
 };
 
 /*** GLOBALS ***/
@@ -364,7 +290,12 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 			
 			// Move the stuff from the next spot over this one
 			else
+			{
 				memmove(&g_Splits[i], &g_Splits[i + 1], sizeof(g_Splits[i]));
+				
+				if (g_Splits[i].Port)
+					g_Splits[i].Port->Screen = i;
+			}
 	}
 	
 	/* In demo */
@@ -397,6 +328,7 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 				g_Splits[i].Active = g_Splits[i + 1].Active;
 				g_Splits[i].Console = g_Splits[i + 1].Console;
 				g_Splits[i].Display = g_Splits[i + 1].Display;
+				g_Splits[i].Port = g_Splits[i + 1].Port;
 			}
 	}
 	

@@ -1793,6 +1793,10 @@ void G_InitPlayer(player_t* const a_Player)
 	for (i = 0; i < MAXPLAYERS; i++)
 		a_Player->frags[i] = 0;
 	
+	/* Wipe ports and such */
+	a_Player->Port = NULL;
+	a_Player->ProfileEx = NULL;
+	
 	/* Find if the player is on the screen */
 	
 	/* Match angle */

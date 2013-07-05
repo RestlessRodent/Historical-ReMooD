@@ -159,20 +159,6 @@ enum
 	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
 	DTCT_XMORPHPLAYER,							// Morph Player
 	
-	// Old Basic
-	DTCT_JOIN,									// Join Sub Command
-	DTCT_PART,									// Part Game
-	DTCT_ADDSPEC,								// Add Spectator
-	
-	// Extended
-	DTCT_XKICKPLAYER,							// Kick Player
-	DTCT_XADDPLAYER,							// Adds a new player
-	DTCT_XJOINPLAYER,							// Joins player
-	DTCT_XSPECPLAYER,							// Spectate Player
-	DTCT_XPLAYERPREFSTR,						// Player Preference (String)
-	DTCT_XPLAYERPREFINT,						// Player Preference (Int)
-	DTCT_XCHATFRAG,								// Chat fragment
-	
 	NUMDTCT
 };
 

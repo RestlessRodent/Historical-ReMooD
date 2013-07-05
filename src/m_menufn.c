@@ -1642,7 +1642,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 	}
 	
 	/* Make Game Now */
-	D_SNStartLocalServer(0, NULL);
+	D_SNStartLocalServer(0, NULL, true);
 	
 	/* Kill all menus */
 	M_StackPopAll();

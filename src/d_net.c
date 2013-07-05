@@ -239,6 +239,12 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	for (i = 0; i < MAXPLAYERS; i++)
 		G_InitPlayer(&players[i]);
 	
+	// In game
+	memset(playeringame, 0, sizeof(playeringame));
+	
+	// Reset all variables
+	P_XGSSetAllDefaults();
+	
 	/* Destroy the level */
 	P_ExClearLevel();
 	
@@ -360,8 +366,12 @@ void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 }
 
 /* D_SNStartServer() -- Starts local server */
-bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
+bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers)
 {
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	int32_t i, j;
+	
 	/* Disconnect first */
 	D_SNDisconnect(false, "Starting server");
 	
@@ -373,7 +383,11 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	
 	/* Set game settings */
 	NG_ApplyVars();
-	NG_WarpMap();
+	
+	/* Add local host player */
+	l_MyHost = D_SNCreateHost();
+	l_MyHost->ID = D_CMakePureRandom();
+	l_MyHost->Local = true; // must be local
 	
 	/* Add local profile players */
 	D_SNAddLocalProfiles(a_NumLocal, a_Profs);
@@ -381,10 +395,18 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
 	
-	/* Add local host player */
-	l_MyHost = D_SNCreateHost();
-	l_MyHost->ID = D_CMakePureRandom();
-	l_MyHost->Local = true; // must be local
+	/* Force all available players to join */
+	if (a_JoinPlayers)
+		for (i = 0; i < l_NumHosts; i++)
+			if ((Host = l_Hosts[i]))
+				if (Host->Local)
+					for (j = 0; j < Host->NumPorts; j++)
+						if ((Port = Host->Ports[j]))
+							D_SNPortTryJoin(Port);
+	
+	/* Warp to map */
+	// This is here so auto-joined players are joined before the map
+	NG_WarpMap();
 	
 	/* Force run a single tic */
 	D_RunSingleTic();
@@ -394,10 +416,29 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs)
 }
 
 /* D_SNStartLocalServer() -- Starts local server (just sets connected) */
-bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs)
+bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers)
 {
+	int32_t Local;
+	const char* Profs[MAXSPLITSCREEN];
+	D_Prof_t* Profile;
+	
+	/* Local copy */
+	// If there are no local players, always make one
+	if (a_NumLocal <= 0)
+	{
+		if (g_KeyDefaultProfile)
+		{
+			Profs[0] = g_KeyDefaultProfile->AccountName;
+			Local = 1;
+		}
+	}
+	else
+		for (Local = 0; Local < a_NumLocal; Local++)
+			if (Local < MAXSPLITSCREEN)
+				Profs[Local] = a_Profs[Local];
+	
 	/* Normal statr */
-	if (D_SNStartServer(a_NumLocal, a_Profs))
+	if (D_SNStartServer(Local, Profs, a_JoinPlayers))
 	{
 		l_Connected = true;
 		return true;
@@ -464,12 +505,12 @@ bool_t D_SNServerInit(void)
 	// Command line local game
 	if (NG_IsAutoStart())
 	{
-		// Start Server
-		D_SNStartServer(np, PProfs);
-		
 		// Initial Command line server?
 		if (M_CheckParm("-host"))
 		{
+			// Start server (but do not join any players)
+			D_SNStartServer(np, PProfs, false);
+			
 			// Address to bind to, if any
 			if (M_IsNextParm())
 				Addr = M_GetNextParm();
@@ -490,9 +531,12 @@ bool_t D_SNServerInit(void)
 				l_Connected = true;
 		}
 		
-		// Local Game
+		// Local Game (force joining of players and make local)
 		else
-			l_Connected = true;
+		{
+			// Use wrapper func
+			D_SNStartLocalServer(np, PProfs, true);
+		}
 		
 		// Warp to map
 		NG_WarpMap();
@@ -978,6 +1022,7 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	int32_t PlaceAt, i, UngrabbedScreen;
 	D_Prof_t* Profile;
 	bool_t BumpSplits;
+	D_SplitInfo_t* Split;
 	
 	/* Check */
 	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
@@ -1026,23 +1071,26 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	if (D_ScrSplitHasPlayer(PlaceAt))
 		BumpSplits = false;
 	
+	// Pointer
+	Split = &g_Splits[PlaceAt];
+	
 	// Never redisplay
 		// Also if a player is not active, then reset the display status
 	if (!demoplayback)
-		if (!g_Splits[PlaceAt].Active)
+		if (!Split->Active)
 		{
-			g_Splits[PlaceAt].Console = -1;
-			g_Splits[PlaceAt].Display = -1;
+			Split->Console = -1;
+			Split->Display = -1;
 		}
 	
-	g_Splits[PlaceAt].RequestSent = false;
-	g_Splits[PlaceAt].GiveUpAt = 0;
+	Split->RequestSent = false;
+	Split->GiveUpAt = 0;
 	
 	// Bind stuff here
-	g_Splits[PlaceAt].Waiting = true;
-	g_Splits[PlaceAt].Profile = Profile;
-	g_Splits[PlaceAt].JoyBound = a_UseJoy;
-	g_Splits[PlaceAt].JoyID = a_JoyID;
+	Split->Waiting = true;
+	Split->Profile = Profile;
+	Split->JoyBound = a_UseJoy;
+	Split->JoyID = a_JoyID;
 	
 	// Resize Splits
 	if (BumpSplits)
@@ -1052,6 +1100,17 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 				g_SplitScreen = ((int)PlaceAt);// - 1;
 			R_ExecuteSetViewSize();
 		}
+	
+	/* If server, add local port */
+	if (l_Server && !Split->Port)
+	{
+		// Try to grab a port
+		Split->Port = D_SNRequestPort();
+
+		// If grabbed, set local screen ID
+		if (Split->Port)
+			Split->Port->Screen = PlaceAt;
+	}
 	
 	/* Added OK */
 	return true;
@@ -1312,8 +1371,6 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 		return;
 	}
 	
-	CONL_PrintF("Add for %x %x\n", Host->ID, Port->ID);
-	
 	// Fill
 	LittleWriteUInt32((uint32_t**)&Wp, Host->ID);
 	LittleWriteUInt32((uint32_t**)&Wp, Port->ID);
@@ -1457,6 +1514,9 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 					localangle[i] = Player->mo->angle;
 				else
 					localangle[i] = 0;
+				
+				// Set profile to broadcast data changes
+				D_SNSetPortProfile(Port, Split->Profile);
 			}
 		}
 }
