@@ -2259,8 +2259,9 @@ void D_BSws(D_BS_t* const a_Stream, const char* const a_Val)
 		return;
 	
 	/* Constant Write */
-	for (c = a_Val; *c; c++)
-		D_BSwu8(a_Stream, *c);
+	if (a_Val)	// So NULL can be sent as just \0
+		for (c = a_Val; *c; c++)
+			D_BSwu8(a_Stream, *c);
 	D_BSwu8(a_Stream, 0);	// NUL
 }
 

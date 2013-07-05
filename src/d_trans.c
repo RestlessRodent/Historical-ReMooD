@@ -102,7 +102,9 @@ static uint8_t l_IsIWADMap, l_IsFreeDoom, l_IWADMission;
 int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 {
 	int32_t i;
-	D_SNHost_t* Host;	
+	D_SNHost_t* Host;
+	int32_t SaveID;
+	bool_t Kick;
 	
 	/* Do not move forward if not connected */
 	if (!D_SNIsConnected())
@@ -111,6 +113,10 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 	/* Server */
 	if (D_SNIsServer())
 	{
+		// Did not make save
+		SaveID = -1;
+		Kick = false;
+		
 		// Go through hosts
 		for (i = 0; i < (*g_NumHostsP); i++)
 			if ((Host = (*g_HostsP)[i]))
@@ -121,8 +127,30 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 					// Not latched
 					if (!Host->Save.Latched)
 					{
+						// Latch
 						Host->Save.PTimer = g_ProgramTic;
 						Host->Save.Latched = true;
+						
+						// Setup save slot
+						if (!Kick && SaveID < 0)
+						{
+							SaveID = D_SNPrepSave();
+							
+							// Failed to make save
+							if (SaveID < 0)
+								Kick = true;
+						}
+						
+						// Send file
+						if (SaveID >= 0)
+							D_SNSendFile(SaveID, Host);
+					}
+					
+					// Kick off player
+					if (Kick)
+					{
+						D_SNDisconnectHost(Host, "Failed to save game");
+						continue;
 					}
 					
 					// Reset time and delay until transfer
@@ -237,6 +265,9 @@ void D_SNNetTerm(const char* const a_Reason)
 	/* Drop all clients */
 	D_SNDropAllClients(a_Reason);
 	
+	/* Clear file transfers */
+	D_SNClearFiles();
+	
 	/* Close socket */
 	D_BSCloseStream(l_BS);
 	l_BS = NULL;
@@ -271,11 +302,13 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 	
 	/* Cleanup */
 	a_Host->Cleanup = true;
-	strncpy(a_Host->QuitReason, (a_Reason ? a_Reason : "No Reason"), MAXQUITREASON);
-	a_Host->QuitReason[MAXQUITREASON - 1] = 0;
 	
-	/* Show they disconnected */
-	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n", "???", a_Host->QuitReason);
+	// Change reason
+	if (a_Reason)
+	{
+		strncpy(a_Host->QuitReason, (a_Reason ? a_Reason : "No Reason"), MAXQUITREASON);
+		a_Host->QuitReason[MAXQUITREASON - 1] = 0;
+	}
 	
 	/* Send them a packet */
 	D_BSBaseBlock(l_BS, "QUIT");
@@ -597,6 +630,7 @@ void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		
 		// Fill info
 		memmove(&New->Addr, a_Addr, sizeof(*a_Addr));
+		New->BS = a_BS;
 	}
 	
 	// Use host here
@@ -825,6 +859,10 @@ static const struct
 	{{"QUIT"}, DT_QUIT, false},
 	{{"SAVE"}, DT_SAVE, false},
 	
+	{{"FPUT"}, D_SNFileRecv, false},
+	{{"FOPN"}, D_SNFileInit, false},
+	{{"FRDY"}, D_SNFileReady, false},
+	
 	{{{0}}}
 };
 
@@ -879,6 +917,9 @@ void D_SNDoTrans(void)
 		D_SNDoConnect();
 		return;
 	}
+	
+	/* Files */
+	D_SNFileLoop();
 	
 	/* Do client or server stuff */
 	if (D_SNIsServer())

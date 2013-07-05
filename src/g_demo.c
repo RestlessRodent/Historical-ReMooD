@@ -3048,7 +3048,7 @@ void G_EncodeSaveGame(void)
 			
 			// Actually save game now
 				// Don't save compressed (demo is already compressed)
-			P_SaveToStream(l_RecDemo->BSs);
+			P_SaveToStream(l_RecDemo->BSs, l_RecDemo->BSs);
 		}
 }
 

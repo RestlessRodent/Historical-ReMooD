@@ -67,9 +67,6 @@ extern mobj_t* g_LFPRover;
 *** FUNCTIONS ***
 ****************/
 
-bool_t P_SaveToStream(D_BS_t* const a_Str);
-bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay);
-
 /* CLC_SaveGame() -- Saves the game */
 static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -128,7 +125,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 	}
 		
 	/* Save */
-	OK = P_SaveToStream(CS);
+	OK = P_SaveToStream(CS, BS);
 	
 	// Close
 	D_BSCloseStream(CS);
@@ -2733,7 +2730,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 /*****************************************************************************/
 
 /* P_SaveToStream() -- Save to stream */
-bool_t P_SaveToStream(D_BS_t* const a_Str)
+bool_t P_SaveToStream(D_BS_t* const a_Str, D_BS_t* const a_OrigStr)
 {
 	/* Force Lag */
 	//D_XNetForceLag();
@@ -2743,7 +2740,7 @@ bool_t P_SaveToStream(D_BS_t* const a_Str)
 		return false;
 	
 	/* Network State */
-	PS_SaveDummy(a_Str, false);
+	PS_SaveDummy(a_OrigStr, false);
 	PS_SaveNetState(a_Str);
 	PS_SavePlayers(a_Str);
 	PS_SaveGameState(a_Str);
@@ -2815,7 +2812,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	if (!OK)
 	{
 		P_ExClearLevel();
-		//D_XNetDisconnect(false);
+		D_SNDisconnect(false, "Failed to load savegame");
 		return false;
 	}
 	

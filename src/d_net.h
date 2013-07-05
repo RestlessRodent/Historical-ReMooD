@@ -42,6 +42,7 @@
 
 #include "i_net.h"
 #include "i_util.h"
+#include "d_block.h"
 
 /****************
 *** CONSTANTS ***
@@ -58,7 +59,11 @@
 *** STRUCTURES ***
 *****************/
 
-struct D_BS_s;
+#if !defined(__REMOOD_DBSTDEFINED)
+	typedef struct D_BS_s D_BS_t;
+	#define __REMOOD_DBSTDEFINED
+#endif
+
 struct B_BotTemplate_s;
 
 typedef struct D_SNHost_s D_SNHost_t;
@@ -91,6 +96,7 @@ struct D_SNHost_s
 	bool_t Local;								// Local host
 	uint32_t ID;								// ID of host
 	I_HostAddress_t Addr;						// Host Address
+	D_BS_t* BS;									// Block Stream
 	bool_t Cleanup;								// Cleanup host
 	char QuitReason[MAXQUITREASON];				// Reason for leaving
 	
@@ -177,6 +183,19 @@ void D_SNNetTerm(const char* const a_Reason);
 bool_t D_SNHasSocket(void);
 void D_SNDoTrans(void);
 void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
+
+/*** FILES ***/
+
+void D_SNClearFiles(void);
+void D_SNCloseFile(const int32_t a_Handle);
+int32_t D_SNPrepFile(const char* const a_PathName, const uint32_t a_Modes);
+int32_t D_SNPrepSave(void);
+void D_SNSendFile(const int32_t a_Handle, D_SNHost_t* const a_Host);
+void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNChunkReq(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNFileLoop(void);
 
 #endif							/* __D_NET_H__ */
 

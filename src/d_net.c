@@ -756,6 +756,72 @@ void D_SNUpdateLocalPorts(void)
 	}
 }
 
+/* D_SNCleanupHost() -- Cleans up host */
+bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
+{
+	char Buf[MAXTCSTRINGCAT];
+	char* s;
+	uint8_t* Wp;
+	int32_t At, Cat;
+	const char* Name;
+	
+	/* Check */
+	if (!a_Host)
+		return false;
+	
+	/* If server, create tic command */
+	if (l_Server)
+	{
+		// Reason
+		for (Cat = 0, Wp = NULL, s = a_Host->QuitReason; *s; s++)
+		{
+			// Need more Wp
+			if (!Wp)
+			{
+				if (!D_SNExtCmdInGlobal(DTCT_SNQUITREASON, &Wp))
+					break;	// Could not fit reason
+				At = 0;	// Reset at
+				
+				// Write ID and cat count
+				LittleWriteUInt32((uint32_t**)&Wp, a_Host->ID);
+				LittleWriteUInt32((uint32_t**)&Wp, 0);
+				WriteUInt8((uint8_t**)&Wp, 0);
+				WriteUInt8(&Wp, Cat++);
+				
+				// Cap the cat
+				if (Cat > 1)
+					Cat = 1;
+			}
+			
+			// Copy Character
+			Wp[At++] = *s;
+			
+			// At is near the end
+			if (At >= MAXTCSTRINGCAT - 2)
+				Wp = NULL;
+		}
+		
+		// Host cleanup
+		if (D_SNExtCmdInGlobal(DTCT_SNCLEANUPHOST, &Wp))
+		{
+			LittleWriteUInt32((uint32_t**)&Wp, a_Host->ID);
+			LittleWriteUInt32((uint32_t**)&Wp, 0);
+			WriteUInt8((uint8_t**)&Wp, 0);
+		}
+	}
+	
+	/* Message */
+	// Figure out name
+	Name = "Client";
+	
+	// Show message
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n", Name, a_Host->QuitReason);
+	
+	// Delete their host
+	D_SNDestroyHost(a_Host);
+	return true;
+}
+
 /* D_SNUpdate() -- Updates network state */
 void D_SNUpdate(void)
 {
@@ -784,6 +850,11 @@ void D_SNUpdate(void)
 	for (h = 0; h < l_NumHosts; h++)
 		if ((Host = l_Hosts[h]))
 		{
+			// Cleaning up?
+			if (Host->Cleanup)
+				if (D_SNCleanupHost(Host))
+					continue;
+			
 			// Go through ports
 			for (p = 0; p < Host->NumPorts; p++)
 				if ((Port = Host->Ports[p]))
@@ -863,6 +934,9 @@ void D_SNDestroyHost(D_SNHost_t* const a_Host)
 	/* Check */
 	if (!a_Host)
 		return;
+	
+	/* Send disconnect */
+	D_SNDisconnectHost(a_Host, NULL);
 	
 	/* Remove from list */
 	for (i = 0; i < l_NumHosts; i++)
@@ -960,6 +1034,21 @@ void D_SNRemovePort(D_SNPort_t* const a_Port)
 	for (i = 0; i < Host->NumPorts; i++)
 		if (Host->Ports[i] == a_Port)
 			Host->Ports[i] = NULL;
+	
+	/* Remove references by screen and player */
+	// Player
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (players[i].Port == a_Port)
+			players[i].Port = NULL;
+	
+	// Screen
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitVisible(i))
+			if (g_Splits[i].Port == a_Port)
+			{
+				D_NCRemoveSplit(i, false);
+				i = -1;
+			}
 	
 	/* Free */
 	Z_Free(a_Port);
@@ -1521,6 +1610,44 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 		}
 }
 
+/* D_SNHandleGTCleanupHost() -- Handle delete host */
+static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	char Buf[MAXTCSTRINGCAT + 1];
+	int32_t Cat, i;
+	
+	/* Check */
+	if (!a_PID)
+		return;
+	
+	/* Concat? */
+	Cat = ReadUInt8(&a_PP);
+	
+	/* Read Message */
+	for (i = 0; i < MAXTCSTRINGCAT; i++)
+		Buf[i] = ReadUInt8(&a_PP);
+	Buf[MAXTCSTRINGCAT] = 0;
+	
+	/* Add to reason */
+	// Clear reason if not cat
+	if (!Cat)
+		memset(a_Host->QuitReason, 0, sizeof(a_Host->QuitReason));
+	
+	// Cat always
+	strncat(a_Host->QuitReason, Buf, MAXQUITREASON - 1);
+}
+
+/* D_SNHandleGTCleanupHost() -- Handle delete host */
+static void D_SNHandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	/* Check */
+	if (!a_Host)
+		return;
+	
+	/* Call cleanup */
+	D_SNCleanupHost(a_Host);
+}
+
 /* D_SNHandleGT() -- Handles game command IDs */
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
@@ -1544,6 +1671,8 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 	Host = NULL;
 	if (Port)
 		Host = Port->Host;
+	else
+		Host = D_SNHostByID(ID);
 	
 	/* Which Command? */
 	switch (a_ID)
@@ -1551,6 +1680,16 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			// Player Joins Game
 		case DTCT_SNJOINPLAYER:
 			D_SNHandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Disconnect reason
+		case DTCT_SNQUITREASON:
+			D_SNHandleGTQuitMsg(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Delete Host
+		case DTCT_SNCLEANUPHOST:
+			D_SNHandleGTCleanupHost(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!

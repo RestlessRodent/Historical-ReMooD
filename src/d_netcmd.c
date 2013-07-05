@@ -110,6 +110,20 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	4 + MAXPLAYERNAME,
 		// uint32 Player ID
 		// uint8* Class to morph to
+		
+	// DTCT_SNQUITREASON, Reason for quitting
+	4 + 4 + 1 + 1 + MAXTCSTRINGCAT,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint8  0 == set, 1 == append
+		// uint8* String to set or append
+	
+	// DTCT_SNCLEANUPHOST, Tell clients to cleanup host
+	4 + 4 + 1,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
 };
 
 /*** GLOBALS ***/

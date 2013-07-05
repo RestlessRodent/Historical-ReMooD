@@ -91,7 +91,8 @@ enum
 #define TICCMD_INVACTSHIFT	UINT32_C(0)			// Action Shift
 #define TICCMD_INVACTMASK	UINT32_C(0x3)		// Action Mask
 
-#define MAXTCWEAPNAME						32	// Max length for weapon name
+#define MAXTCSTRINGCAT					48		// Max length for string cat
+#define MAXTCWEAPNAME					32		// Max length for weapon name
 #define MAXTCDATABUF					384		// Data Buffer size
 
 #define TICPINGSIGNALSHIFT UINT16_C(14)
@@ -158,6 +159,8 @@ enum
 	DTCT_GAMEVAR,								// Game Variable
 	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
 	DTCT_XMORPHPLAYER,							// Morph Player
+	DTCT_SNQUITREASON,							// Reason for quitting
+	DTCT_SNCLEANUPHOST,							// Tell clients to cleanup host
 	
 	NUMDTCT
 };
