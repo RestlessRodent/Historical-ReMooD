@@ -39,6 +39,7 @@
 #include "d_main.h"
 #include "console.h"
 #include "p_info.h"
+#include "p_saveg.h"
 
 /****************
 *** CONSTANTS ***
@@ -53,8 +54,8 @@ typedef enum D_ClientStage_e
 	DCS_SWITCHWADS,
 	DCS_REQUESTSAVE,
 	DCS_GETSAVE,
-	
-	DCS_PLAYINGGAME
+	DCS_CANPLAYNOW,
+	DCS_PLAYING
 } D_ClientStage_t;
 
 /*****************
@@ -350,7 +351,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 /* D_SNDoClient() -- Do client stuff */
 void D_SNDoClient(D_BS_t* const a_BS)
 {
-	static tic_t WADTimeout, SaveTimeout;
+	static tic_t WADTimeout, SaveTimeout, PlayTimeout;
 	D_WADChain_t* CWAD, *FirstCWAD;
 	const WL_WADFile_t* WAD, *ExtraWAD;
 	int32_t i, j, k, l;
@@ -595,6 +596,20 @@ void D_SNDoClient(D_BS_t* const a_BS)
 		case DCS_GETSAVE:
 			break;
 			
+			// Can play now
+		case DCS_CANPLAYNOW:
+			if (g_ProgramTic < PlayTimeout)
+				return;
+			
+			PlayTimeout = g_ProgramTic + TICRATE;
+			D_BSBaseBlock(a_BS, "PLAY");
+			D_BSRecordNetBlock(a_BS, &l_HostAddr);
+			break;
+			
+			// Now playing game
+		case DCS_PLAYING:
+			break;
+			
 			// Unknown Stage
 		default:
 			return;
@@ -799,7 +814,7 @@ void DT_QUIT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* If not connected, disconnect */
 	// Could be in the middle of a connect request, or not playing yet
-	if (!D_SNIsConnected() || (!D_SNIsServer() && l_Stage < DCS_PLAYINGGAME))
+	if (!D_SNIsConnected() || (!D_SNIsServer() && l_Stage < DCS_PLAYING))
 	{
 		D_SNDisconnect(false, Buf);
 		return;
@@ -855,6 +870,32 @@ void DT_PSAV(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	l_Stage = DCS_GETSAVE;
 }
 
+/* DT_PLAY() -- Client can play now! */
+void DT_PLAY(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	/* Server only */
+	if (!D_SNIsServer() || !a_Host || a_Host->Local)
+		return;
+	
+	/* Mark them as in the game */
+	a_Host->Save.Has = true;
+	
+	/* Inform them */
+	D_BSBaseBlock(a_BS, "COOL");
+	D_BSRecordNetBlock(a_BS, a_Addr);
+}
+
+/* DT_COOL() -- Our play request was accepted! */
+void DT_COOL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	/* Client Only */
+	if (D_SNIsServer() || l_Stage != DCS_CANPLAYNOW)
+		return;
+	
+	/* Start playing */
+	l_Stage = DCS_PLAYING;
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -874,6 +915,8 @@ static const struct
 	{{"QUIT"}, DT_QUIT, false},
 	{{"SAVE"}, DT_SAVE, false},
 	{{"PSAV"}, DT_PSAV, false},
+	{{"PLAY"}, DT_PLAY, false},
+	{{"COOL"}, DT_COOL, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},
@@ -942,5 +985,40 @@ void D_SNDoTrans(void)
 		D_SNDoServer(l_BS);
 	else
 		D_SNDoClient(l_BS);
+}
+
+/* D_SNGotFile() -- Received file */
+bool_t D_SNGotFile(const char* const a_PathName)
+{
+	char* Ext;	
+	
+	/* Check */
+	if (!a_PathName)
+		return false;
+	
+	/* Grab extension */
+	Ext = strrchr(a_PathName, '.');
+	
+	/* Save game */
+	if (!strcasecmp(Ext, ".rsv"))
+	{
+		// Load save game
+		if (!P_LoadGameEx(NULL, a_PathName, strlen(a_PathName), NULL, NULL))
+			D_SNDisconnect(false, "Failed to load save game");
+		
+		// Tell server, we are playing
+		else
+			l_Stage = DCS_CANPLAYNOW;
+		
+		// Delete save games after they are used
+		return true;
+	}
+	
+	/* Assume WAD content data thing */
+	else
+	{
+		// Do not delete WADs!
+		return false;
+	}
 }
 

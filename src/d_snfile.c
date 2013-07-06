@@ -79,8 +79,17 @@ struct D_File_s
 	uint32_t CheckSum[4];						// MD5 Sum
 	char CheckSumChars[33];						// MD5 Sum (As hex characters)
 	
-	uint8_t GetChunks[CHUNKSATONCE][CHUNKSIZE];	// Local storage chunks
+	struct
+	{
+		bool_t OK;								// Chunk is OK
+		uint8_t Data[CHUNKSIZE];				// Local storage chunks
+	} GetChunk[CHUNKSATONCE];
 	uint32_t AtChunk;							// Chunk currently at
+	tic_t ChunkTime;							// Time of last chunk
+	
+	uint32_t TotalRead;							// Total bytes read
+	uint32_t BytesRead;							// Bytes Read
+	tic_t LastRate;								// Last Rate
 };
 
 /*************
@@ -492,9 +501,41 @@ void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t
 /* D_SNFileRecv() -- Received file piece */
 void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
+	D_File_t* File;
+	int32_t Handle;
+	uint32_t Chunk;
+	
 	/* Client Only */
 	if (D_SNIsServer())
 		return;
+	
+	/* Read input packet */
+	Handle = D_BSri32(a_BS);
+	
+	// Get file
+	if (Handle < 0 || !(File = D_SNFileByRef(Handle)))
+		return;
+	
+	// Get chunk
+	Chunk = D_BSru32(a_BS);
+	
+	// Passed this chunk
+	if (Chunk < File->AtChunk)
+		return;
+	
+	// Base chunk
+	Chunk -= File->AtChunk;
+	
+	// Out of range or have it already
+	if (Chunk >= CHUNKSATONCE || File->GetChunk[Chunk].OK)
+		return;
+	
+	/* Put chunk here */
+	File->GetChunk[Chunk].OK = true;
+	D_BSReadChunk(a_BS, File->GetChunk[Chunk].Data, CHUNKSIZE);
+	
+	if (Chunk == 0)
+		File->ChunkTime = g_ProgramTic;
 }
 
 /* D_SNChunkReq() -- Request Chunk */
@@ -528,6 +569,110 @@ void D_SNKillBit(D_Bit_t* const a_Bit)
 	
 	/* Free */
 	Z_Free(a_Bit);
+}
+
+/* D_SNDoSendPiece() --  Do sending of a piece of a file */
+void D_SNDoSendPiece(D_BS_t* const a_BS, D_SNHost_t* const a_Host, D_File_t* const a_File, D_Bit_t* const a_Bit)
+{
+	uint8_t InChunk[CHUNKSIZE];	
+	
+	/* Do not send any pieces if not enough time has passed */
+	if (g_ProgramTic <= a_Bit->LastTime)
+		return;
+	
+	/* Ack is above file size */
+	if (a_Bit->LowAck > a_File->Chunks)
+		return;
+	
+	/* Seek to chunk in file and read that */
+	I_FileSeek(a_File->File, CHUNKSIZE * a_Bit->LowAck, false);
+	I_FileRead(a_File->File, InChunk, CHUNKSIZE);
+	
+	// Compress with LZW
+		// maybe later
+	
+	/* Build packet to send */
+	D_BSBaseBlock(a_BS, "FPUT");
+	
+	D_BSwi32(a_BS, a_File->Handle);
+	D_BSwu32(a_BS, a_Bit->LowAck);
+	
+	D_BSWriteChunk(a_BS, InChunk, CHUNKSIZE);
+	
+	D_BSRecordNetBlock(a_BS, &a_Host->Addr);
+	
+	/* Go to send the next block */
+	a_Bit->LowAck++;
+}
+
+/* D_SNSquashChunks() -- Squashes chunks together */
+void D_SNSquashChunks(D_BS_t* const a_BS, D_File_t* const a_File)
+{
+	uint32_t LogicalPos;
+	uint32_t WriteSize;
+	bool_t Delete;
+	char* Temp;
+	
+	/* While the first chunk is OK */
+	while (a_File->GetChunk[0].OK)
+	{
+		// Determine amount to write
+		LogicalPos = CHUNKSIZE * a_File->AtChunk;
+		
+		if (LogicalPos >= a_File->Size)
+			break;	// chunk after EOF
+		else if (LogicalPos + CHUNKSIZE >= a_File->Size)
+			WriteSize = a_File->Size - LogicalPos;
+		else
+			WriteSize = CHUNKSIZE;
+		
+		// Write to file
+		I_FileWrite(a_File->File, a_File->GetChunk[0].Data, WriteSize);
+		a_File->BytesRead += WriteSize;
+		a_File->TotalRead += WriteSize;
+		
+		// Move all other chunks down
+		memmove(&a_File->GetChunk[0], &a_File->GetChunk[1], sizeof(a_File->GetChunk[0]) * (CHUNKSATONCE - 1));
+		
+		// Clear last chunk
+		memset(&a_File->GetChunk[CHUNKSATONCE - 1], 0, sizeof(a_File->GetChunk[0]));
+		
+		// Reset time
+		a_File->ChunkTime = g_ProgramTic;
+		
+		// Work on next chunk
+		a_File->AtChunk++;
+	}
+	
+	/* Show download ticker */
+	if (g_ProgramTic >= a_File->LastRate)
+	{
+		CONL_PrintF("%i KiB/s (%u KiB of %u KiB)\n",
+			(a_File->BytesRead >> 10),
+			a_File->TotalRead,
+			a_File->Size
+			);
+		a_File->LastRate = g_ProgramTic + TICRATE;
+		a_File->BytesRead = 0;
+	}
+	
+	/* Got the file completely */
+	if (a_File->TotalRead >= a_File->Size)
+	{
+		CONL_PrintF("Download complete!\n");
+		
+		// Handle file
+		Temp = Z_StrDup(a_File->PathName, PU_STATIC, NULL);
+		D_SNCloseFile(a_File->Handle);	// Do not need file handle anymore
+		Delete = D_SNGotFile(Temp);
+		
+		// Delete file?
+		if (Delete)
+			I_FileDeletePath(Temp);
+		
+		// Clear temp buffer
+		Z_Free(Temp);
+	}
 }
 
 /* D_SNFileLoop() -- File send/recv loop */
@@ -589,6 +734,8 @@ void D_SNFileLoop(void)
 					continue;
 				}
 				
+				// Send pieces of files
+				D_SNDoSendPiece(BS, Host, File, Bit);
 			}
 		
 			// No more bits
@@ -599,6 +746,7 @@ void D_SNFileLoop(void)
 		// Receiving file
 		else
 		{
+			D_SNSquashChunks(BS, File);
 		}
 	}
 }

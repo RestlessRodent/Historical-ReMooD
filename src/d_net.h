@@ -182,6 +182,7 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 void D_SNNetTerm(const char* const a_Reason);
 bool_t D_SNHasSocket(void);
 void D_SNDoTrans(void);
+bool_t D_SNGotFile(const char* const a_PathName);
 void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
 
 /*** FILES ***/
