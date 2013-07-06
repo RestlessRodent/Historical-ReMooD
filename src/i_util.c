@@ -503,9 +503,6 @@ void I_OsPolling(void)
 		if (M_SMHandleEvent(&Event))
 			continue;
 			
-		if (M_ExUIHandleEvent(&Event))
-			continue;
-			
 		if (D_SNHandleEvent(&Event))
 			continue;
 	}
@@ -523,7 +520,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || M_ExUIActive() || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
+	New = !(dedicated || demoplayback || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

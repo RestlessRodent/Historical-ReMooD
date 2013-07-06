@@ -606,10 +606,6 @@ void G_Ticker(void)
 		DidPP = 1;
 	}
 	
-	/* Reduce Menu */
-	if (g_ResumeMenu > 0)
-		g_ResumeMenu--;
-	
 	/* Init Code */
 	NowCode = DemoCode = 0;
 		

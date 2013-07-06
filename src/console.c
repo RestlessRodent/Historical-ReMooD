@@ -1201,9 +1201,6 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	// Profile Stuff
 	CONL_AddCommand("profile", CLC_Profile);
 	
-	// Menus
-	CONL_AddCommand("makemenu", CLC_ExMakeMenuCom);
-	
 	/* Initialize the variable system */
 	CONL_VarLocate("theconsolesystemwasjustbooted");
 	

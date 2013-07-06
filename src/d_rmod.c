@@ -268,7 +268,6 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 }
 
 bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
-bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
 
 /* DS_RMODOCCB() -- Order change callback for REMOODAT */
 static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
@@ -293,7 +292,6 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	} c_RMODNamespaces[] = 
 	{
 		{"REMOODAT", "ReMooD Data", INFO_REMOODATKeyer},
-		{"RMD_MENU", "Menu Definitions", M_MenuDataKeyer},
 		{NULL},
 	};
 	

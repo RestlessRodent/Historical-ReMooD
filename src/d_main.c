@@ -293,7 +293,7 @@ void D_Display(void)
 		{
 			// the menu may draw over parts out of the view window,
 			// which are refreshed only when needed
-			if (M_ExUIActive() || menuactivestate || !viewactivestate)
+			if (menuactivestate || !viewactivestate)
 				borderdrawcount = 3;
 				
 			if (borderdrawcount)
@@ -338,7 +338,7 @@ void D_Display(void)
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
 		
-	menuactivestate = M_ExUIActive();
+	menuactivestate = M_SMFreezeGame();
 	oldgamestate = wipegamestate = gamestate;
 	
 	// draw pause pic
@@ -396,7 +396,6 @@ void D_Display(void)
 	CONL_DrawConsole(false);
 	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
-	M_ExUIDrawer();
 	M_SMDrawer();
 	
 	// GhostlyDeath <March 22, 2013> -- Draw big dropped down console over menus
@@ -458,7 +457,7 @@ void D_Display(void)
 		// Do other stuff
 		I_OsPolling();
 		I_UpdateNoBlit();
-		M_ExUIDrawer();
+		M_SMDrawer();
 		
 		if (!noblit)
 			I_FinishUpdate();		// page flip or blit buffer
@@ -1980,8 +1979,7 @@ void D_JoySpecialTicker(void)
 			}
 			
 			// Not Active
-			if (!(M_ExPlayerUIActive(i) ||
-				(i == 0 && CONL_IsActive()) ||
+			if (!((i == 0 && CONL_IsActive()) ||
 				CONL_OSKIsActive(i) || M_SMGenSynth(i)))
 			{
 				// Trash events to prevent retriggers
@@ -2126,7 +2124,7 @@ void D_JoySpecialDrawer(void)
 	
 	/* Do not draw if no menu of sort is active */
 	// Also don't draw if we -playdemo
-	LastOK = CONL_IsActive() || M_ExUIActive();
+	LastOK = CONL_IsActive() || M_SMMenuVisible();
 	
 	if (!LastOK && (G_GetDemoExplicit() || (!demoplayback && gamestate == GS_LEVEL)))
 		return;
@@ -2308,8 +2306,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	/* Synthetic OSK Events */
 	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
 		// Only if a menu is active, console, chat string, etc.
-		if ((M_ExPlayerUIActive(RealPlayer) ||
-			(RealPlayer == 0 && CONL_IsActive()) ||
+		if (((RealPlayer == 0 && CONL_IsActive()) ||
 			CONL_OSKIsActive(RealPlayer) ||
 			M_SMGenSynth(RealPlayer) ||
 			(gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)))
@@ -2484,10 +2481,8 @@ void D_DoomMain(void)
 	M_CheatInit();						// Initialize Cheats
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
-	M_MenuExInit();						// Initialize Menu
 	M_SMInit();							// Simple Menus
 	G_PrepareDemoStuff();				// Demos
-	M_DoMappedVars();					// Mapped Vars
 	//B_InitBotCodes();					// Initialize bot coding
 	//D_CheckNetGame();					// initialize net game
 	/**************************/

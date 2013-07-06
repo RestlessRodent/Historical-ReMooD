@@ -1158,14 +1158,8 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 	size_t i;
 	P_XGSVariable_t* Var;
 	
-	/* Pop Menu */
-	if (strcasecmp(a_ArgV[0], "menugamevar") == 0)
-	{
-		M_ExPushMenu(0, M_ExTemplateMakeGameVars(0));
-	}
-	
 	/* Next Game */
-	else if (strcasecmp(a_ArgV[0], "nextvar") == 0)
+	if (strcasecmp(a_ArgV[0], "nextvar") == 0)
 	{
 		// Set setting from string
 		if (a_ArgC >= 3)

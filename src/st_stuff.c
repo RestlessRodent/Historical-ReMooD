@@ -1409,7 +1409,7 @@ void ST_TickerEx(void)
 			continue;
 		
 		// Player has a menu open?
-		ActiveMenu = M_ExPlayerUIActive(p);
+		ActiveMenu = M_SMPlayerMenuVisible(p);
 		
 		// Player Palette
 			// Reset variables -- Otherwise palettes "stick"
