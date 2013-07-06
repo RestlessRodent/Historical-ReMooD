@@ -838,6 +838,21 @@ void DT_SAVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		a_Host->Save.Want = true;
 		a_Host->Save.TicTime = gametic + (TICRATE - (gametic % TICRATE));
 	}
+	
+	/* Inform them */
+	D_BSBaseBlock(a_BS, "PSAV");
+	D_BSRecordNetBlock(a_BS, a_Addr);
+}
+
+/* DT_PSAV() -- Requests save game */
+void DT_PSAV(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	/* Client only */
+	if (D_SNIsServer() || l_Stage != DCS_REQUESTSAVE)
+		return;
+	
+	/* Go to save OK */
+	l_Stage = DCS_GETSAVE;
 }
 
 /* l_Packets -- Data packets */
@@ -858,6 +873,7 @@ static const struct
 	{{"WADL"}, DT_WADL, true},
 	{{"QUIT"}, DT_QUIT, false},
 	{{"SAVE"}, DT_SAVE, false},
+	{{"PSAV"}, DT_PSAV, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},

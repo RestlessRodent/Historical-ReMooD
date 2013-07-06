@@ -350,6 +350,7 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 	char Mini[MINISIZE];
 	D_File_t Temp, *New;
 	int32_t i;
+	char* x;
 	
 	/* Client Only */
 	if (D_SNIsServer())
@@ -380,8 +381,6 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 		// Validate name
 		D_SNMakeFileValid(Temp.BaseName);
 		
-		CONL_PrintF("%s\n", Temp.BaseName);
-		
 		// Check extension
 		if (!WL_ValidExt(Temp.BaseName))
 			return;
@@ -395,6 +394,23 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 		// Correct base
 		strncpy(Temp.PathName, Buf, PATH_MAX - 1);
 		Temp.BaseName = WL_BaseNameEx(Temp.PathName);
+		
+		// If file exists, rename (xyz rename)
+		x = Temp.BaseName;
+		while (I_CheckFileAccess(Temp.PathName, false, NULL))
+		{
+			// No more names
+			if (!*x || *x == '.')
+				return;
+			
+			// Change current character to x
+			if (*x != 'x' && *x != 'y' && *x != 'z')
+				*(x) = 'x';
+			else if (*x == 'x')
+				*(x) = 'y';
+			else if (*x == 'y')
+				*(x++) = 'z';
+		}
 		
 		// Message
 		CONL_OutputUT(CT_NETWORK, DSTR_DXP_RECVFILE, "%s%s\n",
