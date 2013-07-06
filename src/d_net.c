@@ -51,6 +51,7 @@
 ****************/
 
 #define MAXGLOBALBUFSIZE					8	// Size of global buffer
+#define MAXLOCALTICS					TICRATE	// Max local tics
 
 /*************
 *** LOCALS ***
@@ -69,6 +70,9 @@ static int32_t l_NumHosts;						// Number of hosts
 
 D_SNHost_t*** g_HostsP = &l_Hosts;
 int32_t* g_NumHostsP = &l_NumHosts;
+
+static D_SNTicBuf_t l_LocalBuf[MAXLOCALTICS];	// Local tic buffer
+static int32_t l_LocalAt;						// Local tics at
 
 /****************
 *** FUNCTIONS ***
@@ -1225,6 +1229,16 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	return true;
 }
 
+/* D_SNBufForGameTic() -- Returns buffer for gametic */
+D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic)
+{
+
+//static D_SNTicBuf_t l_LocalBuf[MAXLOCALTICS];	// Local tic buffer
+//static int32_t l_LocalAt;						// Local tics at
+
+	return NULL;
+}
+
 /* D_SNTics() -- Handles tic commands */
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
@@ -1343,6 +1357,11 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 		if (a_Write)
 			return;
 	}
+}
+
+/* D_SNSyncCode() -- Inputs sync code */
+void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
+{
 }
 
 /* D_SNSetPortProfile() -- Set port profile */

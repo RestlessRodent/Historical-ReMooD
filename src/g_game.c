@@ -683,7 +683,7 @@ void G_Ticker(void)
 		G_WriteEndTic(NowCode);
 	
 	// Networking
-	//D_XNetFinalCmds(gametic, NowCode);
+	D_SNSyncCode(gametic, NowCode);
 	
 	/* If playing a demo, check code comparison */
 	// Also make sure the demo supports the ReMooD sync code, otherwise there
