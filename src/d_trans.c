@@ -692,6 +692,7 @@ void DT_HELO(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	New = D_SNCreateHost();
 	New->ID = D_BSru32(a_BS);
 	New->Local = true;
+	D_SNSetMyHost(New);
 	l_Stage = 0;
 }
 

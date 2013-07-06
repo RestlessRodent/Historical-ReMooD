@@ -932,11 +932,11 @@ D_SNHost_t* D_SNCreateHost(void)
 	/* Place into list */
 	for (i = 0; i < l_NumHosts; i++)
 		if (!l_Hosts[i])
-			return l_Hosts[i] = New;
+			return (l_Hosts[i] = New);
 	
 	/* Need to resize */
 	Z_ResizeArray((void**)&l_Hosts, sizeof(*l_Hosts), l_NumHosts, l_NumHosts + 1);
-	return l_Hosts[l_NumHosts++] = New;
+	return (l_Hosts[l_NumHosts++] = New);
 }
 
 /* D_SNDestroyHost() -- Destroys host */
@@ -1462,6 +1462,10 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	
 	// Go back to port
 	Port = a_Port;
+	
+	// If Host was never set, set
+	if (!Host)
+		Host = Port->Host;
 	
 	/* Make this port own this player now */
 	Port->Player = &players[p];

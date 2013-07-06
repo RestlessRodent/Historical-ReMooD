@@ -780,7 +780,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	D_SNHost_t* MyHost;
 	D_SNHost_t* Host;
 	D_SNPort_t* Port;
-	uint32_t ID, ReadID, PortID;
+	uint32_t ID, ReadID, PortID, LocalID;
 	int32_t TempI, j;
 	bool_t Local;
 	D_SplitInfo_t* Split;
@@ -798,6 +798,10 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	// Read my ID
 	ID = D_BSru32(a_Str);
 	
+	LocalID = 0;
+	if (MyHost)
+		LocalID = MyHost->ID;
+	
 	// Host reading loop
 	for (;;)
 	{
@@ -812,7 +816,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		// This is OUR host?
 		if (MyHost && MyHost->ID == ReadID)
 			Local = true;	// Connected
-		else if (ID == ReadID)
+		else if (!MyHost && ID == ReadID)
 			Local = true;	// Loading save game (take control of ourself)
 		else
 			Local = false;	// Do not possess this host
@@ -827,7 +831,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			
 			// Make my host
 			if (Local)
-				MyHost = Host;
+				LocalID = ReadID;
 		}
 		
 		// Fill in fields
@@ -835,10 +839,12 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		Host->Local = Local;
 		Host->Cleanup = D_BSru8(a_Str);
 		D_BSrs(a_Str, Host->QuitReason, MAXQUITREASON);
+		
+		CONL_PrintF("Add host %08x (local == %08x)\n", ReadID, (MyHost ? MyHost->ID : LocalID));
 	}
 	
 	// Set local host
-	MyHost = D_SNHostByID(ID);
+	MyHost = D_SNHostByID(LocalID);
 	D_SNSetMyHost(MyHost);
 		
 	/* Expect "PORT" */
@@ -860,6 +866,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		Host = D_SNHostByID(ReadID);
 		
 		// Something bad happened
+		CONL_PrintF("HostID = %08x\n", ReadID);
 		if (!Host)
 			return PS_IllegalSave(DSTR_PSAVEGC_ILLEGALHOST);
 		
