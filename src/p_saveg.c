@@ -667,6 +667,23 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 /* PS_SaveNetState() -- Saves networked state */
 static void PS_SaveNetState(D_BS_t* const a_Str)
 {
+	int32_t i;
+	
+	/* Save Hosts */
+	D_BSBaseBlock(a_Str, "HOST");
+	
+	// Go through all hosts
+	//for (i = 0; i < 
+	
+	// Encode
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Ports */
+	D_BSBaseBlock(a_Str, "PORT");
+	
+	// Encode
+	D_BSRecordBlock(a_Str);
+	
 #if 0
 	size_t i;
 	D_XPlayer_t* XPlay;
@@ -735,6 +752,14 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 /* PS_LoadNetState() -- Loads networked state */
 static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 {
+	/* Expect "HOST" */
+	if (!PS_Expect(a_Str, "HOST"))
+		return false;
+		
+	/* Expect "PORT" */
+	if (!PS_Expect(a_Str, "PORT"))
+		return false;
+	
 #if 0
 	uint32_t OurHost, SaveHost;
 	int32_t i;

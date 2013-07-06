@@ -200,21 +200,34 @@ typedef enum D_DiffBits_e
 
 extern const int32_t c_TCDataSize[NUMDTCT];
 
-/* D_XNetSyncCodeInfo_t -- Sync Code Data (sync debugging) */
-typedef struct D_XNetSyncCodeInfo_s
+
+/* D_SNTicBufVersion_t -- TicBuf version number */
+// This is for net compat, but mostly for demos!
+typedef enum D_SNTicBufVersion_s
+{
+	DXNTBV_ILLEGALVERSION,						// Illegal Version	
+	
+	DXNTBV_VER20130327,							// 2013/03/27
+	
+	DXNTBV_LATEST = DXNTBV_VER20130327,			// Lastest Version
+} D_SNTicBufVersion_t;
+
+
+/* D_SNSyncCodeInfo_t -- Sync Code Data (sync debugging) */
+typedef struct D_SNSyncCodeInfo_s
 {
 	uint32_t Code;								// Generated Code
-} D_XNetSyncCodeInfo_t;
+} D_SNSyncCodeInfo_t;
 
-/* D_XNetTicBuf_t -- Tic Command Buffer */
-typedef struct D_XNetTicBuf_s
+/* D_SNTicBuf_t -- Tic Command Buffer */
+typedef struct D_SNTicBuf_s
 {
 	tic_t GameTic;								// Gametic to run at
 	uint32_t SyncCode;							// Synchronization Code
 	bool_t GotTic;								// Got tic
 	ticcmd_t Tics[MAXPLAYERS + 1];				// Tic Commands
 	uint32_t PIGRevMask;						// Player in reverse game mask
-} D_XNetTicBuf_t;
+} D_SNTicBuf_t;
 
 #endif
 

@@ -1885,7 +1885,7 @@ typedef struct g_ReMooDDemoData_s
 	tic_t LastTic;								// Tics for last packet
 	tic_t ExecAt;								// Execute At
 	
-	D_XNetTicBuf_t StoreTics;					// Storage Tics
+	D_SNTicBuf_t StoreTics;					// Storage Tics
 	uint8_t* Chunk;								// Storage Chunk
 	
 	uint32_t HostID;							// Recorder's HostID (Splits)
@@ -2201,7 +2201,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* c
 			D_BSReadChunk(Data->CBs, Data->Chunk, u16);
 			
 			// Now Decode
-			if (false)//if (!D_XNetDecodeTicBuf(&Data->StoreTics, Data->Chunk, u16))
+			if (!D_SNDecodeTicBuf(&Data->StoreTics, Data->Chunk, u16))
 				G_DemoProblem(false, DSTR_BADDEMO_TICDECODEPROBLEM, "\n");
 			
 			// Copy Code
@@ -2259,7 +2259,7 @@ bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32
 	OutS = 0;
 	
 	// Encode the store to the buffer
-	//D_XNetEncodeTicBuf(&Data->StoreTics, &OutD, &OutS, DXNTBV_LATEST);
+	D_SNEncodeTicBuf(&Data->StoreTics, &OutD, &OutS, DXNTBV_LATEST);
 	
 	// Fail?
 	if (!OutD)

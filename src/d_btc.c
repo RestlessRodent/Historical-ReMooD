@@ -74,8 +74,8 @@ static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
 *** FUNCTIONS ***
 ****************/
 
-/* D_XNetClearChat() -- Clears player chat */
-void D_XNetClearChat(const int32_t a_Screen)
+/* D_SNClearChat() -- Clears player chat */
+void D_SNClearChat(const int32_t a_Screen)
 {
 	/* Check */
 	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
@@ -95,11 +95,11 @@ void D_XNetClearChat(const int32_t a_Screen)
 static bool_t DS_XNetCONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
 {
 	/* Handle chat string and send to server (or local) */
-	//D_XNetSendChat(g_Splits[a_Input->Screen].XPlayer, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
+	//D_SNSendChat(g_Splits[a_Input->Screen].XPlayer, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
 	
 	/* Leave Chat Mode */
 	// Done with it, no use
-	D_XNetClearChat(a_Input->Screen);
+	D_SNClearChat(a_Input->Screen);
 	
 	/* always keep box */
 	return true;
@@ -151,7 +151,7 @@ bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event)
 			// Cancel chat?
 			if ((a_Event->Type == IET_KEYBOARD && a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE && a_Event->Data.Keyboard.Down) || (a_Event->Type == IET_SYNTHOSK && a_Event->Data.SynthOSK.Cancel))
 			{
-				D_XNetClearChat(Bit);
+				D_SNClearChat(Bit);
 				return true;
 			}
 			
@@ -1234,5 +1234,379 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 		}
 	
 #undef MAXWEAPONSLOTS
+}
+
+
+/* D_SNTicBufSum() -- Calculates checksum of Tic Buffer */
+uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t a_VersionNum, const uint32_t a_Players)
+{
+	int32_t i;
+	uint32_t RetVal = UINT32_C(0xDEADBEEF);
+	ticcmd_t* TicCmd;
+	
+	/* Go through players */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Commands
+		TicCmd = &a_TicBuf->Tics[i];
+		
+		// Not playing?
+		if (!(a_Players & (1 << i)))
+			continue;
+		
+		// XOR in buttons
+		RetVal ^= TicCmd->Std.buttons;
+	}
+	
+	/* Return calculated code */
+	return RetVal;
+}
+
+/* D_SNEncodeTicBuf() -- Encodes tic buffer into more compact method */
+void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_SNTicBufVersion_t a_VersionNum)
+{
+	// Size for a single player
+	// 384 + 2 + 2 + 4 + 1 + 2 + 2 + 32 + 1 + 4 + 2 + 2 + 1 + 1 + 1 + 8 = 449
+	// For 32+global: 449 * 33 = 14817
+#define BUFSIZE 16384
+	static uint8_t* Buf;
+	D_SNTicBuf_t* TicBuf;
+	uint8_t* p;
+	uint64_t Left;
+	uint16_t u16;
+	uint32_t u32;
+	int32_t i, j, z;
+	ticcmd_t* Cmd;
+	uint16_t* dsP;
+	uint8_t* dbP, u8;
+	
+	/* Check */
+	if (!a_TicBuf || !a_OutD || !a_OutSz)
+		return;
+	
+	/* Init */
+	TicBuf = a_TicBuf;
+	
+	// Allocate buffer and start there
+	if (!Buf)
+		Buf = Z_Malloc(sizeof(*Buf) * BUFSIZE, PU_STATIC, NULL);
+	p = Buf;
+	
+	/* Write Version Number */
+	WriteUInt8(&p, a_VersionNum);
+	
+	/* Write Data */
+	// Encode gametic in multiple parts
+	Left = TicBuf->GameTic;
+	do
+	{
+		// Write lower bits
+		u16 = Left & UINT16_C(0x7FFF);
+		Left >>= UINT64_C(15);
+		
+		// More data?
+		if (Left)
+			u16 |= UINT16_C(0x8000);
+		
+		// Encode
+		LittleWriteUInt16(&p, u16);
+	} while (Left);
+	
+	/* Player Counts */
+	for (u32 = 0, i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			u32 |= UINT32_C(1) << i;
+	
+	// Reverse mask
+	u32 &= ~a_TicBuf->PIGRevMask;
+	
+	// Write counts
+	LittleWriteUInt32(&p, u32);
+	
+	// Do not use u32 any longer
+	
+	/* Encode player tics */
+	for (i = 0; i < MAXPLAYERS + 1; i++)
+	{
+		// Not in game?
+		if (!(u32 & (1 << i)) && i != MAXPLAYERS)
+			continue;
+		
+		// Get Command for this player
+		Cmd = &TicBuf->Tics[i];
+		
+		// Encode Type
+		WriteUInt8(&p, Cmd->Ctrl.Type);
+		
+		// Encode Ping
+		LittleWriteUInt16(&p, Cmd->Ctrl.Ping);
+		
+		// Standard player stuff
+		if (!Cmd->Ctrl.Type)
+		{	
+			// Set Data to encode
+			u16 = 0;
+
+#define __DIFFY(x,y) if (Cmd->Std.x) u16 |= y;
+#define __WRITE(x,y) if (u16 & x) y
+			
+			__DIFFY(forwardmove, DDB_FORWARD);
+			__DIFFY(sidemove, DDB_SIDE);
+			__DIFFY(aiming, DDB_AIMING);
+			__DIFFY(buttons, DDB_BUTTONS);
+			__DIFFY(angleturn, DDB_ANGLE);
+			__DIFFY(InventoryBits, DDB_INVENTORY);
+			__DIFFY(StatFlags, DDB_STATFLAGS);
+			__DIFFY(artifact, DDB_ARTIFACT);
+			__DIFFY(FlySwim, DDB_FLYSWIM);
+			__DIFFY(XSNewWeapon[0], DDB_WEAPON);
+			
+			// Save a byte by encoding the more important commands first
+			Left = u16;
+			u8 = u16 & UINT16_C(0x7F);
+			Left >>= 7;
+			if (Left)
+				u8 |= UINT8_C(0x80);
+			WriteUInt8(&p, u8);
+			if (Left)
+			{
+				u8 = Left & UINT16_C(0xFF);
+				WriteUInt8(&p, u8);
+			}
+			
+			__WRITE(DDB_FORWARD, WriteInt8(&p, Cmd->Std.forwardmove));
+			__WRITE(DDB_SIDE, WriteInt8(&p, Cmd->Std.sidemove));
+			__WRITE(DDB_AIMING, LittleWriteUInt16((uint16_t**)&p, Cmd->Std.aiming));
+			__WRITE(DDB_ANGLE, LittleWriteInt16((int16_t**)&p, Cmd->Std.angleturn));
+			__WRITE(DDB_INVENTORY, WriteUInt8(&p, Cmd->Std.InventoryBits));
+			__WRITE(DDB_ARTIFACT, WriteUInt8(&p, Cmd->Std.artifact));
+			__WRITE(DDB_FLYSWIM, LittleWriteInt16((int16_t**)&p, Cmd->Std.FlySwim));
+			
+			if (u16 & DDB_WEAPON)
+				WriteString((uint8_t**)&p, Cmd->Std.XSNewWeapon);
+			
+			// Variable encode buttons and status flags
+			for (z = 0; z < 2; z++)
+			{
+				// Check if flag is not set, if not do not write anything
+				if (!(u16 & (z ? DDB_BUTTONS : DDB_STATFLAGS)))
+					continue;
+				
+				// Encode in variable length
+				Left = (z ? Cmd->Std.buttons : Cmd->Std.StatFlags);
+				do
+				{
+					u8 = Left & UINT32_C(0x7F);
+					Left >>= 7;
+					
+					if (Left)
+						u8 |= UINT8_C(0x80);
+					
+					WriteUInt8(&p, u8);
+				} while (Left);
+			}
+			
+			// Data pointers
+			dsP = &Cmd->Std.DataSize;
+			dbP = &Cmd->Std.DataBuf;
+#undef __WRITE	
+#undef __DIFFY
+		}
+		
+		// Extended data
+		else
+		{
+			// Data pointers
+			dsP = &Cmd->Ext.DataSize;
+			dbP = &Cmd->Ext.DataBuf;
+		}
+		
+		// Write pointer data
+		Left = *dsP;
+		do
+		{
+			// Get value and shift down
+			u16 = Left & UINT8_C(0x7F);
+			Left >>= 7;
+			
+			// More Data?
+			if (Left)
+				u16 |= UINT8_C(0x80);
+			
+			// Write Value
+			WriteUInt8(&p, u16);
+		} while (Left);
+		
+		// Write buffer
+		for (j = 0; j < *dsP; j++)
+			WriteUInt8(&p, dbP[j]);
+	}
+	
+	/* Checksum */
+	LittleWriteUInt32(&p, D_SNTicBufSum(a_TicBuf, a_VersionNum, u32));
+	
+	/* Done */
+	*a_OutD = Buf;
+	*a_OutSz = p - Buf;
+#undef BUFSIZE
+}
+
+/* D_SNDecodeTicBuf() -- Decodes tic buffer */
+bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz)
+{
+#define BUFSIZE 16384
+	static uint8_t* Buf;
+	uint8_t* p, u8;
+	uint16_t u16, Mask;
+	uint32_t PIG, u32;
+	ticcmd_t* Cmd;
+	uint16_t* dsP;
+	uint8_t* dbP, VersionNum;
+	int32_t i, j, z, ShiftMul;
+	
+	/* Check */
+	if (!a_TicBuf || !a_InD || !a_InSz)
+		return;
+	
+	/* Init */
+	if (!Buf)
+		Buf = Z_Malloc(BUFSIZE, PU_STATIC, NULL);
+	
+	// Setup buffer
+	memset(Buf, 0, BUFSIZE);
+	memmove(Buf, a_InD, (a_InSz < BUFSIZE ? a_InSz : BUFSIZE));
+	p = Buf;
+	
+	// Clear tic buffer
+	memset(a_TicBuf, 0, sizeof(*a_TicBuf));
+	
+	/* Read Data */
+	// Read Version
+	VersionNum = ReadUInt8(&p);
+	
+	// Read Gametic
+	ShiftMul = 0;
+	do
+	{
+		u16 = LittleReadUInt16(&p);
+		a_TicBuf->GameTic |= ((tic_t)(u16 & UINT16_C(0x7FFF))) << (15 * ShiftMul++);
+	} while (u16 & UINT16_C(0x8000));
+	
+	// Player in game
+	PIG = LittleReadUInt32(&p);
+	
+	// Player Commands
+	for (i = 0; i < MAXPLAYERS + 1; i++)
+	{
+		// Get tic command
+		Cmd = &a_TicBuf->Tics[i];
+		
+		// not in game?
+		if (!(PIG & (1 << i)) && i != MAXPLAYERS)
+			continue;
+		
+		// Read type
+		Cmd->Ctrl.Type = ReadUInt8(&p);
+		
+		// Read Ping
+		Cmd->Ctrl.Ping = LittleReadUInt16(&p);
+		
+		// Standard Player
+		if (!Cmd->Ctrl.Type)
+		{
+			// Read config mask
+			u8 = ReadUInt8(&p);
+			Mask = u8 & UINT8_C(0x7F);
+		
+			if (u8 & UINT8_C(0x80))
+			{
+				u8 = ReadUInt8(&p);
+				Mask |= ((uint16_t)u8) << 7;
+			}
+			
+			if (Mask & DDB_FORWARD)
+				Cmd->Std.forwardmove = ReadInt8(&p);
+			if (Mask & DDB_SIDE)
+				Cmd->Std.sidemove = ReadInt8(&p);
+			if (Mask & DDB_AIMING)
+				Cmd->Std.aiming = LittleReadUInt16(&p);
+			if (Mask & DDB_ANGLE)
+				Cmd->Std.angleturn = LittleReadInt16(&p);
+			if (Mask & DDB_INVENTORY)
+				Cmd->Std.InventoryBits = ReadUInt8(&p);
+			if (Mask & DDB_ARTIFACT)
+				Cmd->Std.artifact = ReadUInt8(&p);
+			if (Mask & DDB_FLYSWIM)
+				Cmd->Std.FlySwim = LittleReadInt16(&p);
+			
+			if (Mask & DDB_WEAPON)
+			{
+				j = 0;
+				do
+				{
+					u8 = ReadUInt8(&p);
+					
+					if (j < MAXTCWEAPNAME)
+						Cmd->Std.XSNewWeapon[j++] = u8;
+				} while (u8);
+			}
+			
+			// Variable decode buttons and status flags
+			for (z = 0; z < 2; z++)
+			{
+				// Check if flag is set
+				if (!(Mask & (z ? DDB_BUTTONS : DDB_STATFLAGS)))
+					continue;
+				
+				// Read variable length
+				u32 = ShiftMul = 0;
+				do
+				{
+					u8 = ReadUInt8(&p);
+					u32 |= ((uint32_t)(u8 & UINT8_C(0x7F))) << (7 * ShiftMul++);
+				} while (u8 & UINT8_C(0x80));
+				
+				// Set value
+				if (z)
+					Cmd->Std.buttons = u32;
+				else
+					Cmd->Std.StatFlags = u32;
+			}
+			
+			// Data pointers
+			dsP = &Cmd->Std.DataSize;
+			dbP = &Cmd->Std.DataBuf;
+		}
+		
+		// Extended
+		else
+		{
+			// Data pointers
+			dsP = &Cmd->Ext.DataSize;
+			dbP = &Cmd->Ext.DataBuf;
+		}
+		
+		// Read Size
+		*dsP = ShiftMul = 0;
+		do
+		{
+			u8 = ReadUInt8(&p);
+			*dsP |= (tic_t)(u8 & UINT16_C(0x7F)) << (7 * ShiftMul++);
+		} while (u8 & UINT16_C(0x80));
+		
+		// Read data buffer
+		for (j = 0; j < *dsP; j++)
+		{
+			u8 = ReadUInt8(&p);
+			
+			if (j < MAXTCDATABUF)
+				dbP[j] = u8;
+		}
+	}
+	
+	/* Confirm checksum */
+	u32 = LittleReadUInt32(&p);
+	return (u32 == D_SNTicBufSum(a_TicBuf, VersionNum, PIG));
+#undef BUFSIZE
 }
 

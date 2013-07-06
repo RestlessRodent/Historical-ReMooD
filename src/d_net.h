@@ -175,6 +175,10 @@ void D_SNDrawLobby(void);
 bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event);
 void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
 
+uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t a_VersionNum, const uint32_t a_Players);
+void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_SNTicBufVersion_t a_VersionNum);
+bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
+
 /*** TRANSMISSION ***/
 
 int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
