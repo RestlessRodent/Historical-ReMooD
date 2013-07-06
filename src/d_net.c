@@ -904,6 +904,18 @@ D_SNHost_t* D_SNHostByID(const uint32_t a_ID)
 	return NULL;
 }
 
+/* D_SNMyHost() -- Return your host */
+D_SNHost_t* D_SNMyHost(void)
+{
+	return l_MyHost;
+}
+
+/* D_SNSetMyHost() -- Sets your current host */
+void D_SNSetMyHost(D_SNHost_t* const a_Host)
+{
+	l_MyHost = a_Host;
+}
+
 /* D_SNCreateHost() -- Creates new host */
 D_SNHost_t* D_SNCreateHost(void)
 {
@@ -1616,8 +1628,8 @@ static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, 
 	char Buf[MAXTCSTRINGCAT + 1];
 	int32_t Cat, i;
 	
-	/* Check */
-	if (!a_PID)
+	/* Need Host */
+	if (!a_Host)
 		return;
 	
 	/* Concat? */
@@ -1635,6 +1647,7 @@ static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, 
 	
 	// Cat always
 	strncat(a_Host->QuitReason, Buf, MAXQUITREASON - 1);
+	
 }
 
 /* D_SNHandleGTCleanupHost() -- Handle delete host */
@@ -1672,7 +1685,7 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 	if (Port)
 		Host = Port->Host;
 	else
-		Host = D_SNHostByID(ID);
+		Host = D_SNHostByID(HID);
 	
 	/* Which Command? */
 	switch (a_ID)

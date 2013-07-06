@@ -391,6 +391,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "PSAVEGC_LEVELLOADFAIL", "The level failed to load correctly."},
 	{		 "PSAVEGC_ILLEGALTHINKER", "An illegal thinker exists."},
 	{	   "PSAVEGC_UNHANDLEDTHINKER", "A valid thinker is not currently handled."},
+	{			"PSAVEGC_ILLEGALHOST", "Port referes to an illegal host."},
 	
 	/*** I_UTLNET.C ***/
 	{			"IUTLNET_BADUNIXBIND", "Socket bind failed: $2 ($1)"},

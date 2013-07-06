@@ -146,6 +146,8 @@ void D_SNUpdate(void);
 
 D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host);
 D_SNHost_t* D_SNHostByID(const uint32_t a_ID);
+D_SNHost_t* D_SNMyHost(void);
+void D_SNSetMyHost(D_SNHost_t* const a_Host);
 D_SNHost_t* D_SNCreateHost(void);
 void D_SNDestroyHost(D_SNHost_t* const a_Host);
 

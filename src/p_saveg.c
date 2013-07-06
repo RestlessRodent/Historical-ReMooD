@@ -664,16 +664,49 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 
 /*---------------------------------------------------------------------------*/
 
+
+extern D_SNHost_t*** g_HostsP;
+extern int32_t* g_NumHostsP;
+
+#define GHOSTS (*g_HostsP)
+#define GNUMHOSTS (*g_NumHostsP)
+
 /* PS_SaveNetState() -- Saves networked state */
 static void PS_SaveNetState(D_BS_t* const a_Str)
 {
-	int32_t i;
+	int32_t i, j;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
 	
 	/* Save Hosts */
 	D_BSBaseBlock(a_Str, "HOST");
 	
+	// Current Host ID
+	Host = D_SNMyHost();
+	if (Host)
+		D_BSwu32(a_Str, Host->ID);
+	else
+		D_BSwu32(a_Str, 0);
+	
 	// Go through all hosts
-	//for (i = 0; i < 
+	for (i = 0; i < GNUMHOSTS; i++)
+	{
+		// Get Host
+		if (!(Host = GHOSTS[i]))
+			continue;
+		
+		// Something is here
+		D_BSwu8(a_Str, 1);
+		
+		// Dump host data
+		D_BSwu32(a_Str, Host->ID);
+		D_BSwu8(a_Str, Host->Local);
+		D_BSwu8(a_Str, Host->Cleanup);
+		D_BSws(a_Str, Host->QuitReason);
+	}
+	
+	// End
+	D_BSwu8(a_Str, 0);
 	
 	// Encode
 	D_BSRecordBlock(a_Str);
@@ -681,84 +714,246 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 	/* Save Ports */
 	D_BSBaseBlock(a_Str, "PORT");
 	
-	// Encode
-	D_BSRecordBlock(a_Str);
-	
-#if 0
-	size_t i;
-	D_XPlayer_t* XPlay;
-	B_BotTemplate_t* BotTemp;
-	
-	/* Base */
-	D_BSBaseBlock(a_Str, "NSTA");
-	
-	/* Encode */
-	// Save host ID
-	D_BSwu32(a_Str, D_XNetGetHostID());
-	
-	// Save XPlayers
-	for (i = 0; i < g_NumXPlays; i++)
+	// Go through all hosts again
+	for (i = 0; i < GNUMHOSTS; i++)
 	{
-		XPlay = g_XPlays[i];
-		
-		// Nothing here?
-		if (!XPlay)
+		// Get Host
+		if (!(Host = GHOSTS[i]))
 			continue;
 		
-		// Encode something is here
-		D_BSwu8(a_Str, i + 1);
-		
-		// Save IDs for recapturing
-		D_BSwu32(a_Str, XPlay->ID);
-		D_BSwu32(a_Str, XPlay->HostID);
-		D_BSwu32(a_Str, XPlay->ClProcessID);
-		
-		// Flags from server
-		D_BSwu32(a_Str, XPlay->Flags);
-		
-		// Local Profile Stuff
-		D_BSws(a_Str, XPlay->AccountName);
-		D_BSws(a_Str, XPlay->DisplayName);
-		D_BSws(a_Str, XPlay->ProfileUUID);
-		D_BSws(a_Str, XPlay->LoginUUID);
-		D_BSws(a_Str, XPlay->AccountServer);
-		D_BSws(a_Str, XPlay->AccountCookie);
-		
-		// Playing Info
-		D_BSwi8(a_Str, XPlay->ScreenID);
-		D_BSwi32(a_Str, XPlay->InGameID);
-		D_BSwi32(a_Str, XPlay->Ping);
-		D_BSwu32(a_Str, XPlay->StatusBits);
-		
-		// Try obtaining bot template
-		BotTemp = NULL;
-		if (XPlay->BotData)
-			BotTemp = B_BotGetTemplateDataPtr(XPlay->BotData);
-		
-		if (BotTemp)
-			D_BSws(a_Str, BotTemp->AccountName);
-		else
-			D_BSws(a_Str, "");
+		// Go through ports
+		for (j = 0; j < Host->NumPorts; j++)
+		{
+			// Get Port
+			if (!(Port = Host->Ports[j]))
+				continue;
+			
+			// Something is here
+			D_BSwu8(a_Str, 1);
+			
+			// Write data
+			D_BSwu32(a_Str, Port->ID);
+			D_BSwu32(a_Str, Port->Host->ID);
+			D_BSws(a_Str, Port->Name);
+			D_BSwu8(a_Str, Port->Bot);
+			D_BSwi32(a_Str, ((Port->Player) ? Port->Player - players : -1));
+			D_BSwi32(a_Str, Port->Screen);
+			
+			// Profile
+			if (Port->Profile)
+			{
+				D_BSws(a_Str, Port->Profile->UUID);
+				D_BSws(a_Str, Port->Profile->AccountName);
+			}
+			else
+			{
+				D_BSwu8(a_Str, 0);
+				D_BSwu8(a_Str, 0);
+			}
+			
+			// Fields reserved for bot
+			if (Port->Bot)
+			{
+				D_BSws(a_Str, "BotUUID");
+				D_BSws(a_Str, "BotName");
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+			}
+		}
 	}
 	
-	// Encode End
+	// End
 	D_BSwu8(a_Str, 0);
 	
-	/* Record */
+	// Encode
 	D_BSRecordBlock(a_Str);
-#endif
 }
 
 /* PS_LoadNetState() -- Loads networked state */
 static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 {
+#define UUIDLEN (MAXUUIDLENGTH + 2)
+	char Buf[UUIDLEN];
+	D_SNHost_t* MyHost;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	uint32_t ID, ReadID, PortID;
+	int32_t TempI, j;
+	bool_t Local;
+	D_SplitInfo_t* Split;
+	D_Prof_t* Prof;
+	
+	/* Get current host, if connected */
+	MyHost = NULL;
+	if (D_SNIsConnected())
+		MyHost = D_SNMyHost();
+	
 	/* Expect "HOST" */
 	if (!PS_Expect(a_Str, "HOST"))
 		return false;
+	
+	// Read my ID
+	ID = D_BSru32(a_Str);
+	
+	// Host reading loop
+	for (;;)
+	{
+		// End?
+		if (!D_BSru8(a_Str))
+			break;
+		
+		// Read the ID here
+		ReadID = D_BSru32(a_Str);
+		Local = D_BSru8(a_Str);
+		
+		// This is OUR host?
+		if (MyHost && MyHost->ID == ReadID)
+			Local = true;	// Connected
+		else if (ID == ReadID)
+			Local = true;	// Loading save game (take control of ourself)
+		else
+			Local = false;	// Do not possess this host
+		
+		// Create host, if this is not ours
+		if (MyHost && Local)
+			Host = MyHost;
+		else
+		{
+			if (!(Host = D_SNHostByID(ID)))	// maybe it already exists?
+				Host = D_SNCreateHost();
+			
+			// Make my host
+			if (Local)
+				MyHost = Host;
+		}
+		
+		// Fill in fields
+		Host->ID = ReadID;
+		Host->Local = Local;
+		Host->Cleanup = D_BSru8(a_Str);
+		D_BSrs(a_Str, Host->QuitReason, MAXQUITREASON);
+	}
+	
+	// Set local host
+	MyHost = D_SNHostByID(ID);
+	D_SNSetMyHost(MyHost);
 		
 	/* Expect "PORT" */
 	if (!PS_Expect(a_Str, "PORT"))
 		return false;
+	
+	// Port reading loop
+	for (;;)
+	{
+		// End?
+		if (!D_BSru8(a_Str))
+			break;
+		
+		// Read Port IDs
+		PortID = D_BSru32(a_Str);
+		ReadID = D_BSru32(a_Str);
+		
+		// Find host that owns this port
+		Host = D_SNHostByID(ReadID);
+		
+		// Something bad happened
+		if (!Host)
+			return PS_IllegalSave(DSTR_PSAVEGC_ILLEGALHOST);
+		
+		// Create Port for this host
+		Port = D_SNAddPort(Host);
+		
+		// Set fields
+		Port->ID = PortID;
+		D_BSrs(a_Str, Port->Name, MAXPLAYERNAME);
+		Port->Bot = D_BSru8(a_Str);
+		
+		// Read player ID
+		TempI = D_BSri32(a_Str);
+		
+		if (TempI >= 0 && TempI < MAXPLAYERS)
+		{
+			Port->Player = &players[TempI];
+			players[TempI].Port = Port;
+		}
+		
+		// Screen
+		Port->Screen = D_BSri32(a_Str);
+		
+		// Profile
+		for (TempI = 0; TempI < 2; TempI++)
+		{
+			// Read string
+			D_BSrs(a_Str, Buf, UUIDLEN);
+			
+			// If profile not set, try setting
+			if (!Port->Profile)
+				if ((Prof = D_FindProfileEx(Buf)))
+					D_SNSetPortProfile(Port, Prof);
+		}
+		
+		// Reserved for bot
+		if (Port->Bot)
+		{
+			D_BSrs(a_Str, NULL, 0);
+			D_BSrs(a_Str, NULL, 0);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+		}
+	}
+	
+	/* Reset all splits */
+	D_NCResetSplits(demoplayback);
+	g_SplitScreen = -1;
+	
+	/* Re-allocate local screens to determine who is who */
+	for (TempI = 0; TempI < MyHost->NumPorts; TempI++)
+	{
+		// Get current port
+		if (!(Port = MyHost->Ports[TempI]))
+			continue;
+		
+		// Ignore bot or non-screened players
+		if (Port->Bot || Port->Screen < 0 || Port->Screen >= MAXSPLITSCREEN)
+			continue;
+		
+		// Get this split
+		Split = &g_Splits[Port->Screen];
+		
+		// Two players own the same split!?
+		if (Split->DoNotSteal)
+			continue;
+		
+		// Initialize split for this port
+		if (Port->Player)
+		{
+			Split->Active = true;
+			Split->Console = Split->Display = Port->Player - players;
+		}
+		
+		else
+			Split->Console = Split->Display = -1;
+		
+		if (!demoplayback)
+			Split->Waiting = true;
+		
+		// Do not steal
+		Split->DoNotSteal = true;
+		Split->Port = Port;
+		Split->Profile = Port->Profile;
+		
+		// Increase split count
+		g_SplitScreen++;
+	}
+	
+	// Fixup splits
+	R_ExecuteSetViewSize();
 	
 #if 0
 	uint32_t OurHost, SaveHost;
@@ -1002,6 +1197,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	return true;
 #endif
 	return true;
+#undef UUIDLEN
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2787,23 +2983,17 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 #if 0
 	/* Force Lag */
 	D_XNetForceLag();
+#endif
 	
-	/* Determine how loading is to be handled */
+	/* Disconnect if not playing or if we are a server loading a game */
 	// If we are the server or playing solo, we want to disconnect dropping all
 	// other players from the game. However, if we are a connecting client we
 	// do not want to disconnect.
 	// However, an option passed to the game can say to not disconnect, i.e.
 	// such as when playing a demo or joining a netgame.
 	if (!a_DemoPlay)
-		if (
-			// Playing Demo or on Title Screen
-			(demoplayback || gamestate == GS_DEMOSCREEN) ||
-		
-			// We are the server
-			(D_XNetIsServer())
-			)
-			D_XNetDisconnect(false);
-#endif
+		if (D_SNIsServer() || (demoplayback || gamestate == GS_DEMOSCREEN))
+			D_SNDisconnect(false, "Loading a save game.");
 	
 	// Switch to the WFGS screen
 	gamestate = GS_WAITINGPLAYERS;

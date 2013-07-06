@@ -123,7 +123,7 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 			if ((Host = (*g_HostsP)[i]))
 			{
 				// Remote has no save game?
-				if (!Host->Local && !Host->Save.Has && Host->Save.Want && gametic >= Host->Save.TicTime)
+				if (!Host->Cleanup && !Host->Local && !Host->Save.Has && Host->Save.Want && gametic >= Host->Save.TicTime)
 				{
 					// Not latched
 					if (!Host->Save.Latched)

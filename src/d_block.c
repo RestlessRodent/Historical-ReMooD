@@ -2331,7 +2331,7 @@ size_t D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize)
 	uint8_t Char;
 	
 	/* Check */
-	if (!a_Stream || !a_Out || !a_OutSize)
+	if (!a_Stream)
 		return 0;
 	
 	/* Read variable string data */
@@ -2344,18 +2344,19 @@ size_t D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize)
 		if (!Char)
 		{
 			// Append NUL, if possible
-			if (i < a_OutSize)
+			if (a_Out && i < a_OutSize)
 				a_Out[i] = 0;
 			break;
 		}
 		
 		// Otherwise add to the output
-		if (i < a_OutSize)
+		if (a_Out && i < a_OutSize)
 			a_Out[i] = Char;
 	}
 	
 	/* Always put NUL at very end */
-	a_Out[a_OutSize - 1] = 0;
+	if (a_Out)
+		a_Out[a_OutSize - 1] = 0;
 	
 	/* Return read count */
 	return i;	
