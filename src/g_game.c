@@ -359,7 +359,7 @@ static const char* const a_ChatPrefix[4] =
 /* GS_HandleExtraCommands() -- Handles extra commands */
 static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 {
-	const uint8_t* Rp, *Rb, *Re;
+	const uint8_t* Rp, *Rb, *Re, *Next;
 	uint8_t Command;
 	
 	int i, j, k, l;
@@ -390,13 +390,19 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	}
 	
 	/* Constantly Read Bits */
+	Next = Rp;
 	do
 	{
+		// Read Next Command
+		Rp = Next;
 		Command = ReadUInt8((uint8_t**)&Rp);
 		
 		// Don't overflow! untrusted!
-		if (Command < 0 || Command >= NUMDTCT)
+		if (Command <= 0 || Command >= NUMDTCT)
 			break;
+		
+		// Determine next command to read
+		Next = Rp + c_TCDataSize[Command];
 			
 		// Not big enough?
 		if ((uintptr_t)(Rp + c_TCDataSize[Command]) > (uintptr_t)(Re))
@@ -413,6 +419,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			case DTCT_SNJOINPLAYER:
 			case DTCT_SNQUITREASON:
 			case DTCT_SNCLEANUPHOST:
+			case DTCT_SNJOINHOST:
 				D_SNHandleGT(Command, &Rp);
 				break;
 				

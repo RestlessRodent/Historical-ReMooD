@@ -623,7 +623,7 @@ void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
-	uint8_t IsServer;
+	uint8_t IsServer, *Wp;
 	D_SNHost_t* New;
 	
 	/* If not allocated, build host for it */
@@ -643,9 +643,23 @@ void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		// Create a host for them
 		New = D_SNCreateHost();
 		
+		// Create unique ID
+		do
+		{
+			New->ID = D_CMakePureRandom();
+		} while (!New->ID || D_SNHostByID(New->ID) != New);
+		
 		// Fill info
 		memmove(&New->Addr, a_Addr, sizeof(*a_Addr));
 		New->BS = a_BS;
+		
+		// Create packet
+		if (D_SNExtCmdInGlobal(DTCT_SNJOINHOST, &Wp))
+		{
+			LittleWriteUInt32((uint32_t**)&Wp, New->ID);
+			LittleWriteUInt32((uint32_t**)&Wp, 0);
+			WriteUInt8(&Wp, 0);
+		}
 	}
 	
 	// Use host here

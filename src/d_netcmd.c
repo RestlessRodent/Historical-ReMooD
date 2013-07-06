@@ -124,6 +124,12 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32	HID
 		// uint32	ID
 		// uint8	PlayerID
+	
+	// DTCT_SNJOINHOST, Host connects
+	4 + 4 + 1,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
 };
 
 /*** GLOBALS ***/

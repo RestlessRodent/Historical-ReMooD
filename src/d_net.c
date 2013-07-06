@@ -111,6 +111,7 @@ bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp)
 	
 	/* Failed, increase global at and try next one */
 	l_GlobalAt++;
+	memset(&l_GlobalBuf[l_GlobalAt], 0, sizeof(l_GlobalBuf[l_GlobalAt]));
 	l_GlobalBuf[l_GlobalAt].Ctrl.Type = 1;	// Set extended
 	if (D_SNExtCmdInTicCmd(a_ID, a_Wp, &l_GlobalBuf[l_GlobalAt]))
 		return true;
@@ -829,22 +830,18 @@ void D_SNUpdate(void)
 	D_SNHost_t* Host;
 	D_SNPort_t* Port;
 	
-	/* Do not update in demo */
-	if (demoplayback)
-		return;	
+	/* Do not update ports or transport during demo */
+	if (!demoplayback)
+	{
+		// Update ports
+		D_SNUpdateLocalPorts();
 	
-	/* Update ports */
-	D_SNUpdateLocalPorts();
+		// HTTP Interface
+		I_UpdateHTTPSpy();
 	
-	/* HTTP Interface */
-	I_UpdateHTTPSpy();
-	
-	/* Network Socket */
-	D_SNDoTrans();
-	
-	/* Server only ahead */
-	if (!l_Server)
-		return;
+		// Network Socket
+		D_SNDoTrans();
+	}
 	
 	/* Go through all hosts and ports */
 	for (h = 0; h < l_NumHosts; h++)
@@ -855,14 +852,18 @@ void D_SNUpdate(void)
 				if (D_SNCleanupHost(Host))
 					continue;
 			
-			// Go through ports
-			for (p = 0; p < Host->NumPorts; p++)
-				if ((Port = Host->Ports[p]))
-				{
-					// If will join is set, try joining this port
-					if (Port->WillJoin)
-						D_SNPortTryJoin(Port);
-				}
+			// Server only
+			if (l_Server)
+			{
+				// Handle all ports
+				for (p = 0; p < Host->NumPorts; p++)
+					if ((Port = Host->Ports[p]))
+					{
+						// If will join is set, try joining this port
+						if (Port->WillJoin)
+							D_SNPortTryJoin(Port);
+					}
+			}
 		}
 }
 
@@ -1633,11 +1634,11 @@ static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, 
 		return;
 	
 	/* Concat? */
-	Cat = ReadUInt8(&a_PP);
+	Cat = ReadUInt8(a_PP);
 	
 	/* Read Message */
 	for (i = 0; i < MAXTCSTRINGCAT; i++)
-		Buf[i] = ReadUInt8(&a_PP);
+		Buf[i] = ReadUInt8(a_PP);
 	Buf[MAXTCSTRINGCAT] = 0;
 	
 	/* Add to reason */
@@ -1658,7 +1659,24 @@ static void D_SNHandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_
 		return;
 	
 	/* Call cleanup */
-	D_SNCleanupHost(a_Host);
+	if (!l_Server)
+		D_SNCleanupHost(a_Host);
+}
+
+/* D_SNHandleGTJoinHost() -- Host joins the game */
+static void D_SNHandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	D_SNHost_t* New;	
+	
+	/* Create host if it does not exist */
+	if (!a_Host)
+	{
+		New = D_SNCreateHost();
+		New->ID = a_HID;
+	}
+	
+	/* Display message */
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTCONNECTED, "%s\n", "Client");
 }
 
 /* D_SNHandleGT() -- Handles game command IDs */
@@ -1703,6 +1721,11 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			// Delete Host
 		case DTCT_SNCLEANUPHOST:
 			D_SNHandleGTCleanupHost(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Create Host
+		case DTCT_SNJOINHOST:
+			D_SNHandleGTJoinHost(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!

@@ -161,6 +161,7 @@ enum
 	DTCT_XMORPHPLAYER,							// Morph Player
 	DTCT_SNQUITREASON,							// Reason for quitting
 	DTCT_SNCLEANUPHOST,							// Tell clients to cleanup host
+	DTCT_SNJOINHOST,							// Host Joins
 	
 	NUMDTCT
 };
