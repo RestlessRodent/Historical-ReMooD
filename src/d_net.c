@@ -763,8 +763,9 @@ bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 	char Buf[MAXTCSTRINGCAT];
 	char* s;
 	uint8_t* Wp;
-	int32_t At, Cat;
+	int32_t At, Cat, i;
 	const char* Name;
+	D_SNPort_t* Port;
 	
 	/* Check */
 	if (!a_Host)
@@ -773,6 +774,12 @@ bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 	/* If server, create tic command */
 	if (l_Server)
 	{
+		// Remove players that the host controls
+		for (i = 0; i < a_Host->NumPorts; i++)
+			if ((Port = a_Host->Ports[i]))
+				if (Port->Player)
+					D_SNRemovePlayer(Port->Player - players);
+		
 		// Reason
 		for (Cat = 0, Wp = NULL, s = a_Host->QuitReason; *s; s++)
 		{
@@ -1453,7 +1460,7 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	
 	/* Find free player spot */
 	for (p = 0; p < MAXPLAYERS; p++)
-		if (!PortMap[p])
+		if (!PortMap[p] && !playeringame[p])
 			break;
 	
 	// No room
@@ -1484,6 +1491,24 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 }
 
 /*** GAME CONTROL ***/
+
+/* D_SNRemovePlayer() -- Remove player from game */
+void D_SNRemovePlayer(const int32_t a_PlayerID)
+{
+	uint8_t* Wp;
+	
+	/* Check */
+	if (!l_Server || a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
+		return;
+	
+	/* Build packet */
+	if (D_SNExtCmdInGlobal(DTCT_SNPARTPLAYER, &Wp))
+	{
+		LittleWriteUInt32((uint32_t**)&Wp, 0);
+		LittleWriteUInt32((uint32_t**)&Wp, 0);
+		WriteUInt8((uint8_t**)&Wp, a_PlayerID);
+	}
+}
 
 /* D_SNChangeMap() -- Changes the map */
 void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset)
@@ -1627,6 +1652,60 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 		}
 }
 
+/* D_SNHandleGTPartPlayer() -- Handle leaving player */
+static void D_SNHandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	player_t* Player;
+	int32_t i;
+	mobj_t* Mo;
+	
+	/* Out of bounds? */
+	if (a_PID < 0 || a_PID >= MAXPLAYERS)
+		return;
+	
+	/* Get player */
+	Player = &players[a_PID];
+	
+	/* Count as suicide against self */
+	// This is for any scripting, held flags, etc.
+	Mo = Player->mo;
+	
+	if (Mo)	// Do not kill a counter-op controlled monster however
+		if (!P_GMIsCounter() || (P_GMIsCounter() && !Player->CounterOpPlayer))
+			P_KillMobj(Mo, Mo, Mo);
+	
+	// Player is no longer in game
+	if (Mo)
+		Mo->player = NULL;
+	Player->mo = NULL;
+	playeringame[a_PID] = false;
+	
+	/* Make local split a spectator */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitVisible(i))
+			if (g_Splits[i].Console == a_PID)
+			{
+				// Remove console view
+				g_Splits[i].Console = -1;
+				
+				// If F12ing other player, keep F12
+				if (g_Splits[i].Display != g_Splits[i].Console)
+					g_Splits[i].Display = -1;
+				
+				// Make inactive
+				g_Splits[i].Active = false;
+				
+				if (!demoplayback)
+					g_Splits[i].Waiting = true;
+			}
+	
+	/* Unassign port */
+	Player->Port = NULL;
+	
+	if (a_Port)
+		a_Port->Player = NULL;
+}
+
 /* D_SNHandleGTCleanupHost() -- Handle delete host */
 static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
@@ -1715,6 +1794,11 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			// Player Joins Game
 		case DTCT_SNJOINPLAYER:
 			D_SNHandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Player leaves game
+		case DTCT_SNPARTPLAYER:
+			D_SNHandleGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Disconnect reason

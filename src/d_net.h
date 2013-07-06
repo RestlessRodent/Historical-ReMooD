@@ -165,6 +165,7 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port);
 
 /*** GAME CONTROL ***/
 
+void D_SNRemovePlayer(const int32_t a_PlayerID);
 void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
 

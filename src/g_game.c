@@ -420,6 +420,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			case DTCT_SNQUITREASON:
 			case DTCT_SNCLEANUPHOST:
 			case DTCT_SNJOINHOST:
+			case DTCT_SNPARTPLAYER:
 				D_SNHandleGT(Command, &Rp);
 				break;
 				
