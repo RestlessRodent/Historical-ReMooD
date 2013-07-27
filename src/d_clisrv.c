@@ -72,14 +72,6 @@ int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
 //  Some extra data function for handle textcmd buffer
 // -----------------------------------------------------------------
 
-static void D_Clearticcmd(int tic)
-{
-	int i;
-	
-	for (i = 0; i < MAXPLAYERS; i++)
-		netcmds[tic % BACKUPTICS][i].Std.angleturn = 0;	//&= ~TICCMD_RECEIVED;
-}
-
 #define ___STRINGIZE(x) #x
 #define __STRINGIZE(x) ___STRINGIZE(x)
 
@@ -90,28 +82,6 @@ static void D_Clearticcmd(int tic)
 //
 void D_QuitNetGame(void)
 {
-}
-
-// is there a game running
-bool_t Playing(void)
-{
-	return ((playeringame[0] == 1) && !demoplayback);
-}
-
-// Copy an array of ticcmd_t, swapping between host and network uint8_t order.
-//
-static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
-{
-	int i;
-	
-	for (i = 0; i < n; src++, dst++, i++)
-	{
-		dst->Std.forwardmove = src->Std.forwardmove;
-		dst->Std.sidemove = src->Std.sidemove;
-		dst->Std.angleturn = src->Std.angleturn;
-		dst->Std.aiming = src->Std.aiming;
-		dst->Std.buttons = src->Std.buttons;
-	}
 }
 
 //
@@ -140,7 +110,7 @@ void D_RunSingleTic(void)
 	if (demoplayback)
 		G_DemoPostGTicker();
 	
-	// Can join people now
+	// People can join now
 }
 
 /* TryRunTics() -- Attempts to run a single tic */
