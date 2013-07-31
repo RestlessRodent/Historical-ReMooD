@@ -71,6 +71,9 @@ static int32_t l_NumHosts;						// Number of hosts
 D_SNHost_t*** g_HostsP = &l_Hosts;
 int32_t* g_NumHostsP = &l_NumHosts;
 
+static D_SNTicBuf_t l_NowTic[2];				// Tic that is now!
+static uint8_t l_NowPress;						// Which "now" is pressed
+
 static D_SNTicBuf_t l_LocalBuf[MAXLOCALTICS];	// Local tic buffer
 static int32_t l_LocalAt;						// Local tics at
 
@@ -167,6 +170,7 @@ bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* co
 
 /*** SERVER CONTROL ***/
 
+/* D_SNDropAllClients() -- Drops all clients from the game */
 void D_SNDropAllClients(const char* const a_Reason)
 {
 	static bool_t Dropping;
@@ -259,6 +263,10 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	
 	/* Clear flags */
 	l_Connected = l_Server = false;
+	
+	/* Clear now tics */
+	memset(l_NowTic, 0, sizeof(l_NowTic));
+	l_NowPress = 0;
 	
 	/* Go back to the title screen */
 	if (!a_FromDemo)
@@ -1239,12 +1247,26 @@ D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic)
 	return NULL;
 }
 
+/* D_SNStartTic() -- Start of a new tic */
+void D_SNStartTic(const tic_t a_GameTic)
+{
+	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
+	
+	/* Start of a new tic */
+	// Clear the current press
+	memset(Now, 0, sizeof(*Now));
+	
+	/* Write gametic here */
+	Now->GameTic = a_GameTic;
+}
+
 /* D_SNTics() -- Handles tic commands */
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
 	D_SNHost_t* Host;
 	D_SNPort_t* Port;
 	int32_t h, p;
+	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
 	
 	/* If not writing, clear tic command */
 	if (!a_Write)
@@ -1256,6 +1278,9 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 		// Write Commands to clients
 		if (a_Write)
 		{
+			// Save tic command in the now press
+			p = (a_Player < 0 ? MAXPLAYERS : p);
+			memmove(&Now->Tics[p], a_TicCmd, sizeof(ticcmd_t));
 		}
 		
 		// Read command from tic queues
@@ -1305,6 +1330,13 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 				D_XNetMergeTics(a_TicCmd, Port->LocalBuf, Port->LocalAt);
 				Port->LocalAt = 0;
 				memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+				
+				// Set ping from host
+				a_TicCmd->Ctrl.Ping = Port->Host->Ping;
+				
+				// Copy status flags from port
+				if (!a_TicCmd->Ctrl.Type)
+					a_TicCmd->Std.StatFlags = Port->StatFlags;
 				
 				// Handle local angles, if a local player
 				if (Port->Host && Port->Host->Local)
@@ -1362,6 +1394,26 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 /* D_SNSyncCode() -- Inputs sync code */
 void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 {
+	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
+	
+	/* Server */
+	if (l_Server)
+	{
+		// Invert press
+		l_NowPress = !l_NowPress;
+		
+		// Encode sync code in this buffer
+		Now->GameTic = a_GameTic;
+		Now->SyncCode = a_Code;
+		
+		// Tic can now be sent to clients
+		D_SNXMitTics(a_GameTic, Now);
+	}
+	
+	/* Client */
+	else
+	{
+	}
 }
 
 /* D_SNSetPortProfile() -- Set port profile */

@@ -58,11 +58,18 @@ typedef enum D_ClientStage_e
 	DCS_PLAYING
 } D_ClientStage_t;
 
+#define MAXENCSTACK	32
+
+#define GHOSTS (*g_HostsP)
+#define GNUMHOSTS (*g_NumHostsP)
+
 /*****************
 *** STRUCTURES ***
 *****************/
 
 #define CHAINSIZE 128
+#define ENCODESIZE 16384
+#define MAXJOBHOSTS 64
 
 /* D_WADChain_t -- WAD Chain */
 typedef struct D_WADChain_s
@@ -75,6 +82,21 @@ typedef struct D_WADChain_s
 	struct D_WADChain_s* Next;
 	bool_t Want;								// Wants
 } D_WADChain_t;
+
+/* D_JobHost_t -- Remote host specifier in a job */
+typedef struct D_JobHost_s
+{
+	D_SNHost_t* Host;							// Host pointer
+	int32_t ArrID;								// Array ID
+} D_JobHost_t;
+
+/* D_XMitJob_t -- Transmission jobs, who needs what */
+typedef struct D_XMitJob_s
+{
+	uint8_t EncData[ENCODESIZE];				// Encoded data buffer
+	uint32_t EncSize;							// Encode size
+	D_JobHost_t Dests[MAXJOBHOSTS];				// Job hosts
+} D_XMitJob_t;
 
 /**************
 *** GLOBALS ***
@@ -95,9 +117,95 @@ static D_WADChain_t* l_WADTail;
 static D_ClientStage_t l_Stage;
 static uint8_t l_IsIWADMap, l_IsFreeDoom, l_IWADMission;
 
+static D_XMitJob_t l_XStack[MAXENCSTACK];		// Transmission stack
+static int32_t l_XAt;							// Current transmission at
+
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* D_SNXMitTics() -- Transmit tics to local client */
+void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
+{
+	static D_JobHost_t* HostL;
+	static int32_t NumHostL, MaxHostL;
+	
+	D_XMitJob_t* Job;
+	int32_t i;
+	D_SNHost_t* Host;
+	uint8_t* OutD;
+	uint32_t OutS;
+	
+	/* Wipe the host list */
+	if (HostL)
+	{
+		memset(HostL, 0, sizeof(*HostL) * MaxHostL);
+		NumHostL = 0;
+	}
+	
+	/* Go through hosts and determine who needs this nice new tic */
+	for (i = 0; i < GNUMHOSTS; i++)
+		if ((Host = GHOSTS[i]))
+		{
+			// Ignore local hosts (they are the server!)
+			if (Host->Local)
+				continue;
+			
+			// Host is in initial connect stage
+			if (!Host->Save.Has)
+			{
+				// Does not want save game
+				if (!Host->Save.Want)
+					continue;
+			
+				// This tic is before their join window tic
+				if (a_GameTic < Host->Save.TicTime)
+					continue;
+			}
+			
+			// Need to resize host list?
+			if (NumHostL >= MaxHostL)
+			{
+				Z_ResizeArray((void**)&HostL, sizeof(*HostL),
+					MaxHostL, MaxHostL + 1);
+				MaxHostL++;
+			}
+			
+			// At end of jobs?
+			if (NumHostL >= MAXJOBHOSTS - 1)
+			{
+				D_SNDisconnectHost(Host, "No more jobs available.");
+				continue;
+			}
+			
+			// Place host here
+			HostL[NumHostL].Host = Host;
+			HostL[NumHostL++].ArrID = i;
+		}
+	
+	/* No hosts want this tic */
+	if (!NumHostL)
+		return;
+	
+	/* Place job at end */
+	Job = NULL;
+	if (l_XAt < MAXENCSTACK)
+		Job = &l_XStack[l_XAt++];
+	
+	// really bad!
+	if (!Job)
+		return;
+	
+	/* Initialize job */
+	memset(Job, 0, sizeof(*Job));
+	
+	// Encode tic buffer and clone the data into the job
+	D_SNEncodeTicBuf(a_Buffer, &OutD, &OutS, DXNTBV_LATEST);
+	memmove(Job->EncData, OutD, (OutS < ENCODESIZE ? OutS : ENCODESIZE));
+	
+	// Put all players that should get this job
+	memmove(Job->Dests, HostL, sizeof(*HostL) * NumHostL);
+}
 
 /* D_SNOkTics() -- Tics that can be run by the game */
 int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
@@ -114,6 +222,11 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 	/* Server */
 	if (D_SNIsServer())
 	{
+		// Job tranmission buffer is almost full!
+			// A client is lagging
+		if (l_XAt >= MAXENCSTACK - 2)
+			return 0;
+		
 		// Did not make save
 		SaveID = -1;
 		Kick = false;

@@ -629,6 +629,9 @@ void G_Ticker(void)
 	if (demorecording)
 		G_WriteStartTic(NowCode);
 	
+	// start network tick
+	D_SNStartTic(gametic);
+	
 	/* Global Commands */
 	// Clear
 	memset(&GlobalCmd, 0, sizeof(GlobalCmd));

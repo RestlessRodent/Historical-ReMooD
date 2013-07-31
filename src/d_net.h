@@ -86,6 +86,7 @@ typedef struct D_SNPort_s
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
 	bool_t WillJoin;							// Will join game
+	uint32_t StatFlags;							// Status Flags
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -109,6 +110,8 @@ struct D_SNHost_s
 		tic_t PTimer;							// Program Timer
 		bool_t Latched;							// Latched
 	} Save;										// Savegame status
+	
+	int32_t Ping;								// Ping of host
 };
 
 /*****************
@@ -159,6 +162,7 @@ void D_SNRemovePort(D_SNPort_t* const a_Port);
 D_SNPort_t* D_SNRequestPort(void);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic);
+void D_SNStartTic(const tic_t a_GameTic);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
 void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
@@ -186,6 +190,7 @@ bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD
 
 /*** TRANSMISSION ***/
 
+void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer);
 int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
 bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);
 void D_SNNetTerm(const char* const a_Reason);
