@@ -1253,12 +1253,14 @@ uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t 
 		// Not playing?
 		if (!(a_Players & (1 << i)))
 		{
-			RetVal ^= UINT32_C(0xBEEF1337);
+			if (a_VersionNum >= DXNTBV_VER20130731)
+				RetVal ^= UINT32_C(0xBEEF1337);
 			continue;
 		}
 		
 		// Standard constant
-		RetVal ^= UINT32_C(0xCAFEBABE);
+		if (a_VersionNum >= DXNTBV_VER20130731)
+			RetVal ^= UINT32_C(0xCAFEBABE);
 		
 		// XOR in buttons
 		RetVal ^= TicCmd->Std.buttons;

@@ -1422,8 +1422,7 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 			return;
 		
 		// Copy tic owner
-		memmove(a_TicCmd, &l_LocalBuf[0].Tics[(a_Player < 0 ? MAXPLAYERS : p)],
-			sizeof(ticcmd_t));
+		memmove(a_TicCmd, &l_LocalBuf[0].Tics[(a_Player < 0 ? MAXPLAYERS : a_Player)], sizeof(*a_TicCmd));
 	}
 }
 

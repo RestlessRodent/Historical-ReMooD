@@ -210,8 +210,9 @@ typedef enum D_SNTicBufVersion_s
 	DXNTBV_ILLEGALVERSION,						// Illegal Version	
 	
 	DXNTBV_VER20130327,							// 2013/03/27
+	DXNTBV_VER20130731,							// 2013/07/31
 	
-	DXNTBV_LATEST = DXNTBV_VER20130327,			// Lastest Version
+	DXNTBV_LATEST = DXNTBV_VER20130731,			// Lastest Version
 } D_SNTicBufVersion_t;
 
 
