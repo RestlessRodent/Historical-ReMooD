@@ -1252,7 +1252,13 @@ uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t 
 		
 		// Not playing?
 		if (!(a_Players & (1 << i)))
+		{
+			RetVal ^= UINT32_C(0xBEEF1337);
 			continue;
+		}
+		
+		// Standard constant
+		RetVal ^= UINT32_C(0xCAFEBABE);
 		
 		// XOR in buttons
 		RetVal ^= TicCmd->Std.buttons;
@@ -1466,7 +1472,7 @@ bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD
 	
 	/* Check */
 	if (!a_TicBuf || !a_InD || !a_InSz)
-		return;
+		return false;
 	
 	/* Init */
 	if (!Buf)

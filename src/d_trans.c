@@ -187,7 +187,6 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	int32_t i;
 	D_SNHost_t* Host;
 	uint8_t* OutD;
-	uint32_t OutS;
 	
 	/* Wipe the host list */
 	if (HostL)
@@ -258,8 +257,8 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	Job->GameTic = a_GameTic;
 	
 	// Encode tic buffer and clone the data into the job
-	D_SNEncodeTicBuf(a_Buffer, &OutD, &OutS, DXNTBV_LATEST);
-	memmove(Job->EncData, OutD, (OutS < ENCODESIZE ? OutS : ENCODESIZE));
+	D_SNEncodeTicBuf(a_Buffer, &OutD, &Job->EncSize, DXNTBV_LATEST);
+	memmove(Job->EncData, OutD, (Job->EncSize < ENCODESIZE ? Job->EncSize : ENCODESIZE));
 	
 	// Put all players that should get this job
 	memmove(Job->Dests, HostL, sizeof(*HostL) * NumHostL);
@@ -1171,6 +1170,9 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	uint32_t Size;
 	D_SNTicBuf_t* TicBuf;
 	
+	static uint8_t* Buf;
+	static uint32_t BufSize;
+	
 	/* Client Only that is connected */
 	// Accept can play now in case of some packets being missed.
 	if (D_SNIsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
@@ -1179,6 +1181,25 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	/* Read packet data */
 	GameTic = D_BSrcu64(a_BS);
 	Size = D_BSru32(a_BS);
+	
+	// Size limitation
+	if (Size > 32767)
+		Size = 32767;
+	
+	// Allocate buffer, if needed
+	if (!Buf || Size > BufSize)
+	{
+		// Clear old
+		if (Buf)
+		{
+			Z_Free(Buf);
+			Buf = NULL;
+		}
+		
+		// Make new
+		Buf = Z_Malloc(Size, PU_STATIC, NULL);
+		BufSize = Size;
+	}
 	
 	// Find tic buffer for this tic
 	TicBuf = D_SNBufForGameTic(GameTic);
@@ -1190,7 +1211,12 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	// Never got tic
 	if (!TicBuf->GotTic)
 	{
-		if (!D_SNDecodeTicBuf(TicBuf, a_BS->BlkData[a_BS->ReadOff], Size))
+		// Read packet into buffer (this is here to reduce CPU cost)
+		memset(Buf, 0, BufSize);
+		D_BSReadChunk(a_BS, Buf, Size);
+		
+		// Decode
+		if (!D_SNDecodeTicBuf(TicBuf, Buf, Size))
 		{
 			D_SNPartialDisconnect("Tic decode error");
 			return;
@@ -1199,8 +1225,6 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		// Got tic now yay!
 		TicBuf->GotTic = true;
 	}
-	
-	CONL_PrintF("Got %u\n", (int)GameTic);
 	
 	/* Reply to server saying, the tic was recieved and buffered */
 	D_BSBaseBlock(a_BS, "JOBA");
