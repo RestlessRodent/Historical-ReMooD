@@ -88,14 +88,17 @@ typedef struct D_JobHost_s
 {
 	D_SNHost_t* Host;							// Host pointer
 	int32_t ArrID;								// Array ID
+	tic_t LastSend;								// Last Send
 } D_JobHost_t;
 
 /* D_XMitJob_t -- Transmission jobs, who needs what */
 typedef struct D_XMitJob_s
 {
+	tic_t GameTic;								// Tic job is for
 	uint8_t EncData[ENCODESIZE];				// Encoded data buffer
 	uint32_t EncSize;							// Encode size
 	D_JobHost_t Dests[MAXJOBHOSTS];				// Job hosts
+	int32_t NumDests;							// Number of destinations
 } D_XMitJob_t;
 
 /**************
@@ -124,6 +127,57 @@ static int32_t l_XAt;							// Current transmission at
 *** FUNCTIONS ***
 ****************/
 
+/* D_SNDeleteJob() -- Delets job from list */
+// Assumes for loop with i++ in for statement
+static void D_SNDeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
+{
+	int32_t i;
+	D_XMitJob_t* Job;
+	
+	/* Find job in buffer */
+	for (i = 0; i < l_XAt; i++)
+		if ((Job = &l_XStack[i]) == a_Job)
+		{
+			// Wipe any trace of the job
+			memmove(&l_XStack[i], &l_XStack[i + 1], MAXENCSTACK - (i + 1));
+			l_XAt--;
+			
+			// If i was passed, lower value
+			if (a_iP)
+				if (*a_iP >= i)
+					*a_iP -= 1;
+			
+			// Job was deleted
+			return;
+		}
+}
+
+/* D_SNDeleteIndexInJob() -- Deletes index in this job */
+static void D_SNDeleteIndexInJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Job || !a_iP)
+		return;
+	
+	/* Move down */
+	for (i = *a_iP; i < a_Job->NumDests; i++)
+		a_Job[i] = a_Job[i + 1];
+	
+	// Decrement
+	*a_iP -= 1;
+	a_Job->NumDests -= 1;
+}
+
+/* D_SNClearJobs() -- Clears all jobs */
+void D_SNClearJobs(void)
+{
+	/* Loop deletion */
+	while (l_XAt > 0)
+		D_SNDeleteJob(&l_XStack[0], NULL);
+}
+
 /* D_SNXMitTics() -- Transmit tics to local client */
 void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 {
@@ -149,6 +203,10 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 		{
 			// Ignore local hosts (they are the server!)
 			if (Host->Local)
+				continue;
+			
+			// Host disconnected and will be cleaned up
+			if (Host->Cleanup)
 				continue;
 			
 			// Host is in initial connect stage
@@ -198,6 +256,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	
 	/* Initialize job */
 	memset(Job, 0, sizeof(*Job));
+	Job->GameTic = a_GameTic;
 	
 	// Encode tic buffer and clone the data into the job
 	D_SNEncodeTicBuf(a_Buffer, &OutD, &OutS, DXNTBV_LATEST);
@@ -205,6 +264,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	
 	// Put all players that should get this job
 	memmove(Job->Dests, HostL, sizeof(*HostL) * NumHostL);
+	Job->NumDests = NumHostL;
 }
 
 /* D_SNOkTics() -- Tics that can be run by the game */
@@ -459,6 +519,61 @@ void D_SNDoConnect(void)
 /* D_SNDoServer() -- Do server stuff */
 void D_SNDoServer(D_BS_t* const a_BS)
 {
+	D_XMitJob_t* Job;
+	D_JobHost_t* JHost;
+	D_SNHost_t* Host;
+	int32_t i, j;
+	
+	/* Transmit jobs to hosts that need them */
+	for (i = 0; i < l_XAt; i++)
+	{
+		// Get current job
+		Job = &l_XStack[i];
+		
+		// If job has no transmission sources remaining, delete
+		if (!Job->NumDests)
+		{
+			D_SNDeleteJob(Job, &i);
+			continue;
+		}
+		
+		// Go through destination hosts
+		for (j = 0; j < Job->NumDests; j++)
+		{
+			// Get job host
+			JHost = &Job->Dests[j];
+			
+			// Find host
+			Host = NULL;
+			if (JHost->Host == GHOSTS[JHost->ArrID])
+				Host = JHost->Host;
+			
+			// Host is no longer a valid destination
+			if (!Host || (Host &&
+					Host->Cleanup
+				))
+			{
+				D_SNDeleteIndexInJob(Job, &j);
+				continue;
+			}
+			
+			// Already sent, wait a bit
+			if (g_ProgramTic <= JHost->LastSend + 3)
+				continue;
+			
+			// Set transmission time
+			JHost->LastSend = g_ProgramTic;
+			
+			// Build packet
+			D_BSBaseBlock(a_BS, "JOBT");
+			
+			D_BSwcu64(a_BS, Job->GameTic);
+			D_BSwu32(a_BS, Job->EncSize);
+			D_BSWriteChunk(a_BS, Job->EncData, Job->EncSize);
+			
+			D_BSRecordNetBlock(a_BS, &Host->Addr);
+		}
+	}
 }
 
 /* D_SNDoClient() -- Do client stuff */

@@ -190,6 +190,7 @@ bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD
 
 /*** TRANSMISSION ***/
 
+void D_SNClearJobs(void);
 void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer);
 int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
 bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);

@@ -264,9 +264,10 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	/* Clear flags */
 	l_Connected = l_Server = false;
 	
-	/* Clear now tics */
+	/* Clear now tics and jobs */
 	memset(l_NowTic, 0, sizeof(l_NowTic));
 	l_NowPress = 0;
+	D_SNClearJobs();
 	
 	/* Go back to the title screen */
 	if (!a_FromDemo)
@@ -301,6 +302,11 @@ void D_SNPartialDisconnect(const char* const a_Reason)
 	/* Clear the global buffer */
 	l_GlobalAt = -1;
 	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	
+	/* Clear now tics and jobs */
+	memset(l_NowTic, 0, sizeof(l_NowTic));
+	l_NowPress = 0;
+	D_SNClearJobs();
 	
 	/* Magically become the server */
 	l_Server = l_Connected = true;
