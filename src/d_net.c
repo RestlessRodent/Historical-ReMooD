@@ -45,6 +45,8 @@
 #include "d_netmst.h"
 #include "p_setup.h"
 #include "d_main.h"
+#include "p_inter.h"
+#include "p_local.h"
 
 /****************
 *** CONSTANTS ***
@@ -442,7 +444,6 @@ bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs
 {
 	int32_t Local;
 	const char* Profs[MAXSPLITSCREEN];
-	D_Prof_t* Profile;
 	
 	/* Local copy */
 	// If there are no local players, always make one
@@ -507,10 +508,12 @@ bool_t D_SNServerInit(void)
 		
 			// See if argument is set
 			if (M_CheckParm(Buf))
+			{
 				if (M_IsNextParm())
 					PProfs[np++] = M_GetNextParm();
 				else
 					PProfs[np++] = NULL;	// No name selected
+			}
 			
 			// If player 1 missing?
 			if (i == 0 && !np)
@@ -711,7 +714,7 @@ void D_SNUpdateLocalPorts(void)
 		if (!pc)
 		{
 			Profs[0] = NULL;
-			D_SNAddLocalProfiles(1, Profs);
+			D_SNAddLocalProfiles(1, (const char ** const)Profs);
 		}
 	}
 	
@@ -781,7 +784,6 @@ void D_SNUpdateLocalPorts(void)
 /* D_SNCleanupHost() -- Cleans up host */
 bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 {
-	char Buf[MAXTCSTRINGCAT];
 	char* s;
 	uint8_t* Wp;
 	int32_t At, Cat, i;
@@ -1149,7 +1151,7 @@ D_SNPort_t* D_SNRequestPort(void)
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
 	uint32_t LastScreen;
-	int32_t PlaceAt, i, UngrabbedScreen;
+	int32_t PlaceAt, UngrabbedScreen;
 	D_Prof_t* Profile;
 	bool_t BumpSplits;
 	D_SplitInfo_t* Split;
@@ -1307,7 +1309,7 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 		if (a_Write)
 		{
 			// Save tic command in the now press
-			p = (a_Player < 0 ? MAXPLAYERS : p);
+			p = (a_Player < 0 ? MAXPLAYERS : a_Player);
 			memmove(&Now->Tics[p], a_TicCmd, sizeof(ticcmd_t));
 		}
 		
@@ -1882,7 +1884,7 @@ static void D_SNHandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP,
 /* D_SNHandleGT() -- Handles game command IDs */
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
-	uint32_t HID, ID, i;
+	uint32_t HID, ID;
 	uint8_t PID;
 	D_SNPort_t* Port;
 	D_SNHost_t* Host;
