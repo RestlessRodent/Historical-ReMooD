@@ -278,7 +278,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (D_ScrSplitHasPlayer(i))
+		//if (D_ScrSplitHasPlayer(i))
 			if (g_Splits[i].ProcessID == a_ID)
 				return i;
 	

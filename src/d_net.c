@@ -669,7 +669,7 @@ void D_SNUpdateLocalPorts(void)
 				}
 			
 				// Try to grab a port
-				Split->Port = D_SNRequestPort();
+				Split->Port = D_SNRequestPort(Split->ProcessID);
 			
 				// If grabbed, set local screen ID
 				if (Split->Port)
@@ -1098,10 +1098,10 @@ void D_SNRemovePort(D_SNPort_t* const a_Port)
 }
 
 /* D_SNRequestPort() -- Requests port from server */
-D_SNPort_t* D_SNRequestPort(void)
+D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID)
 {
 	int32_t i;
-	D_SNPort_t* Port;
+	D_SNPort_t* Port, *Best, *PM;
 	uint32_t ID;
 	
 	/* No local host */
@@ -1109,16 +1109,29 @@ D_SNPort_t* D_SNRequestPort(void)
 		return NULL;
 	
 	/* Go through and see if any ports are not used */
+	Best = PM = NULL;
 	for (i = 0; i < l_MyHost->NumPorts; i++)
 	{
 		// See if port is in this spot
 		if (!(Port = l_MyHost->Ports[i]))
 			continue;
 		
+		// ProcessID match
+		if (a_ProcessID && Port->ProcessID == a_ProcessID)
+			PM = Port;
+		
 		// If not a bot and is free, use this one
 		if (Port->Screen < 0 && !Port->Bot)
-			return Port;
+			Best = Port;
 	}
+	
+	// If no process ID is set and there is a best, use that
+	if (Best && !a_ProcessID)
+		return Best;
+	
+	// Check for a process ID match
+	else if (PM && a_ProcessID)
+		return PM;
 	
 	/* In network situation, ask for one */
 	// If server, can just create our own port
@@ -1139,9 +1152,8 @@ D_SNPort_t* D_SNRequestPort(void)
 	}
 	
 	// Otherwise, need to send some packets
-	else
-	{
-	}
+	else if (l_Connected)
+		D_SNRequestPortNet(a_ProcessID);
 	
 	/* No port found, yet */
 	return NULL;
@@ -1151,7 +1163,7 @@ D_SNPort_t* D_SNRequestPort(void)
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
 	uint32_t LastScreen;
-	int32_t PlaceAt, UngrabbedScreen;
+	int32_t PlaceAt, UngrabbedScreen, i;
 	D_Prof_t* Profile;
 	bool_t BumpSplits;
 	D_SplitInfo_t* Split;
@@ -1224,6 +1236,12 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	Split->JoyBound = a_UseJoy;
 	Split->JoyID = a_JoyID;
 	
+	// Generate unique process ID
+	do
+	{
+		Split->ProcessID = D_CMakePureRandom();
+	} while (!Split->ProcessID && D_NCSFindSplitByProcess(Split->ProcessID) != PlaceAt);
+	
 	// Resize Splits
 	if (BumpSplits)
 		if (!demoplayback)
@@ -1237,11 +1255,14 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	if (l_Server && !Split->Port)
 	{
 		// Try to grab a port
-		Split->Port = D_SNRequestPort();
+		Split->Port = D_SNRequestPort(Split->ProcessID);
 
 		// If grabbed, set local screen ID
 		if (Split->Port)
+		{
 			Split->Port->Screen = PlaceAt;
+			Split->Port->ProcessID = Split->ProcessID;
+		}
 	}
 	
 	/* Added OK */

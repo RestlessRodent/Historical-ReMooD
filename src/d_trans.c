@@ -514,6 +514,15 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 		D_BSRecordNetBlock(l_BS, &a_Host->Addr);
 }
 
+/* D_SNRequestPortNet() -- Request port from the network */
+void D_SNRequestPortNet(const uint32_t a_ProcessID)
+{
+	/* If there is no socket, do not ask */
+	if (!l_Sock)
+		return;
+	
+}
+
 /* D_SNDoConnect() -- Do connection logic */
 void D_SNDoConnect(void)
 {

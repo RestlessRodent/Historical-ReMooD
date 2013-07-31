@@ -738,6 +738,7 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 			D_BSwu8(a_Str, Port->Bot);
 			D_BSwi32(a_Str, ((Port->Player) ? Port->Player - players : -1));
 			D_BSwi32(a_Str, Port->Screen);
+			D_BSwu32(a_Str, Port->ProcessID);
 			
 			// Profile
 			if (Port->Profile)
@@ -889,6 +890,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		
 		// Screen
 		Port->Screen = D_BSri32(a_Str);
+		Port->ProcessID = D_BSru32(a_Str);
 		
 		// Profile
 		for (TempI = 0; TempI < 2; TempI++)
