@@ -51,7 +51,6 @@
 ****************/
 
 #define MAXGLOBALBUFSIZE					8	// Size of global buffer
-#define MAXLOCALTICS					TICRATE	// Max local tics
 
 /*************
 *** LOCALS ***
@@ -74,7 +73,7 @@ int32_t* g_NumHostsP = &l_NumHosts;
 static D_SNTicBuf_t l_NowTic[2];				// Tic that is now!
 static uint8_t l_NowPress;						// Which "now" is pressed
 
-static D_SNTicBuf_t l_LocalBuf[MAXLOCALTICS];	// Local tic buffer
+static D_SNTicBuf_t l_LocalBuf[MAXNETXTICS];	// Local tic buffer
 static int32_t l_LocalAt;						// Local tics at
 
 /****************
@@ -260,6 +259,10 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	/* Clear the global buffer */
 	l_GlobalAt = -1;
 	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	
+	/* Clear local Buffer */
+	memset(l_LocalBuf, 0, sizeof(l_LocalBuf));
+	l_LocalAt = 0;
 	
 	/* Clear flags */
 	l_Connected = l_Server = false;
@@ -1246,11 +1249,16 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 /* D_SNBufForGameTic() -- Returns buffer for gametic */
 D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic)
 {
-
-//static D_SNTicBuf_t l_LocalBuf[MAXLOCALTICS];	// Local tic buffer
-//static int32_t l_LocalAt;						// Local tics at
-
-	return NULL;
+	/* In the past */
+	if (a_GameTic < gametic)
+		return NULL;
+	
+	/* Too far into the future */
+	if (a_GameTic >= gametic + MAXNETXTICS)
+		return NULL;
+	
+	/* Return reference of local buffer */
+	return &l_LocalBuf[a_GameTic - gametic];
 }
 
 /* D_SNStartTic() -- Start of a new tic */
@@ -1264,6 +1272,20 @@ void D_SNStartTic(const tic_t a_GameTic)
 	
 	/* Write gametic here */
 	Now->GameTic = a_GameTic;
+}
+
+/* D_SNNumSeqTics() -- Returns number of sequential local tics */
+int32_t D_SNNumSeqTics(void)
+{
+	int32_t RetVal;
+	
+	/* Count */
+	for (RetVal = 0; RetVal < MAXNETXTICS; RetVal++)
+		if (!l_LocalBuf[RetVal].GotTic)
+			break;	// No more tics received
+	
+	/* Return count */
+	return RetVal;
 }
 
 /* D_SNTics() -- Handles tic commands */
@@ -1394,6 +1416,14 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 		// Client cannot write commands
 		if (a_Write)
 			return;
+		
+		// Tic never received
+		if (!l_LocalBuf[0].GotTic)
+			return;
+		
+		// Copy tic owner
+		memmove(a_TicCmd, &l_LocalBuf[0].Tics[(a_Player < 0 ? MAXPLAYERS : p)],
+			sizeof(ticcmd_t));
 	}
 }
 
@@ -1401,6 +1431,10 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 {
 	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
+	
+	/* If not connected, do not care */
+	if (!l_Connected)
+		return;
 	
 	/* Server */
 	if (l_Server)
@@ -1419,6 +1453,13 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	/* Client */
 	else
 	{
+		// Send sync code to server
+		
+		// Move down all the local tics
+		memmove(&l_LocalBuf[0], &l_LocalBuf[1], sizeof(l_LocalBuf[0]) * (MAXNETXTICS - 1));
+		
+		// Clear last local tic
+		memset(&l_LocalBuf[MAXNETXTICS - 1], 0, sizeof(l_LocalBuf[0]));
 	}
 }
 

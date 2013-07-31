@@ -58,8 +58,6 @@ typedef enum D_ClientStage_e
 	DCS_PLAYING
 } D_ClientStage_t;
 
-#define MAXENCSTACK	32
-
 #define GHOSTS (*g_HostsP)
 #define GNUMHOSTS (*g_NumHostsP)
 
@@ -89,6 +87,7 @@ typedef struct D_JobHost_s
 	D_SNHost_t* Host;							// Host pointer
 	int32_t ArrID;								// Array ID
 	tic_t LastSend;								// Last Send
+	bool_t Clear;								// Clear host
 } D_JobHost_t;
 
 /* D_XMitJob_t -- Transmission jobs, who needs what */
@@ -120,7 +119,7 @@ static D_WADChain_t* l_WADTail;
 static D_ClientStage_t l_Stage;
 static uint8_t l_IsIWADMap, l_IsFreeDoom, l_IWADMission;
 
-static D_XMitJob_t l_XStack[MAXENCSTACK];		// Transmission stack
+static D_XMitJob_t l_XStack[MAXNETXTICS];		// Transmission stack
 static int32_t l_XAt;							// Current transmission at
 
 /****************
@@ -139,7 +138,7 @@ static void D_SNDeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 		if ((Job = &l_XStack[i]) == a_Job)
 		{
 			// Wipe any trace of the job
-			memmove(&l_XStack[i], &l_XStack[i + 1], MAXENCSTACK - (i + 1));
+			memmove(&l_XStack[i], &l_XStack[i + 1], MAXNETXTICS - (i + 1));
 			l_XAt--;
 			
 			// If i was passed, lower value
@@ -217,7 +216,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 					continue;
 			
 				// This tic is before their join window tic
-				if (a_GameTic < Host->Save.TicTime)
+				if (a_GameTic < Host->Save.TicTime - 1)
 					continue;
 			}
 			
@@ -247,7 +246,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	
 	/* Place job at end */
 	Job = NULL;
-	if (l_XAt < MAXENCSTACK)
+	if (l_XAt < MAXNETXTICS)
 		Job = &l_XStack[l_XAt++];
 	
 	// really bad!
@@ -284,7 +283,7 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 	{
 		// Job tranmission buffer is almost full!
 			// A client is lagging
-		if (l_XAt >= MAXENCSTACK - 2)
+		if (l_XAt >= MAXNETXTICS - 2)
 			return 0;
 		
 		// Did not make save
@@ -354,7 +353,7 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 	/* Client */
 	else
 	{
-		return 0;
+		return D_SNNumSeqTics();
 	}
 }
 
@@ -531,7 +530,8 @@ void D_SNDoServer(D_BS_t* const a_BS)
 		Job = &l_XStack[i];
 		
 		// If job has no transmission sources remaining, delete
-		if (!Job->NumDests)
+			// Or it is in the past!
+		if (!Job->NumDests || (gametic > MAXNETXTICS && Job->GameTic < gametic - MAXNETXTICS))
 		{
 			D_SNDeleteJob(Job, &i);
 			continue;
@@ -548,8 +548,8 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			if (JHost->Host == GHOSTS[JHost->ArrID])
 				Host = JHost->Host;
 			
-			// Host is no longer a valid destination
-			if (!Host || (Host &&
+			// Host is no longer a valid destination (or want to clear)
+			if (JHost->Clear || !Host || (Host &&
 					Host->Cleanup
 				))
 			{
@@ -1139,6 +1139,82 @@ void DT_COOL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	l_Stage = DCS_PLAYING;
 }
 
+/* DT_JOBT() -- Received a job tic */
+void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	tic_t GameTic;
+	uint32_t Size;
+	D_SNTicBuf_t* TicBuf;
+	
+	/* Client Only that is connected */
+	// Accept can play now in case of some packets being missed.
+	if (D_SNIsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
+		return;
+	
+	/* Read packet data */
+	GameTic = D_BSrcu64(a_BS);
+	Size = D_BSru32(a_BS);
+	
+	// Find tic buffer for this tic
+	TicBuf = D_SNBufForGameTic(GameTic);
+	
+	// Oops!
+	if (!TicBuf)
+		return;
+	
+	// Never got tic
+	if (!TicBuf->GotTic)
+	{
+		if (!D_SNDecodeTicBuf(TicBuf, a_BS->BlkData[a_BS->ReadOff], Size))
+			return;	// Just silently ignore it
+		
+		// Got tic now yay!
+		TicBuf->GotTic = true;
+	}
+	
+	/* Reply to server saying, the tic was recieved and buffered */
+	D_BSBaseBlock(a_BS, "JOBA");
+	
+	D_BSwcu64(a_BS, GameTic);
+	
+	D_BSRecordNetBlock(a_BS, a_Addr);
+}
+
+/* DT_JOBA() -- Acknowledged job tic */
+void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	int32_t i, j;
+	D_XMitJob_t* Job;
+	tic_t GameTic;
+	
+	/* Server Only */
+	if (!D_SNIsServer() || !a_Host)
+		return;
+	
+	/* Get gametic */
+	GameTic = D_BSrcu64(a_BS);
+	
+	/* Find job and verify */
+	for (i = 0; i < l_XAt; i++)
+		if ((Job = &l_XStack[i]))
+		{
+			// Wrong gametic
+			if (Job->GameTic != GameTic)
+				continue;
+			
+			// Find sub host
+			for (j = 0; j < Job->NumDests; j++)
+				if (a_Host == Job->Dests[j].Host)
+				{
+					Job->Dests[j].Clear = true;
+					break;
+				}
+			
+			// If found, would have been cleared
+			break;
+		}
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -1160,6 +1236,8 @@ static const struct
 	{{"PSAV"}, DT_PSAV, false},
 	{{"PLAY"}, DT_PLAY, false},
 	{{"COOL"}, DT_COOL, false},
+	{{"JOBT"}, DT_JOBT, false},
+	{{"JOBA"}, DT_JOBA, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},
