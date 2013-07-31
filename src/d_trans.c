@@ -138,7 +138,7 @@ static void D_SNDeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 		if ((Job = &l_XStack[i]) == a_Job)
 		{
 			// Wipe any trace of the job
-			memmove(&l_XStack[i], &l_XStack[i + 1], sizeof(l_XStack[0]) * (MAXNETXTICS - (i + 1)));
+			memmove(&l_XStack[i], &l_XStack[i + 1], sizeof(l_XStack[0]) * (MAXNETXTICS - (i)));
 			l_XAt--;
 			
 			// If i was passed, lower value
@@ -162,7 +162,7 @@ static void D_SNDeleteIndexInJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 	
 	/* Move down */
 	for (i = *a_iP; i < a_Job->NumDests; i++)
-		a_Job[i] = a_Job[i + 1];
+		a_Job->Dests[i] = a_Job->Dests[i + 1];
 	
 	// Decrement
 	*a_iP -= 1;
@@ -216,7 +216,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 					continue;
 			
 				// This tic is before their join window tic
-				if (a_GameTic < Host->Save.TicTime - 1)
+				if (a_GameTic < Host->Save.TicTime)
 					continue;
 			}
 			
@@ -273,6 +273,8 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 	D_SNHost_t* Host;
 	int32_t SaveID;
 	bool_t Kick;
+	D_XMitJob_t* Job;
+	tic_t LowTic;
 	
 	/* Do not move forward if not connected */
 	if (!D_SNIsConnected())
@@ -284,7 +286,24 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 		// Job tranmission buffer is almost full!
 			// A client is lagging
 		if (l_XAt >= MAXNETXTICS - 2)
+		{
+			*a_LastP = *a_LocalP;
 			return 0;
+		}
+			
+		// Get the earliest gametic in the job buffer
+		LowTic = (tic_t)-1;
+		for (i = 0; i < l_XAt; i++)
+		{
+			Job = &l_XStack[i];
+			
+			if (Job->GameTic < LowTic)
+				LowTic = Job->GameTic;
+		}
+		
+		// No low tics?
+		if (LowTic == (tic_t)-1)
+			LowTic = gametic;
 		
 		// Did not make save
 		SaveID = -1;
@@ -347,6 +366,12 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 		// Keep running normal time
 		i = *a_LocalP - *a_LastP;
 		*a_LastP = *a_LocalP;
+		
+		// If the run count exceeds the oldest job count
+		if (gametic + i > LowTic + (MAXNETXTICS - 1))
+			return 0;
+		
+		// Return count
 		return i;
 	}
 	
@@ -533,7 +558,6 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			// Or it is in the past!
 		if (!Job->NumDests || (gametic > MAXNETXTICS && Job->GameTic < gametic - MAXNETXTICS))
 		{
-			CONL_PrintF("Bye %u\n", (int)Job->GameTic);
 			D_SNDeleteJob(Job, &i);
 			continue;
 		}
@@ -551,7 +575,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			
 			// Host is no longer a valid destination (or want to clear)
 			if (JHost->Clear || !Host || (Host &&
-					Host->Cleanup
+					(Host->Cleanup || Host->MinTic > Job->GameTic)
 				))
 			{
 				D_SNDeleteIndexInJob(Job, &j);
@@ -1182,6 +1206,7 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSBaseBlock(a_BS, "JOBA");
 	
 	D_BSwcu64(a_BS, GameTic);
+	D_BSwcu64(a_BS, gametic);
 	
 	D_BSRecordNetBlock(a_BS, a_Addr);
 }
@@ -1191,7 +1216,7 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 {
 	int32_t i, j;
 	D_XMitJob_t* Job;
-	tic_t GameTic;
+	tic_t GameTic, ClientGT;
 	
 	/* Server Only */
 	if (!D_SNIsServer() || !a_Host)
@@ -1199,8 +1224,11 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* Get gametic */
 	GameTic = D_BSrcu64(a_BS);
+	ClientGT = D_BSrcu64(a_BS);
 	
-	CONL_PrintF("Confirmed %u\n", (int)GameTic);
+	/* Set host to this minimum tic */
+	if (ClientGT > a_Host->MinTic)
+		a_Host->MinTic = ClientGT;
 	
 	/* Find job and verify */
 	for (i = 0; i < l_XAt; i++)

@@ -114,6 +114,7 @@ struct D_SNHost_s
 	} Save;										// Savegame status
 	
 	int32_t Ping;								// Ping of host
+	tic_t MinTic;								// Minimum tic bound
 };
 
 /*****************
