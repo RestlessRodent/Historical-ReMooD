@@ -684,6 +684,8 @@ void G_Ticker(void)
 	// Networking
 	D_SNSyncCode(gametic, NowCode);
 	
+	CONL_PrintF("Running %u\n", (int)gametic);
+	
 	/* If playing a demo, check code comparison */
 	// Also make sure the demo supports the ReMooD sync code, otherwise there
 	// will always be a false desync message.

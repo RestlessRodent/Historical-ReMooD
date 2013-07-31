@@ -138,7 +138,7 @@ static void D_SNDeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 		if ((Job = &l_XStack[i]) == a_Job)
 		{
 			// Wipe any trace of the job
-			memmove(&l_XStack[i], &l_XStack[i + 1], MAXNETXTICS - (i + 1));
+			memmove(&l_XStack[i], &l_XStack[i + 1], sizeof(l_XStack[0]) * (MAXNETXTICS - (i + 1)));
 			l_XAt--;
 			
 			// If i was passed, lower value
@@ -533,6 +533,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			// Or it is in the past!
 		if (!Job->NumDests || (gametic > MAXNETXTICS && Job->GameTic < gametic - MAXNETXTICS))
 		{
+			CONL_PrintF("Bye %u\n", (int)Job->GameTic);
 			D_SNDeleteJob(Job, &i);
 			continue;
 		}
@@ -1166,11 +1167,16 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	if (!TicBuf->GotTic)
 	{
 		if (!D_SNDecodeTicBuf(TicBuf, a_BS->BlkData[a_BS->ReadOff], Size))
-			return;	// Just silently ignore it
+		{
+			D_SNPartialDisconnect("Tic decode error");
+			return;
+		}
 		
 		// Got tic now yay!
 		TicBuf->GotTic = true;
 	}
+	
+	CONL_PrintF("Got %u\n", (int)GameTic);
 	
 	/* Reply to server saying, the tic was recieved and buffered */
 	D_BSBaseBlock(a_BS, "JOBA");
@@ -1193,6 +1199,8 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* Get gametic */
 	GameTic = D_BSrcu64(a_BS);
+	
+	CONL_PrintF("Confirmed %u\n", (int)GameTic);
 	
 	/* Find job and verify */
 	for (i = 0; i < l_XAt; i++)
