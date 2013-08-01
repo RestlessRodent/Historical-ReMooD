@@ -211,6 +211,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** NETWORK STUFF ***/
 	{				 "NET_LEVELNOTFOUND", "Level not found."},
 	{			   "NET_CLIENTCONNECTED", "Client $1{z has connected."},
+	{				 "NET_PORTCONNECTED", "Player $1{z attached controller."},
 	{				  "NET_PLAYERJOINED", "Player $1{z has joined the game."},
 	{					"NET_CLIENTGONE", "Client $1{z has disconnected ($2)."},
 	{					  "NET_NOREASON", "No reason."},

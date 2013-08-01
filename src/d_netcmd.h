@@ -70,8 +70,10 @@ typedef struct D_SplitInfo_s
 	int32_t Display;							// Display Player
 	uint32_t ProcessID;							// Local Processing ID
 	D_Prof_t* Profile;							// Player Profile
+	
 	struct D_SNPort_s* Port;					// Control Port
 	bool_t DoNotSteal;							// Do not steal port
+	tic_t PortTimeOut;							// Timeout for port
 	
 	bool_t JoyBound;							// Joystick Bound
 	uint32_t JoyID;								// Joystick ID

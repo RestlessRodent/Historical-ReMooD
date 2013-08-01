@@ -518,9 +518,17 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 void D_SNRequestPortNet(const uint32_t a_ProcessID)
 {
 	/* If there is no socket, do not ask */
-	if (!l_Sock)
+	// Also do not ask if we are the server
+	if (!l_BS || !l_Sock || D_SNIsServer())
 		return;
 	
+	/* Build packet */
+	D_BSBaseBlock(l_BS, "WANT");
+	
+	D_BSwu32(l_BS, a_ProcessID);
+	D_BSwcu64(l_BS, g_ProgramTic);
+	
+	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
 /* D_SNDoConnect() -- Do connection logic */
@@ -1284,6 +1292,99 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		}
 }
 
+
+/* DT_WANT() -- Client wants another port */
+void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	int32_t i, Total;
+	D_SNPort_t* Port, *PIDMatch;
+	uint32_t ProcessID, ID;
+	tic_t GameTic;
+	uint8_t* Wp;
+	
+	/* Server Only */
+	if (!D_SNIsServer() || !a_Host)
+		return;
+	
+	/* Read Packet */
+	ProcessID = D_BSru32(a_BS);
+	GameTic = D_BSrcu64(a_BS);
+	
+	/* Count the number of ports in this host */
+	Total = 0;
+	PIDMatch = NULL;
+	for (i = 0; i < a_Host->NumPorts; i++)
+		if ((Port = a_Host->Ports[i]))
+		{
+			// If process ID matches, remember that
+			if (ProcessID && ProcessID == Port->ProcessID)	
+				PIDMatch = Port;
+			
+			// Increase total
+			Total++;
+		}
+	
+	/* No match and total exceeds count */
+	// They can only have 4 players connected at once
+	if (!PIDMatch && Total >= MAXSPLITSCREEN)
+	{
+		D_BSBaseBlock(a_BS, "FULL");
+		
+		D_BSwu8(a_BS, Total);
+		D_BSwu32(a_BS, ProcessID);
+		D_BSwcu64(a_BS, GameTic);
+		
+		D_BSRecordNetBlock(a_BS, a_Host);
+		return;
+	}
+	
+	/* Otherwise, use said (new) port */
+	if (!PIDMatch)
+	{
+		// Create a new port for them
+		PIDMatch = D_SNAddPort(a_Host);
+		
+		// Setup local port info
+		if (ProcessID)
+			PIDMatch->ProcessID = ProcessID;
+		
+		// Need a unique process ID
+		else
+		{
+			// Pure random may be random enough to prevent mishaps
+			do
+			{
+				ProcessID = D_CMakePureRandom();
+			} while (!ProcessID);
+		}
+		
+		// Generate unique port ID
+		do
+		{
+			ID = D_CMakePureRandom();
+		} while (!ID || D_SNPortByID(ID) || D_SNHostByID(ID));
+		PIDMatch->ID = ID;
+		
+		// Create packet
+		if (D_SNExtCmdInGlobal(DTCT_SNJOINPORT, &Wp))
+		{
+			LittleWriteUInt32((uint32_t**)&Wp, a_Host->ID);
+			LittleWriteUInt32((uint32_t**)&Wp, PIDMatch->ID);
+			WriteUInt8(&Wp, 0);
+			LittleWriteUInt32((uint32_t**)&Wp, PIDMatch->ProcessID);
+		}
+	}
+	
+	/* Send a basic packet */
+	D_BSBaseBlock(a_BS, "GIVE");
+		
+	D_BSwu8(a_BS, Total);
+	D_BSwu32(a_BS, ProcessID);
+	D_BSwcu64(a_BS, GameTic);
+	
+	D_BSRecordNetBlock(a_BS, a_Host);
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -1307,6 +1408,7 @@ static const struct
 	{{"COOL"}, DT_COOL, false},
 	{{"JOBT"}, DT_JOBT, false},
 	{{"JOBA"}, DT_JOBA, false},
+	{{"WANT"}, DT_WANT, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},

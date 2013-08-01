@@ -163,7 +163,7 @@ void D_SNDestroyHost(D_SNHost_t* const a_Host);
 D_SNPort_t* D_SNPortByID(const uint32_t a_ID);
 D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host);
 void D_SNRemovePort(D_SNPort_t* const a_Port);
-D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID);
+D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit);
 bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
 D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic);
 int32_t D_SNNumSeqTics(void);

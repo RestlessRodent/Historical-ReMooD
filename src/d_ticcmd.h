@@ -163,6 +163,7 @@ enum
 	DTCT_SNCLEANUPHOST,							// Tell clients to cleanup host
 	DTCT_SNJOINHOST,							// Host Joins
 	DTCT_SNPARTPLAYER,							// Player parts
+	DTCT_SNJOINPORT,							// Port is joined
 	
 	NUMDTCT
 };

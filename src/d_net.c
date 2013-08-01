@@ -668,9 +668,10 @@ void D_SNUpdateLocalPorts(void)
 					}
 				}
 			
-				// Try to grab a port
-				Split->Port = D_SNRequestPort(Split->ProcessID);
-			
+				// Try to grab a port (xmit once per second)
+				Split->Port = D_SNRequestPort(Split->ProcessID, (g_ProgramTic >= Split->PortTimeOut));
+				Split->PortTimeOut = g_ProgramTic + TICRATE;
+		
 				// If grabbed, set local screen ID
 				if (Split->Port)
 					Split->Port->Screen = i;
@@ -1098,7 +1099,11 @@ void D_SNRemovePort(D_SNPort_t* const a_Port)
 }
 
 /* D_SNRequestPort() -- Requests port from server */
-D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID)
+// a_XMit is used by the client when a transmission request should be made
+// Otherwise, there will be an ugly 1 second delay ALL THE TIME when adding new
+// local players. So if the server happens to send you a port in the middle of
+// your timeout, then you still grab it.
+D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 {
 	int32_t i;
 	D_SNPort_t* Port, *Best, *PM;
@@ -1153,7 +1158,11 @@ D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID)
 	
 	// Otherwise, need to send some packets
 	else if (l_Connected)
-		D_SNRequestPortNet(a_ProcessID);
+	{
+		// Only go over the net if required
+		if (a_XMit)
+			D_SNRequestPortNet(a_ProcessID);
+	}
 	
 	/* No port found, yet */
 	return NULL;
@@ -1254,8 +1263,9 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	/* If server, add local port */
 	if (l_Server && !Split->Port)
 	{
-		// Try to grab a port
-		Split->Port = D_SNRequestPort(Split->ProcessID);
+		// Grab a port, only transmitting every second
+		Split->Port = D_SNRequestPort(Split->ProcessID, (g_ProgramTic >= Split->PortTimeOut));
+		Split->PortTimeOut = g_ProgramTic + TICRATE;
 
 		// If grabbed, set local screen ID
 		if (Split->Port)
@@ -1902,6 +1912,27 @@ static void D_SNHandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP,
 	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTCONNECTED, "%s\n", "Client");
 }
 
+/* D_SNHandleGTJoinPort() -- Handles joining of a new port */
+static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	D_SNPort_t* New;
+	
+	/* Port already exists */
+	// Give packet may have reached client already
+	if (a_Port)
+		return;
+	
+	/* Create new port belonging to this host */
+	New = D_SNAddPort(a_Host);
+	
+	// Set fields
+	New->ID = a_UID;
+	New->ProcessID = LittleReadUInt32((const uint32_t**)a_PP);
+	
+	/* Display message */
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_PORTCONNECTED, "%s\n", "Client");
+}
+
 /* D_SNHandleGT() -- Handles game command IDs */
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
@@ -1936,11 +1967,6 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			D_SNHandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
-			// Player leaves game
-		case DTCT_SNPARTPLAYER:
-			D_SNHandleGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
-			break;
-			
 			// Disconnect reason
 		case DTCT_SNQUITREASON:
 			D_SNHandleGTQuitMsg(a_ID, a_PP, Host, Port, HID, ID, PID);
@@ -1954,6 +1980,16 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			// Create Host
 		case DTCT_SNJOINHOST:
 			D_SNHandleGTJoinHost(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Player leaves game
+		case DTCT_SNPARTPLAYER:
+			D_SNHandleGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Port is added to host
+		case DTCT_SNJOINPORT:
+			D_SNHandleGTJoinPort(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!
