@@ -1393,13 +1393,24 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 					D_XNetMergeTics(a_TicCmd, Port->LocalBuf, Port->LocalAt);
 					Port->LocalAt = 0;
 					memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+					
+					// Store this tic as backup
+					memmove(&Port->BackupCmd, a_TicCmd, sizeof(Port->BackupCmd));
+					
+					// Not lagging
+					Port->LocalStatFlags &= ~DTSF_LOCALSTICK;
 				}
 				
-				// Missed tic generation
+				// Missed tic generation (use backup tic)
 				else
 				{
 					// TODO FIXME
-					CONL_PrintF("Missed local tic gen\n");
+					CONL_PrintF("Missed local tic gen %i\n", gametic);
+					
+					memmove(a_TicCmd, &Port->BackupCmd, sizeof(Port->BackupCmd));
+					
+					// Lagging
+					Port->LocalStatFlags |= DTSF_LOCALSTICK;
 				}
 				
 				// Set ping from host

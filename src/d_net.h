@@ -91,6 +91,8 @@ typedef struct D_SNPort_s
 	uint32_t StatFlags;							// Status Flags
 	uint32_t ProcessID;							// Local player process ID
 	bool_t AttachMsg;							// Displayed attach message
+	ticcmd_t BackupCmd;							// Backup tic command
+	uint32_t LocalStatFlags;					// Local Status Flags
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */

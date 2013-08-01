@@ -175,6 +175,12 @@ typedef enum D_TCJoinFlags_e
 	DTCJF_MONSTERTEAM				= 0x0002,	// On monster team
 } D_TCJoinFlags_t;
 
+/* D_TCStatFlags_t -- Status Flags */
+typedef enum D_TCStatFlags_e
+{
+	DTSF_LOCALSTICK		= UINT32_C(0x00000001),	// Local client is sticking
+} D_TCStatFlags_t;
+
 /* D_DiffBits_t -- Diff bits */
 typedef enum D_DiffBits_e
 {
