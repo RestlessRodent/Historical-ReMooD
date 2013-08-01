@@ -1292,7 +1292,6 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		}
 }
 
-
 /* DT_WANT() -- Client wants another port */
 void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
@@ -1379,10 +1378,53 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSBaseBlock(a_BS, "GIVE");
 		
 	D_BSwu8(a_BS, Total);
-	D_BSwu32(a_BS, ProcessID);
+	D_BSwu32(a_BS, PIDMatch->Host->ID);
+	D_BSwu32(a_BS, PIDMatch->ID);
+	D_BSwu32(a_BS, PIDMatch->ProcessID);
 	D_BSwcu64(a_BS, GameTic);
 	
 	D_BSRecordNetBlock(a_BS, a_Host);
+}
+
+
+/* DT_GIVE() -- Client wants another port */
+void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	uint8_t Total;
+	uint32_t ID, HostID, ProcessID;
+	tic_t GameTic;	
+	D_SNHost_t* Host, *MyHost;
+	D_SNPort_t* Port;
+	
+	/* Client Only */
+	if (D_SNIsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
+		return;
+	
+	/* Read Packet */
+	Total = D_BSru8(a_BS);
+	HostID = D_BSru32(a_BS);
+	ID = D_BSru32(a_BS);
+	ProcessID = D_BSru32(a_BS);
+	GameTic = D_BSrcu64(a_BS);
+	
+	/* Check to see if it exists already */
+	if (D_SNPortByID(ID))
+		return
+	
+	/* Get current host */
+	Host = D_SNHostByID(HostID);
+	MyHost = D_SNMyHost();
+	
+	// If this is not our host, ignore
+	if (!Host || Host != MyHost)
+		return;
+	
+	/* Create a new port */
+	Port = D_SNAddPort(MyHost);
+	
+	// Set local port fields
+	Port->ID = ID;
+	Port->ProcessID = ProcessID;
 }
 
 /* l_Packets -- Data packets */
@@ -1402,13 +1444,15 @@ static const struct
 	{{"LIST"}, DT_LIST, false},
 	{{"WADL"}, DT_WADL, true},
 	{{"QUIT"}, DT_QUIT, false},
-	{{"SAVE"}, DT_SAVE, false},
-	{{"PSAV"}, DT_PSAV, false},
-	{{"PLAY"}, DT_PLAY, false},
-	{{"COOL"}, DT_COOL, false},
-	{{"JOBT"}, DT_JOBT, false},
-	{{"JOBA"}, DT_JOBA, false},
-	{{"WANT"}, DT_WANT, false},
+	{{"SAVE"}, DT_SAVE, true},
+	{{"PSAV"}, DT_PSAV, true},
+	{{"PLAY"}, DT_PLAY, true},
+	{{"COOL"}, DT_COOL, true},
+	{{"JOBT"}, DT_JOBT, true},
+	{{"JOBA"}, DT_JOBA, true},
+	{{"WANT"}, DT_WANT, true},
+	{{"GIVE"}, DT_GIVE, true},
+	//{{"FULL"}, DT_FULL, false},	// TODO FIXME
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},
