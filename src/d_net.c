@@ -1917,20 +1917,29 @@ static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP,
 {
 	D_SNPort_t* New;
 	
-	/* Port already exists */
+	/* If port does not exist, create it */
 	// Give packet may have reached client already
-	if (a_Port)
-		return;
+	if (!a_Port)
+	{
+		/* Create new port belonging to this host */
+		New = D_SNAddPort(a_Host);
 	
-	/* Create new port belonging to this host */
-	New = D_SNAddPort(a_Host);
+		// Set fields
+		New->ID = a_UID;
+		New->ProcessID = LittleReadUInt32((const uint32_t**)a_PP);
+	}
 	
-	// Set fields
-	New->ID = a_UID;
-	New->ProcessID = LittleReadUInt32((const uint32_t**)a_PP);
+	// Does not exist
+	else
+		New = a_Port;
 	
 	/* Display message */
-	CONL_OutputUT(CT_NETWORK, DSTR_NET_PORTCONNECTED, "%s\n", "Client");
+	// As long as one was never displayed...
+	if (!New->AttachMsg)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_NET_PORTCONNECTED, "%s\n", "Client");
+		New->AttachMsg = true;
+	}
 }
 
 /* D_SNHandleGT() -- Handles game command IDs */

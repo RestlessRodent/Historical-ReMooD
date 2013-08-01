@@ -1333,7 +1333,7 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		D_BSwu32(a_BS, ProcessID);
 		D_BSwcu64(a_BS, GameTic);
 		
-		D_BSRecordNetBlock(a_BS, a_Host);
+		D_BSRecordNetBlock(a_BS, a_Addr);
 		return;
 	}
 	
@@ -1383,7 +1383,7 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSwu32(a_BS, PIDMatch->ProcessID);
 	D_BSwcu64(a_BS, GameTic);
 	
-	D_BSRecordNetBlock(a_BS, a_Host);
+	D_BSRecordNetBlock(a_BS, a_Addr);
 }
 
 
@@ -1409,7 +1409,7 @@ void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* Check to see if it exists already */
 	if (D_SNPortByID(ID))
-		return
+		return;
 	
 	/* Get current host */
 	Host = D_SNHostByID(HostID);
@@ -1444,14 +1444,14 @@ static const struct
 	{{"LIST"}, DT_LIST, false},
 	{{"WADL"}, DT_WADL, true},
 	{{"QUIT"}, DT_QUIT, false},
-	{{"SAVE"}, DT_SAVE, true},
-	{{"PSAV"}, DT_PSAV, true},
-	{{"PLAY"}, DT_PLAY, true},
-	{{"COOL"}, DT_COOL, true},
-	{{"JOBT"}, DT_JOBT, true},
-	{{"JOBA"}, DT_JOBA, true},
-	{{"WANT"}, DT_WANT, true},
-	{{"GIVE"}, DT_GIVE, true},
+	{{"SAVE"}, DT_SAVE, false},
+	{{"PSAV"}, DT_PSAV, false},
+	{{"PLAY"}, DT_PLAY, false},
+	{{"COOL"}, DT_COOL, false},
+	{{"JOBT"}, DT_JOBT, false},
+	{{"JOBA"}, DT_JOBA, false},
+	{{"WANT"}, DT_WANT, false},
+	{{"GIVE"}, DT_GIVE, false},
 	//{{"FULL"}, DT_FULL, false},	// TODO FIXME
 	
 	{{"FPUT"}, D_SNFileRecv, false},
