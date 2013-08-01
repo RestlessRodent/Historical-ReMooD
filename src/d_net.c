@@ -1388,9 +1388,19 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 				}
 				
 				// Merge all the local stuff
-				D_XNetMergeTics(a_TicCmd, Port->LocalBuf, Port->LocalAt);
-				Port->LocalAt = 0;
-				memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+				if (Port->LocalAt > 0)
+				{
+					D_XNetMergeTics(a_TicCmd, Port->LocalBuf, Port->LocalAt);
+					Port->LocalAt = 0;
+					memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+				}
+				
+				// Missed tic generation
+				else
+				{
+					// TODO FIXME
+					CONL_PrintF("Missed local tic gen\n");
+				}
 				
 				// Set ping from host
 				a_TicCmd->Ctrl.Ping = Port->Host->Ping;
