@@ -1422,7 +1422,7 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 				}
 				
 				// Set ping from host
-				a_TicCmd->Ctrl.Ping = Port->Host->Ping;
+				a_TicCmd->Ctrl.Ping = Port->Host->Ping & TICPINGAMOUNTMASK;
 				
 				// Copy status flags from port
 				if (!a_TicCmd->Ctrl.Type)

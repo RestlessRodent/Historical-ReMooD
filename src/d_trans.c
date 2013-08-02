@@ -572,6 +572,8 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	D_JobHost_t* JHost;
 	D_SNHost_t* Host;
 	int32_t i, j;
+	D_SNPingWin_t* PWin;
+	static int32_t LastSlot;
 	
 	/* Transmit jobs to hosts that need them */
 	for (i = 0; i < l_XAt; i++)
@@ -624,6 +626,49 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			D_BSRecordNetBlock(a_BS, &Host->Addr);
 		}
 	}
+	
+	/* Calculate Pings */
+	// Lower calculating by slotting ping requests
+	for (; LastSlot < GNUMHOSTS; LastSlot++)
+		if ((Host = GHOSTS[LastSlot]))
+		{
+			// Ignore locals and cleanups
+			if (Host->Local || Host->Cleanup)
+				continue;
+			
+			// No ping yet
+			if (g_ProgramTic < Host->NextPing)
+				continue;
+			
+			// Ping again in four seconds (every second is not that important)
+			Host->NextPing = g_ProgramTic + (TICRATE << 2);
+			
+			// Get the next ping window
+			++Host->PingAt;
+			Host->PingAt &= MAXPINGWINDOWS - 1;
+			PWin = &Host->Pings[Host->PingAt];
+			
+			// Generate new random number
+			PWin->Code = D_CMakePureRandom();
+			PWin->SendTime = g_ProgramTic;
+			PWin->Millis = I_GetTimeMS();
+			
+			// Build packet to send to them
+			D_BSBaseBlock(l_BS, "PING");
+			
+			D_BSwu8(l_BS, Host->PingAt);
+			D_BSwu32(l_BS, PWin->Code);
+			
+			D_BSRecordNetBlock(l_BS, &Host->Addr);
+			
+			// Do not ping anyone else
+			LastSlot++;	// And go to next slot
+			break;
+		}
+	
+	// Ran out of slots
+	if (LastSlot >= GNUMHOSTS)
+		LastSlot = 0;
 }
 
 /* D_SNDoClient() -- Do client stuff */
@@ -1395,7 +1440,6 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSRecordNetBlock(a_BS, a_Addr);
 }
 
-
 /* DT_GIVE() -- Client wants another port */
 void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
@@ -1436,6 +1480,65 @@ void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	Port->ProcessID = ProcessID;
 }
 
+/* DT_PING() -- Ping request */
+void DT_PING(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	uint8_t At;
+	uint32_t Code;
+	
+	/* Read data */
+	At = D_BSru8(a_BS);
+	Code = D_BSru32(a_BS);
+	
+	/* Reply with pong */
+	D_BSBaseBlock(a_BS, "PONG");
+	
+	D_BSwu8(a_BS, At);
+	D_BSwu32(a_BS, Code);
+	D_BSwcu64(a_BS, g_ProgramTic);
+	
+	D_BSRecordNetBlock(a_BS, a_Addr);
+}
+
+/* DT_PONG() -- Ping reply */
+void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	uint8_t At;
+	uint32_t Code;
+	D_SNPingWin_t* Win;
+	tic_t TimeDiff;
+	int32_t MilliDiff;
+	
+	/* Only accept pong replies from hosts */
+	if (a_Host)
+	{
+		// Read
+		At = D_BSru8(a_BS);
+		Code = D_BSru32(a_BS);
+		
+		// Illegal at?
+		if (At < 0 || At >= MAXPINGWINDOWS)
+			return;
+		
+		// Get window
+		Win = &a_Host->Pings[At];
+		
+		// Code mismatch
+		if (Win->Code != Code)
+			return;
+		
+		// Otherwise calculate the time difference
+		TimeDiff = g_ProgramTic - Win->SendTime;
+		MilliDiff = I_GetTimeMS() - Win->Millis;
+		
+		// Client has been seen now
+		a_Host->LastSeen = g_ProgramTic;
+		
+		// Average the difference in milliseconds
+		a_Host->Ping = (a_Host->Ping + MilliDiff) >> 1;
+	}
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -1462,6 +1565,8 @@ static const struct
 	{{"WANT"}, DT_WANT, false},
 	{{"GIVE"}, DT_GIVE, false},
 	//{{"FULL"}, DT_FULL, false},	// TODO FIXME
+	{{"PING"}, DT_PING, false},
+	{{"PONG"}, DT_PONG, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},

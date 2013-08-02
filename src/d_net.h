@@ -57,9 +57,19 @@
 
 #define MAXNETXTICS				TICRATE
 
+#define MAXPINGWINDOWS					8		// Max ping window count
+
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* D_SNPingWin_t -- Ping window */
+typedef struct D_SNPingWin_s
+{
+	uint32_t Code;								// Unique Code (Security)
+	tic_t SendTime;								// Send time
+	uint32_t Millis;							// Milliseconds
+} D_SNPingWin_t;
 
 #if !defined(__REMOOD_DBSTDEFINED)
 	typedef struct D_BS_s D_BS_t;
@@ -119,6 +129,10 @@ struct D_SNHost_s
 	
 	int32_t Ping;								// Ping of host
 	tic_t MinTic;								// Minimum tic bound
+	tic_t LastSeen;								// Last time seen
+	D_SNPingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
+	int8_t PingAt;								// Current window
+	tic_t NextPing;								// Time of next ping
 };
 
 /*****************
