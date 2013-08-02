@@ -440,25 +440,36 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, con
 }
 
 /* D_SNStartLocalServer() -- Starts local server (just sets connected) */
-bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers)
+bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer)
 {
 	int32_t Local;
 	const char* Profs[MAXSPLITSCREEN];
 	
 	/* Local copy */
 	// If there are no local players, always make one
-	if (a_NumLocal <= 0)
+	// But cannot be done for saves
+	if (a_MakePlayer)
 	{
-		if (g_KeyDefaultProfile)
+		if (a_NumLocal <= 0)
 		{
-			Profs[0] = g_KeyDefaultProfile->AccountName;
-			Local = 1;
+			if (g_KeyDefaultProfile)
+			{
+				Profs[0] = g_KeyDefaultProfile->AccountName;
+				Local = 1;
+			}
 		}
+		else
+			for (Local = 0; Local < a_NumLocal; Local++)
+				if (Local < MAXSPLITSCREEN)
+					Profs[Local] = a_Profs[Local];
 	}
+	
+	// Save game (or dedicated local server!?), re-attach ports
 	else
-		for (Local = 0; Local < a_NumLocal; Local++)
-			if (Local < MAXSPLITSCREEN)
-				Profs[Local] = a_Profs[Local];
+	{
+		Local = 0;
+		memset(Profs, 0, sizeof(Profs));
+	}
 	
 	/* Normal statr */
 	if (D_SNStartServer(Local, Profs, a_JoinPlayers))
@@ -560,7 +571,7 @@ bool_t D_SNServerInit(void)
 		else
 		{
 			// Use wrapper func
-			D_SNStartLocalServer(np, PProfs, true);
+			D_SNStartLocalServer(np, PProfs, true, true);
 		}
 		
 		// Warp to map
@@ -1404,9 +1415,6 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 				// Missed tic generation (use backup tic)
 				else
 				{
-					// TODO FIXME
-					CONL_PrintF("Missed local tic gen %i\n", gametic);
-					
 					memmove(a_TicCmd, &Port->BackupCmd, sizeof(Port->BackupCmd));
 					
 					// Lagging

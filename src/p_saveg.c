@@ -68,6 +68,7 @@ extern mobj_t* g_LFPRover;
 *************/
 
 static P_SaveSubVersion_t l_SSV;				// Sub save version
+static bool_t l_SoloLoad;						// Single player load game
 
 /****************
 *** FUNCTIONS ***
@@ -800,8 +801,9 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	D_Prof_t* Prof;
 	
 	/* Get current host, if connected */
+	// Or if in single player game
 	MyHost = NULL;
-	if (D_SNIsConnected())
+	if (D_SNIsConnected() || l_SoloLoad)
 		MyHost = D_SNMyHost();
 	
 	/* Expect "HOST" */
@@ -829,17 +831,26 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		// This is OUR host?
 		if (MyHost && MyHost->ID == ReadID)
 			Local = true;	// Connected
-		else if (!MyHost && ID == ReadID)
+		else if ((l_SoloLoad || !MyHost) && ID == ReadID)
 			Local = true;	// Loading save game (take control of ourself)
 		else
 			Local = false;	// Do not possess this host
 		
-		// Create host, if this is not ours
+		// Claim this host
 		if (MyHost && Local)
+		{
 			Host = MyHost;
+			
+			// Use this ID in single player
+				// Since we take over an existing host structure
+			if (l_SoloLoad)
+				LocalID = ReadID;
+		}
+		
+		// Create host, if this is not ours
 		else
 		{
-			if (!(Host = D_SNHostByID(ID)))	// maybe it already exists?
+			if (!(Host = D_SNHostByID(ReadID)))	// maybe it already exists?
 				Host = D_SNCreateHost();
 			
 			// Make my host
@@ -848,12 +859,23 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		}
 		
 		// Fill in fields
-		Host->ID = ReadID;
+		Host->ID = ReadID;	// Solo replaces host
 		Host->Local = Local;
 		Host->Cleanup = D_BSru8(a_Str);
 		D_BSrs(a_Str, Host->QuitReason, MAXQUITREASON);
 		
-		CONL_PrintF("Add host %08x (local == %08x)\n", ReadID, (MyHost ? MyHost->ID : LocalID));
+		// If single player, drop non-locals (but keep local)
+		if (l_SoloLoad)
+		{
+			Host->Cleanup = !Host->Local;
+			
+			// If cleaning up, change message when they all die
+			if (Host->Cleanup)
+			{
+				strncpy(Host->QuitReason, "Non-local player", MAXQUITREASON - 1);
+				Host->QuitReason[MAXQUITREASON - 1] = 0;
+			}
+		}
 	}
 	
 	// Set local host
@@ -878,8 +900,9 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		// Find host that owns this port
 		Host = D_SNHostByID(ReadID);
 		
+		CONL_PrintF("Port %x %x -> Host %p\n", PortID, ReadID, Host);
+		
 		// Something bad happened
-		CONL_PrintF("HostID = %08x\n", ReadID);
 		if (!Host)
 			return PS_IllegalSave(DSTR_PSAVEGC_ILLEGALHOST);
 		
@@ -3100,9 +3123,18 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	// do not want to disconnect.
 	// However, an option passed to the game can say to not disconnect, i.e.
 	// such as when playing a demo or joining a netgame.
+	l_SoloLoad = false;
 	if (!a_DemoPlay)
-		if (D_SNIsServer() || (demoplayback || gamestate == GS_DEMOSCREEN))
+		if (!D_SNIsConnected() || D_SNIsServer() || (demoplayback || gamestate == GS_DEMOSCREEN) || (D_SNIsConnected() && !D_SNWaitingForSave()))
+		{
+			// Disconnect
 			D_SNDisconnect(false, "Loading a save game.");
+			
+			// Start local server
+				// Do not force add a first port
+			D_SNStartLocalServer(0, NULL, false, false);
+			l_SoloLoad = true;
+		}
 	
 	// Switch to the WFGS screen
 	gamestate = GS_WAITINGPLAYERS;

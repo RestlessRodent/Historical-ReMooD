@@ -144,7 +144,7 @@ bool_t D_SNIsServer(void);
 void D_SNStartWaiting(void);
 void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs);
 bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers);
-bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers);
+bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer);
 bool_t D_SNServerInit(void);
 
 /*** LOOP ***/
@@ -208,6 +208,7 @@ void D_SNDoTrans(void);
 bool_t D_SNGotFile(const char* const a_PathName);
 void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
 void D_SNRequestPortNet(const uint32_t a_ProcessID);
+bool_t D_SNWaitingForSave(void);
 
 /*** FILES ***/
 

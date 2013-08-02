@@ -531,6 +531,15 @@ void D_SNRequestPortNet(const uint32_t a_ProcessID)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
+/* D_SNWaitingForSave() -- Waiting for save game */
+bool_t D_SNWaitingForSave(void)
+{
+	// Only if wanting save
+	if (l_Sock && D_SNIsConnected() && (l_Stage == DCS_REQUESTSAVE || l_Stage == DCS_GETSAVE))
+		return true;
+	return false;
+}
+
 /* D_SNDoConnect() -- Do connection logic */
 void D_SNDoConnect(void)
 {
