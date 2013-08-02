@@ -353,13 +353,13 @@ typedef struct
 	fixed_t speed;
 	
 	// 1 = up, 0 = waiting at top, -1 = down
-	int direction;
+	int32_t direction;
 	
 	// tics to wait at the top
-	int topwait;
+	int32_t topwait;
 	// (keep in case a door going down is reset)
 	// when it reaches 0, start going down
-	int topcountdown;
+	int32_t topcountdown;
 	
 	//SoM: 3/6/2000: the line that triggered the door.
 	line_t* line;
@@ -602,13 +602,12 @@ typedef struct
 	floor_e type;
 	bool_t crush;
 	sector_t* sector;
-	int direction;
-	int newspecial;
-	int oldspecial;				//SoM: 3/6/2000
-	short texture;
+	int32_t direction;
+	uint32_t newspecial;
+	uint32_t oldspecial;				//SoM: 3/6/2000
+	int32_t texture;
 	fixed_t floordestheight;
 	fixed_t speed;
-	
 } floormove_t;
 
 typedef struct					//SoM: 3/6/2000: Elevator struct.
@@ -616,7 +615,7 @@ typedef struct					//SoM: 3/6/2000: Elevator struct.
 	thinker_t thinker;
 	uint32_t type;								// ReMooD Enhanced
 	sector_t* sector;
-	int direction;
+	int32_t direction;
 	fixed_t floordestheight;
 	fixed_t ceilingdestheight;
 	fixed_t speed;
@@ -625,7 +624,7 @@ typedef struct					//SoM: 3/6/2000: Elevator struct.
 	fixed_t PerpTicsLeft;						// Time left until perp moves
 	line_t* CallLine;							// Calling Line
 	fixed_t PDoorSpeed;							// Elevator Door speed
-	int OldDirection;							// Old movement direction
+	int32_t OldDirection;						// Old movement direction
 	bool_t Dinged;								// Elevator Dinged
 } elevator_t;
 

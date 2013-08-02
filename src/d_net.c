@@ -1938,6 +1938,13 @@ static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP,
 {
 	D_SNPort_t* New;
 	
+	/* Create host if it does not exist */
+	if (!a_Host)
+	{
+		New = D_SNCreateHost();
+		New->ID = a_HID;
+	}
+	
 	/* If port does not exist, create it */
 	// Give packet may have reached client already
 	if (!a_Port)

@@ -1696,6 +1696,8 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	strobe_t* strobe;
 	glow_t* glow;
 	lightlevel_t* lightfade;
+	vldoor_t* vldoor;
+	floormove_t* floormove;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1884,6 +1886,16 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 
 				// Vertical Door
 			case PTT_VERTICALDOOR:
+				vldoor = Thinker;
+				
+				D_BSwi32(a_Str, vldoor->type);
+				PS_LUMapObjRef(a_Str, true, &vldoor->sector);
+				D_BSwi32(a_Str, vldoor->topheight);
+				D_BSwi32(a_Str, vldoor->speed);
+				D_BSwi32(a_Str, vldoor->direction);
+				D_BSwi32(a_Str, vldoor->topwait);
+				D_BSwi32(a_Str, vldoor->topcountdown);
+				PS_LUMapObjRef(a_Str, true, &vldoor->line);
 				break;
 			
 				// Light Source
@@ -1941,6 +1953,17 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_MOVEFLOOR:
+				floormove = Thinker;
+				
+				D_BSwi32(a_Str, floormove->type);
+				D_BSwu32(a_Str, floormove->crush);
+				PS_LUMapObjRef(a_Str, true, &floormove->sector);
+				D_BSwi32(a_Str, floormove->direction);
+				D_BSwu32(a_Str, floormove->newspecial);
+				D_BSwu32(a_Str, floormove->oldspecial);
+				D_BSwi32(a_Str, floormove->texture);
+				D_BSwi32(a_Str, floormove->floordestheight);
+				D_BSwi32(a_Str, floormove->speed);
 				break;
 	
 				// Moving Surface
@@ -2263,6 +2286,8 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	strobe_t* strobe;
 	glow_t* glow;
 	lightlevel_t* lightfade;
+	vldoor_t* vldoor;
+	floormove_t* floormove;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -2517,6 +2542,16 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				
 				// Vertical Door
 			case PTT_VERTICALDOOR:
+				vldoor = (void*)Thinker;
+				
+				vldoor->type = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, &vldoor->sector);
+				vldoor->topheight = D_BSri32(a_Str);
+				vldoor->speed = D_BSri32(a_Str);
+				vldoor->direction = D_BSri32(a_Str);
+				vldoor->topwait = D_BSri32(a_Str);
+				vldoor->topcountdown = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, &vldoor->line);
 				break;
 	
 				// Light Source
@@ -2574,6 +2609,17 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_MOVEFLOOR:
+				floormove = (void*)Thinker;
+				
+				floormove->type = D_BSwi32(a_Str);
+				floormove->crush = D_BSwu32(a_Str);
+				PS_LUMapObjRef(a_Str, false, &floormove->sector);
+				floormove->direction = D_BSwi32(a_Str);
+				floormove->newspecial = D_BSwu32(a_Str);
+				floormove->oldspecial = D_BSwu32(a_Str);
+				floormove->texture = D_BSwi32(a_Str);
+				floormove->floordestheight = D_BSwi32(a_Str);
+				floormove->speed = D_BSwi32(a_Str);
 				break;
 	
 				// Moving Surface
