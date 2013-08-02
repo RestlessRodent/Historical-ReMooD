@@ -1245,9 +1245,9 @@ void T_Scroll(scroll_t* s);
 typedef struct
 {
 	thinker_t thinker;			// Thinker structure for friction
-	int friction;				// friction value (E800 = normal)
-	int movefactor;				// inertia factor when adding to momentum
-	int affectee;				// Number of affected sector
+	int32_t friction;				// friction value (E800 = normal)
+	int32_t movefactor;				// inertia factor when adding to momentum
+	int32_t affectee;				// Number of affected sector
 } friction_t;
 
 //SoM: Friction defines.

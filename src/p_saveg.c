@@ -1711,6 +1711,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	vldoor_t* vldoor;
 	floormove_t* floormove;
 	pusher_t* pusher;
+	friction_t* friction;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1997,6 +1998,11 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Friction
 			case PTT_FRICTION:
+				friction = (void*)Thinker;
+				
+				D_BSwi32(a_Str, friction->friction);
+				D_BSwi32(a_Str, friction->movefactor);
+				D_BSwi32(a_Str, friction->affectee);
 				break;
 	
 				// Pusher/Puller
@@ -2313,6 +2319,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	vldoor_t* vldoor;
 	floormove_t* floormove;
 	pusher_t* pusher;
+	friction_t* friction;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -2665,6 +2672,11 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Friction
 			case PTT_FRICTION:
+				friction = (void*)Thinker;
+				
+				friction->friction = D_BSri32(a_Str);
+				friction->movefactor = D_BSri32(a_Str);
+				friction->affectee = D_BSri32(a_Str);
 				break;
 	
 				// Pusher/Puller
