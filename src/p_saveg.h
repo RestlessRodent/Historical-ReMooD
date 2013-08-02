@@ -39,6 +39,18 @@
 #include "d_block.h"
 
 /****************
+*** CONSTANTS ***
+****************/
+
+/* P_SaveSubVersion_t -- Save game sub version format */
+typedef enum P_SaveSubVersion_s
+{
+	// Add more as time goes on...	
+	
+	PSSV_LATEST
+} P_SaveSubVersion_t;
+
+/****************
 *** FUNCTIONS ***
 ****************/
 

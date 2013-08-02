@@ -1276,13 +1276,13 @@ typedef struct
 		p_downwind,				// SSNTails 06-10-2003
 	} type;
 	mobj_t* source;				// Point source if point pusher
-	int x_mag;					// X Strength
-	int y_mag;					// Y Strength
-	int magnitude;				// Vector strength for point pusher
-	int radius;					// Effective radius for point pusher
-	int x;						// X of point source if point pusher
-	int y;						// Y of point source if point pusher
-	int affectee;				// Number of affected sector
+	int32_t x_mag;					// X Strength
+	int32_t y_mag;					// Y Strength
+	int32_t magnitude;				// Vector strength for point pusher
+	int32_t radius;					// Effective radius for point pusher
+	int32_t x;						// X of point source if point pusher
+	int32_t y;						// Y of point source if point pusher
+	int32_t affectee;				// Number of affected sector
 } pusher_t;
 
 //SoM: 3/9/2000: Prototype functions for pushers

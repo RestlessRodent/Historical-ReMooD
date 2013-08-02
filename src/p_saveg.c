@@ -63,6 +63,12 @@
 
 extern mobj_t* g_LFPRover;
 
+/*************
+*** LOCALS ***
+*************/
+
+static P_SaveSubVersion_t l_SSV;				// Sub save version
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -517,35 +523,35 @@ static void PS_LUMapObjRef(D_BS_t* const a_Str, const bool_t a_Write, void** con
 #define __DEF(id,ref) {IDType = (id); RefNum = (ref);}
 
 		// Vertex
-		if (*a_Ref >= vertexes && *a_Ref < &vertexes[numvertexes])
+		if (*a_Ref >= (void*)vertexes && *a_Ref < (void*)&vertexes[numvertexes])
 			__DEF(1, ((vertex_t*)*a_Ref) - vertexes)
 			
 		// Segs
-		else if (*a_Ref >= segs && *a_Ref < &segs[numsegs])
+		else if (*a_Ref >= (void*)segs && *a_Ref < (void*)&segs[numsegs])
 			__DEF(2, ((seg_t*)*a_Ref) - segs)
 			
 		// Sectors
-		else if (*a_Ref >= sectors && *a_Ref < &sectors[numsectors])
+		else if (*a_Ref >= (void*)sectors && *a_Ref < (void*)&sectors[numsectors])
 			__DEF(3, ((sector_t*)*a_Ref) - sectors)
 			
 		// SubSectors
-		else if (*a_Ref >= subsectors && *a_Ref < &subsectors[numsubsectors])
+		else if (*a_Ref >= (void*)subsectors && *a_Ref < (void*)&subsectors[numsubsectors])
 			__DEF(4, ((subsector_t*)*a_Ref) - subsectors)
 			
 		// Nodes
-		else if (*a_Ref >= nodes && *a_Ref < &nodes[numnodes])
+		else if (*a_Ref >= (void*)nodes && *a_Ref < (void*)&nodes[numnodes])
 			__DEF(5, ((node_t*)*a_Ref) - nodes)
 			
 		// Lines
-		else if (*a_Ref >= lines && *a_Ref < &lines[numlines])
+		else if (*a_Ref >= (void*)lines && *a_Ref < (void*)&lines[numlines])
 			__DEF(6, ((line_t*)*a_Ref) - lines)
 			
 		// Sides
-		else if (*a_Ref >= sides && *a_Ref < &sides[numsides])
+		else if (*a_Ref >= (void*)sides && *a_Ref < (void*)&sides[numsides])
 			__DEF(7, ((side_t*)*a_Ref) - sides)
 		
 		// Map Things
-		else if (*a_Ref >= mapthings && *a_Ref < &mapthings[nummapthings])
+		else if (*a_Ref >= (void*)mapthings && *a_Ref < (void*)&mapthings[nummapthings])
 			__DEF(8, ((mapthing_t*)*a_Ref) - mapthings)
 		
 		// NULL or invalid
@@ -608,6 +614,9 @@ static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 	D_BSws(a_Str, REMOOD_VERSIONCODESTRING);
 	D_BSws(a_Str, REMOOD_URL);
 	
+	// Version
+	D_BSwu32(a_Str, PSSV_LATEST);
+	
 	// Sync
 	D_BSwu32(a_Str,  G_CalcSyncCode(false));
 	
@@ -646,6 +655,9 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 		// Read URL
 		D_BSrs(a_Str, Buf, BUFSIZE);
 		CONL_PrintF("See: %s\n", Buf);
+		
+		// Sub save version
+		l_SSV = D_BSru32(a_Str);
 		
 		// Sync Code
 		u32 = D_BSru32(a_Str);
@@ -1698,6 +1710,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	lightlevel_t* lightfade;
 	vldoor_t* vldoor;
 	floormove_t* floormove;
+	pusher_t* pusher;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -1731,7 +1744,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		}
 		
 		// Write Info here
-		PS_LUMapObjRef(a_Str, true, &g_MSecNodes[i]->m_sector);
+		PS_LUMapObjRef(a_Str, true, (void**)&g_MSecNodes[i]->m_sector);
 		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)g_MSecNodes[i]->m_thing));
 		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tprev));
 		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tnext));
@@ -1759,7 +1772,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		{
 				// Map Object
 			case PTT_MOBJ:
-				mo = Thinker;
+				mo = (void*)Thinker;
 				
 				PS_LoadUnloadNoiseThinker(a_Str, true, &mo->NoiseThinker);
 				D_BSwi32(a_Str, mo->x);
@@ -1773,7 +1786,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 				D_BSwi32(a_Str, mo->skin);
 				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->bnext));
 				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->bprev));
-				PS_LUMapObjRef(a_Str, true, &mo->subsector);
+				PS_LUMapObjRef(a_Str, true, (void**)&mo->subsector);
 				D_BSwi32(a_Str, mo->floorz);
 				D_BSwi32(a_Str, mo->ceilingz);
 				D_BSwi32(a_Str, mo->radius);
@@ -1802,7 +1815,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 				D_BSwi32(a_Str, mo->lastlook);
 				
 				// Spawn point (might be script created)
-				PS_LUMapObjRef(a_Str, true, &mo->spawnpoint);
+				PS_LUMapObjRef(a_Str, true, (void**)&mo->spawnpoint);
 				D_BSwu8(a_Str, !!mo->spawnpoint);
 				if (mo->spawnpoint)
 				{
@@ -1886,23 +1899,23 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 
 				// Vertical Door
 			case PTT_VERTICALDOOR:
-				vldoor = Thinker;
+				vldoor = (void*)Thinker;
 				
 				D_BSwi32(a_Str, vldoor->type);
-				PS_LUMapObjRef(a_Str, true, &vldoor->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&vldoor->sector);
 				D_BSwi32(a_Str, vldoor->topheight);
 				D_BSwi32(a_Str, vldoor->speed);
 				D_BSwi32(a_Str, vldoor->direction);
 				D_BSwi32(a_Str, vldoor->topwait);
 				D_BSwi32(a_Str, vldoor->topcountdown);
-				PS_LUMapObjRef(a_Str, true, &vldoor->line);
+				PS_LUMapObjRef(a_Str, true, (void**)&vldoor->line);
 				break;
 			
 				// Light Source
 			case PTT_FIREFLICKER:
-				flicker = Thinker;
+				flicker = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &flicker->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&flicker->sector);
 				D_BSwi32(a_Str, flicker->count);
 				D_BSwi32(a_Str, flicker->maxlight);
 				D_BSwi32(a_Str, flicker->minlight);
@@ -1910,9 +1923,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_LIGHTFLASH:
-				lightflash = Thinker;
+				lightflash = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &lightflash->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&lightflash->sector);
 				D_BSwi32(a_Str, lightflash->count);
 				D_BSwi32(a_Str, lightflash->maxlight);
 				D_BSwi32(a_Str, lightflash->minlight);
@@ -1922,9 +1935,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_STROBEFLASH:
-				strobe = Thinker;
+				strobe = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &strobe->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&strobe->sector);
 				D_BSwi32(a_Str, strobe->count);
 				D_BSwi32(a_Str, strobe->maxlight);
 				D_BSwi32(a_Str, strobe->minlight);
@@ -1934,9 +1947,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_GLOW:
-				glow = Thinker;
+				glow = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &glow->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&glow->sector);
 				D_BSwi32(a_Str, glow->maxlight);
 				D_BSwi32(a_Str, glow->minlight);
 				D_BSwi32(a_Str, glow->direction);
@@ -1944,20 +1957,20 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_LIGHTFADE:
-				lightfade = Thinker;
+				lightfade = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &lightfade->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&lightfade->sector);
 				D_BSwi32(a_Str, lightfade->destlevel);
 				D_BSwi32(a_Str, lightfade->speed);
 				break;
 	
 				// Moving Surface
 			case PTT_MOVEFLOOR:
-				floormove = Thinker;
+				floormove = (void*)Thinker;
 				
 				D_BSwi32(a_Str, floormove->type);
 				D_BSwu32(a_Str, floormove->crush);
-				PS_LUMapObjRef(a_Str, true, &floormove->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&floormove->sector);
 				D_BSwi32(a_Str, floormove->direction);
 				D_BSwu32(a_Str, floormove->newspecial);
 				D_BSwu32(a_Str, floormove->oldspecial);
@@ -1986,8 +1999,19 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 			case PTT_FRICTION:
 				break;
 	
-				// Puller
+				// Pusher/Puller
 			case PTT_PUSHER:
+				pusher = (void*)Thinker;
+				
+				D_BSwu32(a_Str, pusher->type);
+				D_BSwi32(a_Str, PS_GetThinkerID(pusher->source));
+				D_BSwi32(a_Str, pusher->x_mag);
+				D_BSwi32(a_Str, pusher->y_mag);
+				D_BSwi32(a_Str, pusher->magnitude);
+				D_BSwi32(a_Str, pusher->radius);
+				D_BSwi32(a_Str, pusher->x);
+				D_BSwi32(a_Str, pusher->y);
+				D_BSwi32(a_Str, pusher->affectee);
 				break;
 	
 				// Unknown
@@ -2108,7 +2132,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		
 		D_BSwu32(a_Str, sect->linecount);
 		for (j = 0; j < sect->linecount; j++)
-			PS_LUMapObjRef(a_Str, true, &sect->lines[j]);
+			PS_LUMapObjRef(a_Str, true, (void**)&sect->lines[j]);
 		
 		D_BSwu32(a_Str, sect->numattached);
 		for (j = 0; j < sect->numattached; j++)
@@ -2138,7 +2162,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		
 		D_BSwu32(a_Str, sect->NumAdj);
 		for (j = 0; j < sect->NumAdj; j++)
-			PS_LUMapObjRef(a_Str, true, &sect->Adj[j]);
+			PS_LUMapObjRef(a_Str, true, (void**)&sect->Adj[j]);
 	}
 	
 	if (numsectors > 0)
@@ -2178,7 +2202,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	for (i = 0; i < ITEMQUESIZE; i++)
 	{
 		D_BSwu8(a_Str, !!itemrespawnque[i]);
-		PS_LUMapObjRef(a_Str, true, &itemrespawnque[i]);
+		PS_LUMapObjRef(a_Str, true, (void**)&itemrespawnque[i]);
 		D_BSwcu64(a_Str, itemrespawntime[i]);
 		
 		// In case of script spawned things
@@ -2288,6 +2312,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	lightlevel_t* lightfade;
 	vldoor_t* vldoor;
 	floormove_t* floormove;
+	pusher_t* pusher;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL)
@@ -2333,7 +2358,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				return false;
 		
 		// Load Data
-		PS_LUMapObjRef(a_Str, false, &g_MSecNodes[i]->m_sector);
+		PS_LUMapObjRef(a_Str, false, (void**)&g_MSecNodes[i]->m_sector);
 		g_MSecNodes[i]->m_thing = (void*)((intptr_t)D_BSri32(a_Str));
 		g_MSecNodes[i]->m_tprev = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->m_tnext = P_GetSecNodeFromID(D_BSri32(a_Str));
@@ -2392,7 +2417,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				mo->skin = D_BSri32(a_Str);
 				mo->bnext = (void*)((intptr_t)D_BSri32(a_Str));
 				mo->bprev = (void*)((intptr_t)D_BSri32(a_Str));
-				PS_LUMapObjRef(a_Str, false, &mo->subsector);
+				PS_LUMapObjRef(a_Str, false, (void**)&mo->subsector);
 				mo->floorz = D_BSri32(a_Str);
 				mo->ceilingz = D_BSri32(a_Str);
 				mo->radius = D_BSri32(a_Str);
@@ -2428,7 +2453,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				mo->lastlook = D_BSri32(a_Str);
 
 				// Spawn point (might be script created)
-				PS_LUMapObjRef(a_Str, false, &mo->spawnpoint);
+				PS_LUMapObjRef(a_Str, false, (void**)&mo->spawnpoint);
 				n = !!mo->spawnpoint;
 				x = D_BSru8(a_Str);
 				
@@ -2545,20 +2570,20 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				vldoor = (void*)Thinker;
 				
 				vldoor->type = D_BSri32(a_Str);
-				PS_LUMapObjRef(a_Str, false, &vldoor->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&vldoor->sector);
 				vldoor->topheight = D_BSri32(a_Str);
 				vldoor->speed = D_BSri32(a_Str);
 				vldoor->direction = D_BSri32(a_Str);
 				vldoor->topwait = D_BSri32(a_Str);
 				vldoor->topcountdown = D_BSri32(a_Str);
-				PS_LUMapObjRef(a_Str, false, &vldoor->line);
+				PS_LUMapObjRef(a_Str, false, (void**)&vldoor->line);
 				break;
 	
 				// Light Source
 			case PTT_FIREFLICKER:
 				flicker = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &flicker->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&flicker->sector);
 				flicker->count = D_BSri32(a_Str);
 				flicker->maxlight = D_BSri32(a_Str);
 				flicker->minlight = D_BSri32(a_Str);
@@ -2568,7 +2593,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_LIGHTFLASH:
 				lightflash = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &lightflash->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&lightflash->sector);
 				lightflash->count = D_BSri32(a_Str);
 				lightflash->maxlight = D_BSri32(a_Str);
 				lightflash->minlight = D_BSri32(a_Str);
@@ -2580,7 +2605,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_STROBEFLASH:
 				strobe = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &strobe->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&strobe->sector);
 				strobe->count = D_BSri32(a_Str);
 				strobe->maxlight = D_BSri32(a_Str);
 				strobe->minlight = D_BSri32(a_Str);
@@ -2592,7 +2617,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_GLOW:
 				glow = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &glow->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&glow->sector);
 				glow->maxlight = D_BSri32(a_Str);
 				glow->minlight = D_BSri32(a_Str);
 				glow->direction = D_BSri32(a_Str);
@@ -2602,7 +2627,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_LIGHTFADE:
 				lightfade = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &lightfade->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&lightfade->sector);
 				lightfade->destlevel = D_BSri32(a_Str);
 				lightfade->speed = D_BSri32(a_Str);
 				break;
@@ -2611,15 +2636,15 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_MOVEFLOOR:
 				floormove = (void*)Thinker;
 				
-				floormove->type = D_BSwi32(a_Str);
-				floormove->crush = D_BSwu32(a_Str);
-				PS_LUMapObjRef(a_Str, false, &floormove->sector);
-				floormove->direction = D_BSwi32(a_Str);
-				floormove->newspecial = D_BSwu32(a_Str);
-				floormove->oldspecial = D_BSwu32(a_Str);
-				floormove->texture = D_BSwi32(a_Str);
-				floormove->floordestheight = D_BSwi32(a_Str);
-				floormove->speed = D_BSwi32(a_Str);
+				floormove->type = D_BSri32(a_Str);
+				floormove->crush = D_BSru32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&floormove->sector);
+				floormove->direction = D_BSri32(a_Str);
+				floormove->newspecial = D_BSru32(a_Str);
+				floormove->oldspecial = D_BSru32(a_Str);
+				floormove->texture = D_BSri32(a_Str);
+				floormove->floordestheight = D_BSri32(a_Str);
+				floormove->speed = D_BSri32(a_Str);
 				break;
 	
 				// Moving Surface
@@ -2642,8 +2667,19 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_FRICTION:
 				break;
 	
-				// Puller
+				// Pusher/Puller
 			case PTT_PUSHER:
+				pusher = Thinker;
+				
+				pusher->type = D_BSru32(a_Str);
+				pusher->source = (intptr_t)D_BSri32(a_Str);
+				pusher->x_mag = D_BSri32(a_Str);
+				pusher->y_mag = D_BSri32(a_Str);
+				pusher->magnitude = D_BSri32(a_Str);
+				pusher->radius = D_BSri32(a_Str);
+				pusher->x = D_BSri32(a_Str);
+				pusher->y = D_BSri32(a_Str);
+				pusher->affectee = D_BSri32(a_Str);
 				break;
 			
 				// Unknown
@@ -2759,7 +2795,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		sect->linecount = D_BSru32(a_Str);
 		sect->lines = Z_Malloc(sizeof(*sect->lines) * sect->linecount, PU_LEVEL, NULL);
 		for (j = 0; j < sect->linecount; j++)
-			PS_LUMapObjRef(a_Str, false, &sect->lines[j]);
+			PS_LUMapObjRef(a_Str, false, (void**)&sect->lines[j]);
 
 		sect->numattached = D_BSru32(a_Str);
 		sect->attached = Z_Malloc(sizeof(*sect->attached) * sect->numattached, PU_LEVEL, NULL);
@@ -2794,7 +2830,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		sect->NumAdj = D_BSru32(a_Str);
 		sect->Adj = Z_Malloc(sizeof(*sect->Adj) * sect->NumAdj, PU_LEVEL, NULL);
 		for (j = 0; j < sect->NumAdj; j++)
-			PS_LUMapObjRef(a_Str, false, &sect->Adj[j]);
+			PS_LUMapObjRef(a_Str, false, (void**)&sect->Adj[j]);
 	}
 	
 	/* Restore Map Thing References */
@@ -2841,6 +2877,12 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 						mo->spawnpoint->mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(mo->spawnpoint->mobj)));
 				break;
 				
+				// Pusher
+			case PTT_PUSHER:
+				pusher = Thinker;
+				
+				pusher->source = (void*)PS_GetThinkerFromID((intptr_t)pusher->source);
+				
 				// Unknown
 			default:
 				break;
@@ -2858,7 +2900,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	for (i = 0; i < n; i++)
 	{
 		x = D_BSru8(a_Str);
-		PS_LUMapObjRef(a_Str, false, (i < ITEMQUESIZE ? &itemrespawnque[i] : NULL));
+		PS_LUMapObjRef(a_Str, false, (void**)(i < ITEMQUESIZE ? &itemrespawnque[i] : NULL));
 		Tic = D_BSrcu64(a_Str);
 		
 		if (i < ITEMQUESIZE)
