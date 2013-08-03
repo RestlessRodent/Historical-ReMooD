@@ -41,6 +41,7 @@
 #include "p_info.h"
 #include "p_saveg.h"
 #include "i_system.h"
+#include "g_game.h"
 
 /****************
 *** CONSTANTS ***
@@ -599,6 +600,62 @@ bool_t D_SNWaitingForSave(void)
 void D_SNSetLastTic(void)
 {
 	l_LastRanTime = g_ProgramTic;
+}
+
+/* D_SNAppendLocalCmds() -- Append local commands */
+void D_SNAppendLocalCmds(D_BS_t* const a_BS)
+{
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	int32_t i, p;
+	D_SNTicBuf_t TicBuf;
+	ticcmd_t* Cmd;
+	uint8_t* OutD;
+	uint32_t OutS;
+	
+	/* Check */
+	if (!a_BS || !(Host = D_SNMyHost()))
+		return;
+	
+	/* Clear Buffer */
+	memset(&TicBuf, 0, sizeof(TicBuf));
+	
+	/* Go through ports */
+	for (i = 0; i < Host->NumPorts; i++)
+		if ((Port = Host->Ports[i]))
+		{
+			// No commands to send or not playing
+			if (!Port->LocalAt || !Port->Player)
+				continue;
+			
+			// Get player number
+			p = Port->Player - players;
+			
+			// Setup area to place commands
+			Cmd = &TicBuf.Tics[p];
+			TicBuf.PIGRevMask |= (1 << p);	// clear PIG mask
+			
+			// Merge commands into this
+			D_XNetMergeTics(Cmd, Port->LocalBuf, Port->LocalAt);
+			Port->LocalAt = 0;
+			memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+		}
+	
+	/* Check to see if anything was ever encoded */
+	if (!TicBuf.PIGRevMask)
+		return;
+	
+	// Reverse mask
+	TicBuf.PIGRevMask = ~TicBuf.PIGRevMask;
+	
+	/* Encode and write */
+	OutD = NULL;
+	OutS = 0;
+	D_SNEncodeTicBuf(&TicBuf, &OutD, &OutS, DXNTBV_LATEST);
+	
+	// Write
+	D_BSwu32(a_BS, OutS);
+	D_BSWriteChunk(a_BS, OutD, OutS);
 }
 
 /* D_SNDoConnect() -- Do connection logic */
@@ -1470,6 +1527,10 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSwcu64(a_BS, GameTic);
 	D_BSwcu64(a_BS, gametic);
 	
+	// Append local port tics to the server
+	D_SNAppendLocalCmds(a_BS);
+	
+	// Send
 	D_BSRecordNetBlock(a_BS, a_Addr);
 }
 
@@ -1479,6 +1540,13 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	int32_t i, j;
 	D_XMitJob_t* Job;
 	tic_t GameTic, ClientGT;
+	
+	static uint8_t* Buf;
+	static uint32_t BufSize;
+	uint32_t Size; 
+	D_SNTicBuf_t TicBuf;
+	ticcmd_t* Cmd;
+	D_SNPort_t* Port;
 	
 	/* Server Only */
 	if (!D_SNIsServer() || !a_Host)
@@ -1512,6 +1580,62 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 			// If found, would have been cleared
 			break;
 		}
+	
+	/* Read client tic commands */
+	Size = D_BSru32(a_BS);
+	
+	// Nothing to read
+	if (Size < 0)
+		return;
+	
+	// Cap size
+	if (Size > 16383)
+		Size = 16383;
+	
+	// Need to resize buffer
+	if (BufSize < Size)
+	{
+		if (Buf)
+			Z_Free(Buf);
+		BufSize = Size;
+		Buf = Z_Malloc(BufSize, PU_STATIC, NULL);
+	}
+	
+	// Read
+	D_BSReadChunk(a_BS, Buf, Size);
+	
+	// Decode commands
+	if (!D_SNDecodeTicBuf(&TicBuf, Buf, Size))
+		return;	// Who cares if it is bad
+	
+	// reverse the pig mask
+	TicBuf.PIGRevMask = ~TicBuf.PIGRevMask;
+	
+	/* Copy decoded commands to player ports */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// No commands for this player
+		if (!(TicBuf.PIGRevMask & (1 << i)))
+			continue;
+		
+		// Find port for this player
+		for (j = 0; j < a_Host->NumPorts; j++)
+			if ((Port = a_Host->Ports[j]))
+			{
+				// Not playing or wrong player
+				if (!Port->Player || Port->Player - players != i)
+					continue;
+				
+				// Append command to this location
+				if (Port->LocalAt < MAXLBTSIZE - 1)
+					Cmd = &Port->LocalBuf[Port->LocalAt++];
+				else
+					Cmd = &Port->LocalBuf[0];
+				
+				// Copy
+				memmove(Cmd, &TicBuf.Tics[i], sizeof(*Cmd));
+			}
+	}
 }
 
 /* DT_WANT() -- Client wants another port */

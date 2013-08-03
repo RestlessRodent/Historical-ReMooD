@@ -1503,6 +1503,9 @@ bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD
 	// Player in game
 	PIG = LittleReadUInt32(&p);
 	
+	// Set reverse mask for notices
+	a_TicBuf->PIGRevMask = ~PIG;
+	
 	// Player Commands
 	for (i = 0; i < MAXPLAYERS + 1; i++)
 	{
