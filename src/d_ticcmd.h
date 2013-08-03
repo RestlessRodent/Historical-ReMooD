@@ -165,6 +165,7 @@ enum
 	DTCT_SNPARTPLAYER,							// Player parts
 	DTCT_SNJOINPORT,							// Port is joined
 	DTCT_SNCHATFRAG,							// Chat Fragment
+	DTCT_SNPORTSETTING,							// Setting of port
 	
 	NUMDTCT
 };

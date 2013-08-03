@@ -89,8 +89,32 @@ static int32_t l_LocalAt;						// Local tics at
 *** FUNCTIONS ***
 ****************/
 
+/* D_NetSetPlayerName() -- Sets name of player */
 bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name)
 {
+	uint32_t OldNameHash;
+	uint32_t NewNameHash;
+	char OldName[MAXPLAYERNAME + 1];
+	
+	/* Check */
+	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS || !a_Name)
+		return false;
+	
+	/* Hash old name */
+	memset(OldName, 0, sizeof(OldName));
+	strncpy(OldName, player_names[a_PlayerID], MAXPLAYERNAME);
+	OldNameHash = Z_Hash(player_names[a_PlayerID]);
+	
+	/* Copy name over */
+	strncpy(player_names[a_PlayerID], a_Name, MAXPLAYERNAME);
+	player_names[a_PlayerID][MAXPLAYERNAME - 1] = 0;
+	NewNameHash = Z_Hash(player_names[a_PlayerID]);
+	
+	/* Inform? */
+	if (OldNameHash != NewNameHash)
+		CONL_OutputU(DSTR_NETPLAYERRENAMED, "%s%s\n", OldName, player_names[a_PlayerID]);
+	
+	/* Success! */
 	return true;
 }
 
@@ -1387,6 +1411,7 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 		{
 			Split->Port->Screen = PlaceAt;
 			Split->Port->ProcessID = Split->ProcessID;
+			D_SNSetPortProfile(Split->Port, Profile);
 		}
 	}
 	
@@ -1654,9 +1679,17 @@ void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile)
 	// Clone to screen
 	if (a_Port->Screen >= 0 && a_Port->Screen < MAXSPLITSCREEN)
 		g_Splits[a_Port->Screen].Profile = a_Profile;
+		
+	// No profile
+	if (!a_Profile)
+		return;
 	
 	/* Broadcast information to everyone else */
 	// This also sets in game details, if playing, etc.
+	D_SNPortSetting(a_Port, DSNPS_NAME, 0, a_Profile->DisplayName, 0);
+	D_SNPortSetting(a_Port, DSNPS_VTEAM, a_Profile->VTeam, NULL, 0);
+	D_SNPortSetting(a_Port, DSNPS_COLOR, a_Profile->Color, NULL, 0);
+	D_SNPortSetting(a_Port, DSNPS_COUNTEROP, a_Profile->CounterOp, NULL, 0);
 }
 
 /* D_SNPortRequestJoin() -- Request join on the server */
@@ -1732,6 +1765,7 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	D_SNPort_t* Port;
 	D_SNPort_t* PortMap[MAXPLAYERS];
 	uint8_t* Wp;
+	uint32_t Flags;
 	
 	/* Only server can do this */
 	if (!l_Server)
@@ -1786,10 +1820,19 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 		return;
 	}
 	
+	// Flags
+	Flags = 0;
+	
+	if (Port->CounterOp)
+		Flags |= DTCJF_MONSTERTEAM;
+	
 	// Fill
 	LittleWriteUInt32((uint32_t**)&Wp, Host->ID);
 	LittleWriteUInt32((uint32_t**)&Wp, Port->ID);
 	WriteUInt8((uint8_t**)&Wp, p);
+	WriteUInt8((uint8_t**)&Wp, Port->VTeam);
+	WriteUInt8((uint8_t**)&Wp, Port->Color);
+	LittleWriteUInt32((uint32_t**)&Wp, Flags);
 }
 
 /* D_SNGetPortName() -- Get name of port */
@@ -1806,6 +1849,74 @@ const char* D_SNGetPortName(D_SNPort_t* const a_Port)
 	/* Do not know */
 	else
 		return "Player";
+}
+
+/* D_SNPortSettingInt() -- Sets integer value of setting */
+void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
+{
+	void* Wp;
+	int32_t i;
+	const char* p;
+	
+	/* Check */
+	if (!a_Port || a_Setting < 0 || a_Setting >= NUMDSNPS)
+		return;
+	
+	/* Server */
+	// Affect settings directly
+	if (D_SNIsServer())
+	{
+		// Take gloal
+		if (!D_SNExtCmdInGlobal(DTCT_SNPORTSETTING, &Wp))
+			return;
+	
+		// Write Data
+		LittleWriteUInt32((uint32_t**)&Wp, a_Port->Host->ID);
+		LittleWriteUInt32((uint32_t**)&Wp, a_Port->ID);
+		WriteUInt8(&Wp, (a_Port->Player ? a_Port->Player - players : 255));
+		
+		LittleWriteUInt16((uint16_t**)&Wp, a_Setting);
+		
+		// String?
+		if (a_StrVal)
+		{
+			// No length specified
+			if (!a_StrLen)
+				for (p = a_StrVal, i = 0; i < MAXTCSTRINGCAT; i++)
+				{
+					// Write
+					WriteUInt8(&Wp, *p);
+				
+					// Increase p as long as it is not NULL
+					if (*p)
+						p++;
+				}
+			
+			// Length Specified
+			else
+				for (i = 0; i < MAXTCSTRINGCAT; i++)
+					if (i < a_StrLen)
+						WriteUInt8(&Wp, ((uint8_t*)a_StrVal)[i]);
+					else
+						WriteUInt8(&Wp, 0);
+		}
+		
+		// Integer
+		else
+		{
+			LittleWriteInt32((int32_t**)&Wp, a_IntVal);
+			
+			// Padding
+			for (i = 4; i < MAXTCSTRINGCAT; i++)
+				WriteUInt8(&Wp, 0);
+		}
+	}
+	
+	/* Client */
+	// Send to server
+	else
+	{
+	}
 }
 
 /*** GAME CONTROL ***/
@@ -1945,6 +2056,8 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	D_SNPort_t* Port;
 	player_t* Player;
 	D_SplitInfo_t* Split;
+	uint8_t VTeam, Color;
+	uint32_t Flags;
 	
 	/* Out of bounds? */
 	if (a_PID < 0 || a_PID >= MAXPLAYERS)
@@ -1953,6 +2066,15 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	/* Already taken */
 	if (playeringame[a_PID])
 		return;
+	
+	/* Read settings */
+	VTeam = ReadUInt8(a_PP);
+	Color = ReadUInt8(a_PP);
+	Flags = LittleReadUInt32((const uint32_t**)a_PP);
+	
+	// Cap values
+	VTeam = VTeam % P_XGSVal(PGS_PLMAXTEAMS);
+	Color = Color % MAXSKINCOLORS;
 	
 	/* Count existing players in game */
 	for (i = n = 0; i < MAXPLAYERS; i++)
@@ -1996,6 +2118,10 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	
 	// Set local fields
 	Player->Port = Port;
+	Player->skincolor = Color;
+	
+	P_ChangePlVTeam(Player, VTeam);
+	P_ChangeCounterOp(Player, !!(Flags & DTCJF_MONSTERTEAM));
 	
 	/* Update Scores */
 	P_UpdateScores();
@@ -2326,6 +2452,74 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 		S_StartSound(NULL, Sound);
 }
 
+/* D_SNHandleGTPortSetting() -- Change setting of a port */
+static void D_SNHandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+#define BUFSIZE (MAXTCSTRINGCAT + 1)
+	uint16_t Setting;
+	const uint8_t* OldPPd;
+	uint8_t Buf[BUFSIZE];
+	player_t* PlayerP;
+	
+	int32_t IntVal, i;
+	
+	/* Read Setting and values */
+	Setting = LittleReadUInt16((const uint16_t**)a_PP);
+	PlayerP = &players[a_PID];
+	
+	// Illegal Setting
+	if (Setting < 0 || Setting >= NUMDSNPS)
+		return;
+	
+	// Value is either a string or an integer, but takes both places at once
+	OldPPd = *a_PP;
+	IntVal = LittleReadInt32((const int32_t**)a_PP);
+	*a_PP = OldPPd;
+	
+	memset(Buf, 0, sizeof(Buf));
+	for (i = 0; i < MAXTCSTRINGCAT; i++)
+		Buf[i] = ReadUInt8(a_PP);
+	
+	/* Change setting of port */
+	if (a_Port)
+		switch (Setting)
+		{
+			case DSNPS_VTEAM:	a_Port->VTeam = IntVal; break;
+			case DSNPS_COLOR:	a_Port->Color = IntVal; break;
+			case DSNPS_COUNTEROP:	a_Port->CounterOp = !!IntVal; break;
+		}
+	
+	/* Change setting of player */
+	if (a_PID >= 0 && a_PID < MAXPLAYERS)
+		switch (Setting)
+		{
+			case DSNPS_VTEAM:
+				P_ChangePlVTeam(PlayerP, IntVal);
+				break;
+			
+			case DSNPS_COLOR:
+				PlayerP->skincolor = IntVal % MAXSKINCOLORS;
+				
+				// Change color of thing
+				if (!PlayerP->CounterOpPlayer &&
+					PlayerP->mo)
+				{
+					PlayerP->mo->flags &= ~MF_TRANSLATION;
+					PlayerP->mo->flags |= (PlayerP->skincolor) << MF_TRANSSHIFT;
+				}
+				break;
+			
+			case DSNPS_NAME:
+				D_NetSetPlayerName(a_PID, Buf);
+				break;
+			
+			case DSNPS_COUNTEROP:
+				P_ChangeCounterOp(a_PID, !!IntVal);
+				break;
+		}
+#undef BUFSIZE
+}
+
 /* D_SNHandleGT() -- Handles game command IDs */
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
@@ -2388,6 +2582,11 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			// Chat Fragment
 		case DTCT_SNCHATFRAG:
 			D_SNHandleGTChatFrag(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Setting
+		case DTCT_SNPORTSETTING:
+			D_SNHandleGTPortSetting(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!

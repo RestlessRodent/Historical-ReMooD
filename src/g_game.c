@@ -423,6 +423,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			case DTCT_SNPARTPLAYER:
 			case DTCT_SNJOINPORT:
 			case DTCT_SNCHATFRAG:
+			case DTCT_SNPORTSETTING:
 				D_SNHandleGT(Command, &Rp);
 				break;
 				

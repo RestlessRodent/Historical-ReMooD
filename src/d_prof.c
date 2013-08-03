@@ -1041,11 +1041,11 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Not found?
 		if (!New)
-			return false;
+			return 1;
 		
 		// Set dump flag
 		New->Flags |= DPEXF_DUMPALL;
-		return true;
+		return 0;
 	}
 	
 	// Create Profile
@@ -1090,7 +1090,7 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 			strncpy(New->UUID, BufB, MAXUUIDLENGTH);
 		
 		// Done
-		return true;
+		return 0;
 	}
 	
 	/* After this all values are mostly the same */

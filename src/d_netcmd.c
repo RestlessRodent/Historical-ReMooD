@@ -86,10 +86,13 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	0,
 	
 	// DTCT_SNJOINPLAYER
-	4 + 4 + 1,
+	4 + 4 + 1 + 1 + 1 + 4,
 		// uint32	HID
 		// uint32	ID
 		// uint8	PlayerID
+		// uint8	Team Number
+		// uint8	Color
+		// uint32	Flags
 	
 	// MAP CHANGE
 	1 + 8,
@@ -131,14 +134,14 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32	ID
 		// uint8	PlayerID
 	
-	// DTCT_SNPARTPLAYER, Host connects
-	4 + 4 + 1 + 4,
+	// DTCT_SNPARTPLAYER, Player leaves
+	4 + 4 + 1,
 		// uint32	HID
 		// uint32	ID
 		// uint8	PlayerID
 	
 	// DTCT_SNJOINPORT, Port is joined
-	4 + 4 + 1,
+	4 + 4 + 1 + 4,
 		// uint32	HID
 		// uint32	ID
 		// uint8	PlayerID
@@ -152,6 +155,14 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32	Target
 		// uint8	Mode
 		// uint8*	Text
+	
+	// DTCT_SNPORTSETTING, Port Setting
+	4 + 4 + 1 + 2 + MAXTCSTRINGCAT,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint16	Setting
+		// uint8*	Value
 };
 
 /*** GLOBALS ***/

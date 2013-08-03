@@ -60,6 +60,17 @@
 #define MAXPINGWINDOWS					8		// Max ping window count
 #define MAXCHATLINE 128							// max one can blurt
 
+/* D_SNPortSetting_t -- Port Settings */
+typedef enum D_SNPortSetting_e
+{
+	DSNPS_VTEAM,								// Virtual Team
+	DSNPS_COLOR,								// Color
+	DSNPS_NAME,									// Name of player
+	DSNPS_COUNTEROP,							// Counter-operative
+	
+	NUMDSNPS
+} D_SNPortSetting_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -109,6 +120,9 @@ typedef struct D_SNPort_s
 	int16_t ChatAt;								// Chat currently at
 	tic_t ChatCoolDown;							// Chat cooldown time
 	uint32_t ChatID;							// Chat ID Number
+	int8_t VTeam;								// Player's Team
+	int8_t Color;								// Player's Color
+	bool_t CounterOp;							// CounterOp Player
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -199,6 +213,7 @@ void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
 void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
 void D_SNPortTryJoin(D_SNPort_t* const a_Port);
 const char* D_SNGetPortName(D_SNPort_t* const a_Port);
+void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
 
 /*** GAME CONTROL ***/
 
