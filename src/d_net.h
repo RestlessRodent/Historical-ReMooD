@@ -201,6 +201,8 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
 /*** DRAWERS ***/
 
 void D_SNDrawLobby(void);
+void D_SNDrawer(void);
+void D_SNSetServerLagWarn(const tic_t a_EstPD);
 
 /*** BUILD TIC COMMANDS ***/
 

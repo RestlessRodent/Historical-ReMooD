@@ -73,3 +73,16 @@ void D_SNDrawLobby(void)
 	CONL_DrawMouse();
 }
 
+/* D_SNSetServerLagWarn() -- Server is lagging, set warning time */
+void D_SNSetServerLagWarn(const tic_t a_EstPD)
+{
+}
+
+/* D_SNDrawer() -- Networking drawer */
+void D_SNDrawer(void)
+{
+	/* Do not draw if not connected */
+	if (!D_SNIsConnected())
+		return;
+}
+

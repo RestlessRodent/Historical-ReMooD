@@ -1183,6 +1183,10 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_DISCONNECT));
 			Work->FSelect = M_QuitGame_DisconFSelect;
 			
+				// Partial Disconnect
+			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_PDISCONNECT));
+			Work->FSelect = M_QuitGame_PDisconFSelect;
+			
 				// Stop Watching
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SUBMENUFLAGS, DS_GetStringRef(DSTR_MENUQUIT_STOPWATCHING));
 			Work->FSelect = M_QuitGame_StopWatchFSelect;

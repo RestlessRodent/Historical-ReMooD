@@ -389,6 +389,9 @@ void D_Display(void)
 //#endif
 	}
 	
+	// Simple Networking Drawiung below everything
+	D_SNDrawer();
+	
 	// GhostlyDeath <September 5, 2012> -- Joystick specials
 	D_JoySpecialDrawer();
 	

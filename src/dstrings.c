@@ -124,6 +124,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "MENUGENERAL_VIDSCREENLINK", "Screen Link"},
 	
 	{				"MENUQUIT_DISCONNECT", "Disconnect"},
+	{			   "MENUQUIT_PDISCONNECT", "Disconnect, Keep Playing"},
 	{			  "MENUQUIT_STOPWATCHING", "Stop Watching Demo"},
 	{			 "MENUQUIT_STOPRECORDING", "Stop Recording Demo"},
 	{					"MENUQUIT_LOGOFF", "Log Off"},

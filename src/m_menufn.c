@@ -321,6 +321,15 @@ bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget)
 	return true;
 }
 
+/* M_QuitGame_PDisconFSelect() -- Disconnect from server */
+bool_t M_QuitGame_PDisconFSelect(M_SWidget_t* const a_Widget)
+{
+	/* Disconnect from Netgame */
+	D_SNPartialDisconnect("Disconnected");
+	M_StackPopAll();
+	return true;
+}
+
 /* M_QuitGame_StopWatchFSelect() -- Stop watching demo */
 bool_t M_QuitGame_StopWatchFSelect(M_SWidget_t* const a_Widget)
 {
@@ -377,7 +386,16 @@ void M_QuitGame_FTicker(M_SWidget_t* const a_Widget)
 			// Disconnect
 		if (Kid->FSelect == M_QuitGame_DisconFSelect)
 		{
-			if (gamestate != GS_DEMOSCREEN)
+			if (gamestate != GS_DEMOSCREEN && !demoplayback)
+				Kid->Flags &= ~MSWF_DISABLED;
+			else
+				Kid->Flags |= MSWF_DISABLED;
+		}
+			
+			// Partial Disconnect
+		else if (Kid->FSelect == M_QuitGame_PDisconFSelect)
+		{
+			if (gamestate != GS_DEMOSCREEN && !demoplayback)
 				Kid->Flags &= ~MSWF_DISABLED;
 			else
 				Kid->Flags |= MSWF_DISABLED;

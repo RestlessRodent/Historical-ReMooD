@@ -193,6 +193,26 @@ void D_SNDropAllClients(const char* const a_Reason)
 	Dropping = false;
 }
 
+/* D_SNCommonDiscStuff() -- Common disconnect stuff */
+static void D_SNCommonDiscStuff(void)
+{
+	/* Clear the global buffer */
+	l_GlobalAt = -1;
+	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	
+	/* Clear local Buffer */
+	memset(l_LocalBuf, 0, sizeof(l_LocalBuf));
+	l_LocalAt = 0;
+	
+	/* Clear now tics and jobs */
+	memset(l_NowTic, 0, sizeof(l_NowTic));
+	l_NowPress = 0;
+	D_SNClearJobs();
+	
+	/* Draw stuff */
+	D_SNSetServerLagWarn(0);
+}
+
 /* D_SNDisconnect() -- Disconnects from server */
 void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 {
@@ -258,21 +278,11 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	/* Destroy the level */
 	P_ExClearLevel();
 	
-	/* Clear the global buffer */
-	l_GlobalAt = -1;
-	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
-	
-	/* Clear local Buffer */
-	memset(l_LocalBuf, 0, sizeof(l_LocalBuf));
-	l_LocalAt = 0;
+	/* Common */
+	D_SNCommonDiscStuff();
 	
 	/* Clear flags */
 	l_Connected = l_Server = false;
-	
-	/* Clear now tics and jobs */
-	memset(l_NowTic, 0, sizeof(l_NowTic));
-	l_NowPress = 0;
-	D_SNClearJobs();
 	
 	/* Go back to the title screen */
 	if (!a_FromDemo)
@@ -304,14 +314,8 @@ void D_SNPartialDisconnect(const char* const a_Reason)
 	/* Terminate network connection */
 	D_SNNetTerm(a_Reason);
 	
-	/* Clear the global buffer */
-	l_GlobalAt = -1;
-	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
-	
-	/* Clear now tics and jobs */
-	memset(l_NowTic, 0, sizeof(l_NowTic));
-	l_NowPress = 0;
-	D_SNClearJobs();
+	/* Common */
+	D_SNCommonDiscStuff();
 	
 	/* Magically become the server */
 	l_Server = l_Connected = true;
