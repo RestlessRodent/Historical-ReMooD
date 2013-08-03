@@ -1947,13 +1947,14 @@ static void D_SNHandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP,
 /* D_SNHandleGTJoinPort() -- Handles joining of a new port */
 static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
+	D_SNHost_t* Host;
 	D_SNPort_t* New;
 	
 	/* Create host if it does not exist */
-	if (!a_Host)
+	if (!(Host = a_Host))
 	{
-		New = D_SNCreateHost();
-		New->ID = a_HID;
+		Host = D_SNCreateHost();
+		Host->ID = a_HID;
 	}
 	
 	/* If port does not exist, create it */
@@ -1961,7 +1962,7 @@ static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP,
 	if (!a_Port)
 	{
 		/* Create new port belonging to this host */
-		New = D_SNAddPort(a_Host);
+		New = D_SNAddPort(Host);
 	
 		// Set fields
 		New->ID = a_UID;

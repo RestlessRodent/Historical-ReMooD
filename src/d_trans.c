@@ -70,6 +70,9 @@ typedef enum D_ClientStage_e
 #define ENCODESIZE 16384
 #define MAXJOBHOSTS 64
 
+#define JOBDEFAULTTARGET	3					// target at 3 tics retrans
+#define JOBMINTICCAP		5					// Do not retransmit tics to far ahead
+
 /* D_WADChain_t -- WAD Chain */
 typedef struct D_WADChain_s
 {
@@ -87,8 +90,12 @@ typedef struct D_JobHost_s
 {
 	D_SNHost_t* Host;							// Host pointer
 	int32_t ArrID;								// Array ID
-	tic_t LastSend;								// Last Send
 	bool_t Clear;								// Clear host
+	
+	tic_t LastSend;								// Last Send
+	tic_t NextSend;								// Time to send next
+	tic_t Counter;								// Counter
+	tic_t Target;								// Target delay
 } D_JobHost_t;
 
 /* D_XMitJob_t -- Transmission jobs, who needs what */
@@ -238,6 +245,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 			
 			// Place host here
 			HostL[NumHostL].Host = Host;
+			HostL[NumHostL].Target = JOBDEFAULTTARGET;
 			HostL[NumHostL++].ArrID = i;
 		}
 	
@@ -618,11 +626,30 @@ void D_SNDoServer(D_BS_t* const a_BS)
 				continue;
 			}
 			
-			// Already sent, wait a bit
-			if (g_ProgramTic <= JHost->LastSend + 3)
+			// Not ready to send yet
+			if (JHost->NextSend > 0 && g_ProgramTic < JHost->NextSend)
 				continue;
 			
-			// Set transmission time
+			// Calculate propogating delay for the next send request
+			if (JHost->NextSend)
+			{
+				// Too far in the future (they do not need this tic yet)
+				if (Job->GameTic > JHost->Host->MinTic + JOBMINTICCAP)
+					continue;
+				
+				// Increase counter
+				JHost->Counter++;
+			
+				// Counter exceeded target (increase target time)
+				if (JHost->Counter >= JHost->Target)
+				{
+					JHost->Target += 2;
+					JHost->Counter = 0;
+				}
+			}
+			
+			// Time to send the command again
+			JHost->NextSend = g_ProgramTic + JHost->Target;
 			JHost->LastSend = g_ProgramTic;
 			
 			// Build packet
@@ -668,12 +695,18 @@ void D_SNDoServer(D_BS_t* const a_BS)
 				
 				// Ping timeout
 				if (Host->LastPing < PCap)
+				{
 					D_SNDisconnectHost(Host, "Timed out");
+					continue;
+				}
 				
 				// This host appears to be frozen
 					// Game too far in the past
 				if (Host->MinTic <= GCap)
+				{
 					D_SNDisconnectHost(Host, "Game Frozen");
+					continue;
+				}
 			}
 	
 	/* Calculate Pings */
