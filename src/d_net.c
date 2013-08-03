@@ -1605,6 +1605,12 @@ void D_SNPortRequestJoin(D_SNPort_t* const a_Port)
 	// Client must request it
 	else
 	{
+		// Do not spam server with join requests though
+		if (g_ProgramTic > a_Port->JoinWait)
+		{
+			D_SNPortJoinGame(a_Port);
+			a_Port->JoinWait = g_ProgramTic + (TICRATE >> 1);
+		}
 	}
 }
 

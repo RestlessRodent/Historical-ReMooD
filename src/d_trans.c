@@ -550,6 +550,21 @@ void D_SNRequestPortNet(const uint32_t a_ProcessID)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
+/* D_SNPortJoinGame() -- Request that port join the game */
+void D_SNPortJoinGame(D_SNPort_t* const a_Port)
+{
+	/* Check */
+	if (!l_BS || !l_Sock || D_SNIsServer() || !a_Port)
+		return;
+		
+	/* Build packet */
+	D_BSBaseBlock(l_BS, "PJGG");
+	
+	D_BSwu32(l_BS, a_Port->ID);
+	
+	D_BSRecordNetBlock(l_BS, &l_HostAddr);
+}
+
 /* D_SNWaitingForSave() -- Waiting for save game */
 bool_t D_SNWaitingForSave(void)
 {
@@ -1692,6 +1707,32 @@ void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	memset(Win, 0, sizeof(*Win));
 }
 
+/* DT_PJGG() -- Port join request */
+void DT_PJGG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	uint32_t ID;
+	D_SNPort_t* Port;
+	
+	/* Server Only */
+	if (!a_Host || !D_SNIsServer())
+		return;
+	
+	/* Get Port */
+	ID = D_BSru32(a_BS);
+	Port = D_SNPortByID(ID);
+	
+	// No port?
+	if (!Port)
+		return;
+	
+	// Host does not own this port (cannot join other ports)
+	if (Port->Host != a_Host)
+		return;
+	
+	/* Mark them to join */
+	Port->WillJoin = true;
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -1720,6 +1761,7 @@ static const struct
 	//{{"FULL"}, DT_FULL, false},	// TODO FIXME
 	{{"PING"}, DT_PING, false},
 	{{"PONG"}, DT_PONG, false},
+	{{"PJGG"}, DT_PJGG, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},

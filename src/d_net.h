@@ -103,6 +103,7 @@ typedef struct D_SNPort_s
 	bool_t AttachMsg;							// Displayed attach message
 	ticcmd_t BackupCmd;							// Backup tic command
 	uint32_t LocalStatFlags;					// Local Status Flags
+	tic_t JoinWait;								// Join wait (to not spam server)
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -225,6 +226,7 @@ void D_SNDoTrans(void);
 bool_t D_SNGotFile(const char* const a_PathName);
 void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
 void D_SNRequestPortNet(const uint32_t a_ProcessID);
+void D_SNPortJoinGame(D_SNPort_t* const a_Port);
 bool_t D_SNWaitingForSave(void);
 void D_SNSetLastTic(void);
 
