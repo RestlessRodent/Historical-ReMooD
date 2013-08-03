@@ -607,7 +607,7 @@ void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	D_BSBaseBlock(l_BS, "SYNC");
 	
 	D_BSwcu64(l_BS, a_GameTic);
-	D_BSwcu32(l_BS, a_Code);
+	D_BSwu32(l_BS, a_Code);
 	
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }

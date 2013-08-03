@@ -519,6 +519,9 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 			D_SNPartialDisconnect(Buf);
 		else
 			D_SNDisconnect(false, Buf);
+		
+		// Worked
+		return 0;
 	}
 	
 	/* Local Game/Server */
@@ -526,6 +529,9 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		// Start local server, with this kind of stuff
 		D_SNStartLocalServer(a_ArgC - 1, a_ArgV + 1, false, true);
+		
+		// Worked
+		return 0;
 	}
 	
 	/* Connect to server */
@@ -533,7 +539,7 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		// Need 1 argument
 		if (a_ArgC < 2)
-			return;
+			return 1;
 		
 		// Look for --, start of profile data
 		for (i = 0; i < a_ArgC; i++)
@@ -557,7 +563,13 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Make waiting for player
 		D_SNStartWaiting();
+		
+		// Worked
+		return 0;
 	}
+	
+	/* Failed */
+	return 1;
 #undef BUFSIZE
 }
 
