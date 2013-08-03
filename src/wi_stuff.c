@@ -288,10 +288,10 @@ typedef enum
 //#define SHOWLASTLOCDELAY      SHOWNEXTLOCDELAY
 
 // used to accelerate or skip a stage
-static int acceleratestage;
+static int32_t acceleratestage;
 
 // wbs->pnum
-static int me;
+static int32_t me;
 
 // specifies current state
 static stateenum_t state;
@@ -302,20 +302,20 @@ static wbstartstruct_t* wbs;
 static wbplayerstruct_t* plrs;	// wbs->plyr[]
 
 // used for general timing
-static int cnt;
+static int32_t cnt;
 
 // used for timing of background animation
-static int bcnt;
+static int32_t bcnt;
 
 // signals to refresh everything for one frame
-static int firstrefresh;
+static int32_t firstrefresh;
 
-static int cnt_kills[MAXPLAYERS];
-static int cnt_items[MAXPLAYERS];
-static int cnt_secret[MAXPLAYERS];
-static int cnt_time;
-static int cnt_par;
-static int cnt_pause;
+static int32_t cnt_kills[MAXPLAYERS];
+static int32_t cnt_items[MAXPLAYERS];
+static int32_t cnt_secret[MAXPLAYERS];
+static int32_t cnt_time;
+static int32_t cnt_par;
+static int32_t cnt_pause;
 
 // # of commercial levels
 static int NUMCMAPS;
@@ -327,57 +327,6 @@ static int NUMCMAPS;
 // background (map of levels).
 //static patch_t*       bg;
 static char bgname[9];
-
-// You Are Here graphic
-static patch_t* yah[2];
-
-// splat
-static patch_t* splat;
-
-// %, : graphics
-static patch_t* percent;
-static patch_t* colon;
-
-// 0-9 graphic
-static patch_t* num[10];
-
-// minus sign
-static patch_t* wiminus;
-
-// "Finished!" graphics
-static patch_t* finished;
-
-// "Entering" graphic
-static patch_t* entering;
-
-// "secret"
-static patch_t* sp_secret;
-
-// "Kills", "Scrt", "Items", "Frags"
-static patch_t* kills;
-static patch_t* secret;
-static patch_t* items;
-static patch_t* frags;
-
-// Time sucks.
-static patch_t* timePatch;
-static patch_t* par;
-static patch_t* sucks;
-
-// "killers", "victims"
-static patch_t* killers;
-static patch_t* victims;
-
-// "Total", your face, your dead face
-static patch_t* total;
-static patch_t* star;
-static patch_t* bstar;
-
-//added:08-02-98: use STPB0 for all players, but translate the colors
-static patch_t* stpb;
-
-// Name graphics of each level (centered)
-static patch_t** lnames;
 
 //
 // CODE
@@ -1989,4 +1938,68 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	else
 		WI_initStats();
 }
+
+extern wbstartstruct_t wminfo;
+
+/* WI_SaveGameHelper() -- Helps save game */
+bool_t WI_SaveGameHelper(D_BS_t* const a_BS)
+{
+	int32_t i;
+	
+	/* Dump variables */
+	D_BSwi32(a_BS, acceleratestage);
+	D_BSwi32(a_BS, me);
+	D_BSwi32(a_BS, state);
+	D_BSwi32(a_BS, cnt);
+	D_BSwi32(a_BS, bcnt);
+	D_BSwi32(a_BS, firstrefresh);
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		D_BSwi32(a_BS, cnt_kills[i]);
+		D_BSwi32(a_BS, cnt_items[i]);
+		D_BSwi32(a_BS, cnt_secret[i]);
+	}
+	
+	D_BSwi32(a_BS, cnt_time);
+	D_BSwi32(a_BS, cnt_par);
+	D_BSwi32(a_BS, cnt_pause);
+	
+	/* Success */
+	return true;
+}
+
+/* WI_LoadGameHelper() -- Helps load game */
+bool_t WI_LoadGameHelper(D_BS_t* const a_BS)
+{
+	int32_t i;
+	
+	/* Load variables */
+	acceleratestage = D_BSri32(a_BS);
+	me = D_BSri32(a_BS);
+	state = D_BSri32(a_BS);
+	cnt = D_BSri32(a_BS);
+	bcnt = D_BSri32(a_BS);
+	firstrefresh = D_BSri32(a_BS);
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		cnt_kills[i] = D_BSri32(a_BS);
+		cnt_items[i] = D_BSri32(a_BS);
+		cnt_secret[i] = D_BSri32(a_BS);
+	}
+	
+	cnt_time = D_BSri32(a_BS);
+	cnt_par = D_BSri32(a_BS);
+	cnt_pause = D_BSri32(a_BS);
+	
+	/* These variables are always pointers of statics */
+	// Only passed one single thing, by one single function
+	wbs = &wminfo;
+	plrs = wbs->plyr;
+	
+	/* Success */
+	return true;
+}
+
 

@@ -289,12 +289,12 @@ typedef struct
 	bool_t in;					// whether the player is in game
 	
 	// Player stats, kills, collected items etc.
-	int skills;
-	int sitems;
-	int ssecret;
-	int stime;
+	int32_t skills;
+	int32_t sitems;
+	int32_t ssecret;
+	int32_t stime;
 	uint16_t frags[MAXPLAYERS];	// added 17-1-98 more than 4 players
-	int score;					// current score on entry, modified on return
+	int32_t score;					// current score on entry, modified on return
 	// BP: unused for now but don't forget....
 	uint16_t addfrags;
 	
@@ -304,25 +304,25 @@ struct P_LevelInfoEx_s;
 
 typedef struct
 {
-	int epsd;					// episode # (0-2)
+	int32_t epsd;					// episode # (0-2)
 	
 	// if true, splash the secret level
 	bool_t didsecret;
 	
 	// previous and next levels, origin 0
-	int last;
-	int next;
+	int32_t last;
+	int32_t next;
 	
-	int maxkills;
-	int maxitems;
-	int maxsecret;
-	int maxfrags;
+	int32_t maxkills;
+	int32_t maxitems;
+	int32_t maxsecret;
+	int32_t maxfrags;
 	
 	// the par time
-	int partime;
+	int32_t partime;
 	
 	// index of this player in game
-	int pnum;
+	int32_t pnum;
 	
 	wbplayerstruct_t plyr[MAXPLAYERS];
 	

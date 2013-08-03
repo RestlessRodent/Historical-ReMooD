@@ -63,5 +63,8 @@ bool_t teamingame(int teamnum);
 void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter);
 void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const char* const a_SubTitle);
 
+bool_t WI_SaveGameHelper(D_BS_t* const a_BS);
+bool_t WI_LoadGameHelper(D_BS_t* const a_BS);
+
 #endif
 

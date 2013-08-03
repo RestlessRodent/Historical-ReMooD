@@ -1740,7 +1740,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	friction_t* friction;
 	
 	/* If not in a level, then do not continue */
-	if (gamestate != GS_LEVEL)
+	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
 		return true;
 	
 	/* Save the current map that is being played */
@@ -2348,7 +2348,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	friction_t* friction;
 	
 	/* If not in a level, then do not continue */
-	if (gamestate != GS_LEVEL)
+	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
 		return true;
 	
 	/* Expect "MLMP" */
@@ -3071,6 +3071,163 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 
 /*---------------------------------------------------------------------------*/
 
+extern wbstartstruct_t wminfo;
+
+/* PS_SaveInterState() -- Saves intermission data */
+static bool_t PS_SaveInterState(D_BS_t* const a_Str)
+{
+	int32_t i, j;
+	wbplayerstruct_t* wbps;	
+	
+	/* Save */
+	D_BSBaseBlock(a_Str, "INTR");
+	
+	// Write fields
+	D_BSwi32(a_Str, wminfo.epsd);
+	D_BSwu8(a_Str, wminfo.didsecret);
+	D_BSwi32(a_Str, wminfo.last);
+	D_BSwi32(a_Str, wminfo.next);
+	D_BSwi32(a_Str, wminfo.maxkills);
+	D_BSwi32(a_Str, wminfo.maxitems);
+	D_BSwi32(a_Str, wminfo.maxsecret);
+	D_BSwi32(a_Str, wminfo.maxfrags);
+	D_BSwi32(a_Str, wminfo.partime);
+	D_BSwi32(a_Str, wminfo.pnum);
+	
+	// Next level
+	if (wminfo.NextInfo)
+	{
+		D_BSwu8(a_Str, 1);
+		D_BSws(a_Str, WL_GetWADName(wminfo.NextInfo->WAD, false));
+		D_BSws(a_Str, wminfo.NextInfo->LumpName);
+	}
+	else
+		D_BSwu8(a_Str, 0);
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Write start structures for each player */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Get structure
+		wbps = &wminfo.plyr[i];
+		
+		// Start Block
+		D_BSBaseBlock(a_Str, "WBPS");
+		
+		// Write Data
+		D_BSwu8(a_Str, wbps->in);
+		D_BSwi32(a_Str, wbps->skills);
+		D_BSwi32(a_Str, wbps->sitems);
+		D_BSwi32(a_Str, wbps->ssecret);
+		D_BSwi32(a_Str, wbps->stime);
+		D_BSwi32(a_Str, wbps->score);
+		D_BSwu16(a_Str, wbps->addfrags);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			D_BSwu16(a_Str, wbps->frags[j]);
+		
+		// Record
+		D_BSRecordBlock(a_Str);
+	}
+	
+	/* Helper */
+	D_BSBaseBlock(a_Str, "WILP");
+	
+	if (!WI_SaveGameHelper(a_Str))
+		return false;
+	
+	D_BSRecordBlock(a_Str);
+
+	/* Success! */
+	return true;
+}
+
+/* PS_LoadInterState() -- Loads intermission data */
+static bool_t PS_LoadInterState(D_BS_t* const a_Str)
+{
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	int32_t i, j;
+	wbplayerstruct_t* wbps;
+	P_LevelInfoEx_t* pli;
+	
+	/* Expect "INTR" */
+	if (!PS_Expect(a_Str, "INTR"))
+		return false;
+	
+	// Write fields
+	wminfo.epsd = D_BSri32(a_Str);
+	wminfo.didsecret = D_BSru8(a_Str);
+	wminfo.last = D_BSri32(a_Str);
+	wminfo.next = D_BSri32(a_Str);
+	wminfo.maxkills = D_BSri32(a_Str);
+	wminfo.maxitems = D_BSri32(a_Str);
+	wminfo.maxsecret = D_BSri32(a_Str);
+	wminfo.maxfrags = D_BSri32(a_Str);
+	wminfo.partime = D_BSri32(a_Str);
+	wminfo.pnum = D_BSri32(a_Str);
+	
+	// Next level
+	if (D_BSru8(a_Str))
+	{
+		// Ignore WAD Name
+		D_BSrs(a_Str, Buf, BUFSIZE);
+	
+		// Attempt to locate level being played
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		pli = P_FindLevelByNameEx(Buf, NULL);
+	
+		// If not found, then fail
+		if (!pli)
+			return PS_IllegalSave(DSTR_PSAVEGC_UNKNOWNLEVEL);
+		
+		// Set next
+		wminfo.NextInfo = pli;
+	}
+	
+	// No next level set
+	else
+		wminfo.NextInfo = NULL;
+		
+	
+	/* Write start structures for each player */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Get structure
+		wbps = &wminfo.plyr[i];
+		
+		// Expect "WBPS"
+		if (!PS_Expect(a_Str, "WBPS"))
+			return false;
+		
+		// Write Data
+		wbps->in = D_BSru8(a_Str);
+		wbps->skills = D_BSri32(a_Str);
+		wbps->sitems = D_BSri32(a_Str);
+		wbps->ssecret = D_BSri32(a_Str);
+		wbps->stime = D_BSri32(a_Str);
+		wbps->score = D_BSri32(a_Str);
+		wbps->addfrags = D_BSru16(a_Str);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			wbps->frags[j] = D_BSru16(a_Str);
+	}
+	
+	/* Helper */
+	if (!PS_Expect(a_Str, "WILP"))
+		return false;
+	
+	if (!WI_LoadGameHelper(a_Str))
+		return false;
+
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
@@ -3101,6 +3258,7 @@ bool_t P_SaveToStream(D_BS_t* const a_Str, D_BS_t* const a_OrigStr)
 	PS_SavePlayers(a_Str);
 	PS_SaveGameState(a_Str);
 	PS_SaveMapState(a_Str);
+	PS_SaveInterState(a_Str);
 	PS_SaveDummy(a_Str, true);
 	
 	// All done
@@ -3163,6 +3321,9 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		
 	if (OK)
 		OK = PS_LoadMapState(a_Str);
+	
+	if (OK)
+		OK = PS_LoadInterState(a_Str);
 		
 	if (OK)
 		OK = PS_LoadDummy(a_Str, true);
@@ -3192,15 +3353,23 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		}
 		
 	// Initialize Level Based Info
-	if (gamestate == GS_LEVEL)
+	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
 	{
 		// Initialize Spectators
 		P_SpecInit(-2);
 		
 		// Music
 		if (g_CurrentLevelInfo)
-			if (g_CurrentLevelInfo->Music)
-				S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
+			if (gamestate == GS_INTERMISSION)
+			{
+				if (g_CurrentLevelInfo->InterMus)
+					S_ChangeMusicName(g_CurrentLevelInfo->InterMus, 1);
+			}
+			else
+			{
+				if (g_CurrentLevelInfo->Music)
+					S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
+			}
 		
 		// Sky
 		P_SetupLevelSky();

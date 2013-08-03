@@ -2382,9 +2382,9 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	return false;
 }
 
-//
-// D_DoomMain
-//
+extern wbstartstruct_t wminfo;
+
+/* D_DoomMain() -- Main Doom Code */
 void D_DoomMain(void)
 {
 	int i;
@@ -2424,6 +2424,7 @@ void D_DoomMain(void)
 	memset(team_names, 0, sizeof(team_names));
 	memset(players, 0, sizeof(players));
 	memset(g_Splits, 0, sizeof(g_Splits));
+	memset(&wminfo, 0, sizeof(wminfo));
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		sprintf(player_names[i], "Player %i", i + 1);
