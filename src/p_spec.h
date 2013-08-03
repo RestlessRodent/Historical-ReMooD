@@ -486,16 +486,16 @@ typedef struct
 	bool_t crush;
 	
 	//SoM: 3/6/2000: Support ceiling changers
-	int newspecial;
-	int oldspecial;
-	short texture;
+	uint32_t newspecial;
+	uint32_t oldspecial;
+	int32_t texture;
 	
 	// 1 = up, 0 = waiting, -1 = down
-	int direction;
+	int32_t direction;
 	
 	// ID
-	int tag;
-	int olddirection;
+	int32_t tag;
+	int32_t olddirection;
 	
 	struct ceilinglist* list;	// SoM: 3/6/2000: by jff: copied from killough's plats
 } ceiling_t;
@@ -505,6 +505,8 @@ typedef struct ceilinglist
 {
 	ceiling_t* ceiling;
 	struct ceilinglist* next, **prev;
+	
+	struct ceilinglist* SaveLink;				// Used only for save games
 } ceilinglist_t;
 
 void P_RemoveAllActiveCeilings(void);	//SoM: 3/9/2000

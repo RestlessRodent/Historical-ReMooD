@@ -56,6 +56,7 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "p_inter.h"
+#include "wi_stuff.h"
 
 /**************
 *** GLOBALS ***
@@ -196,6 +197,25 @@ static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 	
 	// Was OK
 	return true;
+}
+
+/* PS_GetCeilingListID() -- Get ID from Ceiling list */
+static int32_t PS_GetCeilingListID(ceilinglist_t* const a_CList)
+{
+	int32_t RetVal;
+	ceilinglist_t* Rover;
+	
+	/* Check */
+	if (!a_CList)
+		return -1;
+	
+	/* Rove */
+	for (RetVal = 1, Rover = activeceilings; Rover; Rover = Rover->next, RetVal++)
+		if (a_CList == Rover)
+			return RetVal;
+	
+	/* Not Found??? */
+	return 0;
 }
 
 /* PS_GetThinkerID() -- Returns ID of thinker */
@@ -1738,6 +1758,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	floormove_t* floormove;
 	pusher_t* pusher;
 	friction_t* friction;
+	ceiling_t* ceiling;
+	
+	ceilinglist_t* clist;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -1783,6 +1806,30 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Record any remaining node blocks
 	if (g_NumMSecNodes > 0)
 		D_BSRecordBlock(a_Str);
+		
+	/* Save Ceiling List */
+	D_BSBaseBlock(a_Str, "CEIL");
+	
+	j = 0;
+	for (clist = activeceilings; clist; clist = clist->next)
+		j++;
+	D_BSwi32(a_Str, j);
+	
+	D_BSwi32(a_Str, PS_GetCeilingListID(activeceilings));
+	for (clist = activeceilings; clist; clist = clist->next)
+	{
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)clist->ceiling));
+		D_BSwi32(a_Str, PS_GetCeilingListID(clist->next));
+		
+		if (clist->prev == &activeceilings)
+			D_BSwi32(a_Str, -2);
+		else
+			D_BSwi32(a_Str, PS_GetCeilingListID((ceilinglist_t*)(((intptr_t)(*clist->prev)) - offsetof(ceilinglist_t, next))));
+	}
+	
+	D_BSwi32(a_Str, -3);
+	
+	D_BSRecordBlock(a_Str);
 	
 	/* Save Thinkers */
 	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
@@ -2008,6 +2055,22 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_MOVECEILING:
+				ceiling = (void*)Thinker;
+				
+				D_BSwi32(a_Str, ceiling->type);
+				PS_LUMapObjRef(a_Str, true, (void**)&ceiling->sector);
+				D_BSwi32(a_Str, ceiling->bottomheight);
+				D_BSwi32(a_Str, ceiling->topheight);
+				D_BSwi32(a_Str, ceiling->speed);
+				D_BSwi32(a_Str, ceiling->oldspeed);
+				D_BSwu8(a_Str, ceiling->crush);
+				D_BSwu32(a_Str, ceiling->newspecial);
+				D_BSwu32(a_Str, ceiling->oldspecial);
+				D_BSwi32(a_Str, ceiling->texture);
+				D_BSwi32(a_Str, ceiling->direction);
+				D_BSwi32(a_Str, ceiling->tag);
+				D_BSwi32(a_Str, ceiling->olddirection);
+				D_BSwi32(a_Str, PS_GetCeilingListID(ceiling->list));
 				break;
 	
 				// Moving Surface
@@ -2346,6 +2409,9 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	floormove_t* floormove;
 	pusher_t* pusher;
 	friction_t* friction;
+	ceiling_t* ceiling;
+	
+	ceilinglist_t* clist, *rootclist, *nextclist, *clistrover;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -2398,6 +2464,74 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		g_MSecNodes[i]->m_sprev = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->m_snext = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->visited = D_BSru8(a_Str);
+	}
+	
+	/* Load Ceiling List */
+	if (!PS_Expect(a_Str, "CEIL"))
+		return false;
+	
+	// Clear ceilings
+	activeceilings = NULL;
+	rootclist = NULL;
+	
+	// Re-allocate basic ceiling structure
+	j = D_BSri32(a_Str);
+	
+	for (clist = NULL, i = 0; i < j; i++)
+	{
+		if (!clist)
+			rootclist = clist = Z_Malloc(sizeof(*clist), PU_STATIC, NULL);
+		else
+		{
+			clist->SaveLink = Z_Malloc(sizeof(*clist), PU_STATIC, NULL);
+			clist = clist->SaveLink;
+		}
+	}
+	
+	// Find activeceilings list
+	x = D_BSri32(a_Str);
+	for (i = 1, clist = rootclist; clist; clist = clist->SaveLink, i++)
+		if (i == x)
+			break;
+	
+	// Active ceiling is this list
+	activeceilings = clist;
+	
+	// Read consecutive list
+	for (clist = rootclist; clist; clist = nextclist)
+	{
+		// Next may get kludged
+		nextclist = clist->SaveLink;
+		
+		// Read, end if -3, otherwise a thinker
+		x = D_BSri32(a_Str);
+		if (x == -3)
+			break;	// End
+		
+		// Thinker
+		clist->ceiling = (ceiling_t*)x;
+		
+		// Reref real next
+		x = D_BSri32(a_Str);
+		for (i = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, i++)
+			if (i == x)
+				break;
+		
+		clist->next = clistrover;
+		
+		// This is a pointer of a pointer
+		x = D_BSri32(a_Str);
+		if (x == -2)
+			clist->prev = &activeceilings;
+		else
+		{
+			for (i = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, i++)
+				if (i == x)
+					break;
+		
+			if (clistrover)	// there might not be a next
+				clist->prev = &clistrover->next;
+		}
 	}
 	
 	/* Load Thinkers */
@@ -2682,6 +2816,28 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_MOVECEILING:
+				ceiling = (void*)Thinker;
+				
+				ceiling->type = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&ceiling->sector);
+				ceiling->bottomheight = D_BSri32(a_Str);
+				ceiling->topheight = D_BSri32(a_Str);
+				ceiling->speed = D_BSri32(a_Str);
+				ceiling->oldspeed = D_BSri32(a_Str);
+				ceiling->crush = D_BSru8(a_Str);
+				ceiling->newspecial = D_BSru32(a_Str);
+				ceiling->oldspecial = D_BSru32(a_Str);
+				ceiling->texture = D_BSri32(a_Str);
+				ceiling->direction = D_BSri32(a_Str);
+				ceiling->tag = D_BSri32(a_Str);
+				ceiling->olddirection = D_BSri32(a_Str);
+				 
+				// Find ceilinglist reference
+				x = D_BSru32(a_Str);
+				for (j = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, j++)
+					if (j == x)
+						break;
+				ceiling->list = clistrover;
 				break;
 	
 				// Moving Surface
@@ -2725,6 +2881,10 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				return PS_IllegalSave(DSTR_PSAVEGC_UNHANDLEDTHINKER);
 		}
 	}
+	
+	// Restore ceiling list thinkers
+	for (clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink)
+		clistrover->ceiling = (void*)PS_GetThinkerFromID((intptr_t)clistrover->ceiling);
 	
 	// Restore sector node thinker IDs
 	for (i = 0; i < g_NumMSecNodes; i++)
