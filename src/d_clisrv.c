@@ -180,7 +180,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	
 	/* Run spectators independent of game timing */
 	// So they move around during lag and other events
-	if (gamestate == GS_LEVEL && LocalTic > LastTic)
+	if ((gamestate == GS_INTERMISSION || gamestate == GS_LEVEL) && LocalTic > LastTic)
 		//for (XXSNAR = LocalTic - LastTic; XXSNAR > 0; XXSNAR--)
 			P_SpecTicker();
 	

@@ -1463,12 +1463,17 @@ void P_SpecTicker(void)
 			memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
 			
 			// Run them
-			P_SpecRunTics(i, &Merged);
+			if (gamestate == GS_LEVEL)
+				P_SpecRunTics(i, &Merged);
 			
 			// If use is down, request join
 			if (Merged.Ctrl.Type == 0 && Merged.Std.buttons & BT_USE)
 				D_SNPortRequestJoin(Port);
 		}
+	
+	/* Not in a level, do not apply momentum */
+	if (gamestate != GS_LEVEL)
+		return;
 	
 	/* Apply momentum */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
