@@ -953,8 +953,11 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	}
 	
 	/* Reset all splits */
-	D_NCResetSplits(demoplayback);
-	g_SplitScreen = -1;
+	if (l_SoloLoad)
+	{
+		D_NCResetSplits(demoplayback);
+		g_SplitScreen = -1;
+	}
 	
 	/* Re-allocate local screens to determine who is who */
 	for (TempI = 0; TempI < MyHost->NumPorts; TempI++)
