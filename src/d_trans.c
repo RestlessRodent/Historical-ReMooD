@@ -73,6 +73,9 @@ typedef enum D_ClientStage_e
 #define JOBDEFAULTTARGET	3					// target at 3 tics retrans
 #define JOBMINTICCAP		5					// Do not retransmit tics to far ahead
 
+#define SERVERPINGOUTWARN (TICRATE * 5)
+#define SERVERPINGOUTTIME (TICRATE * 30)
+
 /* D_WADChain_t -- WAD Chain */
 typedef struct D_WADChain_s
 {
@@ -728,8 +731,8 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			if (g_ProgramTic < Host->NextPing)
 				continue;
 			
-			// Ping again in four seconds (every second is not that important)
-			Host->NextPing = g_ProgramTic + (TICRATE << 2);
+			// Ping again in two seconds (every second is not that important)
+			Host->NextPing = g_ProgramTic + (TICRATE << 1);
 			
 			// Get the next ping window
 			++Host->PingAt;
@@ -772,8 +775,8 @@ void D_SNDoClient(D_BS_t* const a_BS)
 	/* Send ping to server (to make sure it is alive) */
 	if (g_ProgramTic >= l_SvNextPing)
 	{
-		// Ping again in four seconds (every second is not that important)
-		l_SvNextPing = g_ProgramTic + (TICRATE << 2);
+		// Ping again in two seconds (every second is not that important)
+		l_SvNextPing = g_ProgramTic + (TICRATE << 1);
 	
 		// Get the next ping window
 		++l_SvPingAt;
@@ -793,9 +796,15 @@ void D_SNDoClient(D_BS_t* const a_BS)
 	
 		D_BSRecordNetBlock(l_BS, &l_HostAddr);
 	}
+	
+	/* Server is going to ping out */
+	if (g_ProgramTic > l_SvLastPing + SERVERPINGOUTWARN)
+		D_SNSetServerLagWarn(l_SvLastPing + SERVERPINGOUTTIME);
+	else
+		D_SNSetServerLagWarn(0);
 
 	/* Server is pinging out? */
-	if (g_ProgramTic > l_SvLastPing + (TICRATE * 30))
+	if (g_ProgramTic > l_SvLastPing + SERVERPINGOUTTIME)
 		D_SNPartialDisconnect("Connection to server lost");
 	
 	/* Which stage? */
@@ -1414,6 +1423,9 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		
 		// Got tic now yay!
 		TicBuf->GotTic = true;
+		
+		// Set the last ping time, to prevent time out
+		l_SvLastPing = g_ProgramTic;
 	}
 	
 	/* Reply to server saying, the tic was recieved and buffered */

@@ -312,6 +312,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "DTRANSC_GETWAD", "Will download WAD \"$1\"."},
 	{			  "DTRANSC_BLACKLIST", "WAD \"$1\" is on blacklist, not downloading.\n"},
 	
+	/*** D_NETDRAW.C ***/
+	{			   "DNETDRAWC_PDWARN", "Server Not Responding"},
+	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
