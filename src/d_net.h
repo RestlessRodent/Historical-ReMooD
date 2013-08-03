@@ -133,6 +133,7 @@ struct D_SNHost_s
 	D_SNPingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
 	int8_t PingAt;								// Current window
 	tic_t NextPing;								// Time of next ping
+	tic_t LastPing;								// Last ping time
 };
 
 /*****************
@@ -223,6 +224,7 @@ bool_t D_SNGotFile(const char* const a_PathName);
 void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
 void D_SNRequestPortNet(const uint32_t a_ProcessID);
 bool_t D_SNWaitingForSave(void);
+void D_SNSetLastTic(void);
 
 /*** FILES ***/
 

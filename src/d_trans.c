@@ -40,6 +40,7 @@
 #include "console.h"
 #include "p_info.h"
 #include "p_saveg.h"
+#include "i_system.h"
 
 /****************
 *** CONSTANTS ***
@@ -118,6 +119,7 @@ static D_BS_t* l_BS;
 static D_WADChain_t* l_WADTail;
 static D_ClientStage_t l_Stage;
 static uint8_t l_IsIWADMap, l_IsFreeDoom, l_IWADMission;
+static tic_t l_LastRanTime;
 
 static D_XMitJob_t l_XStack[MAXNETXTICS];		// Transmission stack
 static int32_t l_XAt;							// Current transmission at
@@ -540,6 +542,12 @@ bool_t D_SNWaitingForSave(void)
 	return false;
 }
 
+/* D_SNSetLastTic() -- Sets the last tic running for */
+void D_SNSetLastTic(void)
+{
+	l_LastRanTime = g_ProgramTic;
+}
+
 /* D_SNDoConnect() -- Do connection logic */
 void D_SNDoConnect(void)
 {
@@ -574,6 +582,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	int32_t i, j;
 	D_SNPingWin_t* PWin;
 	static int32_t LastSlot;
+	tic_t Cap, PCap, GCap;
 	
 	/* Transmit jobs to hosts that need them */
 	for (i = 0; i < l_XAt; i++)
@@ -626,6 +635,46 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			D_BSRecordNetBlock(a_BS, &Host->Addr);
 		}
 	}
+	
+	/* Determine if players get kicked, by timeouts */
+	// The last seen time of the host is the time of the latest ack of a tic.
+	// So if the game pauses because someone is dropping, then their timer will
+	// incrase also.
+	// Waiting for players after 3 seconds
+	if (g_ProgramTic > l_LastRanTime + (TICRATE * 3))
+		;	// TODO FIXME
+	
+	// Ping cap
+		// TODO FIXME: make CVar
+	if (g_ProgramTic < (TICRATE * 10))
+		PCap = 0;
+	else
+		PCap = g_ProgramTic - (TICRATE * 10);
+	
+	// Gametic cap
+	if (gametic < (MAXNETXTICS - 2))
+		GCap = gametic;
+	else
+		GCap = gametic - (MAXNETXTICS - 2);
+	
+	// TODO FIXME: Make CVar rather than hardcoded (7 secs currently)
+	if (g_ProgramTic > l_LastRanTime + (TICRATE * 7))
+		for (i = 0; i < GNUMHOSTS; i++)
+			if ((Host = GHOSTS[i]))
+			{
+				// Ignore locals and cleanups
+				if (Host->Local || Host->Cleanup)
+					continue;
+				
+				// Ping timeout
+				if (Host->LastPing < PCap)
+					D_SNDisconnectHost(Host, "Timed out");
+				
+				// This host appears to be frozen
+					// Game too far in the past
+				if (Host->MinTic <= GCap)
+					D_SNDisconnectHost(Host, "Game Frozen");
+			}
 	
 	/* Calculate Pings */
 	// Lower calculating by slotting ping requests
@@ -1338,6 +1387,7 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 				if (a_Host == Job->Dests[j].Host)
 				{
 					Job->Dests[j].Clear = true;
+					a_Host->LastSeen = g_ProgramTic;
 					break;
 				}
 			
@@ -1536,6 +1586,7 @@ void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		
 		// Average the difference in milliseconds
 		a_Host->Ping = (a_Host->Ping + MilliDiff) >> 1;
+		a_Host->LastPing = g_ProgramTic;
 	}
 }
 

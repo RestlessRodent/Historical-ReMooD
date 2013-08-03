@@ -1497,6 +1497,9 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	if (!l_Connected)
 		return;
 	
+	/* Time of last tic being ran */
+	D_SNSetLastTic();
+	
 	/* Server */
 	if (l_Server)
 	{
