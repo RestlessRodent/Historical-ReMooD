@@ -1613,6 +1613,7 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	else
 	{
 		// Send sync code to server
+		D_SNSendSyncCode(a_GameTic, a_Code);
 		
 		// Move down all the local tics
 		memmove(&l_LocalBuf[0], &l_LocalBuf[1], sizeof(l_LocalBuf[0]) * (MAXNETXTICS - 1));

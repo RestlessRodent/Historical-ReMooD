@@ -229,6 +229,7 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
 void D_SNRequestPortNet(const uint32_t a_ProcessID);
 void D_SNPortJoinGame(D_SNPort_t* const a_Port);
 bool_t D_SNWaitingForSave(void);
+void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
 void D_SNSetLastTic(void);
 void D_SNAppendLocalCmds(D_BS_t* const a_BS);
 

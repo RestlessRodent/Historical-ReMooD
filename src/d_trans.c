@@ -596,6 +596,22 @@ bool_t D_SNWaitingForSave(void)
 	return false;
 }
 
+/* D_SNSendSyncCode() -- Sends sync code to client */
+void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
+{
+	/* Check */
+	if (!l_BS || !l_Sock || D_SNIsServer())
+		return;
+		
+	/* Build packet */
+	D_BSBaseBlock(l_BS, "SYNC");
+	
+	D_BSwcu64(l_BS, a_GameTic);
+	D_BSwcu32(l_BS, a_Code);
+	
+	D_BSRecordNetBlock(l_BS, &l_HostAddr);
+}
+
 /* D_SNSetLastTic() -- Sets the last tic running for */
 void D_SNSetLastTic(void)
 {
@@ -1881,6 +1897,21 @@ void DT_PJGG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	Port->WillJoin = true;
 }
 
+/* DT_SYNC() -- Client Game Synchronization Code */
+void DT_SYNC(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	tic_t GameTic;
+	uint32_t Code;	
+	
+	/* Check */
+	if (!a_Host)
+		return;
+	
+	/* Read Data */
+	GameTic = D_BSrcu64(a_BS);
+	Code = D_BSru32(a_BS);
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -1910,6 +1941,7 @@ static const struct
 	{{"PING"}, DT_PING, false},
 	{{"PONG"}, DT_PONG, false},
 	{{"PJGG"}, DT_PJGG, false},
+	{{"SYNC"}, DT_SYNC, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},
