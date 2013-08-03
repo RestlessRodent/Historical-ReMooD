@@ -131,6 +131,12 @@ static tic_t l_LastRanTime;
 static D_XMitJob_t l_XStack[MAXNETXTICS];		// Transmission stack
 static int32_t l_XAt;							// Current transmission at
 
+static D_SNPingWin_t l_SvPings[MAXPINGWINDOWS];	// Ping windows
+static int8_t l_SvPingAt;						// Current window
+static tic_t l_SvNextPing;						// Time of next ping
+static tic_t l_SvLastPing;						// Last ping time
+static int32_t l_SvPing;						// Ping of server
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -590,7 +596,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	int32_t i, j;
 	D_SNPingWin_t* PWin;
 	static int32_t LastSlot;
-	tic_t Cap, PCap, GCap;
+	tic_t PCap, GCap;
 	
 	/* Transmit jobs to hosts that need them */
 	for (i = 0; i < l_XAt; i++)
@@ -673,10 +679,10 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	
 	// Ping cap
 		// TODO FIXME: make CVar
-	if (g_ProgramTic < (TICRATE * 10))
+	if (g_ProgramTic < (TICRATE * 12))
 		PCap = 0;
 	else
-		PCap = g_ProgramTic - (TICRATE * 10);
+		PCap = g_ProgramTic - (TICRATE * 12);
 	
 	// Gametic cap
 	if (gametic < (MAXNETXTICS - 2))
@@ -684,8 +690,8 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	else
 		GCap = gametic - (MAXNETXTICS - 2);
 	
-	// TODO FIXME: Make CVar rather than hardcoded (7 secs currently)
-	if (g_ProgramTic > l_LastRanTime + (TICRATE * 7))
+	// TODO FIXME: Make CVar rather than hardcoded (10 secs currently)
+	if (g_ProgramTic > l_LastRanTime + (TICRATE * 10))
 		for (i = 0; i < GNUMHOSTS; i++)
 			if ((Host = GHOSTS[i]))
 			{
@@ -704,7 +710,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 					// Game too far in the past
 				if (Host->MinTic <= GCap)
 				{
-					D_SNDisconnectHost(Host, "Game Frozen");
+					D_SNDisconnectHost(Host, "Failed to acknowlegde");
 					continue;
 				}
 			}
@@ -761,6 +767,36 @@ void D_SNDoClient(D_BS_t* const a_BS)
 	const WL_WADFile_t* WAD, *ExtraWAD;
 	int32_t i, j, k, l;
 	D_IWADInfoEx_t* Info;
+	D_SNPingWin_t* PWin;
+	
+	/* Send ping to server (to make sure it is alive) */
+	if (g_ProgramTic >= l_SvNextPing)
+	{
+		// Ping again in four seconds (every second is not that important)
+		l_SvNextPing = g_ProgramTic + (TICRATE << 2);
+	
+		// Get the next ping window
+		++l_SvPingAt;
+		l_SvPingAt &= MAXPINGWINDOWS - 1;
+		PWin = &l_SvPings[l_SvPingAt];
+	
+		// Generate new random number
+		PWin->Code = D_CMakePureRandom();
+		PWin->SendTime = g_ProgramTic;
+		PWin->Millis = I_GetTimeMS();
+	
+		// Build packet to send to them
+		D_BSBaseBlock(l_BS, "PING");
+	
+		D_BSwu8(l_BS, l_SvPingAt);
+		D_BSwu32(l_BS, PWin->Code);
+	
+		D_BSRecordNetBlock(l_BS, &l_HostAddr);
+	}
+
+	/* Server is pinging out? */
+	if (g_ProgramTic > l_SvLastPing + (TICRATE * 30))
+		D_SNPartialDisconnect("Connection to server lost");
 	
 	/* Which stage? */
 	switch (l_Stage)
@@ -1092,6 +1128,7 @@ void DT_HELO(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* Set connected */
 	D_SNSetConnected(true);
+	l_SvLastPing = g_ProgramTic;	// So there is no partial disconn
 	
 	/* Create host */
 	New = D_SNCreateHost();
@@ -1592,35 +1629,55 @@ void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	tic_t TimeDiff;
 	int32_t MilliDiff;
 	
-	/* Only accept pong replies from hosts */
-	if (a_Host)
-	{
-		// Read
-		At = D_BSru8(a_BS);
-		Code = D_BSru32(a_BS);
-		
-		// Illegal at?
-		if (At < 0 || At >= MAXPINGWINDOWS)
-			return;
-		
-		// Get window
+	/* Read */
+	At = D_BSru8(a_BS);
+	Code = D_BSru32(a_BS);
+	
+	// Illegal at? Or code is zero
+	if (!Code || At < 0 || At >= MAXPINGWINDOWS)
+		return;
+	
+	/* Determine the window to use */
+	Win = NULL;
+	
+	// Client
+	if (!D_SNIsServer())
+		Win = &l_SvPings[At];
+	
+	// Server
+	else if (a_Host)
 		Win = &a_Host->Pings[At];
-		
-		// Code mismatch
-		if (Win->Code != Code)
-			return;
-		
-		// Otherwise calculate the time difference
-		TimeDiff = g_ProgramTic - Win->SendTime;
-		MilliDiff = I_GetTimeMS() - Win->Millis;
-		
-		// Client has been seen now
-		a_Host->LastSeen = g_ProgramTic;
-		
-		// Average the difference in milliseconds
+	
+	// Unknown (die)
+	else
+		return;
+	
+	/* Make sure the code matches */
+	if (!Win->Code || Win->Code != Code)
+		return;
+	
+	/* Calculate time difference */
+	TimeDiff = g_ProgramTic - Win->SendTime;
+	MilliDiff = I_GetTimeMS() - Win->Millis;
+	
+	/* Set timers (average) */
+	// Client
+	if (!D_SNIsServer())
+	{
+		l_SvPing = (l_SvPing + MilliDiff) >> 1;
+		l_SvLastPing = g_ProgramTic;
+	}
+	
+	// Server
+	else if (a_Host)
+	{
 		a_Host->Ping = (a_Host->Ping + MilliDiff) >> 1;
 		a_Host->LastPing = g_ProgramTic;
 	}
+	
+	/* Clear window, so it cannot be used again */
+	// This prevents ping reply cheating to hold a game in WFP forever.
+	memset(Win, 0, sizeof(*Win));
 }
 
 /* l_Packets -- Data packets */
