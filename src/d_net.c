@@ -520,6 +520,44 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		else
 			D_SNDisconnect(false, Buf);
 	}
+	
+	/* Local Game/Server */
+	else if (!strcasecmp(a_ArgV[0], "localgame") || !strcasecmp(a_ArgV[0], "localserver"))
+	{
+		// Start local server, with this kind of stuff
+		D_SNStartLocalServer(a_ArgC - 1, a_ArgV + 1, false, true);
+	}
+	
+	/* Connect to server */
+	else if (!strcasecmp(a_ArgV[0], "connect"))
+	{
+		// Need 1 argument
+		if (a_ArgC < 2)
+			return;
+		
+		// Look for --, start of profile data
+		for (i = 0; i < a_ArgC; i++)
+			if (!strcmp(a_ArgV[i], "--"))
+				break;
+		
+		// There is no --
+		if (i >= a_ArgC)
+			i = 0;
+		
+		// Disconnect from old server first
+		if (D_SNIsConnected() || D_SNHasSocket())
+			D_SNDisconnect(false, "Connecting to another server");
+		
+		// Add local profiles if specified
+		if (i > 0)
+			D_SNAddLocalProfiles(a_ArgC - i, a_ArgV + i);
+		
+		// Create server
+		D_SNNetCreate(false, a_ArgV[1], 0);
+		
+		// Make waiting for player
+		D_SNStartWaiting();
+	}
 #undef BUFSIZE
 }
 
@@ -537,6 +575,9 @@ bool_t D_SNServerInit(void)
 	/* Add commands */
 	CONL_AddCommand("disconnect", D_ServerCommand);
 	CONL_AddCommand("part", D_ServerCommand);
+	CONL_AddCommand("localgame", D_ServerCommand);
+	CONL_AddCommand("localserver", D_ServerCommand);
+	CONL_AddCommand("connect", D_ServerCommand);
 	
 	/* Clear initial profiles */
 	memset(PProfs, 0, sizeof(PProfs));

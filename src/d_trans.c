@@ -405,7 +405,7 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port)
 {
 	I_HostAddress_t Host;
-	uint32_t Flags;
+	uint32_t Flags, Fails;
 	uint16_t Port;
 	
 	/* Check */
@@ -436,16 +436,37 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 	Port = 0;
 	if (a_Port != 0)
 		Port = a_Port;
-	else if (Host.IPvX && Host.Port != 0)
+		
+		// Do not use port obtained from address if connecting
+		// Because it will fail on the same system
+	else if (a_Listen && Host.IPvX && Host.Port != 0)
 		Port = Host.Port;
 	
 	// Cap, port
 	if (Port < 1 || Port >= 65536)
-		Port = __REMOOD_BASEPORT;
+	{
+		// Use default port if hosting server
+		if (a_Listen)
+			Port = __REMOOD_BASEPORT;
+		
+		// Otherwise as client, use some random port
+		else
+		{
+			do
+			{
+				Port = D_CMakePureRandom() >> UINT32_C(16);
+			} while (Port < 32767 || Port >= 65535);
+		}
+	}
 	
 	// Create socket
-	if (!(l_Sock = I_NetOpenSocket(Flags, (a_Listen && Host.IPvX ? &Host : NULL), Port)))
-		return false;	// failed
+	for (Fails = 0; Fails < 10; Fails++)
+		if ((l_Sock = I_NetOpenSocket(Flags, (a_Listen && Host.IPvX ? &Host : NULL), Port + Fails)))
+			break;	// it worked!
+	
+	// Failed completely?
+	if (!l_Sock)
+		return false;
 	
 	/* Copy host and setup stream */
 	memmove(&l_HostAddr, &Host, sizeof(Host));

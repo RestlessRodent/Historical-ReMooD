@@ -470,7 +470,7 @@ void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget)
 				Map[Parent->Kids[i]->Option] = Parent->Kids[i];
 	
 	/* Disconnect */
-	//D_XNetDisconnect(false);
+	D_SNDisconnect(false, "Starting new game");
 	
 	/* Lock OCCB */
 	WL_LockOCCB(true);
@@ -564,9 +564,7 @@ void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget)
 	int32_t i;
 	M_SWidget_t* Wid;
 	I_EventEx_t Evt;
-	I_HostAddress_t Addr;
 	char* p;
-	uint32_t GameID;
 	
 	/* Obtain string buffer by sending \n to inputter */
 	// Widget is NULL if called from callback!
@@ -600,20 +598,11 @@ void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget)
 	if (!l_ConnectIP[0])
 		return;
 	
-	// Resolve host info
-	GameID = 0;
-	memset(&Addr, 0, sizeof(Addr));
-	if (true)//if (!D_XNetHostnameToAddrGID(l_ConnectIP, &Addr, &GameID))
-		return;
-	
 	/* Pop all menus */
 	M_StackPopAll();
 	
-	/* Do Disconnect First */
-	//D_XNetDisconnect(false);
-	
-	/* Now try to connect */
-	//D_XNetConnect(&Addr, GameID, false);
+	/* The "connect" command handles everything */
+	CONL_InputF("connect \"%s\" --\n", l_ConnectIP);
 }
 
 /* M_CTUS_BoxCallBack() -- Callback for enter on the box */
