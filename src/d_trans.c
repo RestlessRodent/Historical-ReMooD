@@ -42,6 +42,7 @@
 #include "p_saveg.h"
 #include "i_system.h"
 #include "g_game.h"
+#include "p_demcmp.h"
 
 /****************
 *** CONSTANTS ***
@@ -734,6 +735,63 @@ void D_SNAppendLocalCmds(D_BS_t* const a_BS)
 	// Write
 	D_BSwu32(a_BS, OutS);
 	D_BSWriteChunk(a_BS, OutD, OutS);
+}
+
+/* D_SNSendSettings() -- Sends setting to server */
+void D_SNSendSettings(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
+{
+	const uint8_t* p;
+	int32_t i;	
+	
+	/* Check */
+	if (!l_BS || !l_Sock || D_SNIsServer())
+		return;
+		
+	/* Build packet */
+	D_BSBaseBlock(l_BS, "SETT");
+	
+	// Write Data
+	D_BSwu32(l_BS, a_Port->Host->ID);
+	D_BSwu32(l_BS, a_Port->ID);
+	D_BSwu8(l_BS, (a_Port->Player ? a_Port->Player - players : 255));
+	
+	D_BSwu16(l_BS, a_Setting);
+	
+	// String?
+	if (a_StrVal)
+	{
+		// No length specified
+		if (!a_StrLen)
+			for (p = a_StrVal, i = 0; i < MAXTCSTRINGCAT; i++)
+			{
+				// Write
+				D_BSwu8(l_BS, *p);
+			
+				// Increase p as long as it is not NULL
+				if (*p)
+					p++;
+			}
+		
+		// Length Specified
+		else
+			for (i = 0; i < MAXTCSTRINGCAT; i++)
+				if (i < a_StrLen)
+					D_BSwu8(l_BS, ((uint8_t*)a_StrVal)[i]);
+				else
+					D_BSwu8(l_BS, 0);
+	}
+	
+	// Integer
+	else
+	{
+		D_BSwi32(l_BS, a_IntVal);
+		
+		// Padding
+		for (i = 4; i < MAXTCSTRINGCAT; i++)
+			D_BSwu8(l_BS, 0);
+	}
+	
+	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
 /* D_SNDoConnect() -- Do connection logic */
@@ -2023,6 +2081,44 @@ void DT_CHAT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 #undef BUFSIZE
 }
 
+/* DT_SETT() -- Change Setting */
+void DT_SETT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	uint32_t HostID, PortID;
+	uint16_t Setting;
+	uint8_t Player;	
+	D_SNPort_t* Port;
+	uint8_t Data[MAXTCSTRINGCAT];
+	
+	/* Check */
+	if (!a_Host || !D_SNIsServer())
+		return;
+	
+	/* Read Data */
+	HostID = D_BSru32(a_BS);
+	PortID = D_BSru32(a_BS);
+	Player = D_BSru8(a_BS);
+	Setting = D_BSru16(a_BS);
+	
+	// Find port
+	Port = D_SNPortByID(PortID);
+	
+	// Invalid mismatch
+	if (a_Host->ID != HostID || !Port || Port->Host != a_Host)
+		return;
+	
+	// Invalid player
+	if (Player != 255 && Port->Player != &players[Player])
+		return;
+	
+	// Read giant data
+	D_BSReadChunk(a_BS, Data, MAXTCSTRINGCAT);
+	
+	/* Send to setting writer */
+	D_SNPortSetting(Port, Setting, 0, Data, MAXTCSTRINGCAT);
+}
+	
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -2035,6 +2131,11 @@ static const struct
 	bool_t RemoteOnly;							// Only from remote end
 } l_Packets[] =
 {
+	{{"PING"}, DT_PING, false},
+	{{"JOBT"}, DT_JOBT, false},
+	{{"PONG"}, DT_PONG, false},
+	{{"JOBA"}, DT_JOBA, false},
+	{{"SYNC"}, DT_SYNC, false},
 	{{"CONN"}, DT_CONN, false},
 	{{"HELO"}, DT_HELO, true},
 	{{"LIST"}, DT_LIST, false},
@@ -2044,16 +2145,12 @@ static const struct
 	{{"PSAV"}, DT_PSAV, false},
 	{{"PLAY"}, DT_PLAY, false},
 	{{"COOL"}, DT_COOL, false},
-	{{"JOBT"}, DT_JOBT, false},
-	{{"JOBA"}, DT_JOBA, false},
 	{{"WANT"}, DT_WANT, false},
 	{{"GIVE"}, DT_GIVE, false},
 	//{{"FULL"}, DT_FULL, false},	// TODO FIXME
-	{{"PING"}, DT_PING, false},
-	{{"PONG"}, DT_PONG, false},
 	{{"PJGG"}, DT_PJGG, false},
-	{{"SYNC"}, DT_SYNC, false},
 	{{"CHAT"}, DT_CHAT, false},
+	{{"SETT"}, DT_SETT, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},

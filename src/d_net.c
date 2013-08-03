@@ -1916,6 +1916,7 @@ void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting
 	// Send to server
 	else
 	{
+		D_SNSendSettings(a_Port, a_Setting, a_IntVal, a_StrVal, a_StrLen);
 	}
 }
 
@@ -2514,7 +2515,7 @@ static void D_SNHandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_
 				break;
 			
 			case DSNPS_COUNTEROP:
-				P_ChangeCounterOp(a_PID, !!IntVal);
+				P_ChangeCounterOp(PlayerP, !!IntVal);
 				break;
 		}
 #undef BUFSIZE

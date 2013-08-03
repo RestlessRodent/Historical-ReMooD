@@ -258,6 +258,7 @@ void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
 void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* const a_Text);
 void D_SNSetLastTic(void);
 void D_SNAppendLocalCmds(D_BS_t* const a_BS);
+void D_SNSendSettings(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
 
 /*** FILES ***/
 
