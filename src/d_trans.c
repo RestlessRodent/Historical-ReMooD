@@ -2021,12 +2021,15 @@ void DT_SYNC(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	uint32_t Code;	
 	
 	/* Check */
-	if (!a_Host)
+	if (!a_Host || !D_SNIsServer())
 		return;
 	
 	/* Read Data */
 	GameTic = D_BSrcu64(a_BS);
 	Code = D_BSru32(a_BS);
+	
+	/* Handle sync code from host */
+	D_SNCheckSyncCode(a_Host, GameTic, Code);
 }
 
 /* DT_CHAT() -- Client Chats */

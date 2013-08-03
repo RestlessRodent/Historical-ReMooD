@@ -54,6 +54,7 @@
 ****************/
 
 #define MAXGLOBALBUFSIZE					8	// Size of global buffer
+#define MAXRRSYNCSIZE			(TICRATE * 2)	// Round robin size
 
 // c_ChatPrefix -- Chat prefix for player screens
 static const char* const c_ChatPrefix[4] =
@@ -64,6 +65,13 @@ static const char* const c_ChatPrefix[4] =
 /*************
 *** LOCALS ***
 *************/
+
+static struct
+{
+	tic_t GameTic;								// Gametic
+	uint32_t Code;								// Sync Code
+} l_SyncCodeRR[MAXRRSYNCSIZE];					// Round robin for sync code
+static int32_t l_SyncRRAt;						// Position of Round Robin
 
 static bool_t l_DedSv;							// Dedicated server
 static bool_t l_Connected;						// Connected
@@ -242,6 +250,10 @@ static void D_SNCommonDiscStuff(void)
 	
 	/* Draw stuff */
 	D_SNSetServerLagWarn(0);
+	
+	/* Sync Codes */
+	l_SyncRRAt = NULL;
+	memset(l_SyncCodeRR, 0, sizeof(l_SyncCodeRR));
 }
 
 /* D_SNDisconnect() -- Disconnects from server */
@@ -1650,6 +1662,11 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 		
 		// Tic can now be sent to clients
 		D_SNXMitTics(a_GameTic, Now);
+		
+		// Round robin place
+		l_SyncCodeRR[l_SyncRRAt].GameTic = a_GameTic;
+		l_SyncCodeRR[l_SyncRRAt].Code = a_Code;
+		l_SyncRRAt = (l_SyncRRAt + 1) % MAXRRSYNCSIZE;
 	}
 	
 	/* Client */
@@ -1664,6 +1681,31 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 		// Clear last local tic
 		memset(&l_LocalBuf[MAXNETXTICS - 1], 0, sizeof(l_LocalBuf[0]));
 	}
+}
+
+/* D_SNCheckSyncCode() -- Checks sync code from client */
+void D_SNCheckSyncCode(D_SNHost_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code)
+{
+	register int i;
+	
+	/* Check */
+	if (!a_GameTic)
+		return;
+	
+	/* Look in loop */
+	for (i = 0; i < MAXRRSYNCSIZE; i++)
+		if (l_SyncCodeRR[i].GameTic == a_GameTic)
+		{
+			// Synced
+			if (l_SyncCodeRR[i].Code == a_Code)
+				return;
+			
+			// Kick host
+			D_SNDisconnectHost(a_Host, "Game desynchronized");
+			
+			// Done anyway
+			return;
+		}
 }
 
 /* D_SNSetPortProfile() -- Set port profile */

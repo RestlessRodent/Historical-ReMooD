@@ -209,6 +209,7 @@ void D_SNStartTic(const tic_t a_GameTic);
 void D_SNLocalTurn(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
+void D_SNCheckSyncCode(D_SNHost_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code);
 void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
 void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
 void D_SNPortTryJoin(D_SNPort_t* const a_Port);
