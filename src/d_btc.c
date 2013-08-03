@@ -640,7 +640,7 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 		MoveSpeed = 0;
 	
 	// Turn Speed
-	if ((Profile->SlowTurn) && gametic < (SSplit->TurnHeld + Profile->SlowTurnTime))
+	if ((Profile->SlowTurn) && g_ProgramTic < (SSplit->TurnHeld + Profile->SlowTurnTime))
 		TurnSpeed = 2;
 	else if (MoveSpeed)
 		TurnSpeed = 1;
@@ -1130,7 +1130,7 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 	if (GKD(DPEXIC_COOPSPY))
 	{
 		// Only every half second
-		if (gametic > (SSplit->CoopSpyTime + (TICRATE >> 1)))
+		if (g_ProgramTic > (SSplit->CoopSpyTime + (TICRATE >> 1)))
 		{
 			// Get current POV
 			SpyPOV = P_SpecGetPOV(SID);
@@ -1188,7 +1188,7 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 				);
 			
 			// Reset timeout
-			SSplit->CoopSpyTime = gametic + (TICRATE >> 1);
+			SSplit->CoopSpyTime = g_ProgramTic + (TICRATE >> 1);
 		}
 	}
 	
@@ -1215,7 +1215,7 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 	
 	/* Slow turning? */
 	if (!IsTurning)
-		SSplit->TurnHeld = gametic;
+		SSplit->TurnHeld = g_ProgramTic;
 	
 	/* Turning */
 	a_TicCmd->Std.BaseAngleTurn = BaseAT;
