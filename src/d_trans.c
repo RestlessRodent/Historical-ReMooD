@@ -617,7 +617,6 @@ void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* con
 {
 	uint8_t Mode;
 	const char* p;
-	D_BS_t* RelBS;
 	I_HostAddress_t* AddrP;
 	D_SNPort_t* Target;
 	
@@ -662,11 +661,11 @@ void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* con
 	{
 		D_BSBaseBlock(l_BS, "CHAT");
 	
-		D_BSwu32(RelBS, a_Port->ID);
-		D_BSwu8(RelBS, Mode);
-		D_BSwu32(RelBS, (Target ? Target->ID : 0));
-		D_BSwu32(RelBS, ++a_Port->ChatID);
-		D_BSws(RelBS, p);
+		D_BSwu32(l_BS, a_Port->ID);
+		D_BSwu8(l_BS, Mode);
+		D_BSwu32(l_BS, (Target ? Target->ID : 0));
+		D_BSwu32(l_BS, ++a_Port->ChatID);
+		D_BSws(l_BS, p);
 	
 		D_BSRecordNetBlock(l_BS, &l_HostAddr);
 	}
@@ -1972,6 +1971,58 @@ void DT_SYNC(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	Code = D_BSru32(a_BS);
 }
 
+/* DT_CHAT() -- Client Chats */
+void DT_CHAT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+#define BUFSIZE 128
+	uint32_t Source, Target;
+	uint8_t Mode;	
+	D_SNPort_t* MyPort, *TargetPort;
+	char Buf[BUFSIZE];
+	int32_t Len;
+	uint32_t ChatID;
+	
+	/* Check */
+	if (!a_Host)
+		return;
+	
+	/* Read Info */
+	Source = D_BSru32(a_BS);
+	Mode = D_BSru8(a_BS);
+	Target = D_BSru32(a_BS);
+	ChatID = D_BSru32(a_BS);
+	
+	memset(Buf, 0, sizeof(Buf));
+	D_BSrs(a_BS, Buf, BUFSIZE);
+	
+	// Get source player
+	MyPort = D_SNPortByID(Source);
+	TargetPort = D_SNPortByID(Target);
+	
+	// Wrong host? indiv and no target?
+	if (MyPort->Host != a_Host || (Mode == 3 && !TargetPort))
+		return;
+	
+	// Already sent this or older message?
+	if (ChatID <= MyPort->ChatID)
+		return;
+	
+	// Length of current message
+	Len = strlen(Buf);
+	
+	// Needs cooling down?
+	if (g_ProgramTic + Len < MyPort->ChatCoolDown)
+		return;
+	
+	// Set cooldown to length of string
+	MyPort->ChatCoolDown = g_ProgramTic + Len;
+	MyPort->ChatID = ChatID;	// to prevent same message spam due to lag
+	
+	/* Direct encode */
+	D_SNDirectChat(a_Host->ID, Source, Mode, Target, Buf);
+#undef BUFSIZE
+}
+
 /* l_Packets -- Data packets */
 static const struct
 {
@@ -2002,6 +2053,7 @@ static const struct
 	{{"PONG"}, DT_PONG, false},
 	{{"PJGG"}, DT_PJGG, false},
 	{{"SYNC"}, DT_SYNC, false},
+	{{"CHAT"}, DT_CHAT, false},
 	
 	{{"FPUT"}, D_SNFileRecv, false},
 	{{"FOPN"}, D_SNFileInit, false},
