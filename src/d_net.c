@@ -55,6 +55,12 @@
 
 #define MAXGLOBALBUFSIZE					8	// Size of global buffer
 
+// c_ChatPrefix -- Chat prefix for player screens
+static const char* const c_ChatPrefix[4] =
+{
+	"", "\x4", "\x5", "\x6"
+};
+
 /*************
 *** LOCALS ***
 *************/
@@ -1786,7 +1792,88 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	WriteUInt8((uint8_t**)&Wp, p);
 }
 
+/* D_SNGetPortName() -- Get name of port */
+const char* D_SNGetPortName(D_SNPort_t* const a_Port)
+{
+	/* No port passed */
+	if (!a_Port)
+		return "Illegal Name";
+	
+	/* Return correct name */
+	else if (a_Port->Player)
+		return player_names[a_Port->Player - players];
+	
+	/* Do not know */
+	else
+		return "Player";
+}
+
 /*** GAME CONTROL ***/
+
+/* D_SNChangeVar() -- Change value of variable */
+void D_SNChangeVar(const uint32_t a_Code, const int32_t a_Value)
+{
+	void* Wp;
+	
+	/* Server Only */
+	if (!D_SNIsServer())
+		return;
+	
+	/* Grab global command */
+	if (!D_SNExtCmdInGlobal(DTCT_GAMEVAR, &Wp))
+		return;
+	
+	/* Write Data */
+	LittleWriteUInt32((uint32_t**)&Wp, a_Code);
+	LittleWriteInt32((int32_t**)&Wp, a_Value);
+}
+
+/* D_SNDirectChat() -- Direct chat message */
+void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message)
+{
+	const char* p;
+	int32_t Room;
+	uint8_t* Wp;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	
+	/* Check */
+	if (!a_HostID || !a_ID || !a_Message || !strlen(a_Message))
+		return;
+	
+	/* Get host and port */
+	Host = D_SNHostByID(a_HostID);
+	Port = D_SNPortByID(a_ID);
+	
+	// Bad host and/or port
+	if (!Host || !Port || Port->Host != Host)
+		return;
+	
+	/* Encode message into multiple tics */
+	for (p = a_Message, Room = 0; *p; p++)
+	{
+		// No room? create new global
+		if (!Room)
+		{
+			// Get new packet
+			if (!D_SNExtCmdInGlobal(DTCT_SNCHATFRAG, &Wp))
+				return;
+			
+			LittleWriteUInt32((uint32_t**)&Wp, a_HostID);
+			LittleWriteUInt32((uint32_t**)&Wp, a_ID);
+			WriteUInt8((uint8_t**)&Wp, 0);
+			
+			LittleWriteUInt32((uint32_t**)&Wp, a_Target);
+			WriteUInt8((uint8_t**)&Wp, a_Mode);
+			
+			Room = MAXTCSTRINGCAT;
+		}
+		
+		// Write single character and reduce the room available
+		WriteUInt8((uint8_t**)&Wp, *p);
+		Room--;
+	}
+}
 
 /* D_SNRemovePlayer() -- Remove player from game */
 void D_SNRemovePlayer(const int32_t a_PlayerID)
@@ -2096,6 +2183,149 @@ static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP,
 	}
 }
 
+/* D_SNHandleGTChatFrag() -- Chat fragment */
+static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	D_SplitInfo_t* Split;
+	D_SNPort_t* PortTarget, *Port;
+	uint32_t Target;
+	uint8_t Mode, Char;
+	int32_t i, k, l, Sound, RealTeam;
+	bool_t Ended;
+	
+	/* Check */
+	if (!a_Host || !a_Port)
+		return;	
+	
+	/* Read values */
+	Target = LittleReadUInt32((const uint32_t**)a_PP);
+	Mode = ReadUInt8(a_PP);
+	
+	/* Append to their chat line */
+	for (Ended = false, i = 0; i < MAXTCSTRINGCAT; i++)
+	{
+		// Read character
+		Char = ReadUInt8(a_PP);
+		
+		// Append
+		if (!Ended && Char)
+		{
+			if (a_Port->ChatAt < MAXCHATLINE - 1)
+				a_Port->ChatBuf[a_Port->ChatAt++] = Char;
+			continue;
+		}
+		
+		// Ended (passed /0)
+		Ended = true;
+	}
+	
+	/* Did not speak */
+	if (!Ended)
+		return;
+		
+	/* Get target */
+	PortTarget = D_SNPortByID(Target);
+	
+	/* Speak for all local screens */
+	Sound = 0;
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Split inactive?
+		if (!D_ScrSplitVisible(i))
+			continue;
+		
+		// Split port
+		Split = &g_Splits[i];
+		Port = Split->Port;
+		
+		// Sending to team
+		if (Mode == 1 || (a_Port->Player && Mode == 2))
+		{
+			// Get team of player
+			k = P_GetPlayerTeam(a_Port->Player);
+			l = P_GetPlayerTeam(Port->Player);
+		
+			// Spectating or on different team
+			if (a_Port != Port)
+				if (!Port->Player || (k == -1 || l == -1) || k != l)
+					continue;
+		
+			// Recolor team
+			RealTeam = k;
+			P_GetTeamInfo(k, &RealTeam, NULL);
+		
+			// More than 10, use a
+			if (RealTeam >= 10)
+				RealTeam += 'a';
+			else
+				RealTeam += '0';
+		
+			// Colorized
+			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATTEAM,
+					"%s%s%c",
+					c_ChatPrefix[i],
+					D_SNGetPortName(a_Port),
+					RealTeam
+				);
+		}
+		
+		// Send to spectators
+		else if (Mode == 2 || (!a_Port->Player && Mode == 1))
+		{
+			// Port is playing the game
+			if (Port->Player)
+				continue;
+			
+			// Send message
+			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATSPEC,
+					"%s%s",
+					c_ChatPrefix[i],
+					D_SNGetPortName(a_Port)
+				);
+		}
+		
+		// Send to one person
+		else if (Mode == 3)
+		{
+			// Not the target port
+			if (Port != PortTarget)
+				continue;
+			
+			// Send message
+			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATPRIV,
+					"%s%s",
+					c_ChatPrefix[i],
+					D_SNGetPortName(a_Port)
+				);
+		}
+		
+		// Send to all
+		else
+		{
+			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATALL,
+					"%s%s",
+					c_ChatPrefix[i],
+					D_SNGetPortName(a_Port)
+				);
+		}
+		
+		// Append actual message
+		CONL_PrintF("%s\n", a_Port->ChatBuf);
+		
+		// Emit generic sound
+		if (!Sound)
+			Sound = sfx_generic_chat;
+	}
+	
+	/* Clear chat buffer */
+	a_Port->ChatAt = 0;
+	memset(a_Port->ChatBuf, 0, sizeof(a_Port->ChatBuf));
+	
+	/* Emit Sound */
+	if (Sound)
+		S_StartSound(NULL, Sound);
+}
+
 /* D_SNHandleGT() -- Handles game command IDs */
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
@@ -2153,6 +2383,11 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 			// Port is added to host
 		case DTCT_SNJOINPORT:
 			D_SNHandleGTJoinPort(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Chat Fragment
+		case DTCT_SNCHATFRAG:
+			D_SNHandleGTChatFrag(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!

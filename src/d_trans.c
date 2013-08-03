@@ -612,6 +612,66 @@ void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
+/* D_SNSendChat() -- Sends chat command */
+void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* const a_Text)
+{
+	uint8_t Mode;
+	const char* p;
+	D_BS_t* RelBS;
+	I_HostAddress_t* AddrP;
+	D_SNPort_t* Target;
+	
+	/* No origin */
+	if (!a_Port || !a_Text)
+		return;
+	
+	/* Base pointer */
+	p = a_Text;
+	Target = NULL;
+	
+	/* Who should recieve message? */
+	if (a_Team)
+		if (!a_Port->Player)
+			Mode = 2;	// Spec
+		else
+			Mode = 1;	// Team
+	else
+		Mode = 0;		// Everyone
+	
+	/* Special commands */
+	// Force team chat?
+	if (!strncmp("/team ", p, 6))
+	{
+		Mode = 1;
+		p += 6;
+	}
+	
+	/* Limitize Value? */
+	// Team mode but no teams
+	if (Mode == 1 && !P_GMIsTeam())
+		Mode = 0;
+	
+	/* Server can directly encode message */
+	if (D_SNIsServer())
+	{
+		D_SNDirectChat(a_Port->Host->ID, a_Port->ID, Mode, 0, p);
+	}
+	
+	/* Otherwise, send request to server */
+	else if (l_Sock)
+	{
+		D_BSBaseBlock(l_BS, "CHAT");
+	
+		D_BSwu32(RelBS, a_Port->ID);
+		D_BSwu8(RelBS, Mode);
+		D_BSwu32(RelBS, (Target ? Target->ID : 0));
+		D_BSwu32(RelBS, ++a_Port->ChatID);
+		D_BSws(RelBS, p);
+	
+		D_BSRecordNetBlock(l_BS, &l_HostAddr);
+	}
+}
+
 /* D_SNSetLastTic() -- Sets the last tic running for */
 void D_SNSetLastTic(void)
 {

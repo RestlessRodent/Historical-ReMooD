@@ -74,6 +74,41 @@ static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
 *** FUNCTIONS ***
 ****************/
 
+/* D_SNChatDrawer() -- Draws chat line */
+void D_SNChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+{
+	uint32_t Flags;
+	
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return;
+	
+	/* Not chatting? */
+	if (!g_Splits[a_Screen].ChatMode)
+		return;
+	
+	/* Draw box */
+	if (l_ChatBox[a_Screen])
+	{	
+		// Base flags
+		Flags = 0;
+		
+		// If team chat, draw colorized!
+		if (g_Splits[a_Screen].ChatMode == 2 || g_Splits[a_Screen].ChatMode == 3)
+			if (!g_Splits[a_Screen].Port || !g_Splits[a_Screen].Port->Player)		// Spec
+				Flags = VFO_COLOR(VEX_MAP_WHITE);
+			else		// Team
+			{
+				Flags = P_GetPlayerTeam(&players[g_Splits[a_Screen].Console]);
+				P_GetTeamInfo(Flags, &Flags, NULL);
+				Flags = VFO_PCOL(Flags);
+			}
+		
+		// Draw it
+		CONCTI_DrawInput(l_ChatBox[a_Screen], Flags, a_X, a_H - V_FontHeight(l_ChatBox[a_Screen]->Font), a_W);
+	}
+}
+
 /* D_SNClearChat() -- Clears player chat */
 void D_SNClearChat(const int32_t a_Screen)
 {
@@ -91,11 +126,11 @@ void D_SNClearChat(const int32_t a_Screen)
 		CONCTI_SetText(l_ChatBox[a_Screen], "");
 }
 
-/* DS_XNetCONCTIChatLine() -- For when enter is pressed */
-static bool_t DS_XNetCONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
+/* D_SNCONCTIChatLine() -- For when enter is pressed */
+static bool_t D_SNCONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
 {
 	/* Handle chat string and send to server (or local) */
-	//D_SNSendChat(g_Splits[a_Input->Screen].XPlayer, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
+	D_SNSendChat(g_Splits[a_Input->Screen].Port, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
 	
 	/* Leave Chat Mode */
 	// Done with it, no use
@@ -158,7 +193,7 @@ bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event)
 			// Need to create chat box?
 			if (!l_ChatBox[Bit])
 			{
-				l_ChatBox[Bit] = CONCTI_CreateInput(16, DS_XNetCONCTIChatLine, &l_ChatBox[Bit]);
+				l_ChatBox[Bit] = CONCTI_CreateInput(16, D_SNCONCTIChatLine, &l_ChatBox[Bit]);
 				l_ChatBox[Bit]->Screen = Bit;
 				l_ChatBox[Bit]->Font = VFONT_SMALL;
 			}

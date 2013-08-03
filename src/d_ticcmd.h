@@ -164,6 +164,7 @@ enum
 	DTCT_SNJOINHOST,							// Host Joins
 	DTCT_SNPARTPLAYER,							// Player parts
 	DTCT_SNJOINPORT,							// Port is joined
+	DTCT_SNCHATFRAG,							// Chat Fragment
 	
 	NUMDTCT
 };

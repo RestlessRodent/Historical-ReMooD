@@ -58,6 +58,7 @@
 #define MAXNETXTICS				TICRATE
 
 #define MAXPINGWINDOWS					8		// Max ping window count
+#define MAXCHATLINE 128							// max one can blurt
 
 /*****************
 *** STRUCTURES ***
@@ -104,6 +105,10 @@ typedef struct D_SNPort_s
 	ticcmd_t BackupCmd;							// Backup tic command
 	uint32_t LocalStatFlags;					// Local Status Flags
 	tic_t JoinWait;								// Join wait (to not spam server)
+	char ChatBuf[MAXCHATLINE];					// Chat buffer
+	int16_t ChatAt;								// Chat currently at
+	tic_t ChatCoolDown;							// Chat cooldown time
+	uint32_t ChatID;							// Chat ID Number
 } D_SNPort_t;
 
 /* D_SNHost_t -- Host which controls a set of playing players */
@@ -193,9 +198,12 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
 void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
 void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
 void D_SNPortTryJoin(D_SNPort_t* const a_Port);
+const char* D_SNGetPortName(D_SNPort_t* const a_Port);
 
 /*** GAME CONTROL ***/
 
+void D_SNChangeVar(const uint32_t a_Code, const int32_t a_Value);
+void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message);
 void D_SNRemovePlayer(const int32_t a_PlayerID);
 void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
 void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
@@ -208,6 +216,8 @@ void D_SNSetServerLagWarn(const tic_t a_EstPD);
 
 /*** BUILD TIC COMMANDS ***/
 
+void D_SNChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+void D_SNClearChat(const int32_t a_Screen);
 bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event);
 void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
 
@@ -230,6 +240,7 @@ void D_SNRequestPortNet(const uint32_t a_ProcessID);
 void D_SNPortJoinGame(D_SNPort_t* const a_Port);
 bool_t D_SNWaitingForSave(void);
 void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
+void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* const a_Text);
 void D_SNSetLastTic(void);
 void D_SNAppendLocalCmds(D_BS_t* const a_BS);
 

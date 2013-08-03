@@ -136,6 +136,15 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32	HID
 		// uint32	ID
 		// uint8	PlayerID
+	
+	// DTCT_SNCHATFRAG, Chat Fragment
+	4 + 4 + 1 + 4 + 1 + MAXTCSTRINGCAT,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint32	Target
+		// uint8	Mode
+		// uint8*	Text
 };
 
 /*** GLOBALS ***/
