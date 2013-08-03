@@ -545,7 +545,7 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 			i = 0;
 		
 		// Disconnect from old server first
-		if (D_SNIsConnected() || D_SNHasSocket())
+		if (D_SNIsConnected() || D_SNHasSocket() || demoplayback)
 			D_SNDisconnect(false, "Connecting to another server");
 		
 		// Add local profiles if specified
