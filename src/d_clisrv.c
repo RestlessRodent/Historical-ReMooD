@@ -178,7 +178,13 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	// Get current time
 	LocalTic = I_GetTime();
 	
-	// Title screen?
+	/* Run spectators independent of game timing */
+	// So they move around during lag and other events
+	if (gamestate == GS_LEVEL && LocalTic > LastTic)
+		//for (XXSNAR = LocalTic - LastTic; XXSNAR > 0; XXSNAR--)
+			P_SpecTicker();
+	
+	/* Title screen? */
 	if (gamestate == GS_DEMOSCREEN)
 	{
 		// No update needed?
@@ -200,7 +206,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		return;
 	}
 	
-	// Connecting?
+	/* Connecting? */
 	else if (gamestate == GS_WAITFORJOINWINDOW)
 	{
 		// No update needed?
