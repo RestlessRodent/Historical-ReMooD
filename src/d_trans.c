@@ -639,6 +639,9 @@ void D_SNAppendLocalCmds(D_BS_t* const a_BS)
 			D_XNetMergeTics(Cmd, Port->LocalBuf, Port->LocalAt);
 			Port->LocalAt = 0;
 			memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
+			
+			// Do local turning and aiming
+			D_SNLocalTurn(Port, Cmd);
 		}
 	
 	/* Check to see if anything was ever encoded */

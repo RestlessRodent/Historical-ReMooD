@@ -1418,6 +1418,53 @@ int32_t D_SNNumSeqTics(void)
 	return RetVal;
 }
 
+/* D_SNLocalTurn() -- Perform local turning */
+void D_SNLocalTurn(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
+{
+	int32_t h;
+	
+	// Handle local angles, if a local player
+	if (a_Port->Host && a_Port->Host->Local)
+	{
+		// Find screen number
+		for (h = 0; h < MAXSPLITSCREEN; h++)
+			if (D_ScrSplitHasPlayer(h))
+				if (g_Splits[h].Port == a_Port)
+					break;
+		
+		if (h < MAXSPLITSCREEN)
+		{
+			// Absolute Angles
+			if (P_XGSVal(PGS_COABSOLUTEANGLE))
+			{
+				localangle[h] += a_TicCmd->Std.BaseAngleTurn << 16;
+				a_TicCmd->Std.angleturn = localangle[h] >> 16;
+			}
+
+			// Doom Angles
+			else
+				a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
+	
+			// Aiming Angle
+			if (a_TicCmd->Std.buttons & BT_RESETAIM)
+				localaiming[h] = 0;
+			else
+			{
+				// Panning Look
+				if (a_TicCmd->Std.buttons & BT_PANLOOK)
+					localaiming[h] = a_TicCmd->Std.BaseAiming << 16;
+			
+				// Standard Look
+				else
+					localaiming[h] += a_TicCmd->Std.BaseAiming << 16;
+			}
+		
+			// Clip aiming pitch to not exceed bounds
+			a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[h]);
+		}
+	}
+}
+
 /* D_SNTics() -- Handles tic commands */
 void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
@@ -1514,46 +1561,8 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 				if (!a_TicCmd->Ctrl.Type)
 					a_TicCmd->Std.StatFlags = Port->StatFlags;
 				
-				// Handle local angles, if a local player
-				if (Port->Host && Port->Host->Local)
-				{
-					// Find screen number
-					for (h = 0; h < MAXSPLITSCREEN; h++)
-						if (D_ScrSplitHasPlayer(h))
-							if (g_Splits[h].Port == Port)
-								break;
-					
-					if (h < MAXSPLITSCREEN)
-					{
-						// Absolute Angles
-						if (P_XGSVal(PGS_COABSOLUTEANGLE))
-						{
-							localangle[h] += a_TicCmd->Std.BaseAngleTurn << 16;
-							a_TicCmd->Std.angleturn = localangle[h] >> 16;
-						}
-	
-						// Doom Angles
-						else
-							a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
-				
-						// Aiming Angle
-						if (a_TicCmd->Std.buttons & BT_RESETAIM)
-							localaiming[h] = 0;
-						else
-						{
-							// Panning Look
-							if (a_TicCmd->Std.buttons & BT_PANLOOK)
-								localaiming[h] = a_TicCmd->Std.BaseAiming << 16;
-						
-							// Standard Look
-							else
-								localaiming[h] += a_TicCmd->Std.BaseAiming << 16;
-						}
-					
-						// Clip aiming pitch to not exceed bounds
-						a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[h]);
-					}
-				}
+				// Do local turning and aiming
+				D_SNLocalTurn(Port, a_TicCmd);
 			}
 		}
 	}
