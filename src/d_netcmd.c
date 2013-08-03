@@ -132,10 +132,17 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint8	PlayerID
 	
 	// DTCT_SNPARTPLAYER, Host connects
+	4 + 4 + 1 + 4,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+	
+	// DTCT_SNJOINPORT, Port is joined
 	4 + 4 + 1,
 		// uint32	HID
 		// uint32	ID
 		// uint8	PlayerID
+		// uint32	Client Port's ProcessID
 	
 	// DTCT_SNCHATFRAG, Chat Fragment
 	4 + 4 + 1 + 4 + 1 + MAXTCSTRINGCAT,
