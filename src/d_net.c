@@ -47,6 +47,7 @@
 #include "d_main.h"
 #include "p_inter.h"
 #include "p_local.h"
+#include "console.h"
 
 /****************
 *** CONSTANTS ***
@@ -236,7 +237,7 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 		}
 	
 	/* Remove splits */
-	if (l_Connected)
+	if (l_Connected || D_SNHasSocket())
 		D_NCResetSplits(a_FromDemo);
 	
 	/* Clear hosts */
@@ -486,6 +487,42 @@ bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs
 	return false;
 }
 
+/* D_ServerCommand() -- Server Commands */
+static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	int i;
+	
+	/* Clear */
+	memset(Buf, 0, sizeof(Buf));
+	
+	/* (Partial) Disconnect */
+	if (!strcasecmp(a_ArgV[0], "disconnect") || !strcasecmp(a_ArgV[0], "part"))
+	{
+		// Read reason
+		for (i = 1; i < a_ArgC; i++)
+		{
+			strncat(Buf, a_ArgV[1], BUFSIZE - 1);
+			
+			// Space splitter
+			if (i < a_ArgC - 1)
+				strncat(Buf, " ", BUFSIZE - 1);
+		}
+		
+		// No reason?
+		if (!Buf[0])
+			strncat(Buf, "None given", BUFSIZE - 1);
+		
+		// Full or partial?
+		if (a_ArgV[0][0] == 'p')
+			D_SNPartialDisconnect(Buf);
+		else
+			D_SNDisconnect(false, Buf);
+	}
+#undef BUFSIZE
+}
+
 /* D_SNServerInit() -- Initializes Server Mode */
 bool_t D_SNServerInit(void)
 {
@@ -496,6 +533,10 @@ bool_t D_SNServerInit(void)
 	char* Addr;
 	uint16_t Port;
 	bool_t Anti;
+	
+	/* Add commands */
+	CONL_AddCommand("disconnect", D_ServerCommand);
+	CONL_AddCommand("part", D_ServerCommand);
 	
 	/* Clear initial profiles */
 	memset(PProfs, 0, sizeof(PProfs));
