@@ -317,9 +317,6 @@ static int32_t cnt_time;
 static int32_t cnt_par;
 static int32_t cnt_pause;
 
-// # of commercial levels
-static int NUMCMAPS;
-
 //
 //      GRAPHICS
 //
@@ -327,6 +324,14 @@ static int NUMCMAPS;
 // background (map of levels).
 //static patch_t*       bg;
 static char bgname[9];
+
+
+static bool_t snl_pointeron = false;
+static int32_t dm_frags[MAXPLAYERS][MAXPLAYERS];
+static int32_t dm_totals[MAXPLAYERS];
+static int32_t cnt_frags[MAXPLAYERS];
+static int32_t dofrags;
+static int32_t ng_state;
 
 //
 // CODE
@@ -542,8 +547,6 @@ static void WI_updateNoState(void)
 	
 }
 
-static bool_t snl_pointeron = false;
-
 static void WI_initShowNextLoc(void)
 {
 	state = ShowNextLoc;
@@ -571,9 +574,6 @@ static void WI_drawShowNextLoc(void)
 static void WI_drawNoState(void)
 {
 }
-
-static int dm_frags[MAXPLAYERS][MAXPLAYERS];
-static int dm_totals[MAXPLAYERS];
 
 static void WI_initDeathmatchStats(void)
 {
@@ -756,10 +756,6 @@ static void WI_ddrawDeathmatchStats(void)
 }
 
 */
-
-static int cnt_frags[MAXPLAYERS];
-static int dofrags;
-static int ng_state;
 
 static void WI_initNetgameStats(void)
 {
@@ -1944,7 +1940,7 @@ extern wbstartstruct_t wminfo;
 /* WI_SaveGameHelper() -- Helps save game */
 bool_t WI_SaveGameHelper(D_BS_t* const a_BS)
 {
-	int32_t i;
+	int32_t i, j;
 	
 	/* Dump variables */
 	D_BSwi32(a_BS, acceleratestage);
@@ -1959,11 +1955,19 @@ bool_t WI_SaveGameHelper(D_BS_t* const a_BS)
 		D_BSwi32(a_BS, cnt_kills[i]);
 		D_BSwi32(a_BS, cnt_items[i]);
 		D_BSwi32(a_BS, cnt_secret[i]);
+		D_BSwi32(a_BS, cnt_frags[i]);
+		D_BSwi32(a_BS, dm_totals[i]);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			D_BSwi32(a_BS, dm_frags[i][j]);
 	}
 	
 	D_BSwi32(a_BS, cnt_time);
 	D_BSwi32(a_BS, cnt_par);
 	D_BSwi32(a_BS, cnt_pause);
+	D_BSwi32(a_BS, dofrags);
+	D_BSwi32(a_BS, ng_state);
+	D_BSwu8(a_BS, snl_pointeron);
 	
 	/* Success */
 	return true;
@@ -1972,7 +1976,7 @@ bool_t WI_SaveGameHelper(D_BS_t* const a_BS)
 /* WI_LoadGameHelper() -- Helps load game */
 bool_t WI_LoadGameHelper(D_BS_t* const a_BS)
 {
-	int32_t i;
+	int32_t i, j;
 	
 	/* Load variables */
 	acceleratestage = D_BSri32(a_BS);
@@ -1987,16 +1991,28 @@ bool_t WI_LoadGameHelper(D_BS_t* const a_BS)
 		cnt_kills[i] = D_BSri32(a_BS);
 		cnt_items[i] = D_BSri32(a_BS);
 		cnt_secret[i] = D_BSri32(a_BS);
+		cnt_frags[i] = D_BSri32(a_BS);
+		dm_totals[i] = D_BSri32(a_BS);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			dm_frags[i][j] = D_BSri32(a_BS);
 	}
 	
 	cnt_time = D_BSri32(a_BS);
 	cnt_par = D_BSri32(a_BS);
 	cnt_pause = D_BSri32(a_BS);
+	dofrags = D_BSri32(a_BS);
+	ng_state = D_BSri32(a_BS);
+	snl_pointeron = D_BSru8(a_BS);
 	
 	/* These variables are always pointers of statics */
 	// Only passed one single thing, by one single function
 	wbs = &wminfo;
 	plrs = wbs->plyr;
+	
+	/* If on intermission, load data */
+	if (gamestate == GS_INTERMISSION)
+		WI_loadData();
 	
 	/* Success */
 	return true;
