@@ -215,8 +215,8 @@ typedef struct
 {
 	line_t* line;
 	bwhere_e where;
-	int btexture;
-	int btimer;
+	int32_t btexture;
+	int32_t btimer;
 	S_NoiseThinker_t* soundorg;
 	
 } button_t;
@@ -1227,11 +1227,11 @@ typedef struct
 {
 	thinker_t thinker;			// Thinker structure for scrolling
 	fixed_t dx, dy;				// (dx,dy) scroll speeds
-	int affectee;				// Number of affected sidedef, sector, tag, or whatever
-	int control;				// Control sector (-1 if none) used to control scrolling
+	int32_t affectee;			// Number of affected sidedef, sector, tag, or whatever
+	int32_t control;			// Control sector (-1 if none) used to control scrolling
 	fixed_t last_height;		// Last known height of control sector
 	fixed_t vdx, vdy;			// Accumulated velocity if accelerative
-	int accel;					// Whether it's accelerative
+	int32_t accel;				// Whether it's accelerative
 	enum
 	{
 		sc_side,

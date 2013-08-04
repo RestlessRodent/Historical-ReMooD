@@ -1784,6 +1784,8 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	ceilinglist_t* clist;
 	platlist_t* plist;
 	
+	button_t* button;
+	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
 		return true;
@@ -2413,6 +2415,27 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Record
 	D_BSRecordBlock(a_Str);
 	
+	/* Save buttons */
+	D_BSBaseBlock(a_Str, "BUTN");
+	
+	for (i = 0; i < MAXBUTTONS; i++)
+	{
+		button = &buttonlist[i];
+		
+		PS_LUMapObjRef(a_Str, true, (void**)&button->line);
+		D_BSwi32(a_Str, button->where);
+		D_BSwi32(a_Str, button->btexture);
+		D_BSwi32(a_Str, button->btimer);
+		
+		if (!button->soundorg)
+			D_BSwi32(a_Str, -1);
+		else
+			D_BSwi32(a_Str, ((sector_t*)(((intptr_t)button->soundorg) - offsetof(sector_t, soundorg))) - sectors);
+	}
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
 	/* Save CTF Flag Info */
 	D_BSBaseBlock(a_Str, "CTFF");
 	
@@ -2502,6 +2525,8 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 	ceilinglist_t* clist, *rootclist, *nextclist, *clistrover;
 	platlist_t* plist, *rootplist, *nextplist, *plistrover;
+	
+	button_t* button;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -3357,6 +3382,28 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				D_BSru8(a_Str);
 				D_BSri32(a_Str);
 			}
+	}
+	
+	
+	/* Save buttons */
+	if (!PS_Expect(a_Str, "BUTN"))
+		return false;
+	
+	for (i = 0; i < MAXBUTTONS; i++)
+	{
+		button = &buttonlist[i];
+		
+		PS_LUMapObjRef(a_Str, false, (void**)&button->line);
+		button->where = D_BSri32(a_Str);
+		button->btexture = D_BSri32(a_Str);
+		button->btimer = D_BSri32(a_Str);
+		
+		x = D_BSri32(a_Str);
+		
+		if (x < 0 || x >= numsectors)
+			button->soundorg = NULL;
+		else
+			button->soundorg = &sectors[x].soundorg;
 	}
 	
 	/* Load CTF Flag Info */
