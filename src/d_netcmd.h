@@ -56,6 +56,11 @@ void Command_ExitGame_f(void);
 
 /*** STRUCTURES ***/
 
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
 /* D_SplitInfo_t -- Split Screen Info */
 typedef struct D_SplitInfo_s
 {
@@ -64,8 +69,11 @@ typedef struct D_SplitInfo_s
 	int32_t Console;							// The console player
 	int32_t Display;							// Display Player
 	uint32_t ProcessID;							// Local Processing ID
-	struct D_ProfileEx_s* Profile;				// Player Profile
-	struct D_XPlayer_s* XPlayer;				// X Player
+	D_Prof_t* Profile;							// Player Profile
+	
+	struct D_SNPort_s* Port;					// Control Port
+	bool_t DoNotSteal;							// Do not steal port
+	tic_t PortTimeOut;							// Timeout for port
 	
 	bool_t JoyBound;							// Joystick Bound
 	uint32_t JoyID;								// Joystick ID
@@ -79,11 +87,20 @@ typedef struct D_SplitInfo_s
 	uint32_t ChatTargetID;						// Player to talk to
 	tic_t ChatTimeOut;							// Chat timeout
 	
+	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
+	int32_t Scores;								// Scoreboard showing
+	bool_t Turned180;							// Did 180 degre turn
+	
 	// Automap Stuff
 	bool_t AutomapActive;						// Activated Automap
 	fixed_t MapZoom;							// Zoom in the map
 	bool_t MapFreeMode;							// Free movement mode
 	fixed_t MapPos[2];							// Map position
+	
+	// Profile Select
+	bool_t SelProfile;							// Selecting profile
+	D_Prof_t* AtProf;							// At this profile
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/

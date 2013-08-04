@@ -672,12 +672,15 @@ void R_ExecuteSetViewSize_DOOM(void)
 	int setdetail;
 	
 	int aspectx;				//added:02-02-98:for aspect ratio calc. below...
+	int yextra;
+	int32_t Junk;
 	
 	// GhostlyDeath <April 25, 2008> -- Fix crash when using server subsystem for the client
 	if (!graphics_started)
 		return;
 		
 	setsizeneeded = false;
+	
 	// no reduced view in splitscreen mode
 	if (g_SplitScreen && l_RViewSize.Value->Int < 11)
 		CONL_VarSetInt(&l_RViewSize, 11);
@@ -733,7 +736,7 @@ void R_ExecuteSetViewSize_DOOM(void)
 	//
 	// if (!detailshift) ... else ...
 	
-	R_InitViewBuffer(scaledviewwidth, viewheight);
+	R_InitViewBuffer(scaledviewwidth, viewheight, yextra);
 	
 	R_InitTextureMapping();
 	

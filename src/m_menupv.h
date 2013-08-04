@@ -122,6 +122,7 @@ bool_t M_NewGameClassic_FSelect(M_SWidget_t* const a_Widget);
 bool_t M_NewGameEpi_FSelect(M_SWidget_t* const a_Widget);
 bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget);
 bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget);
+bool_t M_QuitGame_PDisconFSelect(M_SWidget_t* const a_Widget);
 bool_t M_QuitGame_StopWatchFSelect(M_SWidget_t* const a_Widget);
 bool_t M_QuitGame_StopRecordFSelect(M_SWidget_t* const a_Widget);
 bool_t M_QuitGame_LogOffFSelect(M_SWidget_t* const a_Widget);

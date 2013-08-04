@@ -2839,6 +2839,10 @@ void P_ChangeCounterOp(player_t* const a_Player, const bool_t a_Setting)
 {
 	bool_t OldSetting, NewSetting;
 	
+	/* Check */
+	if (!a_Player)
+		return;
+	
 	/* New Game Modes Only */
 	if (!P_XGSVal(PGS_CONEWGAMEMODES))
 		return;

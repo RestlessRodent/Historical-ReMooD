@@ -217,7 +217,7 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 		return 1;
 	
 	// Send request
-	D_XNetChangeMap(a_ArgV[1], !!(!strcasecmp(a_ArgV[0], "map")));
+	//D_XNetChangeMap(a_ArgV[1], !!(!strcasecmp(a_ArgV[0], "map")));
 	
 	// Return success
 	return 0;
@@ -247,8 +247,9 @@ bool_t P_ExClearLevel(void)
 	S_StopSounds();
 	R_ClearLevelSplats();
 	P_ClearRecursiveSound();
-	B_ClearNodes();
+	//B_ClearNodes();
 	EV_ClearACSTags();
+	P_RemoveAllActiveCeilings();
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
@@ -597,6 +598,8 @@ static void PS_ExThingInit(mapthing_t* const a_Thing, const uint32_t a_Flags)
 		P_SpawnMapThing(a_Thing);	
 }
 
+fixed_t g_GlobalBoundBox[4];					// Global bounding box
+
 /* PS_ExMungeNodeData() -- Munges together node data */
 void PS_ExMungeNodeData(void)
 {
@@ -732,7 +735,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 		return false;
 	
 	/* Force Lag */
-	D_XNetForceLag();
+	//D_XNetForceLag();
 	
 	/* Flipped Levels? */
 	Flipped = false;
@@ -1385,7 +1388,7 @@ bool_t P_ExFinalizeLevel(void)
 			S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
 	
 	/* Build Bot Nodes */
-	B_InitNodes();
+	//B_InitNodes();
 	
 	/* Initialize Player */
 	//for (i = 0; i < MAXPLAYERS; i++)

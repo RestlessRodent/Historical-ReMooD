@@ -1158,14 +1158,8 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 	size_t i;
 	P_XGSVariable_t* Var;
 	
-	/* Pop Menu */
-	if (strcasecmp(a_ArgV[0], "menugamevar") == 0)
-	{
-		M_ExPushMenu(0, M_ExTemplateMakeGameVars(0));
-	}
-	
 	/* Next Game */
-	else if (strcasecmp(a_ArgV[0], "nextvar") == 0)
+	if (strcasecmp(a_ArgV[0], "nextvar") == 0)
 	{
 		// Set setting from string
 		if (a_ArgC >= 3)
@@ -1692,7 +1686,7 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	if (!a_Master)
 	{
 		// Change it in a tic command
-		D_XNetChangeVar(a_Bit, a_Value);
+		D_SNChangeVar(a_Bit, a_Value);
 		
 		// Return the previous value
 		return OldValue;
@@ -1828,13 +1822,28 @@ void NG_ResetVars(void)
 /* NG_FromCLine() -- Set vars from command line */
 void NG_FromCLine(void)
 {
-	int32_t a, b, i;
+#define BUFSIZE 8
+	char Buf[BUFSIZE];
+	int32_t a, b, i, LocalP;
 	char* p;
 	bool_t Multi;
 	
 	/* Multiplayer? */
+	// Count player screen things by command line (-p1, -p2, ...)
+	for (LocalP = 0, i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Make parameter name
+		snprintf(Buf, BUFSIZE, "-p%i", i + 1);
+		
+		// If it exists
+		if (M_CheckParm(Buf))
+			LocalP++;
+	}
+	
+	// No multiplayer at first
 	Multi = false;
-	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated"))
+	if (M_CheckParm("-server") || M_CheckParm("-host") || M_CheckParm("-dedicated") ||
+		LocalP >= 2)
 		Multi = true;
 	
 	/* Force automatic start? */
@@ -2047,6 +2056,17 @@ void NG_FromCLine(void)
 		NG_SetVarValue(PGS_GAMETEAMPLAY, 2);
 		l_NGAutoStart = true;
 	}
+	
+	// More than 1 player
+	if (Multi/*LocalP >= 2*/)
+	{
+		// Multiplayer guns and weapons
+		NG_SetVarValue(PGS_COMULTIPLAYER, 1);
+		NG_SetVarValue(PGS_GAMESPAWNMULTIPLAYER, 1);
+		
+		l_NGAutoStart = true;
+	}
+#undef BUFSIZE
 }
 
 /* NG_WarpMap() -- Warp to map */
@@ -2054,7 +2074,7 @@ void NG_WarpMap(void)
 {
 	/* Switch to new map? */
 	if (l_NGNewMap[0])
-		D_XNetChangeMap(l_NGNewMap, true);
+		D_SNChangeMap(l_NGNewMap, true);
 }
 
 /* NG_ApplyVars() -- Applies set variables */

@@ -375,11 +375,6 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			// damage / explode
 			damage = ((int32_t)((P_Random() % 8) + 1)) * tmthing->info->damage;
 			
-			// GhostlyDeath <October 5, 2012> -- Freeze demo on death
-			if (g_TitleScreenDemo)
-				if (tmthing->RXFlags[1] & MFREXB_FREEZEDEMO)
-					g_DemoFreezeTics += TICRATE * 2;
-			
 			Dammed = P_DamageMobj(thing, tmthing, tmthing->target, damage);
 			if (Dammed && (thing->flags & MF_NOBLOOD) == 0 &&
 					P_XGSVal(PGS_COENABLEBLOODSPLATS))

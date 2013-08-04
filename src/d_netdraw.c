@@ -29,42 +29,102 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Intermission.
+// DESCRIPTION: Network drawing stuff
 
-#ifndef __WI_STUFF__
-#define __WI_STUFF__
+/***************
+*** INCLUDES ***
+***************/
 
-//#include "v_video.h"
+#include "d_net.h"
+#include "dstrings.h"
+#include "v_video.h"
+#include "console.h"
 
-#include "doomdef.h"
-#include "d_player.h"
+/****************
+*** CONSTANTS ***
+****************/
 
-//added:05-02-98:
-typedef struct
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/*************
+*** LOCALS ***
+*************/
+
+static tic_t l_PDWarnTic;						// partial disconnect warn
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+/* D_SNDrawLobby() -- Draws the lobby */
+void D_SNDrawLobby(void)
 {
-	int count;
-	int num;
-	int color;
-	char* name;
-} fragsort_t;
+	static V_Image_t* BGImage;
+	
+	/* Draw a nice picture */
+	// Load it first
+	if (!BGImage)
+		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
+	
+	// Draw it
+	V_ImageDraw(0, BGImage, 0, 0, NULL);
+	
+	/* Draw Text */
+	// Notice
+	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFGS_TITLE), 10, 10);
+	
+	/* Draw Mouse */
+	CONL_DrawMouse();
+}
 
-// Called by main loop, animate the intermission.
-void WI_Ticker(void);
+/* D_SNSetServerLagWarn() -- Server is lagging, set warning time */
+void D_SNSetServerLagWarn(const tic_t a_EstPD)
+{
+	l_PDWarnTic = a_EstPD;
+}
 
-// Called by main loop,
-// draws the intermission directly into the screen buffer.
-void WI_Drawer(void);
-
-// Setup for an intermission screen.
-void WI_Start(wbstartstruct_t* wbstartstruct);
-
-bool_t teamingame(int teamnum);
-
-void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter);
-void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const char* const a_SubTitle);
-
-bool_t WI_SaveGameHelper(D_BS_t* const a_BS);
-bool_t WI_LoadGameHelper(D_BS_t* const a_BS);
-
-#endif
+/* D_SNDrawer() -- Networking drawer */
+void D_SNDrawer(void)
+{
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
+	tic_t Left;
+	int32_t Mins, Secs;
+	
+	/* Do not draw if not connected */
+	if (!D_SNIsConnected())
+		return;
+	
+	/* Partial disconnect at this tic */
+	if (l_PDWarnTic)
+	{
+		// Calculate time left
+		Left = l_PDWarnTic - g_ProgramTic;
+		
+		// Overflowed, not yet set to zero
+		if (Left > l_PDWarnTic)
+			Left = 0;
+		
+		// Draw a giant message
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_DNETDRAWC_PDWARN), 10, 10);
+		
+		// Calculate Time
+		Secs = Left / TICRATE;
+		Mins = Secs / 60;
+		Secs = Secs % 60;
+		
+		// Draw time in numbers
+		if (Mins)
+			snprintf(Buf, BUFSIZE - 1, "%i:%02i", Mins, Secs);
+		else
+			snprintf(Buf, BUFSIZE - 1, "%i seconds", Secs);
+		Buf[BUFSIZE - 1] = 0;
+		
+		// Draw it
+		V_DrawStringA(VFONT_SMALL, 0, Buf, 10, 12 + V_FontHeight(VFONT_LARGE));
+	}
+#undef BUFSIZE
+}
 

@@ -465,6 +465,7 @@ int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Find hash for command */
 	Hash = Z_Hash(a_ArgV[0]);
+	GiantString = NULL;
 	
 	/* Find command for this hash */
 	ComNum = (uintptr_t)Z_HashFindEntry(l_CONLCommandHashes, Hash, (const void*)a_ArgV[0], false);

@@ -73,8 +73,13 @@ typedef enum D_BSStreamIOCtl_e
 *** STRUCTURES ***
 *****************/
 
+#if !defined(__REMOOD_DBSTDEFINED)
+	typedef struct D_BS_s D_BS_t;
+	#define __REMOOD_DBSTDEFINED
+#endif
+
 /* D_BS_t -- Remote block stream */
-typedef struct D_BS_s
+struct D_BS_s 
 {
 	/* Info */
 	void* Data;									// Private Data
@@ -102,7 +107,7 @@ typedef struct D_BS_s
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
 	uint32_t StatBytes[2];						// Byte stats
-} D_BS_t;
+};
 
 /****************
 *** FUNCTIONS ***

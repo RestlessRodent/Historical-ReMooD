@@ -49,12 +49,14 @@ typedef struct D_IWADInfoEx_s
 {
 	/* Base Info */
 	const char* NiceTitle;						// Nice IWAD Title name
+	const char* NetName;						// Network Name
 	const char* ForceNames;						// Names for forcing [conf = 500]
 	const char* BaseName;						// WAD Basename [conf = 5]
 	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
 	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
 	const char* SHA1Sum;						// SHA-1 Sum of WAD [conf = 60]
 	const char* Lumps;							// Identifying lumps [conf = 1]
+	const char* BonusLumps;						// Unique Lumps [conf = 35]
 	uint32_t Size;								// Size of WAD [conf = 15]
 	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
 	
@@ -68,6 +70,13 @@ typedef struct D_IWADInfoEx_s
 	int mission;								// Deprecated mission
 	int mode;									// Deprecated mode
 } D_IWADInfoEx_t;
+
+/**************
+*** GLOBALS ***
+**************/
+
+extern int pagetic;
+extern int demosequence;
 
 /************
 *** OTHER ***

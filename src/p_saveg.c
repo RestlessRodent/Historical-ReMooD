@@ -56,6 +56,7 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "p_inter.h"
+#include "wi_stuff.h"
 
 /**************
 *** GLOBALS ***
@@ -63,12 +64,16 @@
 
 extern mobj_t* g_LFPRover;
 
+/*************
+*** LOCALS ***
+*************/
+
+static P_SaveSubVersion_t l_SSV;				// Sub save version
+static bool_t l_SoloLoad;						// Single player load game
+
 /****************
 *** FUNCTIONS ***
 ****************/
-
-bool_t P_SaveToStream(D_BS_t* const a_Str);
-bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay);
 
 /* CLC_SaveGame() -- Saves the game */
 static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
@@ -128,7 +133,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 	}
 		
 	/* Save */
-	OK = P_SaveToStream(CS);
+	OK = P_SaveToStream(CS, BS);
 	
 	// Close
 	D_BSCloseStream(CS);
@@ -192,6 +197,25 @@ static bool_t PS_Expect(D_BS_t* const a_Str, const char* const a_Header)
 	
 	// Was OK
 	return true;
+}
+
+/* PS_GetCeilingListID() -- Get ID from Ceiling list */
+static int32_t PS_GetCeilingListID(ceilinglist_t* const a_CList)
+{
+	int32_t RetVal;
+	ceilinglist_t* Rover;
+	
+	/* Check */
+	if (!a_CList)
+		return -1;
+	
+	/* Rove */
+	for (RetVal = 1, Rover = activeceilings; Rover; Rover = Rover->next, RetVal++)
+		if (a_CList == Rover)
+			return RetVal;
+	
+	/* Not Found??? */
+	return 0;
 }
 
 /* PS_GetThinkerID() -- Returns ID of thinker */
@@ -520,35 +544,35 @@ static void PS_LUMapObjRef(D_BS_t* const a_Str, const bool_t a_Write, void** con
 #define __DEF(id,ref) {IDType = (id); RefNum = (ref);}
 
 		// Vertex
-		if (*a_Ref >= vertexes && *a_Ref < &vertexes[numvertexes])
+		if (*a_Ref >= (void*)vertexes && *a_Ref < (void*)&vertexes[numvertexes])
 			__DEF(1, ((vertex_t*)*a_Ref) - vertexes)
 			
 		// Segs
-		else if (*a_Ref >= segs && *a_Ref < &segs[numsegs])
+		else if (*a_Ref >= (void*)segs && *a_Ref < (void*)&segs[numsegs])
 			__DEF(2, ((seg_t*)*a_Ref) - segs)
 			
 		// Sectors
-		else if (*a_Ref >= sectors && *a_Ref < &sectors[numsectors])
+		else if (*a_Ref >= (void*)sectors && *a_Ref < (void*)&sectors[numsectors])
 			__DEF(3, ((sector_t*)*a_Ref) - sectors)
 			
 		// SubSectors
-		else if (*a_Ref >= subsectors && *a_Ref < &subsectors[numsubsectors])
+		else if (*a_Ref >= (void*)subsectors && *a_Ref < (void*)&subsectors[numsubsectors])
 			__DEF(4, ((subsector_t*)*a_Ref) - subsectors)
 			
 		// Nodes
-		else if (*a_Ref >= nodes && *a_Ref < &nodes[numnodes])
+		else if (*a_Ref >= (void*)nodes && *a_Ref < (void*)&nodes[numnodes])
 			__DEF(5, ((node_t*)*a_Ref) - nodes)
 			
 		// Lines
-		else if (*a_Ref >= lines && *a_Ref < &lines[numlines])
+		else if (*a_Ref >= (void*)lines && *a_Ref < (void*)&lines[numlines])
 			__DEF(6, ((line_t*)*a_Ref) - lines)
 			
 		// Sides
-		else if (*a_Ref >= sides && *a_Ref < &sides[numsides])
+		else if (*a_Ref >= (void*)sides && *a_Ref < (void*)&sides[numsides])
 			__DEF(7, ((side_t*)*a_Ref) - sides)
 		
 		// Map Things
-		else if (*a_Ref >= mapthings && *a_Ref < &mapthings[nummapthings])
+		else if (*a_Ref >= (void*)mapthings && *a_Ref < (void*)&mapthings[nummapthings])
 			__DEF(8, ((mapthing_t*)*a_Ref) - mapthings)
 		
 		// NULL or invalid
@@ -611,6 +635,9 @@ static void PS_SaveDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 	D_BSws(a_Str, REMOOD_VERSIONCODESTRING);
 	D_BSws(a_Str, REMOOD_URL);
 	
+	// Version
+	D_BSwu32(a_Str, PSSV_LATEST);
+	
 	// Sync
 	D_BSwu32(a_Str,  G_CalcSyncCode(false));
 	
@@ -650,6 +677,9 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 		D_BSrs(a_Str, Buf, BUFSIZE);
 		CONL_PrintF("See: %s\n", Buf);
 		
+		// Sub save version
+		l_SSV = D_BSru32(a_Str);
+		
 		// Sync Code
 		u32 = D_BSru32(a_Str);
 	}
@@ -667,75 +697,332 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 
 /*---------------------------------------------------------------------------*/
 
+
+extern D_SNHost_t*** g_HostsP;
+extern int32_t* g_NumHostsP;
+
+#define GHOSTS (*g_HostsP)
+#define GNUMHOSTS (*g_NumHostsP)
+
 /* PS_SaveNetState() -- Saves networked state */
 static void PS_SaveNetState(D_BS_t* const a_Str)
 {
-	size_t i;
-	D_XPlayer_t* XPlay;
-	B_BotTemplate_t* BotTemp;
+	int32_t i, j;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
 	
-	/* Base */
-	D_BSBaseBlock(a_Str, "NSTA");
+	/* Save Hosts */
+	D_BSBaseBlock(a_Str, "HOST");
 	
-	/* Encode */
-	// Save host ID
-	D_BSwu32(a_Str, D_XNetGetHostID());
+	// Current Host ID
+	Host = D_SNMyHost();
+	if (Host)
+		D_BSwu32(a_Str, Host->ID);
+	else
+		D_BSwu32(a_Str, 0);
 	
-	// Save XPlayers
-	for (i = 0; i < g_NumXPlays; i++)
+	// Go through all hosts
+	for (i = 0; i < GNUMHOSTS; i++)
 	{
-		XPlay = g_XPlays[i];
-		
-		// Nothing here?
-		if (!XPlay)
+		// Get Host
+		if (!(Host = GHOSTS[i]))
 			continue;
 		
-		// Encode something is here
-		D_BSwu8(a_Str, i + 1);
+		// Something is here
+		D_BSwu8(a_Str, 1);
 		
-		// Save IDs for recapturing
-		D_BSwu32(a_Str, XPlay->ID);
-		D_BSwu32(a_Str, XPlay->HostID);
-		D_BSwu32(a_Str, XPlay->ClProcessID);
-		
-		// Flags from server
-		D_BSwu32(a_Str, XPlay->Flags);
-		
-		// Local Profile Stuff
-		D_BSws(a_Str, XPlay->AccountName);
-		D_BSws(a_Str, XPlay->DisplayName);
-		D_BSws(a_Str, XPlay->ProfileUUID);
-		D_BSws(a_Str, XPlay->LoginUUID);
-		D_BSws(a_Str, XPlay->AccountServer);
-		D_BSws(a_Str, XPlay->AccountCookie);
-		
-		// Playing Info
-		D_BSwi8(a_Str, XPlay->ScreenID);
-		D_BSwi32(a_Str, XPlay->InGameID);
-		D_BSwi32(a_Str, XPlay->Ping);
-		D_BSwu32(a_Str, XPlay->StatusBits);
-		
-		// Try obtaining bot template
-		BotTemp = NULL;
-		if (XPlay->BotData)
-			BotTemp = B_BotGetTemplateDataPtr(XPlay->BotData);
-		
-		if (BotTemp)
-			D_BSws(a_Str, BotTemp->AccountName);
-		else
-			D_BSws(a_Str, "");
+		// Dump host data
+		D_BSwu32(a_Str, Host->ID);
+		D_BSwu8(a_Str, Host->Local);
+		D_BSwu8(a_Str, Host->Cleanup);
+		D_BSws(a_Str, Host->QuitReason);
 	}
 	
-	// Encode End
+	// End
 	D_BSwu8(a_Str, 0);
 	
-	/* Record */
+	// Encode
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Ports */
+	D_BSBaseBlock(a_Str, "PORT");
+	
+	// Go through all hosts again
+	for (i = 0; i < GNUMHOSTS; i++)
+	{
+		// Get Host
+		if (!(Host = GHOSTS[i]))
+			continue;
+		
+		// Go through ports
+		for (j = 0; j < Host->NumPorts; j++)
+		{
+			// Get Port
+			if (!(Port = Host->Ports[j]))
+				continue;
+			
+			// Something is here
+			D_BSwu8(a_Str, 1);
+			
+			// Write data
+			D_BSwu32(a_Str, Port->ID);
+			D_BSwu32(a_Str, Port->Host->ID);
+			D_BSws(a_Str, Port->Name);
+			D_BSwu8(a_Str, Port->Bot);
+			D_BSwi32(a_Str, ((Port->Player) ? Port->Player - players : -1));
+			D_BSwi32(a_Str, Port->Screen);
+			D_BSwu32(a_Str, Port->ProcessID);
+			
+			// Profile
+			if (Port->Profile)
+			{
+				D_BSws(a_Str, Port->Profile->UUID);
+				D_BSws(a_Str, Port->Profile->AccountName);
+			}
+			else
+			{
+				D_BSwu8(a_Str, 0);
+				D_BSwu8(a_Str, 0);
+			}
+			
+			// Fields reserved for bot
+			if (Port->Bot)
+			{
+				D_BSws(a_Str, "BotUUID");
+				D_BSws(a_Str, "BotName");
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+				D_BSwu32(a_Str, 0);
+			}
+		}
+	}
+	
+	// End
+	D_BSwu8(a_Str, 0);
+	
+	// Encode
 	D_BSRecordBlock(a_Str);
 }
 
 /* PS_LoadNetState() -- Loads networked state */
 static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 {
+#define UUIDLEN (MAXUUIDLENGTH + 2)
+	char Buf[UUIDLEN];
+	D_SNHost_t* MyHost;
+	D_SNHost_t* Host;
+	D_SNPort_t* Port;
+	uint32_t ID, ReadID, PortID, LocalID;
+	int32_t TempI, j;
+	bool_t Local;
+	D_SplitInfo_t* Split;
+	D_Prof_t* Prof;
+	
+	/* Get current host, if connected */
+	// Or if in single player game
+	MyHost = NULL;
+	if (D_SNIsConnected() || l_SoloLoad)
+		MyHost = D_SNMyHost();
+	
+	/* Expect "HOST" */
+	if (!PS_Expect(a_Str, "HOST"))
+		return false;
+	
+	// Read my ID
+	ID = D_BSru32(a_Str);
+	
+	LocalID = 0;
+	if (MyHost)
+		LocalID = MyHost->ID;
+	
+	// Host reading loop
+	for (;;)
+	{
+		// End?
+		if (!D_BSru8(a_Str))
+			break;
+		
+		// Read the ID here
+		ReadID = D_BSru32(a_Str);
+		Local = D_BSru8(a_Str);
+		
+		// This is OUR host?
+		if (MyHost && MyHost->ID == ReadID)
+			Local = true;	// Connected
+		else if ((l_SoloLoad || !MyHost) && ID == ReadID)
+			Local = true;	// Loading save game (take control of ourself)
+		else
+			Local = false;	// Do not possess this host
+		
+		// Claim this host
+		if (MyHost && Local)
+		{
+			Host = MyHost;
+			
+			// Use this ID in single player
+				// Since we take over an existing host structure
+			if (l_SoloLoad)
+				LocalID = ReadID;
+		}
+		
+		// Create host, if this is not ours
+		else
+		{
+			if (!(Host = D_SNHostByID(ReadID)))	// maybe it already exists?
+				Host = D_SNCreateHost();
+			
+			// Make my host
+			if (Local)
+				LocalID = ReadID;
+		}
+		
+		// Fill in fields
+		Host->ID = ReadID;	// Solo replaces host
+		Host->Local = Local;
+		Host->Cleanup = D_BSru8(a_Str);
+		D_BSrs(a_Str, Host->QuitReason, MAXQUITREASON);
+		
+		// If single player, drop non-locals (but keep local)
+		if (l_SoloLoad)
+		{
+			Host->Cleanup = !Host->Local;
+			
+			// If cleaning up, change message when they all die
+			if (Host->Cleanup)
+			{
+				strncpy(Host->QuitReason, "Non-local player", MAXQUITREASON - 1);
+				Host->QuitReason[MAXQUITREASON - 1] = 0;
+			}
+		}
+	}
+	
+	// Set local host
+	MyHost = D_SNHostByID(LocalID);
+	D_SNSetMyHost(MyHost);
+		
+	/* Expect "PORT" */
+	if (!PS_Expect(a_Str, "PORT"))
+		return false;
+	
+	// Port reading loop
+	for (;;)
+	{
+		// End?
+		if (!D_BSru8(a_Str))
+			break;
+		
+		// Read Port IDs
+		PortID = D_BSru32(a_Str);
+		ReadID = D_BSru32(a_Str);
+		
+		// Find host that owns this port
+		Host = D_SNHostByID(ReadID);
+		
+		CONL_PrintF("Port %x %x -> Host %p\n", PortID, ReadID, Host);
+		
+		// Something bad happened
+		if (!Host)
+			return PS_IllegalSave(DSTR_PSAVEGC_ILLEGALHOST);
+		
+		// Create Port for this host
+		Port = D_SNAddPort(Host);
+		
+		// Set fields
+		Port->ID = PortID;
+		D_BSrs(a_Str, Port->Name, MAXPLAYERNAME);
+		Port->Bot = D_BSru8(a_Str);
+		
+		// Read player ID
+		TempI = D_BSri32(a_Str);
+		
+		if (TempI >= 0 && TempI < MAXPLAYERS)
+		{
+			Port->Player = &players[TempI];
+			players[TempI].Port = Port;
+		}
+		
+		// Screen
+		Port->Screen = D_BSri32(a_Str);
+		Port->ProcessID = D_BSru32(a_Str);
+		
+		// Profile
+		for (TempI = 0; TempI < 2; TempI++)
+		{
+			// Read string
+			D_BSrs(a_Str, Buf, UUIDLEN);
+			
+			// If profile not set, try setting
+			if (!Port->Profile)
+				if ((Prof = D_FindProfileEx(Buf)))
+					D_SNSetPortProfile(Port, Prof);
+		}
+		
+		// Reserved for bot
+		if (Port->Bot)
+		{
+			D_BSrs(a_Str, NULL, 0);
+			D_BSrs(a_Str, NULL, 0);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+			D_BSru32(a_Str);
+		}
+	}
+	
+	/* Reset all splits */
+	if (l_SoloLoad)
+	{
+		D_NCResetSplits(demoplayback);
+		g_SplitScreen = -1;
+	}
+	
+	/* Re-allocate local screens to determine who is who */
+	for (TempI = 0; TempI < MyHost->NumPorts; TempI++)
+	{
+		// Get current port
+		if (!(Port = MyHost->Ports[TempI]))
+			continue;
+		
+		// Ignore bot or non-screened players
+		if (Port->Bot || Port->Screen < 0 || Port->Screen >= MAXSPLITSCREEN)
+			continue;
+		
+		// Get this split
+		Split = &g_Splits[Port->Screen];
+		
+		// Two players own the same split!?
+		if (Split->DoNotSteal)
+			continue;
+		
+		// Initialize split for this port
+		if (Port->Player)
+		{
+			Split->Active = true;
+			Split->Console = Split->Display = Port->Player - players;
+		}
+		
+		else
+			Split->Console = Split->Display = -1;
+		
+		if (!demoplayback)
+			Split->Waiting = true;
+		
+		// Do not steal
+		Split->DoNotSteal = true;
+		Split->Port = Port;
+		Split->Profile = Port->Profile;
+		
+		// Increase split count
+		g_SplitScreen++;
+	}
+	
+	// Fixup splits
+	R_ExecuteSetViewSize();
+	
+#if 0
 	uint32_t OurHost, SaveHost;
 	int32_t i;
 	uint8_t Code;
@@ -975,6 +1262,9 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	
 	/* Success! */
 	return true;
+#endif
+	return true;
+#undef UUIDLEN
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1464,9 +1754,16 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	strobe_t* strobe;
 	glow_t* glow;
 	lightlevel_t* lightfade;
+	vldoor_t* vldoor;
+	floormove_t* floormove;
+	pusher_t* pusher;
+	friction_t* friction;
+	ceiling_t* ceiling;
+	
+	ceilinglist_t* clist;
 	
 	/* If not in a level, then do not continue */
-	if (gamestate != GS_LEVEL)
+	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
 		return true;
 	
 	/* Save the current map that is being played */
@@ -1497,7 +1794,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		}
 		
 		// Write Info here
-		PS_LUMapObjRef(a_Str, true, &g_MSecNodes[i]->m_sector);
+		PS_LUMapObjRef(a_Str, true, (void**)&g_MSecNodes[i]->m_sector);
 		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)g_MSecNodes[i]->m_thing));
 		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tprev));
 		D_BSwi32(a_Str, P_GetIDFromSecNode(g_MSecNodes[i]->m_tnext));
@@ -1509,6 +1806,30 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Record any remaining node blocks
 	if (g_NumMSecNodes > 0)
 		D_BSRecordBlock(a_Str);
+		
+	/* Save Ceiling List */
+	D_BSBaseBlock(a_Str, "CEIL");
+	
+	j = 0;
+	for (clist = activeceilings; clist; clist = clist->next)
+		j++;
+	D_BSwi32(a_Str, j);
+	
+	D_BSwi32(a_Str, PS_GetCeilingListID(activeceilings));
+	for (clist = activeceilings; clist; clist = clist->next)
+	{
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)clist->ceiling));
+		D_BSwi32(a_Str, PS_GetCeilingListID(clist->next));
+		
+		if (clist->prev == &activeceilings)
+			D_BSwi32(a_Str, -2);
+		else
+			D_BSwi32(a_Str, PS_GetCeilingListID((ceilinglist_t*)(((intptr_t)(*clist->prev)) - offsetof(ceilinglist_t, next))));
+	}
+	
+	D_BSwi32(a_Str, -3);
+	
+	D_BSRecordBlock(a_Str);
 	
 	/* Save Thinkers */
 	for (Thinker = thinkercap.next; Thinker != &thinkercap; Thinker = Thinker->next)
@@ -1525,7 +1846,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		{
 				// Map Object
 			case PTT_MOBJ:
-				mo = Thinker;
+				mo = (void*)Thinker;
 				
 				PS_LoadUnloadNoiseThinker(a_Str, true, &mo->NoiseThinker);
 				D_BSwi32(a_Str, mo->x);
@@ -1539,7 +1860,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 				D_BSwi32(a_Str, mo->skin);
 				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->bnext));
 				D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)mo->bprev));
-				PS_LUMapObjRef(a_Str, true, &mo->subsector);
+				PS_LUMapObjRef(a_Str, true, (void**)&mo->subsector);
 				D_BSwi32(a_Str, mo->floorz);
 				D_BSwi32(a_Str, mo->ceilingz);
 				D_BSwi32(a_Str, mo->radius);
@@ -1568,7 +1889,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 				D_BSwi32(a_Str, mo->lastlook);
 				
 				// Spawn point (might be script created)
-				PS_LUMapObjRef(a_Str, true, &mo->spawnpoint);
+				PS_LUMapObjRef(a_Str, true, (void**)&mo->spawnpoint);
 				D_BSwu8(a_Str, !!mo->spawnpoint);
 				if (mo->spawnpoint)
 				{
@@ -1652,13 +1973,23 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 
 				// Vertical Door
 			case PTT_VERTICALDOOR:
+				vldoor = (void*)Thinker;
+				
+				D_BSwi32(a_Str, vldoor->type);
+				PS_LUMapObjRef(a_Str, true, (void**)&vldoor->sector);
+				D_BSwi32(a_Str, vldoor->topheight);
+				D_BSwi32(a_Str, vldoor->speed);
+				D_BSwi32(a_Str, vldoor->direction);
+				D_BSwi32(a_Str, vldoor->topwait);
+				D_BSwi32(a_Str, vldoor->topcountdown);
+				PS_LUMapObjRef(a_Str, true, (void**)&vldoor->line);
 				break;
 			
 				// Light Source
 			case PTT_FIREFLICKER:
-				flicker = Thinker;
+				flicker = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &flicker->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&flicker->sector);
 				D_BSwi32(a_Str, flicker->count);
 				D_BSwi32(a_Str, flicker->maxlight);
 				D_BSwi32(a_Str, flicker->minlight);
@@ -1666,9 +1997,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_LIGHTFLASH:
-				lightflash = Thinker;
+				lightflash = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &lightflash->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&lightflash->sector);
 				D_BSwi32(a_Str, lightflash->count);
 				D_BSwi32(a_Str, lightflash->maxlight);
 				D_BSwi32(a_Str, lightflash->minlight);
@@ -1678,9 +2009,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_STROBEFLASH:
-				strobe = Thinker;
+				strobe = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &strobe->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&strobe->sector);
 				D_BSwi32(a_Str, strobe->count);
 				D_BSwi32(a_Str, strobe->maxlight);
 				D_BSwi32(a_Str, strobe->minlight);
@@ -1690,9 +2021,9 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_GLOW:
-				glow = Thinker;
+				glow = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &glow->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&glow->sector);
 				D_BSwi32(a_Str, glow->maxlight);
 				D_BSwi32(a_Str, glow->minlight);
 				D_BSwi32(a_Str, glow->direction);
@@ -1700,19 +2031,46 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Light Source
 			case PTT_LIGHTFADE:
-				lightfade = Thinker;
+				lightfade = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, true, &lightfade->sector);
+				PS_LUMapObjRef(a_Str, true, (void**)&lightfade->sector);
 				D_BSwi32(a_Str, lightfade->destlevel);
 				D_BSwi32(a_Str, lightfade->speed);
 				break;
 	
 				// Moving Surface
 			case PTT_MOVEFLOOR:
+				floormove = (void*)Thinker;
+				
+				D_BSwi32(a_Str, floormove->type);
+				D_BSwu32(a_Str, floormove->crush);
+				PS_LUMapObjRef(a_Str, true, (void**)&floormove->sector);
+				D_BSwi32(a_Str, floormove->direction);
+				D_BSwu32(a_Str, floormove->newspecial);
+				D_BSwu32(a_Str, floormove->oldspecial);
+				D_BSwi32(a_Str, floormove->texture);
+				D_BSwi32(a_Str, floormove->floordestheight);
+				D_BSwi32(a_Str, floormove->speed);
 				break;
 	
 				// Moving Surface
 			case PTT_MOVECEILING:
+				ceiling = (void*)Thinker;
+				
+				D_BSwi32(a_Str, ceiling->type);
+				PS_LUMapObjRef(a_Str, true, (void**)&ceiling->sector);
+				D_BSwi32(a_Str, ceiling->bottomheight);
+				D_BSwi32(a_Str, ceiling->topheight);
+				D_BSwi32(a_Str, ceiling->speed);
+				D_BSwi32(a_Str, ceiling->oldspeed);
+				D_BSwu8(a_Str, ceiling->crush);
+				D_BSwu32(a_Str, ceiling->newspecial);
+				D_BSwu32(a_Str, ceiling->oldspecial);
+				D_BSwi32(a_Str, ceiling->texture);
+				D_BSwi32(a_Str, ceiling->direction);
+				D_BSwi32(a_Str, ceiling->tag);
+				D_BSwi32(a_Str, ceiling->olddirection);
+				D_BSwi32(a_Str, PS_GetCeilingListID(ceiling->list));
 				break;
 	
 				// Moving Surface
@@ -1729,10 +2087,26 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Friction
 			case PTT_FRICTION:
+				friction = (void*)Thinker;
+				
+				D_BSwi32(a_Str, friction->friction);
+				D_BSwi32(a_Str, friction->movefactor);
+				D_BSwi32(a_Str, friction->affectee);
 				break;
 	
-				// Puller
+				// Pusher/Puller
 			case PTT_PUSHER:
+				pusher = (void*)Thinker;
+				
+				D_BSwu32(a_Str, pusher->type);
+				D_BSwi32(a_Str, PS_GetThinkerID(pusher->source));
+				D_BSwi32(a_Str, pusher->x_mag);
+				D_BSwi32(a_Str, pusher->y_mag);
+				D_BSwi32(a_Str, pusher->magnitude);
+				D_BSwi32(a_Str, pusher->radius);
+				D_BSwi32(a_Str, pusher->x);
+				D_BSwi32(a_Str, pusher->y);
+				D_BSwi32(a_Str, pusher->affectee);
 				break;
 	
 				// Unknown
@@ -1853,7 +2227,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		
 		D_BSwu32(a_Str, sect->linecount);
 		for (j = 0; j < sect->linecount; j++)
-			PS_LUMapObjRef(a_Str, true, &sect->lines[j]);
+			PS_LUMapObjRef(a_Str, true, (void**)&sect->lines[j]);
 		
 		D_BSwu32(a_Str, sect->numattached);
 		for (j = 0; j < sect->numattached; j++)
@@ -1883,7 +2257,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 		
 		D_BSwu32(a_Str, sect->NumAdj);
 		for (j = 0; j < sect->NumAdj; j++)
-			PS_LUMapObjRef(a_Str, true, &sect->Adj[j]);
+			PS_LUMapObjRef(a_Str, true, (void**)&sect->Adj[j]);
 	}
 	
 	if (numsectors > 0)
@@ -1923,7 +2297,7 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	for (i = 0; i < ITEMQUESIZE; i++)
 	{
 		D_BSwu8(a_Str, !!itemrespawnque[i]);
-		PS_LUMapObjRef(a_Str, true, &itemrespawnque[i]);
+		PS_LUMapObjRef(a_Str, true, (void**)&itemrespawnque[i]);
 		D_BSwcu64(a_Str, itemrespawntime[i]);
 		
 		// In case of script spawned things
@@ -2031,9 +2405,16 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	strobe_t* strobe;
 	glow_t* glow;
 	lightlevel_t* lightfade;
+	vldoor_t* vldoor;
+	floormove_t* floormove;
+	pusher_t* pusher;
+	friction_t* friction;
+	ceiling_t* ceiling;
+	
+	ceilinglist_t* clist, *rootclist, *nextclist, *clistrover;
 	
 	/* If not in a level, then do not continue */
-	if (gamestate != GS_LEVEL)
+	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
 		return true;
 	
 	/* Expect "MLMP" */
@@ -2076,13 +2457,81 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				return false;
 		
 		// Load Data
-		PS_LUMapObjRef(a_Str, false, &g_MSecNodes[i]->m_sector);
+		PS_LUMapObjRef(a_Str, false, (void**)&g_MSecNodes[i]->m_sector);
 		g_MSecNodes[i]->m_thing = (void*)((intptr_t)D_BSri32(a_Str));
 		g_MSecNodes[i]->m_tprev = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->m_tnext = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->m_sprev = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->m_snext = P_GetSecNodeFromID(D_BSri32(a_Str));
 		g_MSecNodes[i]->visited = D_BSru8(a_Str);
+	}
+	
+	/* Load Ceiling List */
+	if (!PS_Expect(a_Str, "CEIL"))
+		return false;
+	
+	// Clear ceilings
+	activeceilings = NULL;
+	rootclist = NULL;
+	
+	// Re-allocate basic ceiling structure
+	j = D_BSri32(a_Str);
+	
+	for (clist = NULL, i = 0; i < j; i++)
+	{
+		if (!clist)
+			rootclist = clist = Z_Malloc(sizeof(*clist), PU_STATIC, NULL);
+		else
+		{
+			clist->SaveLink = Z_Malloc(sizeof(*clist), PU_STATIC, NULL);
+			clist = clist->SaveLink;
+		}
+	}
+	
+	// Find activeceilings list
+	x = D_BSri32(a_Str);
+	for (i = 1, clist = rootclist; clist; clist = clist->SaveLink, i++)
+		if (i == x)
+			break;
+	
+	// Active ceiling is this list
+	activeceilings = clist;
+	
+	// Read consecutive list
+	for (clist = rootclist; clist; clist = nextclist)
+	{
+		// Next may get kludged
+		nextclist = clist->SaveLink;
+		
+		// Read, end if -3, otherwise a thinker
+		x = D_BSri32(a_Str);
+		if (x == -3)
+			break;	// End
+		
+		// Thinker
+		clist->ceiling = (ceiling_t*)x;
+		
+		// Reref real next
+		x = D_BSri32(a_Str);
+		for (i = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, i++)
+			if (i == x)
+				break;
+		
+		clist->next = clistrover;
+		
+		// This is a pointer of a pointer
+		x = D_BSri32(a_Str);
+		if (x == -2)
+			clist->prev = &activeceilings;
+		else
+		{
+			for (i = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, i++)
+				if (i == x)
+					break;
+		
+			if (clistrover)	// there might not be a next
+				clist->prev = &clistrover->next;
+		}
 	}
 	
 	/* Load Thinkers */
@@ -2135,7 +2584,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				mo->skin = D_BSri32(a_Str);
 				mo->bnext = (void*)((intptr_t)D_BSri32(a_Str));
 				mo->bprev = (void*)((intptr_t)D_BSri32(a_Str));
-				PS_LUMapObjRef(a_Str, false, &mo->subsector);
+				PS_LUMapObjRef(a_Str, false, (void**)&mo->subsector);
 				mo->floorz = D_BSri32(a_Str);
 				mo->ceilingz = D_BSri32(a_Str);
 				mo->radius = D_BSri32(a_Str);
@@ -2171,7 +2620,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				mo->lastlook = D_BSri32(a_Str);
 
 				// Spawn point (might be script created)
-				PS_LUMapObjRef(a_Str, false, &mo->spawnpoint);
+				PS_LUMapObjRef(a_Str, false, (void**)&mo->spawnpoint);
 				n = !!mo->spawnpoint;
 				x = D_BSru8(a_Str);
 				
@@ -2285,13 +2734,23 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				
 				// Vertical Door
 			case PTT_VERTICALDOOR:
+				vldoor = (void*)Thinker;
+				
+				vldoor->type = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&vldoor->sector);
+				vldoor->topheight = D_BSri32(a_Str);
+				vldoor->speed = D_BSri32(a_Str);
+				vldoor->direction = D_BSri32(a_Str);
+				vldoor->topwait = D_BSri32(a_Str);
+				vldoor->topcountdown = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&vldoor->line);
 				break;
 	
 				// Light Source
 			case PTT_FIREFLICKER:
 				flicker = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &flicker->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&flicker->sector);
 				flicker->count = D_BSri32(a_Str);
 				flicker->maxlight = D_BSri32(a_Str);
 				flicker->minlight = D_BSri32(a_Str);
@@ -2301,7 +2760,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_LIGHTFLASH:
 				lightflash = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &lightflash->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&lightflash->sector);
 				lightflash->count = D_BSri32(a_Str);
 				lightflash->maxlight = D_BSri32(a_Str);
 				lightflash->minlight = D_BSri32(a_Str);
@@ -2313,7 +2772,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_STROBEFLASH:
 				strobe = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &strobe->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&strobe->sector);
 				strobe->count = D_BSri32(a_Str);
 				strobe->maxlight = D_BSri32(a_Str);
 				strobe->minlight = D_BSri32(a_Str);
@@ -2325,7 +2784,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_GLOW:
 				glow = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &glow->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&glow->sector);
 				glow->maxlight = D_BSri32(a_Str);
 				glow->minlight = D_BSri32(a_Str);
 				glow->direction = D_BSri32(a_Str);
@@ -2335,17 +2794,50 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 			case PTT_LIGHTFADE:
 				lightfade = (void*)Thinker;
 				
-				PS_LUMapObjRef(a_Str, false, &lightfade->sector);
+				PS_LUMapObjRef(a_Str, false, (void**)&lightfade->sector);
 				lightfade->destlevel = D_BSri32(a_Str);
 				lightfade->speed = D_BSri32(a_Str);
 				break;
 	
 				// Moving Surface
 			case PTT_MOVEFLOOR:
+				floormove = (void*)Thinker;
+				
+				floormove->type = D_BSri32(a_Str);
+				floormove->crush = D_BSru32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&floormove->sector);
+				floormove->direction = D_BSri32(a_Str);
+				floormove->newspecial = D_BSru32(a_Str);
+				floormove->oldspecial = D_BSru32(a_Str);
+				floormove->texture = D_BSri32(a_Str);
+				floormove->floordestheight = D_BSri32(a_Str);
+				floormove->speed = D_BSri32(a_Str);
 				break;
 	
 				// Moving Surface
 			case PTT_MOVECEILING:
+				ceiling = (void*)Thinker;
+				
+				ceiling->type = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&ceiling->sector);
+				ceiling->bottomheight = D_BSri32(a_Str);
+				ceiling->topheight = D_BSri32(a_Str);
+				ceiling->speed = D_BSri32(a_Str);
+				ceiling->oldspeed = D_BSri32(a_Str);
+				ceiling->crush = D_BSru8(a_Str);
+				ceiling->newspecial = D_BSru32(a_Str);
+				ceiling->oldspecial = D_BSru32(a_Str);
+				ceiling->texture = D_BSri32(a_Str);
+				ceiling->direction = D_BSri32(a_Str);
+				ceiling->tag = D_BSri32(a_Str);
+				ceiling->olddirection = D_BSri32(a_Str);
+				 
+				// Find ceilinglist reference
+				x = D_BSru32(a_Str);
+				for (j = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, j++)
+					if (j == x)
+						break;
+				ceiling->list = clistrover;
 				break;
 	
 				// Moving Surface
@@ -2362,10 +2854,26 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Friction
 			case PTT_FRICTION:
+				friction = (void*)Thinker;
+				
+				friction->friction = D_BSri32(a_Str);
+				friction->movefactor = D_BSri32(a_Str);
+				friction->affectee = D_BSri32(a_Str);
 				break;
 	
-				// Puller
+				// Pusher/Puller
 			case PTT_PUSHER:
+				pusher = Thinker;
+				
+				pusher->type = D_BSru32(a_Str);
+				pusher->source = (intptr_t)D_BSri32(a_Str);
+				pusher->x_mag = D_BSri32(a_Str);
+				pusher->y_mag = D_BSri32(a_Str);
+				pusher->magnitude = D_BSri32(a_Str);
+				pusher->radius = D_BSri32(a_Str);
+				pusher->x = D_BSri32(a_Str);
+				pusher->y = D_BSri32(a_Str);
+				pusher->affectee = D_BSri32(a_Str);
 				break;
 			
 				// Unknown
@@ -2373,6 +2881,10 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				return PS_IllegalSave(DSTR_PSAVEGC_UNHANDLEDTHINKER);
 		}
 	}
+	
+	// Restore ceiling list thinkers
+	for (clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink)
+		clistrover->ceiling = (void*)PS_GetThinkerFromID((intptr_t)clistrover->ceiling);
 	
 	// Restore sector node thinker IDs
 	for (i = 0; i < g_NumMSecNodes; i++)
@@ -2481,7 +2993,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		sect->linecount = D_BSru32(a_Str);
 		sect->lines = Z_Malloc(sizeof(*sect->lines) * sect->linecount, PU_LEVEL, NULL);
 		for (j = 0; j < sect->linecount; j++)
-			PS_LUMapObjRef(a_Str, false, &sect->lines[j]);
+			PS_LUMapObjRef(a_Str, false, (void**)&sect->lines[j]);
 
 		sect->numattached = D_BSru32(a_Str);
 		sect->attached = Z_Malloc(sizeof(*sect->attached) * sect->numattached, PU_LEVEL, NULL);
@@ -2516,7 +3028,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		sect->NumAdj = D_BSru32(a_Str);
 		sect->Adj = Z_Malloc(sizeof(*sect->Adj) * sect->NumAdj, PU_LEVEL, NULL);
 		for (j = 0; j < sect->NumAdj; j++)
-			PS_LUMapObjRef(a_Str, false, &sect->Adj[j]);
+			PS_LUMapObjRef(a_Str, false, (void**)&sect->Adj[j]);
 	}
 	
 	/* Restore Map Thing References */
@@ -2563,6 +3075,12 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 						mo->spawnpoint->mobj = (void*)PS_GetThinkerFromID(((intptr_t)D_BSri32(mo->spawnpoint->mobj)));
 				break;
 				
+				// Pusher
+			case PTT_PUSHER:
+				pusher = Thinker;
+				
+				pusher->source = (void*)PS_GetThinkerFromID((intptr_t)pusher->source);
+				
 				// Unknown
 			default:
 				break;
@@ -2580,7 +3098,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	for (i = 0; i < n; i++)
 	{
 		x = D_BSru8(a_Str);
-		PS_LUMapObjRef(a_Str, false, (i < ITEMQUESIZE ? &itemrespawnque[i] : NULL));
+		PS_LUMapObjRef(a_Str, false, (void**)(i < ITEMQUESIZE ? &itemrespawnque[i] : NULL));
 		Tic = D_BSrcu64(a_Str);
 		
 		if (i < ITEMQUESIZE)
@@ -2713,6 +3231,163 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 
 /*---------------------------------------------------------------------------*/
 
+extern wbstartstruct_t wminfo;
+
+/* PS_SaveInterState() -- Saves intermission data */
+static bool_t PS_SaveInterState(D_BS_t* const a_Str)
+{
+	int32_t i, j;
+	wbplayerstruct_t* wbps;	
+	
+	/* Save */
+	D_BSBaseBlock(a_Str, "INTR");
+	
+	// Write fields
+	D_BSwi32(a_Str, wminfo.epsd);
+	D_BSwu8(a_Str, wminfo.didsecret);
+	D_BSwi32(a_Str, wminfo.last);
+	D_BSwi32(a_Str, wminfo.next);
+	D_BSwi32(a_Str, wminfo.maxkills);
+	D_BSwi32(a_Str, wminfo.maxitems);
+	D_BSwi32(a_Str, wminfo.maxsecret);
+	D_BSwi32(a_Str, wminfo.maxfrags);
+	D_BSwi32(a_Str, wminfo.partime);
+	D_BSwi32(a_Str, wminfo.pnum);
+	
+	// Next level
+	if (wminfo.NextInfo)
+	{
+		D_BSwu8(a_Str, 1);
+		D_BSws(a_Str, WL_GetWADName(wminfo.NextInfo->WAD, false));
+		D_BSws(a_Str, wminfo.NextInfo->LumpName);
+	}
+	else
+		D_BSwu8(a_Str, 0);
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
+	/* Write start structures for each player */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Get structure
+		wbps = &wminfo.plyr[i];
+		
+		// Start Block
+		D_BSBaseBlock(a_Str, "WBPS");
+		
+		// Write Data
+		D_BSwu8(a_Str, wbps->in);
+		D_BSwi32(a_Str, wbps->skills);
+		D_BSwi32(a_Str, wbps->sitems);
+		D_BSwi32(a_Str, wbps->ssecret);
+		D_BSwi32(a_Str, wbps->stime);
+		D_BSwi32(a_Str, wbps->score);
+		D_BSwu16(a_Str, wbps->addfrags);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			D_BSwu16(a_Str, wbps->frags[j]);
+		
+		// Record
+		D_BSRecordBlock(a_Str);
+	}
+	
+	/* Helper */
+	D_BSBaseBlock(a_Str, "WILP");
+	
+	if (!WI_SaveGameHelper(a_Str))
+		return false;
+	
+	D_BSRecordBlock(a_Str);
+
+	/* Success! */
+	return true;
+}
+
+/* PS_LoadInterState() -- Loads intermission data */
+static bool_t PS_LoadInterState(D_BS_t* const a_Str)
+{
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	int32_t i, j;
+	wbplayerstruct_t* wbps;
+	P_LevelInfoEx_t* pli;
+	
+	/* Expect "INTR" */
+	if (!PS_Expect(a_Str, "INTR"))
+		return false;
+	
+	// Write fields
+	wminfo.epsd = D_BSri32(a_Str);
+	wminfo.didsecret = D_BSru8(a_Str);
+	wminfo.last = D_BSri32(a_Str);
+	wminfo.next = D_BSri32(a_Str);
+	wminfo.maxkills = D_BSri32(a_Str);
+	wminfo.maxitems = D_BSri32(a_Str);
+	wminfo.maxsecret = D_BSri32(a_Str);
+	wminfo.maxfrags = D_BSri32(a_Str);
+	wminfo.partime = D_BSri32(a_Str);
+	wminfo.pnum = D_BSri32(a_Str);
+	
+	// Next level
+	if (D_BSru8(a_Str))
+	{
+		// Ignore WAD Name
+		D_BSrs(a_Str, Buf, BUFSIZE);
+	
+		// Attempt to locate level being played
+		D_BSrs(a_Str, Buf, BUFSIZE);
+		pli = P_FindLevelByNameEx(Buf, NULL);
+	
+		// If not found, then fail
+		if (!pli)
+			return PS_IllegalSave(DSTR_PSAVEGC_UNKNOWNLEVEL);
+		
+		// Set next
+		wminfo.NextInfo = pli;
+	}
+	
+	// No next level set
+	else
+		wminfo.NextInfo = NULL;
+		
+	
+	/* Write start structures for each player */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Get structure
+		wbps = &wminfo.plyr[i];
+		
+		// Expect "WBPS"
+		if (!PS_Expect(a_Str, "WBPS"))
+			return false;
+		
+		// Write Data
+		wbps->in = D_BSru8(a_Str);
+		wbps->skills = D_BSri32(a_Str);
+		wbps->sitems = D_BSri32(a_Str);
+		wbps->ssecret = D_BSri32(a_Str);
+		wbps->stime = D_BSri32(a_Str);
+		wbps->score = D_BSri32(a_Str);
+		wbps->addfrags = D_BSru16(a_Str);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			wbps->frags[j] = D_BSru16(a_Str);
+	}
+	
+	/* Helper */
+	if (!PS_Expect(a_Str, "WILP"))
+		return false;
+	
+	if (!WI_LoadGameHelper(a_Str))
+		return false;
+
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
@@ -2728,21 +3403,22 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 /*****************************************************************************/
 
 /* P_SaveToStream() -- Save to stream */
-bool_t P_SaveToStream(D_BS_t* const a_Str)
+bool_t P_SaveToStream(D_BS_t* const a_Str, D_BS_t* const a_OrigStr)
 {
 	/* Force Lag */
-	D_XNetForceLag();
+	//D_XNetForceLag();
 
 	/* If on title screen, or demo, die. */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
 		return false;
 	
 	/* Network State */
-	PS_SaveDummy(a_Str, false);
+	PS_SaveDummy(a_OrigStr, false);
 	PS_SaveNetState(a_Str);
 	PS_SavePlayers(a_Str);
 	PS_SaveGameState(a_Str);
 	PS_SaveMapState(a_Str);
+	PS_SaveInterState(a_Str);
 	PS_SaveDummy(a_Str, true);
 	
 	// All done
@@ -2757,24 +3433,29 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	bool_t OK;
 	int32_t i;
 	
+#if 0
 	/* Force Lag */
 	D_XNetForceLag();
+#endif
 	
-	/* Determine how loading is to be handled */
+	/* Disconnect if not playing or if we are a server loading a game */
 	// If we are the server or playing solo, we want to disconnect dropping all
 	// other players from the game. However, if we are a connecting client we
 	// do not want to disconnect.
 	// However, an option passed to the game can say to not disconnect, i.e.
 	// such as when playing a demo or joining a netgame.
+	l_SoloLoad = false;
 	if (!a_DemoPlay)
-		if (
-			// Playing Demo or on Title Screen
-			(demoplayback || gamestate == GS_DEMOSCREEN) ||
-		
-			// We are the server
-			(D_XNetIsServer())
-			)
-			D_XNetDisconnect(false);
+		if (!D_SNIsConnected() || D_SNIsServer() || (demoplayback || gamestate == GS_DEMOSCREEN) || (D_SNIsConnected() && !D_SNWaitingForSave()))
+		{
+			// Disconnect
+			D_SNDisconnect(false, "Loading a save game.");
+			
+			// Start local server
+				// Do not force add a first port
+			D_SNStartLocalServer(0, NULL, false, false);
+			l_SoloLoad = true;
+		}
 	
 	// Switch to the WFGS screen
 	gamestate = GS_WAITINGPLAYERS;
@@ -2800,15 +3481,18 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		
 	if (OK)
 		OK = PS_LoadMapState(a_Str);
+	
+	if (OK)
+		OK = PS_LoadInterState(a_Str);
 		
 	if (OK)
 		OK = PS_LoadDummy(a_Str, true);
 	
-	// Did not worked
+	// Did not work
 	if (!OK)
 	{
 		P_ExClearLevel();
-		D_XNetDisconnect(false);
+		D_SNDisconnect(false, "Failed to load savegame");
 		return false;
 	}
 	
@@ -2829,22 +3513,30 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		}
 		
 	// Initialize Level Based Info
-	if (gamestate == GS_LEVEL)
+	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
 	{
 		// Initialize Spectators
 		P_SpecInit(-2);
 		
 		// Music
 		if (g_CurrentLevelInfo)
-			if (g_CurrentLevelInfo->Music)
-				S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
+			if (gamestate == GS_INTERMISSION)
+			{
+				if (g_CurrentLevelInfo->InterMus)
+					S_ChangeMusicName(g_CurrentLevelInfo->InterMus, 1);
+			}
+			else
+			{
+				if (g_CurrentLevelInfo->Music)
+					S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
+			}
 		
 		// Sky
 		P_SetupLevelSky();
 		skyflatnum = R_GetFlatNumForName("F_SKY1");
 		
 		// Bot Nodes
-		B_InitNodes();
+		//B_InitNodes();
 		
 		// Correct player angles
 			// This is so you are still facing the desired angle when you load

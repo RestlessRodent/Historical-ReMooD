@@ -42,279 +42,237 @@
 
 #include "i_net.h"
 #include "i_util.h"
+#include "d_block.h"
 
-/*****************
-*** STRUCTURES ***
-*****************/
-
-struct D_BS_s;
-struct D_ProfileEx_s;
-struct B_BotTemplate_s;
-
-/*****************
-*** PROTOTYPES ***
-*****************/
-
-bool_t D_CheckNetGame(void);
-
-bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
-bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
-
-/******************************
-*** NEW EXTENDED NETWORKING ***
-******************************/
-
-/*** CONSTANTS ***/
-
-#define MAXXSOCKTEXTSIZE				64		// Max size of text fields
+/****************
+*** CONSTANTS ***
+****************/
 
 #if !defined(MAXUUIDLENGTH)
 	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
 #endif
 
 #define MAXLBTSIZE						16		// Max tics in local buffer
+#define MAXQUITREASON					128		// Reason for quit
 
-/* D_NCStreamPath_t -- Communication Paths */
-typedef enum D_NCStreamPath_e
+#define MAXNETXTICS				TICRATE
+
+#define MAXPINGWINDOWS					8		// Max ping window count
+#define MAXCHATLINE 128							// max one can blurt
+
+/* D_SNPortSetting_t -- Port Settings */
+typedef enum D_SNPortSetting_e
 {
-	DNCSP_READ,									// Standard Read Stream
-	DNCSP_WRITE,								// Standard Write Stream
-	DNCSP_PERFECTREAD,							// Perfect Read Stream
-	DNCSP_PERFECTWRITE,							// Perfect Write Stream	
+	DSNPS_VTEAM,								// Virtual Team
+	DSNPS_COLOR,								// Color
+	DSNPS_NAME,									// Name of player
+	DSNPS_COUNTEROP,							// Counter-operative
 	
-	NUMDNCSTREAMS
-} D_NCStreamPath_t;
+	NUMDSNPS
+} D_SNPortSetting_t;
 
-/* D_XPlayerFlags_t -- Player Flags */
-typedef enum D_XPlayerFlags_e
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* D_SNPingWin_t -- Ping window */
+typedef struct D_SNPingWin_s
 {
-	DXPF_LOCAL			= UINT32_C(0x0000001),	// Player is Local
-	DXPF_SERVER			= UINT32_C(0x0000002),	// Player is Server
-	DXPF_NOLOGIN		= UINT32_C(0x0000004),	// Player has no login (local)
-	DXPF_DEMO			= UINT32_C(0x0000008),	// Generated from a demo
-	DXPF_CHALLENGED		= UINT32_C(0x0000010),	// Connection Challenged
-	DXPF_BOT			= UINT32_C(0x0000020),	// Bot Controller Player
-	DXPF_DEFUNCT		= UINT32_C(0x0000040),	// Remove player next cycle
-	
-	DXPF_CONVEYED = DXPF_SERVER | DXPF_NOLOGIN | DXPF_DEMO | DXPF_BOT,
-} D_XPlayerFlags_t;
+	uint32_t Code;								// Unique Code (Security)
+	tic_t SendTime;								// Send time
+	uint32_t Millis;							// Milliseconds
+} D_SNPingWin_t;
 
-/* D_XPlayerStatBits_t -- XPlayer status bits */
-typedef enum D_XPlayerStatBits_e
+#if !defined(__REMOOD_DBSTDEFINED)
+	typedef struct D_BS_s D_BS_t;
+	#define __REMOOD_DBSTDEFINED
+#endif
+
+struct B_BotTemplate_s;
+
+typedef struct D_SNHost_s D_SNHost_t;
+
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
+/* D_SNPort_t -- Port which controls a specific player or a spectator */
+typedef struct D_SNPort_s
 {
-	DXPSB_LBOVERFLOW	= UINT32_C(0x0000001),	// Local buffer overflowing
-	DXPSB_NEEDSPROFILE	= UINT32_C(0x0000002),	// Needs profile loaded
-	DXPSB_MISSINGTICS	= UINT32_C(0x0000004),	// Missing Tics
-	DXPSB_CAUSEOFLAG	= UINT32_C(0x0000008),	// Is Causing the lag
-} D_XPlayerStatBits_t;
-
-/* D_XPlayerPref_t -- Player preference */
-typedef enum D_XPlayerPref_e
-{
-	DXPP_SKINCOLOR,								// Color of skin
-	DXPP_VTEAM,									// Virtual Team
-	DXPP_DISPLAYNAME,							// Display Name
-	DXPP_HEXENCLASS,							// Hexen Class
-	DXPP_PROFILEUUID,							// Profile UUID
-	DXPP_ACCOUNTNAME,							// Acount Name
-	DXPP_COUNTEROP,								// Counter Op?
-} D_XPlayerPref_t;
-
-/* D_XNetTicBufVersion_t -- TicBuf version number */
-// This is for net compat, but mostly for demos!
-typedef enum D_XNetTicBufVersion_s
-{
-	DXNTBV_ILLEGALVERSION,						// Illegal Version	
-	
-	DXNTBV_VER20130327,							// 2013/03/27
-	
-	DXNTBV_LATEST = DXNTBV_VER20130327,			// Lastest Version
-} D_XNetTicBufVersion_t;
-
-#define MAXCHATLINE 128							// Characters that can be said in one line
-
-/*** STRUCTURES ***/
-
-struct D_XPlayer_s;
-
-struct player_s;
-struct D_ProfileEx_s;
-struct B_GhostBot_s;
-struct D_XDesc_s;
-struct D_XEndPoint_s;
-
-/* D_XPlayer_t -- A player, spectator, bot, whatever */
-typedef struct D_XPlayer_s
-{
-	uint32_t Flags;								// Flags
-	
-	// Security
-	char SSToken[MAXUUIDLENGTH];				// Token set by server
-	char CLToken[MAXUUIDLENGTH];				// Token set by client
-	
-	// Identification
-	uint32_t ID;								// Unique Player ID
-	uint32_t HostID;							// ID to the host (shared)
-	uint32_t ClProcessID;						// Client's Process ID
-	char AccountName[MAXPLAYERNAME];			// Player's Account Name
-	char DisplayName[MAXPLAYERNAME];			// Player's Display Name
-	char ProfileUUID[MAXUUIDLENGTH];			// Player's Profile UUID
-	char LoginUUID[MAXUUIDLENGTH];				// UUID used for login (cookie rather)
-	
-	// Socket
-	struct
-	{
-		struct D_XEndPoint_s* EndPoint;			// Endpoint connection
-		I_HostAddress_t Address;				// Address to player
-		char ReverseDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS of Host
-	} Socket;									// Socket Information
-	
-	// Account Server
-	char AccountCookie[MAXPLAYERNAME];			// Cookie for account
-	char AccountServer[MAXXSOCKTEXTSIZE];		// Server that manages the account
-	I_HostAddress_t AccountServAddr;			// Address to account server
-	char AccountServRDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS to account server
-	
-	// In-Game
-	int8_t ScreenID;							// Screen Identity
-	int32_t InGameID;							// Player in game number
-	struct player_s* Player;					// Pointer to player
-	struct D_ProfileEx_s* Profile;				// Profile Used by player
-	struct B_GhostBot_s* BotData;				// Bot data used by player
-	uint16_t Ping;								// Player's Ping
-	uint32_t StatusBits;						// Status Flags
-	
-	// Timing
-	tic_t LastRanTic;							// Last tic ran
-	tic_t LastXMit;								// Last XMit time
-	tic_t LastAckTic;							// Last acknowledged tic
-	uint64_t LastProgramTic[2];					// Remote/Local program tic
-	
-	// Tics
+	char Name[MAXPLAYERNAME];					// Name of player
+	struct player_s* Player;					// Player controlling
+	D_SNHost_t* Host;							// Controlling host
+	int32_t Screen;								// Screen number
+	bool_t Bot;									// Bot controls this port
+	D_Prof_t* Profile;							// Profile of player
+	uint32_t ID;								// ID of Port
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
-	
-	// Game Stuff
-	tic_t LastJoinAttempt;						// Last join attempt
-	tic_t CoopSpyTime;							// Time to wait to respy
-	tic_t TurnHeld;								// Time turning is held
-	int32_t Scores;								// Scoreboard showing
-	ticcmd_t BackupTicCmd;						// Backup Tic Command
-	bool_t Turned180;							// Did 180 degre turn
-	bool_t TransSave;							// Save game transmitted and loaded
-	tic_t LagStart;								// Start of lag
-	tic_t LagKill;								// Kill at this lag time
-	tic_t LagThreshold;							// Threshold of lag
-	tic_t LagThreshExpire;						// Time when threshold expires
-	bool_t TriedToJoin;							// Tried to join already
-	bool_t DidConnectTrans;						// Did connect transport
-	bool_t SaveSent;							// Was Sent savegame
-	bool_t CounterOp;							// On Counterop Team
-	int32_t VTeam;								// Virtual Team On
-	int32_t Color;								// Color
-	tic_t JoinExpire;							// Join attempt expires
-	char HexenClass[MAXPLAYERNAME];				// Hexen Class
-	
-	uint32_t LookAngle, AimAngle;				// Angle Remember (for server)
-	bool_t GotBackup;							// Got backup command
-	bool_t DidPFromS;							// Did profile from screen
-	
+	bool_t WillJoin;							// Will join game
+	uint32_t StatFlags;							// Status Flags
+	uint32_t ProcessID;							// Local player process ID
+	bool_t AttachMsg;							// Displayed attach message
+	ticcmd_t BackupCmd;							// Backup tic command
+	uint32_t LocalStatFlags;					// Local Status Flags
+	tic_t JoinWait;								// Join wait (to not spam server)
 	char ChatBuf[MAXCHATLINE];					// Chat buffer
 	int16_t ChatAt;								// Chat currently at
 	tic_t ChatCoolDown;							// Chat cooldown time
 	uint32_t ChatID;							// Chat ID Number
-} D_XPlayer_t;
+	int8_t VTeam;								// Player's Team
+	int8_t Color;								// Player's Color
+	bool_t CounterOp;							// CounterOp Player
+} D_SNPort_t;
 
-/* D_XJoinPlayerData_t -- Data for joining player */
-typedef struct D_XJoinPlayerData_s
+/* D_SNHost_t -- Host which controls a set of playing players */
+struct D_SNHost_s
 {
-	// Standard
-	uint32_t ID;								// XPlayer ID
-	uint32_t ProcessID;							// ClProcessID
-	uint32_t HostID;							// Host ID
-	uint32_t Flags;								// Flags
-	uint8_t Color;								// Color
-	uint8_t CTFTeam;							// CTFTeam
-	uint32_t SkinHash;							// Skin Hash
-	char DisplayName[MAXPLAYERNAME];			// Display name
-	char HexenClass[MAXPLAYERNAME];				// Hexen Class
-} D_XJoinPlayerData_t;
+	D_SNPort_t** Ports;							// Ports
+	int32_t NumPorts;							// Number of ports
+	bool_t Local;								// Local host
+	uint32_t ID;								// ID of host
+	I_HostAddress_t Addr;						// Host Address
+	D_BS_t* BS;									// Block Stream
+	bool_t Cleanup;								// Cleanup host
+	char QuitReason[MAXQUITREASON];				// Reason for leaving
+	
+	struct
+	{
+		bool_t Want;							// Wants save
+		bool_t Has;								// Has save
+		int32_t Slot;							// Transmit slot
+		tic_t TicTime;							// Time for savetic
+		tic_t PTimer;							// Program Timer
+		bool_t Latched;							// Latched
+	} Save;										// Savegame status
+	
+	int32_t Ping;								// Ping of host
+	tic_t MinTic;								// Minimum tic bound
+	tic_t LastSeen;								// Last time seen
+	D_SNPingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
+	int8_t PingAt;								// Current window
+	tic_t NextPing;								// Time of next ping
+	tic_t LastPing;								// Last ping time
+};
 
-/*** GLOBALS ***/
+/*****************
+*** PROTOTYPES ***
+*****************/
 
-extern D_XPlayer_t** g_XPlays;					// Extended Players
-extern size_t g_NumXPlays;						// Number of them
+bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
+bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 
-extern tic_t g_DemoFreezeTics;					// Tics to freeze demo for
+/*** GLOBAL TICS ***/
 
-/*** FUNCTIONS ***/
+bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp);
+bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* const a_TicCmd);
 
-void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
+/*** SERVER CONTROL ***/
 
-bool_t D_XNetGlobalTic(const uint8_t a_ID, void** const a_Wp);
-bool_t D_XNetGetCommand(const uint8_t a_ID, const uint32_t a_Size, void** const a_Wp, ticcmd_t* const a_TicCmd);
+void D_SNDropAllClients(const char* const a_Reason);
+void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason);
+void D_SNPartialDisconnect(const char* const a_Reason);
+bool_t D_SNIsConnected(void);
+void D_SNSetConnected(const bool_t a_Set);
+bool_t D_SNIsServer(void);
+void D_SNStartWaiting(void);
+void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs);
+bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers);
+bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer);
+bool_t D_SNServerInit(void);
 
-void D_XNetSendTicToHost(D_XNetTicBuf_t* const a_Buf, D_XPlayer_t* const a_Host);
-void D_XNetPlaceTicCmd(const tic_t a_GameTic, const int32_t a_Player, ticcmd_t* const a_Cmd);
-void D_XNetFinalCmds(const tic_t a_GameTic, const uint32_t a_SyncCode);
+/*** LOOP ***/
 
-void D_XNetDisconnect(const bool_t a_FromDemo);
-void D_XNetMakeServer(const bool_t a_Networked, I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotHost);
-void D_XNetConnect(I_HostAddress_t* const a_Addr, const uint32_t a_GameID, const bool_t a_NotClient);
-bool_t D_XNetHostnameToAddrGID(const char* const a_Hostname, I_HostAddress_t* const a_Addr, uint32_t* const a_GameIDp);
+void D_SNUpdateLocalPorts(void);
+void D_SNUpdate(void);
 
-bool_t D_XNetIsServer(void);
-bool_t D_XNetIsConnected(void);
-uint32_t D_XNetGetHostID(void);
-void D_XNetSetHostID(const uint32_t a_NewID);
+/*** HOST CONTROL ***/
 
-D_XPlayer_t* D_XNetPlayerByXPlayerHost(D_XPlayer_t* const a_XPlayer);
-D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
-D_XPlayer_t* D_XNetPlayerByHostID(const uint32_t a_ID);
-D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
-D_XPlayer_t* D_XNetPlayerByString(const char* const a_Str);
-D_XPlayer_t* D_XNetPlayerByAddr(const I_HostAddress_t* const a_Addr);
+D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host);
+D_SNHost_t* D_SNHostByID(const uint32_t a_ID);
+D_SNHost_t* D_SNMyHost(void);
+void D_SNSetMyHost(D_SNHost_t* const a_Host);
+D_SNHost_t* D_SNCreateHost(void);
+void D_SNDestroyHost(D_SNHost_t* const a_Host);
 
-D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data, const bool_t a_FromGTicker);
-void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason, const bool_t a_FromGTicker);
-void D_XNetClearDefunct(void);
-void D_XNetSpectate(const int32_t a_PlayerID);
-void D_XNetSendQuit(void);
-void D_XNetPartLocal(D_XPlayer_t* const a_Player);
-void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
-void D_XNetChangeMap(const char* const a_Map, const bool_t a_Reset);
-void D_XNetDirectChatEncode(const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message);
-void D_XNetSendChat(D_XPlayer_t* const a_Source, const bool_t a_Team, const char* const a_Message);
+/*** PORT CONTROL ***/
 
-void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile);
+D_SNPort_t* D_SNPortByID(const uint32_t a_ID);
+D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host);
+void D_SNRemovePort(D_SNPort_t* const a_Port);
+D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit);
+bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
+D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic);
+int32_t D_SNNumSeqTics(void);
+void D_SNStartTic(const tic_t a_GameTic);
+void D_SNLocalTurn(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
+void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
+void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
+void D_SNCheckSyncCode(D_SNHost_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code);
+void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
+void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
+void D_SNPortTryJoin(D_SNPort_t* const a_Port);
+const char* D_SNGetPortName(D_SNPort_t* const a_Port);
+void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
 
-void D_XNetTryJoin(D_XPlayer_t* const a_Player);
-void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
-void D_XNetSetServerName(const char* const a_NewName);
+/*** GAME CONTROL ***/
 
-const char* D_XNetGetPlayerName(D_XPlayer_t* const a_Player);
-void D_XNetPlayerPref(D_XPlayer_t* const a_Player, const bool_t a_FromTic, const D_XPlayerPref_t a_Pref, const intptr_t a_Value);
+void D_SNChangeVar(const uint32_t a_Code, const int32_t a_Value);
+void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message);
+void D_SNRemovePlayer(const int32_t a_PlayerID);
+void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
+void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
 
-D_XNetTicBuf_t* D_XNetBufForTic(const tic_t a_GameTic, const bool_t a_Create);
-void D_XNetWipeBefores(const tic_t a_GameTic);
-void D_XNetEncodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_XNetTicBufVersion_t a_VersionNum);
-bool_t D_XNetDecodeTicBuf(D_XNetTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
+/*** DRAWERS ***/
 
-void D_XNetInit(void);
-uint16_t D_XNetCalcPing(D_XPlayer_t* const a_Player);
-void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
-tic_t D_XNetTicsToRun(void);
-void D_XNetForceLag(void);
-void D_XNetPushJW(void);
-void D_XNetUpdate(void);
-void D_XNetChatDrawer(const int32_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
-void D_XNetClearChat(const int32_t a_Screen);
-bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
+void D_SNDrawLobby(void);
+void D_SNDrawer(void);
+void D_SNSetServerLagWarn(const tic_t a_EstPD);
 
-void D_XNetInitialServer(void);
-void D_XNetBecomeServer(void);
+/*** BUILD TIC COMMANDS ***/
 
-uint32_t D_XNetMakeID(const uint32_t a_ID);
+void D_SNChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+void D_SNClearChat(const int32_t a_Screen);
+bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event);
+void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
+
+uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t a_VersionNum, const uint32_t a_Players);
+void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_SNTicBufVersion_t a_VersionNum);
+bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
+
+/*** TRANSMISSION ***/
+
+void D_SNClearJobs(void);
+void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer);
+int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
+bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);
+void D_SNNetTerm(const char* const a_Reason);
+bool_t D_SNHasSocket(void);
+void D_SNDoTrans(void);
+bool_t D_SNGotFile(const char* const a_PathName);
+void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
+void D_SNRequestPortNet(const uint32_t a_ProcessID);
+void D_SNPortJoinGame(D_SNPort_t* const a_Port);
+bool_t D_SNWaitingForSave(void);
+void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
+void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* const a_Text);
+void D_SNSetLastTic(void);
+void D_SNAppendLocalCmds(D_BS_t* const a_BS);
+void D_SNSendSettings(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
+
+/*** FILES ***/
+
+void D_SNClearFiles(void);
+void D_SNCloseFile(const int32_t a_Handle);
+int32_t D_SNPrepFile(const char* const a_PathName, const uint32_t a_Modes);
+int32_t D_SNPrepSave(void);
+void D_SNSendFile(const int32_t a_Handle, D_SNHost_t* const a_Host);
+void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNChunkReq(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+void D_SNFileLoop(void);
 
 #endif							/* __D_NET_H__ */
 

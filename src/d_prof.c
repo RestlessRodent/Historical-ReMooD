@@ -199,6 +199,7 @@ static const struct
 	QUICKDS(LookSpring, PDST_BOOL),
 	QUICKDS(JoyAutoRun, PDST_BOOL),
 	QUICKDS(CounterOp, PDST_BOOL),
+	QUICKDS(BarType, PDST_UINT8),
 	
 	{"", 0, 0},
 #undef QUICKDS
@@ -254,6 +255,12 @@ void D_ProfFixAccountName(char* const a_Buffer)
 	*(d++) = 0;
 
 #undef BUFSIZE
+}
+
+/* D_ProfFirst() -- Returns the first profile */
+D_Prof_t* D_ProfFirst(void)
+{
+	return l_FirstProfile;
 }
 
 /* D_ProfRename() -- Rename profile account */
@@ -553,6 +560,7 @@ D_Prof_t* D_CreateProfileEx(const char* const a_Name)
 	New->CamSpeed = 16384;						// Camera Speed
 	New->TransSBar = false;						// Transparent status bar
 	New->ScaledSBar = false;					// Scaled status bar
+	New->BarType = DPBT_REMOOD;
 	
 	// Autorun on GCW
 	if (g_ModelMode == DMM_GCW)
@@ -1033,11 +1041,11 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Not found?
 		if (!New)
-			return false;
+			return 1;
 		
 		// Set dump flag
 		New->Flags |= DPEXF_DUMPALL;
-		return true;
+		return 0;
 	}
 	
 	// Create Profile
@@ -1082,7 +1090,7 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 			strncpy(New->UUID, BufB, MAXUUIDLENGTH);
 		
 		// Done
-		return true;
+		return 0;
 	}
 	
 	/* After this all values are mostly the same */

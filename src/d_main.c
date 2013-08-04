@@ -205,6 +205,7 @@ void D_Display(void)
 	bool_t redrawsbar, CoolDemo;
 	bool_t viewactivestate = false;
 	V_Image_t* PausePic;
+	int32_t Junk;
 	
 	if (dedicated)
 		return;
@@ -263,14 +264,9 @@ void D_Display(void)
 			F_Drawer();
 			break;
 		
-			// GhostlyDeath <June 21, 2012> -- Waiting for players
+			// Lobby
 		case GS_WAITINGPLAYERS:
-			D_WaitingPlayersDrawer();
-			break;
-			
-			// GhostlyDeath <August 24, 2012> -- Waiting for join window
-		case GS_WAITFORJOINWINDOW:
-			D_WFJWDrawer();
+			D_SNDrawLobby();
 			break;
 			
 		case GS_DEMOSCREEN:
@@ -297,7 +293,7 @@ void D_Display(void)
 		{
 			// the menu may draw over parts out of the view window,
 			// which are refreshed only when needed
-			if (M_ExUIActive() || menuactivestate || !viewactivestate)
+			if (menuactivestate || !viewactivestate)
 				borderdrawcount = 3;
 				
 			if (borderdrawcount)
@@ -308,75 +304,31 @@ void D_Display(void)
 		}
 		
 		// draw the view directly
-		/*if (!automapactive || automapoverlay)*/
-		{
-			// Cool demos?
-			CoolDemo = (demoplayback && g_TitleScreenDemo);
-			
-			// added 16-6-98: render the second screen
-			switch (g_SplitScreen)
-			{
-					// 3/4 Player split
-				case 2:
-				case 3:
-					for (i = 0; i < 4; i++)
-					{
-						activeylookup = ylookup4[i];
-						
-						if (i % 2 == 1)
-							viewwindowx = vid.width / 2;
-						else
-							viewwindowx = 0;
-						
-						if (i > 1)
-							viewwindowy = vid.height / 2;
-						else
-							viewwindowy = 0;
-						
-						if (ST_CheckDrawGameView(i))	
-							R_RenderPlayerView(P_SpecGetPOV(i), i);
-						
-#if 0
-							V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0,
-									((i == 1 || i == 3) ? vid.width >> 1 : 0),
-							        ((i == 2 || i == 3) ? vid.height >> 1 : 0),
-							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
-							        (((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
-								);
-#endif
-								
-						viewwindowx = 0;
-						viewwindowy = 0;
-					}
-					break;
-					
-					// 1 Full, 2 player split
-				case 1:
-					viewwindowy = vid.height / 2;
-					activeylookup = ylookup;
-					memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
-					
-					if (ST_CheckDrawGameView(1))
-						R_RenderPlayerView(P_SpecGetPOV(1), 1);
-					
-					//V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
-						
-					viewwindowy = 0;
-					activeylookup = ylookup;
-					memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
-				case 0:
-				default:
-					activeylookup = ylookup;
-					
-					// Real Player
-					if (ST_CheckDrawGameView(0))
-						R_RenderPlayerView(P_SpecGetPOV(0), 0);
-					break;
-			}
-		}
+		CoolDemo = (demoplayback && g_TitleScreenDemo);
 		
-		/*if (automapactive && automapoverlay)
-			AM_Drawer();*/
+		// Better render loop
+		for (i = 0; i < g_SplitScreen + 1; i++)
+			if (ST_CheckDrawGameView(i))
+			{
+				// Calc screen size
+				ST_CalcScreen(i, &viewwindowx, &viewwindowy, &Junk, &Junk);
+			
+				// Use certain y lookup
+				if (g_SplitScreen >= 2)
+					activeylookup = ylookup4[i];
+				else if (g_SplitScreen == 1)
+				{
+					if (i == 1)
+						activeylookup = ylookup2;
+					else
+						activeylookup = ylookup1;
+				}
+				else
+					activeylookup = ylookup;
+			
+				// Draw game view
+				R_RenderPlayerView(P_SpecGetPOV(i), i);
+			}
 		
 		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
 		ST_DrawPlayerBarsEx();
@@ -386,7 +338,7 @@ void D_Display(void)
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
 		
-	menuactivestate = M_ExUIActive();
+	menuactivestate = M_SMFreezeGame();
 	oldgamestate = wipegamestate = gamestate;
 	
 	// draw pause pic
@@ -437,6 +389,9 @@ void D_Display(void)
 //#endif
 	}
 	
+	// Simple Networking Drawiung below everything
+	D_SNDrawer();
+	
 	// GhostlyDeath <September 5, 2012> -- Joystick specials
 	D_JoySpecialDrawer();
 	
@@ -444,7 +399,6 @@ void D_Display(void)
 	CONL_DrawConsole(false);
 	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
-	M_ExUIDrawer();
 	M_SMDrawer();
 	
 	// GhostlyDeath <March 22, 2013> -- Draw big dropped down console over menus
@@ -452,7 +406,6 @@ void D_Display(void)
 	
 	// GhostlyDeath <May 5, 2012> -- Update Music
 	I_UpdateMusic();
-	
 	
 	//I_BeginProfile();
 	if (!noblit)
@@ -486,7 +439,6 @@ void D_Display(void)
 	
 	// GhostlyDeath <March 10, 2013> -- Run a tic on wipe (for networking)
 	TryRunTics(0, NULL);
-	D_XNetForceLag();	// force lag so the game doesn't speed up after wipe
 	g_IgnoreWipeTics = 1;	// And start ignoring wipe tics
 	
 	wipestart = I_GetTime() - 1;
@@ -508,12 +460,7 @@ void D_Display(void)
 		// Do other stuff
 		I_OsPolling();
 		I_UpdateNoBlit();
-		M_ExUIDrawer();
-		
-		// GhostlyDeath <March 27, 2013> -- Update network here to prevent lag outs
-		if (!i)	// But not every draw, wastes updates
-			D_XNetUpdate();
-		i = !i;
+		M_SMDrawer();
 		
 		if (!noblit)
 			I_FinishUpdate();		// page flip or blit buffer
@@ -603,7 +550,7 @@ void D_DoomLoop(void)
 	}
 	
 	// Auto start?
-	else if (NG_IsAutoStart() || D_XNetIsServer() || D_XNetIsConnected())
+	else if (NG_IsAutoStart() || D_SNIsConnected() || D_SNHasSocket())
 	{
 		// Do nothing?
 	}
@@ -771,7 +718,7 @@ void D_DoomLoop(void)
 				I_WaitVBL(TICSPERMS - DiffTime);
 				
 				// Update network state when leaving loop
-				D_XNetUpdate();
+				//D_XNetUpdate();
 			}
 		}
 	}
@@ -811,249 +758,6 @@ void D_PageDrawer(const char* const a_LumpName)
 	V_ImageUsage(Image, true);
 	V_ImageDraw(0, Image, 0, 0, NULL);
 	V_ImageUsage(Image, false);
-}
-
-/* D_WaitingPlayersDrawer() -- Draws waiting players */
-// Before map start
-void D_WaitingPlayersDrawer(void)
-{
-#define BUFSIZE 64
-	char Buf[BUFSIZE];
-	static V_Image_t* BGImage;
-	int32_t i, y, ya, sw, Stage, Col[2];
-	uint32_t DrawFlags, DrawColor;
-	
-	D_XPlayer_t* Player;
-	
-	/* Draw a nice picture */
-	// Load it first
-	if (!BGImage)
-		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
-	
-	// Draw it
-	V_ImageDraw(0, BGImage, 0, 0, NULL);
-	
-	/* Draw Text */
-	// Notice
-	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFGS_TITLE), 10, 10);
-	
-	/* Draw players and clients */
-#if 1
-	// Base position
-	ya = V_FontHeight(VFONT_SMALL);
-	ya += (ya >> 1);
-	
-	// Multi-stage drawing
-	for (DrawFlags = Stage = 0; Stage < 2; Stage++)
-	{
-		// Move y around
-		y = 10 + V_FontHeight(VFONT_LARGE) + ya;
-		Col[0] = 10;
-		Col[1] = 310;
-		
-		// Draw Titles
-		if (Stage)
-		{
-			// Players
-			V_DrawStringA(
-					VFONT_SMALL,
-					VFO_COLOR(VEX_MAP_BRIGHTWHITE),
-					DS_GetString(DSTR_WFGS_PLAYERNAME),
-					Col[0], y
-				);
-			
-			// Ping
-			sw = V_StringWidthA(VFONT_SMALL, 0, DS_GetString(DSTR_WFGS_PING));
-			V_DrawStringA(
-					VFONT_SMALL,
-					VFO_COLOR(VEX_MAP_BRIGHTWHITE),
-					DS_GetString(DSTR_WFGS_PING),
-					Col[1] - sw, y
-				);
-			
-			y += ya;
-		}
-		
-		// Skip title
-		else
-			y += ya;
-		
-		if (DrawFlags & VFO_NOSCALEPATCH)
-		{
-			y = FixedMul(y << FRACBITS, vid.fxdupy) >> FRACBITS;
-			Col[0] = FixedMul(Col[0] << FRACBITS, vid.fxdupx) >> FRACBITS;
-			Col[1] = FixedMul(Col[1] << FRACBITS, vid.fxdupx) >> FRACBITS;
-		}
-		
-		// Draw all listed players
-		for (i = 0; i < g_NumXPlays; i++)
-		{
-			// Get player
-			Player = g_XPlays[i];
-			
-			// Nothing here?
-			if (!Player)
-				continue;
-			
-			// Quick step, how big to draw the stuff
-			if (!Stage)
-			{
-				y += ya;
-				continue;
-			}
-			
-			// Determine how to draw the player's name
-				// They are playing
-			if (Player->Player)
-			{
-				DrawColor = 0;
-				
-				if (Player->Flags & (DXPF_NOLOGIN | DXPF_BOT | DXPF_DEMO))
-					snprintf(Buf, BUFSIZE, "%s",
-							player_names[Player->Player - players]
-						);
-				else
-					snprintf(Buf, BUFSIZE, "%s (%s^%s)",
-							player_names[Player->Player - players],
-							Player->AccountName,
-							Player->AccountServer
-						);
-			}
-				// Spectating or otherwise
-			else
-			{
-				DrawColor = VFO_COLOR(VEX_MAP_GRAY);
-				
-				if (Player->Flags & (DXPF_NOLOGIN | DXPF_BOT | DXPF_DEMO))
-					snprintf(Buf, BUFSIZE, "%s",
-							Player->AccountName
-						);
-				else
-					snprintf(Buf, BUFSIZE, "%s^%s",
-							Player->AccountName,
-							Player->AccountServer
-						);
-			}
-			
-			// Draw their name
-			V_DrawStringA(
-						VFONT_SMALL,
-						DrawColor | DrawFlags,
-						Buf,
-						Col[0], y
-					);
-			
-			// Draw Ping
-				// Bot
-			if (Player->Flags & DXPF_BOT)
-				snprintf(Buf, BUFSIZE, "%s", DS_GetString(DSTR_WFGS_BOT));
-			
-				// Server Host
-			else if (Player->Flags & DXPF_SERVER)
-				snprintf(Buf, BUFSIZE, "%s", DS_GetString(DSTR_WFGS_HOST));
-				
-				// Everyone else
-			else
-				snprintf(Buf, BUFSIZE, "%i ms", Player->Ping);
-				
-			// Draw their name
-			sw = V_StringWidthA(VFONT_SMALL, DrawFlags, Buf);
-			V_DrawStringA(
-						VFONT_SMALL,
-						DrawColor | DrawFlags,
-						Buf,
-						Col[1] - sw, y
-					);
-			
-			// Increase y
-			y += ya;
-		}
-		
-		// Down scale the text?
-		if (!Stage && y >= 190)
-			DrawFlags |= VFO_NOSCALEPATCH | VFO_NOSCALESTART;
-	}
-#else
-	// Double stage drawing (if lots of people, don't scale!)
-	DrawFlags = 0;
-	for (Stage = 0; Stage < 2; Stage++)
-	{
-		// Players currently inside
-		ya = V_FontHeight(VFONT_SMALL);
-		ya += (ya >> 1);
-		y = 10 + V_FontHeight(VFONT_LARGE) + ya;
-		
-		for (i = 0; i < MAXPLAYERS + 1; i++)
-		{
-			if (i > 0 && !playeringame[i - 1])
-				continue;
-		
-			// Player Name
-			if (Stage > 0)
-			{
-				V_DrawStringA(
-						VFONT_SMALL,
-						(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)) | DrawFlags,
-						(i > 0 ? player_names[i - 1] : DS_GetString(DSTR_WFGS_PLAYERNAME)),
-						10, y
-					);
-		
-				// Find net client, possibly
-				NC = NULL;
-				if (i > 0)
-					NC = D_NCFindClientByPlayer(&players[i - 1]);
-		
-				// Ping
-				if (i == 0)
-					snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
-				else if (false)//(demoplayback)
-					snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
-				else if (NC && NC->IsServer)
-					snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
-				else
-					snprintf(Buf, BUFSIZE - 1, "%i ms", players[i - 1].cmd.Ctrl.Ping);
-		
-				// Get width
-				sw = V_StringWidthA(VFONT_SMALL, 0, Buf);
-				V_DrawStringA(
-						VFONT_SMALL,
-						(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)) | DrawFlags,
-						Buf,
-						310 - sw, y
-					);
-			}
-			
-			// Add to y
-			y += ya;
-		}
-	
-		/* Spectators */
-		for (Spec = D_NCSIterSpec(NULL); Spec; Spec = D_NCSIterSpec(Spec))
-		{
-			if (Stage > 0)
-			{
-				// Player Name
-				V_DrawStringA(
-						VFONT_SMALL,
-						VFO_COLOR(VEX_MAP_GRAY) | DrawFlags,
-						Spec->AccountName,
-						10, y
-					);
-			}
-		
-			// Increase Y
-			y += ya;
-		}
-		
-		// Y past screen?
-		if (y > 180)
-			DrawFlags |= VFO_NOSCALEPATCH;
-	}
-#endif
-	
-	/* Draw Mouse */
-	CONL_DrawMouse();
-#undef BUFSIZE
 }
 
 /* D_WFJWDrawer() -- Waiting for join window */
@@ -1214,12 +918,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom II: Hell on Earth
 	{
 		"Doom II: Hell on Earth",
+		"doom2",
 		"doom2\0doomii\0doomtwo\0commercial\0hellonearth\0\0",
 		"doom2.wad\0\0",
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
 		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
-		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0\0\0",
 		14604584,
 		2919,
 		
@@ -1236,12 +942,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// TNT Evilution
 	{
 		"TNT: Evilution",
+		"tnt",
 		"tnt\0evilution\0\0",
 		"tnt.wad\0\0",
 		"109bf7725eeb8b11cc30cd42c81d9ae4",
 		"4e158d9953c79ccf97bd0663244cc6b6",
 		"9fbc66aedef7fe3bae0986cdb9323d2b8db4c9d3",
-		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0\0\0",
 		14604584,
 		3101,
 		
@@ -1258,12 +966,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// The Plutonia Experiment
 	{
 		"The Plutonia Experiment",
+		"plutonia",
 		"plutonia\0theplutoniaexperiment\0plutoniaexperiment\0\0",
 		"plutonia.wad\0\0",
 		"7ee851eb6711fa859dd3c649402382d5",
 		"75c8cf89566741fa9d22447604053bd7",
 		"90361e2a538d2388506657252ae41aceeb1ba360",
-		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0\0\0",
 		17373080,
 		2984,
 		
@@ -1280,12 +990,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// The Ultimate Doom
 	{
 		"The Ultimate Doom",
+		"ultimatedoom",
 		"ultimatedoom\0udoom\0doomu\0retail\0thyfleshconsumed\0tfc\0\0",
 		"doom.wad\0doomu.wad\0ultfdoom.wad\0\0",
 		"befb2905b2b5df3e43a36e84e920f71f",
 		"c4fe9fd920207691a9f493668e0a2083",
 		"9b07b02ab3c275a6a7570c3f73cc20d63a0e3833",
-		"E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0DPHOOF\0BFGGA0\0HEADA1\0CYBRA1\0SPIDA1D1\0E4M1\0E4M2\0E4M3\0E4M4\0E4M5\0E4M6\0E4M7\0E4M8\0E4M9\0\0",
+		"!FREEDOOM\0E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0DPHOOF\0BFGGA0\0HEADA1\0CYBRA1\0SPIDA1D1\0E4M1\0E4M2\0E4M3\0E4M4\0E4M5\0E4M6\0E4M7\0E4M8\0E4M9\0\0",
+		"!FREEDOOM\0\0\0",
 		12408292,
 		2306,
 		
@@ -1302,12 +1014,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom Registered
 	{
 		"Doom Registered",
+		"doom",
 		"registereddoom\0doomregistered\0doomr\0rdoom\0registered\0\0",
 		"doom.wad\0doomr.wad\0\0",
 		"69abda21496c137592f70edb9e3f08fe",
 		"1cd63c5ddff1bf8ce844237f580e9cf3",
 		"7742089b4468a736cadb659a7deca3320fe6dcbd",
-		"E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0DPHOOF\0BFGGA0\0HEADA1\0CYBRA1\0SPIDA1D1\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0DPHOOF\0BFGGA0\0HEADA1\0CYBRA1\0SPIDA1D1\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0\0\0",
 		11124736,
 		2194,
 		
@@ -1324,12 +1038,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom Shareware
 	{
 		"Doom Shareware",
+		"sharewaredoom",
 		"sharewaredoom\0doomshareware\0shareware\0doom1\0kneedeepinthedead\0kditd\0\0",
 		"doom1.wad\0\0",
 		"b9e51b0a0174fb0f52f0f641a06164d7",
 		"f0cefca49926d00903cf57551d901abe",
 		"5b2e249b9c5133ec987b3ea77596381dc0d6bc1d",
-		"!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!DPHOOF\0!BFGGA0\0!HEADA1\0!CYBRA1\0!SPIDA1D1\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!DPHOOF\0!BFGGA0\0!HEADA1\0!CYBRA1\0!SPIDA1D1\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"!FREEDOOM\0\0\0",
 		4196020,
 		1264,
 		
@@ -1346,19 +1062,21 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// FreeDoom
 	{
 		"FreeDoom",
+		"freedoom",
 		"freedoom2\0freedoomii\0freedoomtwo\0freecommercial\0freehellonearth\0\0",
 		"freedoom.wad\0freedm.wad\0\0",
 		NULL,
 		NULL,
 		NULL,
-		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"FREEDOOM\0MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
+		"FREEDOOM\0\0",
 		0,
 		0,
 		
 		CG_DOOM,
 		false,
 		"MI_FDOM2",
-		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
+		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL | CIF_FREEDOOM,
 		"map##",
 		
 		doom2,
@@ -1368,12 +1086,14 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Heretic Extended
 	{
 		"Heretic: Shadow of the Serpent Riders",
+		"hereticext",
 		"hereticssr\0hereticsotsr\0hereticsosr\0\0",
 		"heretic.wad\0blasphem.wad\0\0",
 		"29ec38a4b4a0892a70dee3b8c81d7dee:3117e399cdb4298eaa3941625f4b2923",
 		"66d686b1ed6d35ff103f15dbd30e0341",
 		"f489d479371df32f6d280a0cb23b59a35ba2b833",
 		"ADVISOR\0M_HTIC\0BARBACK\0E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0E4M1\0E4M2\0E4M3\0E4M4\0E4M5\0E4M6\0E4M7\0E4M8\0E4M9\0\0E5M1\0E5M2\0E5M3\0E5M4\0E5M5\0E5M6\0E5M7\0E5M8\0E5M9\0\0",
+		NULL,
 		0,//12408292,
 		2633,//2306,
 		
@@ -1396,7 +1116,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Hexen Shareware
 
 	/* Last */
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, 0, "", 0}
+	{NULL, "indeterminate", NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, 0, "", 0}
 };
 
 // l_BlockSums -- Checksums to disallow downloading from
@@ -1764,6 +1484,43 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 				}
 			}
 		}
+		
+		// Conf = 35 :: Unique lumps in WAD
+		for (j = 0;; j++)
+		{
+			// Get field
+			Field = D_FieldNumber(c_IWADInfos[i].BonusLumps, j);
+			
+			// No more?
+			if (!Field)
+				break;
+			
+			// Check based on field
+			else
+			{
+				// If Field starts with !, it is NOT in the WAD
+				Match = true;
+				if (Field[0] == '!')
+				{
+					Match = false;
+					Field++;	// Remove !
+				}
+				
+				// Find in WAD
+				if ((WL_FindEntry(BaseWAD, 0, Field) != NULL) == Match)
+				{
+					Confidence[i] += 35;
+					TotalScore += 35;
+				}
+				
+				// Not found
+				else
+				{
+					Confidence[i] -= 35;
+					TotalScore -= 35;
+				}
+			}
+		}
 	}
 	
 	/* Find the best match */
@@ -1790,6 +1547,9 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	
 	g_IWADMapInfoName = c_IWADInfos[Best].MapInfoLump;
 	g_IWADFlags = c_IWADInfos[Best].Flags;
+	
+	/* Do not convey FreeDoom */
+	g_IWADFlags &= ~CIF_FREEDOOM;
 	
 	/* Based on core game, modify generic sounds */
 	switch (g_CoreGame)
@@ -2222,8 +1982,7 @@ void D_JoySpecialTicker(void)
 			}
 			
 			// Not Active
-			if (!(M_ExPlayerUIActive(i) ||
-				(i == 0 && CONL_IsActive()) ||
+			if (!((i == 0 && CONL_IsActive()) ||
 				CONL_OSKIsActive(i) || M_SMGenSynth(i)))
 			{
 				// Trash events to prevent retriggers
@@ -2334,7 +2093,7 @@ void D_JoySpecialTicker(void)
 			if (WantForJoy[i])
 			{
 				// Add local player (super handled)
-				D_NCLocalPlayerAdd(NULL, false, WantForJoy[i], i, true);
+				//D_NCLocalPlayerAdd(NULL, false, WantForJoy[i], i, true);
 		
 				// Clear time
 				l_JoyTime[WantForJoy[i] - 1] = 0;
@@ -2368,7 +2127,7 @@ void D_JoySpecialDrawer(void)
 	
 	/* Do not draw if no menu of sort is active */
 	// Also don't draw if we -playdemo
-	LastOK = CONL_IsActive() || M_ExUIActive();
+	LastOK = CONL_IsActive() || M_SMMenuVisible();
 	
 	if (!LastOK && (G_GetDemoExplicit() || (!demoplayback && gamestate == GS_LEVEL)))
 		return;
@@ -2550,8 +2309,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	/* Synthetic OSK Events */
 	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
 		// Only if a menu is active, console, chat string, etc.
-		if ((M_ExPlayerUIActive(RealPlayer) ||
-			(RealPlayer == 0 && CONL_IsActive()) ||
+		if (((RealPlayer == 0 && CONL_IsActive()) ||
 			CONL_OSKIsActive(RealPlayer) ||
 			M_SMGenSynth(RealPlayer) ||
 			(gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)))
@@ -2624,9 +2382,9 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	return false;
 }
 
-//
-// D_DoomMain
-//
+extern wbstartstruct_t wminfo;
+
+/* D_DoomMain() -- Main Doom Code */
 void D_DoomMain(void)
 {
 	int i;
@@ -2666,6 +2424,7 @@ void D_DoomMain(void)
 	memset(team_names, 0, sizeof(team_names));
 	memset(players, 0, sizeof(players));
 	memset(g_Splits, 0, sizeof(g_Splits));
+	memset(&wminfo, 0, sizeof(wminfo));
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		sprintf(player_names[i], "Player %i", i + 1);
@@ -2726,12 +2485,10 @@ void D_DoomMain(void)
 	M_CheatInit();						// Initialize Cheats
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
-	M_MenuExInit();						// Initialize Menu
 	M_SMInit();							// Simple Menus
 	G_PrepareDemoStuff();				// Demos
-	M_DoMappedVars();					// Mapped Vars
-	B_InitBotCodes();					// Initialize bot coding
-	D_CheckNetGame();					// initialize net game
+	//B_InitBotCodes();					// Initialize bot coding
+	//D_CheckNetGame();					// initialize net game
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
@@ -2938,22 +2695,16 @@ void D_DoomMain(void)
 			NG_SetAutoStart(true);
 		}
 	
-	// Initial Server?
-		// XNIS() calls XNMS() which calls NG_ApplyVars()
-	//if (NG_IsAutoStart())
-		D_XNetInitialServer();
+	// Initialize server
+	D_SNServerInit();
 	
 	// Process all + parms
 		// Commands like other things
 	M_PushSpecialParameters();
 	
 	// Warp to map and reset new vars
-	if (NG_IsAutoStart() || D_XNetIsServer())
-	{
-		NG_WarpMap();
-		
+	if (NG_IsAutoStart())
 		NG_ResetVars();
-	}
 
 	// ++ args are done at the first gametic	
 	

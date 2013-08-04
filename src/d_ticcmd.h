@@ -91,7 +91,8 @@ enum
 #define TICCMD_INVACTSHIFT	UINT32_C(0)			// Action Shift
 #define TICCMD_INVACTMASK	UINT32_C(0x3)		// Action Mask
 
-#define MAXTCWEAPNAME						32	// Max length for weapon name
+#define MAXTCSTRINGCAT					48		// Max length for string cat
+#define MAXTCWEAPNAME					32		// Max length for weapon name
 #define MAXTCDATABUF					384		// Data Buffer size
 
 #define TICPINGSIGNALSHIFT UINT16_C(14)
@@ -151,22 +152,20 @@ void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID);
 enum
 {
 	DTCT_NULL,									// NULL
-	DTCT_JOIN,									// Join Sub Command
+	
+	// Simple Networking
+	DTCT_SNJOINPLAYER,							// Player Joins
 	DTCT_MAPCHANGE,								// Change the map
 	DTCT_GAMEVAR,								// Game Variable
-	DTCT_PART,									// Part Game
-	DTCT_ADDSPEC,								// Add Spectator
-	
-	// Extended
-	DTCT_XKICKPLAYER,							// Kick Player
-	DTCT_XADDPLAYER,							// Adds a new player
-	DTCT_XJOINPLAYER,							// Joins player
 	DTCT_XCHANGEMONSTERTEAM,					// Changes Monster Team
 	DTCT_XMORPHPLAYER,							// Morph Player
-	DTCT_XSPECPLAYER,							// Spectate Player
-	DTCT_XPLAYERPREFSTR,						// Player Preference (String)
-	DTCT_XPLAYERPREFINT,						// Player Preference (Int)
-	DTCT_XCHATFRAG,								// Chat fragment
+	DTCT_SNQUITREASON,							// Reason for quitting
+	DTCT_SNCLEANUPHOST,							// Tell clients to cleanup host
+	DTCT_SNJOINHOST,							// Host Joins
+	DTCT_SNPARTPLAYER,							// Player parts
+	DTCT_SNJOINPORT,							// Port is joined
+	DTCT_SNCHATFRAG,							// Chat Fragment
+	DTCT_SNPORTSETTING,							// Setting of port
 	
 	NUMDTCT
 };
@@ -177,6 +176,12 @@ typedef enum D_TCJoinFlags_e
 	DTCJF_ISBOT						= 0x0001,	// Is a Bot
 	DTCJF_MONSTERTEAM				= 0x0002,	// On monster team
 } D_TCJoinFlags_t;
+
+/* D_TCStatFlags_t -- Status Flags */
+typedef enum D_TCStatFlags_e
+{
+	DTSF_LOCALSTICK		= UINT32_C(0x00000001),	// Local client is sticking
+} D_TCStatFlags_t;
 
 /* D_DiffBits_t -- Diff bits */
 typedef enum D_DiffBits_e
@@ -206,21 +211,35 @@ typedef enum D_DiffBits_e
 
 extern const int32_t c_TCDataSize[NUMDTCT];
 
-/* D_XNetSyncCodeInfo_t -- Sync Code Data (sync debugging) */
-typedef struct D_XNetSyncCodeInfo_s
+
+/* D_SNTicBufVersion_t -- TicBuf version number */
+// This is for net compat, but mostly for demos!
+typedef enum D_SNTicBufVersion_s
+{
+	DXNTBV_ILLEGALVERSION,						// Illegal Version	
+	
+	DXNTBV_VER20130327,							// 2013/03/27
+	DXNTBV_VER20130731,							// 2013/07/31
+	
+	DXNTBV_LATEST = DXNTBV_VER20130731,			// Lastest Version
+} D_SNTicBufVersion_t;
+
+
+/* D_SNSyncCodeInfo_t -- Sync Code Data (sync debugging) */
+typedef struct D_SNSyncCodeInfo_s
 {
 	uint32_t Code;								// Generated Code
-} D_XNetSyncCodeInfo_t;
+} D_SNSyncCodeInfo_t;
 
-/* D_XNetTicBuf_t -- Tic Command Buffer */
-typedef struct D_XNetTicBuf_s
+/* D_SNTicBuf_t -- Tic Command Buffer */
+typedef struct D_SNTicBuf_s
 {
 	tic_t GameTic;								// Gametic to run at
 	uint32_t SyncCode;							// Synchronization Code
 	bool_t GotTic;								// Got tic
 	ticcmd_t Tics[MAXPLAYERS + 1];				// Tic Commands
 	uint32_t PIGRevMask;						// Player in reverse game mask
-} D_XNetTicBuf_t;
+} D_SNTicBuf_t;
 
 #endif
 

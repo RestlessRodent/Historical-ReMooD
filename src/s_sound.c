@@ -1120,16 +1120,14 @@ void S_ChangeMusicName(char* name, int looping)
 #define BUFSIZE 24
 	size_t i;
 	char NameBuf[BUFSIZE];
+	int NewSong;
 	
 	/* Check */
 	if (!l_MusicOK || !name)
 		return;
-		
-	/* If a song is already playing */
-	if (l_CurrentSong)
-		S_StopMusic();
 	
 	/* Double check */
+	NewSong = 0;
 	for (i = 0; i < 2; i++)
 	{
 		// Prepend the D_ prefix?
@@ -1138,10 +1136,10 @@ void S_ChangeMusicName(char* name, int looping)
 		C_strupr(NameBuf);
 		
 		// Call the interface
-		l_CurrentSong = I_RegisterSong(NameBuf);
+		NewSong = I_RegisterSong(NameBuf);
 	
 		// Failed?
-		if (!l_CurrentSong)
+		if (!NewSong)
 		{
 			if (!i)
 				continue;
@@ -1152,8 +1150,17 @@ void S_ChangeMusicName(char* name, int looping)
 		// Otherwise, it worked
 		break;
 	}
+	
+	/* Already listening to this song? */
+	if (NewSong == l_CurrentSong)
+		return;
+	
+	/* If a song is already playing */
+	if (l_CurrentSong)
+		S_StopMusic();
 		
 	/* Start playing the song */
+	l_CurrentSong = NewSong;
 	I_PlaySong(l_CurrentSong, looping);
 	
 	// Change volume (in case of new driver, volume will be lost)

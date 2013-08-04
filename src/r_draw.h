@@ -122,7 +122,7 @@ void R_RecalcFuzzOffsets(void);
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
 
-void R_InitViewBuffer(int width, int height);
+void R_InitViewBuffer(int width, int height, int yextra);
 
 void R_InitViewBorder(void);
 

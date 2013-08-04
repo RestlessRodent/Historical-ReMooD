@@ -59,6 +59,7 @@ typedef enum
 	
 	// GhostlyDeath <May 17, 2012> -- Waiting for join window
 	GS_WAITFORJOINWINDOW,						// Player must wait to join
+	
 } G_State_t;
 
 typedef enum

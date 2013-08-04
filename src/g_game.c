@@ -349,23 +349,6 @@ void G_DoLoadLevel(bool_t resetplayer)
 {
 }
 
-/* GS_XAddPlayerCB() -- Add player callback */
-static void GS_XAddPlayerCB(D_XPlayer_t* const a_Player, void* const a_Data)
-{
-	D_XPlayer_t* CopyFrom;
-	
-	/* Get one to copy from */
-	CopyFrom = a_Data;
-	
-	/* Set copies */
-	a_Player->Flags |= CopyFrom->Flags;
-	a_Player->ID = CopyFrom->ID;
-	a_Player->HostID = CopyFrom->HostID;
-	a_Player->ClProcessID = CopyFrom->ClProcessID;
-	
-	strncpy(a_Player->AccountName, CopyFrom->AccountName, MAXPLAYERNAME);
-	strncpy(a_Player->AccountCookie, CopyFrom->AccountCookie, MAXPLAYERNAME);
-}
 
 // a_ChatPrefix -- Chat prefix for player screens
 static const char* const a_ChatPrefix[4] =
@@ -376,7 +359,7 @@ static const char* const a_ChatPrefix[4] =
 /* GS_HandleExtraCommands() -- Handles extra commands */
 static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 {
-	const uint8_t* Rp, *Rb, *Re;
+	const uint8_t* Rp, *Rb, *Re, *Next;
 	uint8_t Command;
 	
 	int i, j, k, l;
@@ -384,7 +367,6 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	D_Prof_t* Profile;
 	player_t* Player;
 	mobj_t* Mo;
-	D_XJoinPlayerData_t JoinDat;
 	
 	uint32_t u32[6];
 	int32_t i32[6];
@@ -394,11 +376,6 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	char NameBuf[MAXTCCBUFSIZE + MAXTCCBUFSIZE + 1];
 	char AltBuf[MAXTCCBUFSIZE + MAXTCCBUFSIZE + 1];
 	bool_t OK, LegalMove;
-	
-	B_Bot_t* NewBot;
-	
-	D_XPlayer_t* XPlayer, *Target;
-	D_XPlayer_t Clone;
 	
 	/* Get pointer base */
 	if (a_TicCmd->Ctrl.Type == 1)
@@ -413,13 +390,19 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	}
 	
 	/* Constantly Read Bits */
+	Next = Rp;
 	do
 	{
+		// Read Next Command
+		Rp = Next;
 		Command = ReadUInt8((uint8_t**)&Rp);
 		
 		// Don't overflow! untrusted!
-		if (Command < 0 || Command >= NUMDTCT)
+		if (Command <= 0 || Command >= NUMDTCT)
 			break;
+		
+		// Determine next command to read
+		Next = Rp + c_TCDataSize[Command];
 			
 		// Not big enough?
 		if ((uintptr_t)(Rp + c_TCDataSize[Command]) > (uintptr_t)(Re))
@@ -432,189 +415,16 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 		// Which command?
 		switch (Command)
 		{
-				// Spectate Player
-			case DTCT_XSPECPLAYER:
-				// Read Data
-				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				
-				// Locate player ID
-				XPlayer = D_XNetPlayerByID(u32[0]);
-				
-				// Kill player object from game
-				if (u16[0] < MAXPLAYERS && playeringame[u16[0]])
-				{
-					// Get player's object
-					Mo = players[u16[0]].mo;
-				
-					// Remove object binding
-					if (Mo)
-						Mo->player = NULL;
-					players[u16[0]].mo = NULL;
-				
-					// Set the player as not in game
-					playeringame[u16[0]] = false;
-			
-					// Kill object, if it exists
-						// Don't remove it, corpse cleanup will get to it eventually
-						// Do not kill monster if counter-op
-					if (Mo)
-						if (!P_GMIsCounter() || (P_GMIsCounter() && !players[u16[0]].CounterOpPlayer))
-							P_KillMobj(Mo, Mo, Mo);
-						
-					// Make XPlayer not play anymore
-					if (XPlayer)
-					{
-						XPlayer->InGameID = -1;
-						XPlayer->Player = NULL;
-						
-						if (XPlayer->Flags & DXPF_LOCAL)
-							if (XPlayer->ScreenID >= 0)
-							{
-								g_Splits[XPlayer->ScreenID].Console = -1;
-								g_Splits[XPlayer->ScreenID].Display = -1;
-							}
-					}
-					
-					// Verify Coop Spy
-					P_VerifyCoopSpy();
-				}
-				
-				// Always update scores
-				P_UpdateScores();
-				break;
-			
-				// Join Player
-			case DTCT_XJOINPLAYER:
-				// Read Data
-				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
-				u32[1] = LittleReadUInt32((const uint32_t**)&Rp);
-				u32[2] = LittleReadUInt32((const uint32_t**)&Rp);
-				u32[3] = LittleReadUInt32((const uint32_t**)&Rp);
-				u8[0] = ReadUInt8((const uint8_t**)&Rp);
-				u8[1] = ReadUInt8((const uint8_t**)&Rp);
-				u32[4] = LittleReadUInt32((const uint32_t**)&Rp);
-				
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
-					
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
-					
-				// Count players inside
-				for (i = 0, j = 0; i < MAXPLAYERS; i++)
-					if (playeringame[i])
-						j++;
-				
-				// Max player limit reached?
-				if (j >= P_XGSVal(PGS_PLMAXPLAYERS))
-					continue;
-				
-				// Build structure
-				memset(&JoinDat, 0, sizeof(JoinDat));
-				
-				JoinDat.ID = u32[0];
-				JoinDat.ProcessID = u32[1];
-				JoinDat.HostID = u32[2];
-				JoinDat.Flags = u32[3];
-				JoinDat.Color = u8[0];
-				JoinDat.CTFTeam = u8[1];
-				JoinDat.SkinHash = u32[4];
-				strncpy(JoinDat.DisplayName, NameBuf, MAXPLAYERNAME);
-				strncpy(JoinDat.HexenClass, AltBuf, MAXPLAYERNAME);
-				
-				D_XNetCreatePlayer(&JoinDat);
-				break;
-			
-				// Add Player
-			case DTCT_XADDPLAYER:
-				// Read Data
-				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
-				u32[1] = LittleReadUInt32((const uint32_t**)&Rp);
-				u32[2] = LittleReadUInt32((const uint32_t**)&Rp);
-				u8[0] = ReadUInt8((const uint8_t**)&Rp);
-				u32[3] = LittleReadUInt32((const uint32_t**)&Rp);
-				u32[4] = LittleReadUInt32((const uint32_t**)&Rp);
-				
-				for (i = 0; i < MAXPLAYERNAME; i++)
-				{
-					NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
-					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
-				}
-				
-				// Locate player ID
-				XPlayer = D_XNetPlayerByID(u32[0]);
-				
-				// Mask conveyed
-				u32[4] &= DXPF_CONVEYED;
-				
-				// If player already exists, modify settings
-				j = 0;
-				if (!XPlayer)
-				{
-					XPlayer = &Clone;
-					j = 1;
-				}
-				
-				// Setup clone
-				memset(&Clone, 0, sizeof(Clone));
-				
-				XPlayer->Flags |= u32[4] | (demoplayback ? DXPF_DEMO : 0);
-				XPlayer->ID = u32[0];
-				XPlayer->HostID = u32[1];
-				XPlayer->ClProcessID = u32[2];
-				strncpy(XPlayer->AccountName, NameBuf, MAXPLAYERNAME);
-				strncpy(XPlayer->AccountCookie, AltBuf, MAXPLAYERNAME);
-				
-				// Add it
-				if (j)
-					D_XNetAddPlayer(GS_XAddPlayerCB, XPlayer, true);
-				break;
-				
-				// Kick Player
-			case DTCT_XKICKPLAYER:
-				// Read Data
-				u16[0] = LittleReadUInt16((const uint32_t**)&Rp);
-				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
-				
-				for (i = 0; i < MAXTCCBUFSIZE; i++)
-					AltBuf[i] = ReadUInt8((const uint8_t**)&Rp);
-				
-				// Find the player's ID
-				XPlayer = D_XNetPlayerByID(u32[0]);
-				
-				if (u16[0] < MAXPLAYERS && playeringame[u16[0]])
-				{
-					// Get player's object
-					Mo = players[u16[0]].mo;
-				
-					// Remove object binding
-					if (Mo)
-						Mo->player = NULL;
-					players[u16[0]].mo = NULL;
-					players[u16[0]].XPlayer = NULL;
-					players[u16[0]].ProfileEx = NULL;
-				
-					// Set the player as not in game
-					playeringame[u16[0]] = false;
-			
-					// Kill object, if it exists
-						// Don't remove it, corpse cleanup will get to it eventually
-						// Do not kill in counter op, that is cheating
-					if (Mo)
-						if (!P_GMIsCounter() || (P_GMIsCounter() && !players[u16[0]].CounterOpPlayer))
-							P_KillMobj(Mo, Mo, Mo);
-				}
-				
-				// Kick player from game (network wise)
-				if (XPlayer)
-					D_XNetKickPlayer(XPlayer, AltBuf, true);
-					
-				// Verify Coop Spy
-				P_VerifyCoopSpy();
-				
-				// Always update scores
-				P_UpdateScores();
+				// Simple Network Commands
+			case DTCT_SNJOINPLAYER:
+			case DTCT_SNQUITREASON:
+			case DTCT_SNCLEANUPHOST:
+			case DTCT_SNJOINHOST:
+			case DTCT_SNPARTPLAYER:
+			case DTCT_SNJOINPORT:
+			case DTCT_SNCHATFRAG:
+			case DTCT_SNPORTSETTING:
+				D_SNHandleGT(Command, &Rp);
 				break;
 				
 				// Map Changes
@@ -675,156 +485,6 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				if (u32[0] >= 0 && u32[0] < MAXPLAYERS)
 					if (playeringame[u32[0]])
 						P_MorphObjectClass(players[u32[0]].mo, INFO_GetTypeByName(NameBuf));
-				break;
-				
-				// Preferences
-			case DTCT_XPLAYERPREFSTR:
-			case DTCT_XPLAYERPREFINT:
-				// Read Data
-				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
-				u16[0] = LittleReadUInt16((const uint16_t**)&Rp);
-				
-				// Read String?
-				if (Command == DTCT_XPLAYERPREFSTR)
-				{
-					for (i = 0; i < MAXPLAYERNAME + MAXPLAYERNAME; i++)
-						NameBuf[i] = ReadUInt8((const uint8_t**)&Rp);
-					
-					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], (intptr_t)NameBuf);
-				}
-				
-				// Read Integer
-				else if (Command == DTCT_XPLAYERPREFINT)
-				{
-					i32[0] = LittleReadInt32((int32_t**)&Rp);
-					
-					D_XNetPlayerPref(D_XNetPlayerByID(u32[0]), true, u16[0], i32[0]);
-				}
-				break;
-				
-				// Chat Fragment
-			case DTCT_XCHATFRAG:
-				u32[0] = LittleReadUInt32((const uint32_t**)&Rp);
-				u8[0] = ReadUInt8((const uint8_t**)&Rp);
-				u32[1] = LittleReadUInt32((const uint32_t**)&Rp);
-				
-				// Get source player
-				XPlayer = D_XNetPlayerByID(u32[0]);
-				
-				// Append to their chat line, what is in the buffer
-				j = 0;
-				if (XPlayer)
-					for (j = 0, i = 0; i < MAXTCCBUFSIZE; i++)
-					{
-						// Read character
-						u8[1] = ReadUInt8((const uint8_t**)&Rp);
-						
-						// Append visible chars
-						if (!j && u8[1])
-						{
-							if (XPlayer->ChatAt < MAXCHATLINE - 1)
-								XPlayer->ChatBuf[XPlayer->ChatAt++] = u8[1];
-							continue;
-						}
-						
-						// Already spoke?
-						if (j)
-							continue;
-						
-						// Spoken
-						j = 1;
-					}
-				
-				// Spoke?
-				for (i = 0; j && i < MAXSPLITSCREEN; i++)
-				{
-					// Split inactive?
-					if (!D_ScrSplitVisible(i))
-						continue;
-					
-					// Get XPlayer on split
-					Target = g_Splits[i].XPlayer;
-					
-					// No XPlayer on screen, but ignore missing XPlayer on demos
-					if (!demoplayback && !Target)
-						continue;
-					
-					// To Team
-					if (u8[0] == 1 || (XPlayer->InGameID >= 0 && u8[0] == 2))
-					{
-						// Get team of player
-						k = P_GetPlayerTeam(XPlayer->Player);
-						l = P_GetPlayerTeam(Target->Player);
-						
-						// Spectating or on different team
-						if (XPlayer != Target)
-							if (!Target->Player || (k == -1 || l == -1) || k != l)
-								continue;
-						
-						// Recolor team
-						u32[5] = k;
-						P_GetTeamInfo(k, &u32[5], NULL);
-						
-						// More than 10, use a
-						if (u32[5] >= 10)
-							u32[5] += 'a';
-						else
-							u32[5] += '0';
-						
-						// Colorized
-						CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATTEAM,
-								"%s%s%c",
-								a_ChatPrefix[i],
-								D_XNetGetPlayerName(XPlayer),
-								u32[5]
-							);
-					}
-					
-					// To Spectators
-					else if (u8[0] == 2 || (XPlayer->InGameID < 0 && u8[0] == 1))
-					{
-						// Screen is playing (not targetted to specs)
-						if (Target->Player)
-							continue;
-						
-						// Send message
-						CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATSPEC,
-								"%s%s",
-								a_ChatPrefix[i],
-								D_XNetGetPlayerName(XPlayer)
-							);
-					}
-					
-					// To Individual
-					else if (u8[0] == 3)
-					{
-					}
-					
-					// To All
-					else
-						CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATALL,
-								"%s%s",
-								a_ChatPrefix[i],
-								D_XNetGetPlayerName(XPlayer)
-							);
-						
-					// Append actual message
-					CONL_PrintF("%s\n", XPlayer->ChatBuf);
-					
-					// If it worked, this would have been played
-					j = 2;
-				}
-				
-				// Really spoke?
-				if (j == 2)
-					S_StartSound(NULL, sfx_generic_chat);
-					
-				// Reset chat buffer
-				if (j)
-				{
-					XPlayer->ChatAt = 0;
-					memset(XPlayer->ChatBuf, 0, sizeof(XPlayer->ChatBuf));
-				}
 				break;
 				
 			default:
@@ -949,10 +609,6 @@ void G_Ticker(void)
 		DidPP = 1;
 	}
 	
-	/* Reduce Menu */
-	if (g_ResumeMenu > 0)
-		g_ResumeMenu--;
-	
 	/* Init Code */
 	NowCode = DemoCode = 0;
 		
@@ -976,6 +632,9 @@ void G_Ticker(void)
 	if (demorecording)
 		G_WriteStartTic(NowCode);
 	
+	// start network tick
+	D_SNStartTic(gametic);
+	
 	/* Global Commands */
 	// Clear
 	memset(&GlobalCmd, 0, sizeof(GlobalCmd));
@@ -984,12 +643,12 @@ void G_Ticker(void)
 	if (demoplayback)
 		G_ReadDemoGlobalTicCmd(&GlobalCmd);
 	else
-		D_XNetMultiTics(&GlobalCmd, false, -1);
+		D_SNTics(&GlobalCmd, false, -1);
 	
 	// Write Global Tic Commands
 	if (demorecording)
 		G_WriteDemoGlobalTicCmd(&GlobalCmd);
-	D_XNetMultiTics(&GlobalCmd, true, -1);
+	D_SNTics(&GlobalCmd, true, -1);
 	
 	/* Player Commands */
 	// Read Individual Player Tic Commands
@@ -1004,12 +663,12 @@ void G_Ticker(void)
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
-				D_XNetMultiTics(cmd, false, i);
+				D_SNTics(cmd, false, i);
 			
 			// Write Command
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
-			D_XNetMultiTics(cmd, true, i);
+			D_SNTics(cmd, true, i);
 			
 			// Copy Ping
 			players[i].Ping = cmd->Ctrl.Ping;
@@ -1026,7 +685,7 @@ void G_Ticker(void)
 		G_WriteEndTic(NowCode);
 	
 	// Networking
-	D_XNetFinalCmds(gametic, NowCode);
+	D_SNSyncCode(gametic, NowCode);
 	
 	/* If playing a demo, check code comparison */
 	// Also make sure the demo supports the ReMooD sync code, otherwise there
@@ -1096,7 +755,7 @@ void G_Ticker(void)
 			GS_HandleExtraCommands(cmd, i);
 	
 	/* Remove defunct XPlayer */
-	D_XNetClearDefunct();
+	//D_XNetClearDefunct();
 	
 	// Set new time
 	g_DemoTime = gametic;
@@ -1105,10 +764,7 @@ void G_Ticker(void)
 	switch (gamestate)
 	{
 		case GS_LEVEL:
-			// Title Screen Demo Fun
-			P_SpecTicker();
-			
-			B_GHOST_Ticker();
+			//B_GHOST_Ticker();
 			P_Ticker();			// tic the game
 			ST_Ticker();
 			ST_TickerEx();
@@ -1205,7 +861,7 @@ void G_PlayerReborn(int player)
 	bool_t* RandGuns;
 	
 	D_Prof_t* PEp;
-	D_XPlayer_t* XPl;
+	D_SNPort_t* Port;
 	
 	//from Boris
 	int32_t skincolor, VTeamColor;
@@ -1217,7 +873,7 @@ void G_PlayerReborn(int player)
 	bool_t Given, CounterOp;
 	
 	PEp = players[player].ProfileEx;
-	XPl = players[player].XPlayer;
+	Port = players[player].Port;
 	
 	memcpy(frags, players[player].frags, sizeof(frags));
 	addfrags = players[player].addfrags;
@@ -1316,7 +972,7 @@ void G_PlayerReborn(int player)
 		p->ammo[i] = ammoinfo[i]->StartingAmmo;
 	
 	players[player].ProfileEx = PEp;
-	players[player].XPlayer = XPl;
+	players[player].Port = Port;
 	
 	for (i = 0; i < NUMAMMO; i++)
 		p->maxammo[i] = ammoinfo[i]->MaxAmmo;
@@ -2145,6 +1801,10 @@ void G_InitPlayer(player_t* const a_Player)
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 		a_Player->frags[i] = 0;
+	
+	/* Wipe ports and such */
+	a_Player->Port = NULL;
+	a_Player->ProfileEx = NULL;
 	
 	/* Find if the player is on the screen */
 	

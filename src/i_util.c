@@ -503,10 +503,7 @@ void I_OsPolling(void)
 		if (M_SMHandleEvent(&Event))
 			continue;
 			
-		if (M_ExUIHandleEvent(&Event))
-			continue;
-			
-		if (D_XNetHandleEvent(&Event))
+		if (D_SNHandleEvent(&Event))
 			continue;
 	}
 }
@@ -523,7 +520,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || M_ExUIActive() || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
+	New = !(dedicated || demoplayback || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{
@@ -974,16 +971,19 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 /* I_VideoUnsetBuffer() -- Unsets the video buffer */
 void I_VideoUnsetBuffer(void)
 {
+	/* Free */
+	if (!vid.HWDblBuf && vid.buffer != vid.direct)
+	{
+		if (vid.buffer)
+			I_SysFree(vid.buffer);
+		vid.buffer = NULL;
+	}
+	
 	/* Clear direct */
 	vid.rowbytes = 0;
 	vid.direct = NULL;
 	vid.width = 0;
 	vid.height = 0;
-	
-	/* Free */
-	if (vid.buffer)
-		I_SysFree(vid.buffer);
-	vid.buffer = NULL;
 }
 
 /* I_VideoSoftBuffer() -- Returns the soft buffer */
@@ -1914,8 +1914,9 @@ void I_Quit(void)
 	}
 	
 	// Disconnect from network game
-	D_XNetSendQuit();
-	D_XNetDisconnect(false);
+	//D_XNetSendQuit();
+	//D_XNetDisconnect(false);
+	D_SNDisconnect(false, "Quit ReMooD");
 	D_QuitNetGame();
 	
 	// use this for 1.28 19990220 by Kin

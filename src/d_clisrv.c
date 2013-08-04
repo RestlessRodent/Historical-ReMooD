@@ -44,7 +44,6 @@
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
-#include "d_xpro.h"
 
 //
 // NETWORKING
@@ -73,14 +72,6 @@ int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
 //  Some extra data function for handle textcmd buffer
 // -----------------------------------------------------------------
 
-static void D_Clearticcmd(int tic)
-{
-	int i;
-	
-	for (i = 0; i < MAXPLAYERS; i++)
-		netcmds[tic % BACKUPTICS][i].Std.angleturn = 0;	//&= ~TICCMD_RECEIVED;
-}
-
 #define ___STRINGIZE(x) #x
 #define __STRINGIZE(x) ___STRINGIZE(x)
 
@@ -93,34 +84,34 @@ void D_QuitNetGame(void)
 {
 }
 
-// is there a game running
-bool_t Playing(void)
-{
-	return ((playeringame[0] == 1) && !demoplayback);
-}
-
-// Copy an array of ticcmd_t, swapping between host and network uint8_t order.
-//
-static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
-{
-	int i;
-	
-	for (i = 0; i < n; src++, dst++, i++)
-	{
-		dst->Std.forwardmove = src->Std.forwardmove;
-		dst->Std.sidemove = src->Std.sidemove;
-		dst->Std.angleturn = src->Std.angleturn;
-		dst->Std.aiming = src->Std.aiming;
-		dst->Std.buttons = src->Std.buttons;
-	}
-}
-
 //
 // TryRunTics
 //
 
 extern bool_t advancedemo;
 static int load;
+
+/* D_RunSingleTic() -- Single tic is run */
+void D_RunSingleTic(void)
+{
+	// Do not do join windows in the middle of a tic!
+		// Otherwise they will miss the tic and lag out! Not to mention
+		// have a malformed save of sorts.
+		
+	// Legacy Demo Stuff
+	if (demoplayback)
+		G_DemoPreGTicker();
+	
+	// Run game ticker and increment the gametic
+	G_Ticker();
+	++gametic;
+	
+	// Legacy Demo Stuff
+	if (demoplayback)
+		G_DemoPostGTicker();
+	
+	// People can join now
+}
 
 /* TryRunTics() -- Attempts to run a single tic */
 void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
@@ -131,12 +122,34 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	static bool_t ToggleUp;
 	tic_t LocalTic, TargetTic;
 	int STRuns;
+	static tic_t LastSpecTic, LastPT;
 	
 	tic_t XXLocalTic, XXSNAR;
 	static tic_t LastNCSNU = (tic_t)-1;
 	
-	// Update music
-	I_UpdateMusic();
+	/* Basic loop stuff */
+	// Update time
+	if (singletics)
+		g_ProgramTic = gametic;
+	else
+		g_ProgramTic = I_GetTimeMS() / TICRATE;
+		
+	// This stuff is only important once a program tic
+	if (LastPT != g_ProgramTic)
+	{
+		CONL_Ticker();
+		D_JoySpecialTicker();
+		M_SMTicker();				// Simple Menu Ticker
+		
+		LastPT = g_ProgramTic;
+	}
+	
+	// Update events
+	I_OsPolling();
+	D_ProcessEvents();
+	
+	// Update network
+	D_SNUpdate();
 	
 	/* Init */
 	LocalTic = 0;
@@ -153,8 +166,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	if (singletics)
 		realtics = 1;
 	
-	D_XNetUpdate();
-	
 	if (demoplayback)
 	{
 		neededtic = gametic + realtics;
@@ -164,11 +175,18 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		tictoclear = firstticstosend;
 	}
 	
-	// Title screen?
+	// Get current time
+	LocalTic = I_GetTime();
+	
+	/* Run spectators independent of game timing */
+	// So they move around during lag and other events
+	if ((gamestate == GS_INTERMISSION || gamestate == GS_LEVEL) && LocalTic > LastTic)
+		//for (XXSNAR = LocalTic - LastTic; XXSNAR > 0; XXSNAR--)
+			P_SpecTicker();
+	
+	/* Title screen? */
 	if (gamestate == GS_DEMOSCREEN)
 	{
-		LocalTic = I_GetTime();
-		
 		// No update needed?
 		if (LocalTic <= LastTic)
 		{
@@ -188,11 +206,9 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		return;
 	}
 	
-	// Connecting?
+	/* Connecting? */
 	else if (gamestate == GS_WAITFORJOINWINDOW)
 	{
-		LocalTic = I_GetTime();
-		
 		// No update needed?
 		if (LocalTic <= LastTic)
 		{
@@ -206,13 +222,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	}
 	
 	/* While the client is behind, update it to catch up */
-	
-	// Update Tics
-	//D_NCSNetUpdateSingleTic();
-	
-	// Get current time
-	LocalTic = I_GetTime();
-	
 	// While the game is behind, update it
 	if (demoplayback)
 	{
@@ -240,7 +249,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			XXSNAR = 1;
 	}
 	else
-		XXSNAR = D_XNetTicsToRun();
+		XXSNAR = D_SNOkTics(&LocalTic, &LastTic);
 	
 	/* Set tics that were run */
 	if (a_TicRunCount)
@@ -252,25 +261,8 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		// Run tick loops
 		while ((XXSNAR--) > 0)
 		{
-			// Do not do join windows in the middle of a tic!
-				// Otherwise they will miss the tic and lag out! Not to mention
-				// have a malformed save of sorts.
-			g_LockJW = true;
-			
-			// Legacy Demo Stuff
-			if (demoplayback)
-				G_DemoPreGTicker();
-			
-			// Run game ticker and increment the gametic
-			G_Ticker();
-			++gametic;
-			
-			// Legacy Demo Stuff
-			if (demoplayback)
-				G_DemoPostGTicker();
-			
-			// Can join people now
-			g_LockJW = false;
+			// Run single tic
+			D_RunSingleTic();
 			
 			// Single tics? -timedemo
 			if (singletics)

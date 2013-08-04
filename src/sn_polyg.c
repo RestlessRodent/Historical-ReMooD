@@ -557,8 +557,8 @@ void SN_PolyFigureOutSide(SN_Poly_t** const a_A, SN_Poly_t** const a_B, int32_t 
 #undef MAXSIDES
 }
 
-typedef struct B_GhostNode_s* B_GhostNode_t;
-B_GhostNode_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
+//typedef struct B_GhostNode_s* B_GhostNode_t;
+//B_GhostNode_t* B_NodeCreate(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z);
 
 /* SNS_SubSPointOnSide() -- which side point is on */
 static int32_t SNS_SubSPointOnSide(SN_Point_t* const a_Point, void* const a_Data)
@@ -627,7 +627,7 @@ void SN_PolySplitSubS(SN_Poly_t* const a_BasePoly, subsector_t* const a_SubS)
 	a_SubS->CenterY = POLYFTOFIXED(cA.v[1]);
 	
 	// Add node there
-	B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), ONFLOORZ);
+	//B_NodeCreate(POLYFTOFIXED(cA.v[0]), POLYFTOFIXED(cA.v[1]), ONFLOORZ);
 	
 	// Set polygon
 	a_SubS->Poly = Keeper;
@@ -697,6 +697,8 @@ void SN_PolySplitNode(SN_Poly_t* const a_BasePoly, node_t* const a_Node)
 		SN_DiscardPoly((!i ? A : B));
 	}
 }
+
+extern fixed_t g_GlobalBoundBox[4];
 
 /* SN_PolygonizeLevel() -- Polygonizes the level */
 void SN_PolygonizeLevel(void)

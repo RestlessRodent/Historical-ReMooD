@@ -124,6 +124,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "MENUGENERAL_VIDSCREENLINK", "Screen Link"},
 	
 	{				"MENUQUIT_DISCONNECT", "Disconnect"},
+	{			   "MENUQUIT_PDISCONNECT", "Disconnect, Keep Playing"},
 	{			  "MENUQUIT_STOPWATCHING", "Stop Watching Demo"},
 	{			 "MENUQUIT_STOPRECORDING", "Stop Recording Demo"},
 	{					"MENUQUIT_LOGOFF", "Log Off"},
@@ -191,6 +192,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "CVHINT_VIDDRAWFPS", "Draw frames per second on the screen."},
 	
 	{			   "CVHINT_IENABLEMOUSE", "Enable mouse input."},
+	{		"CVHINT_INOFAKEDOUBLEBUFFER", "Do not fake double buffering (will cause tearing if your hardware is not capable of double buffering)."},
 	{			"CVHINT_IENABLEJOYSTICK", "Enable joystick input."},
 	{				"CVHINT_IOSSMIDIDEV", "OSS device to use when playing MIDI music. (Pathname to MIDI device such as /dev/midi)"},
 	{			   "CVHINT_IALSAMIDIDEV", "ALSA device to use when playing MIDI music. (Client:Port to MIDI device such as 128:0)"},
@@ -210,6 +212,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** NETWORK STUFF ***/
 	{				 "NET_LEVELNOTFOUND", "Level not found."},
 	{			   "NET_CLIENTCONNECTED", "Client $1{z has connected."},
+	{				 "NET_PORTCONNECTED", "Player $1{z attached controller."},
 	{				  "NET_PLAYERJOINED", "Player $1{z has joined the game."},
 	{					"NET_CLIENTGONE", "Client $1{z has disconnected ($2)."},
 	{					  "NET_NOREASON", "No reason."},
@@ -304,6 +307,14 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			   "DNETC_HOSTRESSIX", "Host \"$1\" resolves to $2$3:$4:$5:$6:$7%$8 (v6)."},
 	{			   "DNETC_INVALIDTIC", "Attempted to gather tic $1 but it was not found."},
 	
+	/*** D_TRANS.C ***/
+	{			  "DNETC_PARTIALDISC", "Partial Disconnect ($1{z)."},
+	{				 "DTRANSC_GETWAD", "Will download WAD \"$1\"."},
+	{			  "DTRANSC_BLACKLIST", "WAD \"$1\" is on blacklist, not downloading.\n"},
+	
+	/*** D_NETDRAW.C ***/
+	{			   "DNETDRAWC_PDWARN", "Server Not Responding"},
+	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
@@ -333,15 +344,15 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** IP_*.c ***/
 	{			     "DXP_CONNECTING", "{zConnecting to {9$1{z..."},
-	{				  "DXP_CLCONNECT", "{z{9$1{z has connected {6$2{z player$3!"},
-	{				  "DXP_DISCONNED", "{zDisconnected, reason: \"{9$1\"."},
+	{				  "DXP_CLCONNECT", "{z{9$1{z has connected!"},
+	{				  "DXP_DISCONNED", "{zDisconnected, reason: \"{9$1{z\"."},
 	{				  "DXP_WADHEADER", "{zWADs used by server:"},
 	{				   "DXP_WADENTRY", "{z [{4$3{z] {9$1 {z({3$2{z)"},
 	{				  "DXP_BADWADEXT", "{zWAD {9$1{z/{3$2{z has an invalid extension, due to security measures."},
 	{			"DXP_CLIENTREADYWAIT", "{z{9$1{z is waiting for next join window."},
 	{			 "DXP_WAITINGFORCONN", "{zWaiting for connection..."},
 	{				   "DXP_SENDFILE", "{zSending file \"{3$1{z\" to {9$2{z."},
-	{				   "DXP_RECVFILE", "{zReceiving file \"{3$1{z\" from {9$2{z."},
+	{				   "DXP_RECVFILE", "{zReceiving file \"{3$1{z\" into {9$2{z."},
 	{				"DXP_BADSAVELOAD", "{zFailed to load savegame \"{3$1{z\"."},
 	{			"DXP_PLAYERISPLAYING", "{9$1{z ({9$2{z) is now playing."},
 	
@@ -385,6 +396,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "PSAVEGC_LEVELLOADFAIL", "The level failed to load correctly."},
 	{		 "PSAVEGC_ILLEGALTHINKER", "An illegal thinker exists."},
 	{	   "PSAVEGC_UNHANDLEDTHINKER", "A valid thinker is not currently handled."},
+	{			"PSAVEGC_ILLEGALHOST", "Port referes to an illegal host."},
 	
 	/*** I_UTLNET.C ***/
 	{			"IUTLNET_BADUNIXBIND", "Socket bind failed: $2 ($1)"},
@@ -394,6 +406,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				"GGAMEC_CHATTEAM", "$1{x7$3<{z$2{z{x7$3 to team> {z"},
 	{				"GGAMEC_CHATSPEC", "$1{a<{z$2{z{a to spec> {z"},
 	{			   "GGAMEC_CHATINDIV", "$1{3<{z$2{z{3 to $3{z{3> {z"},
+	{				"GGAMEC_CHATPRIV", "$1{2<{z$2{z{a to you> {z"},
 	
 	/*** P_DEMCMP.C ***/
 	{               "M_PGS_NOTHINGHERE", "Nothing"},

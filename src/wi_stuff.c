@@ -288,10 +288,10 @@ typedef enum
 //#define SHOWLASTLOCDELAY      SHOWNEXTLOCDELAY
 
 // used to accelerate or skip a stage
-static int acceleratestage;
+static int32_t acceleratestage;
 
 // wbs->pnum
-static int me;
+static int32_t me;
 
 // specifies current state
 static stateenum_t state;
@@ -302,23 +302,20 @@ static wbstartstruct_t* wbs;
 static wbplayerstruct_t* plrs;	// wbs->plyr[]
 
 // used for general timing
-static int cnt;
+static int32_t cnt;
 
 // used for timing of background animation
-static int bcnt;
+static int32_t bcnt;
 
 // signals to refresh everything for one frame
-static int firstrefresh;
+static int32_t firstrefresh;
 
-static int cnt_kills[MAXPLAYERS];
-static int cnt_items[MAXPLAYERS];
-static int cnt_secret[MAXPLAYERS];
-static int cnt_time;
-static int cnt_par;
-static int cnt_pause;
-
-// # of commercial levels
-static int NUMCMAPS;
+static int32_t cnt_kills[MAXPLAYERS];
+static int32_t cnt_items[MAXPLAYERS];
+static int32_t cnt_secret[MAXPLAYERS];
+static int32_t cnt_time;
+static int32_t cnt_par;
+static int32_t cnt_pause;
 
 //
 //      GRAPHICS
@@ -328,56 +325,13 @@ static int NUMCMAPS;
 //static patch_t*       bg;
 static char bgname[9];
 
-// You Are Here graphic
-static patch_t* yah[2];
 
-// splat
-static patch_t* splat;
-
-// %, : graphics
-static patch_t* percent;
-static patch_t* colon;
-
-// 0-9 graphic
-static patch_t* num[10];
-
-// minus sign
-static patch_t* wiminus;
-
-// "Finished!" graphics
-static patch_t* finished;
-
-// "Entering" graphic
-static patch_t* entering;
-
-// "secret"
-static patch_t* sp_secret;
-
-// "Kills", "Scrt", "Items", "Frags"
-static patch_t* kills;
-static patch_t* secret;
-static patch_t* items;
-static patch_t* frags;
-
-// Time sucks.
-static patch_t* timePatch;
-static patch_t* par;
-static patch_t* sucks;
-
-// "killers", "victims"
-static patch_t* killers;
-static patch_t* victims;
-
-// "Total", your face, your dead face
-static patch_t* total;
-static patch_t* star;
-static patch_t* bstar;
-
-//added:08-02-98: use STPB0 for all players, but translate the colors
-static patch_t* stpb;
-
-// Name graphics of each level (centered)
-static patch_t** lnames;
+static bool_t snl_pointeron = false;
+static int32_t dm_frags[MAXPLAYERS][MAXPLAYERS];
+static int32_t dm_totals[MAXPLAYERS];
+static int32_t cnt_frags[MAXPLAYERS];
+static int32_t dofrags;
+static int32_t ng_state;
 
 //
 // CODE
@@ -593,8 +547,6 @@ static void WI_updateNoState(void)
 	
 }
 
-static bool_t snl_pointeron = false;
-
 static void WI_initShowNextLoc(void)
 {
 	state = ShowNextLoc;
@@ -622,9 +574,6 @@ static void WI_drawShowNextLoc(void)
 static void WI_drawNoState(void)
 {
 }
-
-static int dm_frags[MAXPLAYERS][MAXPLAYERS];
-static int dm_totals[MAXPLAYERS];
 
 static void WI_initDeathmatchStats(void)
 {
@@ -807,10 +756,6 @@ static void WI_ddrawDeathmatchStats(void)
 }
 
 */
-
-static int cnt_frags[MAXPLAYERS];
-static int dofrags;
-static int ng_state;
 
 static void WI_initNetgameStats(void)
 {
@@ -1714,6 +1659,7 @@ void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const 
 /* WI_BuildScoreBoard() -- Builds the scoreboard */
 void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter)
 {
+#if 0
 #define MAXSBLIMIT (MAXPLAYERS + MAXPLAYERS + 1)
 
 	int i, j, k;
@@ -1918,6 +1864,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 	/* Re-Rank */
 	for (i = 0; i < l_NumDrawPlayers; i++)
 		l_DrawPlayers[i].Rank = i;
+#endif
 }
 
 /* WI_initVariables() -- Initializes variables */
@@ -1987,4 +1934,88 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	else
 		WI_initStats();
 }
+
+extern wbstartstruct_t wminfo;
+
+/* WI_SaveGameHelper() -- Helps save game */
+bool_t WI_SaveGameHelper(D_BS_t* const a_BS)
+{
+	int32_t i, j;
+	
+	/* Dump variables */
+	D_BSwi32(a_BS, acceleratestage);
+	D_BSwi32(a_BS, me);
+	D_BSwi32(a_BS, state);
+	D_BSwi32(a_BS, cnt);
+	D_BSwi32(a_BS, bcnt);
+	D_BSwi32(a_BS, firstrefresh);
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		D_BSwi32(a_BS, cnt_kills[i]);
+		D_BSwi32(a_BS, cnt_items[i]);
+		D_BSwi32(a_BS, cnt_secret[i]);
+		D_BSwi32(a_BS, cnt_frags[i]);
+		D_BSwi32(a_BS, dm_totals[i]);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			D_BSwi32(a_BS, dm_frags[i][j]);
+	}
+	
+	D_BSwi32(a_BS, cnt_time);
+	D_BSwi32(a_BS, cnt_par);
+	D_BSwi32(a_BS, cnt_pause);
+	D_BSwi32(a_BS, dofrags);
+	D_BSwi32(a_BS, ng_state);
+	D_BSwu8(a_BS, snl_pointeron);
+	
+	/* Success */
+	return true;
+}
+
+/* WI_LoadGameHelper() -- Helps load game */
+bool_t WI_LoadGameHelper(D_BS_t* const a_BS)
+{
+	int32_t i, j;
+	
+	/* Load variables */
+	acceleratestage = D_BSri32(a_BS);
+	me = D_BSri32(a_BS);
+	state = D_BSri32(a_BS);
+	cnt = D_BSri32(a_BS);
+	bcnt = D_BSri32(a_BS);
+	firstrefresh = D_BSri32(a_BS);
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		cnt_kills[i] = D_BSri32(a_BS);
+		cnt_items[i] = D_BSri32(a_BS);
+		cnt_secret[i] = D_BSri32(a_BS);
+		cnt_frags[i] = D_BSri32(a_BS);
+		dm_totals[i] = D_BSri32(a_BS);
+		
+		for (j = 0; j < MAXPLAYERS; j++)
+			dm_frags[i][j] = D_BSri32(a_BS);
+	}
+	
+	cnt_time = D_BSri32(a_BS);
+	cnt_par = D_BSri32(a_BS);
+	cnt_pause = D_BSri32(a_BS);
+	dofrags = D_BSri32(a_BS);
+	ng_state = D_BSri32(a_BS);
+	snl_pointeron = D_BSru8(a_BS);
+	
+	/* These variables are always pointers of statics */
+	// Only passed one single thing, by one single function
+	wbs = &wminfo;
+	plrs = wbs->plyr;
+	
+	/* If on intermission, load data */
+	if (gamestate == GS_INTERMISSION)
+		WI_loadData();
+	
+	/* Success */
+	return true;
+}
+
 

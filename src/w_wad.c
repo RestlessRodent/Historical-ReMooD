@@ -319,7 +319,7 @@ static bool_t ZLP_EntryHashCheck(void* const a_A, void* const a_B)
 	B = a_B;
 	
 	/* Compare name */
-	if (strcasecmp(A, B->Name) == 0)
+	if (!strcasecmp(A, B->Name))
 		return true;
 		
 	// Not matched
@@ -705,7 +705,14 @@ const char* const WL_GetWADName(const WL_WADFile_t* const a_WAD, const bool_t a_
 /* WL_Iterate() -- Iterates (Virtual) WAD Files */
 const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t a_Forwards)
 {
-	WL_WADFile_t* Rover;
+	WL_WADFile_t* Rover, *First, *ReMooD;
+	
+	/* If shareware, get first and ReMooD.WAD */
+	if (g_IWADFlags & CIF_SHAREWARE)
+	{
+		First = l_LFirstVWAD;
+		ReMooD = First->NextVWAD;
+	}
 	
 	/* NULL WAD means the last/first */
 	if (!a_WAD)
@@ -718,15 +725,25 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 		else
 		{
 			// Anti-Shareware
+				// I used to just make it return remood.wad, but then you
+				// cannot play demos with shareware (or use DEH).
 			if (g_IWADFlags & CIF_SHAREWARE)
 			{
-				Rover = l_LFirstVWAD;
+				// Start at last VWAD
+				Rover = l_LLastVWAD;
 				
-				// Use the WAD after the IWAD
-				if (Rover)
-					return Rover->NextVWAD;
-				else
+				// There are no extra files
+				if (Rover == ReMooD)
 					return Rover;
+				
+				// Go to the previous WAD, provided this is a WAD
+					// LMPs and DEHs are not considered WADs
+				while (Rover && Rover != First && Rover != ReMooD &&
+						Rover->__Private.__IsWAD)
+					Rover = Rover->PrevVWAD;
+				
+				// Return the resultant WAD
+				return Rover;
 			}
 			
 			// Return the last WAD
@@ -743,19 +760,31 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 		{
 			if (a_Forwards)
 			{
-				// Return the next one if this is the first
-				if (a_WAD == l_LFirstVWAD)
-					return a_WAD->NextVWAD;
-				else
-					return NULL;
+				// Start at current WAD and go up
+				Rover = a_WAD->NextVWAD;
+				
+				// Go to the next WAD, provided this is a WAD
+					// LMPs and DEHs are not considered WADs
+				while (Rover && Rover != First && Rover != ReMooD &&
+						Rover->__Private.__IsWAD)
+					Rover = Rover->NextVWAD;
+				
+				// Return the resultant WAD
+				return Rover;
 			}
 			else
 			{
-				// Return the first WAD if this is the next after the first
-				if (a_WAD == l_LFirstVWAD->NextVWAD)
-					return l_LFirstVWAD;
-				else
-					return NULL;
+				// Start at current VWAD and go down
+				Rover = a_WAD->PrevVWAD;
+				
+				// Go to the previous WAD, provided this is a WAD
+					// LMPs and DEHs are not considered WADs
+				while (Rover && Rover != First && Rover != ReMooD &&
+						Rover->__Private.__IsWAD)
+					Rover = Rover->PrevVWAD;
+				
+				// Return the resultant WAD
+				return Rover;
 			}
 		}
 		

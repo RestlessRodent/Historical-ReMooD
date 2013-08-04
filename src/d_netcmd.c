@@ -85,17 +85,14 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	// NULL
 	0,
 	
-	// JOIN
-	4 + 2 + 4 + 4 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 HostID
-		// uint16 players[] Spot
-		// uint32 Symbols
-		// uint32 Profile Instance
-		// uint32 Process ID
-		// uint32 Unique ID
-		// uint8  Color
-		// uint8* Name
-		// uint8* Hexen Class
+	// DTCT_SNJOINPLAYER
+	4 + 4 + 1 + 1 + 1 + 4,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint8	Team Number
+		// uint8	Color
+		// uint32	Flags
 	
 	// MAP CHANGE
 	1 + 8,
@@ -107,45 +104,6 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Code
 		// int32  New Value
 	
-	// DTCT_PART, Player Leaves
-	1 + 4,
-		// uint8  Going to spectate
-		// uint32 Viewport UUID
-	
-	// DTCT_ADDSPEC, Add Spectator
-	4 + 4 + MAXPLAYERNAME,
-		// uint32 Unique ID
-		// uint32 Host ID
-		// uint8* Account Name
-	
-	// DTCT_XKICKPLAYER, Kick Player
-	2 + 4 + MAXTCCBUFSIZE,
-		// uint16 In Game ID
-		// uint32 Unique ID
-		// uint8* Reason (MAXTCCBUFSIZE)
-	
-	// DTCT_XADDPLAYER, Add Player
-	4 + 4 + 4 + 1 + 4 + 4 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 Unique ID
-		// uint32 Host ID
-		// uint32 Process ID
-		// uint8  Screen ID
-		// uint32 Reserved (set to zero)
-		// uint32 Conveyed Flags
-		// uint8* Account Name + Cookie
-	
-	// DTCT_XJOINPLAYER, Join Player
-	4 + 4 + 4 + 4 + 1 + 1 + 4 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 Player ID
-		// uint32 Process ID
-		// uint32 Host ID
-		// uint32 Flags
-		// uint8  Color
-		// uint8  CTF Team
-		// uint32 Skin Name Hash
-		// uint8* Display Name
-		// uint8* Hexen Class
-	
 	// DTCT_XCHANGEMONSTERTEAM, Change Monster Team
 	4 + 1,
 		// uint32 Player ID
@@ -155,29 +113,56 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	4 + MAXPLAYERNAME,
 		// uint32 Player ID
 		// uint8* Class to morph to
+		
+	// DTCT_SNQUITREASON, Reason for quitting
+	4 + 4 + 1 + 1 + MAXTCSTRINGCAT,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint8  0 == set, 1 == append
+		// uint8* String to set or append
 	
-	// DTCT_XSPECPLAYER, Spectates Player
-	2 + 4,
-		// uint16 Player ID
-		// uint32 Unique ID
+	// DTCT_SNCLEANUPHOST, Tell clients to cleanup host
+	4 + 4 + 1,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
 	
-	// DTCT_XPLAYERPREFSTR, Player Preference (Str)
-	4 + 2 + MAXPLAYERNAME + MAXPLAYERNAME,
-		// uint32 Unique ID
-		// uint16 Preference Type
-		// uint8* Preference String
+	// DTCT_SNJOINHOST, Host connects
+	4 + 4 + 1,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
 	
-	// DTCT_XPLAYERPREFINT, Player Preference (Int)
-	4 + 2 + 4,
-		// uint32 Unique ID
-		// uint16 Preference Type
-		// int32  Preference Int
+	// DTCT_SNPARTPLAYER, Player leaves
+	4 + 4 + 1,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
 	
-	// DTCT_XCHATFRAG, Player Chat
-	4 + 1 + 4 + MAXTCCBUFSIZE,
-		// uint32 Player Chatting
-		// uint8  Type of communication (0 = all, 1 = team, 2 = specs, 3 = indiv)
-		// uint32 Target player (if previous == 3)
+	// DTCT_SNJOINPORT, Port is joined
+	4 + 4 + 1 + 4,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint32	Client Port's ProcessID
+	
+	// DTCT_SNCHATFRAG, Chat Fragment
+	4 + 4 + 1 + 4 + 1 + MAXTCSTRINGCAT,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint32	Target
+		// uint8	Mode
+		// uint8*	Text
+	
+	// DTCT_SNPORTSETTING, Port Setting
+	4 + 4 + 1 + 2 + MAXTCSTRINGCAT,
+		// uint32	HID
+		// uint32	ID
+		// uint8	PlayerID
+		// uint16	Setting
+		// uint8*	Value
 };
 
 /*** GLOBALS ***/
@@ -320,7 +305,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (D_ScrSplitHasPlayer(i))
+		//if (D_ScrSplitHasPlayer(i))
 			if (g_Splits[i].ProcessID == a_ID)
 				return i;
 	
@@ -341,11 +326,11 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 	if (!a_Demo)
 	{
 		// Tell the server that the player is no longer going to be around
-		if (g_Splits[a_Split].XPlayer)
-			D_XNetPartLocal(g_Splits[a_Split].XPlayer);
+		//if (g_Splits[a_Split].XPlayer)
+		//	D_XNetPartLocal(g_Splits[a_Split].XPlayer);
 		
 		// Remove chat
-		D_XNetClearChat(a_Split);
+		//D_XNetClearChat(a_Split);
 		
 		// Move splits down, to replace this split
 		for (i = a_Split; i < MAXSPLITSCREEN; i++)
@@ -358,7 +343,12 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 			
 			// Move the stuff from the next spot over this one
 			else
+			{
 				memmove(&g_Splits[i], &g_Splits[i + 1], sizeof(g_Splits[i]));
+				
+				if (g_Splits[i].Port)
+					g_Splits[i].Port->Screen = i;
+			}
 	}
 	
 	/* In demo */
@@ -391,6 +381,7 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 				g_Splits[i].Active = g_Splits[i + 1].Active;
 				g_Splits[i].Console = g_Splits[i + 1].Console;
 				g_Splits[i].Display = g_Splits[i + 1].Display;
+				g_Splits[i].Port = g_Splits[i + 1].Port;
 			}
 	}
 	

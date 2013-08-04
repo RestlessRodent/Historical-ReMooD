@@ -59,6 +59,8 @@
 #include "sn_main.h"
 #include "b_bot.h"
 
+#include "st_doom.h"
+
 //protos
 void ST_createWidgets(void);
 
@@ -935,8 +937,8 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 		SN_DrawPolyLines(&Info, STS_DrawMapLine);
 	
 	/* Bot Debug Stuff */
-	if (g_BotDebug)
-		B_DrawBotLines(&Info, STS_DrawMapLine);
+	//if (g_BotDebug)
+	//	B_DrawBotLines(&Info, STS_DrawMapLine);
 	
 	/* Draw things on it */
 	for (i = 0; i < numsectors; i++)
@@ -960,10 +962,10 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Info.Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
 }
 
-extern bool_t g_NetBoardDown;
+//extern bool_t g_NetBoardDown;
 
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
-static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
+static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile)
 {
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
@@ -974,7 +976,6 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	PI_wepid_t ReadyWeapon;
 	PI_ammoid_t AmmoType;
 	bool_t BigLetters, IsMonster;
-	D_XPlayer_t* XPlay;
 	bool_t IsFake, OK;
 	uint32_t i, j, k;
 	PI_key_t* DrawKey;
@@ -1007,7 +1008,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		IsFake = true;
 	
 	// Net player
-	XPlay = ConsoleP->XPlayer;
+	//XPlay = ConsoleP->XPlayer;
 	
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;
@@ -1214,25 +1215,88 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	}
 	
 	/* Scoreboard */
-	if ((XPlay && XPlay->Scores) || (a_PID == 0 && g_NetBoardDown))
+#if 0
+	if (/*(XPlay && XPlay->Scores) ||*/ (a_PID == 0 && g_NetBoardDown))
 	{
 		WI_DrawScoreBoard(false, DS_GetString(DSTR_STSTUFFC_SCOREBOARD), NULL);
 	}
+#endif
 	
 	/* Chatting */
-	D_XNetChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
+	D_SNChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
 #undef BUFSIZE
 }
 
 /*** FUNCTIONS ***/
 
+// c_STBars -- Status bar implementations
+static const struct
+{
+	ST_BarFunc_t Bar;
+	ST_ModShapeFunc_t Shape;
+} c_STBars[NUMPROFBARS] =
+{
+	{ST_DoomBar, ST_DoomModShape},
+	{STS_DrawPlayerBarEx, NULL},
+};
+
+/* ST_GetDefaultBar() -- Returns the default status bar */
+D_ProfBarType_t ST_GetDefaultBar(void)
+{
+	/*if (g_SplitScreen < 0)
+		return DPBT_DEFAULT;
+	else*/
+		return DPBT_REMOOD;
+}
+
+/* ST_GetScreenCDP() -- Get console, display, and profile */
+void ST_GetScreenCDP(const int32_t a_Split, player_t** const a_ConsolePP, player_t** const a_DisplayPP, D_Prof_t** const a_ProfP)
+{
+	int i;
+	
+	/* Check */
+	if (a_Split < 0 || a_Split >= MAXSPLITSCREEN)
+		return;
+	
+	// Get players to draw for
+	if (!g_Splits[a_Split].Port)
+	{
+		if (g_Splits[a_Split].Console >= 0  && g_Splits[a_Split].Console < MAXPLAYERS && playeringame[g_Splits[a_Split].Console])
+			(*a_ConsolePP) = &players[g_Splits[a_Split].Console];
+		else
+			(*a_ConsolePP) = NULL;
+	}
+	else
+		(*a_ConsolePP) = g_Splits[a_Split].Port->Player;//&players[g_Splits[a_Split].Console];
+	(*a_DisplayPP) = P_SpecGetPOV(a_Split);//&players[g_Splits[a_Split].Display];
+	
+	// Missing player?
+	if (!(*a_ConsolePP))
+		(*a_ConsolePP) = P_SpecGet(a_Split);
+	
+	if (!(*a_DisplayPP))
+		(*a_DisplayPP) = (*a_ConsolePP);
+	
+	/* Find profile */
+	(*a_ProfP) = NULL;
+	for (i = 0; i < 2 && !(*a_ProfP); i++)
+	{
+		if (i == 0 && g_Splits[a_Split].Port && g_Splits[a_Split].Profile)
+			(*a_ProfP) = g_Splits[a_Split].Profile;
+		else if (i == 1 && (*a_ConsolePP)->ProfileEx)
+			(*a_ProfP) = (*a_ConsolePP)->ProfileEx;
+	}
+}
+
 /* ST_DrawPlayerBarsEx() -- Draw player status bars */
 void ST_DrawPlayerBarsEx(void)
 {
 	player_t* ConsoleP, *DisplayP;
-	int p, x, y, w, h;
+	int p, x, y, w, h, i;
 	bool_t BigLetters;
 	static uint32_t LastPal;	// Lowers palette change (faster drawing)
+	D_Prof_t* Prof;
+	D_SplitInfo_t* Split;
 	
 	/* Screen division? */
 	// Initial
@@ -1257,26 +1321,15 @@ void ST_DrawPlayerBarsEx(void)
 	}
 	
 	/* Draw each player */
-	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
+	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1) && p < MAXSPLITSCREEN; p++)
 	{
+		// Reference split
+		Split = &g_Splits[p];
+		
 		// Split player active
 		if (D_ScrSplitVisible(p) || (demoplayback && g_Splits[p].Active))
 		{
-			// Get players to draw for
-			if (!g_Splits[p].XPlayer)
-			{
-				if (g_Splits[p].Console >= 0  && g_Splits[p].Console < MAXPLAYERS && playeringame[g_Splits[p].Console])
-					ConsoleP = &players[g_Splits[p].Console];
-				else
-					ConsoleP = NULL;
-			}
-			else
-				ConsoleP = g_Splits[p].XPlayer->Player;//&players[g_Splits[p].Console];
-			DisplayP = P_SpecGetPOV(p);//&players[g_Splits[p].Display];
-			
-			// Missing player?
-			if (!ConsoleP)
-				ConsoleP = P_SpecGet(p);
+			ST_GetScreenCDP(p, &ConsoleP, &DisplayP, &Prof);
 			
 			// Modify palette?
 			if (g_SplitScreen <= 0)	// Only 1 player inside
@@ -1287,9 +1340,32 @@ void ST_DrawPlayerBarsEx(void)
 					LastPal = DisplayP->PalChoice;
 				}
 			}
-	
-			// Draw Bar
-			STS_DrawPlayerBarEx(p, x, y, w, h, ConsoleP, DisplayP);
+			
+			// If profile was found and bar type is legal
+			if (Prof && Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+				c_STBars[Prof->BarType].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
+			
+			// Otherwise, draw the standard bar
+			else
+				c_STBars[ST_GetDefaultBar()].Bar(p, x, y, w, h, ConsoleP, DisplayP, Prof);
+		}
+		
+		// Profile selection
+		if (Split->SelProfile)
+		{
+			// Text
+			V_DrawStringA(
+					VFONT_LARGE, 0, "Select Profile",
+					x + 5,
+					y + 5
+				);
+			
+			if (Split->AtProf)
+				V_DrawStringA(
+						VFONT_SMALL, 0, Split->AtProf->DisplayName,
+						x + 5,
+						y + 10 + V_FontHeight(VFONT_LARGE)
+					);
 		}
 	
 		// Add to coords (finished drawing everything, or not drawn at all)
@@ -1333,7 +1409,7 @@ void ST_TickerEx(void)
 			continue;
 		
 		// Player has a menu open?
-		ActiveMenu = M_ExPlayerUIActive(p);
+		ActiveMenu = M_SMPlayerMenuVisible(p);
 		
 		// Player Palette
 			// Reset variables -- Otherwise palettes "stick"
@@ -1416,6 +1492,77 @@ bool_t ST_ExSoloViewScaledSBar(void)
 int32_t ST_ExViewBarHeight(void)
 {
 	return 0;
+}
+
+/* ST_CalcScreen() -- Calculates render screen size for local player */
+void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H)
+{
+	player_t* ConsoleP, *DisplayP;
+	D_Prof_t* Prof;
+	int right, bottom;
+	
+	/* Check */
+	if (a_ThisPlayer < 0 || a_ThisPlayer >= MAXSPLITSCREEN)
+		return;	
+	
+	/* Get players */
+	ConsoleP = DisplayP = NULL;
+	Prof = NULL;
+	ST_GetScreenCDP(a_ThisPlayer, &ConsoleP, &DisplayP, &Prof);
+	
+	/* How many splits? */
+	switch (g_SplitScreen)
+	{
+			// 3/4 Player
+		case 2:
+		case 3:
+			right = a_ThisPlayer & 1;
+			bottom = (a_ThisPlayer >> 1) & 1;
+		
+			*a_X = (vid.width >> 1) * right;
+			*a_Y = (vid.height >> 1) * bottom;
+			*a_W = vid.width >> 1;
+			*a_H = vid.height >> 1;
+			break;
+			
+			// 2 Player
+		case 1:
+			bottom = a_ThisPlayer & 1;
+			
+			*a_X = 0;
+			*a_Y = (vid.height >> 1) * bottom;
+			*a_W = vid.width;
+			*a_H = vid.height >> 1;
+			break;
+			
+			// 1 Player
+		default:
+			*a_X = 0;
+			*a_Y = 0;
+			*a_W = vid.width;
+			*a_H = vid.height;
+			break;
+	}
+	
+	/* Reshape window, if only 1 player is playing */
+	if (g_SplitScreen < 0)
+	{
+		// Viewsize rescale
+		
+		// Status bar reshape
+		if (Prof && Prof->BarType >= 0 && Prof->BarType < NUMPROFBARS)
+		{
+			if (c_STBars[Prof->BarType].Shape)
+				c_STBars[Prof->BarType].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+		}
+	
+		// Otherwise, use the standard bar
+		else
+		{
+			if (c_STBars[ST_GetDefaultBar()].Shape)
+				c_STBars[ST_GetDefaultBar()].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
+		}
+	}
 }
 
 /* ST_CheckDrawGameView() -- Checks if game view can be drawn */

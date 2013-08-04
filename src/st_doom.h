@@ -29,42 +29,28 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Intermission.
+// DESCRIPTION: Doom Status Bar
 
-#ifndef __WI_STUFF__
-#define __WI_STUFF__
+#ifndef __ST_DOOM_H__
+#define __ST_DOOM_H__
 
-//#include "v_video.h"
+/*****************************************************************************/
 
-#include "doomdef.h"
-#include "d_player.h"
+/***************
+*** INCLUDES ***
+***************/
 
-//added:05-02-98:
-typedef struct
-{
-	int count;
-	int num;
-	int color;
-	char* name;
-} fragsort_t;
+#include "doomtype.h"
+#include "st_stuff.h"
 
-// Called by main loop, animate the intermission.
-void WI_Ticker(void);
+/****************
+*** FUNCTIONS ***
+****************/
 
-// Called by main loop,
-// draws the intermission directly into the screen buffer.
-void WI_Drawer(void);
+void ST_DoomBar(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile);
+ void ST_DoomModShape(const size_t a_PID, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile);
 
-// Setup for an intermission screen.
-void WI_Start(wbstartstruct_t* wbstartstruct);
+/*****************************************************************************/
 
-bool_t teamingame(int teamnum);
-
-void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsInter);
-void WI_DrawScoreBoard(const bool_t a_IsInter, const char* const a_Title, const char* const a_SubTitle);
-
-bool_t WI_SaveGameHelper(D_BS_t* const a_BS);
-bool_t WI_LoadGameHelper(D_BS_t* const a_BS);
-
-#endif
+#endif /* __ST_DOOM_H__ */
 

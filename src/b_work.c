@@ -1,3 +1,4 @@
+#if 0
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
@@ -1369,3 +1370,4 @@ bool_t B_WorkGunControl(B_Bot_t* a_Bot, const size_t a_JobID)
 	return true;
 #undef MAXGUNSWITCHERS
 }
+#endif

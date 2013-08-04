@@ -336,7 +336,7 @@ void R_InitTranslationTables(void)
 // Creates lookup tables for getting the framebuffer address
 //  of a pixel to draw.
 //
-void R_InitViewBuffer(int width, int height)
+void R_InitViewBuffer(int width, int height, int yextra)
 {
 	int i;
 	int j;
@@ -364,7 +364,7 @@ void R_InitViewBuffer(int width, int height)
 	else
 	{
 		if ((g_SplitScreen <= 0))
-			viewwindowy = (vid.height - stbarheight - height) >> 1;
+			viewwindowy = (vid.height - yextra - height) >> 1;
 		else
 			viewwindowy = 0;
 	}

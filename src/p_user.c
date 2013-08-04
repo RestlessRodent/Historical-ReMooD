@@ -1297,37 +1297,6 @@ void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char**
 /* P_UpdateViewAngles() -- Updates viewing angles of a player for this mo */
 void P_UpdateViewAngles(mobj_t* const a_Mo)
 {
-	int32_t i, Console;
-	D_XPlayer_t* XPlay;
-	
-	/* Check */
-	if (!a_Mo)
-		return;
-	
-	/* Only for players */
-	if (!a_Mo->player)
-		return;
-	
-	// Get some info
-	Console = a_Mo->player - players;
-	
-	/* Change for the correct player */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-	{
-		// Console player mismatch?
-		if (g_Splits[i].Console != Console)
-			continue;
-		
-		// Get XPlayer
-		XPlay = g_Splits[i].XPlayer;
-		
-		// Not defined to this player
-		if (XPlay && XPlay->Player != a_Mo->player)
-			continue;
-		
-		// Set
-		localangle[i] = a_Mo->angle;
-	}
 }
 
 /*** SPECTATOR PLAYER ***/
@@ -1342,7 +1311,6 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 	mapthing_t* MapThing;
 	mobj_t* AnotherMo;
 	subsector_t* SubS;
-	D_XPlayer_t* XPlay;
 	
 	/* Check */
 	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
@@ -1417,24 +1385,7 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 	
 	// Don't apply heretic friction to the spectator
 	l_SpecPlayers[i].mo->RXFlags[1] |= MFREXB_NOHERETICFRICT;
-	
-	/* Map fake screens to XPlayers */
-	for (i = 0; i < g_NumXPlays; i++)
-	{
-		// Get
-		XPlay = g_XPlays[i];
-		
-		// Missing?
-		if (!XPlay)
-			continue;
-		
-		// Local?
-		if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT | DXPF_DEFUNCT)) == DXPF_LOCAL)
-			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
-				l_SpecPlayers[XPlay->ScreenID].XPlayer = XPlay;
-	}
 }
-
 
 /* P_SpecInit() -- Initializes the fake player */
 void P_SpecInit(const int32_t a_PlayerNum)
@@ -1485,97 +1436,88 @@ struct player_s* P_SpecGet(const int32_t a_Screen)
 	return &l_SpecPlayers[a_Screen];
 }
 
-/* P_SpecDelXPlayer() -- Deletes XPlayer in screen */
-void P_SpecDelXPlayer(D_XPlayer_t* const a_XPlay)
-{
-	int i;
-	
-	/* Check */
-	if (!a_XPlay)
-		return;
-	
-	/* Go through */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (l_SpecPlayers[i].XPlayer == a_XPlay)
-		{
-			// Nuke
-			l_SpecPlayers[i].XPlayer = NULL;
-			
-			// Re-init spec spot
-			P_SpecInitOne(i);
-		}
-}
-
 /* P_SpecTicker() -- Ticks fake players */
 void P_SpecTicker(void)
 {
-#define TSCAMDIST FIXEDT_C(128)
-#define BUDGEDIST FIXEDT_C(32)
-#define TSMOVEUNIT FIXEDT_C(16)
 	int32_t i;
-	player_t* Mod, *VPlay;
-	mobj_t* ChaseThis, *PeerThis, *CamMo, *AttackSpec;
-	fixed_t Dist, DistX, DistY, ToMove, MyAng, TargAng;
-	fixed_t VeerX, VeerY;
-	angle_t Angle, PeerAngle;
-	bool_t DeadView;
+	ticcmd_t Merged;
+	D_SNPort_t* Port;
+	player_t* Mod;
+	mobj_t* CamMo;
 	
-	fixed_t ToDist, ToPos[2], BCPos[2], CDist, BCDist;
-	
-	/* Title Screen Demo */
-	if (g_TitleScreenDemo)
-	{
-	}
-	
-	/* Normal fake */
-	else
-	{
-		// Apply momentum
-		for (i = 0; i < MAXSPLITSCREEN; i++)
+	/* Run tics for all screens */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitHasPlayer(i))
 		{
-			// Get Objects
-			Mod = &l_SpecPlayers[i];
-			CamMo = Mod->mo;
+			// Port of player
+			Port = g_Splits[i].Port;
 			
-			// No object?
-			if (!CamMo)
+			// No port or is playing?
+			if (!Port || Port->Player)
 				continue;
 			
-			// No XPlayer? Correct
-			if (!Mod->XPlayer)
-				Mod->XPlayer = g_Splits[i].XPlayer;
+			// Merge tics to be run
+			memset(&Merged, 0, sizeof(Merged));
+			D_XNetMergeTics(&Merged, Port->LocalBuf, Port->LocalAt);
+			Port->LocalAt = 0;
+			memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
 			
-			// Flying
-			CamMo->momz = Mod->flyheight << 16;
-			if (Mod->flyheight)
-				Mod->flyheight >>= 1;
+			// Run them
+			if (gamestate == GS_LEVEL)
+				P_SpecRunTics(i, &Merged);
 			
-			// Apply momentum to object
-			CamMo->x += CamMo->momx;
-			CamMo->y += CamMo->momy;
-			CamMo->z += CamMo->momz;
-			
-			// Reduce momentum (for friction)
-			CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
-			CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
-			
-			// Set sound thinker
-			CamMo->NoiseThinker.x = CamMo->x;
-			CamMo->NoiseThinker.y = CamMo->y;
-			CamMo->NoiseThinker.z = CamMo->z;
-			CamMo->NoiseThinker.momx = CamMo->momx;
-			CamMo->NoiseThinker.momy = CamMo->momy;
-			CamMo->NoiseThinker.momz = CamMo->momz;
-			CamMo->NoiseThinker.Angle = CamMo->angle;
-			CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
-			CamMo->NoiseThinker.Volume = FIXEDT_C(1);
-			
-			// Set Camera Z
-			Mod->TargetViewZ = Mod->viewz = CamMo->z;
+			// If use is down, request join
+			if (Merged.Ctrl.Type == 0 && Merged.Std.buttons & BT_USE)
+				D_SNPortRequestJoin(Port);
 		}
+	
+	/* Not in a level, do not apply momentum */
+	if (gamestate != GS_LEVEL)
+		return;
+	
+	/* Apply momentum */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Get Objects
+		Mod = &l_SpecPlayers[i];
+		CamMo = Mod->mo;
+		
+		// No object?
+		if (!CamMo)
+			continue;
+		
+		// No XPlayer? Correct
+		if (!Mod->Port)
+			Mod->Port = g_Splits[i].Port;
+		
+		// Flying
+		CamMo->momz = Mod->flyheight << 16;
+		if (Mod->flyheight)
+			Mod->flyheight >>= 1;
+		
+		// Apply momentum to object
+		CamMo->x += CamMo->momx;
+		CamMo->y += CamMo->momy;
+		CamMo->z += CamMo->momz;
+		
+		// Reduce momentum (for friction)
+		CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
+		CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
+		
+		// Set sound thinker
+		CamMo->NoiseThinker.x = CamMo->x;
+		CamMo->NoiseThinker.y = CamMo->y;
+		CamMo->NoiseThinker.z = CamMo->z;
+		CamMo->NoiseThinker.momx = CamMo->momx;
+		CamMo->NoiseThinker.momy = CamMo->momy;
+		CamMo->NoiseThinker.momz = CamMo->momz;
+		CamMo->NoiseThinker.Angle = CamMo->angle;
+		CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
+		CamMo->NoiseThinker.Volume = FIXEDT_C(1);
+		
+		// Set Camera Z
+		Mod->TargetViewZ = Mod->viewz = CamMo->z;
 	}
-#undef TSCAMDIST
-#undef TSMOVEUNIT
 }
 
 void P_Thrust(player_t* player, angle_t angle, fixed_t move);
@@ -1618,6 +1560,7 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	
 	/* Set object looking angles to local */
 	Mo->angle = localangle[a_Screen];
+	G_ClipAimingPitch(&localaiming[a_Screen]);
 	Play->aiming = localaiming[a_Screen];
 	
 	/* Set Momentums */
@@ -1654,7 +1597,7 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 	}
 	
 	/* No XPlayer? */
-	else if (!g_Splits[a_Screen].XPlayer)
+	else if (true)
 	{
 		if (playeringame[g_Splits[a_Screen].Display])
 			return &players[g_Splits[a_Screen].Display];
@@ -1672,7 +1615,7 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 	/* There is one */
 	else
 		// Not playing? Return spectator
-		if ((demoplayback && g_TitleScreenDemo) || !g_Splits[a_Screen].XPlayer->Player)
+		if ((demoplayback && g_TitleScreenDemo))
 			if (g_Splits[a_Screen].Display < 0 ||
 				g_Splits[a_Screen].Display >= MAXPLAYERS ||
 				!playeringame[g_Splits[a_Screen].Display] || (demoplayback && g_TitleScreenDemo))
@@ -1686,10 +1629,7 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 		
 		// Return standard player
 		else
-		{
-			g_Splits[a_Screen].Display = players - g_Splits[a_Screen].XPlayer->Player;
-			return g_Splits[a_Screen].XPlayer->Player;
-		}
+			return &players[g_Splits[a_Screen].Console];
 	
 	/* Failed */
 	// This is never reached, but for GCC
@@ -1699,31 +1639,5 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 /* P_VerifyCoopSpy() -- Verify coop spy settings */
 void P_VerifyCoopSpy(void)
 {
-	int i;	
-	
-	/* Go through all splits */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-	{
-		// Target not in game?
-		if (g_Splits[i].Display >= 0 && g_Splits[i].Display < MAXPLAYERS)
-			if (!playeringame[g_Splits[i].Display])
-			{
-				// If spectating, revert to spectator mode
-				if (g_Splits[i].Console < 0 || !g_Splits[i].Active)
-					g_Splits[i].Display = -1;
-				
-				// If playing, go to our screen
-				else
-					g_Splits[i].Display = g_Splits[i].Console;
-			}
-		
-		// Just Spectating?
-		if (g_Splits[i].Console < 0 || !g_Splits[i].Active)
-			continue;
-		
-		// Not on same team anymore?
-		if (!ST_SameTeam(&players[g_Splits[i].Console], &players[g_Splits[i].Display]))
-			g_Splits[i].Display = g_Splits[i].Console;
-	}
 }
 
