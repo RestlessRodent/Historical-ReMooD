@@ -249,6 +249,7 @@ bool_t P_ExClearLevel(void)
 	P_ClearRecursiveSound();
 	//B_ClearNodes();
 	EV_ClearACSTags();
+	P_RemoveAllActivePlats();
 	P_RemoveAllActiveCeilings();
 	
 	/* Free all level tags */

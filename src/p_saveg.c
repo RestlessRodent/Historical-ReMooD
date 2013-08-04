@@ -218,6 +218,26 @@ static int32_t PS_GetCeilingListID(ceilinglist_t* const a_CList)
 	return 0;
 }
 
+
+/* PS_GetPlatListID() -- Get ID from Plat list */
+static int32_t PS_GetPlatListID(platlist_t* const a_PList)
+{
+	int32_t RetVal;
+	platlist_t* Rover;
+	
+	/* Check */
+	if (!a_PList)
+		return -1;
+	
+	/* Rove */
+	for (RetVal = 1, Rover = activeplats; Rover; Rover = Rover->next, RetVal++)
+		if (a_PList == Rover)
+			return RetVal;
+	
+	/* Not Found??? */
+	return 0;
+}
+
 /* PS_GetThinkerID() -- Returns ID of thinker */
 static int32_t PS_GetThinkerID(thinker_t* const a_Thinker)
 {
@@ -919,8 +939,6 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		
 		// Find host that owns this port
 		Host = D_SNHostByID(ReadID);
-		
-		CONL_PrintF("Port %x %x -> Host %p\n", PortID, ReadID, Host);
 		
 		// Something bad happened
 		if (!Host)
@@ -1759,8 +1777,10 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	pusher_t* pusher;
 	friction_t* friction;
 	ceiling_t* ceiling;
+	plat_t* plat;
 	
 	ceilinglist_t* clist;
+	platlist_t* plist;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -1825,6 +1845,30 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 			D_BSwi32(a_Str, -2);
 		else
 			D_BSwi32(a_Str, PS_GetCeilingListID((ceilinglist_t*)(((intptr_t)(*clist->prev)) - offsetof(ceilinglist_t, next))));
+	}
+	
+	D_BSwi32(a_Str, -3);
+	
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Plat List */
+	D_BSBaseBlock(a_Str, "PLAT");
+	
+	j = 0;
+	for (plist = activeplats; plist; plist = plist->next)
+		j++;
+	D_BSwi32(a_Str, j);
+	
+	D_BSwi32(a_Str, PS_GetPlatListID(activeplats));
+	for (plist = activeplats; plist; plist = plist->next)
+	{
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)plist->plat));
+		D_BSwi32(a_Str, PS_GetPlatListID(plist->next));
+		
+		if (plist->prev == &activeplats)
+			D_BSwi32(a_Str, -2);
+		else
+			D_BSwi32(a_Str, PS_GetPlatListID((platlist_t*)(((intptr_t)(*plist->prev)) - offsetof(platlist_t, next))));
 	}
 	
 	D_BSwi32(a_Str, -3);
@@ -2075,6 +2119,20 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_PLATRAISE:
+				plat = (plat_t*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, (void**)&plat->sector);
+				D_BSwi32(a_Str, plat->speed);
+				D_BSwi32(a_Str, plat->low);
+				D_BSwi32(a_Str, plat->high);
+				D_BSwi32(a_Str, plat->wait);
+				D_BSwi32(a_Str, plat->count);
+				D_BSwi32(a_Str, plat->status);
+				D_BSwi32(a_Str, plat->oldstatus);
+				D_BSwu8(a_Str, plat->crush);
+				D_BSwi32(a_Str, plat->tag);
+				D_BSwi32(a_Str, plat->type);
+				D_BSwi32(a_Str, PS_GetPlatListID(plat->list));
 				break;
 	
 				// Moving Surface
@@ -2410,8 +2468,10 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	pusher_t* pusher;
 	friction_t* friction;
 	ceiling_t* ceiling;
+	plat_t* plat;
 	
 	ceilinglist_t* clist, *rootclist, *nextclist, *clistrover;
+	platlist_t* plist, *rootplist, *nextplist, *plistrover;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -2531,6 +2591,74 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		
 			if (clistrover)	// there might not be a next
 				clist->prev = &clistrover->next;
+		}
+	}
+	
+	/* Load Plat List */
+	if (!PS_Expect(a_Str, "PLAT"))
+		return false;
+	
+	// Clear plats
+	activeplats = NULL;
+	rootplist = NULL;
+	
+	// Re-allocate basic plat structure
+	j = D_BSri32(a_Str);
+	
+	for (plist = NULL, i = 0; i < j; i++)
+	{
+		if (!plist)
+			rootplist = plist = Z_Malloc(sizeof(*plist), PU_STATIC, NULL);
+		else
+		{
+			plist->SaveLink = Z_Malloc(sizeof(*plist), PU_STATIC, NULL);
+			plist = plist->SaveLink;
+		}
+	}
+	
+	// Find activeplats list
+	x = D_BSri32(a_Str);
+	for (i = 1, plist = rootplist; plist; plist = plist->SaveLink, i++)
+		if (i == x)
+			break;
+	
+	// Active plat is this list
+	activeplats = plist;
+	
+	// Read consecutive list
+	for (plist = rootplist; plist; plist = nextplist)
+	{
+		// Next may get kludged
+		nextplist = plist->SaveLink;
+		
+		// Read, end if -3, otherwise a thinker
+		x = D_BSri32(a_Str);
+		if (x == -3)
+			break;	// End
+		
+		// Thinker
+		plist->plat = (plat_t*)x;
+		
+		// Reref real next
+		x = D_BSri32(a_Str);
+		for (i = 1, plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink, i++)
+			if (i == x)
+				break;
+		
+		plist->next = plistrover;
+		
+		// This is a pointer of a pointer
+		x = D_BSri32(a_Str);
+		if (x == -2)
+			plist->prev = &activeplats;
+		else
+		{
+			for (i = 1, plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink, i++)
+				if (i == x)
+					break;
+		
+			if (plistrover)	// there might not be a next
+				plist->prev = &plistrover->next;
 		}
 	}
 	
@@ -2833,7 +2961,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				ceiling->olddirection = D_BSri32(a_Str);
 				 
 				// Find ceilinglist reference
-				x = D_BSru32(a_Str);
+				x = D_BSri32(a_Str);
 				for (j = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, j++)
 					if (j == x)
 						break;
@@ -2842,6 +2970,26 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_PLATRAISE:
+				plat = (plat_t*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, (void**)&plat->sector);
+				plat->speed = D_BSri32(a_Str);
+				plat->low = D_BSri32(a_Str);
+				plat->high = D_BSri32(a_Str);
+				plat->wait = D_BSri32(a_Str);
+				plat->count = D_BSri32(a_Str);
+				plat->status = D_BSri32(a_Str);
+				plat->oldstatus = D_BSri32(a_Str);
+				plat->crush = D_BSru8(a_Str);
+				plat->tag = D_BSri32(a_Str);
+				plat->type = D_BSri32(a_Str);
+				
+				// Find platlist reference
+				x = D_BSri32(a_Str);
+				for (j = 1, plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink, j++)
+					if (j == x)
+						break;
+				plat->list = plistrover;
 				break;
 	
 				// Moving Surface
@@ -2885,6 +3033,10 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	// Restore ceiling list thinkers
 	for (clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink)
 		clistrover->ceiling = (void*)PS_GetThinkerFromID((intptr_t)clistrover->ceiling);
+	
+	// Restore plat list thinkers
+	for (plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink)
+		plistrover->plat = (void*)PS_GetThinkerFromID((intptr_t)plistrover->plat);
 	
 	// Restore sector node thinker IDs
 	for (i = 0; i < g_NumMSecNodes; i++)

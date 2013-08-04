@@ -287,12 +287,12 @@ typedef struct
 	fixed_t speed;
 	fixed_t low;
 	fixed_t high;
-	int wait;
-	int count;
+	int32_t wait;
+	int32_t count;
 	plat_e status;
 	plat_e oldstatus;
 	bool_t crush;
-	int tag;
+	int32_t tag;
 	plattype_e type;
 	
 	struct platlist* list;		//SoM: 3/6/2000: Boom's improved code without limits.
@@ -303,6 +303,8 @@ typedef struct platlist
 {
 	plat_t* plat;
 	struct platlist* next, **prev;
+	
+	struct platlist* SaveLink;					// Used only for save games
 } platlist_t;
 
 void P_RemoveAllActivePlats(void);	//SoM: 3/9/2000
