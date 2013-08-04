@@ -625,7 +625,7 @@ typedef struct					//SoM: 3/6/2000: Elevator struct.
 	fixed_t speed;
 	bool_t Silent;								// Silent
 	fixed_t PerpWait;							// Perp Wait Amount
-	fixed_t PerpTicsLeft;						// Time left until perp moves
+	int32_t PerpTicsLeft;						// Time left until perp moves
 	line_t* CallLine;							// Calling Line
 	fixed_t PDoorSpeed;							// Elevator Door speed
 	int32_t OldDirection;						// Old movement direction

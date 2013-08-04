@@ -1778,6 +1778,8 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	friction_t* friction;
 	ceiling_t* ceiling;
 	plat_t* plat;
+	elevator_t* elevator;
+	scroll_t* scroll;
 	
 	ceilinglist_t* clist;
 	platlist_t* plist;
@@ -2137,10 +2139,36 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_MOVEELEVATOR:
+				elevator = (elevator_t*)Thinker;
+				
+				D_BSwu32(a_Str, elevator->type);
+				PS_LUMapObjRef(a_Str, true, (void**)&elevator->sector);
+				D_BSwi32(a_Str, elevator->direction);
+				D_BSwi32(a_Str, elevator->floordestheight);
+				D_BSwi32(a_Str, elevator->ceilingdestheight);
+				D_BSwi32(a_Str, elevator->speed);
+				D_BSwu8(a_Str, elevator->Silent);
+				D_BSwi32(a_Str, elevator->PerpWait);
+				D_BSwi32(a_Str, elevator->PerpTicsLeft);
+				PS_LUMapObjRef(a_Str, true, (void**)&elevator->CallLine);
+				D_BSwi32(a_Str, elevator->PDoorSpeed);
+				D_BSwi32(a_Str, elevator->OldDirection);
+				D_BSwu8(a_Str, elevator->Dinged);
 				break;
 	
 				// Scrolling Line
 			case PTT_SCROLL:
+				scroll = (scroll_t*)Thinker;
+				
+				scroll->dx = D_BSri32(a_Str);
+				scroll->dy = D_BSri32(a_Str);
+				scroll->affectee = D_BSri32(a_Str);
+				scroll->control = D_BSri32(a_Str);
+				scroll->last_height = D_BSri32(a_Str);
+				scroll->vdx = D_BSri32(a_Str);
+				scroll->vdy = D_BSri32(a_Str);
+				scroll->accel = D_BSri32(a_Str);
+				scroll->type = D_BSri32(a_Str);
 				break;
 	
 				// Friction
@@ -2469,6 +2497,8 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	friction_t* friction;
 	ceiling_t* ceiling;
 	plat_t* plat;
+	elevator_t* elevator;
+	scroll_t* scroll;
 	
 	ceilinglist_t* clist, *rootclist, *nextclist, *clistrover;
 	platlist_t* plist, *rootplist, *nextplist, *plistrover;
@@ -2994,10 +3024,36 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_MOVEELEVATOR:
+				elevator = (elevator_t*)Thinker;
+				
+				elevator->type = D_BSru32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&elevator->sector);
+				elevator->direction = D_BSri32(a_Str);
+				elevator->floordestheight = D_BSri32(a_Str);
+				elevator->ceilingdestheight = D_BSri32(a_Str);
+				elevator->speed = D_BSri32(a_Str);
+				elevator->Silent = D_BSru8(a_Str);
+				elevator->PerpWait = D_BSri32(a_Str);
+				elevator->PerpTicsLeft = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&elevator->CallLine);
+				elevator->PDoorSpeed = D_BSri32(a_Str);
+				elevator->OldDirection = D_BSri32(a_Str);
+				elevator->Dinged = D_BSru8(a_Str);
 				break;
 	
 				// Scrolling Line
 			case PTT_SCROLL:
+				scroll = (scroll_t*)Thinker;
+				
+				D_BSwi32(a_Str, scroll->dx);
+				D_BSwi32(a_Str, scroll->dy);
+				D_BSwi32(a_Str, scroll->affectee);
+				D_BSwi32(a_Str, scroll->control);
+				D_BSwi32(a_Str, scroll->last_height);
+				D_BSwi32(a_Str, scroll->vdx);
+				D_BSwi32(a_Str, scroll->vdy);
+				D_BSwi32(a_Str, scroll->accel);
+				D_BSwi32(a_Str, scroll->type);
 				break;
 	
 				// Friction
