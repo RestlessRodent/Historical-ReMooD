@@ -362,6 +362,9 @@ bool_t M_NewGameClassic_ServerFTicker(M_SWidget_t* const a_Widget)
 	// Entry is OK
 	Idx->OK = true;
 	
+	// Copy address
+	memmove(&Idx->Addr, &Server->Addr, sizeof(I_HostAddress_t));
+	
 	// Otherwise, use server name
 	strncpy(Idx->Left, Server->Name, MAXSERVERNAME - 1);
 	Idx->Left[MAXSERVERNAME - 1] = 0;
