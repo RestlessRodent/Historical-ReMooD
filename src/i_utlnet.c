@@ -708,8 +708,10 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 #if defined(__REMOOD_ENABLEIPV6)
 	if (a_IPv6)
 	{
+#if defined(IPV6_V6ONLY)
 		SockOpt = 1;
 		setsockopt(SockFD, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&SockOpt, sizeof(SockOpt));
+#endif
 	}
 #endif
 
