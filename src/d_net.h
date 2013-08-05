@@ -293,7 +293,9 @@ void D_SNFileLoop(void);
 
 void D_SNOpenMCast(void);
 void D_SNDoMultiCast(void);
+void D_SNUpdateServers(void);
 D_SNServer_t* D_SNFindServerByAddr(I_HostAddress_t* const a_Addr);
+D_SNServer_t* D_SNFindServerByIndex(const int32_t a_Index);
 D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr);
 
 #endif							/* __D_NET_H__ */

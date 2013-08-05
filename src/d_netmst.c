@@ -39,6 +39,12 @@
 #include "d_netmst.h"
 #include "doomstat.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+#define SNSERVERTIMEOUT (TICRATE * 120)			// Time before a server goes poof
+
 /*************
 *** LOCALS ***
 *************/
@@ -150,15 +156,92 @@ void D_SNDoMultiCast(void)
 /* D_SNFindServerByAddr() -- Finds server by address */
 D_SNServer_t* D_SNFindServerByAddr(I_HostAddress_t* const a_Addr)
 {
+	int32_t i;
+	D_SNServer_t* Server;
+	
+	/* Check */
+	if (!a_Addr)
+		return NULL;
+	
+	/* Loop */
+	for (i = 0; i < l_NumServers; i++)
+		if ((Server = l_Servers[i]))
+			if (I_NetCompareHost(a_Addr, &Server->Addr))
+				return Server;
+	
+	/* Failed */
 	return NULL;
+}
+
+/* D_SNFindServerByIndex() -- Finds server by index */
+D_SNServer_t* D_SNFindServerByIndex(const int32_t a_Index)
+{
+	/* Check */
+	if (a_Index < 0 || a_Index >= l_NumServers)
+		return NULL;
+	
+	/* Return specific index */
+	return l_Servers[a_Index];
 }
 
 /* D_SNCreateServer() -- Creates a new server */
 D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr)
 {
-	return NULL;
+	D_SNServer_t* New;
+	int32_t i;
+	
+	/* Check */
+	if (!a_Addr)
+		return NULL;
+	
+	/* See if it already exists */
+	if ((New = D_SNFindServerByAddr(a_Addr)))
+		return New;
+	
+	/* Create new reference */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Copy Address
+	memmove(&New->Addr, a_Addr, sizeof(*a_Addr));
+	
+	// Set times
+	New->FirstSeen = New->UpdatedAt = g_ProgramTic;
+	New->OutAt = g_ProgramTic + SNSERVERTIMEOUT;
+	
+	/* Add to list */
+	for (i = 0; i < l_NumServers; i++)
+		if (!l_Servers[i])
+		{
+			l_Servers[i] = New;
+			break;
+		}
+	
+	// No room?
+	if (i >= l_NumServers)
+	{
+		Z_ResizeArray((void**)&l_Servers, sizeof(*l_Servers),
+			l_NumServers, l_NumServers + 1);
+		l_Servers[l_NumServers++] = New;
+	}
+	
+	/* Return it */
+	return New;
 }
 
-static D_SNServer_t** l_Servers;				// Visible servers
-static int32_t l_NumServers;					// Count of them
+/* D_SNUpdateServers() -- Updates Servers */
+void D_SNUpdateServers(void)
+{
+	int32_t i;
+	D_SNServer_t* Server;
+	
+	/* Go through servers in list */
+	for (i = 0; i < l_NumServers; i++)
+	{
+		// Get this server
+		if (!(Server = l_Servers[i]))
+			continue;
+		
+		// Ping server, if needed
+	}
+}
 
