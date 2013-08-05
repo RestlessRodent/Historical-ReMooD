@@ -135,6 +135,9 @@ void D_SNDoMultiCast(void)
 		memset(&Addr, 0, sizeof(Addr));
 		while (D_BSPlayNetBlock(BS, Header, &Addr))
 		{
+			// Read Port Number
+			/*Addr.Port =*/ D_BSru16(BS);
+			
 			// Try to find this server
 			Server = D_SNFindServerByAddr(&Addr);
 			

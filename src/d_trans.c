@@ -489,7 +489,8 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 		return false;
 	
 	/* Copy host and setup stream */
-	Host.Port = Port + Fails;
+	if (a_Listen)	// Copy port for server
+		Host.Port = Port + Fails;
 	memmove(&l_HostAddr, &Host, sizeof(Host));
 	l_BS = D_BSCreateNetStream(l_Sock);
 	
@@ -1026,6 +1027,9 @@ void D_SNDoServer(D_BS_t* const a_BS)
 		if (I_NetNameToHost(l_Sock, &Addr, "224.0.0.167:29500"))
 		{
 			D_BSBaseBlock(l_BS, "ADVR");
+			
+			// Port because it is lost in a multicast
+			D_BSwu16(l_BS, l_HostAddr.Port);
 			
 			D_BSRecordNetBlock(l_BS, &Addr);
 		}

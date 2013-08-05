@@ -44,6 +44,7 @@
 #include "d_main.h"
 #include "w_wad.h"
 #include "d_net.h"
+#include "i_util.h"
 
 /****************
 *** FUNCTIONS ***
@@ -363,7 +364,7 @@ bool_t M_NewGameClassic_ServerFTicker(M_SWidget_t* const a_Widget)
 	Idx->OK = true;
 	
 	// Copy address
-	memmove(&Idx->Addr, &Server->Addr, sizeof(I_HostAddress_t));
+	memmove(&Idx->Addr, &Server->Addr, sizeof(Idx->Addr));
 	
 	// Otherwise, use server name
 	strncpy(Idx->Left, Server->Name, MAXSERVERNAME - 1);
