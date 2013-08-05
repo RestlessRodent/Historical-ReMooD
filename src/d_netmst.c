@@ -208,6 +208,9 @@ D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr)
 	New->FirstSeen = New->UpdatedAt = g_ProgramTic;
 	New->OutAt = g_ProgramTic + SNSERVERTIMEOUT;
 	
+	// Initial Name
+	I_NetHostToString(a_Addr, New->Name, MAXSERVERNAME);
+	
 	/* Add to list */
 	for (i = 0; i < l_NumServers; i++)
 		if (!l_Servers[i])
