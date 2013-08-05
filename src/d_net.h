@@ -52,6 +52,7 @@
 	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
 #endif
 
+#define MAXSERVERNAME					128		// Max name length of server
 #define MAXLBTSIZE						16		// Max tics in local buffer
 #define MAXQUITREASON					128		// Reason for quit
 
@@ -155,6 +156,20 @@ struct D_SNHost_s
 	tic_t NextPing;								// Time of next ping
 	tic_t LastPing;								// Last ping time
 };
+
+/* D_SNServer_t -- Remote Server */
+typedef struct D_SNServer_s
+{
+	tic_t FirstSeen;							// First Seen at
+	tic_t UpdatedAt;							// Updated at
+	tic_t OutAt;								// Time where it goes bye
+	char Name[MAXSERVERNAME];					// Name of server
+	I_HostAddress_t Addr;						// Address
+	D_SNPingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
+	int8_t PingAt;								// Current window
+	tic_t NextPing;								// Time of next ping
+	tic_t LastPing;								// Last ping time
+} D_SNServer_t;
 
 /*****************
 *** PROTOTYPES ***
@@ -273,6 +288,13 @@ void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t
 void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
 void D_SNChunkReq(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
 void D_SNFileLoop(void);
+
+/*** MASTER SERVER INTERFACE ***/
+
+void D_SNOpenMCast(void);
+void D_SNDoMultiCast(void);
+D_SNServer_t* D_SNFindServerByAddr(I_HostAddress_t* const a_Addr);
+D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr);
 
 #endif							/* __D_NET_H__ */
 

@@ -414,6 +414,7 @@ typedef enum I_NetSocketFlags_e
 	INSF_TCP						= 0x0001,	// TCP (rather than UDP)
 	INSF_V6							= 0x0002,	// IPv6 Socket
 	INSF_LISTEN						= 0x0004,	// Listening TCP Socket
+	INSF_MULTICAST					= 0x0008,	// Multi-Cast
 } I_NetSocketFlags_t;
 
 /* I_HostAddress_t -- Address to a host somewhere */
@@ -476,6 +477,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 bool_t I_NetHostToName(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
 size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
 
+I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Port);
 I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* const a_Host, const uint16_t a_Port);
 void I_NetCloseSocket(I_NetSocket_t* const a_Socket);
 size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes);
