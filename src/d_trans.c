@@ -142,6 +142,14 @@ static tic_t l_SvNextPing;						// Time of next ping
 static tic_t l_SvLastPing;						// Last ping time
 static int32_t l_SvPing;						// Ping of server
 
+// net_lanbroadcast -- Broadcast to LAN
+CONL_StaticVar_t l_NETLanBroadcast =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"net_lanbroadcast", DSTR_CVHINT_CONMONOSPACE, CLVVT_STRING, "true",
+	NULL
+};
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -410,6 +418,16 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 	uint32_t Flags, Fails;
 	uint16_t Port;
 	
+	static bool_t Regged;
+	
+	/* Register Vars */
+	if (!Regged)
+	{
+		CONL_VarRegister(&l_NETLanBroadcast);
+		
+		Regged = true;
+	}
+	
 	/* Check */
 	// Need address if not listening
 	if (!a_Listen && !a_Addr)
@@ -471,6 +489,8 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 		return false;
 	
 	/* Copy host and setup stream */
+	if (a_Listen)	// Copy port for server
+		Host.Port = Port + Fails;
 	memmove(&l_HostAddr, &Host, sizeof(Host));
 	l_BS = D_BSCreateNetStream(l_Sock);
 	
@@ -829,6 +849,8 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	D_SNPingWin_t* PWin;
 	static int32_t LastSlot;
 	tic_t PCap, GCap;
+	static tic_t LastAdvert;
+	I_HostAddress_t Addr;
 	
 	/* Transmit jobs to hosts that need them */
 	for (i = 0; i < l_XAt; i++)
@@ -989,6 +1011,29 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	// Ran out of slots
 	if (LastSlot >= GNUMHOSTS)
 		LastSlot = 0;
+	
+	/* Advertise server over LAN */
+	if (l_NETLanBroadcast.Value->Int)
+	{
+		// Advertise to LAN
+		if (g_ProgramTic < LastAdvert)
+			return;
+		
+		// Advertise this
+		LastAdvert = g_ProgramTic + (TICRATE * 10);
+		
+		// Currently just send to IPv4 multicast address
+		memset(&Addr, 0, sizeof(Addr));
+		if (I_NetNameToHost(l_Sock, &Addr, "224.0.0.167:29500"))
+		{
+			D_BSBaseBlock(l_BS, "ADVR");
+			
+			// Port because it is lost in a multicast
+			D_BSwu16(l_BS, l_HostAddr.Port);
+			
+			D_BSRecordNetBlock(l_BS, &Addr);
+		}
+	}
 }
 
 /* D_SNDoClient() -- Do client stuff */

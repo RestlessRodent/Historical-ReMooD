@@ -970,6 +970,7 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 #define SUBMENUFLAGS (VFO_COLOR(VEX_MAP_BRIGHTWHITE))
 #define SORTFLAGS (VFO_COLOR(VEX_MAP_ORANGE))
 #define VALUEFLAGS (VFO_COLOR(VEX_MAP_BRIGHTWHITE))
+#define SERVERNAMEFLAG (VFO_COLOR(VEX_MAP_YELLOW))
 	M_SWidget_t* Root, *Work;
 	CONL_VarPossibleValue_t* Possible;
 	int32_t i;
@@ -1050,6 +1051,16 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			
 				// Server List: Name
 			Work = MS_SMCreateLabel(Root, VFONT_SMALL, SORTFLAGS, DS_GetStringRef(DSTR_MENUGENERAL_SVNAME));
+			
+			// Actual Server List
+			for (i = 0; i < MAXSERVERSONLIST; i++)
+			{
+				Work = MS_SMCreateLabel(Root, VFONT_SMALL, 0, NULL);
+				Work->Option = 10 + i;
+				Work->FSelect = M_NewGameClassic_ServerFSelect;
+				Work->FLeftRight = M_NewGameClassic_ServerFLeftRight;
+				Work->FTicker = M_NewGameClassic_ServerFTicker;
+			}
 			break;
 			
 			// Select Skill

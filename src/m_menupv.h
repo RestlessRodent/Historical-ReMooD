@@ -21,6 +21,8 @@ enum M_CreateGameOpts_e
 	NUMMCGO
 };
 
+#define MAXSERVERSONLIST 10
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -118,7 +120,12 @@ int32_t M_HelpInitIWADList(CONL_VarPossibleValue_t** const a_PossibleOut);
 
 void M_MainMenu_DCursor(M_SWidget_t* const a_Widget, M_SWidget_t* const a_Sub);
 bool_t M_SubMenu_FSelect(M_SWidget_t* const a_Widget);
+
 bool_t M_NewGameClassic_FSelect(M_SWidget_t* const a_Widget);
+bool_t M_NewGameClassic_ServerFSelect(M_SWidget_t* const a_Widget);
+bool_t M_NewGameClassic_ServerFLeftRight(M_SWidget_t* const a_Widget, const int32_t a_Right);
+bool_t M_NewGameClassic_ServerFTicker(M_SWidget_t* const a_Widget);
+
 bool_t M_NewGameEpi_FSelect(M_SWidget_t* const a_Widget);
 bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget);
 bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget);

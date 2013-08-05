@@ -175,7 +175,7 @@ void P_ActivateInStasis(int tag)
 //SoM: 3/7/2000: No more limits!
 void P_AddActivePlat(plat_t* plat)
 {
-	platlist_t* list = malloc(sizeof *list);
+	platlist_t* list = Z_Malloc(sizeof *list, PU_STATIC, NULL);
 	
 	list->plat = plat;
 	plat->list = list;
@@ -194,7 +194,7 @@ void P_RemoveActivePlat(plat_t* plat)
 	P_RemoveThinker(&plat->thinker);
 	if ((*list->prev = list->next))
 		list->next->prev = list->prev;
-	free(list);
+	Z_Free(list);
 }
 
 //SoM: 3/7/2000: Removes all active plats.
@@ -204,7 +204,7 @@ void P_RemoveAllActivePlats(void)
 	{
 		platlist_t* next = activeplats->next;
 		
-		free(activeplats);
+		Z_Free(activeplats);
 		activeplats = next;
 	}
 }

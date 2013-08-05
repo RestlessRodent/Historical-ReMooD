@@ -215,8 +215,8 @@ typedef struct
 {
 	line_t* line;
 	bwhere_e where;
-	int btexture;
-	int btimer;
+	int32_t btexture;
+	int32_t btimer;
 	S_NoiseThinker_t* soundorg;
 	
 } button_t;
@@ -287,12 +287,12 @@ typedef struct
 	fixed_t speed;
 	fixed_t low;
 	fixed_t high;
-	int wait;
-	int count;
+	int32_t wait;
+	int32_t count;
 	plat_e status;
 	plat_e oldstatus;
 	bool_t crush;
-	int tag;
+	int32_t tag;
 	plattype_e type;
 	
 	struct platlist* list;		//SoM: 3/6/2000: Boom's improved code without limits.
@@ -303,6 +303,8 @@ typedef struct platlist
 {
 	plat_t* plat;
 	struct platlist* next, **prev;
+	
+	struct platlist* SaveLink;					// Used only for save games
 } platlist_t;
 
 void P_RemoveAllActivePlats(void);	//SoM: 3/9/2000
@@ -623,7 +625,7 @@ typedef struct					//SoM: 3/6/2000: Elevator struct.
 	fixed_t speed;
 	bool_t Silent;								// Silent
 	fixed_t PerpWait;							// Perp Wait Amount
-	fixed_t PerpTicsLeft;						// Time left until perp moves
+	int32_t PerpTicsLeft;						// Time left until perp moves
 	line_t* CallLine;							// Calling Line
 	fixed_t PDoorSpeed;							// Elevator Door speed
 	int32_t OldDirection;						// Old movement direction
@@ -1225,11 +1227,11 @@ typedef struct
 {
 	thinker_t thinker;			// Thinker structure for scrolling
 	fixed_t dx, dy;				// (dx,dy) scroll speeds
-	int affectee;				// Number of affected sidedef, sector, tag, or whatever
-	int control;				// Control sector (-1 if none) used to control scrolling
+	int32_t affectee;			// Number of affected sidedef, sector, tag, or whatever
+	int32_t control;			// Control sector (-1 if none) used to control scrolling
 	fixed_t last_height;		// Last known height of control sector
 	fixed_t vdx, vdy;			// Accumulated velocity if accelerative
-	int accel;					// Whether it's accelerative
+	int32_t accel;				// Whether it's accelerative
 	enum
 	{
 		sc_side,

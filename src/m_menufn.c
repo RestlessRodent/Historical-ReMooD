@@ -43,6 +43,8 @@
 #include "g_game.h"
 #include "d_main.h"
 #include "w_wad.h"
+#include "d_net.h"
+#include "i_util.h"
 
 /****************
 *** FUNCTIONS ***
@@ -265,6 +267,110 @@ bool_t M_NewGameClassic_FSelect(M_SWidget_t* const a_Widget)
 		return false;
 	
 	/* Success! */
+	return true;
+}
+
+#define MAXFSIZE 64
+typedef struct M_SvIndex_s
+{
+	bool_t OK;
+	char Left[MAXSERVERNAME];
+	char Right[MAXFSIZE];
+	char* LR, *RR;
+	I_HostAddress_t Addr;
+	tic_t Timer;
+} M_SvIndex_t;
+
+static int32_t l_SvPage;						// Current server page
+static M_SvIndex_t l_E[MAXSERVERSONLIST];
+
+/* M_NewGameClassic_ServerFSelect() -- Server select */
+bool_t M_NewGameClassic_ServerFSelect(M_SWidget_t* const a_Widget)
+{
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	M_SvIndex_t* Idx;
+	int32_t SlotRef, MasterRef;
+	
+	/* Determine reference */
+	SlotRef = a_Widget->Option - 10;
+	MasterRef = (l_SvPage * MAXSERVERSONLIST) + SlotRef;
+	Idx = &l_E[SlotRef];
+	
+	/* Make sure entry is OK */
+	if (!Idx->OK)
+		return true;
+		
+	/* Pop all menus */
+	M_StackPopAll();
+	
+	/* The "connect" command handles everything */
+	I_NetHostToString(&Idx->Addr, Buf, BUFSIZE);
+	CONL_InputF("connect \"%s\" --\n", Buf);
+	
+	/* Success !*/
+	return true;
+#undef BUFSIZE
+}
+
+/* M_NewGameClassic_ServerFSelect() -- Left/Right on server list */
+bool_t M_NewGameClassic_ServerFLeftRight(M_SWidget_t* const a_Widget, const int32_t a_Right)
+{
+	/* Success !*/
+	return true;
+}
+
+/* M_NewGameClassic_ServerFTicker() -- Ticker for server list */
+bool_t M_NewGameClassic_ServerFTicker(M_SWidget_t* const a_Widget)
+{
+	M_SvIndex_t* Idx;
+	D_SNServer_t* Server;
+	int32_t SlotRef, MasterRef;
+	M_SWidget_t* Parent;
+	
+	/* Determine reference */
+	SlotRef = a_Widget->Option - 10;
+	MasterRef = (l_SvPage * MAXSERVERSONLIST) + SlotRef;
+	Idx = &l_E[SlotRef];
+	
+	/* Check timer on this one */
+	if (g_ProgramTic < Idx->Timer)
+		return true;
+	
+	// Up the timer
+	Idx->Timer = g_ProgramTic + TICRATE;
+	
+	/* Always set widget pointers */
+	Idx->LR = Idx->Left;
+	Idx->RR = Idx->Right;
+	a_Widget->Data.Label.Ref = &Idx->LR;
+	a_Widget->Data.Label.ValRef = &Idx->RR;
+	
+	/* Obtain server here */
+	Server = D_SNFindServerByIndex(MasterRef);
+	
+	// No server?
+	if (!Server)
+	{
+		Idx->Left[0] = '-';
+		Idx->Left[1] = '-';
+		Idx->Left[2] = 0;
+		Idx->Right[0] = 0;
+		Idx->OK = false;
+		return;
+	}
+	
+	// Entry is OK
+	Idx->OK = true;
+	
+	// Copy address
+	memmove(&Idx->Addr, &Server->Addr, sizeof(Idx->Addr));
+	
+	// Otherwise, use server name
+	strncpy(Idx->Left, Server->Name, MAXSERVERNAME - 1);
+	Idx->Left[MAXSERVERNAME - 1] = 0;
+	
+	/* Success !*/
 	return true;
 }
 

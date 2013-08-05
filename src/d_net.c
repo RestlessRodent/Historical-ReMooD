@@ -633,6 +633,9 @@ bool_t D_SNServerInit(void)
 	CONL_AddCommand("localserver", D_ServerCommand);
 	CONL_AddCommand("connect", D_ServerCommand);
 	
+	/* Initialize Multicast */
+	D_SNOpenMCast();
+	
 	/* Clear initial profiles */
 	memset(PProfs, 0, sizeof(PProfs));
 	
@@ -1011,6 +1014,9 @@ void D_SNUpdate(void)
 	int32_t h, p;
 	D_SNHost_t* Host;
 	D_SNPort_t* Port;
+	
+	/* Multicast */
+	D_SNDoMultiCast();
 	
 	/* Do not update ports or transport during demo */
 	if (!demoplayback)

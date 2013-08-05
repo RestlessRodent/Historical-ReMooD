@@ -671,19 +671,163 @@ size_t I_NetHostToString(const I_HostAddress_t* const a_Host, char* const a_Out,
 		return snprintf(a_Out, a_OutSize - 1, ":%u\0\0", a_Host->Port);
 }
 
+/* I_NetOpenMultiCastSocket() -- Opens multicast socket */
+I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Port)
+{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	int SockFD, SockOpt, GrpRet;
+	struct sockaddr* Addr;
+	socklen_t SockLen;
+	struct sockaddr_in In4;
+	struct ip_mreq MCGroupF;
+#if defined(__REMOOD_ENABLEIPV6)
+	struct sockaddr_in6 In6;
+	struct ipv6_mreq MCGroupS;
+#endif
+	I_NetSocket_t* RetVal;
+	
+	/* V6 not supported? */
+#if !defined(__REMOOD_ENABLEIPV6)
+	if (a_IPv6)
+		return NULL;
+#endif
+	
+	/* Attempt socket creation */
+#if defined(__REMOOD_ENABLEIPV6)
+	if (a_IPv6)
+		SockFD = socket(AF_INET6, (SOCK_DGRAM), 0);
+	else
+#endif
+		SockFD = socket(AF_INET, (SOCK_DGRAM), 0);
+	
+	// Failed
+	if (SockFD < 0)
+		return NULL;
+	
+	/* Set IPv6 socket to IPv6 only */
+#if defined(__REMOOD_ENABLEIPV6)
+	if (a_IPv6)
+	{
+		SockOpt = 1;
+		setsockopt(SockFD, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&SockOpt, sizeof(SockOpt));
+	}
+#endif
+
+	/* Re-Use Address */
+	SockOpt = 1;
+	setsockopt(SockFD, SOL_SOCKET, SO_REUSEADDR, (void*)&SockOpt, sizeof(SockOpt));
+	
+	/* Bind to any address for a single port */
+#if defined(__REMOOD_ENABLEIPV6)
+	if (a_IPv6)
+	{
+		// Set Any (all zeroes)
+		memset(&In6, 0, sizeof(In6));
+		In6.sin6_family = AF_INET6;
+		In6.sin6_port = htons(a_Port);
+		Addr = &In6;
+		SockLen = sizeof(In6);
+	}
+	else
+#endif
+	{
+		// Set Any
+		In4.sin_addr.s_addr = INADDR_ANY;
+		In4.sin_family = AF_INET;
+		In4.sin_port = htons(a_Port);
+		Addr = &In4;
+		SockLen = sizeof(In4);
+	}
+	
+	/* Bind */
+	if (bind(SockFD, Addr, SockLen) < 0)
+	{
+		// Show error
+		CONL_OutputUT(CT_NETWORK, DSTR_IUTLNET_BADUNIXBIND, "%i%s\n", errno, strerror(errno));
+		
+		// Close created socket
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+		closesocket(SockFD);
+#else
+		close(SockFD);
+#endif
+		return NULL;
+	}
+	
+	/* Set non-blocking socket */
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	NBVal = 1;
+	ioctlsocket(SockFD, FIONBIO, &NBVal);
+#else
+	SockOpt = fcntl(SockFD, F_GETFL, 0);
+	SockOpt |= O_NONBLOCK;
+	fcntl(SockFD, F_SETFL, SockOpt);
+#endif
+
+	/* Join multi-cast group */
+	GrpRet = -1;
+#if defined(__REMOOD_ENABLEIPV6)
+	if (a_IPv6)
+	{
+		memset(&MCGroupF, 0, sizeof(MCGroupF));
+		
+		inet_pton(AF_INET6, "ff02::1337", &MCGroupS.ipv6mr_multiaddr);
+		
+		GrpRet = setsockopt(SockFD, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &MCGroupS, sizeof(MCGroupS));
+	}
+	else
+#endif
+	{
+		memset(&MCGroupF, 0, sizeof(MCGroupF));
+		
+		inet_pton(AF_INET, "224.0.0.167", &MCGroupF.imr_multiaddr);
+		MCGroupF.imr_interface.s_addr = INADDR_ANY;
+		
+		GrpRet = setsockopt(SockFD, IPPROTO_IP, IP_ADD_MEMBERSHIP, &MCGroupF, sizeof(MCGroupF));
+	}
+	
+	/* If it failed, die */
+	if (GrpRet < 0)
+	{
+		// Close created socket
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+		closesocket(SockFD);
+#else
+		close(SockFD);
+#endif
+		return NULL;
+	}
+	
+	/* Allocate for socket return */
+	RetVal = Z_Malloc(sizeof(*RetVal), PU_STATIC, NULL);
+	
+	// Set Values
+	RetVal->Flags = (a_IPv6 ? INSF_V6 : 0) | INSF_MULTICAST;
+	RetVal->SockFD = SockFD;
+	memmove(&RetVal->Addr, Addr, SockLen);
+	RetVal->SockLen = SockLen;
+	
+	// Return it
+	return RetVal;
+#else
+	/* Not Implemented */
+	return NULL;
+#endif
+}
+
 /* I_NetOpenSocket() -- Opens a socket on the specified port */
 I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* const a_Host, const uint16_t a_Port)
 {
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 	int SockFD, SockOpt, Err;
-	socklen_t SockLen;
 	unsigned long NBVal;
 	struct sockaddr* Addr;
+	socklen_t SockLen;
 	struct sockaddr_in In4;
-	I_NetSocket_t* RetVal;
 #if defined(__REMOOD_ENABLEIPV6)
 	struct sockaddr_in6 In6;
 #endif
+	I_NetSocket_t* RetVal;
 	
 	/* V6 not supported? */
 #if !defined(__REMOOD_ENABLEIPV6)

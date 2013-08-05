@@ -1297,6 +1297,30 @@ void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char**
 /* P_UpdateViewAngles() -- Updates viewing angles of a player for this mo */
 void P_UpdateViewAngles(mobj_t* const a_Mo)
 {
+	player_t* Player;
+	D_SNPort_t* Port;
+	
+	/* Check */
+	if (!a_Mo || !a_Mo->player)
+		return;
+	
+	// Get player
+	Player = a_Mo->player;
+	
+	/* Only if player has a port */
+	if (!(Port = Player->Port))
+		return;
+	
+	// Local only also
+	if (!Port->Host || !Port->Host->Local)
+		return;
+	
+	// Not on screen
+	if (Port->Screen < 0 || Port->Screen >= MAXSPLITSCREEN)
+		return;
+	
+	/* Change viewing angle */
+	localangle[Port->Screen] = a_Mo->angle;
 }
 
 /*** SPECTATOR PLAYER ***/

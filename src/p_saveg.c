@@ -218,6 +218,26 @@ static int32_t PS_GetCeilingListID(ceilinglist_t* const a_CList)
 	return 0;
 }
 
+
+/* PS_GetPlatListID() -- Get ID from Plat list */
+static int32_t PS_GetPlatListID(platlist_t* const a_PList)
+{
+	int32_t RetVal;
+	platlist_t* Rover;
+	
+	/* Check */
+	if (!a_PList)
+		return -1;
+	
+	/* Rove */
+	for (RetVal = 1, Rover = activeplats; Rover; Rover = Rover->next, RetVal++)
+		if (a_PList == Rover)
+			return RetVal;
+	
+	/* Not Found??? */
+	return 0;
+}
+
 /* PS_GetThinkerID() -- Returns ID of thinker */
 static int32_t PS_GetThinkerID(thinker_t* const a_Thinker)
 {
@@ -919,8 +939,6 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		
 		// Find host that owns this port
 		Host = D_SNHostByID(ReadID);
-		
-		CONL_PrintF("Port %x %x -> Host %p\n", PortID, ReadID, Host);
 		
 		// Something bad happened
 		if (!Host)
@@ -1759,8 +1777,14 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	pusher_t* pusher;
 	friction_t* friction;
 	ceiling_t* ceiling;
+	plat_t* plat;
+	elevator_t* elevator;
+	scroll_t* scroll;
 	
 	ceilinglist_t* clist;
+	platlist_t* plist;
+	
+	button_t* button;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -1825,6 +1849,30 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 			D_BSwi32(a_Str, -2);
 		else
 			D_BSwi32(a_Str, PS_GetCeilingListID((ceilinglist_t*)(((intptr_t)(*clist->prev)) - offsetof(ceilinglist_t, next))));
+	}
+	
+	D_BSwi32(a_Str, -3);
+	
+	D_BSRecordBlock(a_Str);
+	
+	/* Save Plat List */
+	D_BSBaseBlock(a_Str, "PLAT");
+	
+	j = 0;
+	for (plist = activeplats; plist; plist = plist->next)
+		j++;
+	D_BSwi32(a_Str, j);
+	
+	D_BSwi32(a_Str, PS_GetPlatListID(activeplats));
+	for (plist = activeplats; plist; plist = plist->next)
+	{
+		D_BSwi32(a_Str, PS_GetThinkerID((thinker_t*)plist->plat));
+		D_BSwi32(a_Str, PS_GetPlatListID(plist->next));
+		
+		if (plist->prev == &activeplats)
+			D_BSwi32(a_Str, -2);
+		else
+			D_BSwi32(a_Str, PS_GetPlatListID((platlist_t*)(((intptr_t)(*plist->prev)) - offsetof(platlist_t, next))));
 	}
 	
 	D_BSwi32(a_Str, -3);
@@ -2075,14 +2123,54 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_PLATRAISE:
+				plat = (plat_t*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, true, (void**)&plat->sector);
+				D_BSwi32(a_Str, plat->speed);
+				D_BSwi32(a_Str, plat->low);
+				D_BSwi32(a_Str, plat->high);
+				D_BSwi32(a_Str, plat->wait);
+				D_BSwi32(a_Str, plat->count);
+				D_BSwi32(a_Str, plat->status);
+				D_BSwi32(a_Str, plat->oldstatus);
+				D_BSwu8(a_Str, plat->crush);
+				D_BSwi32(a_Str, plat->tag);
+				D_BSwi32(a_Str, plat->type);
+				D_BSwi32(a_Str, PS_GetPlatListID(plat->list));
 				break;
 	
 				// Moving Surface
 			case PTT_MOVEELEVATOR:
+				elevator = (elevator_t*)Thinker;
+				
+				D_BSwu32(a_Str, elevator->type);
+				PS_LUMapObjRef(a_Str, true, (void**)&elevator->sector);
+				D_BSwi32(a_Str, elevator->direction);
+				D_BSwi32(a_Str, elevator->floordestheight);
+				D_BSwi32(a_Str, elevator->ceilingdestheight);
+				D_BSwi32(a_Str, elevator->speed);
+				D_BSwu8(a_Str, elevator->Silent);
+				D_BSwi32(a_Str, elevator->PerpWait);
+				D_BSwi32(a_Str, elevator->PerpTicsLeft);
+				PS_LUMapObjRef(a_Str, true, (void**)&elevator->CallLine);
+				D_BSwi32(a_Str, elevator->PDoorSpeed);
+				D_BSwi32(a_Str, elevator->OldDirection);
+				D_BSwu8(a_Str, elevator->Dinged);
 				break;
 	
 				// Scrolling Line
 			case PTT_SCROLL:
+				scroll = (scroll_t*)Thinker;
+				
+				scroll->dx = D_BSri32(a_Str);
+				scroll->dy = D_BSri32(a_Str);
+				scroll->affectee = D_BSri32(a_Str);
+				scroll->control = D_BSri32(a_Str);
+				scroll->last_height = D_BSri32(a_Str);
+				scroll->vdx = D_BSri32(a_Str);
+				scroll->vdy = D_BSri32(a_Str);
+				scroll->accel = D_BSri32(a_Str);
+				scroll->type = D_BSri32(a_Str);
 				break;
 	
 				// Friction
@@ -2327,6 +2415,27 @@ static bool_t PS_SaveMapState(D_BS_t* const a_Str)
 	// Record
 	D_BSRecordBlock(a_Str);
 	
+	/* Save buttons */
+	D_BSBaseBlock(a_Str, "BUTN");
+	
+	for (i = 0; i < MAXBUTTONS; i++)
+	{
+		button = &buttonlist[i];
+		
+		PS_LUMapObjRef(a_Str, true, (void**)&button->line);
+		D_BSwi32(a_Str, button->where);
+		D_BSwi32(a_Str, button->btexture);
+		D_BSwi32(a_Str, button->btimer);
+		
+		if (!button->soundorg)
+			D_BSwi32(a_Str, -1);
+		else
+			D_BSwi32(a_Str, ((sector_t*)(((intptr_t)button->soundorg) - offsetof(sector_t, soundorg))) - sectors);
+	}
+	
+	// Record
+	D_BSRecordBlock(a_Str);
+	
 	/* Save CTF Flag Info */
 	D_BSBaseBlock(a_Str, "CTFF");
 	
@@ -2410,8 +2519,14 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	pusher_t* pusher;
 	friction_t* friction;
 	ceiling_t* ceiling;
+	plat_t* plat;
+	elevator_t* elevator;
+	scroll_t* scroll;
 	
 	ceilinglist_t* clist, *rootclist, *nextclist, *clistrover;
+	platlist_t* plist, *rootplist, *nextplist, *plistrover;
+	
+	button_t* button;
 	
 	/* If not in a level, then do not continue */
 	if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
@@ -2531,6 +2646,74 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 		
 			if (clistrover)	// there might not be a next
 				clist->prev = &clistrover->next;
+		}
+	}
+	
+	/* Load Plat List */
+	if (!PS_Expect(a_Str, "PLAT"))
+		return false;
+	
+	// Clear plats
+	activeplats = NULL;
+	rootplist = NULL;
+	
+	// Re-allocate basic plat structure
+	j = D_BSri32(a_Str);
+	
+	for (plist = NULL, i = 0; i < j; i++)
+	{
+		if (!plist)
+			rootplist = plist = Z_Malloc(sizeof(*plist), PU_STATIC, NULL);
+		else
+		{
+			plist->SaveLink = Z_Malloc(sizeof(*plist), PU_STATIC, NULL);
+			plist = plist->SaveLink;
+		}
+	}
+	
+	// Find activeplats list
+	x = D_BSri32(a_Str);
+	for (i = 1, plist = rootplist; plist; plist = plist->SaveLink, i++)
+		if (i == x)
+			break;
+	
+	// Active plat is this list
+	activeplats = plist;
+	
+	// Read consecutive list
+	for (plist = rootplist; plist; plist = nextplist)
+	{
+		// Next may get kludged
+		nextplist = plist->SaveLink;
+		
+		// Read, end if -3, otherwise a thinker
+		x = D_BSri32(a_Str);
+		if (x == -3)
+			break;	// End
+		
+		// Thinker
+		plist->plat = (plat_t*)x;
+		
+		// Reref real next
+		x = D_BSri32(a_Str);
+		for (i = 1, plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink, i++)
+			if (i == x)
+				break;
+		
+		plist->next = plistrover;
+		
+		// This is a pointer of a pointer
+		x = D_BSri32(a_Str);
+		if (x == -2)
+			plist->prev = &activeplats;
+		else
+		{
+			for (i = 1, plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink, i++)
+				if (i == x)
+					break;
+		
+			if (plistrover)	// there might not be a next
+				plist->prev = &plistrover->next;
 		}
 	}
 	
@@ -2833,7 +3016,7 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				ceiling->olddirection = D_BSri32(a_Str);
 				 
 				// Find ceilinglist reference
-				x = D_BSru32(a_Str);
+				x = D_BSri32(a_Str);
 				for (j = 1, clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink, j++)
 					if (j == x)
 						break;
@@ -2842,14 +3025,60 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	
 				// Moving Surface
 			case PTT_PLATRAISE:
+				plat = (plat_t*)Thinker;
+				
+				PS_LUMapObjRef(a_Str, false, (void**)&plat->sector);
+				plat->speed = D_BSri32(a_Str);
+				plat->low = D_BSri32(a_Str);
+				plat->high = D_BSri32(a_Str);
+				plat->wait = D_BSri32(a_Str);
+				plat->count = D_BSri32(a_Str);
+				plat->status = D_BSri32(a_Str);
+				plat->oldstatus = D_BSri32(a_Str);
+				plat->crush = D_BSru8(a_Str);
+				plat->tag = D_BSri32(a_Str);
+				plat->type = D_BSri32(a_Str);
+				
+				// Find platlist reference
+				x = D_BSri32(a_Str);
+				for (j = 1, plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink, j++)
+					if (j == x)
+						break;
+				plat->list = plistrover;
 				break;
 	
 				// Moving Surface
 			case PTT_MOVEELEVATOR:
+				elevator = (elevator_t*)Thinker;
+				
+				elevator->type = D_BSru32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&elevator->sector);
+				elevator->direction = D_BSri32(a_Str);
+				elevator->floordestheight = D_BSri32(a_Str);
+				elevator->ceilingdestheight = D_BSri32(a_Str);
+				elevator->speed = D_BSri32(a_Str);
+				elevator->Silent = D_BSru8(a_Str);
+				elevator->PerpWait = D_BSri32(a_Str);
+				elevator->PerpTicsLeft = D_BSri32(a_Str);
+				PS_LUMapObjRef(a_Str, false, (void**)&elevator->CallLine);
+				elevator->PDoorSpeed = D_BSri32(a_Str);
+				elevator->OldDirection = D_BSri32(a_Str);
+				elevator->Dinged = D_BSru8(a_Str);
 				break;
 	
 				// Scrolling Line
 			case PTT_SCROLL:
+				scroll = (scroll_t*)Thinker;
+				
+				D_BSwi32(a_Str, scroll->dx);
+				D_BSwi32(a_Str, scroll->dy);
+				D_BSwi32(a_Str, scroll->affectee);
+				D_BSwi32(a_Str, scroll->control);
+				D_BSwi32(a_Str, scroll->last_height);
+				D_BSwi32(a_Str, scroll->vdx);
+				D_BSwi32(a_Str, scroll->vdy);
+				D_BSwi32(a_Str, scroll->accel);
+				D_BSwi32(a_Str, scroll->type);
 				break;
 	
 				// Friction
@@ -2885,6 +3114,10 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 	// Restore ceiling list thinkers
 	for (clistrover = rootclist; clistrover; clistrover = clistrover->SaveLink)
 		clistrover->ceiling = (void*)PS_GetThinkerFromID((intptr_t)clistrover->ceiling);
+	
+	// Restore plat list thinkers
+	for (plistrover = rootplist; plistrover; plistrover = plistrover->SaveLink)
+		plistrover->plat = (void*)PS_GetThinkerFromID((intptr_t)plistrover->plat);
 	
 	// Restore sector node thinker IDs
 	for (i = 0; i < g_NumMSecNodes; i++)
@@ -3149,6 +3382,28 @@ static bool_t PS_LoadMapState(D_BS_t* const a_Str)
 				D_BSru8(a_Str);
 				D_BSri32(a_Str);
 			}
+	}
+	
+	
+	/* Save buttons */
+	if (!PS_Expect(a_Str, "BUTN"))
+		return false;
+	
+	for (i = 0; i < MAXBUTTONS; i++)
+	{
+		button = &buttonlist[i];
+		
+		PS_LUMapObjRef(a_Str, false, (void**)&button->line);
+		button->where = D_BSri32(a_Str);
+		button->btexture = D_BSri32(a_Str);
+		button->btimer = D_BSri32(a_Str);
+		
+		x = D_BSri32(a_Str);
+		
+		if (x < 0 || x >= numsectors)
+			button->soundorg = NULL;
+		else
+			button->soundorg = &sectors[x].soundorg;
 	}
 	
 	/* Load CTF Flag Info */
