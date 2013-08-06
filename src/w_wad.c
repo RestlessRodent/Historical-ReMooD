@@ -38,6 +38,7 @@
 #include "console.h"
 #include "i_util.h"
 #include "dstrings.h"
+#include "g_state.h"
 
 //#include "doomdef.h"
 //#include "i_video.h"

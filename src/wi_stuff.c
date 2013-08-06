@@ -32,6 +32,17 @@
 // DESCRIPTION:
 //      Intermission screens.
 
+#include "wi_stuff.h"
+#include "g_state.h"
+#include "d_player.h"
+#include "v_video.h"
+#include "d_block.h"
+#include "p_demcmp.h"
+#include "p_info.h"
+#include "r_defs.h"
+#include "dstrings.h"
+#include "s_sound.h"
+
 //#include "doomdef.h"
 //#include "wi_stuff.h"
 //#include "g_game.h"
@@ -49,6 +60,8 @@
 //#include "p_demcmp.h"
 //#include "vhw_wrap.h"
 //#include "p_local.h"
+
+extern wbstartstruct_t wminfo;
 
 //
 // Data needed to add patches to full screen intermission pics.

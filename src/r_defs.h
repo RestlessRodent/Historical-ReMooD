@@ -853,11 +853,8 @@ typedef struct
 	uint32_t Code;								// Sprite code name
 } spritedef_t;
 
-#define BORIS_FIX
-#ifdef BORIS_FIX
 extern short* last_ceilingclip;
 extern short* last_floorclip;
-#endif
 
 typedef struct
 {

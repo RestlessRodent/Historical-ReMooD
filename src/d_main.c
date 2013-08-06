@@ -282,7 +282,7 @@ void D_Display(void)
 			break;
 			
 		case GS_FINALE:
-			F_Drawer();
+			//F_Drawer();
 			break;
 		
 			// Lobby
@@ -2474,7 +2474,7 @@ void D_DoomMain(void)
 	R_LoadTextures();					// Load texture info
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	P_XGSRegisterStuff();				// Extended Game Settings stuff
-	M_CheatInit();						// Initialize Cheats
+	//M_CheatInit();						// Initialize Cheats
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
 	M_SMInit();							// Simple Menus
@@ -2560,8 +2560,6 @@ void D_DoomMain(void)
 	// Start WADs
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
-	
-	cht_Init();
 	
 	//---------------------------------------------------- READY SCREEN
 	//printf("\nI_StartupComm...");

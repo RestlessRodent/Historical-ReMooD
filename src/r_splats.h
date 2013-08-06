@@ -43,8 +43,6 @@
 
 //#include "w_wad.h"
 
-#define WALLSPLATS				// comment this out to compile without splat effects
-
 #define MAXLEVELSPLATS      1024
 
 // splat flags
@@ -87,3 +85,4 @@ void R_ClearLevelSplats(void);
 void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t top, fixed_t wallfrac, int flags);
 
 #endif /*__R_SPLATS_H__*/
+

@@ -38,7 +38,8 @@
 //#include "doomstat.h"
 
 //#include "w_wad.h"				// for MAX_WADFILES
-//#include "i_util.h"
+
+#include "i_util.h"
 
 /*****************
 *** STRUCTURES ***

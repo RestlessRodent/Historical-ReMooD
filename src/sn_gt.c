@@ -130,7 +130,7 @@ void SN_RemovePlayer(const int32_t a_PlayerID)
 	uint8_t* Wp;
 	
 	/* Check */
-	if (!D_SNIsServer() || a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
+	if (!SN_IsServer() || a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
 		return;
 	
 	/* Build packet */
@@ -158,7 +158,7 @@ void SN_ChangeMap(const char* const a_NewMap, const bool_t a_Reset)
 		return;
 	
 	/* Server */
-	if (D_SNIsServer())
+	if (SN_IsServer())
 	{
 		// Attempt global grab
 		if (SN_ExtCmdInGlobal(DTCT_MAPCHANGE, &Wp))
@@ -389,7 +389,7 @@ static void SN_HandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_P
 		return;
 	
 	/* Call cleanup */
-	if (!D_SNIsServer())
+	if (!SN_IsServer())
 		SN_CleanupHost(a_Host);
 }
 

@@ -405,7 +405,7 @@ typedef union FColorRGBA RGBA_t;
 *** INCLUDE LIBRARY STUFF ***
 ****************************/
 
-//#include "c_lib.h"
+#include "c_lib.h"
 #include "m_fixed.h"
 
 /**************

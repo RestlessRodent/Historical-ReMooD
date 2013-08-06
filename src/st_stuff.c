@@ -48,6 +48,7 @@
 #include "m_bbox.h"
 #include "st_doom.h"
 #include "sn.h"
+#include "vhw_wrap.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

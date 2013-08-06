@@ -34,6 +34,8 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
+#include "z_zone.h"
+
 //#include "doomdef.h"
 //#include "sounds.h"
 

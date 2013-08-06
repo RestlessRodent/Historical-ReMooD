@@ -78,6 +78,12 @@
 	#define __REMOOD_MAPTHINGT_DEFINED
 #endif
 
+/* Define wbstartstruct_t */
+#if !defined(__REMOOD_WBSS_DEFINED)
+	typedef struct wbstartstruct_s wbstartstruct_t;
+	#define __REMOOD_WBSS_DEFINED
+#endif
+
 // The player data structure depends on a number
 // of other structs: items (internal inventory),
 // animation states (closely tied to the sprites
@@ -388,7 +394,7 @@ typedef struct
 
 struct P_LevelInfoEx_s;
 
-typedef struct
+struct wbstartstruct_s
 {
 	int32_t epsd;					// episode # (0-2)
 	
@@ -414,7 +420,7 @@ typedef struct
 	
 	struct P_LevelInfoEx_s* NextInfo;			// Info for next level
 	
-} wbstartstruct_t;
+};
 
 /**************
 *** GLOBALS ***

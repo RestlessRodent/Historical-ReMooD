@@ -941,7 +941,6 @@ void R_SetupFrame(player_t* player)
 	else if (!player->ChaseCam)
 		player->camera.chase = false;
 		
-#ifdef FRAGGLESCRIPT
 	if (script_camera_on)
 	{
 		viewmobj = script_camera.mo;
@@ -955,7 +954,6 @@ void R_SetupFrame(player_t* player)
 		viewangle = viewmobj->angle;
 	}
 	else
-#endif
 		if (player->camera.chase)
 			// use outside cam view
 		{

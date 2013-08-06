@@ -214,10 +214,8 @@ void P_Ticker(void)
 	// for par times
 	leveltime++;
 	
-#ifdef FRAGGLESCRIPT
 	// SoM: Update FraggleScript...
 	T_DelayedScripts();
-#endif
 }
 
 /* G_ThinkTypeToFunc() -- Converts thinker type to function */

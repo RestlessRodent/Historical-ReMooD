@@ -47,6 +47,7 @@
 #include "z_zone.h"
 #include "tables.h"
 #include "s_sound.h"
+#include "wi_stuff.h"
 
 // TODO FIXME: Put Player spot spawning elsewhere??
 #include "p_maputl.h"
@@ -746,7 +747,7 @@ void G_Ticker(void)
 			break;
 			
 		case GS_FINALE:
-			F_Ticker();
+			//F_Ticker();
 			break;
 			
 		case GS_WAITFORJOINWINDOW:
