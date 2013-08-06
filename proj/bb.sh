@@ -342,6 +342,73 @@ do
 			# Fallback
 			echo ""
 			;;
+
+###############################################################################
+### Win64/SDL
+###############################################################################
+		win64_sdl)
+			echo "$COOLPREFIX Building Win64 SDL Binary" 1>&2
+			
+			WINGCC="`"$BBROOT/bb.sh" win64_findcc`"
+			echo "$COOLPREFIX Using $WINGCC" 1>&2
+			
+			# See if the SDL library needs downloading
+			if [ ! -d SDL-1.2-20111107-win64 ]
+			then
+				if [ ! -f "SDL-1.2-20111107-win64.tar.gz" ]
+				then
+					wget http://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/SDL/SDL-1.2-20111107-win64.tar.gz
+				fi
+				
+				# Extract
+				if ! tar -xvvf "SDL-1.2-20111107-win64.tar.gz"
+				then
+					echo "$COOLPREFIX Failed to extract SDL/Win64" 1>&2
+					exit 1
+				fi
+			fi
+			
+			# Compile
+			make clean USEINTERFACE=sdl TOOLPREFIX="$WINGCC"
+			if ! make $MAKEFLAGS USEINTERFACE=sdl TOOLPREFIX="$WINGCC" SDL_INCLUDE=SDL-1.2-20111107-win64/include/SDL SDL_LIB=SDL-1.2-20111107-win64/lib OPENGL_LDFLAGS="-lopengl32"
+			then
+				echo "$COOLPREFIX Failed" 1>&2
+				exit 1
+			fi
+			
+			# Zip
+			mkdir -p "$$/"
+			cp -v "bin/remood.exe" "$$/"
+			cp -v "$BBREMOOD/bin/remood.wad" "$$/"
+			cp -v "SDL-1.2-20111107-win64/bin/SDL.dll" "$$/"
+			cp -v "$BBREMOOD/doc/manual.pdf" "$$/"
+			cp -v "$BBREMOOD/AUTHORS" "$$/"
+			cp -v "$BBREMOOD/LICENSE" "$$/"
+			cp -v "$BBREMOOD/version" "$$/"
+			
+			# Go into dir
+			cd "$$/"
+			
+			# Convert to DOS format
+			unix2dos -o AUTHORS LICENSE version
+			
+			# Zip files into an archive
+			rm -f "../remood_${REMOODVERSIONSTRIP}_win64.zip"
+			zip "../remood_${REMOODVERSIONSTRIP}_win64.zip" *
+			
+			# Get back out
+			cd "../"
+			rm -rf "$$"
+			
+			;;
+			
+###############################################################################
+### Win64/Default
+###############################################################################
+		win64)
+			echo "$COOLPREFIX Building Win64 Default Binary" 1>&2
+			"$BBROOT/bb.sh" win64_sdl
+			;;
 			
 ###############################################################################
 ### Win32/Allegro Binary

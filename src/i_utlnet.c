@@ -694,6 +694,7 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 	struct ipv6_mreq MCGroupS;
 #endif
 	I_NetSocket_t* RetVal;
+	unsigned long NBVal;
 	
 	/* V6 not supported? */
 #if !defined(__REMOOD_ENABLEIPV6) || defined(__REMOOD_NOIPV6MULTICAST)
