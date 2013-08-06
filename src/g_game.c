@@ -424,7 +424,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 			case DTCT_SNJOINPORT:
 			case DTCT_SNCHATFRAG:
 			case DTCT_SNPORTSETTING:
-				D_SNHandleGT(Command, &Rp);
+				SN_HandleGT(Command, &Rp);
 				break;
 				
 				// Map Changes
@@ -633,7 +633,7 @@ void G_Ticker(void)
 		G_WriteStartTic(NowCode);
 	
 	// start network tick
-	D_SNStartTic(gametic);
+	SN_StartTic(gametic);
 	
 	/* Global Commands */
 	// Clear
@@ -643,12 +643,12 @@ void G_Ticker(void)
 	if (demoplayback)
 		G_ReadDemoGlobalTicCmd(&GlobalCmd);
 	else
-		D_SNTics(&GlobalCmd, false, -1);
+		SN_Tics(&GlobalCmd, false, -1);
 	
 	// Write Global Tic Commands
 	if (demorecording)
 		G_WriteDemoGlobalTicCmd(&GlobalCmd);
-	D_SNTics(&GlobalCmd, true, -1);
+	SN_Tics(&GlobalCmd, true, -1);
 	
 	/* Player Commands */
 	// Read Individual Player Tic Commands
@@ -663,12 +663,12 @@ void G_Ticker(void)
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
-				D_SNTics(cmd, false, i);
+				SN_Tics(cmd, false, i);
 			
 			// Write Command
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
-			D_SNTics(cmd, true, i);
+			SN_Tics(cmd, true, i);
 			
 			// Copy Ping
 			players[i].Ping = cmd->Ctrl.Ping;
@@ -685,7 +685,7 @@ void G_Ticker(void)
 		G_WriteEndTic(NowCode);
 	
 	// Networking
-	D_SNSyncCode(gametic, NowCode);
+	SN_SyncCode(gametic, NowCode);
 	
 	/* If playing a demo, check code comparison */
 	// Also make sure the demo supports the ReMooD sync code, otherwise there
@@ -861,7 +861,7 @@ void G_PlayerReborn(int player)
 	bool_t* RandGuns;
 	
 	D_Prof_t* PEp;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	
 	//from Boris
 	int32_t skincolor, VTeamColor;

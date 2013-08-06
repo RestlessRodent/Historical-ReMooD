@@ -718,7 +718,7 @@ static bool_t PS_LoadDummy(D_BS_t* const a_Str, const bool_t a_Tail)
 /*---------------------------------------------------------------------------*/
 
 
-extern D_SNHost_t*** g_HostsP;
+extern SN_Host_t*** g_HostsP;
 extern int32_t* g_NumHostsP;
 
 #define GHOSTS (*g_HostsP)
@@ -728,14 +728,14 @@ extern int32_t* g_NumHostsP;
 static void PS_SaveNetState(D_BS_t* const a_Str)
 {
 	int32_t i, j;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	
 	/* Save Hosts */
 	D_BSBaseBlock(a_Str, "HOST");
 	
 	// Current Host ID
-	Host = D_SNMyHost();
+	Host = SN_MyHost();
 	if (Host)
 		D_BSwu32(a_Str, Host->ID);
 	else
@@ -831,9 +831,9 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 {
 #define UUIDLEN (MAXUUIDLENGTH + 2)
 	char Buf[UUIDLEN];
-	D_SNHost_t* MyHost;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* MyHost;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	uint32_t ID, ReadID, PortID, LocalID;
 	int32_t TempI, j;
 	bool_t Local;
@@ -843,8 +843,8 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	/* Get current host, if connected */
 	// Or if in single player game
 	MyHost = NULL;
-	if (D_SNIsConnected() || l_SoloLoad)
-		MyHost = D_SNMyHost();
+	if (SN_IsConnected() || l_SoloLoad)
+		MyHost = SN_MyHost();
 	
 	/* Expect "HOST" */
 	if (!PS_Expect(a_Str, "HOST"))
@@ -890,8 +890,8 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		// Create host, if this is not ours
 		else
 		{
-			if (!(Host = D_SNHostByID(ReadID)))	// maybe it already exists?
-				Host = D_SNCreateHost();
+			if (!(Host = SN_HostByID(ReadID)))	// maybe it already exists?
+				Host = SN_CreateHost();
 			
 			// Make my host
 			if (Local)
@@ -919,8 +919,8 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	}
 	
 	// Set local host
-	MyHost = D_SNHostByID(LocalID);
-	D_SNSetMyHost(MyHost);
+	MyHost = SN_HostByID(LocalID);
+	SN_SetMyHost(MyHost);
 		
 	/* Expect "PORT" */
 	if (!PS_Expect(a_Str, "PORT"))
@@ -938,14 +938,14 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		ReadID = D_BSru32(a_Str);
 		
 		// Find host that owns this port
-		Host = D_SNHostByID(ReadID);
+		Host = SN_HostByID(ReadID);
 		
 		// Something bad happened
 		if (!Host)
 			return PS_IllegalSave(DSTR_PSAVEGC_ILLEGALHOST);
 		
 		// Create Port for this host
-		Port = D_SNAddPort(Host);
+		Port = SN_AddPort(Host);
 		
 		// Set fields
 		Port->ID = PortID;
@@ -974,7 +974,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			// If profile not set, try setting
 			if (!Port->Profile)
 				if ((Prof = D_FindProfileEx(Buf)))
-					D_SNSetPortProfile(Port, Prof);
+					SN_SetPortProfile(Port, Prof);
 		}
 		
 		// Reserved for bot
@@ -3701,14 +3701,14 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	// such as when playing a demo or joining a netgame.
 	l_SoloLoad = false;
 	if (!a_DemoPlay)
-		if (!D_SNIsConnected() || D_SNIsServer() || (demoplayback || gamestate == GS_DEMOSCREEN) || (D_SNIsConnected() && !D_SNWaitingForSave()))
+		if (!SN_IsConnected() || SN_IsServer() || (demoplayback || gamestate == GS_DEMOSCREEN) || (SN_IsConnected() && !SN_WaitingForSave()))
 		{
 			// Disconnect
-			D_SNDisconnect(false, "Loading a save game.");
+			SN_Disconnect(false, "Loading a save game.");
 			
 			// Start local server
 				// Do not force add a first port
-			D_SNStartLocalServer(0, NULL, false, false);
+			SN_StartLocalServer(0, NULL, false, false);
 			l_SoloLoad = true;
 		}
 	
@@ -3747,7 +3747,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	if (!OK)
 	{
 		P_ExClearLevel();
-		D_SNDisconnect(false, "Failed to load savegame");
+		SN_Disconnect(false, "Failed to load savegame");
 		return false;
 	}
 	

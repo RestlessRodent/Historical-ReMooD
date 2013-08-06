@@ -103,7 +103,7 @@ typedef struct camera_s
 	mobj_t* mo;
 } camera_t;
 
-struct D_SNPort_s;
+struct SN_Port_s;
 
 // ========================================================================
 //                          PLAYER STRUCTURE
@@ -254,7 +254,7 @@ typedef struct player_s
 	
 	/*** EXTENDED STUFF ***/
 	D_Prof_t* ProfileEx;						// Extended Profiles
-	struct D_SNPort_s* Port;					// Port
+	struct SN_Port_s* Port;					// Port
 	
 	// Health
 	int32_t MaxHealth[2];						// Max Health

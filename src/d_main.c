@@ -266,7 +266,7 @@ void D_Display(void)
 		
 			// Lobby
 		case GS_WAITINGPLAYERS:
-			D_SNDrawLobby();
+			SN_DrawLobby();
 			break;
 			
 		case GS_DEMOSCREEN:
@@ -390,7 +390,7 @@ void D_Display(void)
 	}
 	
 	// Simple Networking Drawiung below everything
-	D_SNDrawer();
+	SN_Drawer();
 	
 	// GhostlyDeath <September 5, 2012> -- Joystick specials
 	D_JoySpecialDrawer();
@@ -550,7 +550,7 @@ void D_DoomLoop(void)
 	}
 	
 	// Auto start?
-	else if (NG_IsAutoStart() || D_SNIsConnected() || D_SNHasSocket())
+	else if (NG_IsAutoStart() || SN_IsConnected() || SN_HasSocket())
 	{
 		// Do nothing?
 	}
@@ -2696,7 +2696,7 @@ void D_DoomMain(void)
 		}
 	
 	// Initialize server
-	D_SNServerInit();
+	SN_ServerInit();
 	
 	// Process all + parms
 		// Commands like other things

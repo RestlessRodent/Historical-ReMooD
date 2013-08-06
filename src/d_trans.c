@@ -93,7 +93,7 @@ typedef struct D_WADChain_s
 /* D_JobHost_t -- Remote host specifier in a job */
 typedef struct D_JobHost_s
 {
-	D_SNHost_t* Host;							// Host pointer
+	SN_Host_t* Host;							// Host pointer
 	int32_t ArrID;								// Array ID
 	bool_t Clear;								// Clear host
 	
@@ -117,7 +117,7 @@ typedef struct D_XMitJob_s
 *** GLOBALS ***
 **************/
 
-extern D_SNHost_t*** g_HostsP;
+extern SN_Host_t*** g_HostsP;
 extern int32_t* g_NumHostsP;
 extern int32_t g_IgnoreWipeTics;
 
@@ -136,7 +136,7 @@ static tic_t l_LastRanTime;
 static D_XMitJob_t l_XStack[MAXNETXTICS];		// Transmission stack
 static int32_t l_XAt;							// Current transmission at
 
-static D_SNPingWin_t l_SvPings[MAXPINGWINDOWS];	// Ping windows
+static SN_PingWin_t l_SvPings[MAXPINGWINDOWS];	// Ping windows
 static int8_t l_SvPingAt;						// Current window
 static tic_t l_SvNextPing;						// Time of next ping
 static tic_t l_SvLastPing;						// Last ping time
@@ -154,9 +154,9 @@ CONL_StaticVar_t l_NETLanBroadcast =
 *** FUNCTIONS ***
 ****************/
 
-/* D_SNDeleteJob() -- Delets job from list */
+/* SN_DeleteJob() -- Delets job from list */
 // Assumes for loop with i++ in for statement
-static void D_SNDeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
+static void SN_DeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 {
 	int32_t i;
 	D_XMitJob_t* Job;
@@ -179,8 +179,8 @@ static void D_SNDeleteJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 		}
 }
 
-/* D_SNDeleteIndexInJob() -- Deletes index in this job */
-static void D_SNDeleteIndexInJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
+/* SN_DeleteIndexInJob() -- Deletes index in this job */
+static void SN_DeleteIndexInJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 {
 	int32_t i;
 	
@@ -197,23 +197,23 @@ static void D_SNDeleteIndexInJob(D_XMitJob_t* const a_Job, int32_t* const a_iP)
 	a_Job->NumDests -= 1;
 }
 
-/* D_SNClearJobs() -- Clears all jobs */
-void D_SNClearJobs(void)
+/* SN_ClearJobs() -- Clears all jobs */
+void SN_ClearJobs(void)
 {
 	/* Loop deletion */
 	while (l_XAt > 0)
-		D_SNDeleteJob(&l_XStack[0], NULL);
+		SN_DeleteJob(&l_XStack[0], NULL);
 }
 
-/* D_SNXMitTics() -- Transmit tics to local client */
-void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
+/* SN_XMitTics() -- Transmit tics to local client */
+void SN_XMitTics(const tic_t a_GameTic, SN_TicBuf_t* const a_Buffer)
 {
 	static D_JobHost_t* HostL;
 	static int32_t NumHostL, MaxHostL;
 	
 	D_XMitJob_t* Job;
 	int32_t i;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	uint8_t* OutD;
 	
 	/* Wipe the host list */
@@ -258,7 +258,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 			// At end of jobs?
 			if (NumHostL >= MAXJOBHOSTS - 1)
 			{
-				D_SNDisconnectHost(Host, "No more jobs available.");
+				SN_DisconnectHost(Host, "No more jobs available.");
 				continue;
 			}
 			
@@ -286,7 +286,7 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	Job->GameTic = a_GameTic;
 	
 	// Encode tic buffer and clone the data into the job
-	D_SNEncodeTicBuf(a_Buffer, &OutD, &Job->EncSize, DXNTBV_LATEST);
+	SN_EncodeTicBuf(a_Buffer, &OutD, &Job->EncSize, DXNTBV_LATEST);
 	memmove(Job->EncData, OutD, (Job->EncSize < ENCODESIZE ? Job->EncSize : ENCODESIZE));
 	
 	// Put all players that should get this job
@@ -294,22 +294,22 @@ void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer)
 	Job->NumDests = NumHostL;
 }
 
-/* D_SNOkTics() -- Tics that can be run by the game */
-int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
+/* SN_OkTics() -- Tics that can be run by the game */
+int32_t SN_OkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 {
 	int32_t i;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	int32_t SaveID;
 	bool_t Kick;
 	D_XMitJob_t* Job;
 	tic_t LowTic;
 	
 	/* Do not move forward if not connected */
-	if (!D_SNIsConnected())
+	if (!SN_IsConnected())
 		return 0;	
 	
 	/* Server */
-	if (D_SNIsServer())
+	if (SN_IsServer())
 	{
 		// Job tranmission buffer is almost full!
 			// A client is lagging
@@ -354,7 +354,7 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 						// Setup save slot
 						if (!Kick && SaveID < 0)
 						{
-							SaveID = D_SNPrepSave();
+							SaveID = SN_PrepSave();
 							
 							// Failed to make save
 							if (SaveID < 0)
@@ -363,13 +363,13 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 						
 						// Send file
 						if (SaveID >= 0)
-							D_SNSendFile(SaveID, Host);
+							SN_SendFile(SaveID, Host);
 					}
 					
 					// Kick off player
 					if (Kick)
 					{
-						D_SNDisconnectHost(Host, "Failed to save game");
+						SN_DisconnectHost(Host, "Failed to save game");
 						continue;
 					}
 					
@@ -406,13 +406,13 @@ int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 	/* Client */
 	else
 	{
-		return D_SNNumSeqTics();
+		return SN_NumSeqTics();
 	}
 }
 
-/* D_SNNetCreate() -- Creates network connection */
+/* SN_NetCreate() -- Creates network connection */
 // Either listener or remote
-bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port)
+bool_t SN_NetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port)
 {
 	I_HostAddress_t Host;
 	uint32_t Flags, Fails;
@@ -435,7 +435,7 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 	
 	/* If socket exists, terminate */
 	if (l_Sock)
-		D_SNNetTerm("Creating new socket");
+		SN_NetTerm("Creating new socket");
 	
 	/* Create socket */
 	// Clear
@@ -498,8 +498,8 @@ bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint
 	return true;
 }
 
-/* D_SNNetTerm() -- Terminates network connection */
-void D_SNNetTerm(const char* const a_Reason)
+/* SN_NetTerm() -- Terminates network connection */
+void SN_NetTerm(const char* const a_Reason)
 {
 	const char* Reason;
 	int32_t i;
@@ -522,10 +522,10 @@ void D_SNNetTerm(const char* const a_Reason)
 		D_BSRecordNetBlock(l_BS, &l_HostAddr);
 	
 	/* Drop all clients */
-	D_SNDropAllClients(a_Reason);
+	SN_DropAllClients(a_Reason);
 	
 	/* Clear file transfers */
-	D_SNClearFiles();
+	SN_ClearFiles();
 	
 	/* Close socket */
 	D_BSCloseStream(l_BS);
@@ -540,19 +540,19 @@ void D_SNNetTerm(const char* const a_Reason)
 	CONL_OutputUT(CT_NETWORK, DSTR_DXP_DISCONNED, "%s\n", Reason);
 }
 
-/* D_SNHasSocket() -- Socket exists */
-bool_t D_SNHasSocket(void)
+/* SN_HasSocket() -- Socket exists */
+bool_t SN_HasSocket(void)
 {
 	return !!l_Sock;
 }
 
-/* D_SNDisconnectHost() -- Disconnects another host */
-void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
+/* SN_DisconnectHost() -- Disconnects another host */
+void SN_DisconnectHost(SN_Host_t* const a_Host, const char* const a_Reason)
 {
 	int i;
 	
 	/* Check */
-	if (!l_BS || !a_Host || !D_SNIsServer() || a_Host->Local)
+	if (!l_BS || !a_Host || !SN_IsServer() || a_Host->Local)
 		return;
 	
 	/* Already cleaning up */
@@ -576,12 +576,12 @@ void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason)
 		D_BSRecordNetBlock(l_BS, &a_Host->Addr);
 }
 
-/* D_SNRequestPortNet() -- Request port from the network */
-void D_SNRequestPortNet(const uint32_t a_ProcessID)
+/* SN_RequestPortNet() -- Request port from the network */
+void SN_RequestPortNet(const uint32_t a_ProcessID)
 {
 	/* If there is no socket, do not ask */
 	// Also do not ask if we are the server
-	if (!l_BS || !l_Sock || D_SNIsServer())
+	if (!l_BS || !l_Sock || SN_IsServer())
 		return;
 	
 	/* Build packet */
@@ -593,11 +593,11 @@ void D_SNRequestPortNet(const uint32_t a_ProcessID)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
-/* D_SNPortJoinGame() -- Request that port join the game */
-void D_SNPortJoinGame(D_SNPort_t* const a_Port)
+/* SN_PortJoinGame() -- Request that port join the game */
+void SN_PortJoinGame(SN_Port_t* const a_Port)
 {
 	/* Check */
-	if (!l_BS || !l_Sock || D_SNIsServer() || !a_Port)
+	if (!l_BS || !l_Sock || SN_IsServer() || !a_Port)
 		return;
 		
 	/* Build packet */
@@ -608,20 +608,20 @@ void D_SNPortJoinGame(D_SNPort_t* const a_Port)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
-/* D_SNWaitingForSave() -- Waiting for save game */
-bool_t D_SNWaitingForSave(void)
+/* SN_WaitingForSave() -- Waiting for save game */
+bool_t SN_WaitingForSave(void)
 {
 	// Only if wanting save
-	if (l_Sock && D_SNIsConnected() && (l_Stage == DCS_REQUESTSAVE || l_Stage == DCS_GETSAVE))
+	if (l_Sock && SN_IsConnected() && (l_Stage == DCS_REQUESTSAVE || l_Stage == DCS_GETSAVE))
 		return true;
 	return false;
 }
 
-/* D_SNSendSyncCode() -- Sends sync code to client */
-void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
+/* SN_SendSyncCode() -- Sends sync code to client */
+void SN_SendSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 {
 	/* Check */
-	if (!l_BS || !l_Sock || D_SNIsServer())
+	if (!l_BS || !l_Sock || SN_IsServer())
 		return;
 		
 	/* Build packet */
@@ -633,13 +633,13 @@ void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
-/* D_SNSendChat() -- Sends chat command */
-void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* const a_Text)
+/* SN_SendChat() -- Sends chat command */
+void SN_SendChat(SN_Port_t* const a_Port, const bool_t a_Team, const char* const a_Text)
 {
 	uint8_t Mode;
 	const char* p;
 	I_HostAddress_t* AddrP;
-	D_SNPort_t* Target;
+	SN_Port_t* Target;
 	
 	/* No origin */
 	if (!a_Port || !a_Text)
@@ -672,9 +672,9 @@ void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* con
 		Mode = 0;
 	
 	/* Server can directly encode message */
-	if (D_SNIsServer())
+	if (SN_IsServer())
 	{
-		D_SNDirectChat(a_Port->Host->ID, a_Port->ID, Mode, 0, p);
+		SN_DirectChat(a_Port->Host->ID, a_Port->ID, Mode, 0, p);
 	}
 	
 	/* Otherwise, send request to server */
@@ -692,25 +692,25 @@ void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* con
 	}
 }
 
-/* D_SNSetLastTic() -- Sets the last tic running for */
-void D_SNSetLastTic(void)
+/* SN_SetLastTic() -- Sets the last tic running for */
+void SN_SetLastTic(void)
 {
 	l_LastRanTime = g_ProgramTic;
 }
 
-/* D_SNAppendLocalCmds() -- Append local commands */
-void D_SNAppendLocalCmds(D_BS_t* const a_BS)
+/* SN_AppendLocalCmds() -- Append local commands */
+void SN_AppendLocalCmds(D_BS_t* const a_BS)
 {
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	int32_t i, p;
-	D_SNTicBuf_t TicBuf;
+	SN_TicBuf_t TicBuf;
 	ticcmd_t* Cmd;
 	uint8_t* OutD;
 	uint32_t OutS;
 	
 	/* Check */
-	if (!a_BS || !(Host = D_SNMyHost()))
+	if (!a_BS || !(Host = SN_MyHost()))
 		return;
 	
 	/* Clear Buffer */
@@ -737,7 +737,7 @@ void D_SNAppendLocalCmds(D_BS_t* const a_BS)
 			memset(Port->LocalBuf, 0, sizeof(Port->LocalBuf));
 			
 			// Do local turning and aiming
-			D_SNLocalTurn(Port, Cmd);
+			SN_LocalTurn(Port, Cmd);
 		}
 	
 	/* Check to see if anything was ever encoded */
@@ -750,21 +750,21 @@ void D_SNAppendLocalCmds(D_BS_t* const a_BS)
 	/* Encode and write */
 	OutD = NULL;
 	OutS = 0;
-	D_SNEncodeTicBuf(&TicBuf, &OutD, &OutS, DXNTBV_LATEST);
+	SN_EncodeTicBuf(&TicBuf, &OutD, &OutS, DXNTBV_LATEST);
 	
 	// Write
 	D_BSwu32(a_BS, OutS);
 	D_BSWriteChunk(a_BS, OutD, OutS);
 }
 
-/* D_SNSendSettings() -- Sends setting to server */
-void D_SNSendSettings(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
+/* SN_SendSettings() -- Sends setting to server */
+void SN_SendSettings(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
 {
 	const uint8_t* p;
 	int32_t i;	
 	
 	/* Check */
-	if (!l_BS || !l_Sock || D_SNIsServer())
+	if (!l_BS || !l_Sock || SN_IsServer())
 		return;
 		
 	/* Build packet */
@@ -814,8 +814,8 @@ void D_SNSendSettings(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Settin
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
-/* D_SNDoConnect() -- Do connection logic */
-void D_SNDoConnect(void)
+/* SN_DoConnect() -- Do connection logic */
+void SN_DoConnect(void)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -833,20 +833,20 @@ void D_SNDoConnect(void)
 	/* Build connect info */
 	D_BSBaseBlock(l_BS, "CONN");
 	
-	D_BSwu8(l_BS, D_SNIsServer());
+	D_BSwu8(l_BS, SN_IsServer());
 	
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 #undef BUFSIZE
 }
 
-/* D_SNDoServer() -- Do server stuff */
-void D_SNDoServer(D_BS_t* const a_BS)
+/* SN_DoServer() -- Do server stuff */
+void SN_DoServer(D_BS_t* const a_BS)
 {
 	D_XMitJob_t* Job;
 	D_JobHost_t* JHost;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	int32_t i, j;
-	D_SNPingWin_t* PWin;
+	SN_PingWin_t* PWin;
 	static int32_t LastSlot;
 	tic_t PCap, GCap;
 	static tic_t LastAdvert;
@@ -862,7 +862,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 			// Or it is in the past!
 		if (!Job->NumDests || (gametic > MAXNETXTICS && Job->GameTic < gametic - MAXNETXTICS))
 		{
-			D_SNDeleteJob(Job, &i);
+			SN_DeleteJob(Job, &i);
 			continue;
 		}
 		
@@ -882,7 +882,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 					(Host->Cleanup || Host->MinTic > Job->GameTic)
 				))
 			{
-				D_SNDeleteIndexInJob(Job, &j);
+				SN_DeleteIndexInJob(Job, &j);
 				continue;
 			}
 			
@@ -956,7 +956,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 				// Ping timeout
 				if (Host->LastPing < PCap)
 				{
-					D_SNDisconnectHost(Host, "Timed out");
+					SN_DisconnectHost(Host, "Timed out");
 					continue;
 				}
 				
@@ -964,7 +964,7 @@ void D_SNDoServer(D_BS_t* const a_BS)
 					// Game too far in the past
 				if (Host->MinTic <= GCap)
 				{
-					D_SNDisconnectHost(Host, "Failed to acknowlegde");
+					SN_DisconnectHost(Host, "Failed to acknowlegde");
 					continue;
 				}
 			}
@@ -1036,15 +1036,15 @@ void D_SNDoServer(D_BS_t* const a_BS)
 	}
 }
 
-/* D_SNDoClient() -- Do client stuff */
-void D_SNDoClient(D_BS_t* const a_BS)
+/* SN_DoClient() -- Do client stuff */
+void SN_DoClient(D_BS_t* const a_BS)
 {
 	static tic_t WADTimeout, SaveTimeout, PlayTimeout;
 	D_WADChain_t* CWAD, *FirstCWAD;
 	const WL_WADFile_t* WAD, *ExtraWAD;
 	int32_t i, j, k, l;
 	D_IWADInfoEx_t* Info;
-	D_SNPingWin_t* PWin;
+	SN_PingWin_t* PWin;
 	
 	/* Send ping to server (to make sure it is alive) */
 	if (g_ProgramTic >= l_SvNextPing)
@@ -1073,13 +1073,13 @@ void D_SNDoClient(D_BS_t* const a_BS)
 	
 	/* Server is going to ping out */
 	if (g_ProgramTic > l_SvLastPing + SERVERPINGOUTWARN)
-		D_SNSetServerLagWarn(l_SvLastPing + SERVERPINGOUTTIME);
+		SN_SetServerLagWarn(l_SvLastPing + SERVERPINGOUTTIME);
 	else
-		D_SNSetServerLagWarn(0);
+		SN_SetServerLagWarn(0);
 
 	/* Server is pinging out? */
 	if (g_ProgramTic > l_SvLastPing + SERVERPINGOUTTIME)
-		D_SNPartialDisconnect("Connection to server lost");
+		SN_PartialDisconnect("Connection to server lost");
 	
 	/* Which stage? */
 	switch (l_Stage)
@@ -1169,7 +1169,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 					// Get Info
 					if (!(Info = D_GetThisIWAD()))
 					{
-						D_SNDisconnect(false, "No information on current IWAD being used.");
+						SN_Disconnect(false, "No information on current IWAD being used.");
 						return;
 					}
 					
@@ -1181,7 +1181,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 					// Mode mismatch (Doom vs Doom 2 vs Heretic vs Hexen vs ...)
 					if (Info->mission != l_IWADMission)
 					{
-						D_SNDisconnect(false, "Playing different game (e.g. Doom vs Doom 2).");
+						SN_Disconnect(false, "Playing different game (e.g. Doom vs Doom 2).");
 						return;
 					}
 					
@@ -1191,7 +1191,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 						// If server is on IWAD level and we are not FreeDooming
 						if (l_IsIWADMap && !i)
 						{
-							D_SNDisconnect(false, "Incompatible IWAD level.");
+							SN_Disconnect(false, "Incompatible IWAD level.");
 							return;
 						}
 						
@@ -1209,7 +1209,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 						// If server is on an IWAD level, just die
 						if (l_IsIWADMap)
 						{
-							D_SNDisconnect(false, "Incompatible IWAD level.");
+							SN_Disconnect(false, "Incompatible IWAD level.");
 							return;
 						}
 						
@@ -1234,7 +1234,7 @@ void D_SNDoClient(D_BS_t* const a_BS)
 			
 			// Download WADs
 		case DCS_DOWNLOADWADS:
-			D_SNDisconnect(false, "Downloading WADs not implemented");
+			SN_Disconnect(false, "Downloading WADs not implemented");
 			break;
 		
 		case DCS_SWITCHWADS:
@@ -1343,12 +1343,12 @@ void D_SNDoClient(D_BS_t* const a_BS)
 /*****************************************************************************/
 
 /* DT_CONN() -- Connection request */
-void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_CONN(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
 	uint8_t IsServer, *Wp;
-	D_SNHost_t* New;
+	SN_Host_t* New;
 	
 	/* If not allocated, build host for it */
 	if (!a_Host)
@@ -1357,7 +1357,7 @@ void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		IsServer = D_BSru8(a_BS);
 		
 		// Same side?
-		if (!!IsServer == D_SNIsServer())
+		if (!!IsServer == SN_IsServer())
 			return;
 		
 		// Put trying to connect...
@@ -1365,20 +1365,20 @@ void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		CONL_OutputUT(CT_NETWORK, DSTR_DXP_CLCONNECT, "%s\n", Buf);
 		
 		// Create a host for them
-		New = D_SNCreateHost();
+		New = SN_CreateHost();
 		
 		// Create unique ID
 		do
 		{
 			New->ID = D_CMakePureRandom();
-		} while (!New->ID || D_SNHostByID(New->ID) != New);
+		} while (!New->ID || SN_HostByID(New->ID) != New);
 		
 		// Fill info
 		memmove(&New->Addr, a_Addr, sizeof(*a_Addr));
 		New->BS = a_BS;
 		
 		// Create packet
-		if (D_SNExtCmdInGlobal(DTCT_SNJOINHOST, &Wp))
+		if (SN_ExtCmdInGlobal(DTCT_SNJOINHOST, &Wp))
 		{
 			LittleWriteUInt32((uint32_t**)&Wp, New->ID);
 			LittleWriteUInt32((uint32_t**)&Wp, 0);
@@ -1401,28 +1401,28 @@ void DT_CONN(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_HELO() -- Connection granted */
-void DT_HELO(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_HELO(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
-	D_SNHost_t* New;
+	SN_Host_t* New;
 	
 	/* Ignore if already connected */
-	if (D_SNIsConnected())
+	if (SN_IsConnected())
 		return;
 	
 	/* Set connected */
-	D_SNSetConnected(true);
+	SN_SetConnected(true);
 	l_SvLastPing = g_ProgramTic;	// So there is no partial disconn
 	
 	/* Create host */
-	New = D_SNCreateHost();
+	New = SN_CreateHost();
 	New->ID = D_BSru32(a_BS);
 	New->Local = true;
-	D_SNSetMyHost(New);
+	SN_SetMyHost(New);
 	l_Stage = 0;
 }
 
 /* DT_LIST() -- List WADS */
-void DT_LIST(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_LIST(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	const WL_WADFile_t* Rover, *First;
 	int32_t i;
@@ -1473,14 +1473,14 @@ void DT_LIST(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_WADL() -- WAD List */
-void DT_WADL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_WADL(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	D_WADChain_t* Rover;
 	D_WADChain_t Temp;
 	const WL_WADFile_t* WAD;
 	
 	/* Only on first stage */
-	if (l_Stage != DCS_LISTWADS || D_SNIsServer())
+	if (l_Stage != DCS_LISTWADS || SN_IsServer())
 		return;
 	
 	/* Store WADs from server */
@@ -1544,7 +1544,7 @@ void DT_WADL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_QUIT() -- Quit */
-void DT_QUIT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_QUIT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -1554,32 +1554,32 @@ void DT_QUIT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* If not connected, disconnect */
 	// Could be in the middle of a connect request, or not playing yet
-	if (!D_SNIsConnected() || (!D_SNIsServer() && l_Stage < DCS_PLAYING))
+	if (!SN_IsConnected() || (!SN_IsServer() && l_Stage < DCS_PLAYING))
 	{
-		D_SNDisconnect(false, Buf);
+		SN_Disconnect(false, Buf);
 		return;
 	}
 	
 	/* If we are the server, and this host is local do not disconnect */
-	else if (D_SNIsServer() && a_Host && a_Host->Local)
+	else if (SN_IsServer() && a_Host && a_Host->Local)
 		return;
 	
 	/* Cleanup remote client if non-local (they quit) */
 	else if (a_Host && !a_Host->Local)
-		D_SNDisconnectHost(a_Host, Buf);
+		SN_DisconnectHost(a_Host, Buf);
 	
 	/* Otherwise, perform a partial disconnect */
 	// As long as we are not the server!
-	else if (!D_SNIsServer())
-		D_SNPartialDisconnect(Buf);
+	else if (!SN_IsServer())
+		SN_PartialDisconnect(Buf);
 #undef BUFSIZE
 }
 
 /* DT_SAVE() -- Requests save game */
-void DT_SAVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_SAVE(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	/* Check */
-	if (!D_SNIsServer() || !a_Host || a_Host->Local)
+	if (!SN_IsServer() || !a_Host || a_Host->Local)
 		return;
 	
 	/* If already has save, ignore */
@@ -1600,10 +1600,10 @@ void DT_SAVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_PSAV() -- Requests save game */
-void DT_PSAV(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_PSAV(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	/* Client only */
-	if (D_SNIsServer() || l_Stage != DCS_REQUESTSAVE)
+	if (SN_IsServer() || l_Stage != DCS_REQUESTSAVE)
 		return;
 	
 	/* Go to save OK */
@@ -1611,10 +1611,10 @@ void DT_PSAV(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_PLAY() -- Client can play now! */
-void DT_PLAY(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_PLAY(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	/* Server only */
-	if (!D_SNIsServer() || !a_Host || a_Host->Local)
+	if (!SN_IsServer() || !a_Host || a_Host->Local)
 		return;
 	
 	/* Mark them as in the game */
@@ -1626,10 +1626,10 @@ void DT_PLAY(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_COOL() -- Our play request was accepted! */
-void DT_COOL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_COOL(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	/* Client Only */
-	if (D_SNIsServer() || l_Stage != DCS_CANPLAYNOW)
+	if (SN_IsServer() || l_Stage != DCS_CANPLAYNOW)
 		return;
 	
 	/* Start playing */
@@ -1637,18 +1637,18 @@ void DT_COOL(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_JOBT() -- Received a job tic */
-void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_JOBT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	tic_t GameTic;
 	uint32_t Size;
-	D_SNTicBuf_t* TicBuf;
+	SN_TicBuf_t* TicBuf;
 	
 	static uint8_t* Buf;
 	static uint32_t BufSize;
 	
 	/* Client Only that is connected */
 	// Accept can play now in case of some packets being missed.
-	if (D_SNIsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
+	if (SN_IsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
 		return;
 	
 	/* Read packet data */
@@ -1675,7 +1675,7 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	}
 	
 	// Find tic buffer for this tic
-	TicBuf = D_SNBufForGameTic(GameTic);
+	TicBuf = SN_BufForGameTic(GameTic);
 	
 	// Oops!
 	if (!TicBuf)
@@ -1689,9 +1689,9 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		D_BSReadChunk(a_BS, Buf, Size);
 		
 		// Decode
-		if (!D_SNDecodeTicBuf(TicBuf, Buf, Size))
+		if (!SN_DecodeTicBuf(TicBuf, Buf, Size))
 		{
-			D_SNPartialDisconnect("Tic decode error");
+			SN_PartialDisconnect("Tic decode error");
 			return;
 		}
 		
@@ -1709,14 +1709,14 @@ void DT_JOBT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSwcu64(a_BS, gametic);
 	
 	// Append local port tics to the server
-	D_SNAppendLocalCmds(a_BS);
+	SN_AppendLocalCmds(a_BS);
 	
 	// Send
 	D_BSRecordNetBlock(a_BS, a_Addr);
 }
 
 /* DT_JOBA() -- Acknowledged job tic */
-void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_JOBA(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	int32_t i, j;
 	D_XMitJob_t* Job;
@@ -1725,12 +1725,12 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	static uint8_t* Buf;
 	static uint32_t BufSize;
 	uint32_t Size; 
-	D_SNTicBuf_t TicBuf;
+	SN_TicBuf_t TicBuf;
 	ticcmd_t* Cmd;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	
 	/* Server Only */
-	if (!D_SNIsServer() || !a_Host)
+	if (!SN_IsServer() || !a_Host)
 		return;
 	
 	/* Get gametic */
@@ -1786,7 +1786,7 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSReadChunk(a_BS, Buf, Size);
 	
 	// Decode commands
-	if (!D_SNDecodeTicBuf(&TicBuf, Buf, Size))
+	if (!SN_DecodeTicBuf(&TicBuf, Buf, Size))
 		return;	// Who cares if it is bad
 	
 	// reverse the pig mask
@@ -1820,16 +1820,16 @@ void DT_JOBA(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_WANT() -- Client wants another port */
-void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_WANT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	int32_t i, Total;
-	D_SNPort_t* Port, *PIDMatch;
+	SN_Port_t* Port, *PIDMatch;
 	uint32_t ProcessID, ID;
 	tic_t GameTic;
 	uint8_t* Wp;
 	
 	/* Server Only */
-	if (!D_SNIsServer() || !a_Host)
+	if (!SN_IsServer() || !a_Host)
 		return;
 	
 	/* Read Packet */
@@ -1868,7 +1868,7 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	if (!PIDMatch)
 	{
 		// Create a new port for them
-		PIDMatch = D_SNAddPort(a_Host);
+		PIDMatch = SN_AddPort(a_Host);
 		
 		// Setup local port info
 		if (ProcessID)
@@ -1888,11 +1888,11 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 		do
 		{
 			ID = D_CMakePureRandom();
-		} while (!ID || D_SNPortByID(ID) || D_SNHostByID(ID));
+		} while (!ID || SN_PortByID(ID) || SN_HostByID(ID));
 		PIDMatch->ID = ID;
 		
 		// Create packet
-		if (D_SNExtCmdInGlobal(DTCT_SNJOINPORT, &Wp))
+		if (SN_ExtCmdInGlobal(DTCT_SNJOINPORT, &Wp))
 		{
 			LittleWriteUInt32((uint32_t**)&Wp, a_Host->ID);
 			LittleWriteUInt32((uint32_t**)&Wp, PIDMatch->ID);
@@ -1914,16 +1914,16 @@ void DT_WANT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_GIVE() -- Client wants another port */
-void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_GIVE(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	uint8_t Total;
 	uint32_t ID, HostID, ProcessID;
 	tic_t GameTic;	
-	D_SNHost_t* Host, *MyHost;
-	D_SNPort_t* Port;
+	SN_Host_t* Host, *MyHost;
+	SN_Port_t* Port;
 	
 	/* Client Only */
-	if (D_SNIsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
+	if (SN_IsServer() || !(l_Stage == DCS_CANPLAYNOW || l_Stage == DCS_PLAYING))
 		return;
 	
 	/* Read Packet */
@@ -1934,19 +1934,19 @@ void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	GameTic = D_BSrcu64(a_BS);
 	
 	/* Check to see if it exists already */
-	if (D_SNPortByID(ID))
+	if (SN_PortByID(ID))
 		return;
 	
 	/* Get current host */
-	Host = D_SNHostByID(HostID);
-	MyHost = D_SNMyHost();
+	Host = SN_HostByID(HostID);
+	MyHost = SN_MyHost();
 	
 	// If this is not our host, ignore
 	if (!Host || Host != MyHost)
 		return;
 	
 	/* Create a new port */
-	Port = D_SNAddPort(MyHost);
+	Port = SN_AddPort(MyHost);
 	
 	// Set local port fields
 	Port->ID = ID;
@@ -1954,7 +1954,7 @@ void DT_GIVE(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_PING() -- Ping request */
-void DT_PING(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_PING(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	uint8_t At;
 	uint32_t Code;
@@ -1974,11 +1974,11 @@ void DT_PING(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_PONG() -- Ping reply */
-void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_PONG(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	uint8_t At;
 	uint32_t Code;
-	D_SNPingWin_t* Win;
+	SN_PingWin_t* Win;
 	tic_t TimeDiff;
 	int32_t MilliDiff;
 	
@@ -1994,7 +1994,7 @@ void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	Win = NULL;
 	
 	// Client
-	if (!D_SNIsServer())
+	if (!SN_IsServer())
 		Win = &l_SvPings[At];
 	
 	// Server
@@ -2015,7 +2015,7 @@ void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	
 	/* Set timers (average) */
 	// Client
-	if (!D_SNIsServer())
+	if (!SN_IsServer())
 	{
 		l_SvPing = (l_SvPing + MilliDiff) >> 1;
 		l_SvLastPing = g_ProgramTic;
@@ -2034,18 +2034,18 @@ void DT_PONG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_PJGG() -- Port join request */
-void DT_PJGG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_PJGG(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	uint32_t ID;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	
 	/* Server Only */
-	if (!a_Host || !D_SNIsServer())
+	if (!a_Host || !SN_IsServer())
 		return;
 	
 	/* Get Port */
 	ID = D_BSru32(a_BS);
-	Port = D_SNPortByID(ID);
+	Port = SN_PortByID(ID);
 	
 	// No port?
 	if (!Port)
@@ -2060,13 +2060,13 @@ void DT_PJGG(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 }
 
 /* DT_SYNC() -- Client Game Synchronization Code */
-void DT_SYNC(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_SYNC(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	tic_t GameTic;
 	uint32_t Code;	
 	
 	/* Check */
-	if (!a_Host || !D_SNIsServer())
+	if (!a_Host || !SN_IsServer())
 		return;
 	
 	/* Read Data */
@@ -2074,16 +2074,16 @@ void DT_SYNC(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	Code = D_BSru32(a_BS);
 	
 	/* Handle sync code from host */
-	D_SNCheckSyncCode(a_Host, GameTic, Code);
+	SN_CheckSyncCode(a_Host, GameTic, Code);
 }
 
 /* DT_CHAT() -- Client Chats */
-void DT_CHAT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_CHAT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 #define BUFSIZE 128
 	uint32_t Source, Target;
 	uint8_t Mode;	
-	D_SNPort_t* MyPort, *TargetPort;
+	SN_Port_t* MyPort, *TargetPort;
 	char Buf[BUFSIZE];
 	int32_t Len;
 	uint32_t ChatID;
@@ -2102,8 +2102,8 @@ void DT_CHAT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSrs(a_BS, Buf, BUFSIZE);
 	
 	// Get source player
-	MyPort = D_SNPortByID(Source);
-	TargetPort = D_SNPortByID(Target);
+	MyPort = SN_PortByID(Source);
+	TargetPort = SN_PortByID(Target);
 	
 	// Wrong host? indiv and no target?
 	if (MyPort->Host != a_Host || (Mode == 3 && !TargetPort))
@@ -2125,21 +2125,21 @@ void DT_CHAT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	MyPort->ChatID = ChatID;	// to prevent same message spam due to lag
 	
 	/* Direct encode */
-	D_SNDirectChat(a_Host->ID, Source, Mode, Target, Buf);
+	SN_DirectChat(a_Host->ID, Source, Mode, Target, Buf);
 #undef BUFSIZE
 }
 
 /* DT_SETT() -- Change Setting */
-void DT_SETT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+void DT_SETT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	uint32_t HostID, PortID;
 	uint16_t Setting;
 	uint8_t Player;	
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	uint8_t Data[MAXTCSTRINGCAT];
 	
 	/* Check */
-	if (!a_Host || !D_SNIsServer())
+	if (!a_Host || !SN_IsServer())
 		return;
 	
 	/* Read Data */
@@ -2149,7 +2149,7 @@ void DT_SETT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	Setting = D_BSru16(a_BS);
 	
 	// Find port
-	Port = D_SNPortByID(PortID);
+	Port = SN_PortByID(PortID);
 	
 	// Invalid mismatch
 	if (a_Host->ID != HostID || !Port || Port->Host != a_Host)
@@ -2163,7 +2163,7 @@ void DT_SETT(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* cons
 	D_BSReadChunk(a_BS, Data, MAXTCSTRINGCAT);
 	
 	/* Send to setting writer */
-	D_SNPortSetting(Port, Setting, 0, Data, MAXTCSTRINGCAT);
+	SN_PortSetting(Port, Setting, 0, Data, MAXTCSTRINGCAT);
 }
 	
 
@@ -2175,7 +2175,7 @@ static const struct
 		uint8_t Char[4];
 		uint32_t Int;
 	} H;
-	void (*Func)(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
+	void (*Func)(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr);
 	bool_t RemoteOnly;							// Only from remote end
 } l_Packets[] =
 {
@@ -2200,15 +2200,15 @@ static const struct
 	{{"CHAT"}, DT_CHAT, false},
 	{{"SETT"}, DT_SETT, false},
 	
-	{{"FPUT"}, D_SNFileRecv, false},
-	{{"FOPN"}, D_SNFileInit, false},
-	{{"FRDY"}, D_SNFileReady, false},
+	{{"FPUT"}, SN_FileRecv, false},
+	{{"FOPN"}, SN_FileInit, false},
+	{{"FRDY"}, SN_FileReady, false},
 	
 	{{{0}}}
 };
 
-/* D_SNDoTrans() -- Do transmission */
-void D_SNDoTrans(void)
+/* SN_DoTrans() -- Do transmission */
+void SN_DoTrans(void)
 {
 	union
 	{
@@ -2217,7 +2217,7 @@ void D_SNDoTrans(void)
 	} Header;
 	bool_t Continue;
 	I_HostAddress_t Addr;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	int32_t i;
 	
 	/* No Socket */
@@ -2235,7 +2235,7 @@ void D_SNDoTrans(void)
 		if ((Continue = D_BSPlayNetBlock(l_BS, Header.Char, &Addr)))
 		{
 			// Find host, if any
-			Host = D_SNHostByAddr(&Addr);
+			Host = SN_HostByAddr(&Addr);
 			
 			// Which type?
 			for (i = 0; l_Packets[i].H.Char[0]; i++)
@@ -2253,24 +2253,24 @@ void D_SNDoTrans(void)
 	}
 	
 	/* If not connected, connect to remote side */
-	if (!D_SNIsConnected())
+	if (!SN_IsConnected())
 	{
-		D_SNDoConnect();
+		SN_DoConnect();
 		return;
 	}
 	
 	/* Files */
-	D_SNFileLoop();
+	SN_FileLoop();
 	
 	/* Do client or server stuff */
-	if (D_SNIsServer())
-		D_SNDoServer(l_BS);
+	if (SN_IsServer())
+		SN_DoServer(l_BS);
 	else
-		D_SNDoClient(l_BS);
+		SN_DoClient(l_BS);
 }
 
-/* D_SNGotFile() -- Received file */
-bool_t D_SNGotFile(const char* const a_PathName)
+/* SN_GotFile() -- Received file */
+bool_t SN_GotFile(const char* const a_PathName)
 {
 	char* Ext;	
 	
@@ -2286,7 +2286,7 @@ bool_t D_SNGotFile(const char* const a_PathName)
 	{
 		// Load save game
 		if (!P_LoadGameEx(NULL, a_PathName, strlen(a_PathName), NULL, NULL))
-			D_SNDisconnect(false, "Failed to load save game");
+			SN_Disconnect(false, "Failed to load save game");
 		
 		// Tell server, we are playing
 		else

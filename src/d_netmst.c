@@ -52,7 +52,7 @@
 static I_NetSocket_t* l_MCast[2];				// Multi-cast sockets
 static D_BS_t* l_MBS[2];						// Multi-cast block
 
-static D_SNServer_t** l_Servers;				// Visible servers
+static SN_Server_t** l_Servers;				// Visible servers
 static int32_t l_NumServers;					// Count of them
 
 /****************
@@ -89,8 +89,8 @@ void I_UpdateHTTPSpy(void)
 }
 
 
-/* D_SNOpenMCast() -- Open multicast sockets */
-void D_SNOpenMCast(void)
+/* SN_OpenMCast() -- Open multicast sockets */
+void SN_OpenMCast(void)
 {
 	int32_t i;
 	
@@ -104,8 +104,8 @@ void D_SNOpenMCast(void)
 			l_MBS[i] = D_BSCreateNetStream(l_MCast[i]);
 }
 
-/* D_SNDoMultiCast() -- Do multicasting */
-void D_SNDoMultiCast(void)
+/* SN_DoMultiCast() -- Do multicasting */
+void SN_DoMultiCast(void)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -114,7 +114,7 @@ void D_SNDoMultiCast(void)
 	D_BS_t* BS;
 	char Header[5];
 	I_HostAddress_t Addr;
-	D_SNServer_t* Server;
+	SN_Server_t* Server;
 	
 	/* Every 10 seconds */
 	if (g_ProgramTic < LastTime)
@@ -139,11 +139,11 @@ void D_SNDoMultiCast(void)
 			/*Addr.Port =*/ D_BSru16(BS);
 			
 			// Try to find this server
-			Server = D_SNFindServerByAddr(&Addr);
+			Server = SN_FindServerByAddr(&Addr);
 			
 			// If it does not exist, create it
 			if (!Server)
-				Server = D_SNCreateServer(&Addr);
+				Server = SN_CreateServer(&Addr);
 			
 			// Still oops,
 			if (!Server)
@@ -156,11 +156,11 @@ void D_SNDoMultiCast(void)
 #undef BUFSIZE
 }
 
-/* D_SNFindServerByAddr() -- Finds server by address */
-D_SNServer_t* D_SNFindServerByAddr(I_HostAddress_t* const a_Addr)
+/* SN_FindServerByAddr() -- Finds server by address */
+SN_Server_t* SN_FindServerByAddr(I_HostAddress_t* const a_Addr)
 {
 	int32_t i;
-	D_SNServer_t* Server;
+	SN_Server_t* Server;
 	
 	/* Check */
 	if (!a_Addr)
@@ -176,8 +176,8 @@ D_SNServer_t* D_SNFindServerByAddr(I_HostAddress_t* const a_Addr)
 	return NULL;
 }
 
-/* D_SNFindServerByIndex() -- Finds server by index */
-D_SNServer_t* D_SNFindServerByIndex(const int32_t a_Index)
+/* SN_FindServerByIndex() -- Finds server by index */
+SN_Server_t* SN_FindServerByIndex(const int32_t a_Index)
 {
 	/* Check */
 	if (a_Index < 0 || a_Index >= l_NumServers)
@@ -187,10 +187,10 @@ D_SNServer_t* D_SNFindServerByIndex(const int32_t a_Index)
 	return l_Servers[a_Index];
 }
 
-/* D_SNCreateServer() -- Creates a new server */
-D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr)
+/* SN_CreateServer() -- Creates a new server */
+SN_Server_t* SN_CreateServer(I_HostAddress_t* const a_Addr)
 {
-	D_SNServer_t* New;
+	SN_Server_t* New;
 	int32_t i;
 	
 	/* Check */
@@ -198,7 +198,7 @@ D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr)
 		return NULL;
 	
 	/* See if it already exists */
-	if ((New = D_SNFindServerByAddr(a_Addr)))
+	if ((New = SN_FindServerByAddr(a_Addr)))
 		return New;
 	
 	/* Create new reference */
@@ -234,11 +234,11 @@ D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr)
 	return New;
 }
 
-/* D_SNUpdateServers() -- Updates Servers */
-void D_SNUpdateServers(void)
+/* SN_UpdateServers() -- Updates Servers */
+void SN_UpdateServers(void)
 {
 	int32_t i;
-	D_SNServer_t* Server;
+	SN_Server_t* Server;
 	
 	/* Go through servers in list */
 	for (i = 0; i < l_NumServers; i++)

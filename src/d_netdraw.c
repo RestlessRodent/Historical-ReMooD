@@ -58,8 +58,8 @@ static tic_t l_PDWarnTic;						// partial disconnect warn
 *** PROTOTYPES ***
 *****************/
 
-/* D_SNDrawLobby() -- Draws the lobby */
-void D_SNDrawLobby(void)
+/* SN_DrawLobby() -- Draws the lobby */
+void SN_DrawLobby(void)
 {
 	static V_Image_t* BGImage;
 	
@@ -79,14 +79,14 @@ void D_SNDrawLobby(void)
 	CONL_DrawMouse();
 }
 
-/* D_SNSetServerLagWarn() -- Server is lagging, set warning time */
-void D_SNSetServerLagWarn(const tic_t a_EstPD)
+/* SN_SetServerLagWarn() -- Server is lagging, set warning time */
+void SN_SetServerLagWarn(const tic_t a_EstPD)
 {
 	l_PDWarnTic = a_EstPD;
 }
 
-/* D_SNDrawer() -- Networking drawer */
-void D_SNDrawer(void)
+/* SN_Drawer() -- Networking drawer */
+void SN_Drawer(void)
 {
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
@@ -94,7 +94,7 @@ void D_SNDrawer(void)
 	int32_t Mins, Secs;
 	
 	/* Do not draw if not connected */
-	if (!D_SNIsConnected())
+	if (!SN_IsConnected())
 		return;
 	
 	/* Partial disconnect at this tic */

@@ -74,8 +74,8 @@ static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
 *** FUNCTIONS ***
 ****************/
 
-/* D_SNChatDrawer() -- Draws chat line */
-void D_SNChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+/* SN_ChatDrawer() -- Draws chat line */
+void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
 {
 	uint32_t Flags;
 	
@@ -109,8 +109,8 @@ void D_SNChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y,
 	}
 }
 
-/* D_SNClearChat() -- Clears player chat */
-void D_SNClearChat(const int32_t a_Screen)
+/* SN_ClearChat() -- Clears player chat */
+void SN_ClearChat(const int32_t a_Screen)
 {
 	/* Check */
 	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
@@ -126,22 +126,22 @@ void D_SNClearChat(const int32_t a_Screen)
 		CONCTI_SetText(l_ChatBox[a_Screen], "");
 }
 
-/* D_SNCONCTIChatLine() -- For when enter is pressed */
-static bool_t D_SNCONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
+/* SN_CONCTIChatLine() -- For when enter is pressed */
+static bool_t SN_CONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
 {
 	/* Handle chat string and send to server (or local) */
-	D_SNSendChat(g_Splits[a_Input->Screen].Port, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
+	SN_SendChat(g_Splits[a_Input->Screen].Port, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
 	
 	/* Leave Chat Mode */
 	// Done with it, no use
-	D_SNClearChat(a_Input->Screen);
+	SN_ClearChat(a_Input->Screen);
 	
 	/* always keep box */
 	return true;
 }
 
-/* D_SNHandleEvent() -- Handle advanced events */
-bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event)
+/* SN_HandleEvent() -- Handle advanced events */
+bool_t SN_HandleEvent(const I_EventEx_t* const a_Event)
 {
 	int32_t ButtonNum, LocalJoy;
 	uint32_t Bit;
@@ -186,14 +186,14 @@ bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event)
 			// Cancel chat?
 			if ((a_Event->Type == IET_KEYBOARD && a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE && a_Event->Data.Keyboard.Down) || (a_Event->Type == IET_SYNTHOSK && a_Event->Data.SynthOSK.Cancel))
 			{
-				D_SNClearChat(Bit);
+				SN_ClearChat(Bit);
 				return true;
 			}
 			
 			// Need to create chat box?
 			if (!l_ChatBox[Bit])
 			{
-				l_ChatBox[Bit] = CONCTI_CreateInput(16, D_SNCONCTIChatLine, &l_ChatBox[Bit]);
+				l_ChatBox[Bit] = CONCTI_CreateInput(16, SN_CONCTIChatLine, &l_ChatBox[Bit]);
 				l_ChatBox[Bit]->Screen = Bit;
 				l_ChatBox[Bit]->Font = VFONT_SMALL;
 			}
@@ -554,8 +554,8 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 
 #define GKD(k) GAMEKEYDOWN(Profile, SID, (k))
 
-/* D_SNPortTicCmd() -- Builds tic command for port */
-void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
+/* SN_PortTicCmd() -- Builds tic command for port */
+void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 {
 #define MAXWEAPONSLOTS 12
 	D_Prof_t* Profile;
@@ -1272,8 +1272,8 @@ void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 }
 
 
-/* D_SNTicBufSum() -- Calculates checksum of Tic Buffer */
-uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t a_VersionNum, const uint32_t a_Players)
+/* SN_TicBufSum() -- Calculates checksum of Tic Buffer */
+uint32_t SN_TicBufSum(SN_TicBuf_t* const a_TicBuf,  const SN_TicBufVersion_t a_VersionNum, const uint32_t a_Players)
 {
 	int32_t i;
 	uint32_t RetVal = UINT32_C(0xDEADBEEF);
@@ -1305,15 +1305,15 @@ uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t 
 	return RetVal;
 }
 
-/* D_SNEncodeTicBuf() -- Encodes tic buffer into more compact method */
-void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_SNTicBufVersion_t a_VersionNum)
+/* SN_EncodeTicBuf() -- Encodes tic buffer into more compact method */
+void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const SN_TicBufVersion_t a_VersionNum)
 {
 	// Size for a single player
 	// 384 + 2 + 2 + 4 + 1 + 2 + 2 + 32 + 1 + 4 + 2 + 2 + 1 + 1 + 1 + 8 = 449
 	// For 32+global: 449 * 33 = 14817
 #define BUFSIZE 16384
 	static uint8_t* Buf;
-	D_SNTicBuf_t* TicBuf;
+	SN_TicBuf_t* TicBuf;
 	uint8_t* p;
 	uint64_t Left;
 	uint16_t u16;
@@ -1486,7 +1486,7 @@ void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint
 	}
 	
 	/* Checksum */
-	LittleWriteUInt32(&p, D_SNTicBufSum(a_TicBuf, a_VersionNum, u32));
+	LittleWriteUInt32(&p, SN_TicBufSum(a_TicBuf, a_VersionNum, u32));
 	
 	/* Done */
 	*a_OutD = Buf;
@@ -1494,8 +1494,8 @@ void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint
 #undef BUFSIZE
 }
 
-/* D_SNDecodeTicBuf() -- Decodes tic buffer */
-bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz)
+/* SN_DecodeTicBuf() -- Decodes tic buffer */
+bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz)
 {
 #define BUFSIZE 16384
 	static uint8_t* Buf;
@@ -1652,7 +1652,7 @@ bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD
 	
 	/* Confirm checksum */
 	u32 = LittleReadUInt32(&p);
-	return (u32 == D_SNTicBufSum(a_TicBuf, VersionNum, PIG));
+	return (u32 == SN_TicBufSum(a_TicBuf, VersionNum, PIG));
 #undef BUFSIZE
 }
 

@@ -1217,7 +1217,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 #endif
 	
 	/* Chatting */
-	D_SNChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
+	SN_ChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
 #undef BUFSIZE
 }
 

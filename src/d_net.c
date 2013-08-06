@@ -80,17 +80,17 @@ static bool_t l_Server;							// We are server
 static ticcmd_t l_GlobalBuf[MAXGLOBALBUFSIZE];	// Global buffer
 static int32_t l_GlobalAt = -1;					// Position Global buf is at
 
-static D_SNHost_t* l_MyHost;					// This games host
-static D_SNHost_t** l_Hosts;					// Hosts
+static SN_Host_t* l_MyHost;					// This games host
+static SN_Host_t** l_Hosts;					// Hosts
 static int32_t l_NumHosts;						// Number of hosts
 
-D_SNHost_t*** g_HostsP = &l_Hosts;
+SN_Host_t*** g_HostsP = &l_Hosts;
 int32_t* g_NumHostsP = &l_NumHosts;
 
-static D_SNTicBuf_t l_NowTic[2];				// Tic that is now!
+static SN_TicBuf_t l_NowTic[2];				// Tic that is now!
 static uint8_t l_NowPress;						// Which "now" is pressed
 
-static D_SNTicBuf_t l_LocalBuf[MAXNETXTICS];	// Local tic buffer
+static SN_TicBuf_t l_LocalBuf[MAXNETXTICS];	// Local tic buffer
 static int32_t l_LocalAt;						// Local tics at
 
 /****************
@@ -133,8 +133,8 @@ bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID)
 
 /*** GLOBAL TICS ***/
 
-/* D_SNExtCmdInGlobal() -- Grabs extended command in global command */
-bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp)
+/* SN_ExtCmdInGlobal() -- Grabs extended command in global command */
+bool_t SN_ExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp)
 {
 	/* Check */
 	if (a_ID < 0 || a_ID >= NUMDTCT || !a_Wp)
@@ -153,22 +153,22 @@ bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp)
 	
 	/* First attempt to grab, from first set */
 	l_GlobalBuf[l_GlobalAt].Ctrl.Type = 1;	// Set extended
-	if (D_SNExtCmdInTicCmd(a_ID, a_Wp, &l_GlobalBuf[l_GlobalAt]))
+	if (SN_ExtCmdInTicCmd(a_ID, a_Wp, &l_GlobalBuf[l_GlobalAt]))
 		return true;
 	
 	/* Failed, increase global at and try next one */
 	l_GlobalAt++;
 	memset(&l_GlobalBuf[l_GlobalAt], 0, sizeof(l_GlobalBuf[l_GlobalAt]));
 	l_GlobalBuf[l_GlobalAt].Ctrl.Type = 1;	// Set extended
-	if (D_SNExtCmdInTicCmd(a_ID, a_Wp, &l_GlobalBuf[l_GlobalAt]))
+	if (SN_ExtCmdInTicCmd(a_ID, a_Wp, &l_GlobalBuf[l_GlobalAt]))
 		return true;
 	
 	/* Completely failed */
 	return false;
 }
 
-/* D_SNExtCmdInTicCmd() -- Grabs extended command in tic command */
-bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* const a_TicCmd)
+/* SN_ExtCmdInTicCmd() -- Grabs extended command in tic command */
+bool_t SN_ExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* const a_TicCmd)
 {
 	uint16_t* dsP;
 	uint8_t* dbP;
@@ -210,12 +210,12 @@ bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* co
 
 /*** SERVER CONTROL ***/
 
-/* D_SNDropAllClients() -- Drops all clients from the game */
-void D_SNDropAllClients(const char* const a_Reason)
+/* SN_DropAllClients() -- Drops all clients from the game */
+void SN_DropAllClients(const char* const a_Reason)
 {
 	static bool_t Dropping;
 	int32_t i;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	
 	/* Do not double drop */
 	if (Dropping)
@@ -226,14 +226,14 @@ void D_SNDropAllClients(const char* const a_Reason)
 	if (l_Hosts)
 		for (i = 0; i < l_NumHosts; i++)
 			if ((Host = l_Hosts[i]))
-				D_SNDisconnectHost(Host, (a_Reason ? a_Reason : "Server disconnect"));
+				SN_DisconnectHost(Host, (a_Reason ? a_Reason : "Server disconnect"));
 	
 	/* Done dropping */
 	Dropping = false;
 }
 
-/* D_SNCommonDiscStuff() -- Common disconnect stuff */
-static void D_SNCommonDiscStuff(void)
+/* SN_CommonDiscStuff() -- Common disconnect stuff */
+static void SN_CommonDiscStuff(void)
 {
 	/* Clear the global buffer */
 	l_GlobalAt = -1;
@@ -246,21 +246,21 @@ static void D_SNCommonDiscStuff(void)
 	/* Clear now tics and jobs */
 	memset(l_NowTic, 0, sizeof(l_NowTic));
 	l_NowPress = 0;
-	D_SNClearJobs();
+	SN_ClearJobs();
 	
 	/* Draw stuff */
-	D_SNSetServerLagWarn(0);
+	SN_SetServerLagWarn(0);
 	
 	/* Sync Codes */
 	l_SyncRRAt = NULL;
 	memset(l_SyncCodeRR, 0, sizeof(l_SyncCodeRR));
 }
 
-/* D_SNDisconnect() -- Disconnects from server */
-void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
+/* SN_Disconnect() -- Disconnects from server */
+void SN_Disconnect(const bool_t a_FromDemo, const char* const a_Reason)
 {
 	static bool_t InDis;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	int i;
 	
 	/* If disconnected already, stop */
@@ -279,14 +279,14 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 		}
 	
 	/* Remove splits */
-	if (l_Connected || D_SNHasSocket())
+	if (l_Connected || SN_HasSocket())
 		D_NCResetSplits(a_FromDemo);
 	
 	/* Clear hosts */
-	D_SNDropAllClients(a_Reason);
+	SN_DropAllClients(a_Reason);
 	
 	/* Terminate network connection */
-	D_SNNetTerm(a_Reason);
+	SN_NetTerm(a_Reason);
 	
 	/* Destroy hosts */
 	if (l_Hosts)
@@ -295,7 +295,7 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 		for (i = 0; i < l_NumHosts; i++)
 		{
 			if ((Host = l_Hosts[i]))
-				D_SNDestroyHost(Host);
+				SN_DestroyHost(Host);
 			l_Hosts[i] = NULL;
 		}
 		
@@ -322,7 +322,7 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	P_ExClearLevel();
 	
 	/* Common */
-	D_SNCommonDiscStuff();
+	SN_CommonDiscStuff();
 	
 	/* Clear flags */
 	l_Connected = l_Server = false;
@@ -340,12 +340,12 @@ void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason)
 	InDis = false;
 }
 
-/* D_SNPartialDisconnect() -- Partial Disconnect */
-void D_SNPartialDisconnect(const char* const a_Reason)
+/* SN_PartialDisconnect() -- Partial Disconnect */
+void SN_PartialDisconnect(const char* const a_Reason)
 {
 	static bool_t InDis;	
 	int32_t i;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	
 	/* If disconnected already, stop */
 	if (InDis)
@@ -355,10 +355,10 @@ void D_SNPartialDisconnect(const char* const a_Reason)
 	CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PARTIALDISC, "%s\n", (a_Reason ? a_Reason : "No Reason"));
 	
 	/* Terminate network connection */
-	D_SNNetTerm(a_Reason);
+	SN_NetTerm(a_Reason);
 	
 	/* Common */
-	D_SNCommonDiscStuff();
+	SN_CommonDiscStuff();
 	
 	/* Magically become the server */
 	l_Server = l_Connected = true;
@@ -376,26 +376,26 @@ void D_SNPartialDisconnect(const char* const a_Reason)
 	InDis = false;
 }
 
-/* D_SNIsConnected() -- Connected to server */
-bool_t D_SNIsConnected(void)
+/* SN_IsConnected() -- Connected to server */
+bool_t SN_IsConnected(void)
 {
 	return l_Connected;
 }
 
-/* D_SNSetConnected() -- Set connection status */
-void D_SNSetConnected(const bool_t a_Set)
+/* SN_SetConnected() -- Set connection status */
+void SN_SetConnected(const bool_t a_Set)
 {
 	l_Connected = a_Set;
 }
 
-/* D_SNIsServer() -- Is connected */
-bool_t D_SNIsServer(void)
+/* SN_IsServer() -- Is connected */
+bool_t SN_IsServer(void)
 {
 	return l_Server;
 }
 
-/* D_SNStartWaiting() -- Start waiting */
-void D_SNStartWaiting(void)
+/* SN_StartWaiting() -- Start waiting */
+void SN_StartWaiting(void)
 {
 	/* Wipe from title screen */
 	if (gamestate == GS_DEMOSCREEN)
@@ -411,8 +411,8 @@ void D_SNStartWaiting(void)
 	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
 }
 
-/* D_SNAddLocalProfiles() -- Adds local profile */
-void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
+/* SN_AddLocalProfiles() -- Adds local profile */
+void SN_AddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 {
 	int32_t i;
 	const char* ProfN;
@@ -428,7 +428,7 @@ void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 		ProfN = a_Profs[i];	// might be NULL
 		
 		// Add profile to screens
-		D_SNAddLocalPlayer(ProfN, 0, i, false);
+		SN_AddLocalPlayer(ProfN, 0, i, false);
 		
 		// If first player, do not steal
 		//if (!i && !ProfN)
@@ -436,32 +436,32 @@ void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 	}
 }
 
-/* D_SNStartServer() -- Starts local server */
-bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers)
+/* SN_StartServer() -- Starts local server */
+bool_t SN_StartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers)
 {
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	int32_t i, j;
 	
 	/* Disconnect first */
-	D_SNDisconnect(false, "Starting server");
+	SN_Disconnect(false, "Starting server");
 	
 	/* Set flags */
 	l_Server = true;
 	
 	/* Set the proper gamestate */
-	D_SNStartWaiting();
+	SN_StartWaiting();
 	
 	/* Set game settings */
 	NG_ApplyVars();
 	
 	/* Add local host player */
-	l_MyHost = D_SNCreateHost();
+	l_MyHost = SN_CreateHost();
 	l_MyHost->ID = D_CMakePureRandom();
 	l_MyHost->Local = true; // must be local
 	
 	/* Add local profile players */
-	D_SNAddLocalProfiles(a_NumLocal, a_Profs);
+	SN_AddLocalProfiles(a_NumLocal, a_Profs);
 	
 	/* Calculate Split-screen */
 	R_ExecuteSetViewSize();
@@ -473,7 +473,7 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, con
 				if (Host->Local)
 					for (j = 0; j < Host->NumPorts; j++)
 						if ((Port = Host->Ports[j]))
-							D_SNPortTryJoin(Port);
+							SN_PortTryJoin(Port);
 	
 	/* Warp to map */
 	// This is here so auto-joined players are joined before the map
@@ -486,8 +486,8 @@ bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, con
 	return true;
 }
 
-/* D_SNStartLocalServer() -- Starts local server (just sets connected) */
-bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer)
+/* SN_StartLocalServer() -- Starts local server (just sets connected) */
+bool_t SN_StartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer)
 {
 	int32_t Local;
 	const char* Profs[MAXSPLITSCREEN];
@@ -519,7 +519,7 @@ bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs
 	}
 	
 	/* Normal statr */
-	if (D_SNStartServer(Local, Profs, a_JoinPlayers))
+	if (SN_StartServer(Local, Profs, a_JoinPlayers))
 	{
 		l_Connected = true;
 		return true;
@@ -558,9 +558,9 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Full or partial?
 		if (a_ArgV[0][0] == 'p')
-			D_SNPartialDisconnect(Buf);
+			SN_PartialDisconnect(Buf);
 		else
-			D_SNDisconnect(false, Buf);
+			SN_Disconnect(false, Buf);
 		
 		// Worked
 		return 0;
@@ -570,7 +570,7 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	else if (!strcasecmp(a_ArgV[0], "localgame") || !strcasecmp(a_ArgV[0], "localserver"))
 	{
 		// Start local server, with this kind of stuff
-		D_SNStartLocalServer(a_ArgC - 1, a_ArgV + 1, false, true);
+		SN_StartLocalServer(a_ArgC - 1, a_ArgV + 1, false, true);
 		
 		// Worked
 		return 0;
@@ -593,18 +593,18 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 			i = 0;
 		
 		// Disconnect from old server first
-		if (D_SNIsConnected() || D_SNHasSocket() || demoplayback)
-			D_SNDisconnect(false, "Connecting to another server");
+		if (SN_IsConnected() || SN_HasSocket() || demoplayback)
+			SN_Disconnect(false, "Connecting to another server");
 		
 		// Add local profiles if specified
 		if (i > 0)
-			D_SNAddLocalProfiles(a_ArgC - i, a_ArgV + i);
+			SN_AddLocalProfiles(a_ArgC - i, a_ArgV + i);
 		
 		// Create server
-		D_SNNetCreate(false, a_ArgV[1], 0);
+		SN_NetCreate(false, a_ArgV[1], 0);
 		
 		// Make waiting for player
-		D_SNStartWaiting();
+		SN_StartWaiting();
 		
 		// Worked
 		return 0;
@@ -615,8 +615,8 @@ static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 #undef BUFSIZE
 }
 
-/* D_SNServerInit() -- Initializes Server Mode */
-bool_t D_SNServerInit(void)
+/* SN_ServerInit() -- Initializes Server Mode */
+bool_t SN_ServerInit(void)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -634,7 +634,7 @@ bool_t D_SNServerInit(void)
 	CONL_AddCommand("connect", D_ServerCommand);
 	
 	/* Initialize Multicast */
-	D_SNOpenMCast();
+	SN_OpenMCast();
 	
 	/* Clear initial profiles */
 	memset(PProfs, 0, sizeof(PProfs));
@@ -688,7 +688,7 @@ bool_t D_SNServerInit(void)
 		if (M_CheckParm("-host"))
 		{
 			// Start server (but do not join any players)
-			D_SNStartServer(np, PProfs, false);
+			SN_StartServer(np, PProfs, false);
 			
 			// Address to bind to, if any
 			if (M_IsNextParm())
@@ -703,7 +703,7 @@ bool_t D_SNServerInit(void)
 				Port = __REMOOD_BASEPORT;
 			
 			// Create
-			D_SNNetCreate(!Anti, Addr, Port);
+			SN_NetCreate(!Anti, Addr, Port);
 			
 			// Normal server is always connected
 			if (!Anti)
@@ -714,7 +714,7 @@ bool_t D_SNServerInit(void)
 		else
 		{
 			// Use wrapper func
-			D_SNStartLocalServer(np, PProfs, true, true);
+			SN_StartLocalServer(np, PProfs, true, true);
 		}
 		
 		// Warp to map
@@ -745,15 +745,15 @@ bool_t D_SNServerInit(void)
 			} while (Port <= 32767 || Port >= 65534);
 		
 		// Create
-		D_SNAddLocalProfiles(np, PProfs);
-		D_SNNetCreate(Anti, Addr, Port);
+		SN_AddLocalProfiles(np, PProfs);
+		SN_NetCreate(Anti, Addr, Port);
 		
 		// Normal client is never connected
 		if (Anti)
 			l_Connected = true;
 		
 		// Make waiting for player
-		D_SNStartWaiting();
+		SN_StartWaiting();
 		
 		// Started something
 		NG_SetAutoStart(true);
@@ -767,12 +767,12 @@ bool_t D_SNServerInit(void)
 
 /*** LOOP ***/
 
-/* D_SNUpdateLocalPorts() -- Updates local ports */
-void D_SNUpdateLocalPorts(void)
+/* SN_UpdateLocalPorts() -- Updates local ports */
+void SN_UpdateLocalPorts(void)
 {
 	int32_t i, j, pc;
 	D_SplitInfo_t* Split;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	ticcmd_t* TicCmdP;
 	char* Profs[1];
 	
@@ -823,7 +823,7 @@ void D_SNUpdateLocalPorts(void)
 				}
 			
 				// Try to grab a port (xmit once per second)
-				Split->Port = D_SNRequestPort(Split->ProcessID, (g_ProgramTic >= Split->PortTimeOut));
+				Split->Port = SN_RequestPort(Split->ProcessID, (g_ProgramTic >= Split->PortTimeOut));
 				Split->PortTimeOut = g_ProgramTic + TICRATE;
 		
 				// If grabbed, set local screen ID
@@ -862,14 +862,14 @@ void D_SNUpdateLocalPorts(void)
 			
 			// If port has no profile, set it
 			else if (!Split->Port->Profile)
-				D_SNSetPortProfile(Split->Port, Split->Profile);
+				SN_SetPortProfile(Split->Port, Split->Profile);
 		}
 		
 		// No local players in game (always create one)
 		if (!pc)
 		{
 			Profs[0] = NULL;
-			D_SNAddLocalProfiles(1, (const char ** const)Profs);
+			SN_AddLocalProfiles(1, (const char ** const)Profs);
 		}
 	}
 	
@@ -908,7 +908,7 @@ void D_SNUpdateLocalPorts(void)
 			{
 				// If split has profile, use that
 				if (Split->Profile)
-					D_SNSetPortProfile(Port, Split->Profile);
+					SN_SetPortProfile(Port, Split->Profile);
 				
 				// Otherwise ask
 				else
@@ -930,20 +930,20 @@ void D_SNUpdateLocalPorts(void)
 				memset(TicCmdP, 0, sizeof(*TicCmdP));
 				
 				// Build tic commands
-				D_SNPortTicCmd(Port, TicCmdP);
+				SN_PortTicCmd(Port, TicCmdP);
 			}
 		}
 	}
 }
 
-/* D_SNCleanupHost() -- Cleans up host */
-bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
+/* SN_CleanupHost() -- Cleans up host */
+bool_t SN_CleanupHost(SN_Host_t* const a_Host)
 {
 	char* s;
 	uint8_t* Wp;
 	int32_t At, Cat, i;
 	const char* Name;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	
 	/* Check */
 	if (!a_Host)
@@ -956,7 +956,7 @@ bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 		for (i = 0; i < a_Host->NumPorts; i++)
 			if ((Port = a_Host->Ports[i]))
 				if (Port->Player)
-					D_SNRemovePlayer(Port->Player - players);
+					SN_RemovePlayer(Port->Player - players);
 		
 		// Reason
 		for (Cat = 0, Wp = NULL, s = a_Host->QuitReason; *s; s++)
@@ -964,7 +964,7 @@ bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 			// Need more Wp
 			if (!Wp)
 			{
-				if (!D_SNExtCmdInGlobal(DTCT_SNQUITREASON, &Wp))
+				if (!SN_ExtCmdInGlobal(DTCT_SNQUITREASON, &Wp))
 					break;	// Could not fit reason
 				At = 0;	// Reset at
 				
@@ -988,7 +988,7 @@ bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 		}
 		
 		// Host cleanup
-		if (D_SNExtCmdInGlobal(DTCT_SNCLEANUPHOST, &Wp))
+		if (SN_ExtCmdInGlobal(DTCT_SNCLEANUPHOST, &Wp))
 		{
 			LittleWriteUInt32((uint32_t**)&Wp, a_Host->ID);
 			LittleWriteUInt32((uint32_t**)&Wp, 0);
@@ -1004,31 +1004,31 @@ bool_t D_SNCleanupHost(D_SNHost_t* const a_Host)
 	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n", Name, a_Host->QuitReason);
 	
 	// Delete their host
-	D_SNDestroyHost(a_Host);
+	SN_DestroyHost(a_Host);
 	return true;
 }
 
-/* D_SNUpdate() -- Updates network state */
-void D_SNUpdate(void)
+/* SN_Update() -- Updates network state */
+void SN_Update(void)
 {
 	int32_t h, p;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	
 	/* Multicast */
-	D_SNDoMultiCast();
+	SN_DoMultiCast();
 	
 	/* Do not update ports or transport during demo */
 	if (!demoplayback)
 	{
 		// Update ports
-		D_SNUpdateLocalPorts();
+		SN_UpdateLocalPorts();
 	
 		// HTTP Interface
 		I_UpdateHTTPSpy();
 	
 		// Network Socket
-		D_SNDoTrans();
+		SN_DoTrans();
 	}
 	
 	/* Go through all hosts and ports */
@@ -1037,7 +1037,7 @@ void D_SNUpdate(void)
 		{
 			// Cleaning up?
 			if (Host->Cleanup)
-				if (D_SNCleanupHost(Host))
+				if (SN_CleanupHost(Host))
 					continue;
 			
 			// Server only
@@ -1049,7 +1049,7 @@ void D_SNUpdate(void)
 					{
 						// If will join is set, try joining this port
 						if (Port->WillJoin)
-							D_SNPortTryJoin(Port);
+							SN_PortTryJoin(Port);
 					}
 			}
 		}
@@ -1057,11 +1057,11 @@ void D_SNUpdate(void)
 
 /*** HOST CONTROL ***/
 
-/* D_SNHostByAddr() -- Finds host by address */
-D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host)
+/* SN_HostByAddr() -- Finds host by address */
+SN_Host_t* SN_HostByAddr(const I_HostAddress_t* const a_Host)
 {
 	int32_t i;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	
 	/* Check */
 	if (!a_Host)
@@ -1077,11 +1077,11 @@ D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host)
 	return NULL;
 }
 
-/* D_SNHostByID() -- Finds host by ID */
-D_SNHost_t* D_SNHostByID(const uint32_t a_ID)
+/* SN_HostByID() -- Finds host by ID */
+SN_Host_t* SN_HostByID(const uint32_t a_ID)
 {
 	int32_t i;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	
 	/* Through host list */
 	for (i = 0; i < l_NumHosts; i++)
@@ -1093,22 +1093,22 @@ D_SNHost_t* D_SNHostByID(const uint32_t a_ID)
 	return NULL;
 }
 
-/* D_SNMyHost() -- Return your host */
-D_SNHost_t* D_SNMyHost(void)
+/* SN_MyHost() -- Return your host */
+SN_Host_t* SN_MyHost(void)
 {
 	return l_MyHost;
 }
 
-/* D_SNSetMyHost() -- Sets your current host */
-void D_SNSetMyHost(D_SNHost_t* const a_Host)
+/* SN_SetMyHost() -- Sets your current host */
+void SN_SetMyHost(SN_Host_t* const a_Host)
 {
 	l_MyHost = a_Host;
 }
 
-/* D_SNCreateHost() -- Creates new host */
-D_SNHost_t* D_SNCreateHost(void)
+/* SN_CreateHost() -- Creates new host */
+SN_Host_t* SN_CreateHost(void)
 {
-	D_SNHost_t* New;
+	SN_Host_t* New;
 	int32_t i;
 	
 	/* Allocate new */
@@ -1127,8 +1127,8 @@ D_SNHost_t* D_SNCreateHost(void)
 	return (l_Hosts[l_NumHosts++] = New);
 }
 
-/* D_SNDestroyHost() -- Destroys host */
-void D_SNDestroyHost(D_SNHost_t* const a_Host)
+/* SN_DestroyHost() -- Destroys host */
+void SN_DestroyHost(SN_Host_t* const a_Host)
 {
 	int32_t i;
 	
@@ -1137,7 +1137,7 @@ void D_SNDestroyHost(D_SNHost_t* const a_Host)
 		return;
 	
 	/* Send disconnect */
-	D_SNDisconnectHost(a_Host, NULL);
+	SN_DisconnectHost(a_Host, NULL);
 	
 	/* Remove from list */
 	for (i = 0; i < l_NumHosts; i++)
@@ -1154,7 +1154,7 @@ void D_SNDestroyHost(D_SNHost_t* const a_Host)
 	{
 		for (i = 0; i < a_Host->NumPorts; i++)
 			if (a_Host->Ports[i])
-				D_SNRemovePort(a_Host->Ports[i]);
+				SN_RemovePort(a_Host->Ports[i]);
 		Z_Free(a_Host->Ports);
 	}
 	
@@ -1164,12 +1164,12 @@ void D_SNDestroyHost(D_SNHost_t* const a_Host)
 
 /*** PORT CONTROL ***/
 
-/* D_SNPortByID() -- Finds port by ID */
-D_SNPort_t* D_SNPortByID(const uint32_t a_ID)
+/* SN_PortByID() -- Finds port by ID */
+SN_Port_t* SN_PortByID(const uint32_t a_ID)
 {
 	int32_t i, j;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	
 	/* Through host list */
 	for (i = 0; i < l_NumHosts; i++)
@@ -1183,10 +1183,10 @@ D_SNPort_t* D_SNPortByID(const uint32_t a_ID)
 	return NULL;
 }
 
-/* D_SNAddPort() -- Add port to host */
-D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host)
+/* SN_AddPort() -- Add port to host */
+SN_Port_t* SN_AddPort(SN_Host_t* const a_Host)
 {
-	D_SNPort_t* New;
+	SN_Port_t* New;
 	int32_t i;
 	
 	/* Check */
@@ -1218,10 +1218,10 @@ D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host)
 	return New;
 }
 
-/* D_SNRemovePort() -- Removes port */
-void D_SNRemovePort(D_SNPort_t* const a_Port)
+/* SN_RemovePort() -- Removes port */
+void SN_RemovePort(SN_Port_t* const a_Port)
 {
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	int32_t i;
 	
 	/* Check */
@@ -1255,15 +1255,15 @@ void D_SNRemovePort(D_SNPort_t* const a_Port)
 	Z_Free(a_Port);
 }
 
-/* D_SNRequestPort() -- Requests port from server */
+/* SN_RequestPort() -- Requests port from server */
 // a_XMit is used by the client when a transmission request should be made
 // Otherwise, there will be an ugly 1 second delay ALL THE TIME when adding new
 // local players. So if the server happens to send you a port in the middle of
 // your timeout, then you still grab it.
-D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
+SN_Port_t* SN_RequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 {
 	int32_t i;
-	D_SNPort_t* Port, *Best, *PM;
+	SN_Port_t* Port, *Best, *PM;
 	uint32_t ID;
 	
 	/* No local host */
@@ -1300,13 +1300,13 @@ D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 	if (l_Server)
 	{
 		// Add port
-		Port = D_SNAddPort(l_MyHost);
+		Port = SN_AddPort(l_MyHost);
 		
 		// Set port ID
 		do
 		{
 			ID = D_CMakePureRandom();
-		} while (!ID || D_SNPortByID(ID) || D_SNHostByID(ID));
+		} while (!ID || SN_PortByID(ID) || SN_HostByID(ID));
 		Port->ID = ID;
 		
 		// Return it
@@ -1318,15 +1318,15 @@ D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 	{
 		// Only go over the net if required
 		if (a_XMit)
-			D_SNRequestPortNet(a_ProcessID);
+			SN_RequestPortNet(a_ProcessID);
 	}
 	
 	/* No port found, yet */
 	return NULL;
 }
 
-/* D_SNAddLocalPlayer() -- Adds local player to game */
-bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
+/* SN_AddLocalPlayer() -- Adds local player to game */
+bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
 	uint32_t LastScreen;
 	int32_t PlaceAt, UngrabbedScreen, i;
@@ -1421,7 +1421,7 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	if (l_Server && !Split->Port)
 	{
 		// Grab a port, only transmitting every second
-		Split->Port = D_SNRequestPort(Split->ProcessID, (g_ProgramTic >= Split->PortTimeOut));
+		Split->Port = SN_RequestPort(Split->ProcessID, (g_ProgramTic >= Split->PortTimeOut));
 		Split->PortTimeOut = g_ProgramTic + TICRATE;
 
 		// If grabbed, set local screen ID
@@ -1429,7 +1429,7 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 		{
 			Split->Port->Screen = PlaceAt;
 			Split->Port->ProcessID = Split->ProcessID;
-			D_SNSetPortProfile(Split->Port, Profile);
+			SN_SetPortProfile(Split->Port, Profile);
 		}
 	}
 	
@@ -1437,8 +1437,8 @@ bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, cons
 	return true;
 }
 
-/* D_SNBufForGameTic() -- Returns buffer for gametic */
-D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic)
+/* SN_BufForGameTic() -- Returns buffer for gametic */
+SN_TicBuf_t* SN_BufForGameTic(const tic_t a_GameTic)
 {
 	/* In the past */
 	if (a_GameTic < gametic)
@@ -1452,10 +1452,10 @@ D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic)
 	return &l_LocalBuf[a_GameTic - gametic];
 }
 
-/* D_SNStartTic() -- Start of a new tic */
-void D_SNStartTic(const tic_t a_GameTic)
+/* SN_StartTic() -- Start of a new tic */
+void SN_StartTic(const tic_t a_GameTic)
 {
-	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
+	SN_TicBuf_t* Now = &l_NowTic[l_NowPress];
 	
 	/* Start of a new tic */
 	// Clear the current press
@@ -1465,8 +1465,8 @@ void D_SNStartTic(const tic_t a_GameTic)
 	Now->GameTic = a_GameTic;
 }
 
-/* D_SNNumSeqTics() -- Returns number of sequential local tics */
-int32_t D_SNNumSeqTics(void)
+/* SN_NumSeqTics() -- Returns number of sequential local tics */
+int32_t SN_NumSeqTics(void)
 {
 	int32_t RetVal;
 	
@@ -1479,8 +1479,8 @@ int32_t D_SNNumSeqTics(void)
 	return RetVal;
 }
 
-/* D_SNLocalTurn() -- Perform local turning */
-void D_SNLocalTurn(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
+/* SN_LocalTurn() -- Perform local turning */
+void SN_LocalTurn(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 {
 	int32_t h;
 	
@@ -1526,13 +1526,13 @@ void D_SNLocalTurn(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd)
 	}
 }
 
-/* D_SNTics() -- Handles tic commands */
-void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
+/* SN_Tics() -- Handles tic commands */
+void SN_Tics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	int32_t h, p;
-	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
+	SN_TicBuf_t* Now = &l_NowTic[l_NowPress];
 	
 	/* If not writing, clear tic command */
 	if (!a_Write)
@@ -1623,7 +1623,7 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 					a_TicCmd->Std.StatFlags = Port->StatFlags;
 				
 				// Do local turning and aiming
-				D_SNLocalTurn(Port, a_TicCmd);
+				SN_LocalTurn(Port, a_TicCmd);
 			}
 		}
 	}
@@ -1644,17 +1644,17 @@ void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pl
 	}
 }
 
-/* D_SNSyncCode() -- Inputs sync code */
-void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
+/* SN_SyncCode() -- Inputs sync code */
+void SN_SyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 {
-	D_SNTicBuf_t* Now = &l_NowTic[l_NowPress];
+	SN_TicBuf_t* Now = &l_NowTic[l_NowPress];
 	
 	/* If not connected, do not care */
 	if (!l_Connected)
 		return;
 	
 	/* Time of last tic being ran */
-	D_SNSetLastTic();
+	SN_SetLastTic();
 	
 	/* Server */
 	if (l_Server)
@@ -1667,7 +1667,7 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 		Now->SyncCode = a_Code;
 		
 		// Tic can now be sent to clients
-		D_SNXMitTics(a_GameTic, Now);
+		SN_XMitTics(a_GameTic, Now);
 		
 		// Round robin place
 		l_SyncCodeRR[l_SyncRRAt].GameTic = a_GameTic;
@@ -1679,7 +1679,7 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	else
 	{
 		// Send sync code to server
-		D_SNSendSyncCode(a_GameTic, a_Code);
+		SN_SendSyncCode(a_GameTic, a_Code);
 		
 		// Move down all the local tics
 		memmove(&l_LocalBuf[0], &l_LocalBuf[1], sizeof(l_LocalBuf[0]) * (MAXNETXTICS - 1));
@@ -1689,8 +1689,8 @@ void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code)
 	}
 }
 
-/* D_SNCheckSyncCode() -- Checks sync code from client */
-void D_SNCheckSyncCode(D_SNHost_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code)
+/* SN_CheckSyncCode() -- Checks sync code from client */
+void SN_CheckSyncCode(SN_Host_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code)
 {
 	register int i;
 	
@@ -1707,15 +1707,15 @@ void D_SNCheckSyncCode(D_SNHost_t* const a_Host, const tic_t a_GameTic, const ui
 				return;
 			
 			// Kick host
-			D_SNDisconnectHost(a_Host, "Game desynchronized");
+			SN_DisconnectHost(a_Host, "Game desynchronized");
 			
 			// Done anyway
 			return;
 		}
 }
 
-/* D_SNSetPortProfile() -- Set port profile */
-void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile)
+/* SN_SetPortProfile() -- Set port profile */
+void SN_SetPortProfile(SN_Port_t* const a_Port, D_Prof_t* const a_Profile)
 {
 	/* Check */
 	if (!a_Port)
@@ -1734,19 +1734,19 @@ void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile)
 	
 	/* Broadcast information to everyone else */
 	// This also sets in game details, if playing, etc.
-	D_SNPortSetting(a_Port, DSNPS_NAME, 0, a_Profile->DisplayName, 0);
-	D_SNPortSetting(a_Port, DSNPS_VTEAM, a_Profile->VTeam, NULL, 0);
-	D_SNPortSetting(a_Port, DSNPS_COLOR, a_Profile->Color, NULL, 0);
-	D_SNPortSetting(a_Port, DSNPS_COUNTEROP, a_Profile->CounterOp, NULL, 0);
+	SN_PortSetting(a_Port, DSNPS_NAME, 0, a_Profile->DisplayName, 0);
+	SN_PortSetting(a_Port, DSNPS_VTEAM, a_Profile->VTeam, NULL, 0);
+	SN_PortSetting(a_Port, DSNPS_COLOR, a_Profile->Color, NULL, 0);
+	SN_PortSetting(a_Port, DSNPS_COUNTEROP, a_Profile->CounterOp, NULL, 0);
 }
 
-/* D_SNPortRequestJoin() -- Request join on the server */
-void D_SNPortRequestJoin(D_SNPort_t* const a_Port)
+/* SN_PortRequestJoin() -- Request join on the server */
+void SN_PortRequestJoin(SN_Port_t* const a_Port)
 {
 	int32_t ActN, HypoN, LocN;
 	int32_t h, p;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	
 	/* Check */
 	if (!a_Port)
@@ -1799,19 +1799,19 @@ void D_SNPortRequestJoin(D_SNPort_t* const a_Port)
 		// Do not spam server with join requests though
 		if (g_ProgramTic > a_Port->JoinWait)
 		{
-			D_SNPortJoinGame(a_Port);
+			SN_PortJoinGame(a_Port);
 			a_Port->JoinWait = g_ProgramTic + (TICRATE >> 1);
 		}
 	}
 }
 
-/* D_SNPortTryJoin() -- Try to join port game */
-void D_SNPortTryJoin(D_SNPort_t* const a_Port)
+/* SN_PortTryJoin() -- Try to join port game */
+void SN_PortTryJoin(SN_Port_t* const a_Port)
 {
 	int32_t h, p;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
-	D_SNPort_t* PortMap[MAXPLAYERS];
+	SN_Host_t* Host;
+	SN_Port_t* Port;
+	SN_Port_t* PortMap[MAXPLAYERS];
 	uint8_t* Wp;
 	uint32_t Flags;
 	
@@ -1862,7 +1862,7 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	Port->Player = &players[p];
 	
 	/* Create join packet */
-	if (!D_SNExtCmdInGlobal(DTCT_SNJOINPLAYER, &Wp))
+	if (!SN_ExtCmdInGlobal(DTCT_SNJOINPLAYER, &Wp))
 	{
 		Port->Player = NULL;	// whoops!!
 		return;
@@ -1883,8 +1883,8 @@ void D_SNPortTryJoin(D_SNPort_t* const a_Port)
 	LittleWriteUInt32((uint32_t**)&Wp, Flags);
 }
 
-/* D_SNGetPortName() -- Get name of port */
-const char* D_SNGetPortName(D_SNPort_t* const a_Port)
+/* SN_GetPortName() -- Get name of port */
+const char* SN_GetPortName(SN_Port_t* const a_Port)
 {
 	/* No port passed */
 	if (!a_Port)
@@ -1899,8 +1899,8 @@ const char* D_SNGetPortName(D_SNPort_t* const a_Port)
 		return "Player";
 }
 
-/* D_SNPortSettingInt() -- Sets integer value of setting */
-void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
+/* SN_PortSettingInt() -- Sets integer value of setting */
+void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
 {
 	void* Wp;
 	int32_t i;
@@ -1912,10 +1912,10 @@ void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting
 	
 	/* Server */
 	// Affect settings directly
-	if (D_SNIsServer())
+	if (SN_IsServer())
 	{
 		// Take gloal
-		if (!D_SNExtCmdInGlobal(DTCT_SNPORTSETTING, &Wp))
+		if (!SN_ExtCmdInGlobal(DTCT_SNPORTSETTING, &Wp))
 			return;
 	
 		// Write Data
@@ -1964,23 +1964,23 @@ void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting
 	// Send to server
 	else
 	{
-		D_SNSendSettings(a_Port, a_Setting, a_IntVal, a_StrVal, a_StrLen);
+		SN_SendSettings(a_Port, a_Setting, a_IntVal, a_StrVal, a_StrLen);
 	}
 }
 
 /*** GAME CONTROL ***/
 
-/* D_SNChangeVar() -- Change value of variable */
-void D_SNChangeVar(const uint32_t a_Code, const int32_t a_Value)
+/* SN_ChangeVar() -- Change value of variable */
+void SN_ChangeVar(const uint32_t a_Code, const int32_t a_Value)
 {
 	void* Wp;
 	
 	/* Server Only */
-	if (!D_SNIsServer())
+	if (!SN_IsServer())
 		return;
 	
 	/* Grab global command */
-	if (!D_SNExtCmdInGlobal(DTCT_GAMEVAR, &Wp))
+	if (!SN_ExtCmdInGlobal(DTCT_GAMEVAR, &Wp))
 		return;
 	
 	/* Write Data */
@@ -1988,22 +1988,22 @@ void D_SNChangeVar(const uint32_t a_Code, const int32_t a_Value)
 	LittleWriteInt32((int32_t**)&Wp, a_Value);
 }
 
-/* D_SNDirectChat() -- Direct chat message */
-void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message)
+/* SN_DirectChat() -- Direct chat message */
+void SN_DirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message)
 {
 	const char* p;
 	int32_t Room;
 	uint8_t* Wp;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	
 	/* Check */
 	if (!a_HostID || !a_ID || !a_Message || !strlen(a_Message))
 		return;
 	
 	/* Get host and port */
-	Host = D_SNHostByID(a_HostID);
-	Port = D_SNPortByID(a_ID);
+	Host = SN_HostByID(a_HostID);
+	Port = SN_PortByID(a_ID);
 	
 	// Bad host and/or port
 	if (!Host || !Port || Port->Host != Host)
@@ -2016,7 +2016,7 @@ void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t 
 		if (!Room)
 		{
 			// Get new packet
-			if (!D_SNExtCmdInGlobal(DTCT_SNCHATFRAG, &Wp))
+			if (!SN_ExtCmdInGlobal(DTCT_SNCHATFRAG, &Wp))
 				return;
 			
 			LittleWriteUInt32((uint32_t**)&Wp, a_HostID);
@@ -2035,8 +2035,8 @@ void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t 
 	}
 }
 
-/* D_SNRemovePlayer() -- Remove player from game */
-void D_SNRemovePlayer(const int32_t a_PlayerID)
+/* SN_RemovePlayer() -- Remove player from game */
+void SN_RemovePlayer(const int32_t a_PlayerID)
 {
 	uint8_t* Wp;
 	
@@ -2045,7 +2045,7 @@ void D_SNRemovePlayer(const int32_t a_PlayerID)
 		return;
 	
 	/* Build packet */
-	if (D_SNExtCmdInGlobal(DTCT_SNPARTPLAYER, &Wp))
+	if (SN_ExtCmdInGlobal(DTCT_SNPARTPLAYER, &Wp))
 	{
 		LittleWriteUInt32((uint32_t**)&Wp, 0);
 		LittleWriteUInt32((uint32_t**)&Wp, 0);
@@ -2053,8 +2053,8 @@ void D_SNRemovePlayer(const int32_t a_PlayerID)
 	}
 }
 
-/* D_SNChangeMap() -- Changes the map */
-void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset)
+/* SN_ChangeMap() -- Changes the map */
+void SN_ChangeMap(const char* const a_NewMap, const bool_t a_Reset)
 {
 	uint8_t* Wp;
 	P_LevelInfoEx_t* Info;
@@ -2072,7 +2072,7 @@ void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset)
 	if (l_Server)
 	{
 		// Attempt global grab
-		if (D_SNExtCmdInGlobal(DTCT_MAPCHANGE, &Wp))
+		if (SN_ExtCmdInGlobal(DTCT_MAPCHANGE, &Wp))
 		{
 			// Resetting players?
 			WriteUInt8((uint8_t**)&Wp, a_Reset);
@@ -2097,12 +2097,12 @@ void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset)
 	}
 }
 
-/* D_SNHandleGTJoinPlayer() -- Handle join player */
-static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTJoinPlayer() -- Handle join player */
+static void SN_HandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	int32_t i, n;
-	D_SNHost_t* Host;
-	D_SNPort_t* Port;
+	SN_Host_t* Host;
+	SN_Port_t* Port;
 	player_t* Player;
 	D_SplitInfo_t* Split;
 	uint8_t VTeam, Color;
@@ -2141,7 +2141,7 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	if (!(Host = a_Host))
 	{
 		// Base
-		Host = D_SNCreateHost();
+		Host = SN_CreateHost();
 		
 		// Set pointers and such
 		Host->ID = a_HID;
@@ -2152,7 +2152,7 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 	if (!(Port = a_Port))
 	{
 		// Base
-		Port = D_SNAddPort(Host);
+		Port = SN_AddPort(Host);
 		
 		// Fields
 		Port->ID = a_UID;
@@ -2205,13 +2205,13 @@ static void D_SNHandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_P
 					localangle[i] = 0;
 				
 				// Set profile to broadcast data changes
-				D_SNSetPortProfile(Port, Split->Profile);
+				SN_SetPortProfile(Port, Split->Profile);
 			}
 		}
 }
 
-/* D_SNHandleGTPartPlayer() -- Handle leaving player */
-static void D_SNHandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTPartPlayer() -- Handle leaving player */
+static void SN_HandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	player_t* Player;
 	int32_t i;
@@ -2264,8 +2264,8 @@ static void D_SNHandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_P
 		a_Port->Player = NULL;
 }
 
-/* D_SNHandleGTCleanupHost() -- Handle delete host */
-static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTCleanupHost() -- Handle delete host */
+static void SN_HandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	char Buf[MAXTCSTRINGCAT + 1];
 	int32_t Cat, i;
@@ -2292,8 +2292,8 @@ static void D_SNHandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, 
 	
 }
 
-/* D_SNHandleGTCleanupHost() -- Handle delete host */
-static void D_SNHandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTCleanupHost() -- Handle delete host */
+static void SN_HandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	/* Check */
 	if (!a_Host)
@@ -2301,18 +2301,18 @@ static void D_SNHandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_
 	
 	/* Call cleanup */
 	if (!l_Server)
-		D_SNCleanupHost(a_Host);
+		SN_CleanupHost(a_Host);
 }
 
-/* D_SNHandleGTJoinHost() -- Host joins the game */
-static void D_SNHandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTJoinHost() -- Host joins the game */
+static void SN_HandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
-	D_SNHost_t* New;	
+	SN_Host_t* New;	
 	
 	/* Create host if it does not exist */
 	if (!a_Host)
 	{
-		New = D_SNCreateHost();
+		New = SN_CreateHost();
 		New->ID = a_HID;
 	}
 	
@@ -2320,16 +2320,16 @@ static void D_SNHandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP,
 	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTCONNECTED, "%s\n", "Client");
 }
 
-/* D_SNHandleGTJoinPort() -- Handles joining of a new port */
-static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTJoinPort() -- Handles joining of a new port */
+static void SN_HandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
-	D_SNHost_t* Host;
-	D_SNPort_t* New;
+	SN_Host_t* Host;
+	SN_Port_t* New;
 	
 	/* Create host if it does not exist */
 	if (!(Host = a_Host))
 	{
-		Host = D_SNCreateHost();
+		Host = SN_CreateHost();
 		Host->ID = a_HID;
 	}
 	
@@ -2338,7 +2338,7 @@ static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP,
 	if (!a_Port)
 	{
 		/* Create new port belonging to this host */
-		New = D_SNAddPort(Host);
+		New = SN_AddPort(Host);
 	
 		// Set fields
 		New->ID = a_UID;
@@ -2358,11 +2358,11 @@ static void D_SNHandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP,
 	}
 }
 
-/* D_SNHandleGTChatFrag() -- Chat fragment */
-static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTChatFrag() -- Chat fragment */
+static void SN_HandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	D_SplitInfo_t* Split;
-	D_SNPort_t* PortTarget, *Port;
+	SN_Port_t* PortTarget, *Port;
 	uint32_t Target;
 	uint8_t Mode, Char;
 	int32_t i, k, l, Sound, RealTeam;
@@ -2399,7 +2399,7 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 		return;
 		
 	/* Get target */
-	PortTarget = D_SNPortByID(Target);
+	PortTarget = SN_PortByID(Target);
 	
 	/* Speak for all local screens */
 	Sound = 0;
@@ -2439,7 +2439,7 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATTEAM,
 					"%s%s%c",
 					c_ChatPrefix[i],
-					D_SNGetPortName(a_Port),
+					SN_GetPortName(a_Port),
 					RealTeam
 				);
 		}
@@ -2455,7 +2455,7 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATSPEC,
 					"%s%s",
 					c_ChatPrefix[i],
-					D_SNGetPortName(a_Port)
+					SN_GetPortName(a_Port)
 				);
 		}
 		
@@ -2470,7 +2470,7 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATPRIV,
 					"%s%s",
 					c_ChatPrefix[i],
-					D_SNGetPortName(a_Port)
+					SN_GetPortName(a_Port)
 				);
 		}
 		
@@ -2480,7 +2480,7 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 			CONL_OutputUT(CT_CHAT, DSTR_GGAMEC_CHATALL,
 					"%s%s",
 					c_ChatPrefix[i],
-					D_SNGetPortName(a_Port)
+					SN_GetPortName(a_Port)
 				);
 		}
 		
@@ -2501,8 +2501,8 @@ static void D_SNHandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP,
 		S_StartSound(NULL, Sound);
 }
 
-/* D_SNHandleGTPortSetting() -- Change setting of a port */
-static void D_SNHandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_PP, D_SNHost_t* const a_Host, D_SNPort_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HandleGTPortSetting() -- Change setting of a port */
+static void SN_HandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 #define BUFSIZE (MAXTCSTRINGCAT + 1)
 	uint16_t Setting;
@@ -2569,13 +2569,13 @@ static void D_SNHandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_
 #undef BUFSIZE
 }
 
-/* D_SNHandleGT() -- Handles game command IDs */
-void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
+/* SN_HandleGT() -- Handles game command IDs */
+void SN_HandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
 	uint32_t HID, ID;
 	uint8_t PID;
-	D_SNPort_t* Port;
-	D_SNHost_t* Host;
+	SN_Port_t* Port;
+	SN_Host_t* Host;
 	
 	/* Check */
 	if (!a_ID || !a_PP)
@@ -2587,55 +2587,55 @@ void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 	PID = ReadUInt8((const uint8_t**)a_PP);
 	
 	// Find port and host
-	Port = D_SNPortByID(ID);
+	Port = SN_PortByID(ID);
 	
 	Host = NULL;
 	if (Port)
 		Host = Port->Host;
 	else
-		Host = D_SNHostByID(HID);
+		Host = SN_HostByID(HID);
 	
 	/* Which Command? */
 	switch (a_ID)
 	{
 			// Player Joins Game
 		case DTCT_SNJOINPLAYER:
-			D_SNHandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Disconnect reason
 		case DTCT_SNQUITREASON:
-			D_SNHandleGTQuitMsg(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTQuitMsg(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Delete Host
 		case DTCT_SNCLEANUPHOST:
-			D_SNHandleGTCleanupHost(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTCleanupHost(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Create Host
 		case DTCT_SNJOINHOST:
-			D_SNHandleGTJoinHost(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTJoinHost(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Player leaves game
 		case DTCT_SNPARTPLAYER:
-			D_SNHandleGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Port is added to host
 		case DTCT_SNJOINPORT:
-			D_SNHandleGTJoinPort(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTJoinPort(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Chat Fragment
 		case DTCT_SNCHATFRAG:
-			D_SNHandleGTChatFrag(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTChatFrag(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Setting
 		case DTCT_SNPORTSETTING:
-			D_SNHandleGTPortSetting(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HandleGTPortSetting(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!

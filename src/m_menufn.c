@@ -324,7 +324,7 @@ bool_t M_NewGameClassic_ServerFLeftRight(M_SWidget_t* const a_Widget, const int3
 bool_t M_NewGameClassic_ServerFTicker(M_SWidget_t* const a_Widget)
 {
 	M_SvIndex_t* Idx;
-	D_SNServer_t* Server;
+	SN_Server_t* Server;
 	int32_t SlotRef, MasterRef;
 	M_SWidget_t* Parent;
 	
@@ -347,7 +347,7 @@ bool_t M_NewGameClassic_ServerFTicker(M_SWidget_t* const a_Widget)
 	a_Widget->Data.Label.ValRef = &Idx->RR;
 	
 	/* Obtain server here */
-	Server = D_SNFindServerByIndex(MasterRef);
+	Server = SN_FindServerByIndex(MasterRef);
 	
 	// No server?
 	if (!Server)
@@ -407,7 +407,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 	}
 	
 	/* Make Game Now */
-	D_SNStartLocalServer(0, NULL, true, true);
+	SN_StartLocalServer(0, NULL, true, true);
 	
 	/* Kill all menus */
 	M_StackPopAll();
@@ -422,7 +422,7 @@ bool_t M_NewGameSkill_FSelect(M_SWidget_t* const a_Widget)
 bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Disconnect from Netgame */
-	D_SNDisconnect(false, "Disconnected");
+	SN_Disconnect(false, "Disconnected");
 	M_StackPopAll();
 	return true;
 }
@@ -431,7 +431,7 @@ bool_t M_QuitGame_DisconFSelect(M_SWidget_t* const a_Widget)
 bool_t M_QuitGame_PDisconFSelect(M_SWidget_t* const a_Widget)
 {
 	/* Disconnect from Netgame */
-	D_SNPartialDisconnect("Disconnected");
+	SN_PartialDisconnect("Disconnected");
 	M_StackPopAll();
 	return true;
 }
@@ -576,7 +576,7 @@ void M_ACG_CreateFSelect(M_SWidget_t* const a_Widget)
 				Map[Parent->Kids[i]->Option] = Parent->Kids[i];
 	
 	/* Disconnect */
-	D_SNDisconnect(false, "Starting new game");
+	SN_Disconnect(false, "Starting new game");
 	
 	/* Lock OCCB */
 	WL_LockOCCB(true);

@@ -149,7 +149,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	D_ProcessEvents();
 	
 	// Update network
-	D_SNUpdate();
+	SN_Update();
 	
 	/* Init */
 	LocalTic = 0;
@@ -249,7 +249,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			XXSNAR = 1;
 	}
 	else
-		XXSNAR = D_SNOkTics(&LocalTic, &LastTic);
+		XXSNAR = SN_OkTics(&LocalTic, &LastTic);
 	
 	/* Set tics that were run */
 	if (a_TicRunCount)

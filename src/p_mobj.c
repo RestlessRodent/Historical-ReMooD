@@ -1767,7 +1767,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	mobj_t* mobj;
 	int i;
 	int32_t TeamColor;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	
 	if (!mthing)
 	{

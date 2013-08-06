@@ -1298,7 +1298,7 @@ void P_GetTeamInfo(const int32_t a_TeamNum, int32_t* const a_Color, const char**
 void P_UpdateViewAngles(mobj_t* const a_Mo)
 {
 	player_t* Player;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	
 	/* Check */
 	if (!a_Mo || !a_Mo->player)
@@ -1465,7 +1465,7 @@ void P_SpecTicker(void)
 {
 	int32_t i;
 	ticcmd_t Merged;
-	D_SNPort_t* Port;
+	SN_Port_t* Port;
 	player_t* Mod;
 	mobj_t* CamMo;
 	
@@ -1492,7 +1492,7 @@ void P_SpecTicker(void)
 			
 			// If use is down, request join
 			if (Merged.Ctrl.Type == 0 && Merged.Std.buttons & BT_USE)
-				D_SNPortRequestJoin(Port);
+				SN_PortRequestJoin(Port);
 		}
 	
 	/* Not in a level, do not apply momentum */

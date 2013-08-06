@@ -61,8 +61,8 @@
 #define MAXPINGWINDOWS					8		// Max ping window count
 #define MAXCHATLINE 128							// max one can blurt
 
-/* D_SNPortSetting_t -- Port Settings */
-typedef enum D_SNPortSetting_e
+/* SN_PortSetting_t -- Port Settings */
+typedef enum SN_PortSetting_e
 {
 	DSNPS_VTEAM,								// Virtual Team
 	DSNPS_COLOR,								// Color
@@ -70,19 +70,19 @@ typedef enum D_SNPortSetting_e
 	DSNPS_COUNTEROP,							// Counter-operative
 	
 	NUMDSNPS
-} D_SNPortSetting_t;
+} SN_PortSetting_t;
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* D_SNPingWin_t -- Ping window */
-typedef struct D_SNPingWin_s
+/* SN_PingWin_t -- Ping window */
+typedef struct SN_PingWin_s
 {
 	uint32_t Code;								// Unique Code (Security)
 	tic_t SendTime;								// Send time
 	uint32_t Millis;							// Milliseconds
-} D_SNPingWin_t;
+} SN_PingWin_t;
 
 #if !defined(__REMOOD_DBSTDEFINED)
 	typedef struct D_BS_s D_BS_t;
@@ -91,19 +91,19 @@ typedef struct D_SNPingWin_s
 
 struct B_BotTemplate_s;
 
-typedef struct D_SNHost_s D_SNHost_t;
+typedef struct SN_Host_s SN_Host_t;
 
 #if !defined(__REMOOD_DPROFTDEFINED)
 	#define __REMOOD_DPROFTDEFINED
 	typedef struct D_Prof_s D_Prof_t;
 #endif
 
-/* D_SNPort_t -- Port which controls a specific player or a spectator */
-typedef struct D_SNPort_s
+/* SN_Port_t -- Port which controls a specific player or a spectator */
+typedef struct SN_Port_s
 {
 	char Name[MAXPLAYERNAME];					// Name of player
 	struct player_s* Player;					// Player controlling
-	D_SNHost_t* Host;							// Controlling host
+	SN_Host_t* Host;							// Controlling host
 	int32_t Screen;								// Screen number
 	bool_t Bot;									// Bot controls this port
 	D_Prof_t* Profile;							// Profile of player
@@ -124,12 +124,12 @@ typedef struct D_SNPort_s
 	int8_t VTeam;								// Player's Team
 	int8_t Color;								// Player's Color
 	bool_t CounterOp;							// CounterOp Player
-} D_SNPort_t;
+} SN_Port_t;
 
-/* D_SNHost_t -- Host which controls a set of playing players */
-struct D_SNHost_s
+/* SN_Host_t -- Host which controls a set of playing players */
+struct SN_Host_s
 {
-	D_SNPort_t** Ports;							// Ports
+	SN_Port_t** Ports;							// Ports
 	int32_t NumPorts;							// Number of ports
 	bool_t Local;								// Local host
 	uint32_t ID;								// ID of host
@@ -151,25 +151,25 @@ struct D_SNHost_s
 	int32_t Ping;								// Ping of host
 	tic_t MinTic;								// Minimum tic bound
 	tic_t LastSeen;								// Last time seen
-	D_SNPingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
+	SN_PingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
 	int8_t PingAt;								// Current window
 	tic_t NextPing;								// Time of next ping
 	tic_t LastPing;								// Last ping time
 };
 
-/* D_SNServer_t -- Remote Server */
-typedef struct D_SNServer_s
+/* SN_Server_t -- Remote Server */
+typedef struct SN_Server_s
 {
 	tic_t FirstSeen;							// First Seen at
 	tic_t UpdatedAt;							// Updated at
 	tic_t OutAt;								// Time where it goes bye
 	char Name[MAXSERVERNAME];					// Name of server
 	I_HostAddress_t Addr;						// Address
-	D_SNPingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
+	SN_PingWin_t Pings[MAXPINGWINDOWS];		// Ping windows
 	int8_t PingAt;								// Current window
 	tic_t NextPing;								// Time of next ping
 	tic_t LastPing;								// Last ping time
-} D_SNServer_t;
+} SN_Server_t;
 
 /*****************
 *** PROTOTYPES ***
@@ -180,123 +180,123 @@ bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 
 /*** GLOBAL TICS ***/
 
-bool_t D_SNExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp);
-bool_t D_SNExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* const a_TicCmd);
+bool_t SN_ExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp);
+bool_t SN_ExtCmdInTicCmd(const uint8_t a_ID, uint8_t** const a_Wp, ticcmd_t* const a_TicCmd);
 
 /*** SERVER CONTROL ***/
 
-void D_SNDropAllClients(const char* const a_Reason);
-void D_SNDisconnect(const bool_t a_FromDemo, const char* const a_Reason);
-void D_SNPartialDisconnect(const char* const a_Reason);
-bool_t D_SNIsConnected(void);
-void D_SNSetConnected(const bool_t a_Set);
-bool_t D_SNIsServer(void);
-void D_SNStartWaiting(void);
-void D_SNAddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs);
-bool_t D_SNStartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers);
-bool_t D_SNStartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer);
-bool_t D_SNServerInit(void);
+void SN_DropAllClients(const char* const a_Reason);
+void SN_Disconnect(const bool_t a_FromDemo, const char* const a_Reason);
+void SN_PartialDisconnect(const char* const a_Reason);
+bool_t SN_IsConnected(void);
+void SN_SetConnected(const bool_t a_Set);
+bool_t SN_IsServer(void);
+void SN_StartWaiting(void);
+void SN_AddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs);
+bool_t SN_StartServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers);
+bool_t SN_StartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer);
+bool_t SN_ServerInit(void);
 
 /*** LOOP ***/
 
-void D_SNUpdateLocalPorts(void);
-void D_SNUpdate(void);
+void SN_UpdateLocalPorts(void);
+void SN_Update(void);
 
 /*** HOST CONTROL ***/
 
-D_SNHost_t* D_SNHostByAddr(const I_HostAddress_t* const a_Host);
-D_SNHost_t* D_SNHostByID(const uint32_t a_ID);
-D_SNHost_t* D_SNMyHost(void);
-void D_SNSetMyHost(D_SNHost_t* const a_Host);
-D_SNHost_t* D_SNCreateHost(void);
-void D_SNDestroyHost(D_SNHost_t* const a_Host);
+SN_Host_t* SN_HostByAddr(const I_HostAddress_t* const a_Host);
+SN_Host_t* SN_HostByID(const uint32_t a_ID);
+SN_Host_t* SN_MyHost(void);
+void SN_SetMyHost(SN_Host_t* const a_Host);
+SN_Host_t* SN_CreateHost(void);
+void SN_DestroyHost(SN_Host_t* const a_Host);
 
 /*** PORT CONTROL ***/
 
-D_SNPort_t* D_SNPortByID(const uint32_t a_ID);
-D_SNPort_t* D_SNAddPort(D_SNHost_t* const a_Host);
-void D_SNRemovePort(D_SNPort_t* const a_Port);
-D_SNPort_t* D_SNRequestPort(const uint32_t a_ProcessID, const bool_t a_XMit);
-bool_t D_SNAddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
-D_SNTicBuf_t* D_SNBufForGameTic(const tic_t a_GameTic);
-int32_t D_SNNumSeqTics(void);
-void D_SNStartTic(const tic_t a_GameTic);
-void D_SNLocalTurn(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
-void D_SNTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
-void D_SNSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
-void D_SNCheckSyncCode(D_SNHost_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code);
-void D_SNSetPortProfile(D_SNPort_t* const a_Port, D_Prof_t* const a_Profile);
-void D_SNPortRequestJoin(D_SNPort_t* const a_Port);
-void D_SNPortTryJoin(D_SNPort_t* const a_Port);
-const char* D_SNGetPortName(D_SNPort_t* const a_Port);
-void D_SNPortSetting(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
+SN_Port_t* SN_PortByID(const uint32_t a_ID);
+SN_Port_t* SN_AddPort(SN_Host_t* const a_Host);
+void SN_RemovePort(SN_Port_t* const a_Port);
+SN_Port_t* SN_RequestPort(const uint32_t a_ProcessID, const bool_t a_XMit);
+bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy);
+SN_TicBuf_t* SN_BufForGameTic(const tic_t a_GameTic);
+int32_t SN_NumSeqTics(void);
+void SN_StartTic(const tic_t a_GameTic);
+void SN_LocalTurn(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd);
+void SN_Tics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
+void SN_SyncCode(const tic_t a_GameTic, const uint32_t a_Code);
+void SN_CheckSyncCode(SN_Host_t* const a_Host, const tic_t a_GameTic, const uint32_t a_Code);
+void SN_SetPortProfile(SN_Port_t* const a_Port, D_Prof_t* const a_Profile);
+void SN_PortRequestJoin(SN_Port_t* const a_Port);
+void SN_PortTryJoin(SN_Port_t* const a_Port);
+const char* SN_GetPortName(SN_Port_t* const a_Port);
+void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
 
 /*** GAME CONTROL ***/
 
-void D_SNChangeVar(const uint32_t a_Code, const int32_t a_Value);
-void D_SNDirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message);
-void D_SNRemovePlayer(const int32_t a_PlayerID);
-void D_SNChangeMap(const char* const a_NewMap, const bool_t a_Reset);
-void D_SNHandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
+void SN_ChangeVar(const uint32_t a_Code, const int32_t a_Value);
+void SN_DirectChat(const uint32_t a_HostID, const uint32_t a_ID, const uint8_t a_Mode, const uint32_t a_Target, const char* const a_Message);
+void SN_RemovePlayer(const int32_t a_PlayerID);
+void SN_ChangeMap(const char* const a_NewMap, const bool_t a_Reset);
+void SN_HandleGT(const uint8_t a_ID, const uint8_t** const a_PP);
 
 /*** DRAWERS ***/
 
-void D_SNDrawLobby(void);
-void D_SNDrawer(void);
-void D_SNSetServerLagWarn(const tic_t a_EstPD);
+void SN_DrawLobby(void);
+void SN_Drawer(void);
+void SN_SetServerLagWarn(const tic_t a_EstPD);
 
 /*** BUILD TIC COMMANDS ***/
 
-void D_SNChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
-void D_SNClearChat(const int32_t a_Screen);
-bool_t D_SNHandleEvent(const I_EventEx_t* const a_Event);
-void D_SNPortTicCmd(D_SNPort_t* const a_Port, ticcmd_t* const a_TicCmd);
+void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+void SN_ClearChat(const int32_t a_Screen);
+bool_t SN_HandleEvent(const I_EventEx_t* const a_Event);
+void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd);
 
-uint32_t D_SNTicBufSum(D_SNTicBuf_t* const a_TicBuf,  const D_SNTicBufVersion_t a_VersionNum, const uint32_t a_Players);
-void D_SNEncodeTicBuf(D_SNTicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const D_SNTicBufVersion_t a_VersionNum);
-bool_t D_SNDecodeTicBuf(D_SNTicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
+uint32_t SN_TicBufSum(SN_TicBuf_t* const a_TicBuf,  const SN_TicBufVersion_t a_VersionNum, const uint32_t a_Players);
+void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32_t* const a_OutSz, const SN_TicBufVersion_t a_VersionNum);
+bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, const uint32_t a_InSz);
 
 /*** TRANSMISSION ***/
 
-void D_SNClearJobs(void);
-void D_SNXMitTics(const tic_t a_GameTic, D_SNTicBuf_t* const a_Buffer);
-int32_t D_SNOkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
-bool_t D_SNNetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);
-void D_SNNetTerm(const char* const a_Reason);
-bool_t D_SNHasSocket(void);
-void D_SNDoTrans(void);
-bool_t D_SNGotFile(const char* const a_PathName);
-void D_SNDisconnectHost(D_SNHost_t* const a_Host, const char* const a_Reason);
-void D_SNRequestPortNet(const uint32_t a_ProcessID);
-void D_SNPortJoinGame(D_SNPort_t* const a_Port);
-bool_t D_SNWaitingForSave(void);
-void D_SNSendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
-void D_SNSendChat(D_SNPort_t* const a_Port, const bool_t a_Team, const char* const a_Text);
-void D_SNSetLastTic(void);
-void D_SNAppendLocalCmds(D_BS_t* const a_BS);
-void D_SNSendSettings(D_SNPort_t* const a_Port, const D_SNPortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
+void SN_ClearJobs(void);
+void SN_XMitTics(const tic_t a_GameTic, SN_TicBuf_t* const a_Buffer);
+int32_t SN_OkTics(tic_t* const a_LocalP, tic_t* const a_LastP);
+bool_t SN_NetCreate(const bool_t a_Listen, const char* const a_Addr, const uint16_t a_Port);
+void SN_NetTerm(const char* const a_Reason);
+bool_t SN_HasSocket(void);
+void SN_DoTrans(void);
+bool_t SN_GotFile(const char* const a_PathName);
+void SN_DisconnectHost(SN_Host_t* const a_Host, const char* const a_Reason);
+void SN_RequestPortNet(const uint32_t a_ProcessID);
+void SN_PortJoinGame(SN_Port_t* const a_Port);
+bool_t SN_WaitingForSave(void);
+void SN_SendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
+void SN_SendChat(SN_Port_t* const a_Port, const bool_t a_Team, const char* const a_Text);
+void SN_SetLastTic(void);
+void SN_AppendLocalCmds(D_BS_t* const a_BS);
+void SN_SendSettings(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
 
 /*** FILES ***/
 
-void D_SNClearFiles(void);
-void D_SNCloseFile(const int32_t a_Handle);
-int32_t D_SNPrepFile(const char* const a_PathName, const uint32_t a_Modes);
-int32_t D_SNPrepSave(void);
-void D_SNSendFile(const int32_t a_Handle, D_SNHost_t* const a_Host);
-void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
-void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
-void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
-void D_SNChunkReq(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr);
-void D_SNFileLoop(void);
+void SN_ClearFiles(void);
+void SN_CloseFile(const int32_t a_Handle);
+int32_t SN_PrepFile(const char* const a_PathName, const uint32_t a_Modes);
+int32_t SN_PrepSave(void);
+void SN_SendFile(const int32_t a_Handle, SN_Host_t* const a_Host);
+void SN_FileInit(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr);
+void SN_FileReady(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr);
+void SN_FileRecv(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr);
+void SN_ChunkReq(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr);
+void SN_FileLoop(void);
 
 /*** MASTER SERVER INTERFACE ***/
 
-void D_SNOpenMCast(void);
-void D_SNDoMultiCast(void);
-void D_SNUpdateServers(void);
-D_SNServer_t* D_SNFindServerByAddr(I_HostAddress_t* const a_Addr);
-D_SNServer_t* D_SNFindServerByIndex(const int32_t a_Index);
-D_SNServer_t* D_SNCreateServer(I_HostAddress_t* const a_Addr);
+void SN_OpenMCast(void);
+void SN_DoMultiCast(void);
+void SN_UpdateServers(void);
+SN_Server_t* SN_FindServerByAddr(I_HostAddress_t* const a_Addr);
+SN_Server_t* SN_FindServerByIndex(const int32_t a_Index);
+SN_Server_t* SN_CreateServer(I_HostAddress_t* const a_Addr);
 
 #endif							/* __D_NET_H__ */
 

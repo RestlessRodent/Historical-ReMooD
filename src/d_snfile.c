@@ -103,8 +103,8 @@ static int32_t l_NumFiles;
 *** FUNCTIONS ***
 ****************/
 
-/* D_SNFileByRef() -- Finds file by reference */
-D_File_t* D_SNFileByRef(const int32_t a_Ref)
+/* SN_FileByRef() -- Finds file by reference */
+D_File_t* SN_FileByRef(const int32_t a_Ref)
 {
 	int32_t i;
 	
@@ -122,19 +122,19 @@ D_File_t* D_SNFileByRef(const int32_t a_Ref)
 	return NULL;
 }
 
-/* D_SNClearFiles() -- Clear files being sent/recv */
-void D_SNClearFiles(void)
+/* SN_ClearFiles() -- Clear files being sent/recv */
+void SN_ClearFiles(void)
 {
 	int32_t i;
 	
 	/* Close all handles */
 	for (i = 0; i < l_NumFiles; i++)
 		if (l_Files[i])
-			D_SNCloseFile(l_Files[i]->Handle);
+			SN_CloseFile(l_Files[i]->Handle);
 }
 
-/* D_SNCloseFile() -- Closes file */
-void D_SNCloseFile(const int32_t a_Handle)
+/* SN_CloseFile() -- Closes file */
+void SN_CloseFile(const int32_t a_Handle)
 {
 	D_File_t* File;
 	int32_t i;
@@ -159,8 +159,8 @@ void D_SNCloseFile(const int32_t a_Handle)
 	Z_Free(File);
 }
 
-/* D_SNPrepFile() -- Prepare sending file */
-int32_t D_SNPrepFile(const char* const a_PathName, const uint32_t a_Modes)
+/* SN_PrepFile() -- Prepare sending file */
+int32_t SN_PrepFile(const char* const a_PathName, const uint32_t a_Modes)
 {
 #define SUMBUF 4096
 	D_File_t Temp, *New;
@@ -187,7 +187,7 @@ int32_t D_SNPrepFile(const char* const a_PathName, const uint32_t a_Modes)
 	do
 	{
 		Temp.Handle = ++RefCount;
-	} while (D_SNFileByRef(Temp.Handle));
+	} while (SN_FileByRef(Temp.Handle));
 	Temp.Modes = a_Modes;
 	
 	strncpy(Temp.PathName, a_PathName, PATH_MAX - 1);
@@ -255,8 +255,8 @@ int32_t D_SNPrepFile(const char* const a_PathName, const uint32_t a_Modes)
 #undef SUMBUF
 }
 
-/* D_SNPrepSave() -- Prepare save game */
-int32_t D_SNPrepSave(void)
+/* SN_PrepSave() -- Prepare save game */
+int32_t SN_PrepSave(void)
 {
 #define BUFSIZE 128
 #define MINISIZE 16
@@ -276,13 +276,13 @@ int32_t D_SNPrepSave(void)
 		return -1;
 	
 	/* Prepare file for transfer */
-	return D_SNPrepFile(Buf, IFM_READ);
+	return SN_PrepFile(Buf, IFM_READ);
 #undef BUFSIZE
 #undef MINISIZE
 }
 
-/* D_SNSendFile() -- Send file to remote side */
-void D_SNSendFile(const int32_t a_Handle, D_SNHost_t* const a_Host)
+/* SN_SendFile() -- Send file to remote side */
+void SN_SendFile(const int32_t a_Handle, SN_Host_t* const a_Host)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -295,7 +295,7 @@ void D_SNSendFile(const int32_t a_Handle, D_SNHost_t* const a_Host)
 		return;
 	
 	/* Find file */
-	if (!(File = D_SNFileByRef(a_Handle)))
+	if (!(File = SN_FileByRef(a_Handle)))
 		return;
 	
 	/* See if sending file to this host already */
@@ -333,8 +333,8 @@ void D_SNSendFile(const int32_t a_Handle, D_SNHost_t* const a_Host)
 #undef BUFSIZE
 }
 
-/* D_SNMakeFileValid() -- Makes legal filename */
-void D_SNMakeFileValid(char* const a_Name)
+/* SN_MakeFileValid() -- Makes legal filename */
+void SN_MakeFileValid(char* const a_Name)
 {
 	char* c;
 	
@@ -350,8 +350,8 @@ void D_SNMakeFileValid(char* const a_Name)
 			*c = '_';
 }
 
-/* D_SNFileInit() -- Initialize sending of file */
-void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+/* SN_FileInit() -- Initialize sending of file */
+void SN_FileInit(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 #define BUFSIZE PATH_MAX
 #define MINISIZE PATH_MAX
@@ -362,7 +362,7 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 	char* x;
 	
 	/* Client Only */
-	if (D_SNIsServer())
+	if (SN_IsServer())
 		return;
 	
 	/* Init */
@@ -375,7 +375,7 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 	if (Temp.Handle < 0)
 		return;
 		
-	if (!(New = D_SNFileByRef(Temp.Handle)))
+	if (!(New = SN_FileByRef(Temp.Handle)))
 	{
 		// Load size and other things
 		Temp.Size = D_BSru32(a_BS);
@@ -388,7 +388,7 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 		D_BSrs(a_BS, Temp.CheckSumChars, 33);
 		
 		// Validate name
-		D_SNMakeFileValid(Temp.BaseName);
+		SN_MakeFileValid(Temp.BaseName);
 		
 		// Check extension
 		if (!WL_ValidExt(Temp.BaseName))
@@ -462,21 +462,21 @@ void D_SNFileInit(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 #undef MINISIZE
 }
 
-/* D_SNFileReady() -- File is ready to transmit */
-void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+/* SN_FileReady() -- File is ready to transmit */
+void SN_FileReady(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	D_File_t* File;
 	D_Bit_t* Bit;
 	int32_t Handle, i;
 	
 	/* Server only */
-	if (!D_SNIsServer() || !a_Host || a_Host->Local)
+	if (!SN_IsServer() || !a_Host || a_Host->Local)
 		return;
 	
 	/* Find reference file */
 	Handle = D_BSri32(a_BS);
 	
-	if (Handle < 0 || !(File = D_SNFileByRef(Handle)))
+	if (Handle < 0 || !(File = SN_FileByRef(Handle)))
 		return;
 	
 	/* Make sure this host has a bit */
@@ -498,22 +498,22 @@ void D_SNFileReady(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t
 	Bit->WasInit = true;
 }
 
-/* D_SNFileRecv() -- Received file piece */
-void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+/* SN_FileRecv() -- Received file piece */
+void SN_FileRecv(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	D_File_t* File;
 	int32_t Handle;
 	uint32_t Chunk;
 	
 	/* Client Only */
-	if (D_SNIsServer())
+	if (SN_IsServer())
 		return;
 	
 	/* Read input packet */
 	Handle = D_BSri32(a_BS);
 	
 	// Get file
-	if (Handle < 0 || !(File = D_SNFileByRef(Handle)))
+	if (Handle < 0 || !(File = SN_FileByRef(Handle)))
 		return;
 	
 	// Get chunk
@@ -538,16 +538,16 @@ void D_SNFileRecv(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t*
 		File->ChunkTime = g_ProgramTic;
 }
 
-/* D_SNChunkReq() -- Request Chunk */
-void D_SNChunkReq(D_BS_t* const a_BS, D_SNHost_t* const a_Host, I_HostAddress_t* const a_Addr)
+/* SN_ChunkReq() -- Request Chunk */
+void SN_ChunkReq(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
 {
 	/* Server Only */
-	if (!D_SNIsServer() || !a_Host)
+	if (!SN_IsServer() || !a_Host)
 		return;
 }
 
-/* D_SNKillBit() -- Kills bit */
-void D_SNKillBit(D_Bit_t* const a_Bit)
+/* SN_KillBit() -- Kills bit */
+void SN_KillBit(D_Bit_t* const a_Bit)
 {
 	D_File_t* File;
 	int32_t k;
@@ -571,8 +571,8 @@ void D_SNKillBit(D_Bit_t* const a_Bit)
 	Z_Free(a_Bit);
 }
 
-/* D_SNDoSendPiece() --  Do sending of a piece of a file */
-void D_SNDoSendPiece(D_BS_t* const a_BS, D_SNHost_t* const a_Host, D_File_t* const a_File, D_Bit_t* const a_Bit)
+/* SN_DoSendPiece() --  Do sending of a piece of a file */
+void SN_DoSendPiece(D_BS_t* const a_BS, SN_Host_t* const a_Host, D_File_t* const a_File, D_Bit_t* const a_Bit)
 {
 	uint8_t InChunk[CHUNKSIZE];	
 	
@@ -605,8 +605,8 @@ void D_SNDoSendPiece(D_BS_t* const a_BS, D_SNHost_t* const a_Host, D_File_t* con
 	a_Bit->LowAck++;
 }
 
-/* D_SNSquashChunks() -- Squashes chunks together */
-void D_SNSquashChunks(D_BS_t* const a_BS, D_File_t* const a_File)
+/* SN_SquashChunks() -- Squashes chunks together */
+void SN_SquashChunks(D_BS_t* const a_BS, D_File_t* const a_File)
 {
 	uint32_t LogicalPos;
 	uint32_t WriteSize;
@@ -663,8 +663,8 @@ void D_SNSquashChunks(D_BS_t* const a_BS, D_File_t* const a_File)
 		
 		// Handle file
 		Temp = Z_StrDup(a_File->PathName, PU_STATIC, NULL);
-		D_SNCloseFile(a_File->Handle);	// Do not need file handle anymore
-		Delete = D_SNGotFile(Temp);
+		SN_CloseFile(a_File->Handle);	// Do not need file handle anymore
+		Delete = SN_GotFile(Temp);
 		
 		// Delete file?
 		if (Delete)
@@ -675,13 +675,13 @@ void D_SNSquashChunks(D_BS_t* const a_BS, D_File_t* const a_File)
 	}
 }
 
-/* D_SNFileLoop() -- File send/recv loop */
-void D_SNFileLoop(void)
+/* SN_FileLoop() -- File send/recv loop */
+void SN_FileLoop(void)
 {
 	int32_t i, j, k, BitCount;
 	D_File_t* File;
 	D_Bit_t* Bit;
-	D_SNHost_t* Host;
+	SN_Host_t* Host;
 	D_BS_t* BS;
 	
 	/* Go through files */
@@ -700,9 +700,9 @@ void D_SNFileLoop(void)
 					continue;
 			
 				// If host is dead, destroy transfer
-				if (!(Host = D_SNHostByID(Bit->ID)))
+				if (!(Host = SN_HostByID(Bit->ID)))
 				{
-					D_SNKillBit(Bit);
+					SN_KillBit(Bit);
 					continue;
 				}
 		
@@ -735,18 +735,18 @@ void D_SNFileLoop(void)
 				}
 				
 				// Send pieces of files
-				D_SNDoSendPiece(BS, Host, File, Bit);
+				SN_DoSendPiece(BS, Host, File, Bit);
 			}
 		
 			// No more bits
 			if (!BitCount)
-				D_SNCloseFile(File->Handle);
+				SN_CloseFile(File->Handle);
 		}
 		
 		// Receiving file
 		else
 		{
-			D_SNSquashChunks(BS, File);
+			SN_SquashChunks(BS, File);
 		}
 	}
 }
