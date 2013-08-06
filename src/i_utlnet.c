@@ -98,6 +98,16 @@
 #include "dstrings.h"
 #include "console.h"
 
+#if defined(__REMOOD_ENABLEIPV6)
+	#if !defined(IPV6_JOIN_GROUP) && defined(IPV6_ADD_MEMBERSHIP)
+		#define IPV6_JOIN_GROUP IPV6_ADD_MEMBERSHIP
+	#endif
+	
+	#if !defined(IPV6_JOIN_GROUP)
+		#define __REMOOD_NOIPV6MULTICAST
+	#endif
+#endif
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -687,7 +697,7 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 	I_NetSocket_t* RetVal;
 	
 	/* V6 not supported? */
-#if !defined(__REMOOD_ENABLEIPV6)
+#if !defined(__REMOOD_ENABLEIPV6) || defined(__REMOOD_NOIPV6MULTICAST)
 	if (a_IPv6)
 		return NULL;
 #endif
@@ -775,7 +785,9 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 		
 		inet_pton(AF_INET6, "ff02::1337", &MCGroupS.ipv6mr_multiaddr);
 		
-		GrpRet = setsockopt(SockFD, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &MCGroupS, sizeof(MCGroupS));
+#if !defined(__REMOOD_NOIPV6MULTICAST)
+		GrpRet = setsockopt(SockFD, IPPROTO_IPV6, IPV6_JOIN_GROUP, &MCGroupS, sizeof(MCGroupS));
+#endif
 	}
 	else
 #endif
