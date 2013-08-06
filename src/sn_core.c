@@ -42,7 +42,6 @@
 #include "p_info.h"
 #include "g_game.h"
 #include "d_prof.h"
-#include "d_netmst.h"
 #include "p_setup.h"
 #include "d_main.h"
 #include "p_inter.h"

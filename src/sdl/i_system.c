@@ -79,7 +79,7 @@
 #include "m_misc.h"
 #include "i_system.h"
 
-#include "d_net.h"
+
 #include "g_game.h"
 
 #include "i_video.h"
