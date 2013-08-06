@@ -72,7 +72,6 @@
 #include "screen.h"
 #include "m_argv.h"
 #include "g_state.h"
-#include "screen.h"
 #include "z_zone.h"
 #include "v_video.h"
 #include "w_wad.h"
