@@ -48,6 +48,7 @@
 #include "t_parse.h"
 
 #include "p_local.h"
+#include "d_player.h"
 
 extern camera_t script_camera;
 extern bool_t script_camera_on;

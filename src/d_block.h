@@ -37,8 +37,8 @@
 ***************/
 
 #include "doomtype.h"
-#include "sn.h"
-#include "w_wad.h"
+//#include "sn.h"
+//#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***
@@ -73,13 +73,32 @@ typedef enum D_BSStreamIOCtl_e
 *** STRUCTURES ***
 *****************/
 
+/* Define D_BS_t */
 #if !defined(__REMOOD_DBSTDEFINED)
 	typedef struct D_BS_s D_BS_t;
 	#define __REMOOD_DBSTDEFINED
 #endif
 
+/* Define I_HostAddress_t */
+#if !defined(__REMOOD_IHADDR_DEFINED)
+	typedef struct I_HostAddress_s I_HostAddress_t;
+	#define __REMOOD_IHADDR_DEFINED
+#endif
+
+/* Define I_NetSocket_t */
+#if !defined(__REMOOD_NETSOCK_DEFINED)
+	typedef struct I_NetSocket_s I_NetSocket_t;
+	#define __REMOOD_NETSOCK_DEFINED
+#endif
+
+/* Define WL_ES_t */
+#if !defined(__REMOOD_WLEST_DEFINED)
+	typedef struct WL_ES_s WL_ES_t;
+	#define __REMOOD_WLEST_DEFINED
+#endif
+
 /* D_BS_t -- Remote block stream */
-struct D_BS_s 
+struct D_BS_s
 {
 	/* Info */
 	void* Data;									// Private Data
@@ -94,15 +113,15 @@ struct D_BS_s
 	bool_t Marked;								// Marked?
 	
 	/* Functions */
-	size_t (*RecordF)(struct D_BS_s* const a_Stream);
-	bool_t (*PlayF)(struct D_BS_s* const a_Stream);
-	bool_t (*FlushF)(struct D_BS_s* const a_Stream);
+	size_t (*RecordF)(D_BS_t* const a_Stream);
+	bool_t (*PlayF)(D_BS_t* const a_Stream);
+	bool_t (*FlushF)(D_BS_t* const a_Stream);
 	
-	size_t (*NetRecordF)(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host);
-	bool_t (*NetPlayF)(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host);
+	size_t (*NetRecordF)(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host);
+	bool_t (*NetPlayF)(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host);
 	
-	void (*DeleteF)(struct D_BS_s* const a_Stream);
-	bool_t (*IOCtlF)(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP);
+	void (*DeleteF)(D_BS_t* const a_Stream);
+	bool_t (*IOCtlF)(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP);
 	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats

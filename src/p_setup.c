@@ -33,46 +33,62 @@
 //      Do all the WAD I/O, get map description,
 //             set up initial state and misc. LUTs.
 
-#include "doomdef.h"
-#include "c_lib.h"
-#include "d_main.h"
-#include "g_game.h"
-
-#include "p_local.h"
 #include "p_setup.h"
-#include "p_spec.h"
-
-#include "i_sound.h"			//for I_PlayCD()..
-
-#include "r_data.h"
-#include "r_things.h"
-#include "r_sky.h"
-
-#include "s_sound.h"
-#include "st_stuff.h"
-#include "w_wad.h"
+#include "r_defs.h"
 #include "z_zone.h"
-#include "r_splats.h"
-#include "p_info.h"
+#include "r_state.h"
+#include "p_demcmp.h"
 #include "t_func.h"
 #include "t_script.h"
-
-#include "hu_stuff.h"
-#include "console.h"
 #include "t_comp.h"
+#include "m_bbox.h"
+#include "r_sky.h"
+#include "d_netcmd.h"
+#include "p_spec.h"
+#include "r_data.h"
+#include "s_sound.h"
+#include "screen.h"	// for skycolfunc
+#include "t_vm.h"
+#include "r_splats.h"
+#include "g_game.h"
+
+//#include "doomdef.h"
+//#include "c_lib.h"
+//#include "d_main.h"
+//#include "g_game.h"
+
+//#include "p_local.h"
+//#include "p_setup.h"
+//#include "p_spec.h"
+
+//#include "i_sound.h"			//for I_PlayCD()..
+
+//#include "r_data.h"
+//#include "r_things.h"
+//#include "r_sky.h"
+
+//#include "s_sound.h"
+//#include "st_stuff.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "r_splats.h"
+//#include "p_info.h"
+
+//#include "hu_stuff.h"
+//#include "console.h"
 
 #ifdef _WIN32
-#include "malloc.h"
-#include "math.h"
+//#include "malloc.h"
+//#include "math.h"
 #endif
 
-#include "sn.h"
+//#include "sn.h"
 
 
-#include "p_demcmp.h"
-#include "b_bot.h"
-#include "t_dsvm.h"
-#include "t_vm.h"
+//#include "p_demcmp.h"
+//#include "b_bot.h"
+//#include "t_dsvm.h"
+//#include "t_vm.h"
 
 //#define COOLFLIPLEVELS
 
@@ -332,7 +348,7 @@ bool_t P_ExClearLevel(void)
 	g_LFPRover = &thinkercap;
 	
 	// Cheats
-	g_CheatFlags = 0;
+	//g_CheatFlags = 0;
 	
 	/* Scripting */
 	TVM_Clear(TVMNS_LEVEL);

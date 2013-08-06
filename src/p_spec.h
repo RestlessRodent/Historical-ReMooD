@@ -37,7 +37,13 @@
 #ifndef __P_SPEC__
 #define __P_SPEC__
 
-#include "d_rmod.h"
+#include "doomtype.h"
+#include "r_defs.h"
+#include "d_think.h"
+#include "g_state.h"
+#include "r_state.h"
+
+//#include "d_rmod.h"
 
 void P_ExtraSpecialStuff(void);
 
@@ -1313,6 +1319,9 @@ extern size_t g_NumPFakeFloors;					// Number of them
 int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor);
 ffloor_t* P_GetFFloorFromID(const int32_t a_ID);
 
+void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
+void P_AddFFloor(sector_t* sec, ffloor_t* ffloor);
+
 /*****************************************************************************/
 
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);
@@ -1348,23 +1357,6 @@ bool_t EV_SpawnFakeFloor(line_t* const a_Line, const int a_Side, mobj_t* const a
 /*****************************************************************************/
 
 /*** CONSTANTS ***/
-
-typedef enum P_GameMode_e
-{
-	PGM_COOP,									// Cooperative
-	PGM_COUNTEROP,								// Counteroperative
-	PGM_DM,										// Deathmatch
-	PGM_CTF,									// CTF
-	PGM_FLAGTAG,								// Hold the Flag
-	PGM_KOTH,									// King of the Hill
-	PGM_POPACAP,								// Pop a Cap
-	PGM_LMS,									// Last Man Standing
-	PGM_SURVIVAL,								// Survival
-	
-	PGM_CUSTOM,									// Custom Game Mode
-	
-	NUMPGAMEMODES
-} P_GameMode_t;
 
 /*** GLOBALS ***/
 

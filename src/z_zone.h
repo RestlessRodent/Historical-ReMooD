@@ -153,8 +153,11 @@ void Z_ResizeArrayWrappee(void** const PtrPtr, const size_t ElemSize, const size
 
 /*** Hash Utility ***/
 
-/* Structures */
-typedef struct Z_HashTable_s Z_HashTable_t;
+/* Define Z_HashTable_t */
+#if !defined(__REMOOD_ZHT_DEFINED)
+	typedef struct Z_HashTable_s Z_HashTable_t;
+	#define __REMOOD_ZHT_DEFINED
+#endif
 
 /* Prototypes */
 uint32_t Z_Hash(const char* const a_Str);
@@ -164,31 +167,6 @@ bool_t Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun);
 
 bool_t Z_HashDeleteEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun);
-
-/*** Table Utility ***/
-
-/* Structures */
-typedef struct Z_Table_s Z_Table_t;
-
-/* Prototypes */
-Z_Table_t* Z_TableCreate(const char* const a_Key);
-void Z_TableDestroy(Z_Table_t* const a_Table);
-Z_Table_t* Z_TableUp(Z_Table_t* const a_Table);
-const char* Z_TableName(Z_Table_t* const a_Table);
-Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const bool_t a_Create);
-const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey);
-int32_t Z_TableGetValueInt(Z_Table_t* const a_Table, const char* const a_SubKey, bool_t* const a_Found);
-bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);
-void Z_TableClearValue(Z_Table_t* const a_Table, const char* const a_SubKey);
-void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
-bool_t Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Source);
-bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data);
-
-const char* Z_TableGetValueOrElse(Z_Table_t* const a_Table, const char* const a_SubKey, const char* a_ElseOr);
-
-struct D_BS_s;
-void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_BS_s* const a_Stream);
-Z_Table_t* Z_TableStreamToStore(struct D_BS_s* const a_Stream);
 
 /*****************************************************************************/
 

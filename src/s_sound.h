@@ -41,8 +41,8 @@
 #include "doomtype.h"
 #include "sounds.h"
 
-#include "m_fixed.h"
-#include "tables.h"
+//#include "m_fixed.h"
+//#include "tables.h"
 
 /****************
 *** CONSTANTS ***
@@ -54,29 +54,11 @@
 
 typedef int32_t sfxid_t;
 
-struct mobj_s;
-
-/* S_NoiseThinker_t -- A thinker that makes noise */
-typedef struct S_NoiseThinker_s
-{
-	uint32_t Flags;				// Sound flags
-	
-	/* World Position */
-	fixed_t x;
-	fixed_t y;
-	fixed_t z;
-	
-	/* Momenntum */
-	// This is for doppler and such
-	fixed_t momx;
-	fixed_t momy;
-	fixed_t momz;
-	
-	/* Other things */
-	fixed_t Pitch;				// Pitch modification
-	fixed_t Volume;				// Volume modification
-	angle_t Angle;				// Angle
-} S_NoiseThinker_t;
+/* Define S_NoiseThinker_t */
+#if !defined(__REMOOD_SNOISETHNK_DEFINED)
+	typedef struct S_NoiseThinker_s S_NoiseThinker_t;
+	#define __REMOOD_SNOISETHNK_DEFINED
+#endif
 
 /**************
 *** GLOBALS ***
@@ -89,7 +71,6 @@ typedef struct S_NoiseThinker_s
 void S_RegisterSoundStuff(void);
 void S_Init(int sfxVolume, int musicVolume);
 void S_StopSounds(void);
-void S_Start(void);
 int S_GetSfxLumpNum(sfxinfo_t* sfx);
 void S_FreeSfx(sfxinfo_t* sfx);
 

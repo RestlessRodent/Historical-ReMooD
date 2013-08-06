@@ -34,21 +34,34 @@
 //      Functions to draw patches (by post) directly to screen.
 //      Functions to blit a block to the screen.
 
-#include "doomdef.h"
-#include "doomstat.h"
-#include "r_local.h"
 #include "v_video.h"
-#include "hu_stuff.h"
+#include "z_zone.h"
+#include "g_state.h"
 #include "r_draw.h"
 #include "console.h"
-
-#include "i_video.h"
-#include "z_zone.h"
 #include "dstrings.h"
-#include "i_system.h"
 #include "r_defs.h"
-#include "i_util.h"
+#include "w_wad.h"
+#include "i_system.h"
+#include "r_state.h"
 #include "vhw_wrap.h"
+#include "i_video.h"
+
+//#include "doomdef.h"
+//#include "doomstat.h"
+//#include "r_local.h"
+//#include "v_video.h"
+//#include "hu_stuff.h"
+//#include "r_draw.h"
+//#include "console.h"
+
+//#include "i_video.h"
+//#include "z_zone.h"
+//#include "dstrings.h"
+//#include "i_system.h"
+//#include "r_defs.h"
+//#include "i_util.h"
+//#include "vhw_wrap.h"
 
 // Each screen is [vid.width*vid.height];
 uint8_t* screens[5];

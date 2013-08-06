@@ -33,20 +33,37 @@
 ***************/
 
 #include "doomtype.h"
-#include "doomdef.h"
-
 #include "s_sound.h"
-#include "z_zone.h"
-#include "console.h"
-#include "doomstat.h"
-#include "sounds.h"
-#include "i_util.h"
 #include "w_wad.h"
-#include "g_game.h"
+#include "z_zone.h"
+#include "g_state.h"
+#include "console.h"
+#include "dstrings.h"
+#include "d_think.h"
+#include "d_player.h"
+#include "tables.h"
+#include "d_netcmd.h"
+#include "p_mobj.h"
 #include "m_argv.h"
-#include "r_main.h"
-#include "p_maputl.h"
+#include "m_random.h"
 #include "p_local.h"
+#include "p_maputl.h"
+#include "r_main.h"
+
+//#include "doomdef.h"
+
+//#include "s_sound.h"
+//#include "z_zone.h"
+//#include "console.h"
+//#include "doomstat.h"
+//#include "sounds.h"
+//#include "i_util.h"
+//#include "w_wad.h"
+//#include "g_game.h"
+//#include "m_argv.h"
+//#include "r_main.h"
+//#include "p_maputl.h"
+//#include "p_local.h"
 
 /*****************
 *** PROTOTYPES ***
@@ -1061,46 +1078,6 @@ void S_StopSounds(void)
 			
 	/* Unlock sound */
 	I_SoundLockThread(false);
-}
-
-/* S_Start() -- Change song based on level */
-// YUCK! When RMOD comes fix level music stuff
-void S_Start(void)
-{
-	int mnum;
-	
-	if (gamemode == commercial)
-		mnum = mus_runnin + gamemap - 1;
-	else
-	{
-		int spmus[] =
-		{
-			// Song - Who? - Where?
-			
-			mus_e3m4,			// American     e4m1
-			mus_e3m2,			// Romero       e4m2
-			mus_e3m3,			// Shawn        e4m3
-			mus_e1m5,			// American     e4m4
-			mus_e2m7,			// Tim  e4m5
-			mus_e2m4,			// Romero       e4m6
-			mus_e2m6,			// J.Anderson   e4m7 CHIRON.WAD
-			mus_e2m5,			// Shawn        e4m8
-			mus_e1m9			// Tim          e4m9
-		};
-		
-		if (gameepisode < 4)
-			mnum = mus_e1m1 + (gameepisode - 1) * 9 + gamemap - 1;
-		else
-			mnum = spmus[gamemap - 1];
-	}
-	
-	// HACK FOR COMMERCIAL
-	//  if (commercial && mnum > mus_e3m9)
-	//      mnum -= mus_e3m9;
-	
-	S_ChangeMusic(mnum, true);
-	
-	//nextcleanup = 15;
 }
 
 /* S_ChangeMusic() -- Changes the current song that is playing */

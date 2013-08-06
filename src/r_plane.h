@@ -34,8 +34,17 @@
 #ifndef __R_PLANE__
 #define __R_PLANE__
 
-#include "screen.h"
-#include "r_data.h"
+#include "doomtype.h"
+#include "r_defs.h"
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+//#include "screen.h"
+//#include "r_data.h"
 
 //
 // Now what is a visplane, anyway?

@@ -43,11 +43,11 @@
 
 /* Local */
 #include "doomtype.h"
-#include "doomdef.h"
 #include "i_video.h"
 #include "i_util.h"
 #include "z_zone.h"
 #include "vhw_wrap.h"
+#include "dstrings.h"
 
 #define __G_INPUT_H__
 #include "console.h"

@@ -34,6 +34,9 @@
 #ifndef __P_INTER__
 #define __P_INTER__
 
+#include "doomtype.h"
+#include "d_player.h"
+
 void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawned);
 PI_wepid_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best);
 

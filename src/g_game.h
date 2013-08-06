@@ -34,42 +34,65 @@
 #ifndef __G_GAME__
 #define __G_GAME__
 
-#include "doomdef.h"
-#include "doomstat.h"
+#include "doomtype.h"
 
-#include "m_random.h"
-#include "console.h"
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
+#endif
+
+/* Define ticcmd_t */
+#if !defined(__REMOOD_TICCMDT_DEFINED)
+	typedef union ticcmd_u ticcmd_t;
+	#define __REMOOD_TICCMDT_DEFINED
+#endif
+
+/* Define WL_ES_t */
+#if !defined(__REMOOD_WLEST_DEFINED)
+	typedef struct WL_ES_s WL_ES_t;
+	#define __REMOOD_WLEST_DEFINED
+#endif
+
+/* Define UnicodeStringID_t */
+#if !defined(__REMOOD_UNICSTRID_DEFINED)
+	typedef int UnicodeStringID_t;
+	#define __REMOOD_UNICSTRID_DEFINED
+#endif
+
+//#include "doomdef.h"
+//#include "doomstat.h"
+
+//#include "m_random.h"
+//#include "console.h"
 
 //added:11-02-98: yeah now you can change it!
 // changed to 2d array 19990220 by Kin
-extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
-extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
 
 extern bool_t nomonsters;		// checkparm of -nomonsters
 
 #define GAMEMAPNAMESIZE 128
 extern char gamemapname[GAMEMAPNAMESIZE];
 
-extern player_t players[MAXPLAYERS];
-extern bool_t playeringame[MAXPLAYERS];
 
 // ======================================
 // DEMO playback/recording related stuff.
 // ======================================
 
 // demoplaying back and demo recording
-extern bool_t demoplayback;
-extern bool_t demorecording;
-extern bool_t timingdemo;
+
 
 // Quit after playing a demo from cmdline.
-extern bool_t singledemo;
+
 
 // gametic at level start
 extern tic_t levelstarttic;
-
-extern angle_t localangle[MAXSPLITSCREENPLAYERS];
-extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
 
 extern uint32_t g_CheatFlags;
 
@@ -111,7 +134,7 @@ extern uint8_t* demoend;
 *** DEMO FACTORY ***
 *******************/
 
-typedef struct G_CurrentDemo_s G_CurrentDemo_t;
+typedef struct G_CDemo_s G_CDemo_t;
 typedef struct G_DemoFactory_s G_DemoFactory_t;
 
 extern tic_t g_DemoTime;
@@ -119,7 +142,7 @@ extern tic_t g_DemoTime;
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
 void G_DemoQueue(const char* const a_Name);
 bool_t G_PlayNextQ(void);
-G_CurrentDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
+G_CDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
 
 void G_RecordDemo(char* name);	// Only called by startup code.
 void G_StopDemo(void);

@@ -35,11 +35,11 @@
 #ifndef __D_NETCMD_H__
 #define __D_NETCMD_H__
 
-#include "doomdef.h"
+//#include "doomdef.h"
 
-#include "d_ticcmd.h"
-#include "i_util.h"
-#include "sn.h"
+//#include "d_ticcmd.h"
+//#include "i_util.h"
+//#include "sn.h"
 
 // add game commands, needs cleanup
 void D_RegisterClientCommands(void);
@@ -56,9 +56,22 @@ void Command_ExitGame_f(void);
 
 /*** STRUCTURES ***/
 
+/* Define D_Prof_t */
 #if !defined(__REMOOD_DPROFTDEFINED)
 	#define __REMOOD_DPROFTDEFINED
 	typedef struct D_Prof_s D_Prof_t;
+#endif
+
+/* Define ticcmd_t */
+#if !defined(__REMOOD_TICCMDT_DEFINED)
+	typedef union ticcmd_u ticcmd_t;
+	#define __REMOOD_TICCMDT_DEFINED
+#endif
+
+/* Define SN_Port_t */
+#if !defined(__REMOOD_SNPORT_DEFINED)
+	typedef struct SN_Port_s SN_Port_t;
+	#define __REMOOD_SNPORT_DEFINED
 #endif
 
 /* D_SplitInfo_t -- Split Screen Info */
@@ -71,7 +84,7 @@ typedef struct D_SplitInfo_s
 	uint32_t ProcessID;							// Local Processing ID
 	D_Prof_t* Profile;							// Player Profile
 	
-	struct SN_Port_s* Port;					// Control Port
+	SN_Port_t* Port;							// Control Port
 	bool_t DoNotSteal;							// Do not steal port
 	tic_t PortTimeOut;							// Timeout for port
 	
@@ -109,6 +122,9 @@ extern int g_SplitScreen;						// Players in splits
 extern D_SplitInfo_t g_Splits[MAXSPLITSCREEN];	// Split Information
 
 extern bool_t g_NetDev;
+
+extern angle_t localangle[MAXSPLITSCREENPLAYERS];
+extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
 
 /*** FUNCTIONS ***/
 

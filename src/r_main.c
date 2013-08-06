@@ -34,27 +34,48 @@
 //       utility functions (BSP, geometry, trigonometry).
 //      See tables.c, too.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "g_input.h"
-#include "r_local.h"
-#include "r_splats.h"			//faB(21jan):testing
-#include "r_sky.h"
-#include "st_stuff.h"
-#include "p_local.h"
-
-#include "i_video.h"
-#include "i_system.h"
-#include "m_menu.h"
-#include "p_local.h"
-#include "t_func.h"
-
-#include "d_main.h"
+#include "r_main.h"
+#include "dstrings.h"
 #include "console.h"
-
-#include "vhw_wrap.h"
-
+#include "d_netcmd.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "r_plane.h"
+#include "g_state.h"
 #include "p_demcmp.h"
+#include "v_video.h"
+#include "d_prof.h"
+#include "r_segs.h"
+#include "vhw_wrap.h"
+#include "st_stuff.h"
+#include "r_things.h"
+#include "t_func.h"		// for script_camera_on
+#include "i_system.h"	// for graphics_started
+#include "g_game.h"
+#include "r_draw.h"
+#include "r_sky.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "g_input.h"
+//#include "r_local.h"
+//#include "r_splats.h"			//faB(21jan):testing
+//#include "r_sky.h"
+//#include "st_stuff.h"
+//#include "p_local.h"
+
+//#include "i_video.h"
+//#include "i_system.h"
+//#include "m_menu.h"
+//#include "p_local.h"
+//#include "t_func.h"
+
+//#include "d_main.h"
+//#include "console.h"
+
+//#include "vhw_wrap.h"
+
+//#include "p_demcmp.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048
@@ -77,8 +98,6 @@ fixed_t projection;
 //added:02-02-98:fixing the aspect ration stuff...
 fixed_t projectiony;
 
-// just for profiling purposes
-int framecount;
 
 int sscount;
 int linecount;
@@ -800,7 +819,7 @@ void R_ExecuteSetViewSize_DOOM(void)
 
 void R_Init(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	//added:24-01-98: screensize independent
@@ -838,8 +857,6 @@ void R_Init(void)
 	R_InitTranslationTables();
 	
 	R_InitDrawNodes();
-	
-	framecount = 0;
 }
 
 //
@@ -927,7 +944,6 @@ void R_SetupFrame(player_t* player)
 	else if (!player->ChaseCam)
 		player->camera.chase = false;
 		
-#ifdef FRAGGLESCRIPT
 	if (script_camera_on)
 	{
 		viewmobj = script_camera.mo;
@@ -941,7 +957,6 @@ void R_SetupFrame(player_t* player)
 		viewangle = viewmobj->angle;
 	}
 	else
-#endif
 		if (player->camera.chase)
 			// use outside cam view
 		{
@@ -1017,7 +1032,6 @@ void R_SetupFrame(player_t* player)
 	centery = (viewheight / 2) + dy;
 	centeryfrac = centery << FRACBITS;
 	
-	framecount++;
 	validcount++;
 }
 

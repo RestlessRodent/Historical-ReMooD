@@ -93,10 +93,9 @@
 #endif
 
 #include "i_util.h"
-#include "i_net.h"
 #include "z_zone.h"
-#include "dstrings.h"
 #include "console.h"
+#include "dstrings.h"
 
 #if defined(__REMOOD_ENABLEIPV6)
 	#if !defined(IPV6_JOIN_GROUP) && defined(IPV6_ADD_MEMBERSHIP)

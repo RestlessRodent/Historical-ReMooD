@@ -36,21 +36,39 @@
 //       utility functions, etc.
 //      Line Tag handling. Line and Sector triggers.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "p_local.h"
-#include "p_setup.h"			//levelflats for flat animation
-#include "r_data.h"
-#include "m_random.h"
-#include "s_sound.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "dstrings.h"			//SoM: 3/10/2000
-#include "r_main.h"				//Two extra includes.
-#include "t_script.h"
-#include "d_rmod.h"
+#include "p_spec.h"
+#include "d_player.h"
+#include "p_mobj.h"
 #include "p_demcmp.h"
+#include "info.h"
+#include "z_zone.h"
+#include "dstrings.h"
+#include "console.h"
+#include "w_wad.h"
+#include "d_netcmd.h"
+#include "s_sound.h"
+#include "m_bbox.h"
+#include "p_local.h"
+#include "p_maputl.h"
+#include "g_game.h"
+#include "p_inter.h"
 #include "p_nwline.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "p_local.h"
+//#include "p_setup.h"			//levelflats for flat animation
+//#include "r_data.h"
+//#include "m_random.h"
+//#include "s_sound.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "dstrings.h"			//SoM: 3/10/2000
+//#include "r_main.h"				//Two extra includes.
+//#include "t_script.h"
+//#include "d_rmod.h"
+//#include "p_demcmp.h"
+//#include "p_nwline.h"
 
 //SoM: 3/7/2000
 static void P_SpawnScrollers(void);
@@ -1573,8 +1591,6 @@ void P_UpdateSpecials(void)
 	int pic;					//SoM: 3/8/2000
 	tic_t TimeLimit, TimeLeft;
 	
-	levelflat_t* foundflats;	// for flat animation
-	
 	/* Check time limit */
 	TimeLimit = (((tic_t)P_XGSVal(PGS_GAMETIMELIMIT)) * (TICRATE * 60));
 	if (TimeLimit > 0)
@@ -1644,8 +1660,7 @@ void P_UpdateSpecials(void)
 //SoM: 3/8/2000: EV_DoDonut moved to p_floor.c
 
 //SoM: 3/23/2000: Adds a sectors floor and ceiling to a sector's ffloor list
-void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
-void P_AddFFloor(sector_t* sec, ffloor_t* ffloor);
+
 
 void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags)
 {

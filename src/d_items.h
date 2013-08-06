@@ -34,9 +34,9 @@
 #ifndef __D_ITEMS__
 #define __D_ITEMS__
 
-#include "doomdef.h"
-#include "m_fixed.h"
-#include "info.h"
+//#include "doomdef.h"
+//#include "m_fixed.h"
+//#include "info.h"
 
 // ==================================
 // Difficulty/skill settings/filters.
@@ -52,27 +52,6 @@
 
 //Hurdler: special option to tell the things has been spawned by an FS
 #define MTF_FS_SPAWNED    0x1000
-
-#define NUMINVENTORYSLOTS  14
-#define MAXARTECONT        16
-typedef struct
-{
-	uint8_t type;
-	uint8_t count;
-} inventory_t;
-
-// Power up artifacts.
-typedef enum
-{
-	pw_invulnerability,
-	pw_strength,
-	pw_invisibility,
-	pw_ironfeet,
-	pw_allmap,
-	pw_infrared,
-	
-	NUMPOWERS
-} powertype_t;
 
 //
 // Power up durations,

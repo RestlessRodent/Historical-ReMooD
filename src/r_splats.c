@@ -31,19 +31,24 @@
 // DESCRIPTION:
 //      floor and wall splats
 
-#include "r_draw.h"
-#include "r_main.h"
-#include "r_plane.h"
 #include "r_splats.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "d_netcmd.h"
+#include "v_video.h"
 #include "p_demcmp.h"
+#include "console.h"
+#include "dstrings.h"
+#include "r_state.h"
 
-#ifdef WALLSPLATS
+//#include "r_draw.h"
+//#include "r_main.h"
+//#include "r_plane.h"
+//#include "r_splats.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "d_netcmd.h"
+//#include "p_demcmp.h"
+
 static wallsplat_t wallsplats[MAXLEVELSPLATS];	// WALL splats
 static int freewallsplat;
-#endif
 
 // g_CVPVMaxSplats -- Max splats to allow
 const CONL_VarPossibleValue_t c_CVPVMaxSplats[] =
@@ -78,16 +83,13 @@ struct rastery_s* prastertab;
 // --------------------------------------------------------------------------
 void R_ClearLevelSplats(void)
 {
-#ifdef WALLSPLATS
 	freewallsplat = 0;
 	memset(wallsplats, 0, sizeof(wallsplats));
-#endif
 }
 
 // ==========================================================================
 //                                                                WALL SPLATS
 // ==========================================================================
-#ifdef WALLSPLATS
 // --------------------------------------------------------------------------
 // Return a pointer to a splat free for use, or NULL if no more splats are
 // available
@@ -318,5 +320,4 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		}
 	}
 }
-#endif							// WALLSPLATS
 

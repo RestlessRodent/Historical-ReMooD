@@ -35,66 +35,23 @@
 #define __D_MAIN__
 
 #include "doomtype.h"
-#include "doomstat.h"
+//#include "doomstat.h"
 
-#include "w_wad.h"				// for MAX_WADFILES
+//#include "w_wad.h"				// for MAX_WADFILES
+
 #include "i_util.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* D_IWADInfoEx_t -- Extended IWAD Info */
-typedef struct D_IWADInfoEx_s
-{
-	/* Base Info */
-	const char* NiceTitle;						// Nice IWAD Title name
-	const char* NetName;						// Network Name
-	const char* ForceNames;						// Names for forcing [conf = 500]
-	const char* BaseName;						// WAD Basename [conf = 5]
-	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
-	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
-	const char* SHA1Sum;						// SHA-1 Sum of WAD [conf = 60]
-	const char* Lumps;							// Identifying lumps [conf = 1]
-	const char* BonusLumps;						// Unique Lumps [conf = 35]
-	uint32_t Size;								// Size of WAD [conf = 15]
-	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
-	
-	/* Game Info */
-	CoreGame_t CoreGame;						// Core Game
-	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
-	const char* MapInfoLump;					// Map Info Lump
-	uint32_t Flags;								// Flags for game
-	const char* MapNameFormat;					// Format of map names
-	
-	int mission;								// Deprecated mission
-	int mode;									// Deprecated mode
-} D_IWADInfoEx_t;
-
 /**************
 *** GLOBALS ***
 **************/
 
-extern int pagetic;
-extern int demosequence;
-
 /************
 *** OTHER ***
 ************/
-
-D_IWADInfoEx_t* D_GetThisIWAD(void);
-D_IWADInfoEx_t* D_GetIWADInfoByNum(const uint32_t a_Num);
-const char* D_FieldNumber(const char* const a_Str, const size_t a_Num);
-
-//void D_AddFile (char *file);
-
-// make sure not to write back the config until it's been correctly loaded
-extern tic_t rendergametic;
-
-// for dedicated server
-extern bool_t dedicated;
-
-extern bool_t g_TitleScreenDemo;				// Titlescreen demo
 
 // the infinite loop of D_DoomLoop() called from win_main for windows version
 void D_DoomLoop(void);
@@ -132,18 +89,6 @@ void D_JoySpecialTicker(void);
 void D_JoySpecialDrawer(void);
 bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event);
 
-/*** MODEL SPECIFICS ***/
-
-typedef enum D_ModelMode_s
-{
-	DMM_DEFAULT,								// Default PC
-	DMM_GCW,									// GCW Zero
-	DMM_WII,									// Nintendo Wii
-} D_ModelMode_t;
-
-extern D_ModelMode_t g_ModelMode;				// Model to use
-
-void D_InitModelMode(void);
 
 #endif							//__D_MAIN__
 

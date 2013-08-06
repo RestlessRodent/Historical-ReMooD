@@ -34,9 +34,13 @@
 #ifndef __R_STATE__
 #define __R_STATE__
 
+#include "tables.h"
+#include "r_defs.h"
+#include "r_main.h"
+
 // Need data structure definitions.
-#include "d_player.h"
-#include "r_data.h"
+//#include "d_player.h"
+//#include "r_data.h"
 
 //
 // Refresh internal data structures,

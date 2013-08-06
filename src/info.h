@@ -36,22 +36,18 @@
 #ifndef __INFO__
 #define __INFO__
 
-// Needed for action function pointer handling.
-#include "d_think.h"
 #include "doomtype.h"
-#include "d_rmod.h"
-#include "z_zone.h"
+#include "d_think.h"
 
-#define __REMOOD_USEFLATTERSTATES
+//#include "d_rmod.h"
+//#include "z_zone.h"
 
-#if defined(__REMOOD_USEFLATTERSTATES)
-	#define __REMOOD_REFSTATE(x) (&(x))
-#else
-	#define __REMOOD_REFSTATE(x) ((x))
+/* Define PI_stateid_t */
+#if !defined(__REMOOD_STSPIDS_DEFINED)
+	typedef int32_t PI_spriteid_t;
+	typedef int32_t PI_stateid_t;
+	#define __REMOOD_STSPIDS_DEFINED
 #endif
-
-typedef int32_t PI_spriteid_t;
-typedef int32_t PI_stateid_t;
 
 /* StatePriorities_t -- Viewing priority for state */
 typedef enum StatePriorities_e
@@ -88,7 +84,13 @@ typedef struct PI_stateorigin_s
 	uint32_t ID;								// ID of origin
 } PI_stateorigin_t;
 
-typedef struct
+/* Define PI_state_t */
+#if !defined(__REMOOD_PISTATE_DEFINED)
+	typedef struct PI_state_s PI_state_t;
+	#define __REMOOD_PISTATE_DEFINED
+#endif
+
+struct PI_state_s
 {
 	PI_stateid_t StateNum;						// State number
 	PI_spriteid_t sprite;
@@ -119,7 +121,7 @@ typedef struct
 	
 	PI_sargc_t ArgC;							// Argument Count
 	PI_sargv_t* ArgV;							// Function Arguments
-} PI_state_t;
+};
 
 #define S_NULL 0
 
@@ -130,10 +132,13 @@ extern void** g_SprTouchSpecials;				// Sprite touch special markers
 extern PI_state_t** states;
 extern PI_stateid_t NUMSTATES;
 
-typedef int32_t PI_mobjid_t;
-extern PI_mobjid_t NUMMOBJTYPES;
+/* Define PI_mobjid_t */
+#if !defined(__REMOOD_PIMOID_DEFINED)
+	typedef int32_t PI_mobjid_t;
+	#define __REMOOD_PIMOID_DEFINED
+#endif
 
-#define NUMINFORXFIELDS 4		// Prevents unwanted magic
+extern PI_mobjid_t NUMMOBJTYPES;
 
 typedef enum INFO_ObjectStateGroup_e
 {
@@ -202,7 +207,13 @@ typedef enum INFO_BotObjMetric_e
 
 typedef INFO_ObjectStateGroup_t P_WeaponStateGroup_t;
 
-typedef struct
+/* Define PI_mobj_t */
+#if !defined(__REMOOD_PIMOBJT_DEFINED)
+	typedef struct PI_mobj_s PI_mobj_t;
+	#define __REMOOD_PIMOBJT_DEFINED
+#endif
+
+struct PI_mobj_s
 {
 	int32_t EdNum[6];
 	PI_stateid_t spawnstate;
@@ -277,7 +288,7 @@ typedef struct
 	INFO_BotObjMetric_t BotMetric;				// Metric for bot
 	char* RSNiceName;							// Short Nice Name
 	uint32_t RQuickHash[2];						// Hash
-} PI_mobj_t;
+};
 
 extern PI_mobj_t** mobjinfo;
 
@@ -310,7 +321,11 @@ extern PI_ammoid_t NUMAMMO;
 
 /* WEAPON */
 
-typedef int32_t PI_wepid_t;
+/* Define PI_wepid_t */
+#if !defined(__REMOOD_PIWEPIDT_DEFINED)
+	typedef int32_t PI_wepid_t;
+	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
 
 /* WeaponFlags_t -- Flags for weapons */
 typedef enum WeaponFlags_e
@@ -340,8 +355,14 @@ typedef enum WeaponFlags_e
 	WF_ISMELEE					= 0x00010000,	// Melee Weapon
 } WeaponFlags_t;
 
+/* Define PI_wep_t */
+#if !defined(__REMOOD_PIWEP_DEFINED)
+	typedef struct PI_wep_s PI_wep_t;
+	#define __REMOOD_PIWEP_DEFINED
+#endif
+
 // Weapon info: sprite frames, ammunition use.
-typedef struct
+struct PI_wep_s
 {
 	PI_ammoid_t ammo;
 	int32_t ammopershoot;
@@ -378,7 +399,7 @@ typedef struct
 	// State References
 	PI_stateid_t* FlashStates;					// Weapon flash states
 	size_t NumFlashStates;						// Number of flash states
-} PI_wep_t;
+};
 
 extern PI_wep_t** wpnlev1info;
 extern PI_wep_t** wpnlev2info;

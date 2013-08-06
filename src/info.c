@@ -31,19 +31,31 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Dynamic Information Tables
 
-// Data.
-#include "doomdef.h"
-#include "sounds.h"
-#include "m_fixed.h"
-#include "d_items.h"
-#include "p_mobj.h"
-#include "z_zone.h"
 #include "info.h"
+#include "z_zone.h"
+#include "d_player.h"
+#include "p_mobj.h"
 #include "v_video.h"
-#include "p_pspr.h"
+#include "g_state.h"
+#include "w_wad.h"
+#include "dstrings.h"
+#include "d_rmod.h"
+#include "r_draw.h"
 #include "console.h"
-#include "m_random.h"
-#include "p_local.h"
+
+// Data.
+//#include "doomdef.h"
+//#include "sounds.h"
+//#include "m_fixed.h"
+//#include "d_items.h"
+//#include "p_mobj.h"
+//#include "z_zone.h"
+//#include "info.h"
+//#include "v_video.h"
+//#include "p_pspr.h"
+//#include "console.h"
+//#include "m_random.h"
+//#include "p_local.h"
 
 // Doesn't work with g++, needs actionf_p1
 void A_Light0();
@@ -2089,7 +2101,7 @@ void PI_ExecuteDEH(void)
 	if (!Entry)
 	{
 		CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_DEHNOSPRMAP, "\n");
-		return false;
+		return;
 	}
 	
 	// Make stream

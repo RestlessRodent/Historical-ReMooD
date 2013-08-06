@@ -61,10 +61,14 @@
 #include "i_system.h"
 
 #include "w_wad.h"
-#include "doomstat.h"
 #include "i_sound.h"
 #include "s_sound.h"
-#include "i_video.h"
+#include "z_zone.h"
+#include "console.h"
+#include "dstrings.h"
+
+//#include "doomstat.h"
+//#include "i_video.h"
 
 /****************
 *** CONSTANTS ***

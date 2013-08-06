@@ -34,13 +34,26 @@
 ***************/
 
 #include "p_nwline.h"
-#include "r_local.h"
-#include "dstrings.h"
 #include "p_local.h"
-#include "p_inter.h"
+#include "p_spec.h"
 #include "p_demcmp.h"
 #include "m_random.h"
+#include "s_sound.h"
+#include "p_mobj.h"
+#include "d_player.h"
+#include "z_zone.h"
+#include "info.h"
+#include "dstrings.h"
+#include "p_inter.h"
+#include "console.h"
 #include "g_game.h"
+#include "p_maputl.h"
+
+//#include "r_local.h"
+//#include "dstrings.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "g_game.h"
 
 /****************
 *** CONSTANTS ***

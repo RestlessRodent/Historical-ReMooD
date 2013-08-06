@@ -34,17 +34,33 @@
 #ifndef __R_DEFS__
 #define __R_DEFS__
 
+#include "d_think.h"
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
+#endif
+
 // Some more or less basic data types
 // we depend on.
-#include "m_fixed.h"
+//#include "m_fixed.h"
 
 // We rely on the thinker data struct
 // to handle sound origins in sectors.
-#include "d_think.h"
+//#include "d_think.h"
 // SECTORS do store MObjs anyway.
-#include "p_mobj.h"
+//#include "p_mobj.h"
 
-#include "screen.h"
+//#include "screen.h"
+
+#define NF_SUBSECTOR    0x8000
 
 // Silhouette, needed for clipping Segs (mainly)
 // and sprites representing things.
@@ -63,7 +79,12 @@
 //  precalculating 24bpp lightmap/colormap LUT.
 //  from darkening PLAYPAL to all black.
 // Could even us emore than 32 levels.
-typedef uint8_t lighttable_t;
+
+/* Define lighttable_t */
+#if !defined(__REMOOD_LITETABLE_DEFINED)
+	typedef uint8_t lighttable_t;
+	#define __REMOOD_LITETABLE_DEFINED
+#endif
 
 // SoM: ExtraColormap type. Use for extra_colormaps from now on.
 typedef struct
@@ -99,21 +120,6 @@ typedef struct
 
 // Forward of LineDefs, for Sectors.
 struct line_s;
-
-// Each sector has a degenmobj_t in its center
-//  for sound origin purposes.
-// I suppose this does not handle sound from
-//  moving objects (doppler), because
-//  position is prolly just buffered, not
-//  updated.
-typedef struct
-{
-	thinker_t thinker;			// not used for anything
-	fixed_t x;
-	fixed_t y;
-	fixed_t z;
-	
-} degenmobj_t;
 
 //SoM: 3/23/2000: Store fake planes in a resizalbe array insted of just by
 //heightsec. Allows for multiple fake planes.
@@ -363,6 +369,53 @@ typedef enum
 } slopetype_t;
 
 #define HEXENSPECIALLINE UINT32_C(0xFFFFFFFF)
+
+// Solid, is an obstacle.
+#define ML_BLOCKING             1
+
+// Blocks monsters only.
+#define ML_BLOCKMONSTERS        2
+
+// Backside will not be present at all
+//  if not two sided.
+#define ML_TWOSIDED             4
+
+// If a texture is pegged, the texture will have
+// the end exposed to air held constant at the
+// top or bottom of the texture (stairs or pulled
+// down things) and will move with a height change
+// of one of the neighbor sectors.
+// Unpegged textures allways have the first row of
+// the texture at the top pixel of the line for both
+// top and bottom textures (use next to windows).
+
+// upper texture unpegged
+#define ML_DONTPEGTOP           8
+
+// lower texture unpegged
+#define ML_DONTPEGBOTTOM        16
+
+// In AutoMap: don't map as two sided: IT'S A SECRET!
+#define ML_SECRET               32
+
+// Sound rendering: don't let sound cross two of these.
+#define ML_SOUNDBLOCK           64
+
+// Don't draw on the automap at all.
+#define ML_DONTDRAW             128
+
+// Set if already seen, thus drawn in automap.
+#define ML_MAPPED               256
+
+//SoM: 3/29/2000: If flag is set, the player can use through it.
+#define ML_PASSUSE              512
+
+//SoM: 4/1/2000: If flag is set, anything can trigger the line.
+#define ML_ALLTRIGGER           1024
+
+#define ML_REPEAT_SPECIAL	0x0200	// special is repeatable
+#define ML_SPAC_SHIFT		10
+#define ML_SPAC_MASK		0x1c00
 
 typedef struct line_s
 {
@@ -800,11 +853,8 @@ typedef struct
 	uint32_t Code;								// Sprite code name
 } spritedef_t;
 
-#define BORIS_FIX
-#ifdef BORIS_FIX
 extern short* last_ceilingclip;
 extern short* last_floorclip;
-#endif
 
 typedef struct
 {

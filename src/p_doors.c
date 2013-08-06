@@ -32,15 +32,22 @@
 // DESCRIPTION:
 //      Door animation code (opening/closing)
 
-#include "doomdef.h"
-#include "doomstat.h"
-#include "dstrings.h"
-#include "p_local.h"
-#include "r_state.h"
+#include "p_spec.h"
 #include "s_sound.h"
 #include "z_zone.h"
 #include "p_demcmp.h"
 #include "p_nwline.h"
+#include "p_local.h"
+
+//#include "doomdef.h"
+//#include "doomstat.h"
+//#include "dstrings.h"
+//#include "p_local.h"
+//#include "r_state.h"
+//#include "s_sound.h"
+//#include "z_zone.h"
+//#include "p_demcmp.h"
+//#include "p_nwline.h"
 
 #if 0
 //

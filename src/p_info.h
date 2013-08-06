@@ -32,12 +32,23 @@
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
 
-#include "m_fixed.h"
-#include "w_wad.h"
+#include "doomtype.h"
 
 /**************************
 *** NEW LEVEL INFO CODE ***
 **************************/
+
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
+
+/* Define WL_WADFile_t */
+#if !defined(__REMOOD_WLWADFILE_DEFINED)
+	typedef struct WL_WADFile_s WL_WADFile_t;
+	#define __REMOOD_WLWADFILE_DEFINED
+#endif
 
 /*** CONSTANTS ***/
 
@@ -145,6 +156,7 @@ typedef struct P_LevelInfoEx_s
 	bool_t OpenDoorOnSpecial;					// Open door on special action
 	bool_t LowerFloorOnSpecial;					// Floor lowers on special
 	bool_t KillMonstersOnSpecial;				// Kills other monsters on special
+	bool_t MonsterTeleStomp;					// Allow all monsters to telestomp
 	int32_t LevelNum;							// Level number
 	int32_t EpisodeNum;							// Episode Number
 	int32_t SuckTime;							// Time before you suck

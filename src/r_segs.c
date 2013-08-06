@@ -32,20 +32,35 @@
 // DESCRIPTION:
 //      All the clipping: columns, horizontal spans, sky columns.
 
-#include "doomdef.h"
-#include "r_local.h"
+#include "r_segs.h"
+#include "r_state.h"
+#include "screen.h"
+#include "z_zone.h"
+#include "r_draw.h"
+#include "r_plane.h"
 #include "r_sky.h"
-
-#include "r_splats.h"			//faB: testing
-
-#include "w_wad.h"
-#include "z_zone.h"
-#include "d_netcmd.h"
-#include "p_local.h"			//Camera...
-#include "console.h"			//Con_clipviewtop
-#include "z_zone.h"
-
+#include "r_things.h"
+#include "console.h"
+#include "dstrings.h"
 #include "p_demcmp.h"
+#include "v_video.h"
+#include "r_local.h"
+#include "r_splats.h"
+
+//#include "doomdef.h"
+//#include "r_local.h"
+//#include "r_sky.h"
+
+//#include "r_splats.h"			//faB: testing
+
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "d_netcmd.h"
+//#include "p_local.h"			//Camera...
+//#include "console.h"			//Con_clipviewtop
+//#include "z_zone.h"
+
+//#include "p_demcmp.h"
 
 extern CONL_StaticVar_t l_RTransparency;
 extern CONL_StaticVar_t l_RDrawSplats;
@@ -110,12 +125,8 @@ short* maskedtexturecol;
 // R_Splats Wall Splats Drawer
 // ==========================================================================
 
-#ifdef WALLSPLATS
-#define BORIS_FIX
-#ifdef BORIS_FIX
 short* last_ceilingclip;
 short* last_floorclip;
-#endif
 
 static void R_DrawSplatColumn(column_t* column)
 {
@@ -135,17 +146,11 @@ static void R_DrawSplatColumn(column_t* column)
 		dc_yl = (topscreen + FRACUNIT - 1) >> FRACBITS;
 		dc_yh = (bottomscreen - 1) >> FRACBITS;
 		
-#ifndef BORIS_FIX
-		if (dc_yh >= mfloorclip[dc_x])
-			dc_yh = mfloorclip[dc_x] - 1;
-		if (dc_yl < mceilingclip[dc_x])
-			dc_yl = mceilingclip[dc_x] + 1;
-#else
 		if (dc_yh >= last_floorclip[dc_x])
 			dc_yh = last_floorclip[dc_x] - 1;
 		if (dc_yl <= last_ceilingclip[dc_x])
 			dc_yl = last_ceilingclip[dc_x] + 1;
-#endif
+
 		if (dc_yl <= dc_yh)
 		{
 			dc_source = (uint8_t*)column + 3;
@@ -162,7 +167,7 @@ static void R_DrawSplatColumn(column_t* column)
 	dc_texturemid = basetexturemid;
 }
 
-static void R_DrawWallSplats()
+static void R_DrawWallSplats(void)
 {
 	wallsplat_t* splat;
 	seg_t* seg;
@@ -262,7 +267,7 @@ static void R_DrawWallSplats()
 					colfunc = basecolfunc;
 				else
 				{
-					dc_transmap = ((tr_transmed - 1) << FF_TRANSSHIFT) + transtables;
+					dc_transmap = ((VEX_TRANS50 - 1) << FF_TRANSSHIFT) + transtables;
 					colfunc = fuzzcolfunc;
 				}
 				
@@ -321,7 +326,6 @@ static void R_DrawWallSplats()
 	colfunc = basecolfunc;
 }
 
-#endif							//WALLSPLATS
 
 // ==========================================================================
 // R_RenderMaskedSegRange
@@ -1350,6 +1354,7 @@ void R_StoreWallRange(int start, int stop)
 					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * (MAXSEGS + 1), PU_STATIC, NULL);
 		}
 		
+		// TODO FIXME: What the hell is this!?
 		if (firstseg)
 			firstseg = drawsegs + (int)firstseg;
 	}
@@ -2042,7 +2047,7 @@ void R_StoreWallRange(int start, int stop)
 				R_ExpandPlane(ffloor[i].plane, rw_x, rw_stopx - 1);
 		}
 	}
-#ifdef BORIS_FIX
+
 	if (linedef->splats && l_RDrawSplats.Value->Int)
 	{
 		// SoM: Isn't a bit wasteful to copy the ENTIRE array for every drawseg?
@@ -2053,13 +2058,7 @@ void R_StoreWallRange(int start, int stop)
 	}
 	else
 		R_RenderSegLoop();
-#else
-	R_RenderSegLoop();
-#ifdef WALLSPLATS
-	if (linedef->splats)
-		R_DrawWallSplats();
-#endif
-#endif
+
 	colfunc = basecolfunc;
 	
 	// save sprite clipping info

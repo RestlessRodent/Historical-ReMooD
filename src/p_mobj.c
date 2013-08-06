@@ -32,25 +32,47 @@
 // DESCRIPTION:
 //      Moving object handling. Spawn functions.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "g_input.h"
-#include "st_stuff.h"
-#include "hu_stuff.h"
-#include "p_local.h"
-#include "p_inter.h"
-#include "p_setup.h"			//levelflats to test if mobj in water sector
-#include "r_main.h"
-#include "r_things.h"
-#include "r_sky.h"
-#include "s_sound.h"
-#include "z_zone.h"
-#include "m_random.h"
-#include "d_clisrv.h"
-#include "r_splats.h"			//faB: in dev.
+#include "p_mobj.h"
 #include "p_demcmp.h"
-#include "m_cheat.h"
-#include "b_bot.h"
+#include "d_player.h"
+#include "info.h"
+#include "tables.h"
+#include "r_defs.h"
+#include "z_zone.h"
+#include "s_sound.h"
+#include "g_state.h"
+#include "p_local.h"
+#include "d_items.h"
+#include "d_netcmd.h"
+#include "p_spec.h"
+#include "r_sky.h"
+#include "d_prof.h"
+#include "sn.h"
+#include "console.h"
+#include "g_game.h"
+#include "m_random.h"
+#include "p_maputl.h"
+#include "st_stuff.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "g_input.h"
+//#include "st_stuff.h"
+//#include "hu_stuff.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "p_setup.h"			//levelflats to test if mobj in water sector
+//#include "r_main.h"
+//#include "r_things.h"
+//#include "r_sky.h"
+//#include "s_sound.h"
+//#include "z_zone.h"
+//#include "m_random.h"
+//#include "d_clisrv.h"
+//#include "r_splats.h"			//faB: in dev.
+//#include "p_demcmp.h"
+//#include "m_cheat.h"
+//#include "b_bot.h"
 
 static const fixed_t FloatBobOffsets[64] =
 {
@@ -1048,12 +1070,14 @@ void P_MobjThinker(mobj_t* mobj)
 	uint32_t* TicA, TimeBase;
 	bool_t ZMoveOffFloor;
 	
+#if 0
 	if (g_CheatFlags & MCF_FREEZETIME)
 	{
 		// Only players are not frozen
 		if (!P_MobjIsPlayer(mobj))
 			return;
 	}
+#endif
 	
 	// GhostlyDeath <June 12, 2012> -- Object Timers
 	for (i = 0; i < 2; i++)

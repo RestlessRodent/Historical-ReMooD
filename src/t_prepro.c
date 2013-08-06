@@ -56,7 +56,6 @@
 /* includes ************************/
 
 
-#include "doomstat.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -65,7 +64,6 @@
 #include "t_oper.h"
 #include "t_vari.h"
 #include "t_func.h"
-#include "w_wad.h"
 
 // clear the script: section and variable slots
 

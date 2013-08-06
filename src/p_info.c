@@ -32,17 +32,24 @@
 // or "exmx" lump. This contains new info such as: the level name, music
 // lump to be played, par time etc.
 
-#include "doomstat.h"
-#include "doomdef.h"
-
-#include "dstrings.h"
-#include "p_setup.h"
 #include "p_info.h"
-#include "p_mobj.h"
-#include "t_script.h"
 #include "w_wad.h"
 #include "z_zone.h"
-#include "p_local.h"
+#include "g_state.h"
+#include "console.h"
+#include "doomdef.h"
+
+//#include "doomstat.h"
+//#include "doomdef.h"
+
+//#include "dstrings.h"
+//#include "p_setup.h"
+//#include "p_info.h"
+//#include "p_mobj.h"
+//#include "t_script.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "p_local.h"
 
 /*** CONSTANTS ***/
 
@@ -143,6 +150,8 @@ static const struct
 	{false, PPMFIFT_BOOL, "specialaction_opendoor", NULL, offsetof(P_LevelInfoEx_t, OpenDoorOnSpecial)},
 	{false, PPMFIFT_BOOL, "specialaction_lowerfloor", NULL, offsetof(P_LevelInfoEx_t, LowerFloorOnSpecial)},
 	{false, PPMFIFT_BOOL, "specialaction_killmonsters", NULL, offsetof(P_LevelInfoEx_t, KillMonstersOnSpecial)},
+	{false, PPMFIFT_BOOL, "monstertelestomp", NULL, offsetof(P_LevelInfoEx_t, MonsterTeleStomp)},
+	
 	
 	/*{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
 	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},

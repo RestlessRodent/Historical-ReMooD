@@ -34,17 +34,34 @@
 //      Bobbing POV/weapon, movement.
 //      Pending weapon.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "p_local.h"
-#include "r_main.h"
-#include "s_sound.h"
-#include "p_setup.h"
-#include "p_inter.h"
-#include "m_random.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "p_spec.h"
 #include "p_demcmp.h"
-#include "d_main.h"
+#include "d_netcmd.h"
+#include "d_ticcmd.h"
+#include "sn.h"
+#include "info.h"
+#include "s_sound.h"
+#include "p_info.h"
+#include "d_prof.h"
+#include "p_maputl.h"
+#include "p_local.h"
+#include "g_game.h"
+#include "p_inter.h"
 #include "wi_stuff.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "p_local.h"
+//#include "r_main.h"
+//#include "s_sound.h"
+//#include "p_setup.h"
+//#include "p_inter.h"
+//#include "m_random.h"
+//#include "p_demcmp.h"
+//#include "d_main.h"
+//#include "wi_stuff.h"
 
 // Index of the special effects (INVUL inverse) map.
 #define INVERSECOLORMAP         32
@@ -169,7 +186,7 @@ void P_CalcHeight(player_t* player)
 	if (player->mo->flags2 & MF2_FLY && !onground)
 		player->bob = FRACUNIT / 2;
 		
-	angle = (FINEANGLES / 20 * localgametic) & FINEMASK;
+	angle = (FINEANGLES / 20 * leveltime) & FINEMASK;
 	bob = FixedMul(player->bob / 2, finesine[angle]);
 	
 	/* Set target */
@@ -1168,7 +1185,7 @@ void P_PlayerThink(player_t* player)
 	if (player->powers[pw_invulnerability])
 		player->powers[pw_invulnerability]--;
 		
-	// the MF_SHADOW activates the tr_transhi translucency while it is set
+	// the MF_SHADOW activates the VEX_TRANS90 translucency while it is set
 	// (it doesnt use a preset value through FF_TRANSMASK)
 	if (player->powers[pw_invisibility])
 		if (!--player->powers[pw_invisibility])

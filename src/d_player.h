@@ -34,24 +34,74 @@
 #ifndef __D_PLAYER__
 #define __D_PLAYER__
 
+#include "d_ticcmd.h"	// TODO FIXME: Only used once
+
+/* Define D_Prof_t */
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
+#endif
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define PI_wepid_t */
+#if !defined(__REMOOD_PIWEPIDT_DEFINED)
+	typedef int32_t PI_wepid_t;
+	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
+
+/* Define PI_state_t */
+#if !defined(__REMOOD_PISTATE_DEFINED)
+	typedef struct PI_state_s PI_state_t;
+	#define __REMOOD_PISTATE_DEFINED
+#endif
+
+/* Define PI_wep_t */
+#if !defined(__REMOOD_PIWEP_DEFINED)
+	typedef struct PI_wep_s PI_wep_t;
+	#define __REMOOD_PIWEP_DEFINED
+#endif
+
+/* Define mapthing_t */
+#if !defined(__REMOOD_MAPTHINGT_DEFINED)
+	typedef struct mapthing_s mapthing_t;
+	#define __REMOOD_MAPTHINGT_DEFINED
+#endif
+
+/* Define wbstartstruct_t */
+#if !defined(__REMOOD_WBSS_DEFINED)
+	typedef struct wbstartstruct_s wbstartstruct_t;
+	#define __REMOOD_WBSS_DEFINED
+#endif
+
 // The player data structure depends on a number
 // of other structs: items (internal inventory),
 // animation states (closely tied to the sprites
 // used to represent them, unfortunately).
-#include "d_items.h"
-#include "p_pspr.h"
+//#include "d_items.h"
+//#include "p_pspr.h"
 
 // In addition, the player is just a special
 // case of the generic moving object/actor.
-#include "p_mobj.h"
+//#include "p_mobj.h"
 
 // Finally, for odd reasons, the player input
 // is buffered within the player data struct,
 // as commands per game tick.
-#include "d_ticcmd.h"
+//#include "d_ticcmd.h"
 
-#include "d_prof.h"
-#include "d_netcmd.h"
+//#include "d_prof.h"
+//#include "d_netcmd.h"
 
 //
 // Player states.
@@ -87,7 +137,7 @@ typedef enum
 	CF_JUMPOVER = 16
 } cheat_t;
 
-#include "d_items.h"
+//#include "d_items.h"
 
 /* camera_t -- Chase cam */
 typedef struct camera_s
@@ -105,16 +155,58 @@ typedef struct camera_s
 
 struct SN_Port_s;
 
+// Power up artifacts.
+typedef enum
+{
+	pw_invulnerability,
+	pw_strength,
+	pw_invisibility,
+	pw_ironfeet,
+	pw_allmap,
+	pw_infrared,
+	
+	NUMPOWERS
+} powertype_t;
+
+//
+// Overlay psprites are scaled shapes
+// drawn directly on the view screen,
+// coordinates are given for a 320*200 view screen.
+//
+typedef enum
+{
+	ps_weapon,
+	ps_flash,
+	NUMPSPRITES
+} psprnum_t;
+
+/* Define pspdef_t */
+#if !defined(__REMOOD_PSPDEFT_DEFINED)
+	typedef struct pspdef_s pspdef_t;
+	#define __REMOOD_PSPDEFT_DEFINED
+#endif
+
+struct pspdef_s
+{
+	PI_state_t* state;				// a NULL state means not active
+	int32_t tics;
+	fixed_t sx;
+	fixed_t sy;
+};
+
+#define NUMINVENTORYSLOTS  14
+#define MAXARTECONT        16
+typedef struct
+{
+	uint8_t type;
+	uint8_t count;
+} inventory_t;
+
 // ========================================================================
 //                          PLAYER STRUCTURE
 // ========================================================================
 
-#if !defined(__REMOOD_DPROFTDEFINED)
-	#define __REMOOD_DPROFTDEFINED
-	typedef struct D_Prof_s D_Prof_t;
-#endif
-
-typedef struct player_s
+struct player_s
 {
 	mobj_t* mo;
 	// added 1-6-98: for movement prediction
@@ -278,7 +370,7 @@ typedef struct player_s
 	// Ping
 	uint16_t Ping;								// Player's Ping
 	uint32_t BackupButtons;
-} player_t;
+};
 
 //
 // INTERMISSION
@@ -302,7 +394,7 @@ typedef struct
 
 struct P_LevelInfoEx_s;
 
-typedef struct
+struct wbstartstruct_s
 {
 	int32_t epsd;					// episode # (0-2)
 	
@@ -328,7 +420,26 @@ typedef struct
 	
 	struct P_LevelInfoEx_s* NextInfo;			// Info for next level
 	
-} wbstartstruct_t;
+};
+
+/**************
+*** GLOBALS ***
+**************/
+
+extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
+extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
+extern player_t players[MAXPLAYERS];
+extern bool_t playeringame[MAXPLAYERS];
+
+#define MAX_DM_STARTS   64
+extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
+extern int numdmstarts;
+extern mapthing_t* g_TeamStarts[MAXSKINCOLORS][MAXPLAYERS];
+extern mapthing_t* playerstarts[MAXPLAYERS];
+
+#define   BODYQUESIZE     MAXPLAYERS
+extern mobj_t* bodyque[BODYQUESIZE];
+extern int bodyqueslot;
 
 #endif
 

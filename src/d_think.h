@@ -66,8 +66,14 @@ typedef union
 //  an actor.
 typedef actionf_t think_t;
 
+/* Define P_ThinkerType_t */
+#if !defined(__REMOOD_PTT_DEFINED)
+	typedef int P_ThinkerType_t;
+	#define __REMOOD_PTT_DEFINED
+#endif
+
 /* P_ThinkerType_t -- Type of thinker this is */
-typedef enum P_ThinkerType_e
+enum P_ThinkerType_e
 {
 	PTT_CAP,									// Thinker Cap
 	PTT_VERTICALDOOR,							// T_VerticalDoor/vldoor_t
@@ -88,16 +94,24 @@ typedef enum P_ThinkerType_e
 	PTT_DELETEME,								// Deletes this thing
 	
 	NUMPTHINKERTYPES
-} P_ThinkerType_t; 
+}; 
+
+/* Define thinker_t */
+#if !defined(__REMOOD_THINKERT_DEFINED)
+	typedef struct thinker_s thinker_t;
+	#define __REMOOD_THINKERT_DEFINED
+#endif
 
 // Doubly linked list of actors.
-typedef struct thinker_s
+struct thinker_s
 {
 	P_ThinkerType_t Type;
-	struct thinker_s* prev;
-	struct thinker_s* next;
+	thinker_t* prev;
+	thinker_t* next;
 	think_t function;
-} thinker_t;
+};
+
+extern thinker_t thinkercap;
 
 extern thinker_t** g_ThinkerList;				// List of thinkers
 extern size_t g_NumThinkerList;					// Thinkers in list
@@ -114,4 +128,33 @@ extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES];	// Thinker Data
 actionf_t G_ThinkTypeToFunc(const P_ThinkerType_t a_Type);
 P_ThinkerType_t G_ThinkFuncToType(actionf_t a_Func);
 
+/* Define S_NoiseThinker_t */
+#if !defined(__REMOOD_SNOISETHNK_DEFINED)
+	typedef struct S_NoiseThinker_s S_NoiseThinker_t;
+	#define __REMOOD_SNOISETHNK_DEFINED
 #endif
+
+/* S_NoiseThinker_t -- A thinker that makes noise */
+struct S_NoiseThinker_s
+{
+	uint32_t Flags;				// Sound flags
+	
+	/* World Position */
+	fixed_t x;
+	fixed_t y;
+	fixed_t z;
+	
+	/* Momenntum */
+	// This is for doppler and such
+	fixed_t momx;
+	fixed_t momy;
+	fixed_t momz;
+	
+	/* Other things */
+	fixed_t Pitch;				// Pitch modification
+	fixed_t Volume;				// Volume modification
+	angle_t Angle;				// Angle
+};
+
+#endif
+

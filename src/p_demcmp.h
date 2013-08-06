@@ -33,10 +33,12 @@
 #ifndef __P_DEMCMP_H__
 #define __P_DEMCMP_H__
 
-#include "console.h"
-#include "doomdef.h"
-#include "doomstat.h"
-#include "w_wad.h"
+#include "doomtype.h"
+
+//#include "console.h"
+//#include "doomdef.h"
+//#include "doomstat.h"
+//#include "w_wad.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***
@@ -296,6 +298,12 @@ typedef enum P_XGSBitID_e
 } P_XGSBitID_t;
 
 /*** STRUCTURES ***/
+
+/* Define CONL_VarPossibleValue_t */
+#if !defined(__REMOOD_CONLVPV_DEFINED)
+	typedef struct CONL_VarPossibleValue_s CONL_VarPossibleValue_t;
+	#define __REMOOD_CONLVPV_DEFINED
+#endif
 
 /* P_XGSVariable_t -- Variable for game setting */
 typedef struct P_XGSVariable_s

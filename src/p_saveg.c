@@ -34,7 +34,7 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomdef.h"
+#include "p_saveg.h"
 #include "g_game.h"
 #include "p_local.h"
 #include "r_state.h"
@@ -46,7 +46,6 @@
 #include "t_func.h"
 #include "m_random.h"
 #include "m_misc.h"
-#include "p_saveg.h"
 #include "console.h"
 #include "p_demcmp.h"
 #include "m_menu.h"
@@ -57,6 +56,15 @@
 #include "r_sky.h"
 #include "p_inter.h"
 #include "wi_stuff.h"
+#include "g_state.h"
+#include "p_info.h"
+#include "p_spec.h"
+#include "p_mobj.h"
+#include "d_player.h"
+#include "dstrings.h"
+#include "info.h"
+#include "d_prof.h"
+#include "s_sound.h"
 
 /**************
 *** GLOBALS ***

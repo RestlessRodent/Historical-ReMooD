@@ -31,22 +31,41 @@
 // DESCRIPTION:
 //      handles multiple resolutions, 8bpp mode
 
-#include "doomdef.h"
 #include "screen.h"
-#include "console.h"
-
-#include "i_system.h"
-#include "i_video.h"
-#include "r_local.h"
-#include "r_sky.h"
-#include "m_argv.h"
-#include "v_video.h"
-#include "st_stuff.h"
-#include "hu_stuff.h"
-#include "z_zone.h"
-#include "d_main.h"
 #include "r_defs.h"
+#include "z_zone.h"
+#include "console.h"
+#include "i_video.h"
+#include "r_sky.h"
+#include "r_draw.h"
+#include "r_plane.h"
+#include "v_video.h"
+#include "tables.h"
+#include "m_argv.h"
+#include "g_state.h"
+#include "r_segs.h"
+#include "i_system.h"
+#include "dstrings.h"
+#include "st_stuff.h"
 #include "r_things.h"
+#include "r_state.h"
+
+//#include "doomdef.h"
+//#include "screen.h"
+//#include "console.h"
+
+//#include "i_system.h"
+//#include "i_video.h"
+//#include "r_local.h"
+//#include "r_sky.h"
+//#include "m_argv.h"
+//#include "v_video.h"
+//#include "st_stuff.h"
+//#include "hu_stuff.h"
+//#include "z_zone.h"
+//#include "d_main.h"
+//#include "r_defs.h"
+//#include "r_things.h"
 
 void VID_PrepareModeList(void);	// from i_video_xshm.c
 
@@ -130,7 +149,7 @@ void (*skydrawerfunc[2]) (void);
 
 void SCR_SetMode(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	if (!graphics_started)
@@ -179,7 +198,7 @@ void SCR_SetMode(void)
 //
 void SCR_Startup(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 	
 	CONL_VarRegister(&l_SCRWidth);
@@ -220,7 +239,7 @@ void SCR_Startup(void)
 extern int dc_drawymove;
 void SCR_Recalc(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	if (!graphics_started)
@@ -294,7 +313,7 @@ void SCR_CheckDefaultMode(void)
 	int scr_forcex;				// resolution asked from the cmd-line
 	int scr_forcey;
 	
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	if (!graphics_started)
@@ -405,10 +424,8 @@ void SCR_ReclassBuffers(void)
 	ceilingclip = Z_Malloc(sizeof(*ceilingclip) * (vid.width + 1), PU_STATIC, NULL);
 	frontscale = Z_Malloc(sizeof(*frontscale) * vid.width, PU_STATIC, NULL);
 	distscale = Z_Malloc(sizeof(*distscale) * vid.width, PU_STATIC, NULL);
-#ifdef BORIS_FIX
 	last_ceilingclip = Z_Malloc(sizeof(*last_ceilingclip) * vid.width, PU_STATIC, NULL);
 	last_floorclip = Z_Malloc(sizeof(*last_floorclip) * vid.width, PU_STATIC, NULL);
-#endif
 	negonearray = Z_Malloc(sizeof(*negonearray) * vid.width, PU_STATIC, NULL);
 	screenheightarray = Z_Malloc(sizeof(*screenheightarray) * vid.width, PU_STATIC, NULL);
 	solidsegs = Z_Malloc(sizeof(*solidsegs) * MAXSEGS, PU_STATIC, NULL);

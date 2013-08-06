@@ -1,3 +1,4 @@
+#if 0
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
@@ -36,21 +37,21 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomdef.h"
-#include "dstrings.h"
+//#include "doomdef.h"
+//#include "dstrings.h"
 
-#include "m_cheat.h"
-#include "g_game.h"
-#include "r_local.h"
-#include "p_local.h"
-#include "p_inter.h"
-#include "m_cheat.h"
-#include "i_sound.h"			// for I_PlayCD()
-#include "s_sound.h"
-#include "v_video.h"
-#include "st_stuff.h"
-#include "w_wad.h"
-#include "console.h"
+//#include "m_cheat.h"
+//#include "g_game.h"
+//#include "r_local.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "m_cheat.h"
+//#include "i_sound.h"			// for I_PlayCD()
+//#include "s_sound.h"
+//#include "v_video.h"
+//#include "st_stuff.h"
+//#include "w_wad.h"
+//#include "console.h"
 
 #if defined(NEWCHEATS)
 
@@ -921,5 +922,6 @@ void M_CheatInit(void)
 	CONL_AddCommand("cheat", MS_MultiCheatCommand);
 }
 
+#endif
 #endif
 

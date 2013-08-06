@@ -48,8 +48,6 @@
 
 /* includes ************************/
 
-#include "doomstat.h"
-
 #include "z_zone.h"
 
 #include "t_parse.h"

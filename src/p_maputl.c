@@ -35,10 +35,18 @@
 //      BLOCKMAP Iterator functions,
 //      and some PIT_* functions to use for iteration.
 
-#include "p_local.h"
-#include "r_main.h"
 #include "p_maputl.h"
+#include "p_local.h"
+#include "p_mobj.h"
+#include "r_state.h"
+#include "m_bbox.h"
 #include "p_demcmp.h"
+#include "console.h"
+#include "doomdef.h"
+
+//#include "p_local.h"
+//#include "r_main.h"
+//#include "p_demcmp.h"
 
 //
 // P_AproxDistance

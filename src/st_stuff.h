@@ -38,7 +38,17 @@
 
 #include "doomtype.h"
 
-#include "d_player.h"
+/* Define D_Prof_t */
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
 
 extern int ST_Y;
 extern int st_x;

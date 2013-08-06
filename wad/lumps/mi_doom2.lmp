@@ -320,6 +320,7 @@ map MAP30 "Icon Of Sin"
 	par 180
 	titlepatch CWILV29
 	music D_OPENIN
+	monstertelestomp
 	
 map MAP31 "Wolfenstein"
 	creator "Sandy Petersen"

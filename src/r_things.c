@@ -32,20 +32,39 @@
 // DESCRIPTION:
 //      Refresh of things, i.e. objects represented by sprites.
 
-#include "doomdef.h"
-#include "c_lib.h"
-#include "console.h"
-#include "g_game.h"
-#include "r_local.h"
-#include "sounds.h"				//skin sounds
-#include "st_stuff.h"
-#include "w_wad.h"
+#include "r_things.h"
 #include "z_zone.h"
-#include "m_argv.h"
-#include "r_data.h"
-#include "p_maputl.h"
+#include "screen.h"
+#include "r_state.h"
+#include "console.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "r_bsp.h"
+#include "v_video.h"
+#include "r_draw.h"
+#include "r_plane.h"
+#include "d_netcmd.h"
+#include "info.h"
+#include "st_stuff.h"
 #include "p_demcmp.h"
-#include "i_video.h"
+#include "p_local.h"
+#include "p_maputl.h"
+#include "r_segs.h"
+
+//#include "doomdef.h"
+//#include "c_lib.h"
+//#include "console.h"
+//#include "g_game.h"
+//#include "r_local.h"
+//#include "sounds.h"				//skin sounds
+//#include "st_stuff.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "m_argv.h"
+//#include "r_data.h"
+//#include "p_maputl.h"
+//#include "p_demcmp.h"
+//#include "i_video.h"
 
 static void R_InitSkins(void);
 
@@ -784,7 +803,7 @@ static void R_ProjectSprite(mobj_t* thing)
 			// because now the translucency is set through FF_TRANSMASK
 		{
 			if (thing->flags2 & MF2_FORCETRANSPARENCY)
-				vis->transmap = ((tr_transhi - 1) << FF_TRANSSHIFT) + transtables;
+				vis->transmap = ((VEX_TRANS90 - 1) << FF_TRANSSHIFT) + transtables;
 			else
 				vis->transmap = VIS_OLDFUZZ;
 		}
@@ -976,7 +995,7 @@ void R_DrawPSprite(pspdef_t* psp)
 			vis->transmap = VIS_OLDFUZZ;
 		}
 		else
-			vis->transmap = NULL;	//((tr_transmed - 1) << FF_TRANSSHIFT) + transtables;
+			vis->transmap = NULL;	//((VEX_TRANS50 - 1) << FF_TRANSSHIFT) + transtables;
 	}
 	else if (fixedcolormap)
 	{
@@ -1722,6 +1741,7 @@ int R_SkinAvailable(char* name)
 // network code calls this when a 'skin change' is received
 void SetPlayerSkin(int playernum, char* skinname)
 {
+#if 0
 	int i;
 	
 	for (i = 0; i < numskins; i++)
@@ -1745,6 +1765,7 @@ void SetPlayerSkin(int playernum, char* skinname)
 			return;
 		}
 	}
+#endif
 	
 	//CONL_PrintF("Skin %s not found\n", skinname);
 	players[playernum].skin = 0;	// not found put the old marine skin

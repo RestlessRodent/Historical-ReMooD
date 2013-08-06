@@ -31,19 +31,30 @@
 // DESCRIPTION: DOOM Network game communication and protocol,
 //              all OS independend parts.
 
-#include "d_clisrv.h"
-#include "doomdef.h"
-
-#include "doomstat.h"
-#include "console.h"
-#include "m_menu.h"
-#include "m_argv.h"
+#include "doomtype.h"
+#include "g_state.h"
 #include "g_game.h"
-#include "d_main.h"
-#include "p_tick.h"
 #include "i_system.h"
-#include "i_sound.h"
+#include "console.h"
+#include "d_main.h"
 #include "i_video.h"
+#include "m_menu.h"
+#include "p_local.h"
+#include "sn.h"
+
+//#include "d_clisrv.h"
+//#include "doomdef.h"
+
+//#include "doomstat.h"
+//#include "console.h"
+//#include "m_menu.h"
+//#include "m_argv.h"
+//#include "g_game.h"
+//#include "d_main.h"
+//#include "p_tick.h"
+//#include "i_system.h"
+//#include "i_sound.h"
+//#include "i_video.h"
 
 //
 // NETWORKING
@@ -60,9 +71,6 @@ static tic_t firstticstosend;	// min of the nettics
 static tic_t tictoclear = 0;	// optimize d_clearticcmd
 static tic_t maketic;
 static tic_t neededtic;
-
-// engine
-ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
 int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
 

@@ -35,7 +35,7 @@
 #include "doomtype.h"
 
 /* UnicodeStringID_t -- String IDs */
-typedef enum UnicodeStringID_e
+enum UnicodeStringID_e
 {
 	/* Menus */
 	DSTR_MENU_NULLSPACE,
@@ -734,7 +734,13 @@ typedef enum UnicodeStringID_e
 	DSTR_D_PGS_PLMAXPLAYERS,
 	
 	NUMUNICODESTRINGS
-} UnicodeStringID_t;
+};
+
+/* Define UnicodeStringID_t */
+#if !defined(__REMOOD_UNICSTRID_DEFINED)
+	typedef int UnicodeStringID_t;
+	#define __REMOOD_UNICSTRID_DEFINED
+#endif
 
 /* StringGroupEX_t -- String data holder */
 typedef struct StringGroupEX_s

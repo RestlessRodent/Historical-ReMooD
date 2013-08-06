@@ -33,16 +33,31 @@
 //  Generalized linedef type handlers
 //  Floors, Ceilings, Doors, Locked Doors, Lifts, Stairs, Crushers
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "p_local.h"
-#include "r_data.h"
-#include "m_random.h"
+#include "doomtype.h"
+#include "r_defs.h"
+#include "p_mobj.h"
+#include "d_player.h"
+#include "p_spec.h"
 #include "s_sound.h"
 #include "z_zone.h"
-#include "p_spec.h"
-#include "p_inter.h"
 #include "p_demcmp.h"
+#include "dstrings.h"
+#include "console.h"
+#include "p_inter.h"
+#include "g_game.h"
+#include "m_random.h"
+#include "p_local.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "p_local.h"
+//#include "r_data.h"
+//#include "m_random.h"
+//#include "s_sound.h"
+//#include "z_zone.h"
+//#include "p_spec.h"
+//#include "p_inter.h"
+//#include "p_demcmp.h"
 
 /*
   SoM: 3/9/2000: Copied this entire file from Boom sources to Legacy sources.

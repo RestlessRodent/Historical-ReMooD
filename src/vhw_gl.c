@@ -43,7 +43,8 @@
 #include "vhw_locl.h"
 #include "console.h"
 #include "dstrings.h"
-#include "screen.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 /*****************
 *** STRUCTURES ***

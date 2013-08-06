@@ -34,22 +34,81 @@
 #ifndef __P_LOCAL__
 #define __P_LOCAL__
 
-
-#include "d_player.h"
-#include "d_think.h"
-#include "m_fixed.h"
-#include "m_bbox.h"
-#include "p_tick.h"
 #include "r_defs.h"
-#include "p_maputl.h"
+
+/* Define thinker_t */
+#if !defined(__REMOOD_THINKERT_DEFINED)
+	typedef struct thinker_s thinker_t;
+	#define __REMOOD_THINKERT_DEFINED
+#endif
+
+/* Define PI_mobjid_t */
+#if !defined(__REMOOD_PIMOID_DEFINED)
+	typedef int32_t PI_mobjid_t;
+	#define __REMOOD_PIMOID_DEFINED
+#endif
+
+/* Define PI_stateid_t */
+#if !defined(__REMOOD_STSPIDS_DEFINED)
+	typedef int32_t PI_spriteid_t;
+	typedef int32_t PI_stateid_t;
+	#define __REMOOD_STSPIDS_DEFINED
+#endif
+
+/* Define mapthing_t */
+#if !defined(__REMOOD_MAPTHINGT_DEFINED)
+	typedef struct mapthing_s mapthing_t;
+	#define __REMOOD_MAPTHINGT_DEFINED
+#endif
+
+/* Define P_ThinkerType_t */
+#if !defined(__REMOOD_PTT_DEFINED)
+	typedef int P_ThinkerType_t;
+	#define __REMOOD_PTT_DEFINED
+#endif
+
+/* Define ticcmd_t */
+#if !defined(__REMOOD_TICCMDT_DEFINED)
+	typedef union ticcmd_u ticcmd_t;
+	#define __REMOOD_TICCMDT_DEFINED
+#endif
+
+/* Define pspdef_t */
+#if !defined(__REMOOD_PSPDEFT_DEFINED)
+	typedef struct pspdef_s pspdef_t;
+	#define __REMOOD_PSPDEFT_DEFINED
+#endif
+
+/* Define PI_wepid_t */
+#if !defined(__REMOOD_PIWEPIDT_DEFINED)
+	typedef int32_t PI_wepid_t;
+	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
+#endif
+
+//#include "d_player.h"
+//#include "d_think.h"
+//#include "m_fixed.h"
+//#include "m_bbox.h"
+//#include "p_tick.h"
+//#include "r_defs.h"
+//#include "p_maputl.h"
 
 #define FLOATSPEED              (FRACUNIT*4)
 
 // added by Boris : for dehacked patches, replaced #define by int
 extern int MAXHEALTH;			// 100
-
-#define VIEWHEIGHT               41
-#define VIEWHEIGHTS             "41"
 
 // mapblocks are used to check movement
 // against lines and things
@@ -90,9 +149,6 @@ void P_RemoveRecursiveSound(mobj_t* const a_Mo);
 //
 // P_TICK
 //
-
-// both the head and tail of the thinker list
-extern thinker_t thinkercap;
 
 void P_InitThinkers(void);
 void P_AddThinker(thinker_t* thinker, const P_ThinkerType_t a_Type);
@@ -302,7 +358,7 @@ extern fixed_t bottomslope;
 //
 // P_SPEC
 //
-#include "p_spec.h"
+//#include "p_spec.h"
 
 // heretic specific
 extern int ceilmovesound;

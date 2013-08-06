@@ -320,6 +320,7 @@ map MAP30 "Map 30"
 	par 180
 	titlepatch CWILV29
 	music D_OPENIN
+	monstertelestomp
 	
 map MAP31 "Map 31"
 	creator "FreeDoom Team"

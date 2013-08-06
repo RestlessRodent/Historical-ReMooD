@@ -36,10 +36,24 @@
 #ifndef __V_VIDEO__
 #define __V_VIDEO__
 
-#include "doomdef.h"
 #include "doomtype.h"
-#include "r_defs.h"
-#include "w_wad.h"
+#include "screen.h"
+
+//#include "doomdef.h"
+//#include "r_defs.h"
+//#include "w_wad.h"
+
+/* Define WadIndex_t */
+#if !defined(__REMOOD_WADINDEXT_DEFINED)
+	typedef int WadIndex_t;
+	#define __REMOOD_WADINDEXT_DEFINED
+#endif
+
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
 
 //
 // VIDEO
@@ -222,7 +236,7 @@ void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 *** UNICODE ***
 **************/
 
-typedef enum
+enum
 {
 	/* Aliases */
 	VFONT_SMALL,				// Doom, Heretic, Hexen, and Strife (alias to VFONT_SMALL_x)
@@ -248,7 +262,13 @@ typedef enum
 	VFONT_TERMINUS,				// Terminus Font
 	
 	NUMVIDEOFONTS
-} VideoFont_t;
+};
+
+/* Define VideoFont_t */
+#if !defined(__REMOOD_VIDEOFONTT_DEFINED)
+	typedef int VideoFont_t;
+	#define __REMOOD_VIDEOFONTT_DEFINED
+#endif
 
 /* Options */
 
@@ -339,20 +359,32 @@ typedef enum V_ImageType_e
 	NUMVIMAGETYPES
 } V_ImageType_t;
 
+/* Define V_ColorPal_t */
+#if !defined(__REMOOD_VCOLPAL_DEFINED)
+	typedef enum V_ColorPal_e V_ColorPal_t;
+	#define __REMOOD_VCOLPAL_DEFINED
+#endif
+
 /* V_ColorPal_t -- Color palette for image */
-typedef enum V_ColorPal_e
+enum V_ColorPal_e
 {
 	VCP_NONE,									// No palette mapping
 	VCP_DOOM,									// Doom Palette
 	VCP_HERETIC,								// Heretic Palette
 	
 	NUMVCOLORPALS
-} V_ColorPal_t;
+};
 
 /*** STRUCTURES ***/
 
+/* Define V_Image_t */
+#if !defined(__REMOOD_VIMAGET_DEFINED)
+	typedef struct V_Image_s V_Image_t;
+	#define __REMOOD_VIMAGET_DEFINED
+#endif
+
 /* V_Image_t -- A single image */
-typedef struct V_Image_s
+struct V_Image_s
 {
 	/* Info */
 	int32_t					Width;				// Image width
@@ -381,15 +413,15 @@ typedef struct V_Image_s
 	uint8_t*				dRaw;				// Raw image (flat)
 	
 	/* Cache Chain */
-	struct V_Image_s*		iPrev;				// Previous image
-	struct V_Image_s*		iNext;				// Next image
+	V_Image_t*				iPrev;				// Previous image
+	V_Image_t*				iNext;				// Next image
 	
 	/* Size */
 	void* dPatchEnd;							// End of patch data
 	uint32_t POTSize[2];						// Power of two size
 	uint32_t GLRef[32];							// OpenGL Reference
 	uint32_t GLSpotCount[32];					// Current Spot
-} V_Image_t;
+};
 
 // Load and Destroy
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a_Pal);

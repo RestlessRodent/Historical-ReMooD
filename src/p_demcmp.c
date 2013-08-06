@@ -30,16 +30,30 @@
 // DESCRIPTION:
 //      Demo Compatibility
 
-#include "doomdef.h"
 #include "p_demcmp.h"
-#include "m_menu.h"
-#include "g_input.h"
-#include "p_local.h"
-#include "g_game.h"
-#include "p_inter.h"
-#include "m_argv.h"
+#include "w_wad.h"
+#include "console.h"
 #include "t_ini.h"
+#include "g_state.h"
+#include "dstrings.h"
+#include "d_player.h"
+#include "m_argv.h"
+#include "sn.h"
 #include "d_main.h"
+#include "p_inter.h"
+#include "p_local.h"
+#include "p_spec.h"
+
+//#include "doomdef.h"
+//#include "p_demcmp.h"
+//#include "m_menu.h"
+//#include "g_input.h"
+//#include "p_local.h"
+//#include "g_game.h"
+//#include "p_inter.h"
+//#include "m_argv.h"
+//#include "t_ini.h"
+//#include "d_main.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***

@@ -54,15 +54,12 @@
 /* includes ************************/
 
 
-#include "doomstat.h"
 #include "doomtype.h"
-#include "d_main.h"
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "info.h"
 #include "m_random.h"
 #include "p_mobj.h"
-#include "p_tick.h"
 #include "p_spec.h"
 //#include "p_hubs.h"
 #include "p_inter.h"
@@ -83,6 +80,9 @@
 #include "t_oper.h"
 #include "t_vari.h"
 #include "t_func.h"
+
+#include "d_netcmd.h"
+#include "d_items.h"
 
 #include "sn.h"
 

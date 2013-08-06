@@ -34,19 +34,29 @@
 //       while maintaining a per column clipping list only.
 //      Moreover, the sky areas have to be determined.
 
-#include "doomdef.h"
-#include "console.h"
-#include "g_game.h"
-#include "r_data.h"
-#include "r_local.h"
-#include "r_state.h"
-#include "r_splats.h"			//faB(21jan):testing
-#include "r_sky.h"
-#include "v_video.h"
-#include "w_wad.h"
+#include "r_plane.h"
 #include "z_zone.h"
+#include "r_draw.h"
+#include "tables.h"
+#include "r_sky.h"
+#include "r_state.h"
+#include "screen.h"
 
-#include "p_setup.h"			// levelflats
+#include "console.h"	// For con_clipviewtop
+
+//#include "doomdef.h"
+//#include "console.h"
+//#include "g_game.h"
+//#include "r_data.h"
+//#include "r_local.h"
+//#include "r_state.h"
+//#include "r_splats.h"			//faB(21jan):testing
+//#include "r_sky.h"
+//#include "v_video.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+
+//#include "p_setup.h"			// levelflats
 
 planefunction_t floorfunc;
 planefunction_t ceilingfunc;

@@ -33,23 +33,41 @@
 //      Movement, collision handling.
 //      Shooting and aiming.
 
-#include "doomdef.h"
-#include "g_game.h"
+#include "r_state.h"
+#include "p_mobj.h"
+#include "p_maputl.h"
+#include "d_player.h"
 #include "m_bbox.h"
 #include "m_random.h"
+#include "g_state.h"
 #include "p_local.h"
-#include "p_inter.h"
-#include "r_state.h"
-#include "r_main.h"
-#include "r_sky.h"
-#include "s_sound.h"
-
-#include "r_splats.h"			//faB: testing
-
-#include "z_zone.h"				//SoM: 3/15/2000
 #include "p_demcmp.h"
-#include "g_input.h"
-#include "d_main.h"
+#include "info.h"
+#include "s_sound.h"
+#include "p_spec.h"
+#include "z_zone.h"
+#include "r_main.h"
+#include "r_splats.h"
+#include "p_info.h"
+#include "r_sky.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "m_bbox.h"
+//#include "m_random.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "r_state.h"
+//#include "r_main.h"
+//#include "r_sky.h"
+//#include "s_sound.h"
+
+//#include "r_splats.h"			//faB: testing
+
+//#include "z_zone.h"				//SoM: 3/15/2000
+//#include "p_demcmp.h"
+//#include "g_input.h"
+//#include "d_main.h"
 
 fixed_t tmbbox[4];
 mobj_t* tmthing;
@@ -122,7 +140,7 @@ static bool_t PIT_StompThing(mobj_t* thing, void* a_Arg)
 		return true;			// didn't hit it
 		
 	// monsters don't stomp things except on boss level
-	if (!P_MobjIsPlayer(tmthing) && gamemap != 30)
+	if (!P_MobjIsPlayer(tmthing) && !g_CurrentLevelInfo->MonsterTeleStomp)
 		return false;
 		
 	// Not allowed to stomp things

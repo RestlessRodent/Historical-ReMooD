@@ -35,7 +35,7 @@
 #define __I_SYSTEM__
 
 #include "doomtype.h"
-#include "d_ticcmd.h"
+//#include "d_ticcmd.h"
 
 
 // See Shutdown_xxx() routines.

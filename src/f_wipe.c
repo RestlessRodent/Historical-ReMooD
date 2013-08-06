@@ -36,16 +36,25 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomdef.h"
-#include "m_random.h"
 #include "f_wipe.h"
-#include "i_system.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "r_draw.h"				// transtable
-#include "p_pspr.h"				// tr_transxxx
+#include "screen.h"
 #include "z_zone.h"
+#include "v_video.h"
+#include "r_draw.h"
+#include "i_video.h"
+#include "m_random.h"
 #include "vhw_wrap.h"
+
+//#include "doomdef.h"
+//#include "m_random.h"
+//#include "f_wipe.h"
+//#include "i_system.h"
+//#include "i_video.h"
+//#include "v_video.h"
+//#include "r_draw.h"				// transtable
+//#include "p_pspr.h"				// tr_transxxx
+//#include "z_zone.h"
+//#include "vhw_wrap.h"
 
 /*****************
 *** PROTOTYPES ***
@@ -171,9 +180,9 @@ int wipe_doColorXForm(int width, int height, int ticks)
 		{
 			if (*w != *e)
 			{
-				if ((newval = transtables[(*e << 8) + *w + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
-					if ((newval = transtables[(*e << 8) + *w + ((tr_transmed - 1) << FF_TRANSSHIFT)]) == *w)
-						if ((newval = transtables[(*w << 8) + *e + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
+				if ((newval = transtables[(*e << 8) + *w + ((VEX_TRANS80 - 1) << FF_TRANSSHIFT)]) == *w)
+					if ((newval = transtables[(*e << 8) + *w + ((VEX_TRANS50 - 1) << FF_TRANSSHIFT)]) == *w)
+						if ((newval = transtables[(*w << 8) + *e + ((VEX_TRANS80 - 1) << FF_TRANSSHIFT)]) == *w)
 							newval = *e;
 				*w = newval;
 				changed = true;

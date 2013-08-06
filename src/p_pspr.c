@@ -35,18 +35,33 @@
 //      Weapon sprite animation, weapon objects.
 //      Action functions for weapons.
 
-#include "doomdef.h"
-
+#include "doomtype.h"
+#include "info.h"
+#include "p_mobj.h"
+#include "d_player.h"
 #include "p_local.h"
-#include "p_pspr.h"
-#include "p_inter.h"
+#include "p_maputl.h"
 #include "s_sound.h"
-#include "g_game.h"
-#include "g_input.h"
-#include "r_main.h"
+#include "p_demcmp.h"
+#include "tables.h"
+#include "g_state.h"
+#include "console.h"
 #include "m_random.h"
 #include "p_inter.h"
-#include "p_demcmp.h"
+#include "r_main.h"
+
+//#include "doomdef.h"
+
+//#include "p_local.h"
+//#include "p_pspr.h"
+//#include "p_inter.h"
+//#include "s_sound.h"
+//#include "g_game.h"
+//#include "g_input.h"
+//#include "r_main.h"
+//#include "m_random.h"
+//#include "p_inter.h"
+//#include "p_demcmp.h"
 
 #define LOWERSPEED              FRACUNIT*6
 #define RAISESPEED              FRACUNIT*6

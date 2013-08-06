@@ -35,41 +35,57 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomdef.h"
 #include "console.h"
-#include "g_game.h"
-#include "g_input.h"
-
-#include "sounds.h"
-#include "s_sound.h"
-#include "i_video.h"
 #include "z_zone.h"
+#include "dstrings.h"
 #include "i_system.h"
-#include "d_main.h"
-#include "doomdef.h"
-#include "console.h"
-#include "g_game.h"
-#include "g_input.h"
-
-#include "sounds.h"
-#include "s_sound.h"
-#include "i_video.h"
-#include "z_zone.h"
-#include "i_system.h"
-#include "d_main.h"
-#include "hu_stuff.h"
-#include "v_video.h"
-#include "st_stuff.h"
-#include "r_defs.h"
-
-#include "hu_stuff.h"
-#include "v_video.h"
-#include "st_stuff.h"
-#include "r_defs.h"
-#include "m_argv.h"
 #include "p_setup.h"
-#include "m_menu.h"
+#include "m_argv.h"
+#include "d_prof.h"
+
+// TODO FIXME: Remove this by splitting UI console code from actual console
+#include "v_video.h"	// Video Code
+#include "s_sound.h"	// Sounds
+#include "screen.h"		// Other video stuff
+#include "g_state.h"	// GS_*
+#include "d_netcmd.h"	// SplitScreen Junk
 #include "vhw_wrap.h"
+#include "i_video.h"
+
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "g_input.h"
+
+//#include "sounds.h"
+//#include "s_sound.h"
+//#include "i_video.h"
+//#include "z_zone.h"
+//#include "i_system.h"
+//#include "d_main.h"
+//#include "doomdef.h"
+//#include "console.h"
+//#include "g_game.h"
+//#include "g_input.h"
+
+//#include "sounds.h"
+//#include "s_sound.h"
+//#include "i_video.h"
+//#include "z_zone.h"
+//#include "i_system.h"
+//#include "d_main.h"
+//#include "hu_stuff.h"
+//#include "v_video.h"
+//#include "st_stuff.h"
+//#include "r_defs.h"
+
+//#include "hu_stuff.h"
+//#include "v_video.h"
+//#include "st_stuff.h"
+//#include "r_defs.h"
+//#include "m_argv.h"
+//#include "p_setup.h"
+//#include "m_menu.h"
+//#include "vhw_wrap.h"
 
 /****************
 *** CONSTANTS ***
@@ -1156,6 +1172,7 @@ static bool_t CONL_OutBack(struct CONCTI_Inputter_s* a_Input, const char* const 
 }
 
 void P_InitSGConsole(void);
+int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /* CONLS_ExitFunc() -- Exit function */
 static void CONLS_ExitFunc(void)

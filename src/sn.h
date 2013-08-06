@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -40,9 +38,12 @@
 *** INCLUDES ***
 ***************/
 
-#include "i_net.h"
 #include "i_util.h"
-#include "d_block.h"
+#include "d_ticcmd.h"
+
+//#include "i_net.h"
+//#include "i_util.h"
+//#include "d_block.h"
 
 /****************
 *** CONSTANTS ***
@@ -84,25 +85,37 @@ typedef struct SN_PingWin_s
 	uint32_t Millis;							// Milliseconds
 } SN_PingWin_t;
 
+/* Define D_BS_t */
 #if !defined(__REMOOD_DBSTDEFINED)
 	typedef struct D_BS_s D_BS_t;
 	#define __REMOOD_DBSTDEFINED
 #endif
 
-struct B_BotTemplate_s;
-
 typedef struct SN_Host_s SN_Host_t;
 
+/* Define D_Prof_t */
 #if !defined(__REMOOD_DPROFTDEFINED)
 	#define __REMOOD_DPROFTDEFINED
 	typedef struct D_Prof_s D_Prof_t;
 #endif
 
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define SN_Port_t */
+#if !defined(__REMOOD_SNPORT_DEFINED)
+	typedef struct SN_Port_s SN_Port_t;
+	#define __REMOOD_SNPORT_DEFINED
+#endif
+
 /* SN_Port_t -- Port which controls a specific player or a spectator */
-typedef struct SN_Port_s
+struct SN_Port_s
 {
 	char Name[MAXPLAYERNAME];					// Name of player
-	struct player_s* Player;					// Player controlling
+	player_t* Player;						// Player controlling
 	SN_Host_t* Host;							// Controlling host
 	int32_t Screen;								// Screen number
 	bool_t Bot;									// Bot controls this port
@@ -124,7 +137,7 @@ typedef struct SN_Port_s
 	int8_t VTeam;								// Player's Team
 	int8_t Color;								// Player's Color
 	bool_t CounterOp;							// CounterOp Player
-} SN_Port_t;
+};
 
 /* SN_Host_t -- Host which controls a set of playing players */
 struct SN_Host_s

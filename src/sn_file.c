@@ -34,13 +34,15 @@
 ***************/
 
 #include "sn.h"
-#include "i_util.h"
-#include "doomstat.h"
-#include "d_main.h"
-#include "console.h"
-#include "p_info.h"
-#include "p_saveg.h"
 #include "md5.h"
+#include "g_state.h"
+#include "i_util.h"
+#include "z_zone.h"
+#include "console.h"
+#include "dstrings.h"
+#include "d_block.h"
+#include "w_wad.h"
+#include "p_saveg.h"
 
 /*****************
 *** STRUCTURES ***

@@ -35,14 +35,28 @@
 
 #include "sn.h"
 #include "i_util.h"
-#include "doomstat.h"
-#include "d_main.h"
 #include "console.h"
-#include "p_info.h"
+#include "dstrings.h"
 #include "p_saveg.h"
-#include "i_system.h"
-#include "g_game.h"
 #include "p_demcmp.h"
+#include "p_info.h"
+#include "g_state.h"
+#include "z_zone.h"
+#include "d_player.h"
+#include "w_wad.h"
+#include "d_main.h"
+#include "d_netcmd.h"
+#include "i_system.h"
+
+//#include "i_util.h"
+//#include "doomstat.h"
+//#include "d_main.h"
+//#include "console.h"
+//#include "p_info.h"
+//#include "p_saveg.h"
+//#include "i_system.h"
+//#include "g_game.h"
+//#include "p_demcmp.h"
 
 /****************
 *** CONSTANTS ***

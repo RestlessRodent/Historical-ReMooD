@@ -1,3 +1,4 @@
+#if 0
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
@@ -32,21 +33,21 @@
 // DESCRIPTION:
 //      Game completion, final screen animation.
 
-#include "doomdef.h"
-#include "doomstat.h"
+//#include "doomdef.h"
+//#include "doomstat.h"
 
-#include "dstrings.h"
-#include "d_main.h"
-#include "f_finale.h"
-#include "g_game.h"
-#include "hu_stuff.h"
-#include "r_local.h"
-#include "s_sound.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "p_info.h"
+//#include "dstrings.h"
+//#include "d_main.h"
+//#include "f_finale.h"
+//#include "g_game.h"
+//#include "hu_stuff.h"
+//#include "r_local.h"
+//#include "s_sound.h"
+//#include "i_video.h"
+//#include "v_video.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "p_info.h"
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
@@ -617,3 +618,5 @@ void F_Drawer(void)
 	}
 #endif
 }
+#endif
+

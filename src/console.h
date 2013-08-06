@@ -39,12 +39,13 @@
 *** INCLUDES ***
 ***************/
 
-
-
-#include "g_input.h"
-#include "dstrings.h"
+#include "doomtype.h"
 #include "i_util.h"
-#include "v_video.h"
+
+//#include "g_input.h"
+//#include "dstrings.h"
+//#include "i_util.h"
+//#include "v_video.h"
 
 /****************
 *** CONSTANTS ***
@@ -122,6 +123,18 @@ typedef enum CONL_MessageType_e
 *** STRUCTURES ***
 *****************/
 
+/* Define UnicodeStringID_t */
+#if !defined(__REMOOD_UNICSTRID_DEFINED)
+	typedef int UnicodeStringID_t;
+	#define __REMOOD_UNICSTRID_DEFINED
+#endif
+
+/* Define VideoFont_t */
+#if !defined(__REMOOD_VIDEOFONTT_DEFINED)
+	typedef int VideoFont_t;
+	#define __REMOOD_VIDEOFONTT_DEFINED
+#endif
+
 /* CONCTI_MBChain_t -- Multibyte chain for character input */
 typedef struct CONCTI_MBChain_s
 {
@@ -167,12 +180,18 @@ typedef struct CONL_StaticVar_s CONL_StaticVar_t;
 typedef bool_t (*CONL_ConVarBackFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
 typedef bool_t (*CONL_ConVarSlideFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar, const int32_t a_Right);
 
+/* Define CONL_VarPossibleValue_t */
+#if !defined(__REMOOD_CONLVPV_DEFINED)
+	typedef struct CONL_VarPossibleValue_s CONL_VarPossibleValue_t;
+	#define __REMOOD_CONLVPV_DEFINED
+#endif
+
 /* CONL_VarPossibleValue_t -- Possible value for a variable */
-typedef struct CONL_VarPossibleValue_s
+struct CONL_VarPossibleValue_s
 {
 	int32_t IntVal;							// Value as integer
 	const char* StrAlias;					// String aliase
-} CONL_VarPossibleValue_t;
+};
 
 /* CONL_VarValue_t -- Value for variable */
 typedef struct CONL_VarValue_s

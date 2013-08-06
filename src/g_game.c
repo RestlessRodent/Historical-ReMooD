@@ -33,46 +33,71 @@
 //      game loop functions, events handling
 
 /* Includes */
-#include "doomdef.h"
 #include "doomtype.h"
-
-#include "console.h"
-#include "dstrings.h"
-#include "d_main.h"
+#include "g_game.h"
 #include "sn.h"
 #include "d_netcmd.h"
-#include "f_finale.h"
-#include "p_setup.h"
-#include "p_saveg.h"
-#include "i_system.h"
-#include "wi_stuff.h"
-
-#include "m_random.h"
-#include "p_local.h"
-#include "p_tick.h"
-#include "r_data.h"
-#include "r_draw.h"
-#include "r_main.h"
-#include "r_sky.h"
-#include "s_sound.h"
-#include "g_game.h"
 #include "g_state.h"
-#include "g_input.h"
-#include "m_cheat.h"
-#include "m_misc.h"
-#include "m_menu.h"
+#include "info.h"
+#include "p_demcmp.h"
+#include "d_player.h"
+#include "p_info.h"
+#include "z_zone.h"
+#include "tables.h"
+#include "s_sound.h"
+#include "wi_stuff.h"
+#include "b_bot.h"
+#include "console.h"
 #include "m_argv.h"
-#include "hu_stuff.h"
+#include "m_random.h"
+#include "p_inter.h"
+#include "p_mobj.h"
+#include "p_setup.h"
+#include "p_spec.h"
 #include "st_stuff.h"
 
-#include "w_wad.h"
-#include "z_zone.h"
-#include "i_video.h"
-#include "p_inter.h"
-#include "p_info.h"
-#include "p_demcmp.h"
-#include "b_bot.h"
-#include "st_stuff.h"
+// TODO FIXME: Put Player spot spawning elsewhere??
+#include "p_maputl.h"
+#include "p_local.h"
+#include "r_defs.h"
+
+//#include "console.h"
+//#include "dstrings.h"
+//#include "d_main.h"
+//#include "sn.h"
+//#include "d_netcmd.h"
+//#include "f_finale.h"
+//#include "p_setup.h"
+//#include "p_saveg.h"
+//#include "i_system.h"
+//#include "wi_stuff.h"
+
+//#include "m_random.h"
+//#include "p_local.h"
+//#include "p_tick.h"
+//#include "r_data.h"
+//#include "r_draw.h"
+//#include "r_main.h"
+//#include "r_sky.h"
+//#include "s_sound.h"
+//#include "g_game.h"
+//#include "g_state.h"
+//#include "g_input.h"
+//#include "m_cheat.h"
+//#include "m_misc.h"
+//#include "m_menu.h"
+//#include "m_argv.h"
+//#include "hu_stuff.h"
+//#include "st_stuff.h"
+
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "i_video.h"
+//#include "p_inter.h"
+//#include "p_info.h"
+//#include "p_demcmp.h"
+//#include "b_bot.h"
+//#include "st_stuff.h"
 
 
 // added 8-3-98 increse savegame size from 0x2c000 (180kb) to 512*1024
@@ -93,7 +118,6 @@ char gamemapname[GAMEMAPNAMESIZE];	// an external wad filename
 
 gamemode_t gamemode = indetermined;	// Game Mode - identify IWAD as shareware, retail etc.
 gamemission_t gamemission = doom;
-bool_t modifiedgame;			// Set if homebrew PWAD stuff has been added.
 
 bool_t paused;
 
@@ -107,9 +131,6 @@ bool_t multiplayer;
 bool_t serverside;
 bool_t playeringame[MAXPLAYERS];
 player_t players[MAXPLAYERS];
-
-int secondarydisplayplayer;		// for splitscreen
-int statusbarplayer;			// player who's statusbar is displayed
 
 // (for spying with F12)
 
@@ -612,7 +633,7 @@ void G_Ticker(void)
 	// Read Individual Player Tic Commands
 	for (i = 0; i < MAXPLAYERS; i++)
 		// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
-		if ((playeringame[i] || i == 0) && !dedicated)
+		if ((playeringame[i] || i == 0) && !g_DedicatedServer)
 		{
 			memset(&players[i].cmd, 0, sizeof(players[i].cmd));
 			cmd = &players[i].cmd;
@@ -709,7 +730,7 @@ void G_Ticker(void)
 		
 	// Per Player Commands
 	for (i = 0; i < MAXPLAYERS; i++)
-		if ((playeringame[i] || i == 0) && !dedicated)
+		if ((playeringame[i] || i == 0) && !g_DedicatedServer)
 			GS_HandleExtraCommands(cmd, i);
 	
 	/* Remove defunct XPlayer */
@@ -733,7 +754,7 @@ void G_Ticker(void)
 			break;
 			
 		case GS_FINALE:
-			F_Ticker();
+			//F_Ticker();
 			break;
 			
 		case GS_WAITFORJOINWINDOW:
@@ -1901,7 +1922,7 @@ void G_DoCompleted(void)
 		wminfo.next = 0;
 	
 	// Did secret level?
-	if (!dedicated)
+	if (!g_DedicatedServer)
 		wminfo.didsecret = players[g_Splits[0].Console].didsecret;
 	wminfo.epsd = gameepisode - 1;
 	wminfo.last = gamemap - 1;
@@ -1979,7 +2000,6 @@ void G_DoneLevelLoad(void)
 {
 	// GhostlyDeath <February 8, 2012> -- uint64_t to double not impl on MSVC6
 	//CONL_PrintF("Load Level in %f sec\n", (float)(I_GetTime() - demostarttime) / TICRATE);
-	framecount = 0;
 	demostarttime = I_GetTime();
 }
 

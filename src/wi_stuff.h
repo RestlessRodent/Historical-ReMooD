@@ -34,10 +34,24 @@
 #ifndef __WI_STUFF__
 #define __WI_STUFF__
 
-//#include "v_video.h"
+#include "doomtype.h"
 
-#include "doomdef.h"
-#include "d_player.h"
+/* Define wbstartstruct_t */
+#if !defined(__REMOOD_WBSS_DEFINED)
+	typedef struct wbstartstruct_s wbstartstruct_t;
+	#define __REMOOD_WBSS_DEFINED
+#endif
+
+/* Define D_BS_t */
+#if !defined(__REMOOD_DBSTDEFINED)
+	typedef struct D_BS_s D_BS_t;
+	#define __REMOOD_DBSTDEFINED
+#endif
+
+////#include "v_video.h"
+
+//#include "doomdef.h"
+//#include "d_player.h"
 
 //added:05-02-98:
 typedef struct

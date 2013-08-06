@@ -33,12 +33,20 @@
 //      Archiving: SaveGame I/O.
 //      Thinker, Ticker.
 
-#include "doomstat.h"
-#include "g_game.h"
-#include "p_local.h"
+#include "d_think.h"
+#include "p_spec.h"
+#include "p_mobj.h"
 #include "z_zone.h"
+#include "d_player.h"
+#include "p_local.h"
 #include "t_script.h"
-#include "sn.h"
+
+//#include "doomstat.h"
+//#include "g_game.h"
+//#include "p_local.h"
+//#include "z_zone.h"
+//#include "t_script.h"
+//#include "sn.h"
 
 tic_t leveltime;
 
@@ -207,10 +215,8 @@ void P_Ticker(void)
 	// for par times
 	leveltime++;
 	
-#ifdef FRAGGLESCRIPT
 	// SoM: Update FraggleScript...
 	T_DelayedScripts();
-#endif
 }
 
 /* G_ThinkTypeToFunc() -- Converts thinker type to function */

@@ -34,9 +34,14 @@
 #define __R_SPLATS_H__
 
 #include "r_defs.h"
-#include "w_wad.h"
 
-#define WALLSPLATS				// comment this out to compile without splat effects
+/* Define V_Image_t */
+#if !defined(__REMOOD_VIMAGET_DEFINED)
+	typedef struct V_Image_s V_Image_t;
+	#define __REMOOD_VIMAGET_DEFINED
+#endif
+
+//#include "w_wad.h"
 
 #define MAXLEVELSPLATS      1024
 
@@ -80,3 +85,4 @@ void R_ClearLevelSplats(void);
 void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t top, fixed_t wallfrac, int flags);
 
 #endif /*__R_SPLATS_H__*/
+
