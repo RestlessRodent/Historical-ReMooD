@@ -262,7 +262,7 @@ static void R_DrawWallSplats()
 					colfunc = basecolfunc;
 				else
 				{
-					dc_transmap = ((tr_transmed - 1) << FF_TRANSSHIFT) + transtables;
+					dc_transmap = ((VEX_TRANS50 - 1) << FF_TRANSSHIFT) + transtables;
 					colfunc = fuzzcolfunc;
 				}
 				

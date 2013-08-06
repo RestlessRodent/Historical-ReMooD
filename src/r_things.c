@@ -784,7 +784,7 @@ static void R_ProjectSprite(mobj_t* thing)
 			// because now the translucency is set through FF_TRANSMASK
 		{
 			if (thing->flags2 & MF2_FORCETRANSPARENCY)
-				vis->transmap = ((tr_transhi - 1) << FF_TRANSSHIFT) + transtables;
+				vis->transmap = ((VEX_TRANS90 - 1) << FF_TRANSSHIFT) + transtables;
 			else
 				vis->transmap = VIS_OLDFUZZ;
 		}
@@ -976,7 +976,7 @@ void R_DrawPSprite(pspdef_t* psp)
 			vis->transmap = VIS_OLDFUZZ;
 		}
 		else
-			vis->transmap = NULL;	//((tr_transmed - 1) << FF_TRANSSHIFT) + transtables;
+			vis->transmap = NULL;	//((VEX_TRANS50 - 1) << FF_TRANSSHIFT) + transtables;
 	}
 	else if (fixedcolormap)
 	{

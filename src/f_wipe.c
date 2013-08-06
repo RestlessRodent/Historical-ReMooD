@@ -177,9 +177,9 @@ int wipe_doColorXForm(int width, int height, int ticks)
 		{
 			if (*w != *e)
 			{
-				if ((newval = transtables[(*e << 8) + *w + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
-					if ((newval = transtables[(*e << 8) + *w + ((tr_transmed - 1) << FF_TRANSSHIFT)]) == *w)
-						if ((newval = transtables[(*w << 8) + *e + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
+				if ((newval = transtables[(*e << 8) + *w + ((VEX_TRANS80 - 1) << FF_TRANSSHIFT)]) == *w)
+					if ((newval = transtables[(*e << 8) + *w + ((VEX_TRANS50 - 1) << FF_TRANSSHIFT)]) == *w)
+						if ((newval = transtables[(*w << 8) + *e + ((VEX_TRANS80 - 1) << FF_TRANSSHIFT)]) == *w)
 							newval = *e;
 				*w = newval;
 				changed = true;

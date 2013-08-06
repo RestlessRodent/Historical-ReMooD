@@ -1168,7 +1168,7 @@ void P_PlayerThink(player_t* player)
 	if (player->powers[pw_invulnerability])
 		player->powers[pw_invulnerability]--;
 		
-	// the MF_SHADOW activates the tr_transhi translucency while it is set
+	// the MF_SHADOW activates the VEX_TRANS90 translucency while it is set
 	// (it doesnt use a preset value through FF_TRANSMASK)
 	if (player->powers[pw_invisibility])
 		if (!--player->powers[pw_invisibility])
