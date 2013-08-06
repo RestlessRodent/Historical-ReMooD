@@ -56,9 +56,16 @@ void Command_ExitGame_f(void);
 
 /*** STRUCTURES ***/
 
+/* Define D_Prof_t */
 #if !defined(__REMOOD_DPROFTDEFINED)
 	#define __REMOOD_DPROFTDEFINED
 	typedef struct D_Prof_s D_Prof_t;
+#endif
+
+/* Define ticcmd_t */
+#if !defined(__REMOOD_TICCMDT_DEFINED)
+	typedef union ticcmd_u ticcmd_t;
+	#define __REMOOD_TICCMDT_DEFINED
 #endif
 
 /* D_SplitInfo_t -- Split Screen Info */

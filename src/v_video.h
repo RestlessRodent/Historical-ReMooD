@@ -36,10 +36,23 @@
 #ifndef __V_VIDEO__
 #define __V_VIDEO__
 
-//#include "doomdef.h"
 #include "doomtype.h"
+
+//#include "doomdef.h"
 //#include "r_defs.h"
 //#include "w_wad.h"
+
+/* Define WadIndex_t */
+#if !defined(__REMOOD_WADINDEXT_DEFINED)
+	typedef int WadIndex_t;
+	#define __REMOOD_WADINDEXT_DEFINED
+#endif
+
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
 
 //
 // VIDEO
@@ -222,7 +235,7 @@ void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 *** UNICODE ***
 **************/
 
-typedef enum
+enum
 {
 	/* Aliases */
 	VFONT_SMALL,				// Doom, Heretic, Hexen, and Strife (alias to VFONT_SMALL_x)
@@ -248,7 +261,13 @@ typedef enum
 	VFONT_TERMINUS,				// Terminus Font
 	
 	NUMVIDEOFONTS
-} VideoFont_t;
+};
+
+/* Define VideoFont_t */
+#if !defined(__REMOOD_VIDEOFONTT_DEFINED)
+	typedef int VideoFont_t;
+	#define __REMOOD_VIDEOFONTT_DEFINED
+#endif
 
 /* Options */
 

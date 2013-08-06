@@ -40,7 +40,12 @@
 *************/
 
 #define INVALIDLUMP -1
-typedef int WadIndex_t;
+
+/* Define WadIndex_t */
+#if !defined(__REMOOD_WADINDEXT_DEFINED)
+	typedef int WadIndex_t;
+	#define __REMOOD_WADINDEXT_DEFINED
+#endif
 
 /************************
 *** LITE WAD HANDLING ***
@@ -94,18 +99,28 @@ typedef enum WL_FindFlags_e
 } WL_FindFlags_t;
 
 /*** STRUCTURES ***/
-struct WL_WADEntry_s;
-struct WL_WADFile_s;
+
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
+
+/* Define WL_WADFile_t */
+#if !defined(__REMOOD_WLWADFILE_DEFINED)
+	typedef struct WL_WADFile_s WL_WADFile_t;
+	#define __REMOOD_WLWADFILE_DEFINED
+#endif
 
 // WAD Data loading
-typedef void (*WL_RemoveFunc_t)(const struct WL_WADFile_s* a_WAD);
-typedef bool_t (*WL_PCCreatorFunc_t)(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
+typedef void (*WL_RemoveFunc_t)(const WL_WADFile_t* a_WAD);
+typedef bool_t (*WL_PCCreatorFunc_t)(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
 
 // Order Change
-typedef bool_t (*WL_OrderCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD);
+typedef bool_t (*WL_OrderCBFunc_t)(const bool_t a_Pushed, const WL_WADFile_t* const a_WAD);
 
 /* WL_WADEntry_t -- A lite WAD entry */
-typedef struct WL_WADEntry_s
+struct WL_WADEntry_s
 {
 	/* Private Stuff You Don't Touch */
 	struct
@@ -130,15 +145,15 @@ typedef struct WL_WADEntry_s
 	size_t Size;				// Size of the data
 	
 	// Owner
-	struct WL_WADFile_s* Owner;	// WAD that owns this
+	WL_WADFile_t* Owner;	// WAD that owns this
 	
 	// Linkage
-	struct WL_WADEntry_s* PrevEntry;	// Previous Entry
-	struct WL_WADEntry_s* NextEntry;	// Next Entry
-} WL_WADEntry_t;
+	WL_WADEntry_t* PrevEntry;	// Previous Entry
+	WL_WADEntry_t* NextEntry;	// Next Entry
+};
 
 /* WL_WADFile_t -- A lite WAD file */
-typedef struct WL_WADFile_s
+struct WL_WADFile_s
 {
 	/* Private Stuff You Don't Touch */
 	struct
@@ -175,8 +190,8 @@ typedef struct WL_WADFile_s
 		
 		// Linkage
 		bool_t __Linked;		// Is the WAD virtually linked?
-		struct WL_WADFile_s* __PrevWAD;	// Previous WAD
-		struct WL_WADFile_s* __NextWAD;	// Next WAD
+		WL_WADFile_t* __PrevWAD;	// Previous WAD
+		WL_WADFile_t* __NextWAD;	// Next WAD
 	} __Private;				// Don't mess with me
 	
 	/* Public Stuff You Read From */
@@ -192,13 +207,13 @@ typedef struct WL_WADFile_s
 	WadIndex_t NumEntries;		// Number of entries
 	
 	// Virtual Linkage
-	struct WL_WADFile_s* PrevVWAD;	// Previous virtual WAD
-	struct WL_WADFile_s* NextVWAD;	// Next virtual WAD
+	WL_WADFile_t* PrevVWAD;	// Previous virtual WAD
+	WL_WADFile_t* NextVWAD;	// Next virtual WAD
 	
 	// Attached WADs
-	struct WL_WADFile_s** Attached;				// WADs attached
+	WL_WADFile_t** Attached;				// WADs attached
 	size_t NumAttached;							// Number of attached WADs
-} WL_WADFile_t;
+};
 
 // Streamer
 typedef struct WL_ES_s WL_ES_t;

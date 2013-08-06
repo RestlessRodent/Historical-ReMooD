@@ -99,6 +99,12 @@ enum
 #define TICPINGSIGNALMASK UINT16_C(0xC000)
 #define TICPINGAMOUNTMASK UINT16_C(0x3FFF)
 
+/* Define ticcmd_t */
+#if !defined(__REMOOD_TICCMDT_DEFINED)
+	typedef union ticcmd_u ticcmd_t;
+	#define __REMOOD_TICCMDT_DEFINED
+#endif
+
 /* D_TicControl_t -- Tic Control */
 typedef struct D_TicControl_s
 {
@@ -106,7 +112,8 @@ typedef struct D_TicControl_s
 	uint16_t Ping;								// Players' Ping
 } D_TicControl_t;
 
-typedef union
+/* ticcmd_t -- Tic Command Structure */
+union ticcmd_u
 {
 	D_TicControl_t Ctrl;						// Control
 	
@@ -143,7 +150,7 @@ typedef union
 		uint16_t DataSize;						// Size of Data
 		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
 	} Ext;
-} ticcmd_t;
+};
 
 void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID);
 

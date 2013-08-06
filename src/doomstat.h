@@ -49,32 +49,6 @@
 
 // Game mode handling - identify IWAD version,
 //  handle IWAD dependend animations etc.
-typedef enum
-{
-	shareware,					// DOOM 1 shareware, E1, M9
-	registered,					// DOOM 1 registered, E3, M27
-	commercial,					// DOOM 2 retail, E1 M34
-	// DOOM 2 german edition not handled
-	retail,						// DOOM 1 retail, E4, M36
-	indetermined,				// Well, no IWAD found.
-	chexquest1,					// DarkWolf95:July 14, 2003: Chex Quest Support
-	
-	numgamemodes,
-	heretic
-} gamemode_t;
-
-// Mission packs - might be useful for TC stuff?
-typedef enum
-{
-	doom,						// DOOM 1
-	doom2,						// DOOM 2
-	pack_tnt,					// TNT mission pack
-	pack_plut,					// Plutonia pack
-	pack_chex,					// Chex Quest
-	none,
-	
-	numgamemissions
-} gamemission_t;
 
 // Identify language to use, software localization.
 typedef enum
@@ -89,8 +63,6 @@ typedef enum
 // Game Mode - identify IWAD as shareware, retail etc.
 // ===================================================
 //
-extern gamemode_t gamemode;
-extern gamemission_t gamemission;
 extern bool_t inventory;		// true with heretic and hexen
 
 // Set if homebrew PWAD stuff has been added.
@@ -105,11 +77,6 @@ extern language_t language;
 // =============================
 // Selected skill type, map etc.
 // =============================
-
-// Selected by user.
-extern G_Skill_t gameskill;
-extern uint8_t gameepisode;
-extern uint8_t gamemap;
 
 // Nightmare mode flag, single player.
 // extern  bool_t         respawnmonsters;
@@ -179,8 +146,6 @@ extern int32_t g_MapKIS[5];
 //  according to user inputs. Partly load from
 //  WAD, partly set at startup time.
 
-extern tic_t gametic;
-extern tic_t g_ProgramTic;
 
 #define localgametic  leveltime
 
@@ -210,7 +175,7 @@ extern bool_t precache;
 
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
-extern G_State_t wipegamestate;
+
 
 //?
 // debug flag to cancel adaptiveness
@@ -231,46 +196,9 @@ extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
 extern bool_t novideo;
 
-extern G_Action_t gameaction;
-
 /*********************
 *** EXTENDED STUFF ***
 *********************/
-
-/* CoreIWADFlags_t -- IWAD flags */
-typedef enum CoreIWADFlags_e
-{
-	CIF_SHAREWARE				= 0x0000001,	// Shareware Mode
-	CIF_COMMERCIAL				= 0x0000002,	// Commercial
-	CIF_REGISTERED				= 0x0000004,	// Registered Mode
-	CIF_CANFILE					= 0x0000008,	// Can -file -deh, etc.
-	CIF_EXTENDED				= 0x0000010,	// Extended Mode
-	CIF_DOWNLOADABLE			= 0x0000020,	// Can be downloaded
-	CIF_DOUBLEWARP				= 0x0000040,	// Warp Takes two arguments
-	CIF_FREEDOOM				= 0x0000080,	// Free content!
-} CoreIWADFlags_t;
-
-/* CoreGame_t -- Game being played... */
-typedef enum CoreGame_e
-{
-	CG_UNKNOWN,									// Unknown game
-	CG_DOOM		= UINT32_C(0x01),				// Doom is being played
-	CG_HERETIC	= UINT32_C(0x02),				// Heretic is being played
-	CG_HEXEN	= UINT32_C(0x04),				// Hexen is being played
-	CG_STRIFE	= UINT32_C(0x08),				// Strife is being played
-	
-	CG_DOOMHER	= CG_DOOM | CG_HERETIC,
-	CG_ALL = CG_DOOM | CG_HERETIC | CG_HEXEN | CG_STRIFE,
-	
-	NUMCOREGAMES
-} CoreGame_t;
-
-extern CoreGame_t g_CoreGame;					// Core game mode
-extern const void* g_ReMooDPtr;					// Pointer to remood.wad
-extern const char* g_IWADMapInfoName;			// Name of IWAD MAPINFO
-extern uint32_t g_IWADFlags;					// IWAD Flags
-
-extern bool_t g_DedicatedServer;				// Dedicated Server
 
 #endif							//__D_STATE__
 

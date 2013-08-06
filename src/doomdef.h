@@ -46,17 +46,6 @@
 #define LOGMESSAGES				// write message in log.txt (win32 and Linux only for the moment)
 #endif
 
-#define REMOOD_MAJORVERSION 1
-#define REMOOD_MINORVERSION 0
-#define REMOOD_RELEASEVERSION 'a'
-#define REMOOD_VERSIONSTRING "1.0a"
-#define REMOOD_VERSIONCODESTRING "Stuffed Cabbage"
-#define REMOOD_FULLVERSIONSTRING ""REMOOD_VERSIONSTRING" \""REMOOD_VERSIONCODESTRING"\""
-#define REMOOD_URL "http://remood.org/"
-
-#define VERSION		((((REMOOD_MAJORVERSION % 10) * 100) + ((REMOOD_MINORVERSION % 10) * 10) + (((REMOOD_RELEASEVERSION - 'a') % 10))) + 100)
-#define VERSIONSTRING  " \""REMOOD_VERSIONCODESTRING"\""
-
 // some tests, enable or desable it if it run or not
 #define SPLITSCREEN
 #define ABSOLUTEANGLE			// work fine, soon #ifdef and old code remove
@@ -72,18 +61,8 @@ extern uint8_t demoversion;
 // The maximum number of players, multiplayer/networking.
 // NOTE: it needs more than this to increase the number of players...
 
-#define MAXPLAYERS              32	// TODO: ... more!!!
-#define MAXSPLITSCREENPLAYERS	4
-#define MAXSPLITSCREEN			MAXSPLITSCREENPLAYERS
-#define MAXSKINS                MAXPLAYERS
-#define MAXPLAYERNAME           32
-#define MAXSKINCOLORS           16
-
 #define SAVESTRINGSIZE          24
 
-// State updates, number of tics / second.
-#define TICRATE				UINT64_C(35)
-#define TICSPERMS			29	// 28.5, but the benefit of the doubt
 
 // Name of local directory for config files and savegames
 #ifdef LINUX
@@ -106,7 +85,7 @@ void CONS_Printf(char* fmt, ...);
 char* va(char* format, ...);
 
 // g_game.h
-extern bool_t devparm;			// development mode (-devparm)
+			// development mode (-devparm)
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

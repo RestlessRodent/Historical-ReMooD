@@ -406,7 +406,41 @@ typedef union FColorRGBA RGBA_t;
 ****************************/
 
 //#include "c_lib.h"
+#include "m_fixed.h"
 
+/**************
+*** VERSION ***
+**************/
+
+#define REMOOD_MAJORVERSION 1
+#define REMOOD_MINORVERSION 0
+#define REMOOD_RELEASEVERSION 'a'
+#define REMOOD_VERSIONSTRING "1.0a"
+#define REMOOD_VERSIONCODESTRING "Stuffed Cabbage"
+#define REMOOD_FULLVERSIONSTRING ""REMOOD_VERSIONSTRING" \""REMOOD_VERSIONCODESTRING"\""
+#define REMOOD_URL "http://remood.org/"
+
+#define VERSION		((((REMOOD_MAJORVERSION % 10) * 100) + ((REMOOD_MINORVERSION % 10) * 10) + (((REMOOD_RELEASEVERSION - 'a') % 10))) + 100)
+#define VERSIONSTRING  " \""REMOOD_VERSIONCODESTRING"\""
+
+/******************
+*** LIMITATIONS ***
+******************/
+
+#define MAXPLAYERS              32
+#define MAXSPLITSCREENPLAYERS	4
+#define MAXSPLITSCREEN			MAXSPLITSCREENPLAYERS
+#define MAXSKINS                MAXPLAYERS
+#define MAXPLAYERNAME           32
+#define MAXSKINCOLORS           16
+#define TICRATE				UINT64_C(35)
+#define TICSPERMS			29	// 28.5, but the benefit of the doubt
+
+/******************************
+*** GLOBALS USED EVERYWHERE ***
+******************************/
+
+extern bool_t devparm;
 
 #endif							/* __DOOMTYPE_H__ */
 

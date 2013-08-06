@@ -39,7 +39,8 @@
 *** INCLUDES ***
 ***************/
 
-
+#include "doomtype.h"
+#include "i_util.h"
 
 //#include "g_input.h"
 //#include "dstrings.h"
@@ -121,6 +122,18 @@ typedef enum CONL_MessageType_e
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* Define UnicodeStringID_t */
+#if !defined(__REMOOD_UNICSTRID_DEFINED)
+	typedef int UnicodeStringID_t;
+	#define __REMOOD_UNICSTRID_DEFINED
+#endif
+
+/* Define VideoFont_t */
+#if !defined(__REMOOD_VIDEOFONTT_DEFINED)
+	typedef int VideoFont_t;
+	#define __REMOOD_VIDEOFONTT_DEFINED
+#endif
 
 /* CONCTI_MBChain_t -- Multibyte chain for character input */
 typedef struct CONCTI_MBChain_s

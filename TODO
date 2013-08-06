@@ -34,6 +34,9 @@ C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
 These are the following things that need to be done to progress: When done
 mark as completed, too bad there is no ASCII checkmark.
 
+ * console.c:	Split UI Console related functions (drawing) away from this into
+ 				a new file which handles all the drawing operations.
+
  * i_utlnet:	Rewrite native socket code to be a bit more OO and to handle
  				multi-cast better rather than the current hack.
  				Also remove the forests of #ifs

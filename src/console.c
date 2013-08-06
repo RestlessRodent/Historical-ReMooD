@@ -35,8 +35,18 @@
 *** INCLUDES ***
 ***************/
 
+#include "console.h"
+#include "z_zone.h"
+#include "dstrings.h"
+
+// TODO FIXME: Remove this by splitting UI console code from actual console
+#include "v_video.h"	// Video Code
+#include "s_sound.h"	// Sounds
+#include "screen.h"		// Other video stuff
+#include "g_state.h"	// GS_*
+#include "d_netcmd.h"	// SplitScreen Junk
+
 //#include "doomdef.h"
-//#include "console.h"
 //#include "g_game.h"
 //#include "g_input.h"
 
@@ -81,7 +91,7 @@
 #define MAXCONLPMQBUFSIZE	128	// Length of the message buffer
 #define CONLMAXCOMBUFSIZE	160	// Length of input command
 
-//#include "bootdata.h"
+#include "bootdata.h"
 
 /*****************
 *** STRUCTURES ***
@@ -1156,6 +1166,7 @@ static bool_t CONL_OutBack(struct CONCTI_Inputter_s* a_Input, const char* const 
 }
 
 void P_InitSGConsole(void);
+int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /* CONLS_ExitFunc() -- Exit function */
 static void CONLS_ExitFunc(void)

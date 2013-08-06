@@ -40,10 +40,15 @@
 *** INCLUDES ***
 ***************/
 
+#include "console.h"
+#include "z_zone.h"
+#include "p_demcmp.h"
+#include "dstrings.h"
+
+
 //#include "doomdef.h"
 //#include "doomstat.h"
 
-//#include "console.h"
 //#include "z_zone.h"
 //#include "d_clisrv.h"
 //#include "d_netcmd.h"
