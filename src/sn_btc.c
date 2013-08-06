@@ -1352,7 +1352,7 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 			u16 |= UINT16_C(0x8000);
 		
 		// Encode
-		LittleWriteUInt16(&p, u16);
+		LittleWriteUInt16((uint16_t**)&p, u16);
 	} while (Left);
 	
 	/* Player Counts */
@@ -1364,7 +1364,7 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 	u32 &= ~a_TicBuf->PIGRevMask;
 	
 	// Write counts
-	LittleWriteUInt32(&p, u32);
+	LittleWriteUInt32((uint32_t**)&p, u32);
 	
 	// Do not use u32 any longer
 	
@@ -1382,7 +1382,7 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 		WriteUInt8(&p, Cmd->Ctrl.Type);
 		
 		// Encode Ping
-		LittleWriteUInt16(&p, Cmd->Ctrl.Ping);
+		LittleWriteUInt16((uint16_t**)&p, Cmd->Ctrl.Ping);
 		
 		// Standard player stuff
 		if (!Cmd->Ctrl.Type)
@@ -1417,8 +1417,8 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 				WriteUInt8(&p, u8);
 			}
 			
-			__WRITE(DDB_FORWARD, WriteInt8(&p, Cmd->Std.forwardmove));
-			__WRITE(DDB_SIDE, WriteInt8(&p, Cmd->Std.sidemove));
+			__WRITE(DDB_FORWARD, WriteInt8((int8_t**)&p, Cmd->Std.forwardmove));
+			__WRITE(DDB_SIDE, WriteInt8((int8_t**)&p, Cmd->Std.sidemove));
 			__WRITE(DDB_AIMING, LittleWriteUInt16((uint16_t**)&p, Cmd->Std.aiming));
 			__WRITE(DDB_ANGLE, LittleWriteInt16((int16_t**)&p, Cmd->Std.angleturn));
 			__WRITE(DDB_INVENTORY, WriteUInt8(&p, Cmd->Std.InventoryBits));
@@ -1451,7 +1451,7 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 			
 			// Data pointers
 			dsP = &Cmd->Std.DataSize;
-			dbP = &Cmd->Std.DataBuf;
+			dbP = Cmd->Std.DataBuf;
 #undef __WRITE	
 #undef __DIFFY
 		}
@@ -1461,7 +1461,7 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 		{
 			// Data pointers
 			dsP = &Cmd->Ext.DataSize;
-			dbP = &Cmd->Ext.DataBuf;
+			dbP = Cmd->Ext.DataBuf;
 		}
 		
 		// Write pointer data
@@ -1486,7 +1486,7 @@ void SN_EncodeTicBuf(SN_TicBuf_t* const a_TicBuf, uint8_t** const a_OutD, uint32
 	}
 	
 	/* Checksum */
-	LittleWriteUInt32(&p, SN_TicBufSum(a_TicBuf, a_VersionNum, u32));
+	LittleWriteUInt32((uint32_t**)&p, SN_TicBufSum(a_TicBuf, a_VersionNum, u32));
 	
 	/* Done */
 	*a_OutD = Buf;
@@ -1531,12 +1531,12 @@ bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, 
 	ShiftMul = 0;
 	do
 	{
-		u16 = LittleReadUInt16(&p);
+		u16 = LittleReadUInt16((const uint16_t**)&p);
 		a_TicBuf->GameTic |= ((tic_t)(u16 & UINT16_C(0x7FFF))) << (15 * ShiftMul++);
 	} while (u16 & UINT16_C(0x8000));
 	
 	// Player in game
-	PIG = LittleReadUInt32(&p);
+	PIG = LittleReadUInt32((const uint32_t**)&p);
 	
 	// Set reverse mask for notices
 	a_TicBuf->PIGRevMask = ~PIG;
@@ -1555,7 +1555,7 @@ bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, 
 		Cmd->Ctrl.Type = ReadUInt8(&p);
 		
 		// Read Ping
-		Cmd->Ctrl.Ping = LittleReadUInt16(&p);
+		Cmd->Ctrl.Ping = LittleReadUInt16((const uint16_t**)&p);
 		
 		// Standard Player
 		if (!Cmd->Ctrl.Type)
@@ -1571,19 +1571,19 @@ bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, 
 			}
 			
 			if (Mask & DDB_FORWARD)
-				Cmd->Std.forwardmove = ReadInt8(&p);
+				Cmd->Std.forwardmove = ReadInt8((const int8_t**)&p);
 			if (Mask & DDB_SIDE)
-				Cmd->Std.sidemove = ReadInt8(&p);
+				Cmd->Std.sidemove = ReadInt8((const int8_t**)&p);
 			if (Mask & DDB_AIMING)
-				Cmd->Std.aiming = LittleReadUInt16(&p);
+				Cmd->Std.aiming = LittleReadUInt16((const uint16_t**)&p);
 			if (Mask & DDB_ANGLE)
-				Cmd->Std.angleturn = LittleReadInt16(&p);
+				Cmd->Std.angleturn = LittleReadInt16((const int16_t**)&p);
 			if (Mask & DDB_INVENTORY)
 				Cmd->Std.InventoryBits = ReadUInt8(&p);
 			if (Mask & DDB_ARTIFACT)
 				Cmd->Std.artifact = ReadUInt8(&p);
 			if (Mask & DDB_FLYSWIM)
-				Cmd->Std.FlySwim = LittleReadInt16(&p);
+				Cmd->Std.FlySwim = LittleReadInt16((const int16_t**)&p);
 			
 			if (Mask & DDB_WEAPON)
 			{
@@ -1621,7 +1621,7 @@ bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, 
 			
 			// Data pointers
 			dsP = &Cmd->Std.DataSize;
-			dbP = &Cmd->Std.DataBuf;
+			dbP = Cmd->Std.DataBuf;
 		}
 		
 		// Extended
@@ -1629,7 +1629,7 @@ bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, 
 		{
 			// Data pointers
 			dsP = &Cmd->Ext.DataSize;
-			dbP = &Cmd->Ext.DataBuf;
+			dbP = Cmd->Ext.DataBuf;
 		}
 		
 		// Read Size
@@ -1651,7 +1651,7 @@ bool_t SN_DecodeTicBuf(SN_TicBuf_t* const a_TicBuf, const uint8_t* const a_InD, 
 	}
 	
 	/* Confirm checksum */
-	u32 = LittleReadUInt32(&p);
+	u32 = LittleReadUInt32((const uint32_t**)&p);
 	return (u32 == SN_TicBufSum(a_TicBuf, VersionNum, PIG));
 #undef BUFSIZE
 }

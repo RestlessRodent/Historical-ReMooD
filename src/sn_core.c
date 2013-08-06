@@ -119,7 +119,7 @@ bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name)
 	
 	/* Inform? */
 	if (OldNameHash != NewNameHash)
-		CONL_OutputU(DSTR_NETPLAYERRENAMED, "%s%s\n", OldName, player_names[a_PlayerID]);
+		CONL_OutputUT(CT_NETWORK, DSTR_NETPLAYERRENAMED, "%s%s\n", OldName, player_names[a_PlayerID]);
 	
 	/* Success! */
 	return true;
@@ -251,7 +251,7 @@ static void SN_CommonDiscStuff(void)
 	SN_SetServerLagWarn(0);
 	
 	/* Sync Codes */
-	l_SyncRRAt = NULL;
+	l_SyncRRAt = 0;
 	memset(l_SyncCodeRR, 0, sizeof(l_SyncCodeRR));
 }
 
@@ -1901,7 +1901,7 @@ const char* SN_GetPortName(SN_Port_t* const a_Port)
 /* SN_PortSettingInt() -- Sets integer value of setting */
 void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
 {
-	void* Wp;
+	uint8_t* Wp;
 	int32_t i;
 	const char* p;
 	
@@ -1972,7 +1972,7 @@ void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, c
 /* SN_ChangeVar() -- Change value of variable */
 void SN_ChangeVar(const uint32_t a_Code, const int32_t a_Value)
 {
-	void* Wp;
+	uint8_t* Wp;
 	
 	/* Server Only */
 	if (!SN_IsServer())

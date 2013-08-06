@@ -685,9 +685,6 @@ void D_DoomLoop(void)
 		// Update sound output.
 		I_SubmitSound();
 		
-		// check for media change, loop music..
-		I_UpdateCD();
-		
 		// Time when all done
 		LeaveTime = I_GetTimeMS();
 		
@@ -2580,10 +2577,6 @@ void D_DoomMain(void)
 	
 	wipegamestate = gamestate;
 	//------------------------------------------------ COMMAND LINE PARAMS
-	
-	// Initialize CD-Audio
-	if (!M_CheckParm("-nocd"))
-		I_InitCD();
 
 #if 0
 	if (M_CheckParm("-respawn"))
