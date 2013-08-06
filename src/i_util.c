@@ -1112,11 +1112,10 @@ void I_TextModeNextLine(void)
 {
 	/* Print character */
 #if defined(__MSDOS__)
-	cprintf
+	cprintf("\r\n");
 #else
-	printf
+	printf("\n");
 #endif
-	("\n");
 }
 
 /* I_TextModeChar() -- Prints a text mode character */
