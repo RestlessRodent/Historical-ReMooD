@@ -82,7 +82,10 @@
 	#include <winsock2.h>
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
-	#include <wspiapi.h>
+	
+	#if defined(__MINGW64) || defined(__MINGW64__)
+		#include <wspiapi.h>
+	#endif
 	
 	#define __REMOOD_DONTWAITMSG 0
 	
@@ -135,7 +138,7 @@ int inet_pton(int af, const char *src, void *dst)
 	else
 		return 0;
 	
-	return WSAStringToAddressA(src, af, NULL, dst, 
+	return WSAStringToAddressA(src, af, NULL, dst, &Len);
 }
 #endif
 #endif
