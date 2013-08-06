@@ -37,7 +37,7 @@
 #ifndef __P_SPEC__
 #define __P_SPEC__
 
-#include "d_rmod.h"
+//#include "d_rmod.h"
 
 void P_ExtraSpecialStuff(void);
 

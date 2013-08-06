@@ -34,9 +34,9 @@
 #ifndef __R_DATA__
 #define __R_DATA__
 
-#include "r_defs.h"
-#include "r_state.h"
-#include "w_wad.h"
+//#include "r_defs.h"
+//#include "r_state.h"
+//#include "w_wad.h"
 
 // moved here for r_sky.c (texture_t is used)
 

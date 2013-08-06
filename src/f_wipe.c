@@ -36,16 +36,16 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomdef.h"
-#include "m_random.h"
-#include "f_wipe.h"
-#include "i_system.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "r_draw.h"				// transtable
-#include "p_pspr.h"				// tr_transxxx
-#include "z_zone.h"
-#include "vhw_wrap.h"
+//#include "doomdef.h"
+//#include "m_random.h"
+//#include "f_wipe.h"
+//#include "i_system.h"
+//#include "i_video.h"
+//#include "v_video.h"
+//#include "r_draw.h"				// transtable
+//#include "p_pspr.h"				// tr_transxxx
+//#include "z_zone.h"
+//#include "vhw_wrap.h"
 
 /*****************
 *** PROTOTYPES ***

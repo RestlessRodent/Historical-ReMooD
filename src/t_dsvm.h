@@ -33,8 +33,8 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "w_wad.h"
+//#include "doomtype.h"
+//#include "w_wad.h"
 
 /*****************
 *** STRUCTURES ***

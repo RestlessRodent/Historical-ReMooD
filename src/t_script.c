@@ -44,23 +44,23 @@
 // delayed scripts, running scripts, console cmds etc in here
 // the interface between FraggleScript and the rest of the game
 
-#include "doomstat.h"
+//#include "doomstat.h"
 
-//#include "c_net.h"
-//#include "c_runcmd.h"
-#include "g_game.h"
-#include "r_state.h"
-#include "p_info.h"
-#include "p_mobj.h"
-#include "p_spec.h"
-#include "p_setup.h"
-#include "w_wad.h"
-#include "z_zone.h"
+////#include "c_net.h"
+////#include "c_runcmd.h"
+//#include "g_game.h"
+//#include "r_state.h"
+//#include "p_info.h"
+//#include "p_mobj.h"
+//#include "p_spec.h"
+//#include "p_setup.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
 
-#include "t_script.h"
-#include "t_parse.h"
-#include "t_vari.h"
-#include "t_func.h"
+//#include "t_script.h"
+//#include "t_parse.h"
+//#include "t_vari.h"
+//#include "t_func.h"
 
 void clear_runningscripts();
 

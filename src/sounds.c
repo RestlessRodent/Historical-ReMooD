@@ -35,13 +35,13 @@
 // Note: the tables were originally created by a sound utility at Id,
 //       kept as a sample, DOOM2 sounds.
 
-#include "doomtype.h"
-#include "i_sound.h"
-#include "sounds.h"
-#include "r_defs.h"
-#include "r_things.h"
-#include "z_zone.h"
-#include "w_wad.h"
+//#include "doomtype.h"
+//#include "i_sound.h"
+//#include "sounds.h"
+//#include "r_defs.h"
+//#include "r_things.h"
+//#include "z_zone.h"
+//#include "w_wad.h"
 
 // NOTE: add \0 for stringlen=6, to allow dehacked patching
 

@@ -35,8 +35,8 @@
 *** INCLUDES ***
 ***************/
 
-#include "sn.h"
-#include "doomstat.h"
+//#include "sn.h"
+//#include "doomstat.h"
 
 /****************
 *** CONSTANTS ***

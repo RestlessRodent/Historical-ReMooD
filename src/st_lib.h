@@ -35,8 +35,8 @@
 #define __STLIB__
 
 // We are referring to patches.
-#include "r_defs.h"
-#include "w_wad.h"
+//#include "r_defs.h"
+//#include "w_wad.h"
 
 //
 // Background and foreground screen numbers

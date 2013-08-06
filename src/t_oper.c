@@ -47,13 +47,13 @@
 /* includes ************************/
 
 
-#include "doomstat.h"
-#include "doomtype.h"
-#include "z_zone.h"
+//#include "doomstat.h"
+//#include "doomtype.h"
+//#include "z_zone.h"
 
-#include "t_parse.h"
-#include "t_vari.h"
-#include "t_script.h"
+//#include "t_parse.h"
+//#include "t_vari.h"
+//#include "t_script.h"
 
 #define evaluate_leftnright(a, b, c) {\
   left = evaluate_expression((a), (b)-1); \

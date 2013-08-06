@@ -35,7 +35,7 @@
 #ifndef __SOUNDS__
 #define __SOUNDS__
 
-#include "w_wad.h"
+//#include "w_wad.h"
 
 // 10 customisable sounds for Skins
 typedef enum

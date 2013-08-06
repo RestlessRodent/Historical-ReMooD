@@ -1872,7 +1872,7 @@ extern "C" {
 #endif
 
 #undef LZO_HAVE_CONFIG_H
-#include "z_mlzo.h"
+//#include "z_mlzo.h"
 
 #if !defined(MINILZO_VERSION) || (MINILZO_VERSION != 0x2060)
 #  error "version mismatch in miniLZO source files"
@@ -1910,7 +1910,7 @@ extern "C" {
 #if defined(__LZOCONF_H) || defined(__LZOCONF_H_INCLUDED)
 #  error "include this file first"
 #endif
-#include "lzo/z_lzoc.h"
+//#include "lzo/z_lzoc.h"
 #endif
 
 #if (LZO_VERSION < 0x02000) || !defined(__LZOCONF_H_INCLUDED)
@@ -2804,7 +2804,7 @@ int __far __pascal LibMain ( int a, short b, short c, long d )
 #endif
 
 #if !defined(__LZO_IN_MINILZO)
-#include "lzo/lzo1x.h"
+//#include "lzo/lzo1x.h"
 #endif
 
 #ifndef LZO_EOF_CODE

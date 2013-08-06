@@ -35,18 +35,18 @@
 //      File i/o
 //      Common used routines
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "m_misc.h"
-#include "hu_stuff.h"
-#include "v_video.h"
-#include "z_zone.h"
-#include "g_input.h"
-#include "i_video.h"
-#include "d_main.h"
-#include "m_argv.h"
-#include "dstrings.h"
-#include "i_system.h"
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "m_misc.h"
+//#include "hu_stuff.h"
+//#include "v_video.h"
+//#include "z_zone.h"
+//#include "g_input.h"
+//#include "i_video.h"
+//#include "d_main.h"
+//#include "m_argv.h"
+//#include "dstrings.h"
+//#include "i_system.h"
 
 // ==========================================================================
 //                         FILE INPUT / OUTPUT

@@ -67,12 +67,12 @@
 
 /* Palm OS Ugly Includes */
 #if defined(__palmos__)
-	#include "pealstub.h"
+	//#include "pealstub.h"
 #endif
 
 /* Required Stuff */
 #if defined(__REMOOD_USECCSTUB)
-	#include "ccstub.h"
+	//#include "ccstub.h"
 #else
 	#include <stdarg.h>
 	#include <stdio.h>
@@ -405,7 +405,7 @@ typedef union FColorRGBA RGBA_t;
 *** INCLUDE LIBRARY STUFF ***
 ****************************/
 
-#include "c_lib.h"
+//#include "c_lib.h"
 
 
 #endif							/* __DOOMTYPE_H__ */

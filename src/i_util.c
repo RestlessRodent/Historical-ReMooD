@@ -64,21 +64,21 @@
 #endif
 
 /* Local */
-#include "i_util.h"
-#include "i_system.h"
-#include "i_video.h"
+//#include "i_util.h"
+//#include "i_system.h"
+//#include "i_video.h"
 
-#include "console.h"
-#include "screen.h"
-#include "g_input.h"
-#include "w_wad.h"
-#include "doomstat.h"
-#include "d_main.h"
-#include "m_argv.h"
-#include "g_game.h"
-#include "d_netcmd.h"
-#include "m_menu.h"
-#include "sn.h"
+//#include "console.h"
+//#include "screen.h"
+//#include "g_input.h"
+//#include "w_wad.h"
+//#include "doomstat.h"
+//#include "d_main.h"
+//#include "m_argv.h"
+//#include "g_game.h"
+//#include "d_netcmd.h"
+//#include "m_menu.h"
+//#include "sn.h"
 
 /****************
 *** CONSTANTS ***

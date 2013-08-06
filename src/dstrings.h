@@ -32,7 +32,7 @@
 #ifndef __DSTRINGS_H__
 #define __DSTRINGS_H__
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
 /* UnicodeStringID_t -- String IDs */
 typedef enum UnicodeStringID_e

@@ -32,20 +32,20 @@
 // DESCRIPTION:
 //      All the clipping: columns, horizontal spans, sky columns.
 
-#include "doomdef.h"
-#include "r_local.h"
-#include "r_sky.h"
+//#include "doomdef.h"
+//#include "r_local.h"
+//#include "r_sky.h"
 
-#include "r_splats.h"			//faB: testing
+//#include "r_splats.h"			//faB: testing
 
-#include "w_wad.h"
-#include "z_zone.h"
-#include "d_netcmd.h"
-#include "p_local.h"			//Camera...
-#include "console.h"			//Con_clipviewtop
-#include "z_zone.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "d_netcmd.h"
+//#include "p_local.h"			//Camera...
+//#include "console.h"			//Con_clipviewtop
+//#include "z_zone.h"
 
-#include "p_demcmp.h"
+//#include "p_demcmp.h"
 
 extern CONL_StaticVar_t l_RTransparency;
 extern CONL_StaticVar_t l_RDrawSplats;

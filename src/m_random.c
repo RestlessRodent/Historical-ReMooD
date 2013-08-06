@@ -32,11 +32,11 @@
 // DESCRIPTION:
 //      Random number LUT.
 
-#include "doomdef.h"
-#include "doomtype.h"
-#include "m_random.h"
-#include "sn.h"
-#include "i_util.h"
+//#include "doomdef.h"
+//#include "doomtype.h"
+//#include "m_random.h"
+//#include "sn.h"
+//#include "i_util.h"
 
 //
 // M_Random
@@ -103,7 +103,7 @@ int P_SignedRandom()
 
 #else
 
-#include "doomstat.h"
+//#include "doomstat.h"
 
 FILE* RandFile = NULL;
 

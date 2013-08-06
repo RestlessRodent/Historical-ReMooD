@@ -45,7 +45,7 @@
 //      int tantoangle[2049]    - ArcTan LUT,
 //        maps tan(angle) to angle fast. Gotta search.
 
-#include "tables.h"
+//#include "tables.h"
 
 // 0 the original
 // 1 new in c

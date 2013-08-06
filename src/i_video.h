@@ -34,7 +34,7 @@
 #ifndef __I_VIDEO__
 #define __I_VIDEO__
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
 // Takes full 8 bit values.
 void I_SetPalette(RGBA_t* palette);

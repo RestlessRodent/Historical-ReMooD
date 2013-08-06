@@ -33,7 +33,7 @@
 #ifndef __G_STATE__
 #define __G_STATE__
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
 // skill levels
 typedef enum

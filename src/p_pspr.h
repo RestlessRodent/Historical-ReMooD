@@ -36,9 +36,9 @@
 
 // Basic data types.
 // Needs fixed point, and BAM angles.
-#include "m_fixed.h"
-#include "tables.h"
-#include "v_video.h"
+//#include "m_fixed.h"
+//#include "tables.h"
+//#include "v_video.h"
 
 //
 // Needs to include the precompiled
@@ -47,9 +47,9 @@
 // This includes all the data for thing animation,
 // i.e. the Thing Atrributes table
 // and the Frame Sequence table.
-#include "info.h"
+//#include "info.h"
 
-#include "d_rmod.h"
+//#include "d_rmod.h"
 
 //
 // Frame flags:

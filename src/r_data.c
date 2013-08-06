@@ -33,21 +33,21 @@
 //      Preparation of data for rendering,
 //      generation of lookups, caching, retrieval by name.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "i_video.h"
-#include "r_local.h"
-#include "r_sky.h"
-#include "p_local.h"
-#include "r_data.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "p_setup.h"			//levelflats
-#include "v_video.h"			//pLoaclPalette
-#include "console.h"
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "i_video.h"
+//#include "r_local.h"
+//#include "r_sky.h"
+//#include "p_local.h"
+//#include "r_data.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "p_setup.h"			//levelflats
+//#include "v_video.h"			//pLoaclPalette
+//#include "console.h"
 
 #ifdef _WIN32
-#include "malloc.h"
+//#include "malloc.h"
 #endif
 
 int firstflat, lastflat, numflats;

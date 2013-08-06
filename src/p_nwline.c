@@ -33,14 +33,14 @@
 *** INCLUDES ***
 ***************/
 
-#include "p_nwline.h"
-#include "r_local.h"
-#include "dstrings.h"
-#include "p_local.h"
-#include "p_inter.h"
-#include "p_demcmp.h"
-#include "m_random.h"
-#include "g_game.h"
+//#include "p_nwline.h"
+//#include "r_local.h"
+//#include "dstrings.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "p_demcmp.h"
+//#include "m_random.h"
+//#include "g_game.h"
 
 /****************
 *** CONSTANTS ***

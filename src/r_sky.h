@@ -34,7 +34,7 @@
 #ifndef __R_SKY__
 #define __R_SKY__
 
-#include "m_fixed.h"
+//#include "m_fixed.h"
 
 // SKY, store the number for name.
 #define                 SKYFLATNAME  "F_SKY1"

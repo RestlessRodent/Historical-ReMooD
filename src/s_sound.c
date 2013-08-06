@@ -32,21 +32,21 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "doomdef.h"
+//#include "doomtype.h"
+//#include "doomdef.h"
 
-#include "s_sound.h"
-#include "z_zone.h"
-#include "console.h"
-#include "doomstat.h"
-#include "sounds.h"
-#include "i_util.h"
-#include "w_wad.h"
-#include "g_game.h"
-#include "m_argv.h"
-#include "r_main.h"
-#include "p_maputl.h"
-#include "p_local.h"
+//#include "s_sound.h"
+//#include "z_zone.h"
+//#include "console.h"
+//#include "doomstat.h"
+//#include "sounds.h"
+//#include "i_util.h"
+//#include "w_wad.h"
+//#include "g_game.h"
+//#include "m_argv.h"
+//#include "r_main.h"
+//#include "p_maputl.h"
+//#include "p_local.h"
 
 /*****************
 *** PROTOTYPES ***

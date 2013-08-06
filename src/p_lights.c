@@ -33,12 +33,12 @@
 //      Handle Sector base lighting effects.
 //      Muzzle flash?
 
-#include "doomdef.h"
-#include "p_local.h"
-#include "r_state.h"
-#include "z_zone.h"
-#include "m_random.h"
-#include "p_demcmp.h"
+//#include "doomdef.h"
+//#include "p_local.h"
+//#include "r_state.h"
+//#include "z_zone.h"
+//#include "m_random.h"
+//#include "p_demcmp.h"
 
 // =========================================================================
 //                           FIRELIGHT FLICKER

@@ -33,10 +33,10 @@
 #ifndef __P_DEMCMP_H__
 #define __P_DEMCMP_H__
 
-#include "console.h"
-#include "doomdef.h"
-#include "doomstat.h"
-#include "w_wad.h"
+//#include "console.h"
+//#include "doomdef.h"
+//#include "doomstat.h"
+//#include "w_wad.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***

@@ -29,47 +29,47 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Code
 
-#include "doomdef.h"
-#include "dstrings.h"
-#include "d_main.h"
+//#include "doomdef.h"
+//#include "dstrings.h"
+//#include "d_main.h"
 
-#include "console.h"
+//#include "console.h"
 
-#include "r_local.h"
-#include "hu_stuff.h"
-#include "g_game.h"
-#include "g_input.h"
+//#include "r_local.h"
+//#include "hu_stuff.h"
+//#include "g_game.h"
+//#include "g_input.h"
 
-#include "m_argv.h"
+//#include "m_argv.h"
 
 // Data.
-#include "sounds.h"
-#include "s_sound.h"
-#include "i_system.h"
-#include "i_sound.h"
+//#include "sounds.h"
+//#include "s_sound.h"
+//#include "i_system.h"
+//#include "i_sound.h"
 
-#include "m_menu.h"
-#include "v_video.h"
-#include "i_video.h"
+//#include "m_menu.h"
+//#include "v_video.h"
+//#include "i_video.h"
 
-#include "z_zone.h"
-#include "w_wad.h"
-#include "p_local.h"
-#include "t_script.h"
+//#include "z_zone.h"
+//#include "w_wad.h"
+//#include "p_local.h"
+//#include "t_script.h"
 
-#include "sn.h"
-#include "p_inter.h"
-#include "d_prof.h"
+//#include "sn.h"
+//#include "p_inter.h"
+//#include "d_prof.h"
 
-#include "i_util.h"
-#include "p_demcmp.h"
+//#include "i_util.h"
+//#include "p_demcmp.h"
 
-#include "r_data.h"
-#include "vhw_wrap.h"
+//#include "r_data.h"
+//#include "vhw_wrap.h"
 
-#include "g_game.h"
+//#include "g_game.h"
 
-#include "m_menupv.h"
+//#include "m_menupv.h"
 
 /*******************
 *** SIMPLE MENUS ***

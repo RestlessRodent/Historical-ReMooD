@@ -32,7 +32,7 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
 #define __REMOOD_SOCKNONE	0					// No Sockets
 #define __REMOOD_SOCKBSD	1					// BSD Sockets
@@ -92,11 +92,11 @@
 	// No Sockets
 #endif
 
-#include "i_util.h"
-#include "i_net.h"
-#include "z_zone.h"
-#include "dstrings.h"
-#include "console.h"
+//#include "i_util.h"
+//#include "i_net.h"
+//#include "z_zone.h"
+//#include "dstrings.h"
+//#include "console.h"
 
 #if defined(__REMOOD_ENABLEIPV6)
 	#if !defined(IPV6_JOIN_GROUP) && defined(IPV6_ADD_MEMBERSHIP)

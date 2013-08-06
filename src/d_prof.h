@@ -32,10 +32,10 @@
 #ifndef __D_PROF_H__
 #define __D_PROF_H__
 
-#include "doomtype.h"
-#include "doomdef.h"
+//#include "doomtype.h"
+//#include "doomdef.h"
 
-#include "d_netcmd.h"
+//#include "d_netcmd.h"
 
 /************************
 *** EXTENDED PROFILES ***

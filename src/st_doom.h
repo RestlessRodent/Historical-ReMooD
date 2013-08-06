@@ -40,8 +40,8 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "st_stuff.h"
+//#include "doomtype.h"
+//#include "st_stuff.h"
 
 /****************
 *** FUNCTIONS ***

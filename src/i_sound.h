@@ -34,12 +34,12 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
-#include "doomdef.h"
-#include "sounds.h"
+//#include "doomdef.h"
+//#include "sounds.h"
 
 
-#include "p_mobj.h"
-#include "g_game.h"
+//#include "p_mobj.h"
+//#include "g_game.h"
 
 /* Sound Stuff */
 bool_t I_SoundDriverInit(void);

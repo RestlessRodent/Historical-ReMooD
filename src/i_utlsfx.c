@@ -57,14 +57,14 @@
 #endif
 
 /* Local */
-#include "i_util.h"
-#include "i_system.h"
+//#include "i_util.h"
+//#include "i_system.h"
 
-#include "w_wad.h"
-#include "doomstat.h"
-#include "i_sound.h"
-#include "s_sound.h"
-#include "i_video.h"
+//#include "w_wad.h"
+//#include "doomstat.h"
+//#include "i_sound.h"
+//#include "s_sound.h"
+//#include "i_video.h"
 
 /****************
 *** CONSTANTS ***

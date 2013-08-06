@@ -31,9 +31,9 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION:
 
-#include "doomdef.h"
+//#include "doomdef.h"
 
-#include "console.h"
+//#include "console.h"
 
 int myargc;
 char** myargv;

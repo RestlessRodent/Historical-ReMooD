@@ -131,11 +131,11 @@
      #define MINIZ_HAS_64BIT_REGISTERS 1
 */
 
-#include "doomtype.h"
-#include "z_zone.h"
+//#include "doomtype.h"
+//#include "z_zone.h"
 
 #define __REMOOD_NOMINIZINCLUDE
-#include "z_miniz.h"
+//#include "z_miniz.h"
 
 #ifndef MINIZ_HEADER_INCLUDED
 #define MINIZ_HEADER_INCLUDED

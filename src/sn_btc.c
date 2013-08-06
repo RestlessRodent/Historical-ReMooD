@@ -33,19 +33,19 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "doomstat.h"
-#include "sn.h"
-#include "m_argv.h"
-#include "p_demcmp.h"
-#include "r_main.h"
-#include "p_info.h"
-#include "g_game.h"
-#include "i_util.h"
-#include "st_stuff.h"
-#include "p_local.h"
-#include "p_inter.h"
-#include "d_main.h"
+//#include "doomtype.h"
+//#include "doomstat.h"
+//#include "sn.h"
+//#include "m_argv.h"
+//#include "p_demcmp.h"
+//#include "r_main.h"
+//#include "p_info.h"
+//#include "g_game.h"
+//#include "i_util.h"
+//#include "st_stuff.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "d_main.h"
 
 /****************
 *** CONSTANTS ***

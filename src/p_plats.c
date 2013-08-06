@@ -32,14 +32,14 @@
 // DESCRIPTION:
 //      Plats (i.e. elevator platforms) code, raising/lowering.
 
-#include "doomdef.h"
-#include "doomstat.h"
-#include "p_local.h"
-#include "s_sound.h"
-#include "r_state.h"
-#include "z_zone.h"
-#include "m_random.h"
-#include "p_demcmp.h"
+//#include "doomdef.h"
+//#include "doomstat.h"
+//#include "p_local.h"
+//#include "s_sound.h"
+//#include "r_state.h"
+//#include "z_zone.h"
+//#include "m_random.h"
+//#include "p_demcmp.h"
 
 //SoM: 3/7/2000: Use boom's limitless format.
 platlist_t* activeplats;

@@ -32,17 +32,17 @@
 // or "exmx" lump. This contains new info such as: the level name, music
 // lump to be played, par time etc.
 
-#include "doomstat.h"
-#include "doomdef.h"
+//#include "doomstat.h"
+//#include "doomdef.h"
 
-#include "dstrings.h"
-#include "p_setup.h"
-#include "p_info.h"
-#include "p_mobj.h"
-#include "t_script.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "p_local.h"
+//#include "dstrings.h"
+//#include "p_setup.h"
+//#include "p_info.h"
+//#include "p_mobj.h"
+//#include "t_script.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "p_local.h"
 
 /*** CONSTANTS ***/
 

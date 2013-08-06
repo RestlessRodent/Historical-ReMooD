@@ -34,8 +34,8 @@
 #ifndef __R_PLANE__
 #define __R_PLANE__
 
-#include "screen.h"
-#include "r_data.h"
+//#include "screen.h"
+//#include "r_data.h"
 
 //
 // Now what is a visplane, anyway?

@@ -34,10 +34,10 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "t_dsvm.h"
-#include "doomstat.h"
-#include "console.h"
+//#include "doomtype.h"
+//#include "t_dsvm.h"
+//#include "doomstat.h"
+//#include "console.h"
 
 /****************
 *** CONSTANTS ***

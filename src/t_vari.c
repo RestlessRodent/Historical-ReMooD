@@ -57,12 +57,12 @@
 
 /* includes ************************/
 
-#include "z_zone.h"
+//#include "z_zone.h"
 
-#include "t_script.h"
-#include "t_parse.h"
-#include "t_vari.h"
-#include "t_func.h"
+//#include "t_script.h"
+//#include "t_parse.h"
+//#include "t_vari.h"
+//#include "t_func.h"
 
 // the global script just holds all
 // the global variables

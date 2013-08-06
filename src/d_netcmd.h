@@ -35,11 +35,11 @@
 #ifndef __D_NETCMD_H__
 #define __D_NETCMD_H__
 
-#include "doomdef.h"
+//#include "doomdef.h"
 
-#include "d_ticcmd.h"
-#include "i_util.h"
-#include "sn.h"
+//#include "d_ticcmd.h"
+//#include "i_util.h"
+//#include "sn.h"
 
 // add game commands, needs cleanup
 void D_RegisterClientCommands(void);

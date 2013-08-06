@@ -33,8 +33,8 @@
 #ifndef __R_SPLATS_H__
 #define __R_SPLATS_H__
 
-#include "r_defs.h"
-#include "w_wad.h"
+//#include "r_defs.h"
+//#include "w_wad.h"
 
 #define WALLSPLATS				// comment this out to compile without splat effects
 

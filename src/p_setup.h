@@ -34,10 +34,10 @@
 #ifndef __P_SETUP__
 #define __P_SETUP__
 
-#include "doomdata.h"
-#include "r_defs.h"
+//#include "doomdata.h"
+//#include "r_defs.h"
 
-#include "p_info.h"
+//#include "p_info.h"
 
 //extern  mapthing_t**    deathmatch_p;
 

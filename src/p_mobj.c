@@ -32,25 +32,25 @@
 // DESCRIPTION:
 //      Moving object handling. Spawn functions.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "g_input.h"
-#include "st_stuff.h"
-#include "hu_stuff.h"
-#include "p_local.h"
-#include "p_inter.h"
-#include "p_setup.h"			//levelflats to test if mobj in water sector
-#include "r_main.h"
-#include "r_things.h"
-#include "r_sky.h"
-#include "s_sound.h"
-#include "z_zone.h"
-#include "m_random.h"
-#include "d_clisrv.h"
-#include "r_splats.h"			//faB: in dev.
-#include "p_demcmp.h"
-#include "m_cheat.h"
-#include "b_bot.h"
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "g_input.h"
+//#include "st_stuff.h"
+//#include "hu_stuff.h"
+//#include "p_local.h"
+//#include "p_inter.h"
+//#include "p_setup.h"			//levelflats to test if mobj in water sector
+//#include "r_main.h"
+//#include "r_things.h"
+//#include "r_sky.h"
+//#include "s_sound.h"
+//#include "z_zone.h"
+//#include "m_random.h"
+//#include "d_clisrv.h"
+//#include "r_splats.h"			//faB: in dev.
+//#include "p_demcmp.h"
+//#include "m_cheat.h"
+//#include "b_bot.h"
 
 static const fixed_t FloatBobOffsets[64] =
 {

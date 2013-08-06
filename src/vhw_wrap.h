@@ -38,8 +38,8 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "v_video.h"
+//#include "doomtype.h"
+//#include "v_video.h"
 
 /****************
 *** CONSTANTS ***

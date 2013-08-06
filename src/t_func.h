@@ -45,9 +45,9 @@
 #ifndef __FUNC_H__
 #define __FUNC_H__
 
-#include "t_parse.h"
+//#include "t_parse.h"
 
-#include "p_local.h"
+//#include "p_local.h"
 
 extern camera_t script_camera;
 extern bool_t script_camera_on;

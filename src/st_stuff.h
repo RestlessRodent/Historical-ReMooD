@@ -36,9 +36,9 @@
 #ifndef __STSTUFF_H__
 #define __STSTUFF_H__
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
-#include "d_player.h"
+//#include "d_player.h"
 
 extern int ST_Y;
 extern int st_x;

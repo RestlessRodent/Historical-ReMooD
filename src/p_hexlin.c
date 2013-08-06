@@ -33,12 +33,12 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "doomdef.h"
-#include "p_mobj.h"
-#include "r_local.h"
-#include "p_spec.h"
-#include "console.h"
+//#include "doomtype.h"
+//#include "doomdef.h"
+//#include "p_mobj.h"
+//#include "r_local.h"
+//#include "p_spec.h"
+//#include "console.h"
 
 /****************
 *** FUNCTIONS ***

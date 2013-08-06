@@ -41,10 +41,10 @@
 
 
 
-#include "g_input.h"
-#include "dstrings.h"
-#include "i_util.h"
-#include "v_video.h"
+//#include "g_input.h"
+//#include "dstrings.h"
+//#include "i_util.h"
+//#include "v_video.h"
 
 /****************
 *** CONSTANTS ***

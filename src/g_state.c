@@ -31,7 +31,7 @@
 // DESCRIPTION:
 //      Doom/Hexen game states
 
-#include "g_state.h"
+//#include "g_state.h"
 
 G_Action_t gameaction;
 G_State_t gamestate = GS_NULL;

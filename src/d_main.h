@@ -34,11 +34,11 @@
 #ifndef __D_MAIN__
 #define __D_MAIN__
 
-#include "doomtype.h"
-#include "doomstat.h"
+//#include "doomtype.h"
+//#include "doomstat.h"
 
-#include "w_wad.h"				// for MAX_WADFILES
-#include "i_util.h"
+//#include "w_wad.h"				// for MAX_WADFILES
+//#include "i_util.h"
 
 /*****************
 *** STRUCTURES ***

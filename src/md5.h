@@ -26,7 +26,7 @@
 #if !defined(_MD5_H)
 #define _MD5_H
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
 /* Any 32-bit or wider uint32_teger data type will do */
 typedef uint32_t MD5_u32plus;

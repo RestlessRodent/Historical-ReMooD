@@ -33,12 +33,12 @@
 //      Archiving: SaveGame I/O.
 //      Thinker, Ticker.
 
-#include "doomstat.h"
-#include "g_game.h"
-#include "p_local.h"
-#include "z_zone.h"
-#include "t_script.h"
-#include "sn.h"
+//#include "doomstat.h"
+//#include "g_game.h"
+//#include "p_local.h"
+//#include "z_zone.h"
+//#include "t_script.h"
+//#include "sn.h"
 
 tic_t leveltime;
 

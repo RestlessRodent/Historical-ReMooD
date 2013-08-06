@@ -35,13 +35,13 @@
 //      The default sky map is 256 columns and repeats 4 times
 //      on a 320 screen?
 
-#include "doomdef.h"
-#include "r_sky.h"
-#include "r_local.h"
-#include "w_wad.h"
-#include "z_zone.h"
+//#include "doomdef.h"
+//#include "r_sky.h"
+//#include "r_local.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
 
-#include "p_maputl.h"			// P_PointOnLineSide
+//#include "p_maputl.h"			// P_PointOnLineSide
 
 // SoM: I know I should be moving portals out of r_sky.c and as soon
 // as I have time and a I will... But for now, they are mostly used

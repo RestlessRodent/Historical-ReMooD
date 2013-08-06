@@ -35,7 +35,7 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-#include "doomtype.h"
+//#include "doomtype.h"
 
 // Uncheck this to compile debugging code
 //#define RANGECHECK
@@ -92,7 +92,7 @@ extern uint8_t demoversion;
 #define DEFAULTDIR "remood"
 #endif
 
-#include "g_state.h"
+//#include "g_state.h"
 
 // commonly used routines - moved here for include convenience
 

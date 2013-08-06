@@ -34,10 +34,10 @@
 #ifndef __WI_STUFF__
 #define __WI_STUFF__
 
-//#include "v_video.h"
+////#include "v_video.h"
 
-#include "doomdef.h"
-#include "d_player.h"
+//#include "doomdef.h"
+//#include "d_player.h"
 
 //added:05-02-98:
 typedef struct

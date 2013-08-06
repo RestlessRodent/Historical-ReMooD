@@ -36,12 +36,12 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-#include "dstrings.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "m_fixed.h"
-#include "d_block.h"
+//#include "doomtype.h"
+//#include "dstrings.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "m_fixed.h"
+//#include "d_block.h"
 
 /****************
 *** CONSTANTS ***

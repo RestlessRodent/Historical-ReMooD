@@ -32,13 +32,13 @@
 // DESCRIPTION:
 //      The status bar widget code.
 
-#include "doomdef.h"
-#include "st_lib.h"
-#include "st_stuff.h"
-#include "v_video.h"
-#include "z_zone.h"
-#include "r_main.h"
+//#include "doomdef.h"
+//#include "st_lib.h"
+//#include "st_stuff.h"
+//#include "v_video.h"
+//#include "z_zone.h"
+//#include "r_main.h"
 
 
-#include "i_video.h"
+//#include "i_video.h"
 

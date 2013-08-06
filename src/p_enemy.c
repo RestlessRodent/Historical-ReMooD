@@ -34,15 +34,15 @@
 //      Action Pointer Functions
 //      that are associated with states/frames.
 
-#include "doomdef.h"
-#include "g_game.h"
-#include "p_local.h"
-#include "r_main.h"
-#include "r_state.h"
-#include "s_sound.h"
-#include "m_random.h"
-#include "p_demcmp.h"
-#include "p_info.h"
+//#include "doomdef.h"
+//#include "g_game.h"
+//#include "p_local.h"
+//#include "r_main.h"
+//#include "r_state.h"
+//#include "s_sound.h"
+//#include "m_random.h"
+//#include "p_demcmp.h"
+//#include "p_info.h"
 
 void FastMonster_OnChange(void);
 

@@ -37,15 +37,15 @@
 //      not the architecture of the frame buffer.
 //      The frame buffer is a linear one, and we need only the base address.
 
-#include "doomdef.h"
-#include "doomstat.h"
-#include "r_local.h"
-#include "st_stuff.h"			//added:24-01-98:need ST_HEIGHT
-#include "i_video.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "z_zone.h"
-#include "console.h"			//Som: Until I get buffering finished
+//#include "doomdef.h"
+//#include "doomstat.h"
+//#include "r_local.h"
+//#include "st_stuff.h"			//added:24-01-98:need ST_HEIGHT
+//#include "i_video.h"
+//#include "v_video.h"
+//#include "w_wad.h"
+//#include "z_zone.h"
+//#include "console.h"			//Som: Until I get buffering finished
 
 // ==========================================================================
 //                     COMMON DATA FOR 8bpp AND 16bpp

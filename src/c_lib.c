@@ -33,8 +33,8 @@
 *** INCLUDES ***
 ***************/
 
-#include "c_lib.h"
-#include "m_fixed.h"
+//#include "c_lib.h"
+//#include "m_fixed.h"
 
 /****************
 *** FUNCTIONS ***

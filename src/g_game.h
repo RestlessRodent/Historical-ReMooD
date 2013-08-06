@@ -34,11 +34,11 @@
 #ifndef __G_GAME__
 #define __G_GAME__
 
-#include "doomdef.h"
-#include "doomstat.h"
+//#include "doomdef.h"
+//#include "doomstat.h"
 
-#include "m_random.h"
-#include "console.h"
+//#include "m_random.h"
+//#include "console.h"
 
 //added:11-02-98: yeah now you can change it!
 // changed to 2d array 19990220 by Kin
