@@ -180,12 +180,18 @@ typedef struct CONL_StaticVar_s CONL_StaticVar_t;
 typedef bool_t (*CONL_ConVarBackFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
 typedef bool_t (*CONL_ConVarSlideFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar, const int32_t a_Right);
 
+/* Define CONL_VarPossibleValue_t */
+#if !defined(__REMOOD_CONLVPV_DEFINED)
+	typedef struct CONL_VarPossibleValue_s CONL_VarPossibleValue_t;
+	#define __REMOOD_CONLVPV_DEFINED
+#endif
+
 /* CONL_VarPossibleValue_t -- Possible value for a variable */
-typedef struct CONL_VarPossibleValue_s
+struct CONL_VarPossibleValue_s
 {
 	int32_t IntVal;							// Value as integer
 	const char* StrAlias;					// String aliase
-} CONL_VarPossibleValue_t;
+};
 
 /* CONL_VarValue_t -- Value for variable */
 typedef struct CONL_VarValue_s

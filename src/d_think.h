@@ -126,4 +126,33 @@ extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES];	// Thinker Data
 actionf_t G_ThinkTypeToFunc(const P_ThinkerType_t a_Type);
 P_ThinkerType_t G_ThinkFuncToType(actionf_t a_Func);
 
+/* Define S_NoiseThinker_t */
+#if !defined(__REMOOD_SNOISETHNK_DEFINED)
+	typedef struct S_NoiseThinker_s S_NoiseThinker_t;
+	#define __REMOOD_SNOISETHNK_DEFINED
 #endif
+
+/* S_NoiseThinker_t -- A thinker that makes noise */
+struct S_NoiseThinker_s
+{
+	uint32_t Flags;				// Sound flags
+	
+	/* World Position */
+	fixed_t x;
+	fixed_t y;
+	fixed_t z;
+	
+	/* Momenntum */
+	// This is for doppler and such
+	fixed_t momx;
+	fixed_t momy;
+	fixed_t momz;
+	
+	/* Other things */
+	fixed_t Pitch;				// Pitch modification
+	fixed_t Volume;				// Volume modification
+	angle_t Angle;				// Angle
+};
+
+#endif
+

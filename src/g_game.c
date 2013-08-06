@@ -33,8 +33,25 @@
 //      game loop functions, events handling
 
 /* Includes */
-//#include "doomdef.h"
 #include "doomtype.h"
+#include "g_game.h"
+#include "sn.h"
+#include "d_netcmd.h"
+#include "g_state.h"
+#include "info.h"
+#include "p_demcmp.h"
+#include "p_mobj.h"
+#include "d_player.h"
+#include "r_defs.h"
+#include "p_info.h"
+#include "z_zone.h"
+#include "tables.h"
+#include "s_sound.h"
+
+// TODO FIXME: Put Player spot spawning elsewhere??
+#include "p_maputl.h"
+#include "p_local.h"
+#include "r_defs.h"
 
 //#include "console.h"
 //#include "dstrings.h"
@@ -608,7 +625,7 @@ void G_Ticker(void)
 	// Read Individual Player Tic Commands
 	for (i = 0; i < MAXPLAYERS; i++)
 		// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
-		if ((playeringame[i] || i == 0) && !dedicated)
+		if ((playeringame[i] || i == 0) && !g_DedicatedServer)
 		{
 			memset(&players[i].cmd, 0, sizeof(players[i].cmd));
 			cmd = &players[i].cmd;
@@ -705,7 +722,7 @@ void G_Ticker(void)
 		
 	// Per Player Commands
 	for (i = 0; i < MAXPLAYERS; i++)
-		if ((playeringame[i] || i == 0) && !dedicated)
+		if ((playeringame[i] || i == 0) && !g_DedicatedServer)
 			GS_HandleExtraCommands(cmd, i);
 	
 	/* Remove defunct XPlayer */
@@ -1897,7 +1914,7 @@ void G_DoCompleted(void)
 		wminfo.next = 0;
 	
 	// Did secret level?
-	if (!dedicated)
+	if (!g_DedicatedServer)
 		wminfo.didsecret = players[g_Splits[0].Console].didsecret;
 	wminfo.epsd = gameepisode - 1;
 	wminfo.last = gamemap - 1;
@@ -1975,7 +1992,6 @@ void G_DoneLevelLoad(void)
 {
 	// GhostlyDeath <February 8, 2012> -- uint64_t to double not impl on MSVC6
 	//CONL_PrintF("Load Level in %f sec\n", (float)(I_GetTime() - demostarttime) / TICRATE);
-	framecount = 0;
 	demostarttime = I_GetTime();
 }
 

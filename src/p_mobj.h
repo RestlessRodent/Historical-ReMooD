@@ -34,6 +34,8 @@
 #ifndef __P_MOBJ__
 #define __P_MOBJ__
 
+#include "d_think.h"
+
 // Basics.
 //#include "tables.h"
 //#include "m_fixed.h"
@@ -347,6 +349,13 @@ typedef enum P_MobjRefType_e
 	NUMPMOBJREFTYPES
 } P_MobjRefType_t;
 
+/* Define PI_stateid_t */
+#if !defined(__REMOOD_STSPIDS_DEFINED)
+	typedef int32_t PI_spriteid_t;
+	typedef int32_t PI_stateid_t;
+	#define __REMOOD_STSPIDS_DEFINED
+#endif
+
 /* Define player_t */
 #if !defined(__REMOOD_PLAYERT_DEFINED)
 	typedef struct player_s player_t;
@@ -369,6 +378,18 @@ typedef enum P_MobjRefType_e
 #if !defined(__REMOOD_MAPTHINGT_DEFINED)
 	typedef struct mapthing_s mapthing_t;
 	#define __REMOOD_MAPTHINGT_DEFINED
+#endif
+
+/* Define PI_mobjid_t */
+#if !defined(__REMOOD_PIMOID_DEFINED)
+	typedef int32_t PI_mobjid_t;
+	#define __REMOOD_PIMOID_DEFINED
+#endif
+
+/* Define PI_mobj_t */
+#if !defined(__REMOOD_PIMOBJT_DEFINED)
+	typedef struct PI_mobj_s PI_mobj_t;
+	#define __REMOOD_PIMOBJT_DEFINED
 #endif
 
 /* P_MobjRefLog_t -- Map object reference log */

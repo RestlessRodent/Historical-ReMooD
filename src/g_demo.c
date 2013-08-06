@@ -33,6 +33,24 @@
 *** INCLUDES ***
 ***************/
 
+#include "doomtype.h"
+#include "d_ticcmd.h"
+#include "d_block.h"
+#include "z_zone.h"
+#include "p_saveg.h"
+#include "g_state.h"
+#include "w_wad.h"
+#include "dstrings.h"
+#include "g_game.h"
+#include "p_demcmp.h"
+#include "d_player.h"
+#include "p_info.h"
+#include "d_netcmd.h"
+#include "m_argv.h"
+#include "p_mobj.h"
+#include "info.h"
+#include "s_sound.h"
+
 //#include "g_game.h"
 //#include "p_info.h"
 //#include "p_demcmp.h"
@@ -58,26 +76,24 @@ static uint32_t l_DemoHostID = 0;				// Demo's HostID
 *** STRUCTURES ***
 *****************/
 
-struct G_CurrentDemo_s;
+typedef bool_t (*G_DEMO_StartPlayingType_t)(G_CDemo_t* a_Current);
+typedef bool_t (*G_DEMO_StopPlayingType_t)(G_CDemo_t* a_Current);
+typedef bool_t (*G_DEMO_StartRecordType_t)(G_CDemo_t* a_Current);
+typedef bool_t (*G_DEMO_StopRecordType_t)(G_CDemo_t* a_Current);
+typedef bool_t (*G_DEMO_CheckDemoType_t)(G_CDemo_t* a_Current);
+typedef bool_t (*G_DEMO_ReadTicCmdType_t)(G_CDemo_t* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+typedef bool_t (*G_DEMO_WriteTicCmdType_t)(G_CDemo_t* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 
-typedef bool_t (*G_DEMO_StartPlayingType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_StopPlayingType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_StartRecordType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_StopRecordType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
-typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+typedef bool_t (*G_DEMO_ReadGlblCmdType_t)(G_CDemo_t* a_Current, ticcmd_t* const a_Cmd);
+typedef bool_t (*G_DEMO_WriteGlblCmdType_t)(G_CDemo_t* a_Current, const ticcmd_t* const a_Cmd);
 
-typedef bool_t (*G_DEMO_ReadGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd);
-typedef bool_t (*G_DEMO_WriteGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd);
+typedef bool_t (*G_DEMO_PreGTickCmdType_t)(G_CDemo_t* a_Current);
+typedef bool_t (*G_DEMO_PostGTickCmdType_t)(G_CDemo_t* a_Current);
 
-typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
-
-typedef bool_t (*G_DEMO_ReadStartTicType_t)(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code);
-typedef bool_t (*G_DEMO_WriteStartTicType_t)(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code);
-typedef bool_t (*G_DEMO_ReadEndTicType_t)(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code);
-typedef bool_t (*G_DEMO_WriteEndTicType_t)(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code);
+typedef bool_t (*G_DEMO_ReadStartTicType_t)(G_CDemo_t* a_Current, uint32_t* const a_Code);
+typedef bool_t (*G_DEMO_WriteStartTicType_t)(G_CDemo_t* a_Current, const uint32_t a_Code);
+typedef bool_t (*G_DEMO_ReadEndTicType_t)(G_CDemo_t* a_Current, uint32_t* const a_Code);
+typedef bool_t (*G_DEMO_WriteEndTicType_t)(G_CDemo_t* a_Current, const uint32_t a_Code);
 
 /* G_DemoFactory_t -- Demo Factory */
 struct G_DemoFactory_s
@@ -103,8 +119,8 @@ struct G_DemoFactory_s
 	G_DEMO_WriteEndTicType_t WriteEndTicFunc;
 };
 
-/* G_CurrentDemo_t -- Current Demo Info */
-struct G_CurrentDemo_s
+/* G_CDemo_t -- Current Demo Info */
+struct G_CDemo_s
 {
 	bool_t Out;									// Demo is out (being written)
 	const G_DemoFactory_t* Factory;				// Factory for demo
@@ -133,7 +149,7 @@ typedef struct G_VanillaDemoData_s
 } G_VanillaDemoData_t;
 
 /* G_DEMO_Vanilla_StartPlaying() -- Starts playing Vanilla Demo */
-bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 {
 	char LevelName[9];
 	int32_t i, j, p;
@@ -373,7 +389,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Vanilla_StopPlaying() -- Stop playing vanilla demo */
-bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Vanilla_StopPlaying(G_CDemo_t* a_Current)
 {
 	G_VanillaDemoData_t* Data;
 	
@@ -396,7 +412,7 @@ bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Vanilla_StartRecord() -- Starts recording vanilla demo */
-bool_t G_DEMO_Vanilla_StartRecord(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Vanilla_StartRecord(G_CDemo_t* a_Current)
 {
 	uint8_t VerMarker;
 	G_VanillaDemoData_t* Data;
@@ -419,7 +435,7 @@ bool_t G_DEMO_Vanilla_StartRecord(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Vanilla_StopRecord() -- Stops recording vanilla demo */
-bool_t G_DEMO_Vanilla_StopRecord(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Vanilla_StopRecord(G_CDemo_t* a_Current)
 {
 	uint8_t Marker;
 	G_VanillaDemoData_t* Data;
@@ -448,7 +464,7 @@ bool_t G_DEMO_Vanilla_StopRecord(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Vanilla_CheckDemo() -- See if vanilla demo is over */
-bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Vanilla_CheckDemo(G_CDemo_t* a_Current)
 {
 	G_VanillaDemoData_t* Data;
 	
@@ -485,7 +501,7 @@ bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Vanilla_ReadTicCmd() -- Reads tic command from demo */
-bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+bool_t G_DEMO_Vanilla_ReadTicCmd(G_CDemo_t* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	G_VanillaDemoData_t* Data;
 	uint8_t ButtonCodes;
@@ -600,7 +616,7 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	return true;
 }
 
-bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+bool_t G_DEMO_Vanilla_WriteTicCmd(G_CDemo_t* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	uint8_t Bits;
 	int8_t IntV, i;
@@ -754,7 +770,7 @@ typedef struct G_LegacyDemoData_s
 /*** FUNCTIONS ***/
 
 /* G_DEMO_Legacy_StartPlaying() -- Start playing Demo */
-bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 {
 	int i, j, k, l, ss;
 	char LevelName[9];
@@ -1088,7 +1104,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Legacy_StopPlaying() -- Stop playing demo */
-bool_t G_DEMO_Legacy_StopPlaying(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Legacy_StopPlaying(G_CDemo_t* a_Current)
 {
 	size_t i;
 	G_LegacyDemoData_t* Data;
@@ -1120,19 +1136,19 @@ bool_t G_DEMO_Legacy_StopPlaying(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_Legacy_StartRecord() -- Start recording demo */
-bool_t G_DEMO_Legacy_StartRecord(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Legacy_StartRecord(G_CDemo_t* a_Current)
 {
 	return false;
 }
 
 /* G_DEMO_Legacy_StopRecord() -- Stop recording demo */
-bool_t G_DEMO_Legacy_StopRecord(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Legacy_StopRecord(G_CDemo_t* a_Current)
 {
 	return false;
 }
 
 /* G_DEMO_Legacy_CheckDemo() -- Check Status */
-bool_t G_DEMO_Legacy_CheckDemo(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Legacy_CheckDemo(G_CDemo_t* a_Current)
 {
 	G_LegacyDemoData_t* Data;
 	
@@ -1251,7 +1267,7 @@ static uint16_t GS_DEMO_Legacy_ComputeNetID(const char* s)
 }
 
 /* GS_DEMO_Legacy_HandleExtraCmd() -- Handles legacy extra data */
-static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, const G_LegacyExtraBuf_t* const a_ExtraBuf)
+static bool_t GS_DEMO_Legacy_HandleExtraCmd(G_CDemo_t* a_Current, const G_LegacyExtraBuf_t* const a_ExtraBuf)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -1594,7 +1610,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 }
 
 /* G_DEMO_Legacy_ReadTicCmd() -- Read Tic Command */
-bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+bool_t G_DEMO_Legacy_ReadTicCmd(G_CDemo_t* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 #define TXTCMDBUFSIZE 256
 	char Buf[TXTCMDBUFSIZE];
@@ -1813,13 +1829,13 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 }
 
 /* G_DEMO_Legacy_WriteTicCmd() -- Write Tic Commnd */
-bool_t G_DEMO_Legacy_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+bool_t G_DEMO_Legacy_WriteTicCmd(G_CDemo_t* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	return false;
 }
 
 /* G_DEMO_Legacy_PostGTickCmd() -- Post tic command */
-bool_t G_DEMO_Legacy_PostGTickCmd(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_Legacy_PostGTickCmd(G_CDemo_t* a_Current)
 {
 	G_LegacyDemoData_t* Data;
 	size_t i;
@@ -1894,7 +1910,7 @@ typedef struct g_ReMooDDemoData_s
 /*** FUNCTIONS ***/
 
 /* G_DEMO_ReMooD_StartPlaying() -- Start playing Demo */
-bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_StartPlaying(G_CDemo_t* a_Current)
 {
 	char Header[5];
 	G_ReMooDDemoData_t* Data;
@@ -1940,7 +1956,7 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_ReMooD_StopPlaying() -- Stop playing demo */
-bool_t G_DEMO_ReMooD_StopPlaying(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_StopPlaying(G_CDemo_t* a_Current)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -1968,7 +1984,7 @@ bool_t G_DEMO_ReMooD_StopPlaying(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_ReMooD_StartRecord() -- Start recording demo */
-bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_StartRecord(G_CDemo_t* a_Current)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2000,7 +2016,7 @@ bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_ReMooD_StopRecord() -- Stop recording demo */
-bool_t G_DEMO_ReMooD_StopRecord(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_StopRecord(G_CDemo_t* a_Current)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2036,7 +2052,7 @@ bool_t G_DEMO_ReMooD_StopRecord(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_ReMooD_CheckDemo() -- Check Status */
-bool_t G_DEMO_ReMooD_CheckDemo(struct G_CurrentDemo_s* a_Current)
+bool_t G_DEMO_ReMooD_CheckDemo(G_CDemo_t* a_Current)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2069,7 +2085,7 @@ bool_t G_DEMO_ReMooD_CheckDemo(struct G_CurrentDemo_s* a_Current)
 }
 
 /* G_DEMO_ReMooD_ReadTicCmd() -- Read Tic Command */
-bool_t G_DEMO_ReMooD_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+bool_t G_DEMO_ReMooD_ReadTicCmd(G_CDemo_t* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2088,7 +2104,7 @@ bool_t G_DEMO_ReMooD_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 }
 
 /* G_DEMO_ReMooD_WriteTicCmd() -- Write Tic Commnd */
-bool_t G_DEMO_ReMooD_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+bool_t G_DEMO_ReMooD_WriteTicCmd(G_CDemo_t* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2107,7 +2123,7 @@ bool_t G_DEMO_ReMooD_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd
 }
 
 /* G_DEMO_ReMooD_ReadGlblCmd() -- Reads global command */
-bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd)
+bool_t G_DEMO_ReMooD_ReadGlblCmd(G_CDemo_t* a_Current, ticcmd_t* const a_Cmd)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2126,7 +2142,7 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 }
 
 /* G_DEMO_ReMooD_WriteGlblCmd() -- Writes global command */
-bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd)
+bool_t G_DEMO_ReMooD_WriteGlblCmd(G_CDemo_t* a_Current, const ticcmd_t* const a_Cmd)
 {
 	G_ReMooDDemoData_t* Data;
 	
@@ -2145,7 +2161,7 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 }
 
 /* G_DEMO_ReMooD_ReadStartTic() -- Read at start of tic */
-bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* const a_Code)
+bool_t G_DEMO_ReMooD_ReadStartTic(G_CDemo_t* a_Current, uint32_t* const a_Code)
 {
 	G_ReMooDDemoData_t* Data;
 	char Header[5];
@@ -2230,7 +2246,7 @@ bool_t G_DEMO_ReMooD_ReadStartTic(struct G_CurrentDemo_s* a_Current, uint32_t* c
 }
 
 /* G_DEMO_ReMooD_WriteEndTic() -- Written at end of tic */
-bool_t G_DEMO_ReMooD_WriteEndTic(struct G_CurrentDemo_s* a_Current, const uint32_t a_Code)
+bool_t G_DEMO_ReMooD_WriteEndTic(G_CDemo_t* a_Current, const uint32_t a_Code)
 {
 	G_ReMooDDemoData_t* Data;
 	int32_t p, i;
@@ -2304,8 +2320,8 @@ tic_t g_DemoTime = 0;							// Current demo read time
 
 /*** LOCALS ***/
 
-static G_CurrentDemo_t* l_PlayDemo = NULL;		// Demo being played
-static G_CurrentDemo_t* l_RecDemo = NULL;		// Demo being recorded
+static G_CDemo_t* l_PlayDemo = NULL;		// Demo being played
+static G_CDemo_t* l_RecDemo = NULL;		// Demo being recorded
 static G_DemoLink_t* l_DemoQ = NULL;			// Demo Queue
 static bool_t l_CommandedDemo = false;			// Commanded demo
 static bool_t l_DemoServer = false;				// Server playing demos
@@ -2524,9 +2540,9 @@ bool_t G_PlayNextQ(void)
 }
 
 /* G_DemoPlay() -- Plays demo with factory */
-G_CurrentDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* const a_Factory)
+G_CDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* const a_Factory)
 {
-	G_CurrentDemo_t* New;
+	G_CDemo_t* New;
 	uint8_t Marker, MarkerB;
 	
 	/* Clear */
@@ -2695,7 +2711,7 @@ void G_StopDemo(void)
 void G_BeginRecording(const char* const a_Output, const char* const a_FactoryName)
 {
 	const G_DemoFactory_t* Factory;
-	G_CurrentDemo_t* New;
+	G_CDemo_t* New;
 	D_BS_t* BSs;				// Block Streamer
 	void* CFile;								// CFile
 	
@@ -2745,7 +2761,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	char Base[12];
 	const WL_WADEntry_t* Entry;
 	WL_ES_t* Stream;
-	G_CurrentDemo_t* Demo;
+	G_CDemo_t* Demo;
 	char* At;
 	const G_DemoFactory_t* Factory;
 	int i;

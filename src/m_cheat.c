@@ -1,3 +1,4 @@
+#if 0
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // ----------------------------------------------------------------------------
 //         :oCCCCOCoc.
@@ -921,5 +922,6 @@ void M_CheatInit(void)
 	CONL_AddCommand("cheat", MS_MultiCheatCommand);
 }
 
+#endif
 #endif
 

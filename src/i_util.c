@@ -64,17 +64,24 @@
 #endif
 
 /* Local */
-//#include "i_util.h"
-//#include "i_system.h"
-//#include "i_video.h"
+#include "i_util.h"
+#include "i_system.h"
+#include "i_video.h"
 
-//#include "console.h"
-//#include "screen.h"
+#include "console.h"
+#include "screen.h"
+#include "m_argv.h"
+#include "g_state.h"
+#include "screen.h"
+#include "z_zone.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "dstrings.h"
+
 //#include "g_input.h"
 //#include "w_wad.h"
 //#include "doomstat.h"
 //#include "d_main.h"
-//#include "m_argv.h"
 //#include "g_game.h"
 //#include "d_netcmd.h"
 //#include "m_menu.h"
@@ -514,8 +521,8 @@ void I_DoMouseGrabbing(void)
 		return;
 		
 	/* Don't grab if... */
-	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
+	// g_DedicatedServer Server, Watching demo, not playing, in a menu, in the console
+	New = !(g_DedicatedServer || demoplayback || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

@@ -34,6 +34,8 @@
 #ifndef __D_PLAYER__
 #define __D_PLAYER__
 
+#include "d_ticcmd.h"	// TODO FIXME: Only used once
+
 /* Define D_Prof_t */
 #if !defined(__REMOOD_DPROFTDEFINED)
 	#define __REMOOD_DPROFTDEFINED
@@ -68,6 +70,12 @@
 #if !defined(__REMOOD_PIWEP_DEFINED)
 	typedef struct PI_wep_s PI_wep_t;
 	#define __REMOOD_PIWEP_DEFINED
+#endif
+
+/* Define mapthing_t */
+#if !defined(__REMOOD_MAPTHINGT_DEFINED)
+	typedef struct mapthing_s mapthing_t;
+	#define __REMOOD_MAPTHINGT_DEFINED
 #endif
 
 // The player data structure depends on a number
@@ -410,6 +418,16 @@ extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
 extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
 extern player_t players[MAXPLAYERS];
 extern bool_t playeringame[MAXPLAYERS];
+
+#define MAX_DM_STARTS   64
+extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
+extern int numdmstarts;
+extern mapthing_t* g_TeamStarts[MAXSKINCOLORS][MAXPLAYERS];
+extern mapthing_t* playerstarts[MAXPLAYERS];
+
+#define   BODYQUESIZE     MAXPLAYERS
+extern mobj_t* bodyque[BODYQUESIZE];
+extern int bodyqueslot;
 
 #endif
 

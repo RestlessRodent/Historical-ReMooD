@@ -118,53 +118,6 @@ typedef struct HexenMapLineDef_s
 // LineDef attributes.
 //
 
-// Solid, is an obstacle.
-#define ML_BLOCKING             1
-
-// Blocks monsters only.
-#define ML_BLOCKMONSTERS        2
-
-// Backside will not be present at all
-//  if not two sided.
-#define ML_TWOSIDED             4
-
-// If a texture is pegged, the texture will have
-// the end exposed to air held constant at the
-// top or bottom of the texture (stairs or pulled
-// down things) and will move with a height change
-// of one of the neighbor sectors.
-// Unpegged textures allways have the first row of
-// the texture at the top pixel of the line for both
-// top and bottom textures (use next to windows).
-
-// upper texture unpegged
-#define ML_DONTPEGTOP           8
-
-// lower texture unpegged
-#define ML_DONTPEGBOTTOM        16
-
-// In AutoMap: don't map as two sided: IT'S A SECRET!
-#define ML_SECRET               32
-
-// Sound rendering: don't let sound cross two of these.
-#define ML_SOUNDBLOCK           64
-
-// Don't draw on the automap at all.
-#define ML_DONTDRAW             128
-
-// Set if already seen, thus drawn in automap.
-#define ML_MAPPED               256
-
-//SoM: 3/29/2000: If flag is set, the player can use through it.
-#define ML_PASSUSE              512
-
-//SoM: 4/1/2000: If flag is set, anything can trigger the line.
-#define ML_ALLTRIGGER           1024
-
-#define ML_REPEAT_SPECIAL	0x0200	// special is repeatable
-#define ML_SPAC_SHIFT		10
-#define ML_SPAC_MASK		0x1c00
-
 // Sector definition, from editing.
 typedef struct
 {

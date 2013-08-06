@@ -201,6 +201,8 @@ extern bool_t paused;			// Game Pause?
 
 extern bool_t noblit;
 
+extern tic_t leveltime;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -210,6 +212,9 @@ D_IWADInfoEx_t* D_GetIWADInfoByNum(const uint32_t a_Num);
 const char* D_FieldNumber(const char* const a_Str, const size_t a_Num);
 
 void D_InitModelMode(void);
+
+// Was the only prototype in p_tick.h
+void P_Ticker(void);
 
 #endif /* __G_STATE_H__ */
 

@@ -142,13 +142,6 @@ extern int32_t g_MapKIS[5];
 #define localgametic  leveltime
 
 // Player spawn spots.
-extern mapthing_t* playerstarts[MAXPLAYERS];
-
-#define MAX_DM_STARTS   64
-extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
-extern int numdmstarts;
-
-extern mapthing_t* g_TeamStarts[MAXSKINCOLORS][MAXPLAYERS];
 
 // Intermission stats.
 // Parameters for world map / intermission.
@@ -172,10 +165,6 @@ extern bool_t precache;
 //?
 // debug flag to cancel adaptiveness
 
-#define   BODYQUESIZE     MAXPLAYERS
-
-extern mobj_t* bodyque[BODYQUESIZE];
-extern int bodyqueslot;
 
 // =============
 // Netgame stuff

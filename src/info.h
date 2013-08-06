@@ -207,7 +207,13 @@ typedef enum INFO_BotObjMetric_e
 
 typedef INFO_ObjectStateGroup_t P_WeaponStateGroup_t;
 
-typedef struct
+/* Define PI_mobj_t */
+#if !defined(__REMOOD_PIMOBJT_DEFINED)
+	typedef struct PI_mobj_s PI_mobj_t;
+	#define __REMOOD_PIMOBJT_DEFINED
+#endif
+
+struct PI_mobj_s
 {
 	int32_t EdNum[6];
 	PI_stateid_t spawnstate;
@@ -282,7 +288,7 @@ typedef struct
 	INFO_BotObjMetric_t BotMetric;				// Metric for bot
 	char* RSNiceName;							// Short Nice Name
 	uint32_t RQuickHash[2];						// Hash
-} PI_mobj_t;
+};
 
 extern PI_mobj_t** mobjinfo;
 

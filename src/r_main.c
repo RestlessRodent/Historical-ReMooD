@@ -77,8 +77,6 @@ fixed_t projection;
 //added:02-02-98:fixing the aspect ration stuff...
 fixed_t projectiony;
 
-// just for profiling purposes
-int framecount;
 
 int sscount;
 int linecount;
@@ -838,8 +836,6 @@ void R_Init(void)
 	R_InitTranslationTables();
 	
 	R_InitDrawNodes();
-	
-	framecount = 0;
 }
 
 //
@@ -1017,7 +1013,6 @@ void R_SetupFrame(player_t* player)
 	centery = (viewheight / 2) + dy;
 	centeryfrac = centery << FRACBITS;
 	
-	framecount++;
 	validcount++;
 }
 

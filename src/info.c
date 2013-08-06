@@ -31,6 +31,18 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Dynamic Information Tables
 
+#include "info.h"
+#include "z_zone.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "v_video.h"
+#include "g_state.h"
+#include "w_wad.h"
+#include "dstrings.h"
+#include "d_rmod.h"
+#include "r_draw.h"
+#include "console.h"
+
 // Data.
 //#include "doomdef.h"
 //#include "sounds.h"
@@ -2089,7 +2101,7 @@ void PI_ExecuteDEH(void)
 	if (!Entry)
 	{
 		CONL_OutputUT(CT_REMOODAT, DSTR_INFOC_DEHNOSPRMAP, "\n");
-		return false;
+		return;
 	}
 	
 	// Make stream

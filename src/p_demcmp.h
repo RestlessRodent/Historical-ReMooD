@@ -297,6 +297,12 @@ typedef enum P_XGSBitID_e
 
 /*** STRUCTURES ***/
 
+/* Define CONL_VarPossibleValue_t */
+#if !defined(__REMOOD_CONLVPV_DEFINED)
+	typedef struct CONL_VarPossibleValue_s CONL_VarPossibleValue_t;
+	#define __REMOOD_CONLVPV_DEFINED
+#endif
+
 /* P_XGSVariable_t -- Variable for game setting */
 typedef struct P_XGSVariable_s
 {

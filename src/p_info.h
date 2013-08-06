@@ -32,12 +32,21 @@
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
 
-//#include "m_fixed.h"
-//#include "w_wad.h"
-
 /**************************
 *** NEW LEVEL INFO CODE ***
 **************************/
+
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
+
+/* Define WL_WADFile_t */
+#if !defined(__REMOOD_WLWADFILE_DEFINED)
+	typedef struct WL_WADFile_s WL_WADFile_t;
+	#define __REMOOD_WLWADFILE_DEFINED
+#endif
 
 /*** CONSTANTS ***/
 
