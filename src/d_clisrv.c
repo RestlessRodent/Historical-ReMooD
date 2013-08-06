@@ -55,8 +55,6 @@
 //   firstticstosend is used to optimize a condition
 // normaly maketic>=gametic>0,
 
-bool_t server = false;			// true or false but !server=client
-
 // server specific vars
 static tic_t firstticstosend;	// min of the nettics
 static tic_t tictoclear = 0;	// optimize d_clearticcmd

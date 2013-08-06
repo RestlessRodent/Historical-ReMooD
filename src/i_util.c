@@ -276,7 +276,6 @@ const char* const c_KeyNames[NUMIKEYBOARDKEYS][2] =
 **************/
 
 uint8_t graphics_started = 0;
-bool_t allow_fullscreen = false;
 
 /* My stuff */
 static bool_t l_MouseOK = false;				// OK to use the mouse code?
@@ -623,11 +622,6 @@ void I_StartupMouse2(void)
 	}
 }
 
-/* I_UpdateJoysticks() -- Updates joysticks */
-void I_UpdateJoysticks(void)
-{
-}
-
 /* I_InitJoystick() -- Initialize the joystick */
 void I_InitJoystick(void)
 {
@@ -707,14 +701,6 @@ void I_InitJoystick(void)
 uint8_t I_NumJoysticks(void)
 {
 	return l_NumJoys;
-}
-
-/* I_BaseTiccmd() -- Obtain driver based tic command */
-ticcmd_t* I_BaseTiccmd(void)
-{
-	static ticcmd_t emptycmd;
-	
-	return &emptycmd;
 }
 
 /* VID_NumModes() -- Returns the number of video modes */

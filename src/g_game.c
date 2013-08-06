@@ -87,22 +87,12 @@ void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);
 
-// demoversion the 'dynamic' version number, this should be == game VERSION
-// when playing back demos, 'demoversion' receives the version number of the
-// demo. At each change to the game play, demoversion is compared to
-// the game version, if it's older, the changes are not done, and the older
-// code is used for compatibility.
-//
-uint8_t demoversion = VERSION;
-
 uint8_t gameepisode;
 uint8_t gamemap;
 char gamemapname[GAMEMAPNAMESIZE];	// an external wad filename
 
 gamemode_t gamemode = indetermined;	// Game Mode - identify IWAD as shareware, retail etc.
 gamemission_t gamemission = doom;
-bool_t raven = false;
-language_t language = english;	// Language.
 bool_t modifiedgame;			// Set if homebrew PWAD stuff has been added.
 
 bool_t paused;
@@ -136,8 +126,6 @@ uint8_t* demo_p;
 uint8_t* demoend;
 bool_t singledemo;				// quit after playing a demo from cmdline
 
-bool_t precache = false;		// if true, load all graphics at start
-
 wbstartstruct_t wminfo;			// parms for world map / intermission
 
 uint8_t* savebuffer;
@@ -150,36 +138,6 @@ mobj_t* bodyque[BODYQUESIZE];
 int bodyqueslot;
 
 void* statcopy;					// for statistics driver
-
-void ShowMessage_OnChange(void)
-{
-#if 0
-	if (!cv_showmessages.value)
-		CONL_PrintF("%s\n", MSGOFF);
-	else
-		CONL_PrintF("%s\n", MSGON);
-#endif
-}
-
-//  Build an original game map name from episode and map number,
-//  based on the game mode (doom1, doom2...)
-//
-char* G_BuildMapName(int episode, int map)
-{
-	static char mapname[9];		// internal map name (wad resource name)
-	
-	if (gamemode == commercial)
-		strcpy(mapname, va("MAP%#02d", map));
-	else
-	{
-		mapname[0] = 'E';
-		mapname[1] = '0' + episode;
-		mapname[2] = 'M';
-		mapname[3] = '0' + map;
-		mapname[4] = 0;
-	}
-	return mapname;
-}
 
 //
 //  Clip the console player mouse aiming to the current view,

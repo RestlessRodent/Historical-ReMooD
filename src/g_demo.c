@@ -2590,10 +2590,6 @@ G_CurrentDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* cons
 	return New;
 }
 
-void G_RecordDemo(char* name)
-{
-}
-
 /* G_StopDemoRecord() -- Stops recording demo */
 void G_StopDemoRecord(void)
 {
@@ -2831,10 +2827,6 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 		G_EncodeSaveGame();
 }
 
-void G_TimeDemo(char* name)
-{
-}
-
 /* G_DeferedPlayDemo() -- Defers playing back demo */
 void G_DeferedPlayDemo(char* name)
 {
@@ -2998,12 +2990,6 @@ void G_DemoPostGTicker(void)
 		if (l_RecDemo)
 			if (l_RecDemo->Factory->PostGTickCmdFunc)
 				l_RecDemo->Factory->PostGTickCmdFunc(l_RecDemo);
-}
-
-/* G_GetDemoHostID() -- Returns demo's host ID */
-uint32_t G_GetDemoHostID(void)
-{
-	return l_DemoHostID;
 }
 
 /* G_DemoProblem() -- Problem with demo! Uh oh! */

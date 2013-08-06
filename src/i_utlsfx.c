@@ -2411,40 +2411,4 @@ void I_SoundLockThread(const bool_t a_Lock)
 		l_CurSoundDriver->LockThread(l_CurSoundDriver, a_Lock);
 }
 
-/*******************
-*** CD-ROM MUSIC ***
-*******************/
-
-void I_StopCD(void)
-{
-}
-
-void I_PauseCD(void)
-{
-}
-
-void I_ResumeCD(void)
-{
-}
-
-void I_ShutdownCD(void)
-{
-}
-
-void I_InitCD(void)
-{
-}
-
-void I_UpdateCD(void)
-{
-}
-
-void I_PlayCD(int track, bool_t looping)
-{
-}
-
-int I_SetVolumeCD(int volume)
-{
-	return 0;
-}
 

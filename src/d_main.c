@@ -106,8 +106,6 @@ bool_t singletics = false;		// timedemo
 bool_t nomusic;
 bool_t nosound;
 bool_t digmusic;				// OGG/MP3 Music SSNTails 12-13-2002
-bool_t newnet_use = false;
-bool_t newnet_solo = false;
 
 bool_t advancedemo;
 
@@ -128,9 +126,6 @@ static int l_FPSRealTics = 0;
 static int l_FPSGameTicRatio = 0;
 static int l_FPSTrueFPS = 0;
 static int l_FPSRanFPS = 0;
-
-
-bool_t shiftdown = false;
 
 //
 // D_ProcessEvents
@@ -758,31 +753,6 @@ void D_PageDrawer(const char* const a_LumpName)
 	V_ImageUsage(Image, true);
 	V_ImageDraw(0, Image, 0, 0, NULL);
 	V_ImageUsage(Image, false);
-}
-
-/* D_WFJWDrawer() -- Waiting for join window */
-void D_WFJWDrawer(void)
-{
-#define BUFSIZE 32
-	char Buf[BUFSIZE];
-	static V_Image_t* BGImage;
-	int32_t i, y, ya, sw;
-	
-	/* Draw a nice picture */
-	// Load it first
-	if (!BGImage)
-		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
-	
-	// Draw it
-	V_ImageDraw(0, BGImage, 0, 0, NULL);
-	
-	/* Draw Text */
-	// Notice
-	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFJW_TITLE), 10, 10);
-	
-	/* Draw Mouse */
-	CONL_DrawMouse();
-#undef BUFSIZE
 }
 
 //
