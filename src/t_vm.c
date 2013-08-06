@@ -33,9 +33,10 @@
 *** INCLUDES ***
 ***************/
 
-//#include "t_vm.h"
-//#include "dstrings.h"
-//#include "console.h"
+#include "t_vm.h"
+#include "dstrings.h"
+#include "console.h"
+#include "z_zone.h"
 
 /****************
 *** CONSTANTS ***

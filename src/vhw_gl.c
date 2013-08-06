@@ -39,11 +39,12 @@
 
 #include <GL/gl.h>
 
-//#include "vhw_wrap.h"
-//#include "vhw_locl.h"
-//#include "console.h"
-//#include "dstrings.h"
-//#include "screen.h"
+#include "vhw_wrap.h"
+#include "vhw_locl.h"
+#include "console.h"
+#include "dstrings.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 /*****************
 *** STRUCTURES ***

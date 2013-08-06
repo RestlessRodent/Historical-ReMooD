@@ -44,10 +44,7 @@
 // delayed scripts, running scripts, console cmds etc in here
 // the interface between FraggleScript and the rest of the game
 
-#include "doomstat.h"
 
-//#include "c_net.h"
-//#include "c_runcmd.h"
 #include "g_game.h"
 #include "r_state.h"
 #include "p_info.h"

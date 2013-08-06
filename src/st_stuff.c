@@ -34,6 +34,21 @@
 //      Does the face/direction indicator animatin.
 //      Does palette indicators as well (red pain/berserk, bright pickup)
 
+#include "st_stuff.h"
+#include "screen.h"
+#include "d_player.h"
+#include "g_state.h"
+#include "d_netcmd.h"
+#include "v_video.h"
+#include "d_prof.h"
+#include "info.h"
+#include "p_demcmp.h"
+#include "p_mobj.h"
+#include "r_state.h"
+#include "m_bbox.h"
+#include "st_doom.h"
+#include "sn.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "m_cheat.h"

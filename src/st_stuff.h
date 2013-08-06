@@ -44,7 +44,11 @@
 	typedef struct D_Prof_s D_Prof_t;
 #endif
 
-//#include "d_player.h"
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
 
 extern int ST_Y;
 extern int st_x;

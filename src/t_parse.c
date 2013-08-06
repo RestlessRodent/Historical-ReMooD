@@ -48,8 +48,6 @@
 
 
 #include "doomtype.h"
-#include "doomdef.h"
-#include "doomstat.h"
 #include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"

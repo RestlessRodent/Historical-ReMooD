@@ -41,6 +41,12 @@
 #include "doomtype.h"
 //#include "v_video.h"
 
+/* Define V_Image_t */
+#if !defined(__REMOOD_VIMAGET_DEFINED)
+	typedef struct V_Image_s V_Image_t;
+	#define __REMOOD_VIMAGET_DEFINED
+#endif
+
 /****************
 *** CONSTANTS ***
 ****************/

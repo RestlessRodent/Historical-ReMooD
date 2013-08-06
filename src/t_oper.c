@@ -47,7 +47,6 @@
 /* includes ************************/
 
 
-#include "doomstat.h"
 #include "doomtype.h"
 #include "z_zone.h"
 

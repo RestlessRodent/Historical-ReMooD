@@ -30,17 +30,19 @@
 // DESCRIPTION:
 //      Handles WAD file header, directory, lump I/O.
 
-//#include "doomdef.h"
 #include "doomtype.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
+#include "w_wad.h"
+#include "z_zone.h"
+#include "i_system.h"
+#include "md5.h"
+#include "console.h"
+#include "i_util.h"
+#include "dstrings.h"
+
+//#include "doomdef.h"
 //#include "i_video.h"
 //#include "r_defs.h"
-//#include "i_system.h"
-//#include "md5.h"
 //#include "v_video.h"
-//#include "console.h"
-//#include "i_util.h"
 //#include "d_main.h"
 
 // WAD DATA
