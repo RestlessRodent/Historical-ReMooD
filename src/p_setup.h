@@ -34,6 +34,16 @@
 #ifndef __P_SETUP__
 #define __P_SETUP__
 
+#include "g_state.h"
+#include "p_info.h"
+#include "r_defs.h"
+
+/* Define mapthing_t */
+#if !defined(__REMOOD_MAPTHINGT_DEFINED)
+	typedef struct mapthing_s mapthing_t;
+	#define __REMOOD_MAPTHINGT_DEFINED
+#endif
+
 //#include "doomdata.h"
 //#include "r_defs.h"
 
@@ -43,24 +53,6 @@
 
 extern int lastloadedmaplumpnum;	// for comparative savegame
 
-//
-// MAP used flats lookup table
-//
-typedef struct
-{
-	char name[8];				// resource name from wad
-	int lumpnum;				// lump number of the flat
-	
-	// for flat animation
-	int baselumpnum;
-	int animseq;				// start pos. in the anim sequence
-	int numpics;
-	int speed;
-} levelflat_t;
-
-extern int numlevelflats;
-extern levelflat_t* levelflats;
-int P_AddLevelFlat(char* flatname, levelflat_t* levelflat);
 char* P_FlatNameForNum(int num);
 
 extern int nummapthings;

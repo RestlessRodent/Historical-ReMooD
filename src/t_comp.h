@@ -34,9 +34,9 @@
 ***************/
 
 #include "doomtype.h"
-//#include "doomdef.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
+#include "doomdef.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 /**********************
 *** UPPER CONSTANTS ***

@@ -60,6 +60,8 @@
 
 //#include "screen.h"
 
+#define NF_SUBSECTOR    0x8000
+
 // Silhouette, needed for clipping Segs (mainly)
 // and sprites representing things.
 #define SIL_NONE                0

@@ -34,6 +34,8 @@
 #ifndef __P_LOCAL__
 #define __P_LOCAL__
 
+#include "r_defs.h"
+
 /* Define thinker_t */
 #if !defined(__REMOOD_THINKERT_DEFINED)
 	typedef struct thinker_s thinker_t;
@@ -81,6 +83,18 @@
 #if !defined(__REMOOD_PIWEPIDT_DEFINED)
 	typedef int32_t PI_wepid_t;
 	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
 #endif
 
 //#include "d_player.h"

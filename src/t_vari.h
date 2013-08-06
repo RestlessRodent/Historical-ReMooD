@@ -48,9 +48,9 @@ typedef struct svariable_s svariable_t;
 
 #define VARIABLESLOTS 16
 
-//#include "t_parse.h"
-//#include "p_mobj.h"
-//#include "m_fixed.h"
+#include "t_parse.h"
+#include "p_mobj.h"
+#include "m_fixed.h"
 
 // hash the variables for speed: this is the hashkey
 

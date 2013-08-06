@@ -33,6 +33,23 @@
 //      Do all the WAD I/O, get map description,
 //             set up initial state and misc. LUTs.
 
+#include "p_setup.h"
+#include "r_defs.h"
+#include "z_zone.h"
+#include "r_state.h"
+#include "p_demcmp.h"
+#include "t_func.h"
+#include "t_script.h"
+#include "t_comp.h"
+#include "m_bbox.h"
+#include "r_sky.h"
+#include "d_netcmd.h"
+#include "p_spec.h"
+#include "r_data.h"
+#include "s_sound.h"
+#include "screen.h"	// for skycolfunc
+#include "t_vm.h"
+
 //#include "doomdef.h"
 //#include "c_lib.h"
 //#include "d_main.h"
@@ -54,12 +71,9 @@
 //#include "z_zone.h"
 //#include "r_splats.h"
 //#include "p_info.h"
-//#include "t_func.h"
-//#include "t_script.h"
 
 //#include "hu_stuff.h"
 //#include "console.h"
-//#include "t_comp.h"
 
 #ifdef _WIN32
 //#include "malloc.h"
@@ -332,7 +346,7 @@ bool_t P_ExClearLevel(void)
 	g_LFPRover = &thinkercap;
 	
 	// Cheats
-	g_CheatFlags = 0;
+	//g_CheatFlags = 0;
 	
 	/* Scripting */
 	TVM_Clear(TVMNS_LEVEL);

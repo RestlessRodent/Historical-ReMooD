@@ -44,8 +44,8 @@
 #ifndef __PARSE_H__
 #define __PARSE_H__
 
-//#include "p_mobj.h"				// for mobj_t
-//#include "m_fixed.h"
+#include "p_mobj.h"				// for mobj_t
+#include "m_fixed.h"
 
 #define T_MAXTOKENS 128
 #define TOKENLENGTH 128
@@ -79,8 +79,8 @@ struct svalue_s
 
 char* stringvalue(svalue_t v);
 
-//#include "t_vari.h"
-//#include "t_prepro.h"
+#include "t_vari.h"
+#include "t_prepro.h"
 
 #define MAXSCRIPTS 256
 

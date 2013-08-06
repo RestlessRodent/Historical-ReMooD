@@ -35,6 +35,17 @@
 //      Weapon sprite animation, weapon objects.
 //      Action functions for weapons.
 
+#include "doomtype.h"
+#include "info.h"
+#include "p_mobj.h"
+#include "d_player.h"
+#include "p_local.h"
+#include "p_maputl.h"
+#include "s_sound.h"
+#include "p_demcmp.h"
+#include "tables.h"
+#include "g_state.h"
+
 //#include "doomdef.h"
 
 //#include "p_local.h"

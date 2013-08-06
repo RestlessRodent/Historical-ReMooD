@@ -33,7 +33,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "t_vm.h"
+#include "t_vm.h"
 
 /****************
 *** FUNCTIONS ***

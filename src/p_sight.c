@@ -32,6 +32,11 @@
 // DESCRIPTION:
 //      LineOfSight/Visibility checks, uses REJECT Lookup Table.
 
+#include "p_local.h"
+#include "r_main.h"
+#include "p_mobj.h"
+#include "p_maputl.h"
+
 //#include "doomdef.h"
 //#include "doomstat.h"
 //#include "p_local.h"

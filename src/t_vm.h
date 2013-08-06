@@ -37,7 +37,7 @@
 ***************/
 
 #include "doomtype.h"
-//#include "w_wad.h"
+#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***

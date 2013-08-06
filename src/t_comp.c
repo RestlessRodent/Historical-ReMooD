@@ -33,8 +33,8 @@
 *** INCLUDES ***
 ***************/
 
-//#include "t_comp.h"
-//#include "console.h"
+#include "t_comp.h"
+#include "console.h"
 
 /****************
 *** CONSTANTS ***

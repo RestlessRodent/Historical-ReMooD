@@ -36,6 +36,21 @@
 //       utility functions, etc.
 //      Line Tag handling. Line and Sector triggers.
 
+#include "p_spec.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "p_demcmp.h"
+#include "info.h"
+#include "z_zone.h"
+#include "dstrings.h"
+#include "console.h"
+#include "w_wad.h"
+#include "d_netcmd.h"
+#include "s_sound.h"
+#include "m_bbox.h"
+#include "p_local.h"
+#include "p_maputl.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "p_local.h"
@@ -1572,8 +1587,6 @@ void P_UpdateSpecials(void)
 	int i;
 	int pic;					//SoM: 3/8/2000
 	tic_t TimeLimit, TimeLeft;
-	
-	levelflat_t* foundflats;	// for flat animation
 	
 	/* Check time limit */
 	TimeLimit = (((tic_t)P_XGSVal(PGS_GAMETIMELIMIT)) * (TICRATE * 60));

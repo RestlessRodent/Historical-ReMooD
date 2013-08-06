@@ -32,6 +32,14 @@
 // DESCRIPTION:
 //      Plats (i.e. elevator platforms) code, raising/lowering.
 
+#include "doomtype.h"
+#include "p_local.h"
+#include "d_think.h"
+#include "p_spec.h"
+#include "z_zone.h"
+#include "p_demcmp.h"
+#include "s_sound.h"
+
 //#include "doomdef.h"
 //#include "doomstat.h"
 //#include "p_local.h"

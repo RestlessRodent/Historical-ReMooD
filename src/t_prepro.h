@@ -54,7 +54,7 @@ typedef struct label_s label_t;
 #define SECTIONSLOTS 17
 #define LABELSLOTS 17
 
-//#include "t_parse.h"
+#include "t_parse.h"
 
 void preprocess(script_t* script);
 

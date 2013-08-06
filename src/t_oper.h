@@ -44,7 +44,7 @@
 #ifndef __OPERATOR_H__
 #define __OPERATOR_H__
 
-//#include "t_parse.h"
+#include "t_parse.h"
 
 extern operator_t operators[];
 extern int num_operators;

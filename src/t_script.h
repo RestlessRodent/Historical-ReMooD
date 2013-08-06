@@ -46,10 +46,10 @@
 
 typedef struct runningscript_s runningscript_t;
 
-//#include "p_mobj.h"
-//#include "t_parse.h"
+#include "p_mobj.h"
+#include "t_parse.h"
 
-//#include "console.h"
+#include "console.h"
 
 struct runningscript_s
 {

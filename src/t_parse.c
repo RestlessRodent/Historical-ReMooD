@@ -48,19 +48,19 @@
 
 
 #include "doomtype.h"
-//#include "doomdef.h"
-//#include "doomstat.h"
-//#include "s_sound.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
+#include "doomdef.h"
+#include "doomstat.h"
+#include "s_sound.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
-//#include "t_parse.h"
-//#include "t_prepro.h"
-//#include "t_spec.h"
-//#include "t_oper.h"
-//#include "t_vari.h"
-//#include "t_func.h"
-//#include "console.h"
+#include "t_parse.h"
+#include "t_prepro.h"
+#include "t_spec.h"
+#include "t_oper.h"
+#include "t_vari.h"
+#include "t_func.h"
+#include "console.h"
 
 void parse_script();
 void parse_data(char* data, char* end);

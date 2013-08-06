@@ -35,7 +35,7 @@
 ***************/
 
 #include "doomtype.h"
-//#include "t_dsvm.h"
+#include "t_dsvm.h"
 
 /****************
 *** FUNCTIONS ***
