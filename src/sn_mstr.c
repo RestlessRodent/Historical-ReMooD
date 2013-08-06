@@ -35,8 +35,7 @@
 *** INCLUDES ***
 ***************/
 
-#include "d_net.h"
-#include "d_netmst.h"
+#include "sn.h"
 #include "doomstat.h"
 
 /****************

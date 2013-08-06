@@ -78,7 +78,7 @@
 #include "g_game.h"
 #include "d_netcmd.h"
 #include "m_menu.h"
-#include "d_net.h"
+#include "sn.h"
 
 /****************
 *** CONSTANTS ***

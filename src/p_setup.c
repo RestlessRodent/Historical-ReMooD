@@ -66,7 +66,7 @@
 #include "math.h"
 #endif
 
-#include "d_net.h"
+#include "sn.h"
 
 
 #include "p_demcmp.h"

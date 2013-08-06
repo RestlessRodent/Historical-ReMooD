@@ -39,7 +39,7 @@
 
 #include "d_ticcmd.h"
 #include "i_util.h"
-#include "d_net.h"
+#include "sn.h"
 
 // add game commands, needs cleanup
 void D_RegisterClientCommands(void);

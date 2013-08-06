@@ -38,7 +38,7 @@
 #include "p_local.h"
 #include "z_zone.h"
 #include "t_script.h"
-#include "d_net.h"
+#include "sn.h"
 
 tic_t leveltime;
 

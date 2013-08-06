@@ -37,7 +37,7 @@
 #include "doomdef.h"
 #include "console.h"
 #include "doomstat.h"
-#include "d_net.h"
+#include "sn.h"
 #include "d_netcmd.h"
 #include "dstrings.h"
 #include "f_wipe.h"

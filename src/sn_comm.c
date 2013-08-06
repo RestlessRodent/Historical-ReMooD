@@ -33,7 +33,7 @@
 *** INCLUDES ***
 ***************/
 
-#include "d_net.h"
+#include "sn.h"
 #include "i_util.h"
 #include "doomstat.h"
 #include "d_main.h"

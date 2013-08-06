@@ -39,7 +39,7 @@
 #include "console.h"
 #include "dstrings.h"
 #include "d_main.h"
-#include "d_net.h"
+#include "sn.h"
 #include "d_netcmd.h"
 #include "f_finale.h"
 #include "p_setup.h"

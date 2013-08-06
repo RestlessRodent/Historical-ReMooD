@@ -51,7 +51,7 @@
 #include "p_demcmp.h"
 #include "m_menu.h"
 #include "b_bot.h"
-#include "d_net.h"
+#include "sn.h"
 #include "d_netcmd.h"
 #include "r_main.h"
 #include "r_sky.h"

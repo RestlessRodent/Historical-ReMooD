@@ -35,7 +35,7 @@
 *** INCLUDES ***
 ***************/
 
-#include "d_net.h"
+#include "sn.h"
 #include "dstrings.h"
 #include "v_video.h"
 #include "console.h"

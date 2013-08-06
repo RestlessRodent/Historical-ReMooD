@@ -37,7 +37,7 @@
 ***************/
 
 #include "doomtype.h"
-#include "d_net.h"
+#include "sn.h"
 #include "w_wad.h"
 
 /****************

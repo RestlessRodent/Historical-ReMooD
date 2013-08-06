@@ -291,6 +291,8 @@ void SN_FileLoop(void);
 
 /*** MASTER SERVER INTERFACE ***/
 
+bool_t I_BootHTTPSpy(void);
+void I_UpdateHTTPSpy(void);
 void SN_OpenMCast(void);
 void SN_DoMultiCast(void);
 void SN_UpdateServers(void);

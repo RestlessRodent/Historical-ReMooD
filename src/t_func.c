@@ -84,7 +84,7 @@
 #include "t_vari.h"
 #include "t_func.h"
 
-#include "d_net.h"
+#include "sn.h"
 
 #include "p_demcmp.h"
 

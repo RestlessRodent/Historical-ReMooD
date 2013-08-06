@@ -57,7 +57,7 @@
 #include "p_local.h"
 #include "t_script.h"
 
-#include "d_net.h"
+#include "sn.h"
 #include "p_inter.h"
 #include "d_prof.h"
 
