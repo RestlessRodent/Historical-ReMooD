@@ -34,6 +34,16 @@
 //      like console commands
 //      other miscellaneous commands (at the end)
 
+#include "doomtype.h"
+#include "d_ticcmd.h"
+#include "d_netcmd.h"
+#include "g_state.h"
+#include "sn.h"
+#include "d_player.h"
+#include "d_prof.h"
+
+#include "info.h"	// TODO FIXME: Only used by D_TicCmdFillWeapon()
+
 //#include "doomdef.h"
 //#include "doomstat.h"
 
@@ -72,13 +82,6 @@
 *****************************/
 
 /*** CONSTANTS ***/
-
-static const fixed_t c_forwardmove[2] = { 25, 50 };
-static const fixed_t c_sidemove[2] = { 24, 40 };
-static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
-#define MAXPLMOVE       (c_forwardmove[1])
-
-#define MAXLOCALJOYS	MAXJOYSTICKS
 
 const int32_t c_TCDataSize[NUMDTCT] =
 {

@@ -68,6 +68,12 @@ void Command_ExitGame_f(void);
 	#define __REMOOD_TICCMDT_DEFINED
 #endif
 
+/* Define SN_Port_t */
+#if !defined(__REMOOD_SNPORT_DEFINED)
+	typedef struct SN_Port_s SN_Port_t;
+	#define __REMOOD_SNPORT_DEFINED
+#endif
+
 /* D_SplitInfo_t -- Split Screen Info */
 typedef struct D_SplitInfo_s
 {
@@ -78,7 +84,7 @@ typedef struct D_SplitInfo_s
 	uint32_t ProcessID;							// Local Processing ID
 	D_Prof_t* Profile;							// Player Profile
 	
-	struct SN_Port_s* Port;					// Control Port
+	SN_Port_t* Port;							// Control Port
 	bool_t DoNotSteal;							// Do not steal port
 	tic_t PortTimeOut;							// Timeout for port
 	

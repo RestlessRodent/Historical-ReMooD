@@ -36,9 +36,9 @@
 #ifndef __INFO__
 #define __INFO__
 
-// Needed for action function pointer handling.
-//#include "d_think.h"
 #include "doomtype.h"
+#include "d_think.h"
+
 //#include "d_rmod.h"
 //#include "z_zone.h"
 
