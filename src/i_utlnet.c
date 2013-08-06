@@ -85,7 +85,7 @@
 	#include <wspiapi.h>
 	
 	#define __REMOOD_DONTWAITMSG 0
-
+	
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKNETLIB
 
 #else
@@ -118,6 +118,27 @@
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* inet_pton() -- Windows only has this on vista+ */
+#if defined(_WIN32) || defined(_WIN64)
+#if !defined(_WIN32_WINNT) || (defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600)
+int inet_pton(int af, const char *src, void *dst)
+{
+	INT Len;
+	
+	if (af == AF_INET)
+		Len = sizeof(struct sockaddr_in);
+#if defined(__REMOOD_ENABLEIPV6)
+	else (af == AF_INET6)
+		Len = sizeof(struct sockaddr_in6);
+#endif
+	else
+		return 0;
+	
+	return WSAStringToAddressA(src, af, NULL, dst, 
+}
+#endif
+#endif
 
 /*** COMMUNICATION ***/
 
@@ -703,7 +724,7 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 #endif
 	
 	/* Attempt socket creation */
-#if defined(__REMOOD_ENABLEIPV6)
+#if defined(__REMOOD_ENABLEIPV6) && !defined(__REMOOD_NOIPV6MULTICAST)
 	if (a_IPv6)
 		SockFD = socket(AF_INET6, (SOCK_DGRAM), 0);
 	else
@@ -715,7 +736,7 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 		return NULL;
 	
 	/* Set IPv6 socket to IPv6 only */
-#if defined(__REMOOD_ENABLEIPV6)
+#if defined(__REMOOD_ENABLEIPV6) && !defined(__REMOOD_NOIPV6MULTICAST)
 	if (a_IPv6)
 	{
 #if defined(IPV6_V6ONLY)
@@ -730,7 +751,7 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 	setsockopt(SockFD, SOL_SOCKET, SO_REUSEADDR, (void*)&SockOpt, sizeof(SockOpt));
 	
 	/* Bind to any address for a single port */
-#if defined(__REMOOD_ENABLEIPV6)
+#if defined(__REMOOD_ENABLEIPV6) && !defined(__REMOOD_NOIPV6MULTICAST)
 	if (a_IPv6)
 	{
 		// Set Any (all zeroes)
@@ -778,7 +799,7 @@ I_NetSocket_t* I_NetOpenMultiCastSocket(const bool_t a_IPv6, const uint16_t a_Po
 
 	/* Join multi-cast group */
 	GrpRet = -1;
-#if defined(__REMOOD_ENABLEIPV6)
+#if defined(__REMOOD_ENABLEIPV6) && !defined(__REMOOD_NOIPV6MULTICAST)
 	if (a_IPv6)
 	{
 		memset(&MCGroupF, 0, sizeof(MCGroupF));
