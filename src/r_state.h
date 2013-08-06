@@ -34,6 +34,8 @@
 #ifndef __R_STATE__
 #define __R_STATE__
 
+#include "tables.h"
+
 // Need data structure definitions.
 //#include "d_player.h"
 //#include "r_data.h"

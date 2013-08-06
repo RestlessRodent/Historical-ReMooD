@@ -153,8 +153,11 @@ void Z_ResizeArrayWrappee(void** const PtrPtr, const size_t ElemSize, const size
 
 /*** Hash Utility ***/
 
-/* Structures */
-typedef struct Z_HashTable_s Z_HashTable_t;
+/* Define Z_HashTable_t */
+#if !defined(__REMOOD_ZHT_DEFINED)
+	typedef struct Z_HashTable_s Z_HashTable_t;
+	#define __REMOOD_ZHT_DEFINED
+#endif
 
 /* Prototypes */
 uint32_t Z_Hash(const char* const a_Str);

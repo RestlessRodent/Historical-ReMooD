@@ -92,26 +92,6 @@ typedef enum
 	tr_transfx1 = VEX_TRANSFX1,	// 50 50 brighter some colors, else opaque for torches
 } transnum_t;
 
-//
-// Overlay psprites are scaled shapes
-// drawn directly on the view screen,
-// coordinates are given for a 320*200 view screen.
-//
-typedef enum
-{
-	ps_weapon,
-	ps_flash,
-	NUMPSPRITES
-} psprnum_t;
-
-typedef struct
-{
-	PI_state_t* state;				// a NULL state means not active
-	int32_t tics;
-	fixed_t sx;
-	fixed_t sy;
-} pspdef_t;
-
 void P_OpenWeapons(void);
 void P_CloseWeapons(void);
 

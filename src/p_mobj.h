@@ -347,13 +347,35 @@ typedef enum P_MobjRefType_e
 	NUMPMOBJREFTYPES
 } P_MobjRefType_t;
 
-struct mobj_s;
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
+#endif
+
+/* Define PI_state_t */
+#if !defined(__REMOOD_PISTATE_DEFINED)
+	typedef struct PI_state_s PI_state_t;
+	#define __REMOOD_PISTATE_DEFINED
+#endif
+
+/* Define mapthing_t */
+#if !defined(__REMOOD_MAPTHINGT_DEFINED)
+	typedef struct mapthing_s mapthing_t;
+	#define __REMOOD_MAPTHINGT_DEFINED
+#endif
 
 /* P_MobjRefLog_t -- Map object reference log */
 typedef struct P_MobjRefLog_s
 {
-	struct mobj_s* Source;
-	struct mobj_s* Ref;
+	mobj_t* Source;
+	mobj_t* Ref;
 	bool_t IsSource;
 	char* File;
 	int Line;
@@ -401,8 +423,32 @@ typedef struct KidList_s
 	struct KidList_s* Next;
 } KidList_t;
 
+/* mapthing_t -- Map Thing */
+struct mapthing_s
+{
+	int16_t x;
+	int16_t y;
+	int16_t z;					// Z support for objects SSNTails 07-24-2002
+	int16_t angle;
+	uint32_t type;
+	uint32_t options;
+	
+	mobj_t* mobj;
+	
+	// Hexen Stuff
+	bool_t IsHexen;								// Hexen Defined
+	int16_t HeightOffset;						// Height offset
+	uint16_t ID;								// Hexen Thing ID
+	uint8_t Special;							// Hexen Special
+	uint8_t Args[5];							// Hexen arguments
+	
+	// Other Stuff
+	PI_mobjid_t MoType;							// Type of spawned object
+	bool_t MarkedWeapon;						// Marked as a weapon to respawn
+};
+
 /* mobj_t -- Map Object definition */
-typedef struct mobj_s
+struct mobj_s
 {
 	// List: thinker links.
 	thinker_t thinker;
@@ -415,8 +461,8 @@ typedef struct mobj_s
 	fixed_t z;
 	
 	// More list: links in sector (if needed)
-	struct mobj_s* snext;
-	struct mobj_s* sprev;
+	mobj_t* snext;
+	mobj_t* sprev;
 	
 	//More drawing info: to determine current sprite.
 	angle_t angle;				// orientation
@@ -436,8 +482,8 @@ typedef struct mobj_s
 	
 	// Interaction info, by BLOCKMAP.
 	// Links in blocks (if needed).
-	struct mobj_s* bnext;
-	struct mobj_s* bprev;
+	mobj_t* bnext;
+	mobj_t* bprev;
 	
 	struct subsector_s* subsector;
 	
@@ -480,7 +526,7 @@ typedef struct mobj_s
 	
 	// Thing being chased/attacked (or NULL),
 	// also the originator for missiles.
-	struct mobj_s* target;
+	mobj_t* target;
 	
 	// Reaction time: if non 0, don't attack yet.
 	// Used by player to freeze a bit after teleporting.
@@ -491,7 +537,7 @@ typedef struct mobj_s
 	int32_t threshold;
 	
 	// Additional info record for player avatars only.
-	struct player_s* player;
+	player_t* player;
 	
 	// Player number last looked for.
 	int lastlook;
@@ -500,7 +546,7 @@ typedef struct mobj_s
 	mapthing_t* spawnpoint;
 	
 	// Thing being chased/attacked for tracers.
-	struct mobj_s* tracer;
+	mobj_t* tracer;
 	
 	//SoM: Friction.
 	int32_t friction;
@@ -523,7 +569,7 @@ typedef struct mobj_s
 	
 	// Reference Counts
 	int32_t RefCount[NUMPMOBJREFTYPES];			// Objects referencing this object
-	struct mobj_s** RefList[NUMPMOBJREFTYPES];	// Reference List
+	mobj_t** RefList[NUMPMOBJREFTYPES];	// Reference List
 	size_t RefListSz[NUMPMOBJREFTYPES];			// Size of reference list
 
 #if defined(_DEBUG)
@@ -539,14 +585,14 @@ typedef struct mobj_s
 	uint32_t SpawnOrder;						// Object Spawn Order
 	
 	// GhostlyDeath <April 26, 2012> -- Improved mobj on mobj
-	struct mobj_s** MoOn[2];					// Objects on top/bottom
+	mobj_t** MoOn[2];					// Objects on top/bottom
 	size_t MoOnCount[2];						// Count of top/bottom
 	
 	// GhostlyDeath <April 29, 2012> -- Teams
 	int32_t SkinTeamColor;						// player skincolor + 1 Team
 	
 	// GhostlyDeath <June 6, 2012> -- Follow Player (Friendlies)
-	struct mobj_s* FollowPlayer;				// Following Player
+	mobj_t* FollowPlayer;				// Following Player
 	
 	// GhostlyDeath <June 12, 2012> -- Object Cleanup
 	uint32_t TimeThinking[2];					// Time spent thinking
@@ -562,8 +608,8 @@ typedef struct mobj_s
 	// GhostlyDeath <February 15, 2013> -- Team/CTF Related Stuff
 	int32_t FakeColor;							// Draw as this color
 	int8_t CTFTeam;								// Team Flag is on?
-	bool_t (*AltTouchFunc)(struct mobj_s* const a_Special, struct mobj_s* const a_Toucher);
-} mobj_t;
+	bool_t (*AltTouchFunc)(mobj_t* const a_Special, mobj_t* const a_Toucher);
+};
 
 /* Converts natural flags to/from extended flags */
 int P_MobjFlagsNaturalToExtended(mobj_t* MObj);
@@ -601,13 +647,12 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const PI_mobjid_t a_NewClass);
 
 bool_t P_MobjIsPlayer(mobj_t* const a_Mo);
 bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
-int32_t P_GetPlayerTeam(struct player_s* const a_Player);
+int32_t P_GetPlayerTeam(player_t* const a_Player);
 int32_t P_GetMobjTeam(mobj_t* const a_Mo);
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor);
 
-struct player_s;
-void P_ControlNewMonster(struct player_s* const a_Player);
+void P_ControlNewMonster(player_t* const a_Player);
 
 #endif
 

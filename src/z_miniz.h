@@ -17,7 +17,7 @@
 #endif
 
 #if !defined(__REMOOD_NOMINIZINCLUDE)
-	//#include "z_miniz.c"
+	#include "z_miniz.c"
 #endif
 
 #endif /* __MINIZ_H__ */

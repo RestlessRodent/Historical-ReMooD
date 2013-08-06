@@ -66,8 +66,14 @@ typedef union
 //  an actor.
 typedef actionf_t think_t;
 
+/* Define P_ThinkerType_t */
+#if !defined(__REMOOD_PTT_DEFINED)
+	typedef int P_ThinkerType_t;
+	#define __REMOOD_PTT_DEFINED
+#endif
+
 /* P_ThinkerType_t -- Type of thinker this is */
-typedef enum P_ThinkerType_e
+enum P_ThinkerType_e
 {
 	PTT_CAP,									// Thinker Cap
 	PTT_VERTICALDOOR,							// T_VerticalDoor/vldoor_t
@@ -88,16 +94,22 @@ typedef enum P_ThinkerType_e
 	PTT_DELETEME,								// Deletes this thing
 	
 	NUMPTHINKERTYPES
-} P_ThinkerType_t; 
+}; 
+
+/* Define thinker_t */
+#if !defined(__REMOOD_THINKERT_DEFINED)
+	typedef struct thinker_s thinker_t;
+	#define __REMOOD_THINKERT_DEFINED
+#endif
 
 // Doubly linked list of actors.
-typedef struct thinker_s
+struct thinker_s
 {
 	P_ThinkerType_t Type;
 	struct thinker_s* prev;
 	struct thinker_s* next;
 	think_t function;
-} thinker_t;
+};
 
 extern thinker_t** g_ThinkerList;				// List of thinkers
 extern size_t g_NumThinkerList;					// Thinkers in list

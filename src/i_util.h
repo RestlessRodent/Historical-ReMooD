@@ -406,7 +406,11 @@ typedef enum I_NetIPVersionNum_s
 	INIPVN_IPV6						= 6,		// IPv6 Address
 } I_NetIPVersionNum_t;
 
-typedef struct I_NetSocket_s I_NetSocket_t;		// Network socket
+/* Define I_NetSocket_t */
+#if !defined(__REMOOD_NETSOCK_DEFINED)
+	typedef struct I_NetSocket_s I_NetSocket_t;
+	#define __REMOOD_NETSOCK_DEFINED
+#endif
 
 /* I_NetSocketFlags_t -- Network socket flags */
 typedef enum I_NetSocketFlags_e
@@ -417,8 +421,14 @@ typedef enum I_NetSocketFlags_e
 	INSF_MULTICAST					= 0x0008,	// Multi-Cast
 } I_NetSocketFlags_t;
 
+/* Define I_HostAddress_t */
+#if !defined(__REMOOD_IHADDR_DEFINED)
+	typedef struct I_HostAddress_s I_HostAddress_t;
+	#define __REMOOD_IHADDR_DEFINED
+#endif
+
 /* I_HostAddress_t -- Address to a host somewhere */
-typedef struct I_HostAddress_s
+struct I_HostAddress_s
 {
 	uint8_t IPvX;								// Which IP version?
 	uint32_t Port;								// Remote port for communication
@@ -444,7 +454,7 @@ typedef struct I_HostAddress_s
 			uint32_t Scope;						// Scope
 		} v6;
 	} Host;										// IP Data
-} I_HostAddress_t;
+};
 
 /* I_LocateFileFlags_t -- Flags for I_LocateFile() */
 typedef enum I_LocateFileFlags_e

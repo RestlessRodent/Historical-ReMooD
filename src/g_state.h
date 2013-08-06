@@ -125,6 +125,44 @@ typedef enum CoreGame_e
 	NUMCOREGAMES
 } CoreGame_t;
 
+typedef enum D_ModelMode_s
+{
+	DMM_DEFAULT,								// Default PC
+	DMM_GCW,									// GCW Zero
+	DMM_WII,									// Nintendo Wii
+} D_ModelMode_t;
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* D_IWADInfoEx_t -- Extended IWAD Info */
+typedef struct D_IWADInfoEx_s
+{
+	/* Base Info */
+	const char* NiceTitle;						// Nice IWAD Title name
+	const char* NetName;						// Network Name
+	const char* ForceNames;						// Names for forcing [conf = 500]
+	const char* BaseName;						// WAD Basename [conf = 5]
+	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
+	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
+	const char* SHA1Sum;						// SHA-1 Sum of WAD [conf = 60]
+	const char* Lumps;							// Identifying lumps [conf = 1]
+	const char* BonusLumps;						// Unique Lumps [conf = 35]
+	uint32_t Size;								// Size of WAD [conf = 15]
+	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
+	
+	/* Game Info */
+	CoreGame_t CoreGame;						// Core Game
+	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
+	const char* MapInfoLump;					// Map Info Lump
+	uint32_t Flags;								// Flags for game
+	const char* MapNameFormat;					// Format of map names
+	
+	gamemission_t mission;						// Deprecated mission
+	gamemode_t mode;							// Deprecated mode
+} D_IWADInfoEx_t;
+
 /**************
 *** GLOBALS ***
 **************/
@@ -137,9 +175,6 @@ extern gamemission_t gamemission;
 
 extern G_Action_t gameaction;
 
-extern bool_t demoplayback;
-extern bool_t demorecording;
-
 extern CoreGame_t g_CoreGame;					// Core game mode
 extern const void* g_ReMooDPtr;					// Pointer to remood.wad
 extern const char* g_IWADMapInfoName;			// Name of IWAD MAPINFO
@@ -149,6 +184,32 @@ extern bool_t g_DedicatedServer;				// Dedicated Server
 
 extern tic_t gametic;
 extern tic_t g_ProgramTic;
+extern tic_t pagetic;
+extern int demosequence;
+
+extern bool_t singletics;
+
+extern bool_t demoplayback;
+extern bool_t demorecording;
+extern bool_t timingdemo;
+extern bool_t singledemo;
+extern bool_t g_TitleScreenDemo;
+
+extern D_ModelMode_t g_ModelMode;				// Model to use
+
+extern bool_t paused;			// Game Pause?
+
+extern bool_t noblit;
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+D_IWADInfoEx_t* D_GetThisIWAD(void);
+D_IWADInfoEx_t* D_GetIWADInfoByNum(const uint32_t a_Num);
+const char* D_FieldNumber(const char* const a_Str, const size_t a_Num);
+
+void D_InitModelMode(void);
 
 #endif /* __G_STATE_H__ */
 

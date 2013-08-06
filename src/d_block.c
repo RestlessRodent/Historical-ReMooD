@@ -33,22 +33,28 @@
 *** INCLUDES ***
 ***************/
 
-//#include "d_block.h"
-//#include "z_zone.h"
+#include "d_block.h"
+#include "z_zone.h"
+#include "z_miniz.h"
+#include "i_util.h"
+
+// TODO FIXME: Can probably remove these
+#include "console.h"
+#include "dstrings.h"
+
 //#include "console.h"
 //#include "i_system.h"
 //#include "m_random.h"
 //#include "m_misc.h"
 //#include "c_lib.h"
 //#include "m_argv.h"
-//#include "z_miniz.h"
 
 /******************
 *** FILE STREAM ***
 ******************/
 
 /* DS_RBSFile_DeleteF() -- Delete file stream */
-static void DS_RBSFile_DeleteF(struct D_BS_s* const a_Stream)
+static void DS_RBSFile_DeleteF(D_BS_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -63,7 +69,7 @@ static void DS_RBSFile_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSFile_RecordF() -- Records the current block */
-static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
+static size_t DS_RBSFile_RecordF(D_BS_t* const a_Stream)
 {
 	I_File_t* File;
 	uint16_t Len, USLen;
@@ -101,7 +107,7 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSFile_PlayF() -- Play from file */
-static bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
+static bool_t DS_RBSFile_PlayF(D_BS_t* const a_Stream)
 {
 #define BUFSIZE 128
 	uint8_t Buf[BUFSIZE];
@@ -174,7 +180,7 @@ static bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSFile_FlushF() -- Flushes file */
-static bool_t DS_RBSFile_FlushF(struct D_BS_s* const a_Stream)
+static bool_t DS_RBSFile_FlushF(D_BS_t* const a_Stream)
 {
 	I_File_t* File;
 	
@@ -199,7 +205,7 @@ static bool_t DS_RBSFile_FlushF(struct D_BS_s* const a_Stream)
 ******************/
 
 /* DS_RBSWL_DeleteF() -- Delete file stream */
-static void DS_RBSWL_DeleteF(struct D_BS_s* const a_Stream)
+static void DS_RBSWL_DeleteF(D_BS_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -207,14 +213,14 @@ static void DS_RBSWL_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSWL_RecordF() -- Records the current block */
-static size_t DS_RBSWL_RecordF(struct D_BS_s* const a_Stream)
+static size_t DS_RBSWL_RecordF(D_BS_t* const a_Stream)
 {
 	// Recording blocks is not supported for WL Streams (read-only!)
 	return 0;
 }
 
 /* DS_RBSWL_PlayF() -- Play from file */
-bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
+bool_t DS_RBSWL_PlayF(D_BS_t* const a_Stream)
 {
 	WL_ES_t* Stream;
 	char Header[5];
@@ -289,7 +295,7 @@ typedef struct DS_RBSLoopBackData_s
 } DS_RBSLoopBackData_t;
 
 /* DS_RBSLoopBack_DeleteF() -- Delete loopback stream */
-static void DS_RBSLoopBack_DeleteF(struct D_BS_s* const a_Stream)
+static void DS_RBSLoopBack_DeleteF(D_BS_t* const a_Stream)
 {
 	size_t i;
 	DS_RBSLoopBackData_t* LoopData;
@@ -319,7 +325,7 @@ static void DS_RBSLoopBack_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSLoopBack_NetRecordF() -- Records a block */
-size_t DS_RBSLoopBack_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+size_t DS_RBSLoopBack_NetRecordF(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	size_t i;
 	DS_RBSLoopBackData_t* LoopData;
@@ -372,7 +378,7 @@ size_t DS_RBSLoopBack_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 }
 
 /* DS_RBSLoopBack_NetPlayF() -- Backs a block back */
-bool_t DS_RBSLoopBack_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+bool_t DS_RBSLoopBack_NetPlayF(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	DS_RBSLoopBackData_t* LoopData;
 	DS_RBSLoopBackHold_t* Hold;
@@ -438,7 +444,7 @@ bool_t DS_RBSLoopBack_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 }
 
 /* DS_RBSLoopBack_FlushF() -- Flush block stream */
-bool_t DS_RBSLoopBack_FlushF(struct D_BS_s* const a_Stream)
+bool_t DS_RBSLoopBack_FlushF(D_BS_t* const a_Stream)
 {
 	DS_RBSLoopBackData_t* LoopData;
 	
@@ -482,7 +488,7 @@ typedef struct I_RBSNetSockData_s
 } I_RBSNetSockData_t;
 
 /* DS_RBSNet_DeleteF() -- Delete network stream */
-static void DS_RBSNet_DeleteF(struct D_BS_s* const a_Stream)
+static void DS_RBSNet_DeleteF(D_BS_t* const a_Stream)
 {
 	I_RBSNetSockData_t* NetData;
 	
@@ -501,7 +507,7 @@ static void DS_RBSNet_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSNet_NetRecordF() -- Write block to network */
-size_t DS_RBSNet_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+size_t DS_RBSNet_NetRecordF(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	I_RBSNetSockData_t* NetData;
 	I_NetSocket_t* Socket;
@@ -553,7 +559,7 @@ size_t DS_RBSNet_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* cons
 }
 
 /* DS_RBSNet_NetPlayF() -- Play block from the network */
-bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+bool_t DS_RBSNet_NetPlayF(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	I_RBSNetSockData_t* NetData;
 	I_NetSocket_t* Socket;
@@ -608,7 +614,7 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 }
 
 /* DS_RBSNet_IOCtlF() -- IO Ctl */
-static bool_t DS_RBSNet_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
+static bool_t DS_RBSNet_IOCtlF(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
 {
 	/* Check */
 	if (!a_DataP)
@@ -660,7 +666,7 @@ typedef struct DS_RBSPackedData_s
 } DS_RBSPackedData_t;
 
 /* DS_RBSPacked_FlushF() -- Flushes stream */
-bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
+bool_t DS_RBSPacked_FlushF(D_BS_t* const a_Stream)
 {
 #define BUFSIZE RBSPACKEDZLIBCHUNK//63
 	DS_RBSPackedData_t* PackData;
@@ -758,7 +764,7 @@ bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSPacked_NetRecordF() -- Records to stream */
-size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+size_t DS_RBSPacked_NetRecordF(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	DS_RBSPackedData_t* PackData;
 	int32_t SizeNeeded;
@@ -828,7 +834,7 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 }
 
 /* DS_RBSPacked_NetPlayF() -- Plays from stream */
-bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+bool_t DS_RBSPacked_NetPlayF(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	DS_RBSPackedData_t* PackData;
 	I_HostAddress_t Addr;
@@ -967,7 +973,7 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 }
 
 /* DS_RBSPacked_DeleteF() -- Deletes stream */
-void DS_RBSPacked_DeleteF(struct D_BS_s* const a_Stream)
+void DS_RBSPacked_DeleteF(D_BS_t* const a_Stream)
 {
 	DS_RBSPackedData_t* PackData;
 	
@@ -991,7 +997,7 @@ void DS_RBSPacked_DeleteF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSPacked_IOCtlF() -- Advanced I/O Control */
-bool_t DS_RBSPacked_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
+bool_t DS_RBSPacked_IOCtlF(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, const intptr_t a_DataP)
 {
 	DS_RBSPackedData_t* PackData;
 	

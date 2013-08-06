@@ -42,28 +42,22 @@
 
 //added:11-02-98: yeah now you can change it!
 // changed to 2d array 19990220 by Kin
-extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
-extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
 
 extern bool_t nomonsters;		// checkparm of -nomonsters
 
 #define GAMEMAPNAMESIZE 128
 extern char gamemapname[GAMEMAPNAMESIZE];
 
-extern player_t players[MAXPLAYERS];
-extern bool_t playeringame[MAXPLAYERS];
 
 // ======================================
 // DEMO playback/recording related stuff.
 // ======================================
 
 // demoplaying back and demo recording
-extern bool_t demoplayback;
-extern bool_t demorecording;
-extern bool_t timingdemo;
+
 
 // Quit after playing a demo from cmdline.
-extern bool_t singledemo;
+
 
 // gametic at level start
 extern tic_t levelstarttic;

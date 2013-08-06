@@ -34,6 +34,36 @@
 #ifndef __P_LOCAL__
 #define __P_LOCAL__
 
+/* Define thinker_t */
+#if !defined(__REMOOD_THINKERT_DEFINED)
+	typedef struct thinker_s thinker_t;
+	#define __REMOOD_THINKERT_DEFINED
+#endif
+
+/* Define PI_mobjid_t */
+#if !defined(__REMOOD_PIMOID_DEFINED)
+	typedef int32_t PI_mobjid_t;
+	#define __REMOOD_PIMOID_DEFINED
+#endif
+
+/* Define PI_stateid_t */
+#if !defined(__REMOOD_STSPIDS_DEFINED)
+	typedef int32_t PI_spriteid_t;
+	typedef int32_t PI_stateid_t;
+	#define __REMOOD_STSPIDS_DEFINED
+#endif
+
+/* Define mapthing_t */
+#if !defined(__REMOOD_MAPTHINGT_DEFINED)
+	typedef struct mapthing_s mapthing_t;
+	#define __REMOOD_MAPTHINGT_DEFINED
+#endif
+
+/* Define P_ThinkerType_t */
+#if !defined(__REMOOD_PTT_DEFINED)
+	typedef int P_ThinkerType_t;
+	#define __REMOOD_PTT_DEFINED
+#endif
 
 //#include "d_player.h"
 //#include "d_think.h"
@@ -90,9 +120,6 @@ void P_RemoveRecursiveSound(mobj_t* const a_Mo);
 //
 // P_TICK
 //
-
-// both the head and tail of the thinker list
-extern thinker_t thinkercap;
 
 void P_InitThinkers(void);
 void P_AddThinker(thinker_t* thinker, const P_ThinkerType_t a_Type);

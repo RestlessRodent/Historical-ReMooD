@@ -1722,6 +1722,7 @@ int R_SkinAvailable(char* name)
 // network code calls this when a 'skin change' is received
 void SetPlayerSkin(int playernum, char* skinname)
 {
+#if 0
 	int i;
 	
 	for (i = 0; i < numskins; i++)
@@ -1745,6 +1746,7 @@ void SetPlayerSkin(int playernum, char* skinname)
 			return;
 		}
 	}
+#endif
 	
 	//CONL_PrintF("Skin %s not found\n", skinname);
 	players[playernum].skin = 0;	// not found put the old marine skin

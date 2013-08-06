@@ -50,8 +50,12 @@
 	#define __REMOOD_REFSTATE(x) ((x))
 #endif
 
-typedef int32_t PI_spriteid_t;
-typedef int32_t PI_stateid_t;
+/* Define PI_stateid_t */
+#if !defined(__REMOOD_STSPIDS_DEFINED)
+	typedef int32_t PI_spriteid_t;
+	typedef int32_t PI_stateid_t;
+	#define __REMOOD_STSPIDS_DEFINED
+#endif
 
 /* StatePriorities_t -- Viewing priority for state */
 typedef enum StatePriorities_e
@@ -88,7 +92,13 @@ typedef struct PI_stateorigin_s
 	uint32_t ID;								// ID of origin
 } PI_stateorigin_t;
 
-typedef struct
+/* Define PI_state_t */
+#if !defined(__REMOOD_PISTATE_DEFINED)
+	typedef struct PI_state_s PI_state_t;
+	#define __REMOOD_PISTATE_DEFINED
+#endif
+
+struct PI_state_s
 {
 	PI_stateid_t StateNum;						// State number
 	PI_spriteid_t sprite;
@@ -119,7 +129,7 @@ typedef struct
 	
 	PI_sargc_t ArgC;							// Argument Count
 	PI_sargv_t* ArgV;							// Function Arguments
-} PI_state_t;
+};
 
 #define S_NULL 0
 
@@ -130,10 +140,13 @@ extern void** g_SprTouchSpecials;				// Sprite touch special markers
 extern PI_state_t** states;
 extern PI_stateid_t NUMSTATES;
 
-typedef int32_t PI_mobjid_t;
-extern PI_mobjid_t NUMMOBJTYPES;
+/* Define PI_mobjid_t */
+#if !defined(__REMOOD_PIMOID_DEFINED)
+	typedef int32_t PI_mobjid_t;
+	#define __REMOOD_PIMOID_DEFINED
+#endif
 
-#define NUMINFORXFIELDS 4		// Prevents unwanted magic
+extern PI_mobjid_t NUMMOBJTYPES;
 
 typedef enum INFO_ObjectStateGroup_e
 {
@@ -310,7 +323,11 @@ extern PI_ammoid_t NUMAMMO;
 
 /* WEAPON */
 
-typedef int32_t PI_wepid_t;
+/* Define PI_wepid_t */
+#if !defined(__REMOOD_PIWEPIDT_DEFINED)
+	typedef int32_t PI_wepid_t;
+	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
 
 /* WeaponFlags_t -- Flags for weapons */
 typedef enum WeaponFlags_e
@@ -340,8 +357,14 @@ typedef enum WeaponFlags_e
 	WF_ISMELEE					= 0x00010000,	// Melee Weapon
 } WeaponFlags_t;
 
+/* Define PI_wep_t */
+#if !defined(__REMOOD_PIWEP_DEFINED)
+	typedef struct PI_wep_s PI_wep_t;
+	#define __REMOOD_PIWEP_DEFINED
+#endif
+
 // Weapon info: sprite frames, ammunition use.
-typedef struct
+struct PI_wep_s
 {
 	PI_ammoid_t ammo;
 	int32_t ammopershoot;
@@ -378,7 +401,7 @@ typedef struct
 	// State References
 	PI_stateid_t* FlashStates;					// Weapon flash states
 	size_t NumFlashStates;						// Number of flash states
-} PI_wep_t;
+};
 
 extern PI_wep_t** wpnlev1info;
 extern PI_wep_t** wpnlev2info;

@@ -35,6 +35,12 @@
 #ifndef __SOUNDS__
 #define __SOUNDS__
 
+/* Define WadIndex_t */
+#if !defined(__REMOOD_WADINDEXT_DEFINED)
+	typedef int WadIndex_t;
+	#define __REMOOD_WADINDEXT_DEFINED
+#endif
+
 //#include "w_wad.h"
 
 // 10 customisable sounds for Skins

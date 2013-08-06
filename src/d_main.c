@@ -34,6 +34,34 @@
 //              parse command line parameters, configure game parameters (turbo),
 //              and call the startup functions.
 
+#include "doomtype.h"
+#include "g_state.h"
+#include "sn.h"
+#include "d_player.h"
+#include "console.h"
+#include "md5.h"
+#include "s_sound.h"
+#include "w_wad.h"
+#include "z_zone.h"
+#include "dstrings.h"
+#include "d_netcmd.h"
+#include "d_prof.h"
+#include "d_main.h"
+#include "screen.h"
+#include "v_video.h"
+#include "r_main.h"
+#include "f_wipe.h"
+#include "r_draw.h"
+#include "m_misc.h"
+#include "p_local.h"
+#include "vhw_wrap.h"
+
+/* Define VideoFont_t */
+#if !defined(__REMOOD_VIDEOFONTT_DEFINED)
+	typedef int VideoFont_t;
+	#define __REMOOD_VIDEOFONTT_DEFINED
+#endif
+
 //#include "doomdef.h"
 //#include "console.h"
 //#include "doomstat.h"
@@ -79,12 +107,13 @@ bool_t g_DedicatedServer = false;				// Dedicated Server
 #endif
 
 bool_t g_FramePipe = false;
+bool_t l_UsingPWADs = false;					// Was modifiedgame
 
 //
 //  DEMO LOOP
 //
 int demosequence;
-int pagetic;
+tic_t pagetic;
 char* pagename = "TITLEPIC";
 bool_t novideo = false;
 
@@ -204,9 +233,6 @@ void D_Display(void)
 	
 	if (dedicated)
 		return;
-		
-	if (nodrawers)
-		return;					// for comparative timing / profiling
 	
 	redrawsbar = false;
 	
@@ -848,7 +874,6 @@ void D_StartTitle(void)
 	gameaction = ga_nothing;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		g_Splits[i].Display = g_Splits[i].Console = 0;
-	statusbarplayer = 0;
 	demosequence = -1;
 	paused = false;
 	gamestate = GS_DEMOSCREEN;
@@ -1811,7 +1836,7 @@ void D_AddPWADs(void)
 					D_AddFile(WADPath);
 					
 					// Modify Game
-					modifiedgame = true;
+					l_UsingPWADs = true;
 				}
 		}
 }
@@ -2461,12 +2486,6 @@ void D_DoomMain(void)
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
 	D_LoadGameFilesEx();
 	
-	// identify the main IWAD file to use
-	//IdentifyVersion();
-	
-	//setbuf(stdout, NULL);     // non-buffered output
-	modifiedgame = false;
-	
 	nomonsters = M_CheckParm("-nomonsters");
 	
 	//added:11-01-98:center the string, add compilation time and date.
@@ -2521,7 +2540,7 @@ void D_DoomMain(void)
 					D_AddFile(WADPath);
 					
 					// Modify Game
-					modifiedgame = true;
+					l_UsingPWADs = true;
 				}
 				
 				// Must be an internal demo then

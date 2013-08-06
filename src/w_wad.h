@@ -112,6 +112,12 @@ typedef enum WL_FindFlags_e
 	#define __REMOOD_WLWADFILE_DEFINED
 #endif
 
+/* Define Z_HashTable_t */
+#if !defined(__REMOOD_ZHT_DEFINED)
+	typedef struct Z_HashTable_s Z_HashTable_t;
+	#define __REMOOD_ZHT_DEFINED
+#endif
+
 // WAD Data loading
 typedef void (*WL_RemoveFunc_t)(const WL_WADFile_t* a_WAD);
 typedef bool_t (*WL_PCCreatorFunc_t)(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
@@ -215,8 +221,11 @@ struct WL_WADFile_s
 	size_t NumAttached;							// Number of attached WADs
 };
 
-// Streamer
-typedef struct WL_ES_s WL_ES_t;
+/* Define WL_ES_t */
+#if !defined(__REMOOD_WLEST_DEFINED)
+	typedef struct WL_ES_s WL_ES_t;
+	#define __REMOOD_WLEST_DEFINED
+#endif
 
 /*** PROTOTYPES ***/
 const char* WL_BaseNameEx(const char* const a_File);

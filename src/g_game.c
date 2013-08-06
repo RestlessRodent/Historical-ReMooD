@@ -93,7 +93,6 @@ char gamemapname[GAMEMAPNAMESIZE];	// an external wad filename
 
 gamemode_t gamemode = indetermined;	// Game Mode - identify IWAD as shareware, retail etc.
 gamemission_t gamemission = doom;
-bool_t modifiedgame;			// Set if homebrew PWAD stuff has been added.
 
 bool_t paused;
 
@@ -107,9 +106,6 @@ bool_t multiplayer;
 bool_t serverside;
 bool_t playeringame[MAXPLAYERS];
 player_t players[MAXPLAYERS];
-
-int secondarydisplayplayer;		// for splitscreen
-int statusbarplayer;			// player who's statusbar is displayed
 
 // (for spying with F12)
 

@@ -72,7 +72,7 @@
 
 /* get OS and architecture defines */
 #ifndef __LZODEFS_H_INCLUDED
-//#include "z_lzod.h"
+#include "z_lzod.h"
 #endif
 
 

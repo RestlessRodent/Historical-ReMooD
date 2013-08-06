@@ -132,10 +132,10 @@
 */
 
 #include "doomtype.h"
-//#include "z_zone.h"
+#include "z_zone.h"
 
 #define __REMOOD_NOMINIZINCLUDE
-//#include "z_miniz.h"
+#include "z_miniz.h"
 
 #ifndef MINIZ_HEADER_INCLUDED
 #define MINIZ_HEADER_INCLUDED
@@ -972,12 +972,16 @@ void* ZS_MiniZRealloc(void* const a_Ptr, const size_t a_Size)
   #define MZ_READ_LE32(p) ((mz_uint32)(((const mz_uint8 *)(p))[0]) | ((mz_uint32)(((const mz_uint8 *)(p))[1]) << 8U) | ((mz_uint32)(((const mz_uint8 *)(p))[2]) << 16U) | ((mz_uint32)(((const mz_uint8 *)(p))[3]) << 24U))
 #endif
 
+#if 0
 #ifdef _MSC_VER
   #define MZ_FORCEINLINE __forceinline
 #elif defined(__GNUC__)
   #define MZ_FORCEINLINE __attribute__((__always_inline__))
 #else
   #define MZ_FORCEINLINE inline
+#endif
+#else
+	#define MZ_FORCEINLINE inline
 #endif
 
 #ifdef __cplusplus
@@ -4757,6 +4761,7 @@ mz_bool mz_zip_add_mem_to_archive_file_in_place(const char *pZip_filename, const
 
 void *mz_zip_extract_archive_file_to_heap(const char *pZip_filename, const char *pArchive_name, size_t *pSize, mz_uint flags)
 {
+
   int file_index;
   mz_zip_archive zip_archive;
   void *p = NULL;

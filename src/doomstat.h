@@ -65,9 +65,6 @@ typedef enum
 //
 extern bool_t inventory;		// true with heretic and hexen
 
-// Set if homebrew PWAD stuff has been added.
-extern bool_t modifiedgame;
-
 // =========
 // Language.
 // =========
@@ -111,10 +108,7 @@ extern bool_t digmusic;			// SSNTails 12-13-2002
 //  status bar explicitely.
 extern bool_t statusbaractive;
 
-extern bool_t paused;			// Game Pause?
-
 extern bool_t nodrawers;
-extern bool_t noblit;
 
 extern int viewwindowx;
 extern int viewwindowy;
@@ -126,8 +120,6 @@ extern int scaledviewwidth;
 // ANG90 = left side, ANG270 = right
 extern int viewangleoffset;
 
-//added:16-01-98: player from which the statusbar displays the infos.
-extern int statusbarplayer;
 
 // ============================================
 // Statistics on a given map, for intermission.
@@ -179,7 +171,6 @@ extern bool_t precache;
 
 //?
 // debug flag to cancel adaptiveness
-extern bool_t singletics;
 
 #define   BODYQUESIZE     MAXPLAYERS
 

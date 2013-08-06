@@ -220,31 +220,6 @@ typedef struct
 	
 } mapnode_t;
 
-// Thing definition, position, orientation and type,
-// plus skill/visibility flags and attributes.
-typedef struct
-{
-	short x;
-	short y;
-	short z;					// Z support for objects SSNTails 07-24-2002
-	short angle;
-	short type;
-	short options;
-	
-	struct mobj_s* mobj;
-	
-	// Hexen Stuff
-	bool_t IsHexen;								// Hexen Defined
-	int16_t HeightOffset;						// Height offset
-	uint16_t ID;								// Hexen Thing ID
-	uint8_t Special;							// Hexen Special
-	uint8_t Args[5];							// Hexen arguments
-	
-	// Other Stuff
-	PI_mobjid_t MoType;							// Type of spawned object
-	bool_t MarkedWeapon;						// Marked as a weapon to respawn
-} mapthing_t;
-
 /* HexenMapThingDef_t -- Hexen map thing */
 typedef struct HexenMapThingDef_s
 {
