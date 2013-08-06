@@ -78,9 +78,6 @@
 // added by Boris : for dehacked patches, replaced #define by int
 extern int MAXHEALTH;			// 100
 
-#define VIEWHEIGHT               41
-#define VIEWHEIGHTS             "41"
-
 // mapblocks are used to check movement
 // against lines and things
 #define MAPBLOCKUNITS   128

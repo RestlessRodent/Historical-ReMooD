@@ -36,6 +36,12 @@
 *** INCLUDES ***
 ***************/
 
+#include "f_wipe.h"
+#include "screen.h"
+#include "z_zone.h"
+#include "v_video.h"
+#include "r_draw.h"
+
 //#include "doomdef.h"
 //#include "m_random.h"
 //#include "f_wipe.h"

@@ -33,6 +33,12 @@
 *** INCLUDES ***
 ***************/
 
+#include "d_rmod.h"
+#include "z_zone.h"
+#include "dstrings.h"
+#include "w_wad.h"
+#include "console.h"
+
 //#include "doomdef.h"
 //#include "d_rmod.h"
 //#include "m_menu.h"

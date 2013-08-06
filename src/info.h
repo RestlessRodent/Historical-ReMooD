@@ -42,14 +42,6 @@
 //#include "d_rmod.h"
 //#include "z_zone.h"
 
-#define __REMOOD_USEFLATTERSTATES
-
-#if defined(__REMOOD_USEFLATTERSTATES)
-	#define __REMOOD_REFSTATE(x) (&(x))
-#else
-	#define __REMOOD_REFSTATE(x) ((x))
-#endif
-
 /* Define PI_stateid_t */
 #if !defined(__REMOOD_STSPIDS_DEFINED)
 	typedef int32_t PI_spriteid_t;

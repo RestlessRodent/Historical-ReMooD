@@ -29,7 +29,13 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Profiles
 
-//#include "d_prof.h"
+#include "d_prof.h"
+#include "z_zone.h"
+#include "i_util.h"
+#include "v_video.h"
+#include "dstrings.h"
+#include "g_state.h"
+
 //#include "console.h"
 //#include "r_data.h"
 //#include "z_zone.h"

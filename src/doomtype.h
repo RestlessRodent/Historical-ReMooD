@@ -435,7 +435,11 @@ typedef union FColorRGBA RGBA_t;
 #define MAXSKINCOLORS           16
 #define TICRATE				UINT64_C(35)
 #define TICSPERMS			29	// 28.5, but the benefit of the doubt
+
+// Should not be here, but here for convenience
 #define NUMINFORXFIELDS 4		// Max sub fields in object flags
+#define VIEWHEIGHT               41
+#define VIEWHEIGHTS             "41"
 
 /******************************
 *** GLOBALS USED EVERYWHERE ***

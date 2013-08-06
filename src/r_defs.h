@@ -63,7 +63,11 @@
 //  precalculating 24bpp lightmap/colormap LUT.
 //  from darkening PLAYPAL to all black.
 // Could even us emore than 32 levels.
-typedef uint8_t lighttable_t;
+
+#if !defined(__REMOOD_LITETABLE_DEFINED)
+	typedef uint8_t lighttable_t;
+	#define __REMOOD_LITETABLE_DEFINED
+#endif
 
 // SoM: ExtraColormap type. Use for extra_colormaps from now on.
 typedef struct

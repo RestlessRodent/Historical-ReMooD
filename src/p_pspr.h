@@ -51,33 +51,6 @@
 
 //#include "d_rmod.h"
 
-//
-// Frame flags:
-// handles maximum brightness (torches, muzzle flare, light sources)
-//
-
-// faB: I noticed they didn't use the 32 bits of the frame field,
-//      so now we use the upper 16 bits for new effects.
-
-#define FF_FRAMEMASK    0x7fff	// only the frame number
-#define FF_FULLBRIGHT   0x8000	// frame always appear full bright (fixedcolormap)
-
-// faB:
-//  MF_SHADOW is no more used to activate translucency (or the old fuzzy)
-//  The frame field allows to set translucency per frame, instead of per sprite.
-//  Now, (frame & FF_TRANSMASK) is the translucency table number, if 0
-//  it is not translucent.
-
-// Note:
-//  MF_SHADOW still affects the targeting for monsters (they miss more)
-
-#define FF_TRANSMASK   0x0F0000	// 0 = no trans(opaque), 1-7 = transl. table
-#define FF_TRANSSHIFT       16
-
-// faB: new 'alpha' shade effect, for smoke..
-
-#define FF_SMOKESHADE  0x800000	// sprite is an alpha channel
-
 // translucency tables
 
 // TODO: add another asm routine which use the fg and bg indexes in the

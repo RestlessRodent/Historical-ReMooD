@@ -32,8 +32,8 @@
 // DESCRIPTION:
 //    Globally defined strings.
 
-//#include "dstrings.h"
-//#include "z_zone.h"
+#include "dstrings.h"
+#include "z_zone.h"
 
 /* UnicodeStrings -- Game strings */
 StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
