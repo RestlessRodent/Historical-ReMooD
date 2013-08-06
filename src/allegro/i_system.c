@@ -138,11 +138,6 @@ void I_GetJoyEvent()
 {
 }
 
-int joy_open(char* fname)
-{
-}
-
-uint8_t mb_used = 6 + 2;		// 2 more for caching sound
 static int quiting = 0;			/* prevent recursive I_Quit() */
 
 //
@@ -188,25 +183,10 @@ void I_WaitVBL(int count)
 	rest(count);
 }
 
-uint8_t* I_AllocLow(int length)
-{
-	uint8_t* mem;
-	
-	mem = (uint8_t*)malloc(length);
-	memset(mem, 0, length);
-	return mem;
-}
-
 //
 // I_Error
 //
 extern bool_t demorecording;
-
-void I_LocateWad(void)
-{
-	// relict from the Linux version
-	return;
-}
 
 /****************
 *** FUNCTIONS ***

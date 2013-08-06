@@ -50,7 +50,7 @@ extern volatile tic_t ticcount;
 
 //
 // Called by D_DoomLoop,
-// called before processing any tics in a frame
+// called before processiI_LocateWadng any tics in a frame
 // (just after displaying a frame).
 // Time consuming syncronous operations
 // are performed here (joystick reading).
@@ -72,10 +72,6 @@ void I_OsPolling(void);
 // Called by M_Responder when quit is selected, return code 0.
 void I_Quit(void);
 
-// Allocates from low memory under dos,
-// just mallocs under unix
-uint8_t* I_AllocLow(int length);
-
 void I_Tactile(int on, int off, int total);
 
 //added:18-02-98: write a message to stderr (use before I_Quit)
@@ -95,10 +91,6 @@ void I_StartupTimer(void);
 
 // Setup signal handler, plus stuff for trapping errors and cleanly exit.
 int I_StartupSystem(void);
-
-#ifdef LINUX
-void I_LocateWad(void);
-#endif
 
 void I_RegisterCrash(void);
 
