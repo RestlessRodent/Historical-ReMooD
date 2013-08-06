@@ -125,6 +125,34 @@ typedef enum CoreGame_e
 	NUMCOREGAMES
 } CoreGame_t;
 
+// skill levels
+typedef enum
+{
+	sk_baby,
+	sk_easy,
+	sk_medium,
+	sk_hard,
+	sk_nightmare
+} G_Skill_t;
+
+/* P_GameMode_t -- Game Modes */
+typedef enum P_GameMode_e
+{
+	PGM_COOP,									// Cooperative
+	PGM_COUNTEROP,								// Counteroperative
+	PGM_DM,										// Deathmatch
+	PGM_CTF,									// CTF
+	PGM_FLAGTAG,								// Hold the Flag
+	PGM_KOTH,									// King of the Hill
+	PGM_POPACAP,								// Pop a Cap
+	PGM_LMS,									// Last Man Standing
+	PGM_SURVIVAL,								// Survival
+	
+	PGM_CUSTOM,									// Custom Game Mode
+	
+	NUMPGAMEMODES
+} P_GameMode_t;
+
 typedef enum D_ModelMode_s
 {
 	DMM_DEFAULT,								// Default PC
@@ -202,6 +230,12 @@ extern bool_t paused;			// Game Pause?
 extern bool_t noblit;
 
 extern tic_t leveltime;
+
+extern int totalkills;
+extern int totalitems;
+extern int totalsecret;
+
+extern int32_t g_MapKIS[5];
 
 /****************
 *** FUNCTIONS ***

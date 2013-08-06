@@ -34,6 +34,20 @@
 //      Action Pointer Functions
 //      that are associated with states/frames.
 
+#include "info.h"
+#include "p_demcmp.h"
+#include "z_zone.h"
+#include "p_mobj.h"
+#include "d_player.h"
+#include "s_sound.h"
+#include "g_state.h"
+#include "p_spec.h"
+#include "r_main.h"
+#include "p_local.h"
+#include "p_info.h"
+#include "d_think.h"
+#include "p_maputl.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "p_local.h"

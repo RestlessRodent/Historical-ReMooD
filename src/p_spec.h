@@ -37,6 +37,12 @@
 #ifndef __P_SPEC__
 #define __P_SPEC__
 
+#include "doomtype.h"
+#include "r_defs.h"
+#include "d_think.h"
+#include "g_state.h"
+#include "r_state.h"
+
 //#include "d_rmod.h"
 
 void P_ExtraSpecialStuff(void);
@@ -1348,23 +1354,6 @@ bool_t EV_SpawnFakeFloor(line_t* const a_Line, const int a_Side, mobj_t* const a
 /*****************************************************************************/
 
 /*** CONSTANTS ***/
-
-typedef enum P_GameMode_e
-{
-	PGM_COOP,									// Cooperative
-	PGM_COUNTEROP,								// Counteroperative
-	PGM_DM,										// Deathmatch
-	PGM_CTF,									// CTF
-	PGM_FLAGTAG,								// Hold the Flag
-	PGM_KOTH,									// King of the Hill
-	PGM_POPACAP,								// Pop a Cap
-	PGM_LMS,									// Last Man Standing
-	PGM_SURVIVAL,								// Survival
-	
-	PGM_CUSTOM,									// Custom Game Mode
-	
-	NUMPGAMEMODES
-} P_GameMode_t;
 
 /*** GLOBALS ***/
 

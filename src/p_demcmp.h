@@ -33,6 +33,8 @@
 #ifndef __P_DEMCMP_H__
 #define __P_DEMCMP_H__
 
+#include "doomtype.h"
+
 //#include "console.h"
 //#include "doomdef.h"
 //#include "doomstat.h"

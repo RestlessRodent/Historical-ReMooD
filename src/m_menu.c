@@ -29,6 +29,14 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Code
 
+#include "m_menu.h"
+#include "m_menupv.h"
+#include "dstrings.h"
+#include "g_state.h"
+#include "d_netcmd.h"
+#include "s_sound.h"
+#include "z_zone.h"
+
 //#include "doomdef.h"
 //#include "dstrings.h"
 //#include "d_main.h"

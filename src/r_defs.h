@@ -34,6 +34,20 @@
 #ifndef __R_DEFS__
 #define __R_DEFS__
 
+#include "d_think.h"
+
+/* Define player_t */
+#if !defined(__REMOOD_PLAYERT_DEFINED)
+	typedef struct player_s player_t;
+	#define __REMOOD_PLAYERT_DEFINED
+#endif
+
+/* Define mobj_t */
+#if !defined(__REMOOD_MOBJT_DEFINED)
+	typedef struct mobj_s mobj_t;
+	#define __REMOOD_MOBJT_DEFINED
+#endif
+
 // Some more or less basic data types
 // we depend on.
 //#include "m_fixed.h"

@@ -32,6 +32,11 @@
 // DESCRIPTION:
 //      Ceiling aninmation (lowering, crushing, raising)
 
+#include "p_spec.h"
+#include "s_sound.h"
+#include "g_state.h"
+#include "z_zone.h"
+
 //#include "doomdef.h"
 //#include "p_local.h"
 //#include "r_state.h"

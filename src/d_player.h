@@ -174,13 +174,19 @@ typedef enum
 	NUMPSPRITES
 } psprnum_t;
 
-typedef struct
+/* Define pspdef_t */
+#if !defined(__REMOOD_PSPDEFT_DEFINED)
+	typedef struct pspdef_s pspdef_t;
+	#define __REMOOD_PSPDEFT_DEFINED
+#endif
+
+struct pspdef_s
 {
 	PI_state_t* state;				// a NULL state means not active
 	int32_t tics;
 	fixed_t sx;
 	fixed_t sy;
-} pspdef_t;
+};
 
 #define NUMINVENTORYSLOTS  14
 #define MAXARTECONT        16

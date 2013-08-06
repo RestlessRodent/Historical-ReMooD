@@ -106,10 +106,12 @@ enum P_ThinkerType_e
 struct thinker_s
 {
 	P_ThinkerType_t Type;
-	struct thinker_s* prev;
-	struct thinker_s* next;
+	thinker_t* prev;
+	thinker_t* next;
 	think_t function;
 };
+
+extern thinker_t thinkercap;
 
 extern thinker_t** g_ThinkerList;				// List of thinkers
 extern size_t g_NumThinkerList;					// Thinkers in list

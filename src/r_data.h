@@ -36,7 +36,18 @@
 
 #include "r_defs.h"
 #include "r_state.h"
-//#include "w_wad.h"
+
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
+
+/* Define V_ColorPal_t */
+#if !defined(__REMOOD_VCOLPAL_DEFINED)
+	typedef enum V_ColorPal_e V_ColorPal_t;
+	#define __REMOOD_VCOLPAL_DEFINED
+#endif
 
 // moved here for r_sky.c (texture_t is used)
 

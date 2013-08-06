@@ -30,6 +30,14 @@
 // DESCRIPTION:
 //      Demo Compatibility
 
+#include "p_demcmp.h"
+#include "w_wad.h"
+#include "console.h"
+#include "t_ini.h"
+#include "g_state.h"
+#include "dstrings.h"
+#include "d_player.h"
+
 //#include "doomdef.h"
 //#include "p_demcmp.h"
 //#include "m_menu.h"

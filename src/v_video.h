@@ -37,6 +37,7 @@
 #define __V_VIDEO__
 
 #include "doomtype.h"
+#include "screen.h"
 
 //#include "doomdef.h"
 //#include "r_defs.h"
@@ -358,15 +359,21 @@ typedef enum V_ImageType_e
 	NUMVIMAGETYPES
 } V_ImageType_t;
 
+/* Define V_ColorPal_t */
+#if !defined(__REMOOD_VCOLPAL_DEFINED)
+	typedef enum V_ColorPal_e V_ColorPal_t;
+	#define __REMOOD_VCOLPAL_DEFINED
+#endif
+
 /* V_ColorPal_t -- Color palette for image */
-typedef enum V_ColorPal_e
+enum V_ColorPal_e
 {
 	VCP_NONE,									// No palette mapping
 	VCP_DOOM,									// Doom Palette
 	VCP_HERETIC,								// Heretic Palette
 	
 	NUMVCOLORPALS
-} V_ColorPal_t;
+};
 
 /*** STRUCTURES ***/
 

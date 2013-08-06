@@ -65,6 +65,24 @@
 	#define __REMOOD_PTT_DEFINED
 #endif
 
+/* Define ticcmd_t */
+#if !defined(__REMOOD_TICCMDT_DEFINED)
+	typedef union ticcmd_u ticcmd_t;
+	#define __REMOOD_TICCMDT_DEFINED
+#endif
+
+/* Define pspdef_t */
+#if !defined(__REMOOD_PSPDEFT_DEFINED)
+	typedef struct pspdef_s pspdef_t;
+	#define __REMOOD_PSPDEFT_DEFINED
+#endif
+
+/* Define PI_wepid_t */
+#if !defined(__REMOOD_PIWEPIDT_DEFINED)
+	typedef int32_t PI_wepid_t;
+	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
+
 //#include "d_player.h"
 //#include "d_think.h"
 //#include "m_fixed.h"

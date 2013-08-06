@@ -34,7 +34,8 @@
 #ifndef __M_MENU__
 #define __M_MENU__
 
-
+#include "doomtype.h"
+#include "i_util.h"
 
 //#include "d_prof.h"
 

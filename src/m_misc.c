@@ -35,6 +35,10 @@
 //      File i/o
 //      Common used routines
 
+#include "m_misc.h"
+#include "v_video.h"
+#include "z_zone.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "m_misc.h"
