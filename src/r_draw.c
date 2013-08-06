@@ -48,15 +48,15 @@
 #include "r_main.h"
 #include "doomdef.h"
 
-//#include "doomdef.h"
-//#include "doomstat.h"
-//#include "r_local.h"
-//#include "st_stuff.h"			//added:24-01-98:need ST_HEIGHT
-//#include "i_video.h"
-//#include "v_video.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
-//#include "console.h"			//Som: Until I get buffering finished
+
+
+
+
+
+
+
+
+
 
 // ==========================================================================
 //                     COMMON DATA FOR 8bpp AND 16bpp

@@ -44,18 +44,18 @@
 #include "console.h"
 
 // Data.
-//#include "doomdef.h"
-//#include "sounds.h"
-//#include "m_fixed.h"
-//#include "d_items.h"
-//#include "p_mobj.h"
-//#include "z_zone.h"
-//#include "info.h"
-//#include "v_video.h"
-//#include "p_pspr.h"
-//#include "console.h"
-//#include "m_random.h"
-//#include "p_local.h"
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Doesn't work with g++, needs actionf_p1
 void A_Light0();

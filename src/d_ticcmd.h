@@ -34,7 +34,7 @@
 #ifndef __D_TICCMD__
 #define __D_TICCMD__
 
-//#include "m_fixed.h"
+
 #include "doomtype.h"
 
 //

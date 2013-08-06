@@ -51,20 +51,20 @@
 #include "p_maputl.h"
 #include "r_segs.h"
 
-//#include "doomdef.h"
-//#include "c_lib.h"
-//#include "console.h"
-//#include "g_game.h"
-//#include "r_local.h"
-//#include "sounds.h"				//skin sounds
-//#include "st_stuff.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
-//#include "m_argv.h"
-//#include "r_data.h"
-//#include "p_maputl.h"
-//#include "p_demcmp.h"
-//#include "i_video.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 static void R_InitSkins(void);
 

@@ -41,7 +41,7 @@
 	#define __REMOOD_VIMAGET_DEFINED
 #endif
 
-//#include "w_wad.h"
+
 
 #define MAXLEVELSPLATS      1024
 

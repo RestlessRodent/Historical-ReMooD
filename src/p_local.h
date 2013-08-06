@@ -97,13 +97,13 @@
 	#define __REMOOD_MOBJT_DEFINED
 #endif
 
-//#include "d_player.h"
-//#include "d_think.h"
-//#include "m_fixed.h"
-//#include "m_bbox.h"
-//#include "p_tick.h"
-//#include "r_defs.h"
-//#include "p_maputl.h"
+
+
+
+
+
+
+
 
 #define FLOATSPEED              (FRACUNIT*4)
 
@@ -358,7 +358,7 @@ extern fixed_t bottomslope;
 //
 // P_SPEC
 //
-//#include "p_spec.h"
+
 
 // heretic specific
 extern int ceilmovesound;

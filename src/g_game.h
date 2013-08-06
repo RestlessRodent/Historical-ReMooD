@@ -66,11 +66,11 @@
 	#define __REMOOD_UNICSTRID_DEFINED
 #endif
 
-//#include "doomdef.h"
-//#include "doomstat.h"
 
-//#include "m_random.h"
-//#include "console.h"
+
+
+
+
 
 //added:11-02-98: yeah now you can change it!
 // changed to 2d array 19990220 by Kin

@@ -36,7 +36,7 @@
 #include "doomtype.h"
 #include "r_defs.h"
 
-//#include "m_fixed.h"
+
 
 //
 // P_MAPUTL

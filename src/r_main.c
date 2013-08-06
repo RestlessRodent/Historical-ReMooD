@@ -55,27 +55,27 @@
 #include "r_draw.h"
 #include "r_sky.h"
 
-//#include "doomdef.h"
-//#include "g_game.h"
-//#include "g_input.h"
-//#include "r_local.h"
-//#include "r_splats.h"			//faB(21jan):testing
-//#include "r_sky.h"
-//#include "st_stuff.h"
-//#include "p_local.h"
 
-//#include "i_video.h"
-//#include "i_system.h"
-//#include "m_menu.h"
-//#include "p_local.h"
-//#include "t_func.h"
 
-//#include "d_main.h"
-//#include "console.h"
 
-//#include "vhw_wrap.h"
 
-//#include "p_demcmp.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048

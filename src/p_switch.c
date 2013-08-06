@@ -38,15 +38,15 @@
 #include "w_wad.h"
 #include "p_nwline.h"
 
-//#include "doomdef.h"
-//#include "g_game.h"
-//#include "p_local.h"
-//#include "s_sound.h"
-//#include "r_main.h"
-//#include "w_wad.h"				//SoM: 3/22/2000
-//#include "z_zone.h"
-//#include "t_script.h"
-//#include "p_nwline.h"
+
+
+
+
+
+
+
+
+
 
 //SoM: 3/22/2000: Switch limit removal
 //int             switchlist[MAXSWITCHES * 2];

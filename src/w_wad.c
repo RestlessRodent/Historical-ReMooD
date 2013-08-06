@@ -42,15 +42,15 @@
 #include "m_argv.h"
 #include "v_video.h"
 
-//#include "doomdef.h"
-//#include "i_video.h"
-//#include "r_defs.h"
-//#include "v_video.h"
-//#include "d_main.h"
+
+
+
+
+
 
 // WAD DATA
-//#include "m_argv.h"
-//#include "hu_stuff.h"
+
+
 
 /************************
 *** LITE WAD HANDLING ***

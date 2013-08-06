@@ -39,8 +39,8 @@
 #include "doomtype.h"
 #include "d_think.h"
 
-//#include "d_rmod.h"
-//#include "z_zone.h"
+
+
 
 /* Define PI_stateid_t */
 #if !defined(__REMOOD_STSPIDS_DEFINED)

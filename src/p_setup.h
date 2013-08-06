@@ -44,10 +44,10 @@
 	#define __REMOOD_MAPTHINGT_DEFINED
 #endif
 
-//#include "doomdata.h"
-//#include "r_defs.h"
 
-//#include "p_info.h"
+
+
+
 
 //extern  mapthing_t**    deathmatch_p;
 

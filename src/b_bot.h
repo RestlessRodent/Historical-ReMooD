@@ -38,15 +38,15 @@
 ***************/
 
 #include "doomtype.h"
-//#include "doomdef.h"
-//#include "d_netcmd.h"
-//#include "d_prof.h"
-//#include "d_ticcmd.h"
 
-//#include "r_defs.h"
-//#include "r_state.h"
-//#include "p_mobj.h"
-//#include "d_player.h"
+
+
+
+
+
+
+
+
 
 /****************
 *** CONSTANTS ***

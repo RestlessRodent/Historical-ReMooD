@@ -53,22 +53,22 @@
 #include "m_random.h"
 #include "st_stuff.h"
 
-//#include "doomdef.h"
-//#include "i_system.h"			//I_Tactile currently has no effect
 
-//#include "dstrings.h"
-//#include "g_game.h"
-//#include "m_random.h"
-//#include "p_local.h"
-//#include "p_inter.h"
-//#include "s_sound.h"
-//#include "r_main.h"
-//#include "st_stuff.h"
-//#include "g_input.h"
-//#include "p_demcmp.h"
-//#include "z_zone.h"
-//#include "p_pspr.h"
-//#include "d_items.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #define BONUSADD        6
 

@@ -54,21 +54,21 @@
 #include "p_inter.h"
 #include "p_nwline.h"
 
-//#include "doomdef.h"
-//#include "g_game.h"
-//#include "p_local.h"
-//#include "p_setup.h"			//levelflats for flat animation
-//#include "r_data.h"
-//#include "m_random.h"
-//#include "s_sound.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
-//#include "dstrings.h"			//SoM: 3/10/2000
-//#include "r_main.h"				//Two extra includes.
-//#include "t_script.h"
-//#include "d_rmod.h"
-//#include "p_demcmp.h"
-//#include "p_nwline.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //SoM: 3/7/2000
 static void P_SpawnScrollers(void);

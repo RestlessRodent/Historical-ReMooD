@@ -37,9 +37,9 @@
 #include "i_system.h"
 #include "i_util.h"
 
-//#include "doomdef.h"
-//#include "sn.h"
-//#include "i_util.h"
+
+
+
 
 //
 // M_Random
@@ -106,7 +106,7 @@ int P_SignedRandom()
 
 #else
 
-//#include "doomstat.h"
+
 
 FILE* RandFile = NULL;
 

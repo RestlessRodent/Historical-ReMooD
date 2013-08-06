@@ -71,7 +71,7 @@ extern uint8_t demoversion;
 #define DEFAULTDIR "remood"
 #endif
 
-//#include "g_state.h"
+
 
 // commonly used routines - moved here for include convenience
 

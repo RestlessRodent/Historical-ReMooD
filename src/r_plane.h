@@ -43,8 +43,8 @@
 	#define __REMOOD_PLAYERT_DEFINED
 #endif
 
-//#include "screen.h"
-//#include "r_data.h"
+
+
 
 //
 // Now what is a visplane, anyway?

@@ -45,14 +45,14 @@
 #include "r_segs.h"
 #include "r_things.h"
 
-//#include "doomdef.h"
-//#include "g_game.h"
-//#include "r_local.h"
-//#include "r_state.h"
 
-//#include "r_splats.h"
-//#include "p_local.h"			//SoM: 4/10/2000: camera
-//#include "z_zone.h"				//SoM: Check R_Prep3DFloors
+
+
+
+
+
+
+
 
 seg_t* curline;
 side_t* sidedef;

@@ -34,9 +34,9 @@
 #ifndef __D_ITEMS__
 #define __D_ITEMS__
 
-//#include "doomdef.h"
-//#include "m_fixed.h"
-//#include "info.h"
+
+
+
 
 // ==================================
 // Difficulty/skill settings/filters.

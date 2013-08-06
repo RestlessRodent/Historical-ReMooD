@@ -50,8 +50,8 @@
 
 ////#include "v_video.h"
 
-//#include "doomdef.h"
-//#include "d_player.h"
+
+
 
 //added:05-02-98:
 typedef struct

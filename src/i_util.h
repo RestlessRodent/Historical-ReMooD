@@ -37,7 +37,7 @@
 ***************/
 
 #include "doomtype.h"
-//#include "d_ticcmd.h"
+
 
 /****************
 *** CONSTANTS ***

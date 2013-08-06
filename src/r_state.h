@@ -39,8 +39,8 @@
 #include "r_main.h"
 
 // Need data structure definitions.
-//#include "d_player.h"
-//#include "r_data.h"
+
+
 
 //
 // Refresh internal data structures,

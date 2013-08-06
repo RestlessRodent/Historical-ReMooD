@@ -39,7 +39,7 @@
 ***************/
 
 #include "doomtype.h"
-//#include "v_video.h"
+
 
 /* Define V_Image_t */
 #if !defined(__REMOOD_VIMAGET_DEFINED)

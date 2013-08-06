@@ -37,7 +37,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "ccstub.h"
+
 
 #if defined(__palmos__)
 	#include <PalmOS.h>

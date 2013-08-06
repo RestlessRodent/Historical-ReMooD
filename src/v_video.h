@@ -39,9 +39,9 @@
 #include "doomtype.h"
 #include "screen.h"
 
-//#include "doomdef.h"
-//#include "r_defs.h"
-//#include "w_wad.h"
+
+
+
 
 /* Define WadIndex_t */
 #if !defined(__REMOOD_WADINDEXT_DEFINED)

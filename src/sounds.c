@@ -41,12 +41,12 @@
 #include "console.h"
 #include "s_sound.h"
 
-//#include "i_sound.h"
-//#include "sounds.h"
-//#include "r_defs.h"
-//#include "r_things.h"
-//#include "z_zone.h"
-//#include "w_wad.h"
+
+
+
+
+
+
 
 // NOTE: add \0 for stringlen=6, to allow dehacked patching
 

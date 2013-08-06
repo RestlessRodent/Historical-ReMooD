@@ -41,9 +41,9 @@
 #include "d_player.h"
 #include "d_prof.h"
 
-//#include "st_stuff.h"
-//#include "d_prof.h"
-//#include "v_video.h"
+
+
+
 
 /*************
 *** LOCALS ***

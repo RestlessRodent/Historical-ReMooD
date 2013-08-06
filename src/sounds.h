@@ -41,7 +41,7 @@
 	#define __REMOOD_WADINDEXT_DEFINED
 #endif
 
-//#include "w_wad.h"
+
 
 // 10 customisable sounds for Skins
 typedef enum

@@ -35,10 +35,10 @@
 
 #include "doomtype.h"
 
-//#include "console.h"
-//#include "doomdef.h"
-//#include "doomstat.h"
-//#include "w_wad.h"
+
+
+
+
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***

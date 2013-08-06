@@ -67,8 +67,8 @@
 #include "console.h"
 #include "dstrings.h"
 
-//#include "doomstat.h"
-//#include "i_video.h"
+
+
 
 /****************
 *** CONSTANTS ***

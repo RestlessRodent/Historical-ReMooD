@@ -47,38 +47,38 @@
 
 #include "info.h"	// TODO FIXME: Only used by D_TicCmdFillWeapon()
 
-//#include "doomdef.h"
-//#include "doomstat.h"
-
-//#include "console.h"
 
 
-//#include "d_netcmd.h"
-//#include "i_system.h"
-//#include "dstrings.h"
-//#include "g_game.h"
-//#include "hu_stuff.h"
-//#include "g_input.h"
-//#include "m_menu.h"
-//#include "r_local.h"
-//#include "r_things.h"
-//#include "p_inter.h"
-//#include "p_local.h"
-//#include "p_setup.h"
-//#include "s_sound.h"
-//#include "m_misc.h"
 
-//#include "p_spec.h"
-//#include "m_cheat.h"
-//#include "d_clisrv.h"
-//#include "v_video.h"
-//#include "d_main.h"
-//#include "p_demcmp.h"
-//#include "i_sound.h"
-//#include "i_util.h"
-//#include "i_video.h"
 
-//#include "b_bot.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*****************************
 *** EXTENDED NETWORK STUFF ***

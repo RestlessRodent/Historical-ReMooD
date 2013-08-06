@@ -38,14 +38,14 @@
 #include "dstrings.h"
 #include "r_state.h"
 
-//#include "r_draw.h"
-//#include "r_main.h"
-//#include "r_plane.h"
-//#include "r_splats.h"
-//#include "w_wad.h"
-//#include "z_zone.h"
-//#include "d_netcmd.h"
-//#include "p_demcmp.h"
+
+
+
+
+
+
+
+
 
 static wallsplat_t wallsplats[MAXLEVELSPLATS];	// WALL splats
 static int freewallsplat;

@@ -41,8 +41,8 @@
 #include "doomtype.h"
 #include "sounds.h"
 
-//#include "m_fixed.h"
-//#include "tables.h"
+
+
 
 /****************
 *** CONSTANTS ***

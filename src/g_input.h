@@ -34,7 +34,7 @@
 #ifndef __G_INPUT_H__
 #define __G_INPUT_H__
 
-//#include "doomstat.h"
+
 
 
 

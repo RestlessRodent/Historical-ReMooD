@@ -50,22 +50,22 @@
 #include "r_things.h"
 #include "r_state.h"
 
-//#include "doomdef.h"
-//#include "screen.h"
-//#include "console.h"
 
-//#include "i_system.h"
-//#include "i_video.h"
-//#include "r_local.h"
-//#include "r_sky.h"
-//#include "m_argv.h"
-//#include "v_video.h"
-//#include "st_stuff.h"
-//#include "hu_stuff.h"
-//#include "z_zone.h"
-//#include "d_main.h"
-//#include "r_defs.h"
-//#include "r_things.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void VID_PrepareModeList(void);	// from i_video_xshm.c
 
