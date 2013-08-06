@@ -34,6 +34,17 @@
 ***************/
 
 #include "sn.h"
+#include "i_util.h"
+#include "console.h"
+#include "dstrings.h"
+#include "p_saveg.h"
+#include "p_demcmp.h"
+#include "p_info.h"
+#include "g_state.h"
+#include "z_zone.h"
+#include "d_player.h"
+#include "w_wad.h"
+
 //#include "i_util.h"
 //#include "doomstat.h"
 //#include "d_main.h"

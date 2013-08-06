@@ -34,6 +34,7 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
+#include "r_defs.h"
 #include "sounds.h"		// Just for NUMSKINSOUNDS
 
 #define MAXVISSPRITES   512		// added 2-2-98 was 128

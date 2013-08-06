@@ -38,6 +38,12 @@
 
 #include "doomtype.h"
 
+/* Define D_Prof_t */
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
 //#include "d_player.h"
 
 extern int ST_Y;

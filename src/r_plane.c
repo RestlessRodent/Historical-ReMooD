@@ -34,6 +34,16 @@
 //       while maintaining a per column clipping list only.
 //      Moreover, the sky areas have to be determined.
 
+#include "r_plane.h"
+#include "z_zone.h"
+#include "r_draw.h"
+#include "tables.h"
+#include "r_sky.h"
+#include "r_state.h"
+#include "screen.h"
+
+#include "console.h"	// For con_clipviewtop
+
 //#include "doomdef.h"
 //#include "console.h"
 //#include "g_game.h"

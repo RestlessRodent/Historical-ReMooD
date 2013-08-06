@@ -80,6 +80,7 @@
 //  from darkening PLAYPAL to all black.
 // Could even us emore than 32 levels.
 
+/* Define lighttable_t */
 #if !defined(__REMOOD_LITETABLE_DEFINED)
 	typedef uint8_t lighttable_t;
 	#define __REMOOD_LITETABLE_DEFINED

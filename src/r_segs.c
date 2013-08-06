@@ -32,6 +32,20 @@
 // DESCRIPTION:
 //      All the clipping: columns, horizontal spans, sky columns.
 
+#include "r_segs.h"
+#include "r_state.h"
+#include "screen.h"
+#include "z_zone.h"
+#include "r_draw.h"
+#include "r_plane.h"
+#include "r_sky.h"
+#include "r_things.h"
+#include "console.h"
+#include "dstrings.h"
+#include "p_demcmp.h"
+#include "v_video.h"
+#include "r_local.h"
+
 //#include "doomdef.h"
 //#include "r_local.h"
 //#include "r_sky.h"

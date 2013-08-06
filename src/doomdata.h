@@ -153,7 +153,7 @@ typedef struct
 // BSP node structure.
 
 // Indicate a leaf.
-#define NF_SUBSECTOR    0x8000
+
 
 typedef struct
 {

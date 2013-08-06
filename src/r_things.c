@@ -32,6 +32,21 @@
 // DESCRIPTION:
 //      Refresh of things, i.e. objects represented by sprites.
 
+#include "r_things.h"
+#include "z_zone.h"
+#include "screen.h"
+#include "r_state.h"
+#include "console.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "r_bsp.h"
+#include "v_video.h"
+#include "r_draw.h"
+#include "r_plane.h"
+#include "d_netcmd.h"
+#include "info.h"
+#include "st_stuff.h"
+
 //#include "doomdef.h"
 //#include "c_lib.h"
 //#include "console.h"

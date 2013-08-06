@@ -36,6 +36,9 @@
 //       kept as a sample, DOOM2 sounds.
 
 #include "doomtype.h"
+#include "sounds.h"
+#include "z_zone.h"
+
 //#include "i_sound.h"
 //#include "sounds.h"
 //#include "r_defs.h"

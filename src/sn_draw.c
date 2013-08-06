@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -39,6 +37,7 @@
 #include "dstrings.h"
 #include "v_video.h"
 #include "console.h"
+#include "g_state.h"
 
 /****************
 *** CONSTANTS ***

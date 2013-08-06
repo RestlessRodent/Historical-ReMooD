@@ -31,6 +31,25 @@
 // DESCRIPTION:
 //      handles multiple resolutions, 8bpp mode
 
+#include "screen.h"
+#include "r_defs.h"
+#include "z_zone.h"
+#include "console.h"
+#include "i_video.h"
+#include "r_sky.h"
+#include "r_draw.h"
+#include "r_plane.h"
+#include "v_video.h"
+#include "tables.h"
+#include "m_argv.h"
+#include "g_state.h"
+#include "r_segs.h"
+#include "i_system.h"
+#include "dstrings.h"
+#include "st_stuff.h"
+#include "r_things.h"
+#include "r_state.h"
+
 //#include "doomdef.h"
 //#include "screen.h"
 //#include "console.h"
@@ -130,7 +149,7 @@ void (*skydrawerfunc[2]) (void);
 
 void SCR_SetMode(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	if (!graphics_started)
@@ -179,7 +198,7 @@ void SCR_SetMode(void)
 //
 void SCR_Startup(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 	
 	CONL_VarRegister(&l_SCRWidth);
@@ -220,7 +239,7 @@ void SCR_Startup(void)
 extern int dc_drawymove;
 void SCR_Recalc(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	if (!graphics_started)
@@ -294,7 +313,7 @@ void SCR_CheckDefaultMode(void)
 	int scr_forcex;				// resolution asked from the cmd-line
 	int scr_forcey;
 	
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	if (!graphics_started)

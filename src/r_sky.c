@@ -35,6 +35,9 @@
 //      The default sky map is 256 columns and repeats 4 times
 //      on a 320 screen?
 
+#include "r_sky.h"
+#include "r_things.h"
+
 //#include "doomdef.h"
 //#include "r_sky.h"
 //#include "r_local.h"

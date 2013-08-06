@@ -31,6 +31,13 @@
 // DESCRIPTION:
 //      floor and wall splats
 
+#include "r_splats.h"
+#include "v_video.h"
+#include "p_demcmp.h"
+#include "console.h"
+#include "dstrings.h"
+#include "r_state.h"
+
 //#include "r_draw.h"
 //#include "r_main.h"
 //#include "r_plane.h"
