@@ -37,7 +37,7 @@
 #ifndef __M_MISC__
 #define __M_MISC__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "w_wad.h"
 //#include "m_argv.h"
 

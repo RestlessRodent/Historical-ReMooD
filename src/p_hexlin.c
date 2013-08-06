@@ -33,7 +33,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "doomdef.h"
 //#include "p_mobj.h"
 //#include "r_local.h"

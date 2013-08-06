@@ -36,7 +36,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "dstrings.h"
 //#include "w_wad.h"
 //#include "z_zone.h"

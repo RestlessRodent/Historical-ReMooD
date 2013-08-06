@@ -1,7 +1,7 @@
 #ifndef __MINIZ_H__
 #define __MINIZ_H__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 
 #define MINIZ_NO_ARCHIVE_APIS
 #define MINIZ_NO_STDIO

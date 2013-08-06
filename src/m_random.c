@@ -33,7 +33,7 @@
 //      Random number LUT.
 
 //#include "doomdef.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "m_random.h"
 //#include "sn.h"
 //#include "i_util.h"

@@ -36,7 +36,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "p_local.h"
 //#include "p_spec.h"
 

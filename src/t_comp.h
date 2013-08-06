@@ -33,7 +33,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "doomdef.h"
 //#include "w_wad.h"
 //#include "z_zone.h"

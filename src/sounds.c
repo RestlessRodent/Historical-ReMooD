@@ -35,7 +35,7 @@
 // Note: the tables were originally created by a sound utility at Id,
 //       kept as a sample, DOOM2 sounds.
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "i_sound.h"
 //#include "sounds.h"
 //#include "r_defs.h"

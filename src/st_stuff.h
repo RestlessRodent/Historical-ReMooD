@@ -36,7 +36,7 @@
 #ifndef __STSTUFF_H__
 #define __STSTUFF_H__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 
 //#include "d_player.h"
 

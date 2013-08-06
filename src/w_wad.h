@@ -32,7 +32,7 @@
 #ifndef __W_WAD_H__
 #define __W_WAD_H__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "z_zone.h"
 
 /*************

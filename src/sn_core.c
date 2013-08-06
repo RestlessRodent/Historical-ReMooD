@@ -33,7 +33,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "doomstat.h"
 //#include "sn.h"
 //#include "m_argv.h"

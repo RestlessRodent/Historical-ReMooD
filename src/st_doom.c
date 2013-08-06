@@ -35,7 +35,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "st_stuff.h"
 //#include "d_prof.h"
 //#include "v_video.h"

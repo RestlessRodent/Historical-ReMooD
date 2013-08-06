@@ -37,7 +37,7 @@
 #define __V_VIDEO__
 
 //#include "doomdef.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "r_defs.h"
 //#include "w_wad.h"
 

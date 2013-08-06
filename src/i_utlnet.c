@@ -32,7 +32,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 
 #define __REMOOD_SOCKNONE	0					// No Sockets
 #define __REMOOD_SOCKBSD	1					// BSD Sockets

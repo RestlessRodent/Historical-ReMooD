@@ -34,7 +34,7 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "d_ticcmd.h"
 
 

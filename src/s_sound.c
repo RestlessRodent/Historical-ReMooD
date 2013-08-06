@@ -32,7 +32,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "doomdef.h"
 
 //#include "s_sound.h"

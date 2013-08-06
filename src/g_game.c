@@ -34,7 +34,7 @@
 
 /* Includes */
 //#include "doomdef.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 
 //#include "console.h"
 //#include "dstrings.h"

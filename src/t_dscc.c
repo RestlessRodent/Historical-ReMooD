@@ -34,7 +34,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "t_dsvm.h"
 
 /****************

@@ -35,7 +35,7 @@
 #define __D_TICCMD__
 
 //#include "m_fixed.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 
 //
 // Button/action code definitions.

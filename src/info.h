@@ -38,7 +38,7 @@
 
 // Needed for action function pointer handling.
 //#include "d_think.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "d_rmod.h"
 //#include "z_zone.h"
 

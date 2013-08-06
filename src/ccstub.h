@@ -40,7 +40,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 
 /* Palm OS Hacks */
 #if defined(__REMOOD_SYSTEM_PALMOS)

@@ -37,7 +37,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "doomdef.h"
 //#include "d_netcmd.h"
 //#include "d_prof.h"

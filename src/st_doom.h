@@ -40,7 +40,7 @@
 *** INCLUDES ***
 ***************/
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "st_stuff.h"
 
 /****************

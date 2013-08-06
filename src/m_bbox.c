@@ -32,7 +32,7 @@
 // DESCRIPTION:
 //      bounding boxes
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "m_bbox.h"
 
 void M_ClearBox(fixed_t* box)

@@ -55,7 +55,7 @@
 
 
 //#include "doomstat.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "d_main.h"
 //#include "g_game.h"
 //#include "hu_stuff.h"

@@ -34,7 +34,7 @@
 #ifndef __D_MAIN__
 #define __D_MAIN__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "doomstat.h"
 
 //#include "w_wad.h"				// for MAX_WADFILES

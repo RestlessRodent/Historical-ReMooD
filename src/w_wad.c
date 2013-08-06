@@ -31,7 +31,7 @@
 //      Handles WAD file header, directory, lump I/O.
 
 //#include "doomdef.h"
-//#include "doomtype.h"
+#include "doomtype.h"
 //#include "w_wad.h"
 //#include "z_zone.h"
 //#include "i_video.h"

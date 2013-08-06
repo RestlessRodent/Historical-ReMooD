@@ -35,7 +35,7 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-//#include "doomtype.h"
+#include "doomtype.h"
 
 // Uncheck this to compile debugging code
 //#define RANGECHECK
