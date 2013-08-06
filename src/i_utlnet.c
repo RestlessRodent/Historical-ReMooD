@@ -132,7 +132,7 @@ int inet_pton(int af, const char *src, void *dst)
 	if (af == AF_INET)
 		Len = sizeof(struct sockaddr_in);
 #if defined(__REMOOD_ENABLEIPV6)
-	else (af == AF_INET6)
+	else if (af == AF_INET6)
 		Len = sizeof(struct sockaddr_in6);
 #endif
 	else
