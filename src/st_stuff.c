@@ -55,8 +55,6 @@
 #include "wi_stuff.h"
 #include "m_menu.h"
 #include "d_prof.h"
-#include "sn_polyg.h"
-#include "sn_main.h"
 #include "b_bot.h"
 
 #include "st_doom.h"
@@ -931,10 +929,6 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 		// Draw it
 		STS_DrawMapLine(&Info, Line->v1->x, Line->v1->y, Line->v2->x, Line->v2->y, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
 	}
-	
-	/* Snow Debug Stuff */
-	if (g_SnowBug)
-		SN_DrawPolyLines(&Info, STS_DrawMapLine);
 	
 	/* Bot Debug Stuff */
 	//if (g_BotDebug)

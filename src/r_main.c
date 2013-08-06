@@ -52,10 +52,7 @@
 #include "d_main.h"
 #include "console.h"
 
-#include "rx_main.h"
-#include "rh_main.h"
 #include "vhw_wrap.h"
-#include "sn_main.h"
 
 #include "p_demcmp.h"
 
@@ -1197,7 +1194,7 @@ static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar
 	CONL_PrintF("Selecting Renderer ");
 	
 	/* Legacy? */
-	if (!ForceReMooD && a_StaticVar->Value[0].Int == 0)
+	/*if (!ForceReMooD && a_StaticVar->Value[0].Int == 0)*/
 	{
 		CONL_PrintF("Legacy");
 		
@@ -1205,6 +1202,7 @@ static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar
 		R_RenderPlayerView = R_RenderPlayerView_DOOM;
 	}
 	
+#if 0
 	/* ReMooD? */
 	else if (ForceReMooD || a_StaticVar->Value[0].Int == 1)
 	{
@@ -1231,7 +1229,7 @@ static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar
 		R_ExecuteSetViewSize = SN_ViewResize;
 		R_RenderPlayerView = SN_RenderView;
 	}
-	
+#endif
 	
 	/* Notice */
 	CONL_PrintF("\n");
