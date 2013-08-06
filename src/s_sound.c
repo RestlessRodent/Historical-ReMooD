@@ -44,6 +44,11 @@
 #include "tables.h"
 #include "d_netcmd.h"
 #include "p_mobj.h"
+#include "m_argv.h"
+#include "m_random.h"
+#include "p_local.h"
+#include "p_maputl.h"
+#include "r_main.h"
 
 //#include "doomdef.h"
 

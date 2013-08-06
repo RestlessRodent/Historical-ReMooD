@@ -49,6 +49,9 @@
 #include "st_doom.h"
 #include "sn.h"
 #include "vhw_wrap.h"
+#include "m_menu.h"
+#include "p_info.h"
+#include "p_local.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

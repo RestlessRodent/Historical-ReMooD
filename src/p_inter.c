@@ -47,6 +47,11 @@
 #include "d_prof.h"
 #include "p_local.h"
 #include "dstrings.h"
+#include "console.h"
+#include "g_game.h"
+#include "i_system.h"
+#include "m_random.h"
+#include "st_stuff.h"
 
 //#include "doomdef.h"
 //#include "i_system.h"			//I_Tactile currently has no effect

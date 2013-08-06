@@ -38,6 +38,9 @@
 #include "m_misc.h"
 #include "v_video.h"
 #include "z_zone.h"
+#include "console.h"
+#include "doomdef.h"
+#include "i_video.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

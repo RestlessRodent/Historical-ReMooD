@@ -36,6 +36,8 @@
 #include "p_spec.h"
 #include "z_zone.h"
 #include "p_demcmp.h"
+#include "m_random.h"
+#include "p_local.h"
 
 //#include "doomdef.h"
 //#include "p_local.h"

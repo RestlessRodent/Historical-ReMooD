@@ -56,6 +56,17 @@
 #include "p_local.h"
 #include "vhw_wrap.h"
 #include "m_argv.h"
+#include "d_clisrv.h"
+#include "d_rmod.h"
+#include "g_game.h"
+#include "i_system.h"
+#include "i_video.h"
+#include "m_menu.h"
+#include "p_demcmp.h"
+#include "p_info.h"
+#include "p_spec.h"
+#include "st_stuff.h"
+#include "wi_stuff.h"
 
 /* Define VideoFont_t */
 #if !defined(__REMOOD_VIDEOFONTT_DEFINED)

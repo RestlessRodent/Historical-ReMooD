@@ -42,6 +42,8 @@
 #include "d_player.h"
 #include "d_prof.h"
 #include "r_main.h"
+#include "i_video.h"
+#include "m_random.h"
 
 #include "info.h"	// TODO FIXME: Only used by D_TicCmdFillWeapon()
 

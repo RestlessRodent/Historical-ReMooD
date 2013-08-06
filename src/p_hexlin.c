@@ -36,6 +36,7 @@
 #include "doomtype.h"
 #include "r_defs.h"
 #include "p_spec.h"
+#include "console.h"
 
 //#include "doomdef.h"
 //#include "p_mobj.h"

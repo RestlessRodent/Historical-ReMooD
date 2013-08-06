@@ -44,6 +44,9 @@
 #include "dstrings.h"
 #include "console.h"
 #include "p_inter.h"
+#include "g_game.h"
+#include "m_random.h"
+#include "p_local.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

@@ -36,6 +36,7 @@
 #include "z_zone.h"
 #include "s_sound.h"
 #include "w_wad.h"
+#include "p_nwline.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

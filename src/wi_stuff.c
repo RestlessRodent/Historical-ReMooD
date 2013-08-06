@@ -42,6 +42,13 @@
 #include "r_defs.h"
 #include "dstrings.h"
 #include "s_sound.h"
+#include "g_game.h"
+#include "i_util.h"
+#include "m_random.h"
+#include "p_local.h"
+#include "p_mobj.h"
+#include "st_stuff.h"
+#include "vhw_wrap.h"
 
 //#include "doomdef.h"
 //#include "wi_stuff.h"

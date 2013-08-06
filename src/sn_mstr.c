@@ -38,6 +38,8 @@
 #include "i_util.h"
 #include "d_block.h"
 #include "g_state.h"
+#include "console.h"
+#include "m_argv.h"
 
 /****************
 *** CONSTANTS ***

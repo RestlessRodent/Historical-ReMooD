@@ -51,6 +51,9 @@
 #include "r_things.h"
 #include "t_func.h"		// for script_camera_on
 #include "i_system.h"	// for graphics_started
+#include "g_game.h"
+#include "r_draw.h"
+#include "r_sky.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

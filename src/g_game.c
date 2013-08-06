@@ -48,6 +48,15 @@
 #include "tables.h"
 #include "s_sound.h"
 #include "wi_stuff.h"
+#include "b_bot.h"
+#include "console.h"
+#include "m_argv.h"
+#include "m_random.h"
+#include "p_inter.h"
+#include "p_mobj.h"
+#include "p_setup.h"
+#include "p_spec.h"
+#include "st_stuff.h"
 
 // TODO FIXME: Put Player spot spawning elsewhere??
 #include "p_maputl.h"

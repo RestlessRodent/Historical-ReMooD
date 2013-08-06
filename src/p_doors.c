@@ -37,6 +37,7 @@
 #include "z_zone.h"
 #include "p_demcmp.h"
 #include "p_nwline.h"
+#include "p_local.h"
 
 //#include "doomdef.h"
 //#include "doomstat.h"

@@ -34,6 +34,8 @@
 
 #include "doomtype.h"
 #include "m_random.h"
+#include "i_system.h"
+#include "i_util.h"
 
 //#include "doomdef.h"
 //#include "sn.h"

@@ -47,6 +47,9 @@
 #include "d_prof.h"
 #include "p_maputl.h"
 #include "p_local.h"
+#include "g_game.h"
+#include "p_inter.h"
+#include "wi_stuff.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

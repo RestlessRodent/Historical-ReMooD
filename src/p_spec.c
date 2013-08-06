@@ -50,6 +50,9 @@
 #include "m_bbox.h"
 #include "p_local.h"
 #include "p_maputl.h"
+#include "g_game.h"
+#include "p_inter.h"
+#include "p_nwline.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

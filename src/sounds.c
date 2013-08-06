@@ -38,6 +38,8 @@
 #include "doomtype.h"
 #include "sounds.h"
 #include "z_zone.h"
+#include "console.h"
+#include "s_sound.h"
 
 //#include "i_sound.h"
 //#include "sounds.h"

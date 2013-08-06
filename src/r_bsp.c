@@ -41,6 +41,9 @@
 #include "m_bbox.h"
 #include "r_plane.h"
 #include "screen.h"
+#include "doomdef.h"
+#include "r_segs.h"
+#include "r_things.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

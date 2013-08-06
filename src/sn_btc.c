@@ -45,6 +45,11 @@
 #include "v_video.h"
 #include "console.h"
 #include "tables.h"
+#include "d_main.h"
+#include "p_inter.h"
+#include "p_local.h"
+#include "p_mobj.h"
+#include "st_stuff.h"
 
 //#include "doomstat.h"
 //#include "m_argv.h"

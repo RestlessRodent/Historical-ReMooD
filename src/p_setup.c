@@ -50,6 +50,7 @@
 #include "screen.h"	// for skycolfunc
 #include "t_vm.h"
 #include "r_splats.h"
+#include "g_game.h"
 
 //#include "doomdef.h"
 //#include "c_lib.h"

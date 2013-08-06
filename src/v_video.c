@@ -45,6 +45,7 @@
 #include "i_system.h"
 #include "r_state.h"
 #include "vhw_wrap.h"
+#include "i_video.h"
 
 //#include "doomdef.h"
 //#include "doomstat.h"

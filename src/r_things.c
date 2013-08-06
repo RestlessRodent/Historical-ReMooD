@@ -46,6 +46,10 @@
 #include "d_netcmd.h"
 #include "info.h"
 #include "st_stuff.h"
+#include "p_demcmp.h"
+#include "p_local.h"
+#include "p_maputl.h"
+#include "r_segs.h"
 
 //#include "doomdef.h"
 //#include "c_lib.h"

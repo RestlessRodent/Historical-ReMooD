@@ -40,6 +40,9 @@
 #include "m_argv.h"
 #include "sn.h"
 #include "d_main.h"
+#include "p_inter.h"
+#include "p_local.h"
+#include "p_spec.h"
 
 //#include "doomdef.h"
 //#include "p_demcmp.h"

@@ -36,6 +36,7 @@
 #include "s_sound.h"
 #include "g_state.h"
 #include "z_zone.h"
+#include "p_local.h"
 
 //#include "doomdef.h"
 //#include "p_local.h"

@@ -46,6 +46,9 @@
 #include "tables.h"
 #include "g_state.h"
 #include "console.h"
+#include "m_random.h"
+#include "p_inter.h"
+#include "r_main.h"
 
 //#include "doomdef.h"
 

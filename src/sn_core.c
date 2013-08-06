@@ -48,6 +48,7 @@
 #include "g_game.h"
 #include "p_setup.h"
 #include "s_sound.h"
+#include "d_clisrv.h"
 
 //#include "doomstat.h"
 //#include "m_argv.h"

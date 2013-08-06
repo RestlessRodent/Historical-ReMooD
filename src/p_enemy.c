@@ -47,6 +47,8 @@
 #include "p_info.h"
 #include "d_think.h"
 #include "p_maputl.h"
+#include "g_game.h"
+#include "m_random.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

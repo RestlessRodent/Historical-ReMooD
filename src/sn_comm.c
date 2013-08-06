@@ -44,6 +44,9 @@
 #include "z_zone.h"
 #include "d_player.h"
 #include "w_wad.h"
+#include "d_main.h"
+#include "d_netcmd.h"
+#include "i_system.h"
 
 //#include "i_util.h"
 //#include "doomstat.h"

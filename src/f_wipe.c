@@ -41,6 +41,9 @@
 #include "z_zone.h"
 #include "v_video.h"
 #include "r_draw.h"
+#include "i_video.h"
+#include "m_random.h"
+#include "vhw_wrap.h"
 
 //#include "doomdef.h"
 //#include "m_random.h"

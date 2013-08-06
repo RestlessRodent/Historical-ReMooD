@@ -77,6 +77,11 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "dstrings.h"
+#include "d_clisrv.h"
+#include "d_main.h"
+#include "g_game.h"
+#include "m_menu.h"
+#include "sn.h"
 
 //#include "g_input.h"
 //#include "w_wad.h"

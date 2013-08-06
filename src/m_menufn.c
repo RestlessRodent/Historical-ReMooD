@@ -39,6 +39,7 @@
 #include "w_wad.h"
 #include "sn.h"
 #include "z_zone.h"
+#include "g_game.h"
 
 //#include "m_menu.h"
 //#include "p_demcmp.h"

@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "i_sound.h"
 #include "i_util.h"
+#include "console.h"
 
 /****************
 *** CONSTANTS ***

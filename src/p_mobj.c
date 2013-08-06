@@ -48,6 +48,11 @@
 #include "r_sky.h"
 #include "d_prof.h"
 #include "sn.h"
+#include "console.h"
+#include "g_game.h"
+#include "m_random.h"
+#include "p_maputl.h"
+#include "st_stuff.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

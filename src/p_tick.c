@@ -39,6 +39,7 @@
 #include "z_zone.h"
 #include "d_player.h"
 #include "p_local.h"
+#include "t_script.h"
 
 //#include "doomstat.h"
 //#include "g_game.h"

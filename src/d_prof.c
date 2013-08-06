@@ -35,6 +35,8 @@
 #include "v_video.h"
 #include "dstrings.h"
 #include "g_state.h"
+#include "console.h"
+#include "d_netcmd.h"
 
 //#include "console.h"
 //#include "r_data.h"

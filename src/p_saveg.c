@@ -67,6 +67,7 @@
 #include "info.h"
 #include "p_info.h"
 #include "d_prof.h"
+#include "s_sound.h"
 
 /**************
 *** GLOBALS ***

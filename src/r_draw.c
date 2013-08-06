@@ -46,6 +46,7 @@
 #include "w_wad.h"
 #include "v_video.h"
 #include "r_main.h"
+#include "doomdef.h"
 
 //#include "doomdef.h"
 //#include "doomstat.h"

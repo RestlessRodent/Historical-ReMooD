@@ -41,6 +41,8 @@
 #include "r_state.h"
 #include "m_bbox.h"
 #include "p_demcmp.h"
+#include "console.h"
+#include "doomdef.h"
 
 //#include "p_local.h"
 //#include "r_main.h"

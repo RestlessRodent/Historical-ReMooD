@@ -44,6 +44,9 @@
 #include "p_info.h"
 #include "s_sound.h"
 #include "g_state.h"
+#include "g_game.h"
+#include "p_local.h"
+#include "p_spec.h"
 
 /****************
 *** CONSTANTS ***

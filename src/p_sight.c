@@ -36,6 +36,7 @@
 #include "r_main.h"
 #include "p_mobj.h"
 #include "p_maputl.h"
+#include "console.h"
 
 //#include "doomdef.h"
 //#include "doomstat.h"
