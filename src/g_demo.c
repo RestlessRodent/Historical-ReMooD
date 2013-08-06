@@ -50,6 +50,7 @@
 #include "p_mobj.h"
 #include "info.h"
 #include "s_sound.h"
+#include "r_main.h"
 
 //#include "g_game.h"
 //#include "p_info.h"

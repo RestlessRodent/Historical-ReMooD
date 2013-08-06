@@ -40,6 +40,9 @@
 #include "z_zone.h"
 #include "console.h"
 #include "dstrings.h"
+#include "d_block.h"
+#include "w_wad.h"
+#include "p_saveg.h"
 
 /*****************
 *** STRUCTURES ***

@@ -37,6 +37,7 @@
 #include "z_zone.h"
 #include "z_miniz.h"
 #include "i_util.h"
+#include "w_wad.h"
 
 // TODO FIXME: Can probably remove these
 #include "console.h"

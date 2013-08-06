@@ -38,6 +38,10 @@
 #include "console.h"
 #include "z_zone.h"
 #include "dstrings.h"
+#include "i_system.h"
+#include "p_setup.h"
+#include "m_argv.h"
+#include "d_prof.h"
 
 // TODO FIXME: Remove this by splitting UI console code from actual console
 #include "v_video.h"	// Video Code
@@ -45,6 +49,8 @@
 #include "screen.h"		// Other video stuff
 #include "g_state.h"	// GS_*
 #include "d_netcmd.h"	// SplitScreen Junk
+#include "vhw_wrap.h"
+#include "i_video.h"
 
 //#include "doomdef.h"
 //#include "g_game.h"

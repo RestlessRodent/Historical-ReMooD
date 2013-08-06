@@ -45,6 +45,7 @@
 #include "p_demcmp.h"
 #include "tables.h"
 #include "g_state.h"
+#include "console.h"
 
 //#include "doomdef.h"
 

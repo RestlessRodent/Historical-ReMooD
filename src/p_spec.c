@@ -1657,8 +1657,7 @@ void P_UpdateSpecials(void)
 //SoM: 3/8/2000: EV_DoDonut moved to p_floor.c
 
 //SoM: 3/23/2000: Adds a sectors floor and ceiling to a sector's ffloor list
-void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
-void P_AddFFloor(sector_t* sec, ffloor_t* ffloor);
+
 
 void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags)
 {

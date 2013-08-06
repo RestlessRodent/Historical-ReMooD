@@ -37,6 +37,9 @@
 #include "g_state.h"
 #include "dstrings.h"
 #include "d_player.h"
+#include "m_argv.h"
+#include "sn.h"
+#include "d_main.h"
 
 //#include "doomdef.h"
 //#include "p_demcmp.h"

@@ -33,6 +33,8 @@
 
 #include "doomtype.h"
 #include "g_state.h"
+#include "g_game.h"
+#include "i_system.h"
 
 //#include "d_clisrv.h"
 //#include "doomdef.h"

@@ -36,6 +36,7 @@
 
 #include "z_zone.h"
 #include "i_system.h"
+#include "i_util.h"
 
 /****************
 *** CONSTANTS ***

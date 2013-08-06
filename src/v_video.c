@@ -44,6 +44,7 @@
 #include "w_wad.h"
 #include "i_system.h"
 #include "r_state.h"
+#include "vhw_wrap.h"
 
 //#include "doomdef.h"
 //#include "doomstat.h"

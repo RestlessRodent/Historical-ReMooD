@@ -1319,6 +1319,9 @@ extern size_t g_NumPFakeFloors;					// Number of them
 int32_t P_GetIDFromFFloor(ffloor_t* const a_FFloor);
 ffloor_t* P_GetFFloorFromID(const int32_t a_ID);
 
+void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
+void P_AddFFloor(sector_t* sec, ffloor_t* ffloor);
+
 /*****************************************************************************/
 
 bool_t EV_VerticalDoor(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain, const uint32_t a_ArgC, const int32_t* const a_ArgV);

@@ -36,6 +36,7 @@
 #include "d_netcmd.h"
 #include "s_sound.h"
 #include "z_zone.h"
+#include "vhw_wrap.h"
 
 //#include "doomdef.h"
 //#include "dstrings.h"

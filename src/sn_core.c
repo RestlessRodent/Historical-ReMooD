@@ -43,6 +43,11 @@
 #include "dstrings.h"
 #include "z_zone.h"
 #include "p_demcmp.h"
+#include "r_main.h"
+#include "m_argv.h"
+#include "g_game.h"
+#include "p_setup.h"
+#include "s_sound.h"
 
 //#include "doomstat.h"
 //#include "m_argv.h"
@@ -1331,7 +1336,7 @@ SN_Port_t* SN_RequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
 	uint32_t LastScreen;
-	int32_t PlaceAt, UngrabbedScreen, i;
+	int32_t PlaceAt, UngrabbedScreen;
 	D_Prof_t* Profile;
 	bool_t BumpSplits;
 	D_SplitInfo_t* Split;

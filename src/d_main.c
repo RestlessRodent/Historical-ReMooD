@@ -55,6 +55,7 @@
 #include "m_misc.h"
 #include "p_local.h"
 #include "vhw_wrap.h"
+#include "m_argv.h"
 
 /* Define VideoFont_t */
 #if !defined(__REMOOD_VIDEOFONTT_DEFINED)

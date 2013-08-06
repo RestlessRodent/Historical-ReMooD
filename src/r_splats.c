@@ -47,10 +47,8 @@
 //#include "d_netcmd.h"
 //#include "p_demcmp.h"
 
-#ifdef WALLSPLATS
 static wallsplat_t wallsplats[MAXLEVELSPLATS];	// WALL splats
 static int freewallsplat;
-#endif
 
 // g_CVPVMaxSplats -- Max splats to allow
 const CONL_VarPossibleValue_t c_CVPVMaxSplats[] =
@@ -85,16 +83,13 @@ struct rastery_s* prastertab;
 // --------------------------------------------------------------------------
 void R_ClearLevelSplats(void)
 {
-#ifdef WALLSPLATS
 	freewallsplat = 0;
 	memset(wallsplats, 0, sizeof(wallsplats));
-#endif
 }
 
 // ==========================================================================
 //                                                                WALL SPLATS
 // ==========================================================================
-#ifdef WALLSPLATS
 // --------------------------------------------------------------------------
 // Return a pointer to a splat free for use, or NULL if no more splats are
 // available
@@ -325,5 +320,4 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		}
 	}
 }
-#endif							// WALLSPLATS
 

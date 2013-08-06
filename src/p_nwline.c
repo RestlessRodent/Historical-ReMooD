@@ -45,6 +45,7 @@
 #include "info.h"
 #include "dstrings.h"
 #include "p_inter.h"
+#include "console.h"
 
 //#include "r_local.h"
 //#include "dstrings.h"
