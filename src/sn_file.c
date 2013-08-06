@@ -33,14 +33,15 @@
 *** INCLUDES ***
 ***************/
 
-//#include "sn.h"
+#include "sn.h"
+#include "md5.h"
 //#include "i_util.h"
 //#include "doomstat.h"
 //#include "d_main.h"
 //#include "console.h"
 //#include "p_info.h"
 //#include "p_saveg.h"
-//#include "md5.h"
+
 
 /*****************
 *** STRUCTURES ***

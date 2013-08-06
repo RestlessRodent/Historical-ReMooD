@@ -34,8 +34,8 @@
 ***************/
 
 #include "doomtype.h"
+#include "sn.h"
 //#include "doomstat.h"
-//#include "sn.h"
 //#include "m_argv.h"
 //#include "p_demcmp.h"
 //#include "r_main.h"

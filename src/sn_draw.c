@@ -35,10 +35,10 @@
 *** INCLUDES ***
 ***************/
 
-//#include "sn.h"
-//#include "dstrings.h"
-//#include "v_video.h"
-//#include "console.h"
+#include "sn.h"
+#include "dstrings.h"
+#include "v_video.h"
+#include "console.h"
 
 /****************
 *** CONSTANTS ***

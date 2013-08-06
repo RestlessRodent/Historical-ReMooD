@@ -34,6 +34,24 @@
 //       utility functions (BSP, geometry, trigonometry).
 //      See tables.c, too.
 
+#include "r_main.h"
+#include "dstrings.h"
+#include "console.h"
+#include "d_netcmd.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "r_plane.h"
+#include "g_state.h"
+#include "p_demcmp.h"
+#include "v_video.h"
+#include "d_prof.h"
+#include "r_segs.h"
+#include "vhw_wrap.h"
+#include "st_stuff.h"
+#include "r_things.h"
+#include "t_func.h"		// for script_camera_on
+#include "i_system.h"	// for graphics_started
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "g_input.h"
@@ -798,7 +816,7 @@ void R_ExecuteSetViewSize_DOOM(void)
 
 void R_Init(void)
 {
-	if (dedicated)
+	if (g_DedicatedServer)
 		return;
 		
 	//added:24-01-98: screensize independent

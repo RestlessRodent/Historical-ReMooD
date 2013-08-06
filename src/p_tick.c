@@ -33,6 +33,13 @@
 //      Archiving: SaveGame I/O.
 //      Thinker, Ticker.
 
+#include "d_think.h"
+#include "p_spec.h"
+#include "p_mobj.h"
+#include "z_zone.h"
+#include "d_player.h"
+#include "p_local.h"
+
 //#include "doomstat.h"
 //#include "g_game.h"
 //#include "p_local.h"

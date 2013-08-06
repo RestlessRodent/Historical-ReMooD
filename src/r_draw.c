@@ -37,6 +37,16 @@
 //      not the architecture of the frame buffer.
 //      The frame buffer is a linear one, and we need only the base address.
 
+#include "r_draw.h"
+#include "r_defs.h"
+#include "screen.h"
+#include "z_zone.h"
+#include "g_state.h"
+#include "d_netcmd.h"
+#include "w_wad.h"
+#include "v_video.h"
+#include "r_main.h"
+
 //#include "doomdef.h"
 //#include "doomstat.h"
 //#include "r_local.h"

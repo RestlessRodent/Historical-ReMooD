@@ -32,6 +32,11 @@
 // DESCRIPTION:
 //      Switches, buttons. Two-state animation. Exits.
 
+#include "p_spec.h"
+#include "z_zone.h"
+#include "s_sound.h"
+#include "w_wad.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "p_local.h"

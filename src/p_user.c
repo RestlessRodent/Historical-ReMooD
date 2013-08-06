@@ -34,6 +34,20 @@
 //      Bobbing POV/weapon, movement.
 //      Pending weapon.
 
+#include "d_player.h"
+#include "p_mobj.h"
+#include "p_spec.h"
+#include "p_demcmp.h"
+#include "d_netcmd.h"
+#include "d_ticcmd.h"
+#include "sn.h"
+#include "info.h"
+#include "s_sound.h"
+#include "p_info.h"
+#include "d_prof.h"
+#include "p_maputl.h"
+#include "p_local.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "p_local.h"
@@ -169,7 +183,7 @@ void P_CalcHeight(player_t* player)
 	if (player->mo->flags2 & MF2_FLY && !onground)
 		player->bob = FRACUNIT / 2;
 		
-	angle = (FINEANGLES / 20 * localgametic) & FINEMASK;
+	angle = (FINEANGLES / 20 * leveltime) & FINEMASK;
 	bob = FixedMul(player->bob / 2, finesine[angle]);
 	
 	/* Set target */

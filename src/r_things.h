@@ -34,10 +34,7 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
-//#include "sounds.h"
-
-// GhostlyDeath <July 24, 2011> -- Remove sprite limit
-#define NUMSPRITEBUMPS	512
+#include "sounds.h"		// Just for NUMSKINSOUNDS
 
 #define MAXVISSPRITES   512		// added 2-2-98 was 128
 

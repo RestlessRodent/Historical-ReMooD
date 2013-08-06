@@ -32,6 +32,16 @@
 // DESCRIPTION:
 //      BSP traversal, handling of LineSegs for rendering.
 
+#include "r_bsp.h"
+#include "z_zone.h"
+#include "r_state.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "r_sky.h"
+#include "m_bbox.h"
+#include "r_plane.h"
+#include "screen.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "r_local.h"

@@ -33,6 +33,14 @@
 //      Preparation of data for rendering,
 //      generation of lookups, caching, retrieval by name.
 
+#include "r_data.h"
+#include "z_zone.h"
+#include "w_wad.h"
+#include "v_video.h"
+#include "info.h"
+#include "console.h"
+#include "dstrings.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "i_video.h"
@@ -46,9 +54,8 @@
 //#include "v_video.h"			//pLoaclPalette
 //#include "console.h"
 
-#ifdef _WIN32
-//#include "malloc.h"
-#endif
+// GhostlyDeath <July 24, 2011> -- Remove sprite limit
+#define NUMSPRITEBUMPS	512
 
 int firstflat, lastflat, numflats;
 int firstpatch, lastpatch, numpatches;
