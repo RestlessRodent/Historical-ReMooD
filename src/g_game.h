@@ -94,9 +94,6 @@ extern char gamemapname[GAMEMAPNAMESIZE];
 // gametic at level start
 extern tic_t levelstarttic;
 
-extern angle_t localangle[MAXSPLITSCREENPLAYERS];
-extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
-
 extern uint32_t g_CheatFlags;
 
 /* Prototypes */

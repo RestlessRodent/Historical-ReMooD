@@ -37,8 +37,8 @@
 ***************/
 
 #include "doomtype.h"
-//#include "p_local.h"
-//#include "p_spec.h"
+#include "r_defs.h"
+#include "p_spec.h"
 
 /****************
 *** CONSTANTS ***

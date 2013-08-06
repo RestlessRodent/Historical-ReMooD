@@ -33,6 +33,10 @@
 //      Handle Sector base lighting effects.
 //      Muzzle flash?
 
+#include "p_spec.h"
+#include "z_zone.h"
+#include "p_demcmp.h"
+
 //#include "doomdef.h"
 //#include "p_local.h"
 //#include "r_state.h"

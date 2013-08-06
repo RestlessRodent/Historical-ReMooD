@@ -392,6 +392,12 @@ typedef enum P_MobjRefType_e
 	#define __REMOOD_PIMOBJT_DEFINED
 #endif
 
+/* Define PI_wepid_t */
+#if !defined(__REMOOD_PIWEPIDT_DEFINED)
+	typedef int32_t PI_wepid_t;
+	#define __REMOOD_PIWEPIDT_DEFINED
+#endif
+
 /* P_MobjRefLog_t -- Map object reference log */
 typedef struct P_MobjRefLog_s
 {

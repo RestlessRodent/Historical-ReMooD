@@ -42,7 +42,7 @@
 #ifndef __TABLES__
 #define __TABLES__
 
-//#include "m_fixed.h"
+#include "doomtype.h"
 
 #define FINEANGLES              8192
 #define FINEMASK                (FINEANGLES-1)

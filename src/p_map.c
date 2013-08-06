@@ -33,6 +33,24 @@
 //      Movement, collision handling.
 //      Shooting and aiming.
 
+#include "r_state.h"
+#include "p_mobj.h"
+#include "p_maputl.h"
+#include "d_player.h"
+#include "m_bbox.h"
+#include "m_random.h"
+#include "g_state.h"
+#include "p_local.h"
+#include "p_demcmp.h"
+#include "info.h"
+#include "s_sound.h"
+#include "p_spec.h"
+#include "z_zone.h"
+#include "r_main.h"
+#include "r_splats.h"
+#include "p_info.h"
+#include "r_sky.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "m_bbox.h"
@@ -122,7 +140,7 @@ static bool_t PIT_StompThing(mobj_t* thing, void* a_Arg)
 		return true;			// didn't hit it
 		
 	// monsters don't stomp things except on boss level
-	if (!P_MobjIsPlayer(tmthing) && gamemap != 30)
+	if (!P_MobjIsPlayer(tmthing) && !g_CurrentLevelInfo->MonsterTeleStomp)
 		return false;
 		
 	// Not allowed to stomp things

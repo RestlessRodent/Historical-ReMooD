@@ -32,6 +32,22 @@
 // DESCRIPTION:
 //      Handling interactions (i.e., collisions).
 
+#include "p_inter.h"
+#include "info.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "p_demcmp.h"
+#include "s_sound.h"
+#include "g_state.h"
+#include "d_netcmd.h"
+#include "tables.h"
+#include "v_video.h"
+#include "d_items.h"
+#include "p_spec.h"
+#include "d_prof.h"
+#include "p_local.h"
+#include "dstrings.h"
+
 //#include "doomdef.h"
 //#include "i_system.h"			//I_Tactile currently has no effect
 
@@ -397,7 +413,7 @@ bool_t P_GivePower(player_t* player, int /*powertype_t */ power)
 	if (power == pw_invulnerability)
 	{
 		// Already have it
-		if (inventory && player->powers[power] > BLINKTHRESHOLD)
+		if (/*inventory &&*/ player->powers[power] > BLINKTHRESHOLD)
 			return false;
 			
 		player->powers[power] = INVULNTICS;
@@ -406,7 +422,7 @@ bool_t P_GivePower(player_t* player, int /*powertype_t */ power)
 	else if (power == pw_invisibility)
 	{
 		// Already have it
-		if (inventory && player->powers[power] > BLINKTHRESHOLD)
+		if (/*inventory &&*/ player->powers[power] > BLINKTHRESHOLD)
 			return false;
 			
 		player->powers[power] = INVISTICS;

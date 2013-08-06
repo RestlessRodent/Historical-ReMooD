@@ -32,6 +32,8 @@
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
 
+#include "doomtype.h"
+
 /**************************
 *** NEW LEVEL INFO CODE ***
 **************************/
@@ -154,6 +156,7 @@ typedef struct P_LevelInfoEx_s
 	bool_t OpenDoorOnSpecial;					// Open door on special action
 	bool_t LowerFloorOnSpecial;					// Floor lowers on special
 	bool_t KillMonstersOnSpecial;				// Kills other monsters on special
+	bool_t MonsterTeleStomp;					// Allow all monsters to telestomp
 	int32_t LevelNum;							// Level number
 	int32_t EpisodeNum;							// Episode Number
 	int32_t SuckTime;							// Time before you suck

@@ -35,6 +35,8 @@
 #define __R_STATE__
 
 #include "tables.h"
+#include "r_defs.h"
+#include "r_main.h"
 
 // Need data structure definitions.
 //#include "d_player.h"

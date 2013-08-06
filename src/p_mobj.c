@@ -32,6 +32,23 @@
 // DESCRIPTION:
 //      Moving object handling. Spawn functions.
 
+#include "p_mobj.h"
+#include "p_demcmp.h"
+#include "d_player.h"
+#include "info.h"
+#include "tables.h"
+#include "r_defs.h"
+#include "z_zone.h"
+#include "s_sound.h"
+#include "g_state.h"
+#include "p_local.h"
+#include "d_items.h"
+#include "d_netcmd.h"
+#include "p_spec.h"
+#include "r_sky.h"
+#include "d_prof.h"
+#include "sn.h"
+
 //#include "doomdef.h"
 //#include "g_game.h"
 //#include "g_input.h"
@@ -1048,12 +1065,14 @@ void P_MobjThinker(mobj_t* mobj)
 	uint32_t* TicA, TimeBase;
 	bool_t ZMoveOffFloor;
 	
+#if 0
 	if (g_CheatFlags & MCF_FREEZETIME)
 	{
 		// Only players are not frozen
 		if (!P_MobjIsPlayer(mobj))
 			return;
 	}
+#endif
 	
 	// GhostlyDeath <June 12, 2012> -- Object Timers
 	for (i = 0; i < 2; i++)

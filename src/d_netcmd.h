@@ -123,6 +123,9 @@ extern D_SplitInfo_t g_Splits[MAXSPLITSCREEN];	// Split Information
 
 extern bool_t g_NetDev;
 
+extern angle_t localangle[MAXSPLITSCREENPLAYERS];
+extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
+
 /*** FUNCTIONS ***/
 
 bool_t D_ScrSplitHasPlayer(const int8_t a_Player);

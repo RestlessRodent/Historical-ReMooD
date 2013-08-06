@@ -320,6 +320,7 @@ map MAP30 "Last Call"
 	par 180
 	titlepatch CWILV29
 	music D_OPENIN
+	monstertelestomp
 	
 map MAP31 "Pharoah"
 	creator "Dario Casali"

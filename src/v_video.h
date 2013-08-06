@@ -377,8 +377,14 @@ enum V_ColorPal_e
 
 /*** STRUCTURES ***/
 
+/* Define V_Image_t */
+#if !defined(__REMOOD_VIMAGET_DEFINED)
+	typedef struct V_Image_s V_Image_t;
+	#define __REMOOD_VIMAGET_DEFINED
+#endif
+
 /* V_Image_t -- A single image */
-typedef struct V_Image_s
+struct V_Image_s
 {
 	/* Info */
 	int32_t					Width;				// Image width
@@ -407,15 +413,15 @@ typedef struct V_Image_s
 	uint8_t*				dRaw;				// Raw image (flat)
 	
 	/* Cache Chain */
-	struct V_Image_s*		iPrev;				// Previous image
-	struct V_Image_s*		iNext;				// Next image
+	V_Image_t*				iPrev;				// Previous image
+	V_Image_t*				iNext;				// Next image
 	
 	/* Size */
 	void* dPatchEnd;							// End of patch data
 	uint32_t POTSize[2];						// Power of two size
 	uint32_t GLRef[32];							// OpenGL Reference
 	uint32_t GLSpotCount[32];					// Current Spot
-} V_Image_t;
+};
 
 // Load and Destroy
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a_Pal);
