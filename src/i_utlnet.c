@@ -83,11 +83,8 @@
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
 	
-	#if defined(__MINGW64) || defined(__MINGW64__)
+	#if (defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0501) || defined(_MSC_VER) || defined(__MINGW64) || defined(__MINGW64__)
 		#include <wspiapi.h>
-	#else
-		#define getaddrinfo WspiapiGetAddrInfo
-		#define freeaddrinfo WspiapiFreeAddrInfo
 	#endif
 	
 	#define __REMOOD_DONTWAITMSG 0
@@ -143,6 +140,77 @@ int inet_pton(int af, const char *src, void *dst)
 	
 	return WSAStringToAddressA(src, af, NULL, dst, &Len);
 }
+#endif
+#endif
+
+/* getaddrinfo/freeaddrinfo() -- Windows somewhat lacks this before XP... */
+#if defined(_WIN32)
+#if !defined(_WIN32_WINNT) || (defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0501)
+
+/* freeaddrinfo() -- Frees address info struct */
+void WSAAPI freeaddrinfo(struct addrinfo* res)
+{
+	static bool_t Did;
+	static void WSAAPI (*freeaddrinfo_real)(struct addrinfo* res);
+	HMODULE hMod;
+	
+	/* Look in ws2_32.dll */
+	if (!Did)
+	{
+		Did = true;
+		hMod = GetModuleHandle("ws2_32.dll");
+		
+		// It worked!
+		if (hMod)
+			// Try getting address
+			if (!(freeaddrinfo_real = GetProcAddress(hMod, "freeaddrinfo")))
+				// Did not work, try again
+				freeaddrinfo_real = GetProcAddress(hMod, "WspiapiLegacyFreeAddrInfo");
+	}
+	
+	/* Native */
+	if (freeaddrinfo_real)
+		freeaddrinfo_real(res);
+	
+	/* Faked */
+	else
+	{
+	}
+}
+
+/* getaddrinfo() -- Gets information on address */
+int WSAAPI getaddrinfo(const char* node, const char* service ,const struct addrinfo* hints , struct addrinfo** res)
+{
+	static bool_t Did;
+	static int WSAAPI (*getaddrinfo_real)(const char* node, const char* service ,const struct addrinfo* hints , struct addrinfo** res);
+	HMODULE hMod;
+	
+	/* Look in ws2_32.dll */
+	if (!Did)
+	{
+		Did = true;
+		hMod = GetModuleHandle("ws2_32.dll");
+		
+		// It worked!
+		if (hMod)
+			// Try getting address
+			if (!(getaddrinfo_real = GetProcAddress(hMod, "getaddrinfo")))
+				// Did not work, try again
+				getaddrinfo_real = GetProcAddress(hMod, "WspiapiLegacyGetAddrInfo");
+	}
+	
+	/* Native? */
+	if (getaddrinfo_real)
+		return getaddrinfo_real(node, service, hints, res);
+	
+	/* Faked */
+	else
+	{
+		// TODO FIXME, Implement for Win9x
+		return 1;
+	}
+}
+
 #endif
 #endif
 
