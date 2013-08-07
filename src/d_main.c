@@ -2473,6 +2473,10 @@ void D_DoomMain(void)
 	// Make the console "started"
 	con_started = true;
 	
+	// Network needs to be initialized very early, otherwise KABOOM!
+	CONL_PrintF("I_InitNetwork...\n");
+	I_InitNetwork();
+	
 	// Initialize Buffers
 	SCR_Startup();
 	SCR_ReclassBuffers();
@@ -2578,9 +2582,6 @@ void D_DoomMain(void)
 	
 	CONL_PrintF("I_StartupTimer...\n");
 	I_StartupTimer();
-	
-	CONL_PrintF("I_InitNetwork...\n");
-	I_InitNetwork();
 	
 	I_StartupMouse ();
 	I_StartupKeyboard();
