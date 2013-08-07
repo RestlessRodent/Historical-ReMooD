@@ -85,6 +85,9 @@
 	
 	#if defined(__MINGW64) || defined(__MINGW64__)
 		#include <wspiapi.h>
+	#else
+		#define getaddrinfo WspiapiGetAddrInfo
+		#define freeaddrinfo WspiapiFreeAddrInfo
 	#endif
 	
 	#define __REMOOD_DONTWAITMSG 0
