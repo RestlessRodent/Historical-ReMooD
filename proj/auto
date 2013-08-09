@@ -1,0 +1,69 @@
+#!/usr/bin/make -f
+#         :oCCCCOCoc.
+#     .cCO8OOOOOOOOO8Oo:
+#   .oOO8OOOOOOOOOOOOOOOCc
+#  cO8888:         .:oOOOOC.                                                TM
+# :888888:   :CCCc   .oOOOOC.     ###      ###                    #########
+# C888888:   .ooo:   .C########   #####  #####  ######    ######  ##########
+# O888888:         .oO###    ###  #####  ##### ########  ######## ####    ###
+# C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
+# :8@@@@8:   :888c   o###         ### #### ### ########  ######## ##########
+#  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######    ######  #########
+#    cO@@@@@@@@@@@@@@@@@Oc0
+#      :oO8@@@@@@@@@@Oo.
+#         .oCOOOOOCc.                                      http://remood.org/
+# -----------------------------------------------------------------------------
+# Copyright (C) 2013-20113 GhostlyDeath <ghostlydeath@remood.org>
+#                                       <ghostlydeath@gmail.com>
+# -----------------------------------------------------------------------------
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# -----------------------------------------------------------------------------
+# Autobuild system done with makefiles (very modular)
+
+##########################
+### PRE INITIALIZATION ###
+##########################
+
+__MASTER_TMPDIR		:= /tmp
+__MASTER_THISMAKE	:= $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+__MASTER_PROJ		:= $(dir ${__MASTER_THISMAKE})
+__MASTER_ROOT		:= ${__MASTER_PROJ}/..
+__MASTER_HOST		:= $(shell gcc -dumpmachine)
+__MASTER_DOSEMUPATH	:= $(shell which dosemu)
+
+####################
+### TARGET SETUP ###
+####################
+
+### OBTAIN LIST OF TARGETS ###
+
+__MASTER_TARGETS	:= $(foreach __target,$(wildcard ${__MASTER_PROJ}/conf/*.os),$(basename $(notdir ${__target})))
+
+### PRECONFIGURE TARGETS BY INCLUDING THEIR RESPECTIVE MAKEFILES ###
+
+$(info +++ Preconfiguring targets...)
+
+__MASTER_OKTARGETS :=
+define __preconftarget
+-include conf/$1.os
+endef
+
+$(foreach __pctarget,${__MASTER_TARGETS},$(eval $(call __preconftarget,$(__pctarget))))
+
+####################
+### DEBUG OUTPUT ###
+####################
+
+$(info Root:            $(__MASTER_ROOT))
+$(info Host:            ${__MASTER_HOST})
+$(info All Targets:     ${__MASTER_TARGETS})
+$(info Working Targets: ${__MASTER_OKTARGETS})
+
