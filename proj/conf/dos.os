@@ -105,5 +105,12 @@ ifeq (${__DOS_TRYDOSEMU},true)
     
     # This will check to see if DJGPP is setup with allegro by running a command
     # through DOSEMU and seeing if it exists in the output.
+    __DOS_CHECKDOSEMU := $(shell ${__MASTER_PROJ}/conf/detest.sh "${__MASTER_DOSEMUPATH}" "${__MASTER_ROOT}")
+    
+    # Add to the list, if the target worked
+    ifeq (${__DOS_CHECKDOSEMU},ok)
+    	__MASTER_OKTARGETS := dos ${__MASTER_OKTARGETS}
+    	__DOS_USEDOSEMU := true
+    endif
 endif
 
