@@ -100,3 +100,5 @@ glob:libarmboot.a
 relre:.*\.zip$
 glob:bnodes
 glob:bshore
+glob:SDL-1.2-20111107-win64.tar.gz
+glob:SDL-1.2-20111107-win64
