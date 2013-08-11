@@ -37,12 +37,6 @@
 #include "i_system.h"
 #include "i_util.h"
 
-
-
-
-
-
-
 /****************
 *** CONSTANTS ***
 ****************/
@@ -56,6 +50,9 @@
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* Z_MHCMiniBlock_t -- Mini block for mini allocations */
+typedef struct 
 
 /* Z_MHCInfo_t -- Malloc Chain Info */
 typedef struct Z_MHCInfo_s
@@ -77,6 +74,7 @@ typedef struct Z_MHCInfo_s
 *************/
 
 static Z_MHCInfo_t* l_ZChains[NUMZTAGS + 1];
+static uint64_t l_ZAllocSize[2] = {0, 0};
 
 /****************
 *** FUNCTIONS ***
@@ -110,6 +108,10 @@ void* Z_MHC_MallocExWrappee(const size_t a_Size, const Z_MemoryTag_t a_Tag, void
 			continue;
 		}
 		
+		// Add to allocation size
+		l_ZAllocSize[0] += a_Size;
+		l_ZAllocSize[1] += ZBLOCKBASE + a_Size;
+		
 		// Worked! Clear Block
 		memset(AllocBlock, 0, ZBLOCKBASE + a_Size);
 		
@@ -118,7 +120,13 @@ void* Z_MHC_MallocExWrappee(const size_t a_Size, const Z_MemoryTag_t a_Tag, void
 		AllocBlock->End = ZEND;
 		
 		AllocBlock->Size = a_Size;
-		AllocBlock->Tag = a_Tag;
+		
+		if (a_Tag < PU_STATIC)	
+			AllocBlock->Tag = PU_STATIC;
+		else if (a_Tag >= NUMZTAGS)
+			AllocBlock->Tag = NUMZTAGS - 1;
+		else
+			AllocBlock->Tag = a_Tag;
 		AllocBlock->RefPtr = a_Ref;
 		
 		// Link into tag chain
@@ -172,6 +180,10 @@ void Z_MHC_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
 	// Root?
 	if (l_ZChains[AllocBlock->Tag] == AllocBlock)
 		l_ZChains[AllocBlock->Tag] = AllocBlock->Next;
+	
+	/* Remove allocation size */
+	l_ZAllocSize[0] -= AllocBlock->Size;
+	l_ZAllocSize[1] -= ZBLOCKBASE + AllocBlock->Size;
 	
 	/* Free */
 	I_SysFree(AllocBlock);
