@@ -63,23 +63,18 @@ typedef enum Z_MemoryTag_e
 	PU_WLDKRMOD,								// WAD Level
 	PU_SOUND,
 	PU_MUSIC,
-	PU_DAVE,
-	PU_HWRPATCHINFO,
-	PU_HWRPATCHCOLMIPMAP,
 	
 	PU_LEVEL,
 	PU_LEVSPEC,
 	PU_HWRPLANE,
-	PU_ENDLEVELTAGS,
+	PU_ENDLEVELTAGS = PU_HWRPLANE,
 	
 	PU_MENUDAT,					// Menu Data
 	PU_SIMPLEMENU,								// Simple Menus
-	PU_POLYGON,									// Polygons
 	
 	/* Cache */
 	PU_PURGELEVEL,		// Freed when needed
 	PU_CACHE,
-	PU_HWRCACHE,
 	
 	NUMZTAGS
 } Z_MemoryTag_t;
