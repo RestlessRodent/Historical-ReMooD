@@ -77,7 +77,7 @@ typedef enum Z_MemoryTag_e
 	PU_POLYGON,									// Polygons
 	
 	/* Cache */
-	PU_PURGELEVEL = 100,		// Freed when needed
+	PU_PURGELEVEL,		// Freed when needed
 	PU_CACHE,
 	PU_HWRCACHE,
 	

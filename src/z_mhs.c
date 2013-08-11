@@ -44,15 +44,40 @@
 #define ZSTART			UINT32_C(0xDEADBEEF)	// Start of Block
 #define ZEND			UINT32_C(0xCAFEBABE)	// End of Block
 
+#define ZMBSTART		UINT32_C(0x1337D00D)
+#define ZMBEND			UINT32_C(0x5CA1AB1E)
+
 #define ZALIGNMENT						16		// Align to 
 #define ZBLOCKBASE	((sizeof(Z_MHCInfo_t) + ZALIGNMENT) & ~(ZALIGNMENT - 1))
+#define ZMINIBASE	((sizeof(Z_MHCMiniBlock_t) + ZALIGNMENT) & ~(ZALIGNMENT - 1))
+
+#define ZMINIALLOCMAX	UINT32(32768)			// Max allocation in mini block
+#define ZMINIBLOCKSZ	UINT32(65536)			// Block size of mini block
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
+struct Z_MHCInfo_s;
+
 /* Z_MHCMiniBlock_t -- Mini block for mini allocations */
-typedef struct 
+// This will reduce the number of mallocs(), but add slightly more overhead but
+// it will keep small blocks together. Probably might be seen as pre-mature
+// optimization as some operating systems might be smart about allocating small
+// bits of memory. However some other systems might just allocate in chunks of
+// the min page size and just waste away.
+typedef struct Z_MHCMiniBlock_s
+{
+	uint32_t Start;								// Start of mini block
+	
+	struct Z_MHCMiniBlock_s* Prev;				// Previous mini block (another chunk)
+	struct Z_MHCMiniBlock_s* Next;				// Next mini block
+	
+	struct Z_MHCInfo_t* Info;					// First in info
+	uint32_t AllocSize;							// Allocation size
+	
+	uint32_t End;								// End of mini block
+} Z_MHCMiniBlock_t;
 
 /* Z_MHCInfo_t -- Malloc Chain Info */
 typedef struct Z_MHCInfo_s
@@ -65,6 +90,9 @@ typedef struct Z_MHCInfo_s
 	
 	struct Z_MHCInfo_s* Prev;					// Previous
 	struct Z_MHCInfo_s* Next;					// Next
+	Z_MHCMiniBlock_t* MiniBlock;				// Mini block if inside one
+	struct Z_MHCInfo_s* MiniPrev;				// Previous mini block neighbor
+	struct Z_MHCInfo_s* MiniNext;				// Next " " " 
 	
 	uint32_t End;								// Marker End
 } Z_MHCInfo_t;
