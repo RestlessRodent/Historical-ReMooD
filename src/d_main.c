@@ -2623,6 +2623,12 @@ void D_DoomMain(void)
 	////////////////////////////////
 	T_Init();
 	
+	/* Setup Screen */
+	// Moved to much later on
+	g_EarlyBootConsole = false;
+	SCR_SetMode();				// change video mode
+	SCR_Recalc();
+	
 	/* Initial Game Setup */
 	// Hopefuly this is correct!
 	
@@ -2721,12 +2727,6 @@ void D_DoomMain(void)
 			
 	}
 #endif
-
-	/* Setup Screen */
-	// Moved to much later on
-	g_EarlyBootConsole = false;
-	SCR_SetMode();				// change video mode
-	SCR_Recalc();
 }
 
 /*****************

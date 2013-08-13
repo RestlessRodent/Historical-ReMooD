@@ -19520,7 +19520,7 @@ MapObject "WallTorch"
 			HereHackEdNum "173";
 			OldName "S_WALLTORCH1";
 			Sprite "WTRH";
-			Frame "1";
+			Frame "0";
 			Tics "6";
 			FullBright "true";
 			Next "2";
@@ -19531,7 +19531,7 @@ MapObject "WallTorch"
 			HereHackEdNum "174";
 			OldName "S_WALLTORCH2";
 			Sprite "WTRH";
-			Frame "2";
+			Frame "1";
 			Tics "6";
 			FullBright "true";
 			Next "3";
@@ -19542,7 +19542,7 @@ MapObject "WallTorch"
 			HereHackEdNum "175";
 			OldName "S_WALLTORCH3";
 			Sprite "WTRH";
-			Frame "3";
+			Frame "2";
 			Tics "6";
 			FullBright "true";
 			Next "1";

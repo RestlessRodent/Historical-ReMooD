@@ -1684,7 +1684,12 @@ void G_DoReborn(int playernum)
 	
 	/* Single Player Mode */
 	if (!P_XGSVal(PGS_COMULTIPLAYER))
+	{
+		// Force a wipe on level reload
+		wipegamestate = -1;	
+		
 		P_ExLoadLevel(g_CurrentLevelInfo, 0);
+	}
 
 	/* Multiplayer Mode */
 	else

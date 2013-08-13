@@ -44,20 +44,6 @@
 
 #include "console.h"	// For con_clipviewtop
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 planefunction_t floorfunc;
 planefunction_t ceilingfunc;
 

@@ -52,44 +52,6 @@
 #include "r_splats.h"
 #include "g_game.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#ifdef _WIN32
-
-
-#endif
-
-
-
-
-
-
-
-
-
 //#define COOLFLIPLEVELS
 
 //
@@ -192,6 +154,9 @@ int32_t g_MapKIS[5] = {0, 0, 0, 0, 0};
 
 void P_SetupLevelSky(void)
 {
+	/* Reset to no sky */
+	skytexture = 0;	
+	
 	/* Load Sky */
 	if (g_CurrentLevelInfo)
 		if (g_CurrentLevelInfo->SkyTexture)
