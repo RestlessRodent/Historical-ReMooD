@@ -227,6 +227,7 @@ SN_Host_t* SN_MyHost(void);
 void SN_SetMyHost(SN_Host_t* const a_Host);
 SN_Host_t* SN_CreateHost(void);
 void SN_DestroyHost(SN_Host_t* const a_Host);
+bool_t SN_CleanupHost(SN_Host_t* const a_Host);
 
 /*** PORT CONTROL ***/
 
@@ -247,6 +248,7 @@ void SN_PortRequestJoin(SN_Port_t* const a_Port);
 void SN_PortTryJoin(SN_Port_t* const a_Port);
 const char* SN_GetPortName(SN_Port_t* const a_Port);
 void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
+void SN_PortSettingOnPort(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen);
 
 /*** GAME CONTROL ***/
 

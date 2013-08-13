@@ -300,6 +300,26 @@ static void SN_HandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP
 				SN_SetPortProfile(Port, Split->Profile);
 			}
 		}
+	
+	/* Tell bot to leave statis mode */
+	BOT_LeaveStasis(Port);
+	
+	/* If this is a local port, transmit settings to the server */
+	// The server does not know the full extent of our own port settings.
+	// Although it is transmitted already possibly (maybe packet loss?).
+	// So generally, this is here because join player does not fully contain
+	// information on the player's settings. Nobody can use the port settings
+	// because it could cause a desync.
+	if (Host->Local)
+	{
+		// Integer Based Settings
+		SN_PortSetting(Port, DSNPS_VTEAM, a_Port->VTeam, NULL, 0);
+		SN_PortSetting(Port, DSNPS_COLOR, a_Port->Color, NULL, 0);
+		SN_PortSetting(Port, DSNPS_COUNTEROP, a_Port->CounterOp, NULL, 0);
+		
+		// String Based Settings
+		SN_PortSetting(Port, DSNPS_NAME, 0, a_Port->Name, 0);
+	}
 }
 
 /* SN_HandleGTPartPlayer() -- Handle leaving player */
@@ -354,6 +374,9 @@ static void SN_HandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP
 	
 	if (a_Port)
 		a_Port->Player = NULL;
+	
+	/* Tell bot to enter statis mode */
+	BOT_EnterStatis(a_Port);
 }
 
 /* SN_HandleGTCleanupHost() -- Handle delete host */
@@ -381,7 +404,6 @@ static void SN_HandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, S
 	
 	// Cat always
 	strncat(a_Host->QuitReason, Buf, MAXQUITREASON - 1);
-	
 }
 
 /* SN_HandleGTCleanupHost() -- Handle delete host */
@@ -622,13 +644,12 @@ static void SN_HandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_P
 		Buf[i] = ReadUInt8(a_PP);
 	
 	/* Change setting of port */
-	if (a_Port)
-		switch (Setting)
-		{
-			case DSNPS_VTEAM:	a_Port->VTeam = IntVal; break;
-			case DSNPS_COLOR:	a_Port->Color = IntVal; break;
-			case DSNPS_COUNTEROP:	a_Port->CounterOp = !!IntVal; break;
-		}
+	// But do not change settings for a local port, because it is always up to
+	// date. However, if there is packet loss, the server might not see a
+	// setting we see locally. May be problem, but gamestate wise the player
+	// will know exactly which settings were transmitted.
+	if (a_Port && !a_Port->Host->Local)
+		SN_PortSettingOnPort(a_Port, Setting, IntVal, Buf, MAXTCSTRINGCAT);
 	
 	/* Change setting of player */
 	if (a_PID >= 0 && a_PID < MAXPLAYERS)

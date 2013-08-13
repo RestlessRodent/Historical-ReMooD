@@ -929,6 +929,9 @@ void SN_UpdateLocalPorts(void)
 			}
 		}
 	}
+	
+	/* Perform bot magic */
+	BOT_Ticker();
 }
 
 /* SN_CleanupHost() -- Cleans up host */
@@ -1223,6 +1226,9 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 	if (!a_Port)
 		return;
 	
+	/* Remove bot (if any) */
+	BOT_DestroyByPort(a_Port);
+	
 	/* Get host */
 	Host = a_Port->Host;
 	
@@ -1303,6 +1309,9 @@ SN_Port_t* SN_RequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 			ID = D_CMakePureRandom();
 		} while (!ID || SN_PortByID(ID) || SN_HostByID(ID));
 		Port->ID = ID;
+		
+		// Set process ID (if any)
+		Port->ProcessID = a_ProcessID;
 		
 		// Return it
 		return Port;
@@ -1961,5 +1970,35 @@ void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, c
 	{
 		SN_SendSettings(a_Port, a_Setting, a_IntVal, a_StrVal, a_StrLen);
 	}
+	
+	/* If this is a local port, change settings internally for this port */
+	if (a_Port->Host->Local)
+		SN_PortSettingOnPort(a_Port, a_Setting, a_IntVal, a_StrVal, a_StrLen);
+}
+
+/* SN_PortSettingOnPort() -- Change setting on a port */
+void SN_PortSettingOnPort(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, const int32_t a_IntVal, const char* const a_StrVal, const uint32_t a_StrLen)
+{
+	/* Check */
+	if (!a_Port || a_Setting < 0 || a_Setting >= NUMDSNPS)	
+		return;
+	
+	/* Based on setting passed */
+	switch (a_Setting)
+	{
+		case DSNPS_VTEAM:	a_Port->VTeam = a_IntVal; break;
+		case DSNPS_COLOR:	a_Port->Color = a_IntVal; break;
+		case DSNPS_COUNTEROP:	a_Port->CounterOp = !!a_IntVal; break;
+	}
+	
+	/* String based settings (to prevent crashes) */
+	if (a_StrVal)
+		switch (a_Setting)
+		{
+			case DSNPS_NAME:
+				strncpy(a_Port->Name, a_StrVal, MAXPLAYERNAME);
+				a_Port->Name[MAXPLAYERNAME - 1] = 0;
+				break;
+		}
 }
 

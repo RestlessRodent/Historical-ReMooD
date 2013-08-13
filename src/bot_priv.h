@@ -27,10 +27,10 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Bot Code
+// DESCRIPTION: Private Bot Code Header
 
-#ifndef __BOT_H__
-#define __BOT_H__
+#ifndef __BOT_PRIV__H__
+#define __BOT_PRIV__H__
 
 /*****************************************************************************/
 
@@ -38,31 +38,31 @@
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
+#include "bot.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* Define SN_Port_t */
-#if !defined(__REMOOD_SNPORT_DEFINED)
-	typedef struct SN_Port_s SN_Port_t;
-	#define __REMOOD_SNPORT_DEFINED
-#endif
+/* BOT_t -- Bot */
+typedef struct BOT_s
+{
+	SN_Port_t* Port;							// Port which bot controls
+	uint32_t ProcessID;							// Process ID of bot
+	tic_t LastXMit;								// Last port transmit
+	bool_t Statis;								// In statis mode
+	bool_t BasicInit;							// Basic Initialization
+	tic_t LastGameTryJoin;						// Time last tried to join game
+} BOT_t;
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-void BOT_Init(void);
-void BOT_Ticker(void);
-void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV);
-
-void BOT_DestroyByPort(SN_Port_t* const a_Port);
-void BOT_LeaveStasis(SN_Port_t* const a_Port);
-void BOT_EnterStatis(SN_Port_t* const a_Port);
+BOT_t* BOT_ByProcessID(const uint32_t a_ProcessID);
+BOT_t* BOT_ByPort(SN_Port_t* const a_Port);
 
 /*****************************************************************************/
 
-#endif /* __BOT_H__ */
+#endif /* __BOT_PRIV_H__ */
 
