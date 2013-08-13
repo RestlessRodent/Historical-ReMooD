@@ -655,7 +655,9 @@ static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_
 	l_DoomPals = NULL;
 	
 	/* Load PLAYPAL */
-	V_SetPalette(0);
+	// But not during the early boot console
+	if (!g_EarlyBootConsole)
+		V_SetPalette(0);
 	
 	/* Load colormaps */
 	V_InitializeColormaps();
