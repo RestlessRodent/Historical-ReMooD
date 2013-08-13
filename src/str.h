@@ -52,7 +52,8 @@
 typedef enum STR_Type_e
 {
 	STRT_MEM,									// Memory Stream
-	STRT_FILE,									// File Stream
+	STRT_ROFILE,								// File Stream (Read Only)
+	STRT_RWFILE,								// File Stream (Read/Write Overwrite)
 	STRT_WAD,									// WAD Stream
 	STRT_NET,									// IPv4 Network Stream
 	STRT_NETSIX,								// IPv6 Network Stream
@@ -86,12 +87,14 @@ typedef struct STR_Addr_s
 		struct
 		{
 			void* Addr;							// Address of buffer
-			uint32_t Pos;						// 
+			uint32_t Size;						// Size of buffer
+			uint32_t Pos;						// Position in buffer
 		} Raw;
 		
 		struct
 		{
 			char Path[PATH_MAX];				// Path of file
+			uint32_t Pos;						// Position in file
 		} File;
 		
 		struct
@@ -111,7 +114,7 @@ typedef struct STR_Addr_s
 			uint32_t Scope;						// Scope
 			union
 			{
-				uint64_t ll[2];					// Long Longs
+				uint32_t ll[2];					// Long Longs
 				uint32_t u[4];					// Integers
 				uint16_t s[8];					// Shorts
 				uint8_t b[16];					// Bytes
@@ -128,6 +131,12 @@ typedef struct STR_AddrInfo_s
 	struct STR_AddrInfo_s* Next;				// Next info
 } STR_AddrInfo_t;
 
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -140,6 +149,10 @@ STR_t* STR_Accept(STR_t* const a_Str, STR_Addr_t* const a_Addr);
 bool_t STR_Connect(STR_t* const a_Str, STR_Addr_t* const a_Addr);
 void STR_Close(STR_t* const a_Str);
 
+/* Wrapped */
+STR_t* STR_OpenFile(const char* const a_PathName, const char* const a_Mode);
+STR_t* STR_OpenEntry(WL_WADEntry_t* const a_Entry);
+
 /* Obtain generic info */
 STR_Type_t STR_GetType(STR_t* const a_Str);
 STR_Class_t STR_GetClass(STR_t* const a_Str);
@@ -151,13 +164,13 @@ bool_t STR_GetNameInfo(STR_AddrInfo_t* const a_In, char* const a_Name, const siz
 bool_t STR_GetAddr(const char* const a_Name, STR_Addr_t* const a_Addr);
 
 /* Location (if supported) */
-uint64_t STR_Tell(STR_t* const a_Str);
-uint64_t STR_Seek(STR_t* const a_Str, const uint64_t a_Where, const bool_t a_End);
-uint64_t STR_Wait(STR_t* const a_Str);
+uint32_t STR_Tell(STR_t* const a_Str);
+uint32_t STR_Seek(STR_t* const a_Str, const uint32_t a_Where, const bool_t a_End);
+uint32_t STR_Wait(STR_t* const a_Str);
 
 /* Basic Read/Write */
-uint64_t STR_ReadFrom(STR_t* const a_Str, uint8_t* const a_In, const uint64_t a_Len, STR_Addr_t* const a_SrcAddr);
-uint64_t STR_WriteTo(STR_t* const a_Str, const uint8_t* const a_Out, const uint64_t a_Len, STR_Addr_t* const a_DestAddr);
+uint32_t STR_ReadFrom(STR_t* const a_Str, uint8_t* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr);
+uint32_t STR_WriteTo(STR_t* const a_Str, const uint8_t* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr);
 
 #define STR_Read(s,i,l) STR_ReadFrom((s), (i), (l), NULL)
 #define STR_Write(s,o,l) STR_WriteTo((s), (o), (l), NULL)
@@ -171,7 +184,7 @@ int64_t STR_ri64(STR_t* const a_Str);
 uint8_t STR_ru8(STR_t* const a_Str);
 uint16_t STR_ru16(STR_t* const a_Str);
 uint32_t STR_ru32(STR_t* const a_Str);
-uint64_t STR_ru64(STR_t* const a_Str);
+uint32_t STR_ru64(STR_t* const a_Str);
 
 // Little Swapped
 int16_t STR_rli16(STR_t* const a_Str);
@@ -179,7 +192,7 @@ int32_t STR_rli32(STR_t* const a_Str);
 int64_t STR_rli64(STR_t* const a_Str);
 uint16_t STR_rlu16(STR_t* const a_Str);
 uint32_t STR_rlu32(STR_t* const a_Str);
-uint64_t STR_rlu64(STR_t* const a_Str);
+uint32_t STR_rlu64(STR_t* const a_Str);
 
 // Big Swapped
 int16_t STR_rbi16(STR_t* const a_Str);
@@ -187,10 +200,33 @@ int32_t STR_rbi32(STR_t* const a_Str);
 int64_t STR_rbi64(STR_t* const a_Str);
 uint16_t STR_rbu16(STR_t* const a_Str);
 uint32_t STR_rbu32(STR_t* const a_Str);
-uint64_t STR_rbu64(STR_t* const a_Str);
+uint32_t STR_rbu64(STR_t* const a_Str);
 
 /* Write */
-void STR_wi8(STR_t* const a_Str, 
+void STR_wi8(STR_t* const a_Str, const int8_t a_Val);
+void STR_wi16(STR_t* const a_Str, const int16_t a_Val);
+void STR_wi32(STR_t* const a_Str, const int32_t a_Val);
+void STR_wi64(STR_t* const a_Str, const int64_t a_Val);
+void STR_wu8(STR_t* const a_Str, const uint8_t a_Val);
+void STR_wu16(STR_t* const a_Str, const uint16_t a_Val);
+void STR_wu32(STR_t* const a_Str, const uint32_t a_Val);
+void STR_wu64(STR_t* const a_Str, const uint64_t a_Val);
+
+// Little Swapped
+void STR_wli16(STR_t* const a_Str, const int16_t a_Val);
+void STR_wli32(STR_t* const a_Str, const int32_t a_Val);
+void STR_wli64(STR_t* const a_Str, const int64_t a_Val);
+void STR_wlu16(STR_t* const a_Str, const uint16_t a_Val);
+void STR_wlu32(STR_t* const a_Str, const uint32_t a_Val);
+void STR_wlu64(STR_t* const a_Str, const uint64_t a_Val);
+
+// Big Swapped
+void STR_wbi16(STR_t* const a_Str, const int16_t a_Val);
+void STR_wbi32(STR_t* const a_Str, const int32_t a_Val);
+void STR_wbi64(STR_t* const a_Str, const int64_t a_Val);
+void STR_wbu16(STR_t* const a_Str, const uint16_t a_Val);
+void STR_wbu32(STR_t* const a_Str, const uint32_t a_Val);
+void STR_wbu64(STR_t* const a_Str, const uint64_t a_Val);
 
 /*****************************************************************************/
 

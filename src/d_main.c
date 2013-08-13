@@ -74,44 +74,6 @@
 	#define __REMOOD_VIDEOFONTT_DEFINED
 #endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #if defined(__REMOOD_DEDICATED)
 bool_t g_DedicatedServer = true;				// Dedicated Server
 #else
