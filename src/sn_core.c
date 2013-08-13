@@ -72,8 +72,9 @@ static bool_t l_DedSv;							// Dedicated server
 static bool_t l_Connected;						// Connected
 static bool_t l_Server;							// We are server
 
-static ticcmd_t l_GlobalBuf[MAXGLOBALBUFSIZE];	// Global buffer
+static ticcmd_t* l_GlobalBuf;					// Global buffer
 static int32_t l_GlobalAt = -1;					// Position Global buf is at
+static int32_t l_GlobalMax = 0;					// Max size of global buffer
 
 static SN_Host_t* l_MyHost;					// This games host
 static SN_Host_t** l_Hosts;					// Hosts
@@ -98,8 +99,6 @@ bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name)
 	uint32_t OldNameHash;
 	uint32_t NewNameHash;
 	char OldName[MAXPLAYERNAME + 1];
-	
-	CONL_PrintF("Name on %i at %u\n", a_PlayerID, (unsigned)gametic);
 	
 	/* Check */
 	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS || !a_Name)
@@ -138,8 +137,12 @@ bool_t SN_ExtCmdInGlobal(const uint8_t a_ID, uint8_t** const a_Wp)
 		return false;
 	
 	/* Prevent global buffer overflow */
-	if (l_GlobalAt >= MAXGLOBALBUFSIZE - 1)
-		return false;
+	if (l_GlobalAt >= l_GlobalMax - 1)
+	{
+		Z_ResizeArray((void**)&l_GlobalBuf, sizeof(*l_GlobalBuf),
+			l_GlobalMax, l_GlobalMax + 1);
+		l_GlobalMax++;
+	}
 	
 	/* Nothing grabbed? */
 	if (l_GlobalAt < 0)
@@ -232,9 +235,15 @@ void SN_DropAllClients(const char* const a_Reason)
 /* SN_CommonDiscStuff() -- Common disconnect stuff */
 static void SN_CommonDiscStuff(void)
 {
+	int32_t i;
+	
 	/* Clear the global buffer */
+	if (l_GlobalBuf)
+		Z_Free(l_GlobalBuf);
+	
+	l_GlobalBuf = NULL;
 	l_GlobalAt = -1;
-	memset(l_GlobalBuf, 0, sizeof(l_GlobalBuf));
+	l_GlobalMax = 0;
 	
 	/* Clear local Buffer */
 	memset(l_LocalBuf, 0, sizeof(l_LocalBuf));
@@ -445,6 +454,9 @@ bool_t SN_StartServer(const int32_t a_NumLocal, const char** const a_Profs, cons
 	
 	/* Set flags */
 	l_Server = true;
+	
+	/* Go back to the first gametic */
+	gametic = 0;
 	
 	/* Set the proper gamestate */
 	SN_StartWaiting();
@@ -1564,12 +1576,15 @@ void SN_Tics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Pla
 				// Something is in the buffer
 				if (l_GlobalAt >= 0)
 				{
-					// Move the first item inside
-					memmove(a_TicCmd, &l_GlobalBuf[0], sizeof(*a_TicCmd));
+					// Use first global command
+					memmove(a_TicCmd, l_GlobalBuf, sizeof(*a_TicCmd));
 					
-					// Move everything down
-					memmove(&l_GlobalBuf[0], &l_GlobalBuf[1], sizeof(ticcmd_t) * (MAXGLOBALBUFSIZE - 1));
-					memset(&l_GlobalBuf[MAXGLOBALBUFSIZE - 1], 0, sizeof(l_GlobalBuf[MAXGLOBALBUFSIZE - 1]));
+					// Move down other entries
+					for (p = 1; p <= l_GlobalAt; p++)
+						l_GlobalBuf[p - 1] = l_GlobalBuf[p];
+					memset(&l_GlobalBuf[l_GlobalAt], 0, sizeof(l_GlobalBuf[l_GlobalAt]));
+					
+					// Reduce count
 					l_GlobalAt--;
 				}
 				
