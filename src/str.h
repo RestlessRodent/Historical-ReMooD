@@ -169,8 +169,8 @@ uint32_t STR_Seek(STR_t* const a_Str, const uint32_t a_Where, const bool_t a_End
 uint32_t STR_Wait(STR_t* const a_Str);
 
 /* Basic Read/Write */
-uint32_t STR_ReadFrom(STR_t* const a_Str, uint8_t* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr);
-uint32_t STR_WriteTo(STR_t* const a_Str, const uint8_t* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr);
+uint32_t STR_ReadFrom(STR_t* const a_Str, void* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr);
+uint32_t STR_WriteTo(STR_t* const a_Str, const void* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr);
 
 #define STR_Read(s,i,l) STR_ReadFrom((s), (i), (l), NULL)
 #define STR_Write(s,o,l) STR_WriteTo((s), (o), (l), NULL)
@@ -184,7 +184,7 @@ int64_t STR_ri64(STR_t* const a_Str);
 uint8_t STR_ru8(STR_t* const a_Str);
 uint16_t STR_ru16(STR_t* const a_Str);
 uint32_t STR_ru32(STR_t* const a_Str);
-uint32_t STR_ru64(STR_t* const a_Str);
+uint64_t STR_ru64(STR_t* const a_Str);
 
 // Little Swapped
 int16_t STR_rli16(STR_t* const a_Str);
@@ -192,7 +192,7 @@ int32_t STR_rli32(STR_t* const a_Str);
 int64_t STR_rli64(STR_t* const a_Str);
 uint16_t STR_rlu16(STR_t* const a_Str);
 uint32_t STR_rlu32(STR_t* const a_Str);
-uint32_t STR_rlu64(STR_t* const a_Str);
+uint64_t STR_rlu64(STR_t* const a_Str);
 
 // Big Swapped
 int16_t STR_rbi16(STR_t* const a_Str);
@@ -200,7 +200,7 @@ int32_t STR_rbi32(STR_t* const a_Str);
 int64_t STR_rbi64(STR_t* const a_Str);
 uint16_t STR_rbu16(STR_t* const a_Str);
 uint32_t STR_rbu32(STR_t* const a_Str);
-uint32_t STR_rbu64(STR_t* const a_Str);
+uint64_t STR_rbu64(STR_t* const a_Str);
 
 /* Write */
 void STR_wi8(STR_t* const a_Str, const int8_t a_Val);

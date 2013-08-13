@@ -56,6 +56,65 @@ bool_t STR_GetAddr(const char* const a_Name, STR_Addr_t* const a_Addr);
 uint32_t STR_Tell(STR_t* const a_Str);
 uint32_t STR_Seek(STR_t* const a_Str, const uint32_t a_Where, const bool_t a_End);
 uint32_t STR_Wait(STR_t* const a_Str);
-uint32_t STR_ReadFrom(STR_t* const a_Str, uint8_t* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr);
-uint32_t STR_WriteTo(STR_t* const a_Str, const uint8_t* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr);
+
+/* STR_ReadFrom() -- Reads from stream */
+uint32_t STR_ReadFrom(STR_t* const a_Str, void* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr)
+{
+}
+
+/* STR_WriteTo() -- Writes to stream */
+uint32_t STR_WriteTo(STR_t* const a_Str, const void* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr)
+{
+}
+
+/****************************
+*** SHORT NAME READ/WRITE ***
+****************************/
+
+/* Read */
+// Macros
+#define READ(t,n) \
+t STR_r##n(STR_t* const a_Str)\
+{\
+	t v = 0;\
+	STR_Read(a_Str, &v, sizeof(v));\
+	return v;\
+}
+
+#define READXSWAP(t,n,px,x,s) \
+t STR_r##px##n(STR_t* const a_Str)\
+{\
+	t v = 0;\
+	STR_Read(a_Str, &v, sizeof(v));\
+	return x##Swap##s(v);\
+}
+
+#define READLSWAP(t,n,x) READXSWAP(t,n,l,Little,x)
+#define READBSWAP(t,n,x) READXSWAP(t,n,b,Big,x)
+
+// Signed
+READ(int8_t,i8);
+READ(int16_t,i16);
+READ(int32_t,i32);
+READ(int64_t,i64);
+READLSWAP(int16_t,i16,Int16)
+READLSWAP(int32_t,i32,Int32)
+READLSWAP(int64_t,i64,Int64)
+READBSWAP(int16_t,i16,Int16)
+READBSWAP(int32_t,i32,Int32)
+READBSWAP(int64_t,i64,Int64)
+
+// Unsigned
+READ(uint8_t,u8);
+READ(uint16_t,u16);
+READ(uint32_t,u32);
+READ(uint64_t,u64);
+READLSWAP(uint16_t,u16,UInt16)
+READLSWAP(uint32_t,u32,UInt32)
+READLSWAP(uint64_t,u64,UInt64)
+READBSWAP(uint16_t,u16,UInt16)
+READBSWAP(uint32_t,u32,UInt32)
+READBSWAP(uint64_t,u64,UInt64)
+
+/* Write */
 
