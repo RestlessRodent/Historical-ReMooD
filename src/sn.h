@@ -40,6 +40,7 @@
 
 #include "i_util.h"
 #include "d_ticcmd.h"
+#include "bot.h"
 
 /****************
 *** CONSTANTS ***

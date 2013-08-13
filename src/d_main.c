@@ -525,9 +525,6 @@ void D_DoomLoop(void)
 	// end of loading screen: CONL_PrintF() will no more call FinishUpdate()
 	con_startup = false;
 	
-	CONL_PrintF("I_StartupKeyboard...\n");
-	I_StartupKeyboard();
-	
 	/*#ifdef _WIN32
 	   CONL_PrintF("I_StartupMouse...\n");
 	   I_DoStartupMouse();
@@ -2459,6 +2456,7 @@ void D_DoomMain(void)
 	G_PrepareDemoStuff();				// Demos
 	//B_InitBotCodes();					// Initialize bot coding
 	//D_CheckNetGame();					// initialize net game
+	BOT_Init();							// Initialize bots
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
@@ -2549,8 +2547,8 @@ void D_DoomMain(void)
 	I_StartupKeyboard();
 	I_InitJoystick();
 	
-	g_EarlyBootConsole = false;
-	V_SetPalette(0);
+	CONL_PrintF("I_StartupKeyboard...\n");
+	I_StartupKeyboard();
 	
 	T_AddCommands();
 	R_RegisterEngineStuff();
@@ -2624,11 +2622,6 @@ void D_DoomMain(void)
 	// SoM: Init FraggleScript
 	////////////////////////////////
 	T_Init();
-	
-	/* Setup Screen */
-	// GhostlyDeath <December 14, 2012> -- This was done later on in D_DoomLoop
-	SCR_SetMode();				// change video mode
-	SCR_Recalc();
 	
 	/* Initial Game Setup */
 	// Hopefuly this is correct!
@@ -2728,6 +2721,12 @@ void D_DoomMain(void)
 			
 	}
 #endif
+
+	/* Setup Screen */
+	// Moved to much later on
+	g_EarlyBootConsole = false;
+	SCR_SetMode();				// change video mode
+	SCR_Recalc();
 }
 
 /*****************

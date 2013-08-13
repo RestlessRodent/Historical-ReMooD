@@ -50,19 +50,6 @@
 #include "s_sound.h"
 #include "d_clisrv.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /****************
 *** CONSTANTS ***
 ****************/

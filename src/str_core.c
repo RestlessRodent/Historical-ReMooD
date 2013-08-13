@@ -35,11 +35,29 @@
 
 #include "str.h"
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* STR_t -- Stream */
+struct STR_s
+{
+	STR_Type_t Type;							// Type of stream
+	STR_Class_t Class;							// Class of stream
+};
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
-STR_t* STR_Open(const STR_Type_t a_Type, const STR_Class_t a_Class);
+/* STR_Open() -- Opens stream */
+STR_t* STR_Open(const STR_Type_t a_Type, const STR_Class_t a_Class)
+{
+	/* Check */
+	if (a_Type < 0 || a_Type >= NUMSTRT || a_Class < 0 || a_Class >= NUMSTRC)
+		return NULL;
+}
+
 bool_t STR_Bind(STR_t* const a_Str, STR_Addr_t* const a_Addr);
 bool_t STR_Listen(STR_t* const a_Str, const uint32_t a_ConnCap);
 STR_t* STR_Accept(STR_t* const a_Str, STR_Addr_t* const a_Addr);
@@ -58,12 +76,12 @@ uint32_t STR_Seek(STR_t* const a_Str, const uint32_t a_Where, const bool_t a_End
 uint32_t STR_Wait(STR_t* const a_Str);
 
 /* STR_ReadFrom() -- Reads from stream */
-uint32_t STR_ReadFrom(STR_t* const a_Str, void* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr)
+int32_t STR_ReadFrom(STR_t* const a_Str, void* const a_In, const uint32_t a_Len, STR_Addr_t* const a_SrcAddr)
 {
 }
 
 /* STR_WriteTo() -- Writes to stream */
-uint32_t STR_WriteTo(STR_t* const a_Str, const void* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr)
+int32_t STR_WriteTo(STR_t* const a_Str, const void* const a_Out, const uint32_t a_Len, STR_Addr_t* const a_DestAddr)
 {
 }
 
