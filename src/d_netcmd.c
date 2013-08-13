@@ -48,38 +48,6 @@
 #include "info.h"	// TODO FIXME: Only used by D_TicCmdFillWeapon()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*****************************
 *** EXTENDED NETWORK STUFF ***
 *****************************/

@@ -105,6 +105,7 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 		// Set port as bot
 		a_Bot->Port->Bot = true;
 		a_Bot->Port->StatFlags |= DTCJF_ISBOT;	// for scoreboard
+		a_Bot->Port->Screen = -1;	// not on any screen
 		
 		// Change settings to that of a bot
 		SN_PortSetting(a_Bot->Port, DSNPS_NAME, 0, "Bot", 0);

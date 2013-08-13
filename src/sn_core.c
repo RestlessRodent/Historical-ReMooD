@@ -99,6 +99,8 @@ bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name)
 	uint32_t NewNameHash;
 	char OldName[MAXPLAYERNAME + 1];
 	
+	CONL_PrintF("Name on %i at %u\n", a_PlayerID, (unsigned)gametic);
+	
 	/* Check */
 	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS || !a_Name)
 		return false;
@@ -1920,7 +1922,10 @@ void SN_PortSetting(SN_Port_t* const a_Port, const SN_PortSetting_t a_Setting, c
 	{
 		// Take gloal
 		if (!SN_ExtCmdInGlobal(DTCT_SNPORTSETTING, &Wp))
+		{
+			CONL_PrintF("missed global %i\n", l_GlobalAt);
 			return;
+		}
 	
 		// Write Data
 		LittleWriteUInt32((uint32_t**)&Wp, a_Port->Host->ID);
@@ -1989,6 +1994,7 @@ void SN_PortSettingOnPort(SN_Port_t* const a_Port, const SN_PortSetting_t a_Sett
 		case DSNPS_VTEAM:	a_Port->VTeam = a_IntVal; break;
 		case DSNPS_COLOR:	a_Port->Color = a_IntVal; break;
 		case DSNPS_COUNTEROP:	a_Port->CounterOp = !!a_IntVal; break;
+		default: break;
 	}
 	
 	/* String based settings (to prevent crashes) */
@@ -1999,6 +2005,8 @@ void SN_PortSettingOnPort(SN_Port_t* const a_Port, const SN_PortSetting_t a_Sett
 				strncpy(a_Port->Name, a_StrVal, MAXPLAYERNAME);
 				a_Port->Name[MAXPLAYERNAME - 1] = 0;
 				break;
+			
+			default: break;
 		}
 }
 
