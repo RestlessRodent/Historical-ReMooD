@@ -38,10 +38,14 @@ __MASTER_PROJ		:= $(dir ${__MASTER_THISMAKE})
 __MASTER_ROOT		:= ${__MASTER_PROJ}/..
 __MASTER_HOST		:= $(shell gcc -dumpmachine)
 __MASTER_DOSEMUPATH	:= $(shell which dosemu)
+__MASTER_VERSION	:= $(shell cat ${__MASTER_ROOT}/version)
+__MASTER_VERSIONND	:= $(shell cat ${__MASTER_ROOT}/version | sed 's/\.//')
 
 ####################
 ### TARGET SETUP ###
 ####################
+
+$(info +++ ReMooD Version ${__MASTER_VERSION})
 
 ### OBTAIN LIST OF TARGETS ###
 

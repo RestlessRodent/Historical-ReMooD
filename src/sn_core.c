@@ -538,6 +538,20 @@ bool_t SN_StartLocalServer(const int32_t a_NumLocal, const char** const a_Profs,
 	return false;
 }
 
+/* SN_ChangeMapCommand() -- Changes the current map */
+static int SN_ChangeMapCommand(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Not enough args or not the server */
+	if (a_ArgC < 2 || !SN_IsServer() || !l_Connected)
+		return 1;
+	
+	/* Set new map */
+	SN_ChangeMap(a_ArgV[1], !(a_ArgV[0][0] == 'w'));
+	
+	/* Success */
+	return 0;
+}
+
 /* D_ServerCommand() -- Server Commands */
 static int D_ServerCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -641,6 +655,10 @@ bool_t SN_ServerInit(void)
 	CONL_AddCommand("localgame", D_ServerCommand);
 	CONL_AddCommand("localserver", D_ServerCommand);
 	CONL_AddCommand("connect", D_ServerCommand);
+	
+	// Other commands that might not belong here
+	CONL_AddCommand("map", SN_ChangeMapCommand);
+	CONL_AddCommand("warp", SN_ChangeMapCommand);
 	
 	/* Initialize Multicast */
 	SN_OpenMCast();
