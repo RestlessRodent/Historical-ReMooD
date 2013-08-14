@@ -160,7 +160,7 @@ typedef enum P_XGSBitID_e
 	PGS_COUSEOLDZCHECK,					// Use Old Z Checking Code
 	PGS_COCHECKXYMOVE,						// Check X/Y Movement in old Z Code
 	PGS_COWATERZFRICTION,					// Apply friction when underwater on Z plane
-	PGS_CORANOMLASTLOOKSPAWN,				// Random last look on spawn
+	PGS_CORANDOMLASTLOOKSPAWN,				// Random last look on spawn
 	PGS_COALWAYSRETURNDEADSPMISSILE,		// Always return the missile even if it died on spawn
 	PGS_COUSEMOUSEAIMING,					// When player autoaimed at nothing, use mouse aiming angle
 	PGS_COFIXPLAYERMISSILEANGLE,			// Fix the angle of player missiles being fired

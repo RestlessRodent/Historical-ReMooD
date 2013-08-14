@@ -1334,7 +1334,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, PI_mobjid_t type)
 	if (P_XGSVal(PGS_GAMESKILL) != sk_nightmare)
 		mobj->reactiontime = info->reactiontime;
 		
-	if (P_XGSVal(PGS_CORANOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
+	if (P_XGSVal(PGS_CORANDOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
 		mobj->lastlook = P_Random() % P_XGSVal(PGS_COLASTLOOKMAXPLAYERS);
 	else
 		mobj->lastlook = -1;	// stuff moved in P_enemy.P_LookForPlayer
