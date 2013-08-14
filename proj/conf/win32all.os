@@ -40,9 +40,13 @@ ifdef __WIN32_TOOLPREFIX
     __WIN32_ALLEGROBIN := $(shell ${__MASTER_PROJ}/conf/all32dl.sh "${__WIN32_TOOLPREFIX}" "${__MASTER_ROOT}")
     
     # Check to see if allegro works with this compiler
+    ifeq (${__WIN32_ALLEGROBIN},ok)
+        $(info +++ Win32 Allegro Downloaded)
+    endif
     
     # Add to the list, if the target worked
     ifeq (${__WIN32_CHECKALLEGRO},ok)
+        $(info +++ Win32 Allegro OK)
     	__MASTER_OKTARGETS := win32all ${__MASTER_OKTARGETS}
     endif
 endif

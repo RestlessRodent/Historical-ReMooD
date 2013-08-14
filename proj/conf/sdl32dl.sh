@@ -26,74 +26,37 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
-# Tests the DJGPP Compiler in DOSEMU
+# Downloads SDL Windows 32-bit
 
-# DosEMU is here
-DOSEMUPATH="$1"
+# Prefix that the Windows toolchain uses
+WINPREFIX="$1"
 
-# ReMooD Root is here
+# ReMooD is passed via this directory
 REMOODDIR="$2"
 
-# Auto fail if there is no unix2dos
-if ! which unix2dos 2> /dev/null > /dev/null
+# Go to the ReMooD Dir
+cd $REMOODDIR
+
+# Download and extract the tar.gz, if needed
+if [ ! -d win32sdl ]
 then
-	exit 1
-fi
-
-# Remember current PWD
-LASTPWD="$PWD"
-
-# Setup temporary directory to test a native DJGPP on
-cd /tmp
-cp $REMOODDIR/util/hello.c $$.c
-echo "gcc -o $$.exe $$.c -lalleg" > $$.bat
-unix2dos $$.bat 2> /dev/null > /dev/null
-
-# Run DOSEMU with just this batch file
-# Run it in a background thread (so if it takes forever, do not bother)
-# On my shitty Intel Atom 1.6GHz, this takes about 7 seconds to run
-($DOSEMUPATH -I 'video {none}' -I 'sound_emu off' /tmp/$$.bat) > /dev/null 2> /dev/null &
-BGTHREAD=$!
-
-# Wait 1 minute for it to complete
-for i in $(seq 1 60)
-do
-	# Process dead?
-	if ! ps -p $BGTHREAD > /dev/null 2> /dev/null
+	# See if the tgz exists
+	if [ ! -f win32sdl.tgz ]
 	then
-		break
+		$REMOODDIR/proj/conf/dl.sh http://remood.org/downloads/win32sdl.tgz win32sdl.tgz
 	fi
 	
-	sleep 1
-	echo -n "." 1>&2
-done
-
-# See if the process is alive, if it is kill -9 it...
-if ps -p $BGTHREAD > /dev/null 2> /dev/null
-then
-	kill -9 $BGTHREAD > /dev/null 2> /dev/null
+	# See if it was actually created
+	if [ ! -f win32sdl.tgz ]
+	then
+		exit 1
+	fi
 	
-	# Fail regardless (EXE may be bluntly truncated)
-	rm -f /tmp/$$.exe
+	# Needs extracting
+	tar -xvf win32sdl.tgz 1>&2
 fi
 
-# Regardless, add a newline
-echo "" 1>&2
-
-# Remove batch and C file
-rm -f $$.bat
-rm -f $$.c
-
-# go back to old directory
-cd $LASTPWD
-
-# See if it worked OK
-if [ -f "/tmp/$$.exe" ]
-then
-	echo "ok"
-	rm -f /tmp/$$.exe
-	exit 0
-else
-	exit 1
-fi
+# Seems to be ok
+echo "ok"
+exit 0
 
