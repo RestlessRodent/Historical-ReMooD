@@ -13,8 +13,8 @@
 #      :oO8@@@@@@@@@@Oo.
 #         .oCOOOOOCc.                                      http://remood.org/
 # -----------------------------------------------------------------------------
-# Copyright (C) 2013-20113 GhostlyDeath <ghostlydeath@remood.org>
-#                                       <ghostlydeath@gmail.com>
+# Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
+#                                      <ghostlydeath@gmail.com>
 # -----------------------------------------------------------------------------
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -49,9 +49,17 @@ $(info +++ ReMooD Version ${__MASTER_VERSION})
 
 ### OBTAIN LIST OF TARGETS ###
 
+__MASTER_SUPLS		:= $(foreach __target,$(wildcard ${__MASTER_PROJ}/conf/*.sup),$(basename $(notdir ${__target})))
 __MASTER_TARGETS	:= $(foreach __target,$(wildcard ${__MASTER_PROJ}/conf/*.os),$(basename $(notdir ${__target})))
 
 ### PRECONFIGURE TARGETS BY INCLUDING THEIR RESPECTIVE MAKEFILES ###
+
+$(info +++ Adding basic support...)
+define __suplbasictemp
+-include conf/$1.sup
+endef
+
+$(foreach __suplbasic,${__MASTER_SUPLS},$(eval $(call __suplbasictemp,$(__suplbasic))))
 
 $(info +++ Preconfiguring targets...)
 

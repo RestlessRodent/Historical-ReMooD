@@ -13,8 +13,8 @@
 #      :oO8@@@@@@@@@@Oo.
 #         .oCOOOOOCc.                                      http://remood.org/
 # -----------------------------------------------------------------------------
-# Copyright (C) 2013-20113 GhostlyDeath <ghostlydeath@remood.org>
-#                                       <ghostlydeath@gmail.com>
+# Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
+#                                      <ghostlydeath@gmail.com>
 # -----------------------------------------------------------------------------
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

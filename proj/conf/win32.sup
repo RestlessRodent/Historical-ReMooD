@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/make -f
 #         :oCCCCOCoc.
 #     .cCO8OOOOOOOOO8Oo:
 #   .oOO8OOOOOOOOOOOOOOOCc
@@ -14,7 +14,7 @@
 #         .oCOOOOOCc.                                      http://remood.org/
 # -----------------------------------------------------------------------------
 # Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
-#                                       <ghostlydeath@gmail.com>
+#                                      <ghostlydeath@gmail.com>
 # -----------------------------------------------------------------------------
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,72 +26,32 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
-# Tests the DJGPP Compiler in DOSEMU
+# Sets up support for Win32 Compiling
 
-# DosEMU is here
-DOSEMUPATH="$1"
+####################
+### PRECONFIGURE ###
+####################
 
-# ReMooD Root is here
-REMOODDIR="$2"
+### FIND WIN32/64 COMPILER ###
 
-# Auto fail if there is no unix2dos
-if ! which unix2dos 2> /dev/null > /dev/null
-then
-	exit 1
-fi
+__WIN64_ALLPREFIX := x86_64-w64-mingw32 x86_64-pc-mingw32 amd64-mingw32msvc
+__WIN32_ALLPREFIX := i686-pc-mingw32 i686-mingw32 i586-mingw32msvc i586-pc-mingw32msvc i686-w64-mingw32
 
-# Remember current PWD
-LASTPWD="$PWD"
+# Hacky way to do what I want
+define __searchysearch
+ifndef __$2_TOOLPREFIX
+    __$2_TESTPREFIX := $$(shell which $1-gcc)
+    
+    ifneq ($${__$2_TESTPREFIX},)
+        __$2_TOOLPREFIX := $1
+    endif
+endif
+endef
 
-# Setup temporary directory to test a native DJGPP on
-cd /tmp
-cp $REMOODDIR/util/hello.c $$.c
-echo "gcc -o $$.exe $$.c -lalleg" > $$.bat
-unix2dos $$.bat 2> /dev/null > /dev/null
+$(foreach __search,${__WIN32_ALLPREFIX},$(eval $(call __searchysearch,$(__search),WIN32)))
+$(foreach __search,${__WIN64_ALLPREFIX},$(eval $(call __searchysearch,$(__search),WIN64)))
 
-# Run DOSEMU with just this batch file
-# Run it in a background thread (so if it takes forever, do not bother)
-($DOSEMUPATH -I 'video {none}' -I 'sound_emu off' /tmp/$$.bat) > /dev/null 2> /dev/null &
-BGTHREAD=$!
-
-# Wait 1 minute for it to complete
-for i in $(seq 1 60)
-do
-	# Process dead?
-	if ! ps -p $BGTHREAD > /dev/null 2> /dev/null
-	then
-		break
-	fi
-	
-	sleep 1
-	echo -n "." 1>&2
-done
-
-# See if the process is alive, if it is kill -9 it...
-if ps -p $BGTHREAD > /dev/null 2> /dev/null
-then
-	kill -9 $BGTHREAD > /dev/null 2> /dev/null
-	
-	# Fail regardless (EXE may be bluntly truncated)
-	rm -f /tmp/$$.exe
-fi
-
-# Regardless, add a newline
-echo "" 1>&2
-
-# Remove batch file
-rm -f $$.bat
-
-# go back to old directory
-cd $LASTPWD
-
-# See if it worked OK
-if [ -f "/tmp/$$.exe" ]
-then
-	echo "ok"
-	rm -f /tmp/$$.exe
-	exit 0
-else
-	exit 1
-fi
+### INFORMATION ###
+$(info +++ Win32 Compiler is ${__WIN32_TOOLPREFIX})
+$(info +++ Win64 Compiler is ${__WIN64_TOOLPREFIX})
 
