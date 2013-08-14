@@ -37,7 +37,7 @@
 ### IF TOOLPREFIX IS SET, ASSUME AVAILABLE ###
 ifdef __WIN32_TOOLPREFIX
 	# Download the Win32 Allegro Binary if needed
-    __WIN32_ALLEGROBIN := $(shell ${__MASTER_PROJ}/conf/all32dl.sh "${__WIN32_TOOLPREFIX}" "${__MASTER_ROOT}")
+    __WIN32_ALLEGROBIN := $(shell ${__MASTER_PROJ}/conf/dlxtract.sh "win32all" "${__MASTER_ROOT}")
     
     # Check to see if allegro works with this compiler
     ifeq (${__WIN32_ALLEGROBIN},ok)

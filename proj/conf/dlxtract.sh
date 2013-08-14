@@ -26,10 +26,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
-# Downloads SDL Windows 32-bit
+# Downloads Some tgz and then extracts it
 
-# Prefix that the Windows toolchain uses
-WINPREFIX="$1"
+# File to download
+THINGY="$1"
 
 # ReMooD is passed via this directory
 REMOODDIR="$2"
@@ -38,22 +38,22 @@ REMOODDIR="$2"
 cd $REMOODDIR
 
 # Download and extract the tar.gz, if needed
-if [ ! -d win32sdl ]
+if [ ! -d $THINGY ]
 then
 	# See if the tgz exists
-	if [ ! -f win32sdl.tgz ]
+	if [ ! -f $THINGY.tgz ]
 	then
-		$REMOODDIR/proj/conf/dl.sh http://remood.org/downloads/win32sdl.tgz win32sdl.tgz
+		"$REMOODDIR/proj/conf/dl.sh" http://remood.org/downloads/$THINGY.tgz $THINGY.tgz
 	fi
 	
 	# See if it was actually created
-	if [ ! -f win32sdl.tgz ]
+	if [ ! -f $THINGY.tgz ]
 	then
 		exit 1
 	fi
 	
 	# Needs extracting
-	tar -xvf win32sdl.tgz 1>&2
+	tar -xvf $THINGY.tgz 1>&2
 fi
 
 # Seems to be ok

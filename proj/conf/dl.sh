@@ -31,8 +31,17 @@
 # Use wget, since I know that the most
 if which wget 2> /dev/null > /dev/null
 then
-	wget --progress=dot "$1" -O "$2" 1>&2
-	exit $?
+	wget --progress=dot "$1" -O "$2" 1>&2 || rm -f "$2"
+	
+	# If file exist, download worked
+	if [ -f "$2" ]
+	then
+		exit 0
+	fi
+	
+	# Failed
+	exit 1
+
 # No downloader available, very sad =(
 else
 	exit 1
