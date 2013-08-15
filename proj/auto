@@ -51,8 +51,10 @@ $(info +++ ReMooD Version ${__MASTER_VERSION})
 
 __MASTER_SUPLS		:= $(foreach __target,$(wildcard ${__MASTER_PROJ}/conf/*.sup),$(basename $(notdir ${__target})))
 __MASTER_TARGETS	:= $(foreach __target,$(wildcard ${__MASTER_PROJ}/conf/*.os),$(basename $(notdir ${__target})))
+__MASTER_AUTOTARG	:= $(foreach __target,$(wildcard ${__MASTER_PROJ}/conf/*.aut),$(basename $(notdir ${__target})))
 
-### PRECONFIGURE TARGETS BY INCLUDING THEIR RESPECTIVE MAKEFILES ###
+### BASIC SUPPORT ###
+# Locates compilers that are shared by most of the rulesets
 
 $(info +++ Adding basic support...)
 define __suplbasictemp
@@ -60,6 +62,9 @@ define __suplbasictemp
 endef
 
 $(foreach __suplbasic,${__MASTER_SUPLS},$(eval $(call __suplbasictemp,$(__suplbasic))))
+
+### PRECONFIGURE TARGETS BY INCLUDING THEIR RESPECTIVE MAKEFILES ###
+# Includes the primary building rules
 
 $(info +++ Preconfiguring targets...)
 
@@ -70,6 +75,21 @@ endef
 
 $(foreach __pctarget,${__MASTER_TARGETS},$(eval $(call __preconftarget,$(__pctarget))))
 
+### AUTOMATIC TARGETS CHOOSE A DEFAULT TARGET ###
+# Some configurations could work with anything and are sub targets of a real
+# target. For example is win32, there exists win32all and win32sdl. win32 will
+# just choose the best target, provided it is ok.
+# So in retrospect: `./auto win32` will choose either win32sdl or win32all (and
+# possibly even another target, if it is added later...
+
+$(info +++ Automatic targets...)
+
+define __autoconftarget
+-include conf/$1.aut
+endef
+
+$(foreach __auttarget,${__MASTER_TARGETS},$(eval $(call __autoconftarget,$(__auttarget))))
+
 ####################
 ### DEBUG OUTPUT ###
 ####################
@@ -77,5 +97,6 @@ $(foreach __pctarget,${__MASTER_TARGETS},$(eval $(call __preconftarget,$(__pctar
 $(info Root:            $(__MASTER_ROOT))
 $(info Host:            ${__MASTER_HOST})
 $(info All Targets:     ${__MASTER_TARGETS})
+$(info Alias Targets:   ${__MASTER_AUTOTARG})
 $(info Working Targets: ${__MASTER_OKTARGETS})
 
