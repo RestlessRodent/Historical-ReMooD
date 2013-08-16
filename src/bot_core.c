@@ -41,6 +41,7 @@
 #include "console.h"
 #include "g_state.h"
 #include "z_zone.h"
+#include "w_wad.h"
 
 /*************
 *** LOCALS ***
@@ -126,6 +127,9 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 		// Do not perform normal thinking
 		return;
 	}
+	
+	/* Run Virtual Machine */
+	MIPS_VMRun(&a_Bot->VM, 1000);
 }
 
 /* BOT_Ticker() -- Bot ticker */
@@ -143,9 +147,13 @@ void BOT_Ticker(void)
 /* BOT_Add() -- Adds bot via command line settings */
 void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 {
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
 	uint32_t ID;
 	BOT_t* Bot;
-	int32_t i;
+	int32_t i, j;
+	const char* e, *c;
+	const WL_WADEntry_t* Ent;
 	
 	/* Do not add any bots, if not server */
 	if (!SN_IsServer() || demoplayback)
@@ -163,6 +171,48 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	Bot->ProcessID = ID;
 	Bot->Statis = true;
 	
+	/* Process arguments */
+	for (i = 0; i < a_ArgC; i++)
+	{
+		// Find equal sign in string
+		if (!(e = strchr(a_ArgV[i], '=')))
+			continue;	// not found so ignore
+		
+		// Copy characters up until e to the buffer
+		memset(Buf, 0, sizeof(Buf));
+		for (c = a_ArgV[i], j = 0; c != e; c++)
+			if (j < BUFSIZE - 1)
+				Buf[j++] = *c;
+		
+		// Move e up to displace equals
+		e++;
+		
+		// Handle argument based on buffer
+			// Code mapping
+		if (!strcasecmp("code", Buf))
+		{
+			// Clear existing mapping, if any
+			if (Bot->CodeMap)
+				WL_UnMapEntry(Bot->CodeMap);
+			Bot->CodeMap = NULL;
+			
+			// Attempt locating the desired bot binary
+			if ((Ent = WL_FindEntry(NULL, 0, e)))
+				if ((Bot->CodeMap = WL_MapEntry(Ent)))
+					Bot->CodeLen = Ent->Size;
+		}
+	}
+	
+	/* Initialize execution core */
+	if (!Bot->CodeMap)
+		CONL_PrintF("Bot has no attached binary code.\n");
+	else
+	{
+		// Place binary code at start address
+		MIPS_VMAddMap(&Bot->VM, Bot->CodeMap, UINT32_C(0x8000), Bot->CodeLen);
+		BOT->VM.CPU.pc = UINT32_C(0x8000);
+	}
+	
 	/* Link into list */
 	for (i = 0; i < l_NumBots; i++)
 		if (!l_Bots[i])
@@ -178,6 +228,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 			l_NumBots, l_NumBots + 1);
 		l_Bots[l_NumBots++] = Bot;
 	}
+#undef BUFSIZE
 }
 
 /* BOT_ByProcessID() -- Finds bot by process ID */

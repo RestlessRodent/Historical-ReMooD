@@ -34,6 +34,7 @@
 ***************/
 
 #include "str.h"
+#include "w_wad.h"
 
 /*****************
 *** STRUCTURES ***
@@ -56,15 +57,70 @@ STR_t* STR_Open(const STR_Type_t a_Type, const STR_Class_t a_Class)
 	/* Check */
 	if (a_Type < 0 || a_Type >= NUMSTRT || a_Class < 0 || a_Class >= NUMSTRC)
 		return NULL;
+	
+	/* Failed */
+	return NULL;
 }
 
-bool_t STR_Bind(STR_t* const a_Str, STR_Addr_t* const a_Addr);
+/* STR_Bind() -- Binds to address */
+bool_t STR_Bind(STR_t* const a_Str, STR_Addr_t* const a_Addr)
+{
+	/* Check */
+	if (!a_Str || !a_Addr)
+		return false;
+	
+	return true;
+}
+
 bool_t STR_Listen(STR_t* const a_Str, const uint32_t a_ConnCap);
 STR_t* STR_Accept(STR_t* const a_Str, STR_Addr_t* const a_Addr);
 bool_t STR_Connect(STR_t* const a_Str, STR_Addr_t* const a_Addr);
-void STR_Close(STR_t* const a_Str);
-STR_t* STR_OpenFile(const char* const a_PathName, const char* const a_Mode);
-STR_t* STR_OpenEntry(WL_WADEntry_t* const a_Entry);
+
+/* STR_Close() -- Closes stream */
+void STR_Close(STR_t* const a_Str)
+{
+	/* Check */
+	if (!a_Str)
+		return;
+}
+
+/* STR_OpenFile() -- Wraps opening of a file */
+STR_t* STR_OpenFile(const char* const a_PathName, const char* const a_Mode)
+{
+	return NULL;
+}
+
+/* STR_OpenEntry() -- Wraps opening of a WAD entry */
+STR_t* STR_OpenEntry(WL_WADEntry_t* const a_Entry)
+{
+	STR_t* New;
+	STR_Addr_t Addr;
+	
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Create a new stream, which is a memory stream */
+	if (!(New = STR_Open(STRT_MEM, STRC_STREAM)))
+		return NULL;	// Failed for some reason
+	
+	/* Setup initial settings for bind */
+	memset(&Addr, 0, sizeof(Addr));
+	Addr.Type = STRT_MEM;
+	Addr.Addr.Raw.Addr = WL_MapEntry(a_Entry);
+	Addr.Addr.Raw.Size = a_Entry->Size;
+	
+	// Attempt to bind to address
+	if (!STR_Bind(New, &Addr))
+	{
+		STR_Close(New);
+		return NULL;
+	}
+	
+	/* Success, so return the new stream */
+	return New;
+}
+
 STR_Type_t STR_GetType(STR_t* const a_Str);
 STR_Class_t STR_GetClass(STR_t* const a_Str);
 bool_t STR_GetAddrInfo(const char* const a_Name, STR_AddrInfo_t** const a_Out);
@@ -111,10 +167,10 @@ t STR_r##px##n(STR_t* const a_Str)\
 #define READBSWAP(t,n,x) READXSWAP(t,n,b,Big,x)
 
 // Signed
-READ(int8_t,i8);
-READ(int16_t,i16);
-READ(int32_t,i32);
-READ(int64_t,i64);
+READ(int8_t,xi8);
+READ(int16_t,xi16);
+READ(int32_t,xi32);
+READ(int64_t,xi64);
 READLSWAP(int16_t,i16,Int16)
 READLSWAP(int32_t,i32,Int32)
 READLSWAP(int64_t,i64,Int64)
@@ -123,10 +179,10 @@ READBSWAP(int32_t,i32,Int32)
 READBSWAP(int64_t,i64,Int64)
 
 // Unsigned
-READ(uint8_t,u8);
-READ(uint16_t,u16);
-READ(uint32_t,u32);
-READ(uint64_t,u64);
+READ(uint8_t,xu8);
+READ(uint16_t,xu16);
+READ(uint32_t,xu32);
+READ(uint64_t,xu64);
 READLSWAP(uint16_t,u16,UInt16)
 READLSWAP(uint32_t,u32,UInt32)
 READLSWAP(uint64_t,u64,UInt64)

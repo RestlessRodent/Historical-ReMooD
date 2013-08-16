@@ -38,7 +38,6 @@
 
 #include "doomtype.h"
 
-
 /****************
 *** CONSTANTS ***
 ****************/
@@ -607,6 +606,9 @@ void I_PlayCD(int track, bool_t looping);
 int I_SetVolumeCD(int volume);
 
 void* I_GetVideoBuffer(const I_VideoScreen_t a_Type, uint32_t* const a_Pitch);
+
+bool_t I_MemMap(void* const a_CFile, void** const a_Out, const uint32_t a_Len, const uint32_t a_Off, const bool_t a_Write);
+void I_UnMap(void* const a_Ptr, const uint32_t a_Len);
 
 #endif							/* __I_UTIL_H__ */
 

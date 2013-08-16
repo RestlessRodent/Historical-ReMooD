@@ -153,6 +153,11 @@ COMPLETED TODOS:
  * p_pspr:		Put RMOD related stuff into info (weapons, ammo, etc.)
  
  * w_wad:		Remove the old W_ and WX_ code, it is very old.
+ 
+ * w_wad:		Rewrite the WL_ interface to something a bit better and less
+ 				ugly. Use the new streaming interface I am writing for it also.
+ 				And since the new streamer will use memory mappings, it will be
+ 				more efficient.
 
  * p_spec/intr:	Make line triggers and sector specials dynamic in RMOD so that
  				pages and pages of switch statements are removed.

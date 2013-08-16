@@ -60,7 +60,11 @@
 
 	// Include the standard C stuff here
 	#include <stdlib.h>
-
+	
+	// POSIX Memory Mapping
+	#if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+		#include <sys/mman.h>
+	#endif
 #endif
 
 /* Local */
@@ -81,15 +85,6 @@
 #include "g_game.h"
 #include "m_menu.h"
 #include "sn.h"
-
-
-
-
-
-
-
-
-
 
 /****************
 *** CONSTANTS ***
@@ -2545,5 +2540,66 @@ void I_FileDeletePath(const char* const a_Path)
 	
 	/* Call remove */
 	remove(a_Path);
+}
+
+/* I_MemMap() -- Maps memory */
+bool_t I_MemMap(void* const a_CFile, void** const a_Out, const uint32_t a_Len, const uint32_t a_Off, const bool_t a_Write)
+{
+	void* MapPtr;
+	long PageLen, FixedLen, FixedOff;
+	
+	/* Check */
+	if (!a_Out || !a_Len)
+		return false;
+
+	/* POSIX Memory Mapping */
+#if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+	// Get length of pages and fix the amount of what we want to map
+	PageLen = sysconf(_SC_PAGE_SIZE);
+	FixedLen = a_Len + (PageLen - ((a_Len + PageLen) % (PageLen)));
+	FixedOff = a_Off + (PageLen - ((a_Off + PageLen) % (PageLen)));
+	
+	// Attempt memory map
+	if (!(MapPtr = mmap(NULL, a_Len, PROT_READ | (a_Write ? PROT_WRITE : 0), MAP_PRIVATE, fileno(a_CFile), FixedOff)))
+		return false;
+	
+	// Worked
+	*a_Out = MapPtr;
+	return true;
+	
+	/* Win32 Memory Mapping */
+#elif defined(_WIN32)
+	return false;	// TODO FIXME
+
+	/* Memory mapping not available */
+#else
+	return false;
+#endif
+}
+
+/* I_UnMap() -- Unmaps memory at address */
+void I_UnMap(void* const a_Ptr, const uint32_t a_Len)
+{
+	long PageLen, FixedLen;
+	
+	/* Check */
+	if (!a_Ptr || !a_Len)
+		return;
+
+	/* POSIX Memory Mapping */
+#if defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES > 0
+	// Get length of pages and fix the amount of what we want to map
+	PageLen = sysconf(_SC_PAGE_SIZE);
+	FixedLen = a_Len + (PageLen - ((a_Len + PageLen) % (PageLen)));
+	
+	// Try an unmap
+	munmap(a_Ptr, a_Len);
+	/* Win32 Memory Mapping */
+#elif defined(_WIN32)
+	// TODO FIXME
+
+	/* Memory mapping not available */
+#else
+#endif
 }
 

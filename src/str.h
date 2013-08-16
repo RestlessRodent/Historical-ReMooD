@@ -177,14 +177,14 @@ int32_t STR_WriteTo(STR_t* const a_Str, const void* const a_Out, const uint32_t 
 
 /* Read */
 // Non Swapped
-int8_t STR_ri8(STR_t* const a_Str);
-int16_t STR_ri16(STR_t* const a_Str);
-int32_t STR_ri32(STR_t* const a_Str);
-int64_t STR_ri64(STR_t* const a_Str);
-uint8_t STR_ru8(STR_t* const a_Str);
-uint16_t STR_ru16(STR_t* const a_Str);
-uint32_t STR_ru32(STR_t* const a_Str);
-uint64_t STR_ru64(STR_t* const a_Str);
+int8_t STR_rxi8(STR_t* const a_Str);
+int16_t STR_rxi16(STR_t* const a_Str);
+int32_t STR_rxi32(STR_t* const a_Str);
+int64_t STR_rxi64(STR_t* const a_Str);
+uint8_t STR_rxu8(STR_t* const a_Str);
+uint16_t STR_rxu16(STR_t* const a_Str);
+uint32_t STR_rxu32(STR_t* const a_Str);
+uint64_t STR_rxu64(STR_t* const a_Str);
 
 // Little Swapped
 int16_t STR_rli16(STR_t* const a_Str);
@@ -203,14 +203,14 @@ uint32_t STR_rbu32(STR_t* const a_Str);
 uint64_t STR_rbu64(STR_t* const a_Str);
 
 /* Write */
-void STR_wi8(STR_t* const a_Str, const int8_t a_Val);
-void STR_wi16(STR_t* const a_Str, const int16_t a_Val);
-void STR_wi32(STR_t* const a_Str, const int32_t a_Val);
-void STR_wi64(STR_t* const a_Str, const int64_t a_Val);
-void STR_wu8(STR_t* const a_Str, const uint8_t a_Val);
-void STR_wu16(STR_t* const a_Str, const uint16_t a_Val);
-void STR_wu32(STR_t* const a_Str, const uint32_t a_Val);
-void STR_wu64(STR_t* const a_Str, const uint64_t a_Val);
+void STR_wxi8(STR_t* const a_Str, const int8_t a_Val);
+void STR_wxi16(STR_t* const a_Str, const int16_t a_Val);
+void STR_wxi32(STR_t* const a_Str, const int32_t a_Val);
+void STR_wxi64(STR_t* const a_Str, const int64_t a_Val);
+void STR_wxu8(STR_t* const a_Str, const uint8_t a_Val);
+void STR_wxu16(STR_t* const a_Str, const uint16_t a_Val);
+void STR_wxu32(STR_t* const a_Str, const uint32_t a_Val);
+void STR_wxu64(STR_t* const a_Str, const uint64_t a_Val);
 
 // Little Swapped
 void STR_wli16(STR_t* const a_Str, const int16_t a_Val);

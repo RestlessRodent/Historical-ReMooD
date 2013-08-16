@@ -127,18 +127,6 @@ typedef bool_t (*WL_OrderCBFunc_t)(const bool_t a_Pushed, const WL_WADFile_t* co
 /* WL_WADEntry_t -- A lite WAD entry */
 struct WL_WADEntry_s
 {
-	/* Private Stuff You Don't Touch */
-	struct
-	{
-		bool_t __Compressed;	// Entry is compressed
-		int32_t __UsageCount;	// Times entry used
-		void* __Data;			// Loaded Data (cached)
-		size_t __Offset;		// Offset of the internal data
-		size_t __InternalSize;	// Internal size (could be compressed)
-		
-		void* __WXClone;		// Cloned data for WX
-	} __Private;				// Don't mess with me
-	
 	/* Public Stuff You Read From */
 	// Normal Stuff
 	char Name[WLMAXENTRYNAME];	// Name of entry
@@ -155,6 +143,22 @@ struct WL_WADEntry_s
 	// Linkage
 	WL_WADEntry_t* PrevEntry;	// Previous Entry
 	WL_WADEntry_t* NextEntry;	// Next Entry
+	
+	/* Private Stuff You Don't Touch */
+	struct
+	{
+		bool_t __Compressed;	// Entry is compressed
+		int32_t __UsageCount;	// Times entry used
+		void* __Data;			// Loaded Data (cached)
+		size_t __Offset;		// Offset of the internal data
+		size_t __InternalSize;	// Internal size (could be compressed)
+		
+		void* __WXClone;		// Cloned data for WX
+		
+		bool_t __MapReal;		// REAL memory map (not faked)
+		int32_t __MapCount;		// Memory Map Count
+		void* __MapPtr;			// Map Pointer
+	} __Private;				// Don't mess with me
 };
 
 /* WL_WADFile_t -- A lite WAD file */
@@ -254,6 +258,10 @@ void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, s
 const WL_WADEntry_t* WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name);
 uintptr_t WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry);
 size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
+
+// Entry Memory Mapping
+void* WL_MapEntry(const WL_WADEntry_t* const a_Entry);
+void WL_UnMapEntry(const WL_WADEntry_t* const a_Entry);
 
 // WAD Stream Buffer
 WL_ES_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry);

@@ -42,16 +42,6 @@
 #include "m_argv.h"
 #include "v_video.h"
 
-
-
-
-
-
-
-// WAD DATA
-
-
-
 /************************
 *** LITE WAD HANDLING ***
 ************************/
@@ -831,6 +821,7 @@ void WL_AttachWAD(const WL_WADFile_t* const a_WAD, const WL_WADFile_t* a_OtherWA
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 {
 	int32_t i;
+	WL_WADEntry_t* Ent;
 	
 	/* Check */
 	if (!a_WAD)
@@ -863,6 +854,25 @@ void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 		if (a_WAD->__Private.__PublicData.__Stuff[i].__DataPtr)
 			Z_Free(a_WAD->__Private.__PublicData.__Stuff[i].__DataPtr);
 	}
+	
+	/* Cleanup entry list */
+	for (i = 0; i < a_WAD->NumEntries; i++)
+	{
+		Ent = &a_WAD->Entries[i];
+		
+		// Unmemory map entries
+		while (Ent->__Private.__MapCount > 0)
+			WL_UnMapEntry(Ent);
+		
+		// Remove WX Cache
+		if (Ent->__Private.__WXClone)
+			Z_Free(Ent->__Private.__WXClone);
+		
+		// Free stream cache
+		if (Ent->__Private.__Data)
+			Z_Free(Ent->__Private.__Data);
+	}
+	Z_Free(a_WAD->Entries);
 	
 	/* Close source file */
 	// C FILE?
@@ -1654,6 +1664,78 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 	Z_ChangeTag(a_Entry->__Private.__Data, PU_CACHE);
 	
 	return CorrectedSize;
+}
+
+/* WL_MapEntry() -- Memory maps a WAD entry */
+void* WL_MapEntry(const WL_WADEntry_t* const a_Entry)
+{
+	WL_WADEntry_t* Ent = a_Entry;
+	
+	/* Check */
+	if (!Ent)
+		return;
+	
+	/* Entry is already mapped */
+	if (Ent->__Private.__MapCount > 0)
+	{
+		Ent->__Private.__MapCount++;
+		return Ent->__Private.__MapPtr;
+	}
+	
+	/* Attempt to use real memory map, if possible */
+#if 1
+	Ent->__Private.__MapReal = false;
+#else
+	if ((Ent->__Private.__MapReal = I_MemMap(Ent->Owner->__Private.__CFile, &Ent->__Private.__MapPtr, Ent->Size, Ent->__Private.__Offset, false)))
+	{
+		// Nothing really has to be done here
+	}
+	
+	// Failed, use fake mapping instead
+	else
+#endif
+	{
+		Ent->__Private.__MapPtr = Z_Malloc(Ent->Size, PU_STATIC, NULL);
+		fseek(Ent->Owner->__Private.__CFile, Ent->__Private.__Offset, SEEK_SET);
+		fread(Ent->__Private.__MapPtr, 1, Ent->Size, Ent->Owner->__Private.__CFile);
+	}
+	
+	/* Standard stuff */
+	Ent->__Private.__MapCount = 1;
+	return Ent->__Private.__MapPtr;
+}
+
+/* WL_UnMapEntry() -- Unmemory maps a WAD entry */
+void WL_UnMapEntry(const WL_WADEntry_t* const a_Entry)
+{
+	WL_WADEntry_t* Ent = a_Entry;
+	
+	/* Check */
+	if (!Ent)
+		return;
+	
+	/* Already unmapped enough */
+	if (Ent->__Private.__MapCount == 0)
+		return;
+	
+	/* This is not the last mapping */
+	if (Ent->__Private.__MapCount > 1)
+	{
+		Ent->__Private.__MapCount--;
+		return;
+	}
+	
+	/* Depends on whether real or fake mapping is used */
+	if (Ent->__Private.__MapReal)
+		I_UnMap(Ent->__Private.__MapPtr, Ent->Size);
+	
+	// Fake
+	else
+		Z_Free(Ent->__Private.__MapPtr);
+	
+	/* Remove counts and references */
+	Ent->__Private.__MapPtr = NULL;
+	Ent->__Private.__MapCount = 0;
 }
 
 /*** ENTRY STREAM ***/
