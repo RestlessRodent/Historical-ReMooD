@@ -102,3 +102,12 @@ glob:bnodes
 glob:bshore
 glob:SDL-1.2-20111107-win64.tar.gz
 glob:SDL-1.2-20111107-win64
+glob:util/usr
+glob:util/binutils-2.23
+glob:util/gcc-4.6.3
+glob:win32all
+glob:win32sdl
+glob:win64sdl
+glob:win32all.tgz
+glob:win32sdl.tgz
+glob:win64sdl.tgz

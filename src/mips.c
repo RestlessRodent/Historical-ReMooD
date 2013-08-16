@@ -69,5 +69,12 @@ bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint32_t a
 /* MIPS_VMRun() -- Runs virtual machine, for count opcodes */
 void MIPS_VMRun(MIPS_VM_t* const a_VM, const uint32_t a_Count)
 {
+	uint32_t i;
+	
+	/* Run count opcodes */
+	for (i = 0; i < a_Count; i++)
+	{
+		// Read memory at PC
+	}
 }
 
