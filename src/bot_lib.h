@@ -97,6 +97,36 @@
 	
 	// ReMooD uses 64-bit Tics
 	typedef uint64_t tic_t;
+	
+	// Doom Angles
+	typedef uint32_t angle_t;
+	
+	#define ANG45		UINT32_C(0x20000000)
+	#define ANG90		UINT32_C(0x40000000)
+	#define ANG180		UINT32_C(0x80000000)
+	#define ANG270		UINT32_C(0xc0000000)
+	
+	#define ANGMAX		UINT32_C(0xffffffff)
+	#define ANG1		(ANG45/UINT32_C(45))
+	#define ANG60		(ANG180/UINT32_C(3))
+
+	#define ANGLEX(x)	((angle_t)(((angle_t)ANG1) * ((angle_t)(x))))
+	
+	// Doom Fixed
+	typedef int32_t fixed_t;
+	
+	#define _FIXED_FRACBITS INT32_C(16)
+	#define _FIXED_ONE (INT32_C(1) << _FIXED_FRACBITS)
+	#define _FIXED_TWO (INT32_C(2) << _FIXED_FRACBITS)
+	#define _FIXED_NEGONE (INT32_C(-1) << _FIXED_FRACBITS)
+	#define _FIXED_SIGN		INT32_C(0x80000000)
+	#define _FIXED_INT		INT32_C(0xFFFF0000)
+	#define _FIXED_FRAC		INT32_C(0x0000FFFF)
+	#define _FIXED_ROUND	INT32_C(0x00008000)
+
+	// Compatibility
+	#define FRACBITS _FIXED_FRACBITS
+	#define FRACUNIT _FIXED_ONE
 #endif
 
 /****************
@@ -286,17 +316,75 @@ typedef struct BL_TicCmd_s
 #define EXTADDRPORTINFO			UINT32_C(0x00050000)
 #define EXTADDRBOTINFO			UINT32_C(0x00058000)
 #define EXTADDRTICCMD			UINT32_C(0x00060000)
+#define EXTADDRFINESINE			UINT32_C(0x00068000)
+#define EXTADDRFINECOSINE		UINT32_C(0x00070000)
+#define EXTADDRFINETANGENT		UINT32_C(0x00078000)
+#define EXTADDRTANTOANGLE		UINT32_C(0x00080000)
+#define EXTADDRANGLUT			UINT32_C(0x00088000)
+#define EXTADDRXGAMETIC			UINT32_C(0x00100000)
+#define EXTADDRXLOCALTIC		UINT32_C(0x00100008)
 
 /* Not Included: Globals */
 #if !defined(__REMOOD_INCLUDED)
 	extern volatile const BL_PortInfo_t g_PortInfo;
 	extern volatile const BL_BotInfo_t g_BotInfo;
 	extern volatile BL_TicCmd_t g_TicCmd;
+	extern volatile tic_t g_GameTic;
+	extern volatile tic_t g_ProgramTic;
+#endif
+
+/********************
+*** MINI TABLES.H ***
+********************/
+
+/* Not Included: Globals */
+#if !defined(__REMOOD_INCLUDED)
+	// From tables.h
+	#define FINEANGLES              8192
+	#define FINEMASK                (FINEANGLES-1)
+	#define ANGLETOFINESHIFT        19	// 0x100000000 to 0x2000
+	#define SLOPERANGE  2048
+	#define SLOPEBITS   11
+	#define DBITS       (FRACBITS-SLOPEBITS)
+	
+	extern fixed_t finesine[5 * FINEANGLES / 4];
+	extern fixed_t* finecosine;
+	extern fixed_t finetangent[FINEANGLES / 2];
+	extern angle_t tantoangle[SLOPERANGE + 1];
+	extern const int16_t c_AngLUT[8192];
 #endif
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* Not Included: Functions */
+#if !defined(__REMOOD_INCLUDED)
+	static inline fixed_t FixedMul(fixed_t a, fixed_t b)
+	{
+		return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
+	}
+	
+	static inline fixed_t FixedDiv(fixed_t a, fixed_t b)
+	{
+		if (b == 0)
+			return 0x7FFFFFFF | (a & 0x80000000);
+		else
+			return (fixed_t)((((((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b)) & INT64_C(0xFFFFFFFF)));
+	}
+
+	static inline fixed_t FixedMod(fixed_t a, fixed_t b)
+	{
+		fixed_t dVal = FixedDiv(a, b);
+		fixed_t iVal = dVal & 0xFFFF0000;
+		return a - FixedMul(dVal, iVal); 
+	}
+	
+	static inline fixed_t TBL_BAMToDeg(const angle_t a_Angle)
+	{
+		return ((int64_t)a_Angle << ((int64_t)(FRACBITS + FRACBITS))) / (UINT64_C(0xB60B60) << ((int64_t)FRACBITS));
+	}
+#endif
 
 /*****************************************************************************/
 

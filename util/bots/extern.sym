@@ -1,5 +1,9 @@
-g_PortInfo = 0x00050000;
-g_BotInfo = 0x00058000;
-g_TicCmd = 0x00060000;
-
+g_PortInfo =  0x00050000;
+g_BotInfo =   0x00058000;
+g_TicCmd =    0x00060000;
+finesine =    0x00068000;
+finecosine =  0x00070000;
+finetangent = 0x00078000;
+tantoangle =  0x00080000;
+c_AngLUT =    0x00088000;
 

@@ -52,7 +52,7 @@
 
 // Compatibility
 #define FRACBITS _FIXED_FRACBITS
-#define FRACUNIT _FIXED_ONE//(1 << _FIXED_FRACBITS)
+#define FRACUNIT _FIXED_ONE
 
 typedef int32_t fixed_t;
 #define FIXEDT_C(c) (INT32_C(c) << FRACBITS)

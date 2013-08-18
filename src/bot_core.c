@@ -44,6 +44,7 @@
 #include "w_wad.h"
 #include "m_argv.h"
 #include "d_player.h"
+#include "tables.h"
 
 /****************
 *** CONSTANTS ***
@@ -327,6 +328,13 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	
 	// Tic Command
 	MIPS_VMAddMap(&Bot->VM, &Bot->VMTicCmd, EXTADDRTICCMD, sizeof(Bot->VMTicCmd), MIPS_MFR | MIPS_MFW);
+	
+	// LOOKUP TABLES
+	MIPS_VMAddMap(&Bot->VM, finesine, EXTADDRFINESINE, sizeof(finesine), MIPS_MFR);
+	MIPS_VMAddMap(&Bot->VM, finecosine, EXTADDRFINECOSINE, sizeof((*finecosine) * (FINEANGLES / 4)), MIPS_MFR);
+	MIPS_VMAddMap(&Bot->VM, finetangent, EXTADDRFINETANGENT, sizeof(finetangent), MIPS_MFR);
+	MIPS_VMAddMap(&Bot->VM, tantoangle, EXTADDRTANTOANGLE, sizeof(tantoangle), MIPS_MFR);
+	MIPS_VMAddMap(&Bot->VM, c_AngLUT, EXTADDRANGLUT, sizeof(c_AngLUT), MIPS_MFR);
 	
 	/* Link into list */
 	for (i = 0; i < l_NumBots; i++)
