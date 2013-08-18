@@ -155,7 +155,10 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 	{
 		int64_t i;
 		uint64_t u;
-	} BigNum;
+		
+		int32_t i32;
+		uint32_t u32;
+	} BN;
 
 #if defined(_DEBUG)
 	MIPS_CPU_t OldCPU;
@@ -213,18 +216,98 @@ case 3:		PRINTOP(("jal %08x\n", A(3)));
 	PC += A(3) << UINT32_C(2);
 	break;
 
-case 4:		PRINTOP(("beq $%u, $%u, %08x\n", A(1), A(2), A(3)));
+case 4:		PRINTOP(("beq $%u, $%u, %u\n", A(1), A(2), A(3)));
 	if (AR(1) == AR(2))
 		PC += A(3) << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
-case 5:		PRINTOP(("bne $%u, $%u, $08x\n", A(1), A(2), A(3)));
+case 5:		PRINTOP(("bne $%u, $%u, %u\n", A(1), A(2), A(3)));
 	if (AR(1) != AR(2))
 		PC += A(3) << UINT32_C(2);
 	else
 		ADVPC;
+	break;
+
+case 6:		PRINTOP(("blez $%u, %i\n", A(1), A(3)));
+	if (((int32_t)AR(1)) <= INT32_C(0))
+		PC += A(3) << UINT32_C(2);
+	else
+		ADVPC;
+	break;
+
+case 7:		PRINTOP(("bgtz $%u, %i\n", A(1), A(3)));
+	if (((int32_t)AR(1)) > INT32_C(0))
+		PC += A(3) << UINT32_C(2);
+	else
+		ADVPC;
+	break;
+
+case 8:		PRINTOP(("addi $%u, $%u, %i\n", A(2), A(1), A(3)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.i32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.i32 = A(3);
+	AR(2) = ((int32_t)AR(1)) + BN.i32;
+	ADVPC;
+	break;
+
+case 9:		PRINTOP(("addiu $%u, $%u, %u\n", A(2), A(1), A(3)));
+
+	AR(2) = AR(1) + A(3);
+	ADVPC;
+	break;
+
+case 10:	PRINTOP(("slti $%u, $%u, %i\n", A(2), A(1), A(3)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.i32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.i32 = A(3);
+	
+	if (((int32_t)AR(1)) < BN.i32)
+		AR(2) = UINT32_C(1);
+	else
+		AR(2) = UINT32_C(0);
+	ADVPC;
+	break;
+
+case 11:	PRINTOP(("sltiu $%u, $%u, %u\n", A(2), A(1), A(3)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
+	if (AR(1) < BN.u32)
+		AR(2) = UINT32_C(1);
+	else
+		AR(2) = UINT32_C(0);
+	ADVPC;
+	break;
+
+case 12:	PRINTOP(("andi $%u, $%u, %u\n", A(2), A(1), A(3)));
+	AR(2) = AR(1) & A(3);
+	ADVPC;
+	break;
+
+case 13:	PRINTOP(("ori $%u, $%u, %u\n", A(2), A(1), A(3)));
+	AR(2) = AR(1) | A(3);
+	ADVPC;
+	break;
+
+case 14:	PRINTOP(("xori $%u, $%u, %u\n", A(2), A(1), A(3)));
+	AR(2) = AR(1) ^ A(3);
+	ADVPC;
+	break;
+
+case 24:	PRINTOP(("llo $%u, %u\n", A(2), A(3)));
+	AR(2) = (AR(2) & UINT32_C(0x0000FFFF)) | A(3);
+	ADVPC;
+	break;
+
+case 25:	PRINTOP(("lhi $%u, %u\n", A(2), A(3)));
+	AR(2) = (AR(2) & UINT32_C(0xFFFF0000)) | (A(3) << UINT32_C(16));
+	ADVPC;
 	break;
 
 BEGINARITH
@@ -289,16 +372,16 @@ case 19:	PRINTOP(("mtlo $%u\n", A(1)));
 	break;
 	
 case 24:	PRINTOP(("mult $%u, $%u\n", A(1), A(2)));
-	BigNum.i = ((int64_t)AR(1)) * ((int64_t)AR(2));
-	HI = (BigNum.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
-	LO = BigNum.u & UINT64_C(0xFFFFFFFF);
+	BN.i = ((int64_t)AR(1)) * ((int64_t)AR(2));
+	HI = (BN.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
+	LO = BN.u & UINT64_C(0xFFFFFFFF);
 	ADVPC;
 	break;
 	
 case 25:	PRINTOP(("multu $%u, $%u\n", A(1), A(2)));
-	BigNum.u = ((uint64_t)AR(1)) * ((uint64_t)AR(2));
-	HI = (BigNum.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
-	LO = BigNum.u & UINT64_C(0xFFFFFFFF);
+	BN.u = ((uint64_t)AR(1)) * ((uint64_t)AR(2));
+	HI = (BN.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
+	LO = BN.u & UINT64_C(0xFFFFFFFF);
 	ADVPC;
 	break;
 
