@@ -79,8 +79,33 @@ bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint_fast3
 	return true;
 }
 
-/* MIPS_VMGetAddr() -- Obtain memory address from VM location */
-static inline MIPS_Map_t* MIPS_VMGetAddr(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, uint32_t* const a_BaseOfp)
+/* MIPS_VMAddMapFunc() -- Add mapping function */
+bool_t MIPS_VMAddMapFunc(MIPS_VM_t* const a_VM, MIPS_VMMapReadFunc_t a_ReadFunc, MIPS_VMMapWriteFunc_t a_WriteFunc, const uint_fast32_t a_Fake, const uint_fast32_t a_Len, const uint_fast32_t a_Flags)
+{
+	MIPS_Map_t* New;
+	
+	/* Check */
+	if (!a_VM || !a_ReadFunc || !a_Len)
+		return false;
+	
+	/* Add room for 1 more map */
+	Z_ResizeArray((void**)&a_VM->Maps, sizeof(*a_VM->Maps), a_VM->NumMaps, a_VM->NumMaps + 1);
+	New = &a_VM->Maps[a_VM->NumMaps++];
+	
+	/* Place data here */
+	// Align to 4 bytes
+	New->Len = a_Len & (~UINT32_C(3));
+	New->VMOff = a_Fake & (~UINT32_C(3));
+	New->ReadFunc = a_ReadFunc;
+	New->WriteFunc = a_WriteFunc;
+	New->Flags = a_Flags;
+	
+	/* Success */
+	return true;
+}
+
+/* MIPS_VMGetMap() -- Obtain map for address */
+static inline MIPS_Map_t* MIPS_VMGetMap(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, uint32_t* const a_BaseOfp)
 {
 	register int_fast32_t i;
 	register uint_fast32_t BaseAddr;
@@ -93,14 +118,149 @@ static inline MIPS_Map_t* MIPS_VMGetAddr(MIPS_VM_t* const a_VM, const uint_fast3
 			
 			if (BaseAddr <= a_VM->Maps[i].Len)
 			{
-				if (a_BaseOfp)
-					*a_BaseOfp = BaseAddr;
+				*a_BaseOfp = BaseAddr;
 				return &a_VM->Maps[i];
 			}
 		}
 	
 	/* Not found */
 	return NULL;
+}
+
+/* MIPS_ReadMem() -- Reads from memory */
+static inline uint32_t MIPS_ReadMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width)
+{
+	MIPS_Map_t* Map;
+	uint32_t BaseOff;
+	register uint32_t RetVal;
+	
+	/* Find map first */
+	BaseOff = 0;
+	if (!(Map = MIPS_VMGetMap(a_VM, a_Addr, &BaseOff)))
+		return 0;	// Failed to find
+	
+	/* Not Readable */
+	if (!(Map->Flags & MIPS_MFR))
+		return 0;
+	
+	/* Memory Mapped */
+	if (Map->RealMem)
+	{
+		if (a_Width == 4)
+			return LittleSwapUInt32(((uint32_t*)Map->RealMem)[BaseOff >> 2]);
+		else if (a_Width == 2)
+			return LittleSwapUInt16(((uint16_t*)Map->RealMem)[BaseOff >> 1]);
+		else
+			return ((uint8_t*)Map->RealMem)[BaseOff];
+	}
+	
+	/* Function Mapped */
+	else
+	{
+		RetVal = Map->ReadFunc(a_VM, Map, BaseOff & (~UINT32_C(3)));
+		
+		if (a_Width == 4)
+			return RetVal;
+		else if (a_Width == 2)
+		{
+			// read of higher half word
+			if ((BaseOff & UINT32_C(3)) != UINT32_C(0))
+				RetVal >>= UINT32_C(16);
+			
+			return RetVal & UINT32_C(0x0000FFFF);
+		}
+		else
+		{
+			// Read of higher quarter words
+				// 0 = 0
+				// 1 = 8
+				// 2 = 16
+				// 3 = 24
+			RetVal >>= UINT32_C(8) * (UINT32_C(8) * (BaseOff & UINT32_C(3)));
+			return RetVal & UINT32_C(0x000000FF);
+		}
+	}
+}
+
+/* MIPS_WriteMem() -- Writes to memory */
+static inline void MIPS_WriteMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width, const uint32_t a_Val)
+{
+	MIPS_Map_t* Map;
+	uint32_t BaseOff;
+	union
+	{
+		uint8_t u8[4];
+		uint16_t u16[2];
+		uint32_t u32;
+	} MemVal;
+	
+	/* Find map first */
+	BaseOff = 0;
+	if (!(Map = MIPS_VMGetMap(a_VM, a_Addr, &BaseOff)))
+		return;	// Failed to find
+	
+	/* Not Writeable */
+	if (!(Map->Flags & MIPS_MFW))
+		return;
+	
+	/* Memory Mapped */
+	if (Map->RealMem)
+	{
+		if (a_Width == 4)
+			((uint32_t*)Map->RealMem)[BaseOff >> 2] = LittleSwapUInt32(a_Val);
+		else if (a_Width == 2)
+			((uint16_t*)Map->RealMem)[BaseOff >> 1] = LittleSwapUInt16(a_Val);
+		else
+			((uint8_t*)Map->RealMem)[BaseOff] = a_Val;
+	}
+	
+	/* Function Mapped */
+	else if (Map->WriteFunc)
+	{
+		// 32-bit is 1:1 operation
+		if (a_Width == 4)
+			MemVal.u32 = a_Val;
+		
+		// 8-bit/16-bit requires a bit more work
+		else
+		{
+			// Read value at memory
+			MemVal.u32 = Map->ReadFunc(a_VM, Map, BaseOff & (~UINT32_C(3)));
+			
+			// 16-bit
+			if (a_Width == 2)
+			{
+				// Higher Half
+				if ((BaseOff & UINT32_C(3)) != UINT32_C(0))
+#if defined(__REMOOD_BIG_ENDIAN)
+					MemVal.u16[1] = a_Val;
+#else
+					MemVal.u16[0] = a_Val;
+#endif
+				
+				// Lower Half
+				else
+#if defined(__REMOOD_BIG_ENDIAN)
+					MemVal.u16[0] = a_Val;
+#else
+					MemVal.u16[1] = a_Val;
+#endif
+			}
+			
+			// 8-bit
+			else
+				MemVal.u8[
+#if defined(__REMOOD_BIG_ENDIAN)
+					(3 - (BaseOff & 3))	// higher addr == lower bit
+#else
+					(BaseOff & 3)		// higher addr == higher bit
+#endif
+					] = a_Val;
+		}
+		
+		// Write 32-bit value
+		Map->WriteFunc(a_VM, Map, BaseOff & (~UINT32_C(3)), MemVal.u32);
+	}
 }
 
 /* MIPS_DecodeOp() -- Decodes opcode */
@@ -177,17 +337,12 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 	for (i = 0; i < a_Count; i++)
 	{
 		// Read memory at PC
-		if (!(Map = MIPS_VMGetAddr(a_VM, a_VM->CPU.pc & (~UINT32_C(3)), &BaseOff)))
-			Op = UINT32_C(0xFFFFFFFF);
+		Op = MIPS_ReadMem(a_VM, a_VM->CPU.pc, 4);
 		
-		// Obtain opcode
-		else
-		{
-			Op = ((uint32_t*)Map->RealMem)[BaseOff >> UINT32_C(2)];
+		// Swap operator on big endian
 #if defined(__REMOOD_BIG_ENDIAN)
-			Op = LittleSwapUInt32(op);
+		Op = LittleSwapUInt32(op);
 #endif
-		}
 		
 		// Decode opcode
 		MIPS_DecodeOp(Op, Am);
@@ -350,10 +505,7 @@ case 25:	PRINTOP(("lhi $%u, %u\n", A(2), A(3)));
 	break;
 
 case 32:	PRINTOP(("lb $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		BN.u32 = 0;
-	else
-		BN.u32 = ((uint8_t*)Map->RealMem)[BaseOff];
+	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 1);
 	if (BN.u32 & UINT32_C(0x80))
 		BN.u32 |= UINT32_C(0xFFFFFF00);
 	AR(2) = BN.u32;
@@ -361,10 +513,7 @@ case 32:	PRINTOP(("lb $%u, %08x($%u)\n", A(2), A(3), A(1)));
 	break;
 
 case 33:	PRINTOP(("lh $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		BN.u32 = 0;
-	else
-		BN.u32 = ((uint16_t*)Map->RealMem)[BaseOff >> 1];
+	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 2);
 	if (BN.u32 & UINT32_C(0x8000))
 		BN.u32 |= UINT32_C(0xFFFF0000);
 	AR(2) = BN.u32;
@@ -372,50 +521,35 @@ case 33:	PRINTOP(("lh $%u, %08x($%u)\n", A(2), A(3), A(1)));
 	break;
 
 case 35:	PRINTOP(("lw $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		BN.u32 = 0;
-	else
-		BN.u32 = ((uint32_t*)Map->RealMem)[BaseOff >> 2];
+	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 4);
 	AR(2) = BN.u32;
 	ADVPC;
 	break;
 
 case 36:	PRINTOP(("lbu $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		BN.u32 = 0;
-	else
-		BN.u32 = ((uint8_t*)Map->RealMem)[BaseOff];
+	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 1);
 	AR(2) = BN.u32;
 	ADVPC;
 	break;
 
 case 37:	PRINTOP(("lhu $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		BN.u32 = 0;
-	else
-		BN.u32 = ((uint16_t*)Map->RealMem)[BaseOff >> 1];
+	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 2);
 	AR(2) = BN.u32;
 	ADVPC;
 	break;
 
 case 40:	PRINTOP(("sb $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if ((Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		if (Map->Flags & MIPS_MFW)
-			((uint8_t*)Map->RealMem)[BaseOff] = AR(2) & UINT32_C(0xFF);
+	MIPS_WriteMem(a_VM, AR(1) + A(3), 1, AR(2));
 	ADVPC;
 	break;
 	
 case 41:	PRINTOP(("sh $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if ((Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		if (Map->Flags & MIPS_MFW)
-			((uint16_t*)Map->RealMem)[BaseOff >> 1] = AR(2) & UINT32_C(0xFFFF);
+	MIPS_WriteMem(a_VM, AR(1) + A(3), 2, AR(2));
 	ADVPC;
 	break;
 	
 case 43:	PRINTOP(("sw $%u, %08x($%u)\n", A(2), A(3), A(1)));
-	if ((Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
-		if (Map->Flags & MIPS_MFW)
-			((uint32_t*)Map->RealMem)[BaseOff >> 2] = AR(2);
+	MIPS_WriteMem(a_VM, AR(1) + A(3), 4, AR(2));
 	ADVPC;
 	break;
 

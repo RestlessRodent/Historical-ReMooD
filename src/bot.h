@@ -57,6 +57,7 @@
 void BOT_Init(void);
 void BOT_Ticker(void);
 void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV);
+void BOT_RegisterLevel(void);
 
 void BOT_DestroyByPort(SN_Port_t* const a_Port);
 void BOT_LeaveStasis(SN_Port_t* const a_Port);

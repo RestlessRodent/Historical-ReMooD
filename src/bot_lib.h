@@ -312,6 +312,11 @@ typedef struct BL_TicCmd_s
 	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
 } BL_TicCmd_t;
 
+/* BL_GameInfo_t -- Game Information */
+typedef struct BL_GameInfo_s
+{
+} BL_GameInfo_t;
+
 /**************
 *** GLOBALS ***
 **************/
@@ -324,16 +329,14 @@ typedef struct BL_TicCmd_s
 #define EXTADDRFINETANGENT		UINT32_C(0x00078000)
 #define EXTADDRTANTOANGLE		UINT32_C(0x00080000)
 #define EXTADDRANGLUT			UINT32_C(0x00088000)
-#define EXTADDRXGAMETIC			UINT32_C(0x00100000)
-#define EXTADDRXLOCALTIC		UINT32_C(0x00100008)
+#define EXTADDRGAMEINFO			UINT32_C(0x00090000)
 
 /* Not Included: Globals */
 #if !defined(__REMOOD_INCLUDED)
 	extern volatile const BL_PortInfo_t g_PortInfo;
 	extern volatile const BL_BotInfo_t g_BotInfo;
 	extern volatile BL_TicCmd_t g_TicCmd;
-	extern volatile tic_t g_GameTic;
-	extern volatile tic_t g_ProgramTic;
+	extern volatile const BL_GameInfo_t g_GameInfo;
 #endif
 
 /********************

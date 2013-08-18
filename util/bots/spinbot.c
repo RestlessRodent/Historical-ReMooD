@@ -86,15 +86,17 @@ void _start(void)
 		
 		if (!(g_TicCmd.Buttons & BLT_JUMP))
 		{
-			if (JumpToggle)
-				JumpToggle = 0;
+			if (JumpToggle > 0)
+				JumpToggle--;
 			else
 			{
 				g_TicCmd.LookAngle += ANGLEX(45);
 				g_TicCmd.Buttons |= BLT_JUMP;
-				JumpToggle = 1;
+				JumpToggle = 28;
 			}
 		}
+		else
+			JumpToggle++;
 	}
 }
 

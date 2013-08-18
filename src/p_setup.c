@@ -51,6 +51,7 @@
 #include "t_vm.h"
 #include "r_splats.h"
 #include "g_game.h"
+#include "bot.h"
 
 //#define COOLFLIPLEVELS
 
