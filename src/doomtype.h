@@ -180,17 +180,11 @@
 	#define UINT32_C(x) x
 	#define INT64_C(x) x##ll
 	#define UINT64_C(x) x##ull
-	
-	#define __REMOOD_LL_SUFFIX(a) INT64_C(a)
-	#define __REMOOD_ULL_SUFFIX(a) UINT64_C(a)
 
 /* C99 Complaint Compilers */
-#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__) || (defined(_MSC_VER) && _MSC_VER >= 1600)
 	#include <stdint.h>
-
-	#define __REMOOD_LL_SUFFIX(a) INT64_C(a)
-	#define __REMOOD_ULL_SUFFIX(a) UINT64_C(a)
-
+	
 /* Microsoft Visual C++ */
 #elif defined(_MSC_VER)
 	typedef signed __int8 int8_t;
@@ -217,9 +211,6 @@
 	#define UINT32_C(x) x
 	#define INT64_C(x) x##i64
 	#define UINT64_C(x) x##ui64
-	
-	#define __REMOOD_LL_SUFFIX(a) a##i64
-	#define __REMOOD_ULL_SUFFIX(a) a##ui64
 #endif
 
 #endif /* __REMOOD_IGNORE_FIXEDTYPES */

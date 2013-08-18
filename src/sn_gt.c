@@ -189,8 +189,8 @@ void SN_ChangeMap(const char* const a_NewMap, const bool_t a_Reset)
 	}
 }
 
-/* SN_HandleGTJoinPlayer() -- Handle join player */
-static void SN_HandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTJoinPlayer() -- Handle join player */
+static void SN_HGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	int32_t i, n;
 	SN_Host_t* Host;
@@ -322,8 +322,8 @@ static void SN_HandleGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP
 	}
 }
 
-/* SN_HandleGTPartPlayer() -- Handle leaving player */
-static void SN_HandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTPartPlayer() -- Handle leaving player */
+static void SN_HGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	player_t* Player;
 	int32_t i;
@@ -379,8 +379,8 @@ static void SN_HandleGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP
 	BOT_EnterStatis(a_Port);
 }
 
-/* SN_HandleGTCleanupHost() -- Handle delete host */
-static void SN_HandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTCleanupHost() -- Handle delete host */
+static void SN_HGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	char Buf[MAXTCSTRINGCAT + 1];
 	int32_t Cat, i;
@@ -406,8 +406,8 @@ static void SN_HandleGTQuitMsg(const uint8_t a_ID, const uint8_t** const a_PP, S
 	strncat(a_Host->QuitReason, Buf, MAXQUITREASON - 1);
 }
 
-/* SN_HandleGTCleanupHost() -- Handle delete host */
-static void SN_HandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTCleanupHost() -- Handle delete host */
+static void SN_HGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	/* Check */
 	if (!a_Host)
@@ -418,8 +418,8 @@ static void SN_HandleGTCleanupHost(const uint8_t a_ID, const uint8_t** const a_P
 		SN_CleanupHost(a_Host);
 }
 
-/* SN_HandleGTJoinHost() -- Host joins the game */
-static void SN_HandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTJoinHost() -- Host joins the game */
+static void SN_HGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	SN_Host_t* New;	
 	
@@ -434,8 +434,8 @@ static void SN_HandleGTJoinHost(const uint8_t a_ID, const uint8_t** const a_PP, 
 	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTCONNECTED, "%s\n", "Client");
 }
 
-/* SN_HandleGTJoinPort() -- Handles joining of a new port */
-static void SN_HandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTJoinPort() -- Handles joining of a new port */
+static void SN_HGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	SN_Host_t* Host;
 	SN_Port_t* New;
@@ -472,8 +472,8 @@ static void SN_HandleGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, 
 	}
 }
 
-/* SN_HandleGTChatFrag() -- Chat fragment */
-static void SN_HandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTChatFrag() -- Chat fragment */
+static void SN_HGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 	D_SplitInfo_t* Split;
 	SN_Port_t* PortTarget, *Port;
@@ -615,8 +615,8 @@ static void SN_HandleGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, 
 		S_StartSound(NULL, Sound);
 }
 
-/* SN_HandleGTPortSetting() -- Change setting of a port */
-static void SN_HandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+/* SN_HGTPortSetting() -- Change setting of a port */
+static void SN_HGTPortSetting(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
 #define BUFSIZE (MAXTCSTRINGCAT + 1)
 	uint16_t Setting;
@@ -682,6 +682,22 @@ static void SN_HandleGTPortSetting(const uint8_t a_ID, const uint8_t** const a_P
 #undef BUFSIZE
 }
 
+/* SN_HGTUnPlugPort() -- Unplugs port from game */
+static void SN_HGTUnPlugPort(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
+{
+	/* If host exists, show message */
+	if (a_Host)
+		CONL_OutputUT(CT_NETWORK, DSTR_NET_PORTDISCONNECTED, "%s\n", "Client");
+	
+	/* Only if this port is valid, is it to be removed */
+	// Quite possible that we are the server and it was already removed!
+	if (!a_Port)
+		return;
+	
+	/* Remove it now */
+	SN_RemovePort(a_Port);
+}
+
 /* SN_HandleGT() -- Handles game command IDs */
 void SN_HandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 {
@@ -713,42 +729,47 @@ void SN_HandleGT(const uint8_t a_ID, const uint8_t** const a_PP)
 	{
 			// Player Joins Game
 		case DTCT_SNJOINPLAYER:
-			SN_HandleGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTJoinPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Disconnect reason
 		case DTCT_SNQUITREASON:
-			SN_HandleGTQuitMsg(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTQuitMsg(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Delete Host
 		case DTCT_SNCLEANUPHOST:
-			SN_HandleGTCleanupHost(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTCleanupHost(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Create Host
 		case DTCT_SNJOINHOST:
-			SN_HandleGTJoinHost(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTJoinHost(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Player leaves game
 		case DTCT_SNPARTPLAYER:
-			SN_HandleGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTPartPlayer(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Port is added to host
 		case DTCT_SNJOINPORT:
-			SN_HandleGTJoinPort(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTJoinPort(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Chat Fragment
 		case DTCT_SNCHATFRAG:
-			SN_HandleGTChatFrag(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTChatFrag(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Setting
 		case DTCT_SNPORTSETTING:
-			SN_HandleGTPortSetting(a_ID, a_PP, Host, Port, HID, ID, PID);
+			SN_HGTPortSetting(a_ID, a_PP, Host, Port, HID, ID, PID);
+			break;
+			
+			// Unplug Port
+		case DTCT_SNUNPLUGPORT:
+			SN_HGTUnPlugPort(a_ID, a_PP, Host, Port, HID, ID, PID);
 			break;
 			
 			// Unknown!?!

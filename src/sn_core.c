@@ -1253,13 +1253,11 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 {
 	SN_Host_t* Host;
 	int32_t i;
+	uint8_t* Wp;
 	
 	/* Check */
 	if (!a_Port)
 		return;
-	
-	/* Remove bot (if any) */
-	BOT_DestroyByPort(a_Port);
 	
 	/* Get host */
 	Host = a_Port->Host;
@@ -1267,7 +1265,28 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 	/* Remove from host list */
 	for (i = 0; i < Host->NumPorts; i++)
 		if (Host->Ports[i] == a_Port)
+		{
 			Host->Ports[i] = NULL;
+			break;
+		}
+	
+	// Port already removed (might be from a bot call)
+	if (i >= Host->NumPorts)
+		return;
+	
+	/* Before removing port, place in command to let others know */
+	// But only as the server
+	if (l_Server)
+		if (SN_ExtCmdInGlobal(DTCT_SNUNPLUGPORT, &Wp))
+		{
+			LittleWriteUInt32((uint32_t**)&Wp, a_Port->Host->ID);
+			LittleWriteUInt32((uint32_t**)&Wp, a_Port->ID);
+			WriteUInt8((uint8_t**)&Wp, 0);
+		}
+			
+	/* Remove bot (if any) */
+	// DBP is recursive on the server
+	BOT_DestroyByPort(a_Port);
 	
 	/* Remove references by screen and player */
 	// Player
@@ -1286,6 +1305,28 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 	
 	/* Free */
 	Z_Free(a_Port);
+}
+
+/* SN_UnplugPort() -- Unplugs port */
+void SN_UnplugPort(SN_Port_t* const a_Port)
+{
+	/* Check */
+	if (!a_Port)
+		return;
+	
+	/* If Server, just remove */
+	if (l_Server)
+	{
+		// If port is playing, kill player that is controlled by it
+		if (a_Port->Player)
+			SN_RemovePlayer(a_Port->Player - players);	
+		
+		SN_RemovePort(a_Port);
+	}
+	
+	/* Otherwise, tell server to remove */
+	else
+		SN_UnplugPortNet(a_Port);
 }
 
 /* SN_RequestPort() -- Requests port from server */

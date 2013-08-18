@@ -45,7 +45,7 @@
 ****************/
 
 /* MIPS_VMAddMap() -- Adds virtual memory mapping */
-bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint32_t a_Fake, const uint32_t a_Len)
+bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint_fast32_t a_Fake, const uint_fast32_t a_Len, const uint_fast32_t a_Flags)
 {
 	MIPS_Map_t* New;
 	
@@ -58,23 +58,69 @@ bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint32_t a
 	New = &a_VM->Maps[a_VM->NumMaps++];
 	
 	/* Place data here */
-	New->Len = a_Len;
-	New->VMOff = a_Fake;
+	// Align to 4 bytes
+	New->Len = a_Len & (~3);
+	New->VMOff = a_Fake & (~3);
 	New->RealMem = a_Real;
+	New->Flags = a_Flags;
 	
 	/* Success */
 	return true;
 }
 
-/* MIPS_VMRun() -- Runs virtual machine, for count opcodes */
-void MIPS_VMRun(MIPS_VM_t* const a_VM, const uint32_t a_Count)
+/* MIPS_VMGetAddr() -- Obtain memory address from VM location */
+static inline MIPS_Map_t* MIPS_VMGetAddr(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, uint32_t* const a_BaseOfp)
 {
-	uint32_t i;
+	register int_fast32_t i;
+	register uint_fast32_t BaseAddr;
+	
+	/* Look in memory maps */
+	for (i = 0; i < a_VM->NumMaps; i++)
+		if (a_Addr >= a_VM->Maps[i].VMOff)
+		{
+			BaseAddr = a_VM->Maps[i].VMOff - a_Addr;
+			
+			if (BaseAddr < a_VM->Maps[i].Len)
+			{
+				if (a_BaseOfp)
+					*a_BaseOfp = BaseAddr & (~3);
+				return &a_VM->Maps[i];
+			}
+		}
+	
+	/* Not found */
+	return NULL;
+}
+
+/* MIPS_VMRun() -- Runs virtual machine, for count opcodes */
+bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
+#if defined(_DEBUG)
+	, const bool_t a_PrintOp
+#endif
+	)
+{
+	register uint_fast32_t i;
+	uint32_t Op, BaseOff;
+	MIPS_Map_t* Map;
 	
 	/* Run count opcodes */
 	for (i = 0; i < a_Count; i++)
 	{
 		// Read memory at PC
+		if (!(Map = MIPS_VMGetAddr(a_VM, a_VM->CPU.pc, &BaseOff)))
+			Op = 0;	// just use NULL opcode
+		
+		// Obtain opcode
+		else
+		{
+			Op = ((uint32_t*)Map->RealMem)[BaseOff];
+#if defined(__REMOOD_BIG_ENDIAN)
+			Op = LittleSwapUInt32(op);
+#endif
+		}
 	}
+	
+	/* No Exceptions met */
+	return true;
 }
 

@@ -48,16 +48,6 @@
 #include "d_netcmd.h"
 #include "i_system.h"
 
-
-
-
-
-
-
-
-
-
-
 /****************
 *** CONSTANTS ***
 ****************/
@@ -605,6 +595,14 @@ void SN_RequestPortNet(const uint32_t a_ProcessID)
 	D_BSwcu64(l_BS, g_ProgramTic);
 	
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
+}
+
+/* SN_UnplugPortNet() -- Request that the server unplug this port */
+void SN_UnplugPortNet(SN_Port_t* const a_Port)
+{
+	/* Check */
+	if (!a_Port)
+		return;
 }
 
 /* SN_PortJoinGame() -- Request that port join the game */

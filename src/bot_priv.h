@@ -40,6 +40,7 @@
 
 #include "bot.h"
 #include "mips.h"
+#include "w_wad.h"
 
 /*****************
 *** STRUCTURES ***
@@ -56,6 +57,7 @@ typedef struct BOT_s
 	tic_t LastGameTryJoin;						// Time last tried to join game
 	
 	/* MIPS Stuff */
+	const WL_WADEntry_t* CodeEnt;				// Code Entry
 	void* CodeMap;								// Code mapping
 	uint32_t CodeLen;							// Length of binary code
 	MIPS_VM_t VM;								// MIPS VM

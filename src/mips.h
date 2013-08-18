@@ -119,6 +119,14 @@ typedef enum MIPS_Regs_e
 	MIPS_S8 = MIPS_FP,
 } MIPS_Regs_t;
 
+/* MIPS_MemFlag_t -- Flags for Memory */
+typedef enum MIPS_MemFlag_e
+{
+	MIPS_MFR = UINT16_C(0x0001),
+	MIPS_MFW = UINT16_C(0x0002),
+	MIPS_MFX = UINT16_C(0x0004),
+} MIPS_MemFlag_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -126,16 +134,17 @@ typedef enum MIPS_Regs_e
 /* MIPS_CPU_t -- MIPS CPU Status */
 typedef struct MIPS_CPU_s
 {
-	uint32_t Reg[32];							// MIPS Registers
-	uint32_t pc;								// PC register
+	uint_fast32_t Reg[32];							// MIPS Registers
+	uint_fast32_t pc;								// PC register
 } MIPS_CPU_t;
 
 /* MIPS_Map_t -- MIPS Memory Mapping */
 typedef struct MIPS_Map_s
 {
-	uint32_t Len;								// Length of mapping
-	uint32_t VMOff;								// VM Offset
-	void* RealMem;								// Real Memory
+	uint_fast32_t Len;								// Length of mapping
+	uint_fast32_t VMOff;							// VM Offset
+	void* RealMem;									// Real Memory
+	uint_fast32_t Flags;							// Flags
 } MIPS_Map_t;
 
 /* MIPS_VM_t -- MIPS Virtual Machine */
@@ -145,15 +154,25 @@ typedef struct MIPS_VM_s
 	
 	// Real buffer memory maps
 	MIPS_Map_t* Maps;							// Memory maps
-	int32_t NumMaps;							// Number of memory maps
+	int_fast32_t NumMaps;							// Number of memory maps
 } MIPS_VM_t;
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint32_t a_Fake, const uint32_t a_Len);
-void MIPS_VMRun(MIPS_VM_t* const a_VM, const uint32_t a_Count);
+bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint_fast32_t a_Fake, const uint_fast32_t a_Len, const uint_fast32_t a_Flags);
+bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
+#if defined(_DEBUG)
+	, const bool_t a_PrintOp
+#endif
+	);
+
+#if defined(_DEBUG)
+	#define MIPS_VMRun(v,c,d) MIPS_VMRunX(v,c,d)
+#else
+	#define MIPS_VMRun(v,c,d) MIPS_VMRunX(v,c)
+#endif
 
 /*****************************************************************************/
 

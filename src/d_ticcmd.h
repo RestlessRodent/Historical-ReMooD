@@ -173,6 +173,7 @@ enum
 	DTCT_SNJOINPORT,							// Port is joined
 	DTCT_SNCHATFRAG,							// Chat Fragment
 	DTCT_SNPORTSETTING,							// Setting of port
+	DTCT_SNUNPLUGPORT,							// Unplug port
 	
 	NUMDTCT
 };

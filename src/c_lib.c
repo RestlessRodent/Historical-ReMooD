@@ -389,13 +389,13 @@ uint32_t SwapUInt32(const uint32_t In)
 uint64_t SwapUInt64(const uint64_t In)
 {
 	return (((In >> 56)) |
-	        ((In >> 40) & __REMOOD_ULL_SUFFIX(0x000000000000FF00)) |
-	        ((In >> 24) & __REMOOD_ULL_SUFFIX(0x0000000000FF0000)) |
-	        ((In >> 8) & __REMOOD_ULL_SUFFIX(0x00000000FF000000)) |
-	        ((In << 8) & __REMOOD_ULL_SUFFIX(0x000000FF00000000)) |
-	        ((In << 24) & __REMOOD_ULL_SUFFIX(0x0000FF0000000000)) |
-			((In << 40) & __REMOOD_ULL_SUFFIX(0x00FF000000000000)) |
-			((In << 56) & __REMOOD_ULL_SUFFIX(0xFF00000000000000)));
+	        ((In >> 40) & UINT64_C(0x000000000000FF00)) |
+	        ((In >> 24) & UINT64_C(0x0000000000FF0000)) |
+	        ((In >> 8) & UINT64_C(0x00000000FF000000)) |
+	        ((In << 8) & UINT64_C(0x000000FF00000000)) |
+	        ((In << 24) & UINT64_C(0x0000FF0000000000)) |
+			((In << 40) & UINT64_C(0x00FF000000000000)) |
+			((In << 56) & UINT64_C(0xFF00000000000000)));
 }
 
 /* SwapInt16() -- Swap 16-bits */

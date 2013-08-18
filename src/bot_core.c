@@ -49,6 +49,7 @@
 
 static BOT_t** l_Bots;							// Local Bots
 static int32_t l_NumBots;						// Number of bots
+static bool_t l_BotDebug;						// Debugging
 
 /****************
 *** FUNCTIONS ***
@@ -76,6 +77,10 @@ void BOT_Init(void)
 {
 	/* Add console commands */
 	CONL_AddCommand("addbot", BOT_BotCommand);
+	
+	/* Debugging Bots? */
+	if (M_CheckParm("-devbot") || M_CheckParm("-botdev"))
+		l_BotDebug = true;
 }
 
 /* BOT_IndivTic() -- Ticker for individual bot */
@@ -129,7 +134,12 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 	}
 	
 	/* Run Virtual Machine */
-	MIPS_VMRun(&a_Bot->VM, 1000);
+	if (!MIPS_VMRun(&a_Bot->VM, 1000, l_BotDebug))
+	{
+		// Unrecovered exception, destroy
+		a_Bot->Statis = true;
+		SN_UnplugPort(a_Bot->Port);
+	}
 }
 
 /* BOT_Ticker() -- Bot ticker */
@@ -199,7 +209,10 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 			// Attempt locating the desired bot binary
 			if ((Ent = WL_FindEntry(NULL, 0, e)))
 				if ((Bot->CodeMap = WL_MapEntry(Ent)))
+				{
+					Bot->CodeEnt = Ent;
 					Bot->CodeLen = Ent->Size;
+				}
 		}
 	}
 	
@@ -209,7 +222,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	else
 	{
 		// Place binary code at start address
-		MIPS_VMAddMap(&Bot->VM, Bot->CodeMap, UINT32_C(0x8000), Bot->CodeLen);
+		MIPS_VMAddMap(&Bot->VM, Bot->CodeMap, UINT32_C(0x8000), Bot->CodeLen, MIPS_MFR | MIPS_MFX);
 		Bot->VM.CPU.pc = UINT32_C(0x8000);
 	}
 	
@@ -229,6 +242,34 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 		l_Bots[l_NumBots++] = Bot;
 	}
 #undef BUFSIZE
+}
+
+/* BOT_Destroy() -- Destroys bot */
+void BOT_Destroy(BOT_t* const a_Bot)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_Bot)
+		return;
+	
+	/* Unlink */
+	for (i = 0; i < l_NumBots; i++)
+		if (l_Bots[i] == a_Bot)
+		{
+			l_Bots[i] = NULL;
+			break;
+		}
+	
+	/* Disconnect from network game */
+	SN_UnplugPort(a_Bot->Port);
+	
+	/* Cleanup code resources */
+	if (a_Bot->CodeEnt)
+		WL_UnMapEntry(a_Bot->CodeEnt);
+	
+	/* Free resources */
+	Z_Free(a_Bot);
 }
 
 /* BOT_ByProcessID() -- Finds bot by process ID */
@@ -279,6 +320,9 @@ void BOT_DestroyByPort(SN_Port_t* const a_Port)
 	/* Check */
 	if (!(Bot = BOT_ByPort(a_Port)))
 		return;
+	
+	/* Destroy this bot */
+	BOT_Destroy(Bot);
 }
 
 /* BOT_LeaveStasis() -- Bot is ingame, so it becomes an active thinker */
