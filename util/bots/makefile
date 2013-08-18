@@ -85,11 +85,11 @@ endef
 $(foreach __in,${__BOT_BASE},$(eval $(call __rule,${__in})))
 
 %.o:			%.c start.o
-				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -o $@ $< start.o -Wl,--just-symbols=extern.sym -T linker.ld -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -G 1
+				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -o $@ $< start.o -Wl,--just-symbols=extern.sym -T linker.ld -g -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -G 1
 
 %.lmp:			%.o
 				${GCCDIR}/${GCCPREFIX}objcopy -O binary -j .text $< $@
-				${GCCDIR}/${GCCPREFIX}objdump -D -j .text $<
+				${GCCDIR}/${GCCPREFIX}objdump -S -D -j .text $<
 
 start.o:		start.s
 				${GCCDIR}/${GCCPREFIX}as -o $@ $< -EL -march=mips32

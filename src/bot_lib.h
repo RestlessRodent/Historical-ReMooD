@@ -318,6 +318,9 @@ typedef struct BL_TicCmd_s
 typedef struct BL_GameInfo_s
 {
 	tic_t GameTic;								// Current Gametic
+	uint32_t __REMOOD_RESERVED01;				// ????
+	uint32_t __REMOOD_RESERVED02;				// ????
+	uint32_t __REMOOD_RESERVED03;				// ????
 } BL_GameInfo_t;
 
 /**************

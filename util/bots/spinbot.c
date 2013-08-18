@@ -88,6 +88,10 @@ void main(void)
 			continue;
 		}
 		
+		// Clear use button
+		else
+			g_TicCmd.Buttons &= ~BLT_USE;
+		
 		// Always set to max momentum (so bot runs like crazy)
 		g_TicCmd.ForwardMove = MAXRUNSPEED;
 		g_TicCmd.SideMove = -MAXRUNSPEED;

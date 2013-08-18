@@ -275,11 +275,11 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 		// 33222222 22221111 111111
 		// 10987654 32109876 54321098 76543210
 		// ooooooss sssttttt dddddaaa aaffffff
-		a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);	// s
-		a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);	// t
-		a_Out[3] = (a_Op >> UINT32_C(11)) & UINT32_C(0x1F);	// d
-		a_Out[4] = (a_Op >> UINT32_C(6)) & UINT32_C(0x1F);	// a
-		a_Out[5] = (a_Op) & UINT32_C(0x3F);					// f
+		a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(31);	// s
+		a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(31);	// t
+		a_Out[3] = (a_Op >> UINT32_C(11)) & UINT32_C(31);	// d
+		a_Out[4] = (a_Op >> UINT32_C(6)) & UINT32_C(31);	// a
+		a_Out[5] = (a_Op) & UINT32_C(63);					// f
 		return;
 	}
 	
@@ -300,8 +300,8 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	// 33222222 22221111 111111
 	// 10987654 32109876 54321098 76543210
 	// ooooooss sssttttt iiiiiiii iiiiiiii
-	a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);		// s
-	a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);		// t
+	a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(31);		// s
+	a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(31);		// t
 	a_Out[3] = (a_Op) & UINT32_C(0xFFFF);					// i
 	
 	a_Out[4] = 0;
@@ -535,35 +535,35 @@ case 33:	PRINTOP(("lh $%u, %08x($%u)\n", A(2), A(3), A(1)));
 	ADVPC;
 	break;
 
-case 35:	PRINTOP(("lw $%u, %08x($%u)\n", A(2), A(3), A(1)));
+case 35:	PRINTOP(("lw $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 4);
 	AR(2) = BN.u32;
 	ADVPC;
 	break;
 
-case 36:	PRINTOP(("lbu $%u, %08x($%u)\n", A(2), A(3), A(1)));
+case 36:	PRINTOP(("lbu $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 1);
 	AR(2) = BN.u32;
 	ADVPC;
 	break;
 
-case 37:	PRINTOP(("lhu $%u, %08x($%u)\n", A(2), A(3), A(1)));
+case 37:	PRINTOP(("lhu $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + A(3), 2);
 	AR(2) = BN.u32;
 	ADVPC;
 	break;
 
-case 40:	PRINTOP(("sb $%u, %08x($%u)\n", A(2), A(3), A(1)));
+case 40:	PRINTOP(("sb $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	MIPS_WriteMem(a_VM, AR(1) + A(3), 1, AR(2));
 	ADVPC;
 	break;
 	
-case 41:	PRINTOP(("sh $%u, %08x($%u)\n", A(2), A(3), A(1)));
+case 41:	PRINTOP(("sh $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	MIPS_WriteMem(a_VM, AR(1) + A(3), 2, AR(2));
 	ADVPC;
 	break;
 	
-case 43:	PRINTOP(("sw $%u, %08x($%u)\n", A(2), A(3), A(1)));
+case 43:	PRINTOP(("sw $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	MIPS_WriteMem(a_VM, AR(1) + A(3), 4, AR(2));
 	ADVPC;
 	break;
