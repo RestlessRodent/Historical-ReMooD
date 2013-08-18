@@ -100,3 +100,30 @@ $(info All Targets:     ${__MASTER_TARGETS})
 $(info Alias Targets:   ${__MASTER_AUTOTARG})
 $(info Working Targets: ${__MASTER_OKTARGETS})
 
+#############
+### RULES ###
+#############
+
+define __rulebase
+
+# Base rule to compile target
+.PHONY: $1
+$1:						$1-build
+						@:
+
+.PHONY: $1-prep
+$1-prep:				_$1_prep
+						@:
+
+.PHONY: $1-build		$1-prep
+$1-build:				_$1_build
+						@:
+
+.PHONY: $1-archive		$1-build
+$1-archive:				_$1_archive
+						@:
+
+endef
+
+$(foreach __worktarget,${__MASTER_OKTARGETS},$(eval $(call __rulebase,${__worktarget})))
+

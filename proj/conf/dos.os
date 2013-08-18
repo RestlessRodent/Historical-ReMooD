@@ -114,3 +114,49 @@ ifeq (${__DOS_TRYDOSEMU},true)
     endif
 endif
 
+#####################
+### WRAPPED RULES ###
+#####################
+# The build system for DOS requires this, because it can either use a native
+# compiler or the compiler in DOSEMU/DOSBox.
+
+ifdef __DOS_USEDOSEMU
+	__DOS_USERULE := dosemu
+else
+	ifneq (,${__DOS_PATHOFNDJ})
+		__DOS_USERULE := native
+	endif
+endif 
+
+### NATIVE ###
+
+# Prepare Environment
+_dos_prep_dosemu:		
+						@:
+
+# Do build
+.PHONY: _dos_build_dosemu
+_dos_build_dosemu:		
+						echo "wtf ${__MASTER_ROOT}"
+						${__MASTER_PROJ}/conf/demub.sh "${__MASTER_DOSEMUPATH}" "${__MASTER_ROOT}"
+
+### DOSEMU ###
+
+#############
+### RULES ###
+#############
+
+### PREPARE BUILD ###
+.PHONY: _dos_prep
+_dos_prep:				_dos_prep_${__DOS_USERULE}
+						@:
+
+### PERFORM BUILD ###
+.PHONY: _dos_build
+_dos_build:				_dos_build_${__DOS_USERULE}
+						@:
+
+### ARCHIVE FILES ###
+_dos_archive:			
+						@:
+
