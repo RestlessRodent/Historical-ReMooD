@@ -210,7 +210,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	{
 		// Place binary code at start address
 		MIPS_VMAddMap(&Bot->VM, Bot->CodeMap, UINT32_C(0x8000), Bot->CodeLen);
-		BOT->VM.CPU.pc = UINT32_C(0x8000);
+		Bot->VM.CPU.pc = UINT32_C(0x8000);
 	}
 	
 	/* Link into list */
