@@ -134,8 +134,8 @@ typedef enum MIPS_MemFlag_e
 /* MIPS_CPU_t -- MIPS CPU Status */
 typedef struct MIPS_CPU_s
 {
-	uint_fast32_t Reg[32];							// MIPS Registers
-	uint_fast32_t pc;								// PC register
+	uint32_t r[32];								// MIPS Registers
+	uint32_t pc;								// PC register
 } MIPS_CPU_t;
 
 /* MIPS_Map_t -- MIPS Memory Mapping */

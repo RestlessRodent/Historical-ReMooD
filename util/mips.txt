@@ -1,0 +1,135 @@
+
+### STANDARD OPERATORS ###
+
+0:	arith
+1:	unk1
+2:	j	OPER label	pc += A[3] << 2
+3:	jal	OPER label	$31 = pc; pc += A[3] << 2
+4:	beq	OPER $A[1], $A[2], label	if ($A[1] == $A[2]) pc += A[3] << 2
+5:	bne	OPER $A[1], $A[2], label	if ($A[1] != $A[2]) pc += A[3] << 2
+6:	blez	OPER $A[1], label	if ($A[1] <= 0) pc += A[3] << 2
+7:	bgtz	OPER $A[1], label	if ($A[1] > 0) pc += A[3] << 2
+8:	addi	OPER $A[2], $A[1], A[3] 	$A[2] = $A[1] + SE(A[3])
+9:	addiu	OPER $A[2], $A[1], A[3] 	$A[2] = $A[1] + SE(A[3])
+10:	slti	OPER $A[2], $A[1], A[3] 	$A[2] = ($A[1] < SE(A[3]))
+11:	sltiu	OPER $A[2], $A[1], A[3] 	$A[2] = ($A[1] < SE(A[3]))
+12:	andi	OPER $A[2], $A[1], A[3] 	$A[2] = $A[1] & ZE(A[3])
+13:	ori	OPER $A[2], $A[1], A[3] 	$A[2] = $A[1] | ZE(A[3])
+14:	xori	OPER $A[2], $A[1], A[3] 	$A[3] = $A[1] ^ ZE(A[3])
+15:	unk15
+16:	unk16
+17:	unk17
+18:	unk18
+19:	unk19
+20:	unk20
+21:	unk21
+22:	unk22
+23:	unk23
+24:	llo	OPER $A[2], immed32	LH ($A[2]) = A[3]
+25:	lhi	OPER $A[2], immed32	HH ($A[2]) = A[3]
+26:	unk26
+27:	unk27
+28:	unk28
+29:	unk29
+30:	unk30
+31:	unk31
+32:	lb	OPER $A[2], A[3] ($A[1]) 	$A[2] = SE (MEM [$A[1] + A[3]]:1)
+33:	lh	OPER $A[2], A[3] ($A[1]) 	$A[2] = SE (MEM [$A[1] + A[3]]:2)
+34:	unk34
+35:	lw	OPER $A[2], A[3] ($A[1]) 	$A[2] = MEM [$A[1] + A[3]]:4
+36:	lbu	OPER $A[2], A[3] ($A[1]) 	$A[2] = ZE (MEM [$A[1] + A[3]]:1)
+37:	lhu	OPER $A[2], A[3] ($A[1]) 	$A[2] = ZE (MEM [$A[1] + A[3]]:2)
+38:	unk38
+39:	unk39
+40:	sb	OPER $A[2], A[3] ($A[1]) 	MEM [$A[1] + A[3]]:1 = LB ($A[2])
+41:	sh	OPER $A[2], A[3] ($A[1]) 	MEM [$A[1] + A[3]]:2 = LH ($A[2])
+42:	unk42
+43:	sw	OPER $A[2], A[3] ($A[1]) 	MEM [$A[1] + A[3]]:4 = $A[2]
+44:	unk44
+45:	unk45
+46:	unk46
+47:	unk47
+48:	unk48
+49:	unk49
+50:	unk50
+51:	unk51
+52:	unk52
+53:	unk53
+54:	unk54
+55:	unk55
+56:	unk56
+57:	unk57
+58:	unk58
+59:	unk59
+60:	unk60
+61:	unk61
+62:	unk62
+63:	unk63
+
+### ARITHMETIC OPERATORS ###
+
+0:	sll	LOPER $A[3], $A[2], A[4] 	$A[3] = $A[2] << A[4]
+1:	unk1
+2:	srl	LOPER $A[3], $A[2], A[4] 	$A[3] = $A[2] >>> A[4]
+3:	sra	LOPER $A[3], $A[2], A[4] 	$A[3] = $A[2] >> A[4]
+4:	sllv	LOPER $A[3], $A[2], $A[1] 	$A[3] = $A[2] << $A[1]
+5:	unk5
+6:	srlv	LOPER $A[3], $A[2], $A[1] 	$A[3] = $A[2] >>> $A[1]
+7:	srav	LOPER $A[3], $A[2], $A[1] 	$A[3] = $A[2] >> $A[1]
+8:	jr	LOPER $A[1] 	pc = $A[1]
+9:	jalr	LOPER $A[1] 	$31 = pc; pc = $A[1]
+10:	unk10
+11:	unk11
+12:	unk12
+13:	unk13
+14:	unk14
+15:	unk15
+16:	mfhi	LOPER $A[3] 	$A[3] = hi
+17:	mthi	LOPER $A[1] 	hi = $A[1]
+18:	mflo	LOPER $A[3] 	$A[3] = lo
+19:	mtlo	LOPER $A[1] 	lo = $A[1]
+20:	unk20
+21:	unk21
+22:	unk22
+23:	unk23
+24:	mult	LOPER $A[1], $A[2] 	hi:lo = $A[1] \* $A[2]
+25:	multu	LOPER $A[1], $A[2] 	hi:lo = $A[1] \* $A[2]
+26:	div	LOPER $A[1], $A[2] 	lo = $A[1] / $A[2]; hi = $A[1] % $A[2]
+27:	divu	LOPER $A[1], $A[2] 	lo = $A[1] / $A[2]; hi = $A[1] % $A[2]
+28:	unk28
+29:	unk29
+30:	unk30
+31:	unk31
+32:	add	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] + $A[2]
+33:	addu	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] + $A[2]
+34:	sub	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] - $A[2]
+35:	subu	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] - $A[2]
+36:	and	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] & $A[2]
+37:	or	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] | $A[2]
+38:	xor	LOPER $A[3], $A[1], $A[2]	$A[3] = $A[1] ^ $A[2]
+39:	nor	LOPER $A[3], $A[1], $A[2]	$A[3] = ~($A[1] | $A[2])
+40:	unk40
+41:	unk41
+42:	slt	LOPER $A[3], $A[1], $A[2]	$A[3] = ($A[1] < $A[2])
+43:	sltu	LOPER $A[3], $A[1], $A[2]	$A[3] = ($A[1] < $A[2])
+44:	unk44
+45:	unk45
+46:	unk46
+47:	unk47
+48:	unk48
+49:	unk49
+50:	unk50
+51:	unk51
+52:	unk52
+53:	unk53
+54:	unk54
+55:	unk55
+56:	unk56
+57:	unk57
+58:	unk58
+59:	unk59
+60:	unk60
+61:	unk61
+62:	unk62
+63:	unk63
+

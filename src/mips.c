@@ -115,11 +115,11 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 		// 33222222 22221111 111111
 		// 10987654 32109876 54321098 76543210
 		// ooooooss sssttttt dddddaaa aaffffff
-		a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);
-		a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);
-		a_Out[3] = (a_Op >> UINT32_C(11)) & UINT32_C(0x1F);
-		a_Out[4] = (a_Op >> UINT32_C(6)) & UINT32_C(0x1F);
-		a_Out[5] = (a_Op) & UINT32_C(0x3F);
+		a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);	// s
+		a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);	// t
+		a_Out[3] = (a_Op >> UINT32_C(11)) & UINT32_C(0x1F);	// d
+		a_Out[4] = (a_Op >> UINT32_C(6)) & UINT32_C(0x1F);	// a
+		a_Out[5] = (a_Op) & UINT32_C(0x3F);					// f
 		return;
 	}
 	
@@ -127,7 +127,7 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	if ((a_Out[0] & UINT32_C(0x2)) == UINT32_C(0x2) || a_Out[0] == UINT32_C(0x1A))
 	{
 		// 26 bits of absolute stuff
-		a_Out[1] = (a_Op) & UINT32_C(0x3FFFFFF);
+		a_Out[3] = (a_Op) & UINT32_C(0x3FFFFFF);			// i
 		return;
 	}
 	
@@ -135,9 +135,9 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	// 33222222 22221111 111111
 	// 10987654 32109876 54321098 76543210
 	// ooooooss sssttttt iiiiiiii iiiiiiii
-	a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);
-	a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);
-	a_Out[3] = (a_Op) & UINT32_C(0xFFFF);
+	a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);		// s
+	a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);		// t
+	a_Out[3] = (a_Op) & UINT32_C(0xFFFF);					// i
 }
 
 /* MIPS_VMRun() -- Runs virtual machine, for count opcodes */
@@ -149,15 +149,20 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 {
 	register uint_fast32_t i;
 	uint32_t Op, BaseOff;
-	uint32_t Dec[6];
+	uint32_t Am[6];
 	MIPS_Map_t* Map;
+
+#if defined(_DEBUG)
+	MIPS_CPU_t OldCPU;
+	uint32_t x;
+#endif
 	
 	/* Run count opcodes */
 	for (i = 0; i < a_Count; i++)
 	{
 		// Read memory at PC
 		if (!(Map = MIPS_VMGetAddr(a_VM, a_VM->CPU.pc & (~UINT32_C(3)), &BaseOff)))
-			Op = 0;	// just use NULL opcode
+			Op = UINT32_C(0xFFFFFFFF);
 		
 		// Obtain opcode
 		else
@@ -169,35 +174,104 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		}
 		
 		// Decode opcode
-		MIPS_DecodeOp(Op, Dec);
+		MIPS_DecodeOp(Op, Am);
+		
+		// Always reset register zero to zero
+		a_VM->CPU.r[0] = 0;
+		
+#if defined(_DEBUG)
+		OldCPU = a_VM->CPU;
+#endif
 		
 		// Which opcode?
-		switch (Dec[0])
+		switch (Am[0])
 		{
-			// Arithmetic
-			case 0:
-				switch (Dec[5])
-				{
-						// Unknown
-					default:
-						break;
-				}
-				break;
-			
-				// Illegals
-			case 1:
-				break;
-				
-				// Jump
-			case 2:
-				PRINTOP(("j %x\n", Dec[1]));
-				a_VM->CPU.pc += Dec[1] << UINT32_C(2);
-				break;
-			
-				// Unknown
-			default:
-				break;
+/*---------------------------------------------------------------------------*/
+// ENTERING UGLY ZONE, MACROS USED TO MAKE IT LOOK NICER
+#define A(n) Am[(n)]
+#define R(n) a_VM->CPU.r[(n)]
+#define AR(n) a_VM->CPU.r[Am[(n)]]
+#define PC a_VM->CPU.pc
+#define BEGINARITH case 0: switch (Am[5]) {
+#define ENDARITH } break;
+
+case 2:		PRINTOP(("j %08x\n", A(3)));
+	PC += A(3) << UINT32_C(2);
+	break;
+
+case 3:		PRINTOP(("jal %08x\n", A(3)));
+	R(31) = PC;
+	PC += A(3) << UINT32_C(2);
+	break;
+
+case 4:		PRINTOP(("beq $%u, $%u, %08x\n", A(1), A(2), A(3)));
+	if (AR(1) == AR(2))
+		PC += A(3) << UINT32_C(2);
+	break;
+
+case 5:		PRINTOP(("bne $%u, $%u, $08x\n", A(1), A(2), A(3)));
+	if (AR(1) != AR(2))
+		PC += A(3) << UINT32_C(2);
+	break;
+
+BEGINARITH
+
+case 0:		PRINTOP(("sll $%u, $%u, %u\n", A(3), A(2), A(4)));
+	AR(3) = AR(2) << A(4);
+	break;
+
+case 2:		PRINTOP(("srl $%u, $%u, %u\n", A(3), A(2), A(4)));
+	AR(3) = AR(2) >> A(4);
+	break;
+
+case 3:		PRINTOP(("sra $%u, $%u, %u\n", A(3), A(2), A(4)));
+	AR(3) = ((int32_t)AR(2)) >> ((int32_t)A(4));
+	break;
+
+case 4:		PRINTOP(("sllv $%u, $%u, $%u\n", A(3), A(2), A(1)));
+	AR(3) = AR(2) << AR(1);
+	break;
+
+case 6:		PRINTOP(("srlv $%u, $%u, $%u\n", A(3), A(2), A(1)));
+	AR(3) = AR(2) >> AR(1);
+	break;
+	
+case 7:		PRINTOP(("srav $%u, $%u, $%u\n", A(3), A(2), A(1)));
+	AR(3) = ((int32_t)AR(2)) >> ((int32_t)AR(1));
+	break;
+
+case 8:		PRINTOP(("jr $%u\n", A(1)));
+	PC = AR(1);
+	break;
+
+case 9:		PRINTOP(("jalr $%u\n", A(1)));
+	R(31) = PC;
+	PC = AR(1);
+
+default:
+	//CONL_PrintF("Unknown Arith %i (%08x)\n", Am[5], Op);
+	break;
+
+ENDARITH
+
+default:
+	//CONL_PrintF("Unknown opcode %i (%08x)\n", Am[0], Op);
+	break;
+
+#undef PC
+#undef R
+/*---------------------------------------------------------------------------*/
 		}
+		
+		// Always reset register zero to zero
+		a_VM->CPU.r[0] = 0;
+		
+		// Print changes in CPU registers
+#if defined(_DEBUG)
+		for (x = 0; x < 32; x++)
+			if (OldCPU.r[x] != a_VM->CPU.r[x])
+				CONL_PrintF("r%i = (%08x -> %08x)\n", x, OldCPU.r[x], a_VM->CPU.r[x]);
+#endif
 		
 		// Increase PC by 4
 		a_VM->CPU.pc += UINT32_C(4);
