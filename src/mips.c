@@ -91,7 +91,7 @@ static inline MIPS_Map_t* MIPS_VMGetAddr(MIPS_VM_t* const a_VM, const uint_fast3
 		{
 			BaseAddr = a_Addr - a_VM->Maps[i].VMOff;
 			
-			if (BaseAddr < a_VM->Maps[i].Len)
+			if (BaseAddr <= a_VM->Maps[i].Len)
 			{
 				if (a_BaseOfp)
 					*a_BaseOfp = BaseAddr & (~UINT32_C(3));
@@ -183,7 +183,7 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		// Obtain opcode
 		else
 		{
-			Op = ((uint32_t*)Map->RealMem)[BaseOff];
+			Op = ((uint32_t*)Map->RealMem)[BaseOff >> UINT32_C(2)];
 #if defined(__REMOOD_BIG_ENDIAN)
 			Op = LittleSwapUInt32(op);
 #endif
@@ -199,7 +199,7 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		OldCPU = a_VM->CPU;
 		
 		if (a_PrintOp)
-			CONL_PrintF("%08x: ", Op);
+			CONL_PrintF("%08x (@%08x): ", Op, a_VM->CPU.pc);
 #endif
 		
 		// Which opcode?
@@ -218,37 +218,37 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #define FOUR UINT32_C(4);
 #define ADVPC PC += FOUR
 
-case 2:		PRINTOP(("j 0x%08x\n", A(3)));
-	PC += A(3) << UINT32_C(2);
+case 2:		PRINTOP(("j 0x%08x\n", A(3) << UINT32_C(2)));
+	PC = A(3) << UINT32_C(2);
 	break;
 
-case 3:		PRINTOP(("jal 0x%08x\n", A(3)));
+case 3:		PRINTOP(("jal 0x%08x\n", A(3) << UINT32_C(2)));
 	R(31) = PC + UINT32_C(8);
-	PC += A(3) << UINT32_C(2);
+	PC = A(3) << UINT32_C(2);
 	break;
 
-case 4:		PRINTOP(("beq $%u, $%u, %u\n", A(1), A(2), A(3)));
+case 4:		PRINTOP(("beq $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
 	if (AR(1) == AR(2))
 		PC += A(3) << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
-case 5:		PRINTOP(("bne $%u, $%u, %u\n", A(1), A(2), A(3)));
+case 5:		PRINTOP(("bne $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
 	if (AR(1) != AR(2))
 		PC += A(3) << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
-case 6:		PRINTOP(("blez $%u, %i\n", A(1), A(3)));
+case 6:		PRINTOP(("blez $%u, %i\n", A(1), A(3) << UINT32_C(2)));
 	if (((int32_t)AR(1)) <= INT32_C(0))
 		PC += A(3) << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
-case 7:		PRINTOP(("bgtz $%u, %i\n", A(1), A(3)));
+case 7:		PRINTOP(("bgtz $%u, %i\n", A(1), A(3) << UINT32_C(2)));
 	if (((int32_t)AR(1)) > INT32_C(0))
 		PC += A(3) << UINT32_C(2);
 	else
@@ -356,11 +356,11 @@ case 7:		PRINTOP(("srav $%u, $%u, $%u\n", A(3), A(2), A(1)));
 	ADVPC;
 	break;
 
-case 8:		PRINTOP(("jr $%u\n", A(1)));
+case 8:		PRINTOP(("jr $%u\n", A(1) << UINT32_C(2)));
 	PC = AR(1);
 	break;
 
-case 9:		PRINTOP(("jalr $%u\n", A(1)));
+case 9:		PRINTOP(("jalr $%u\n", A(1) << UINT32_C(2)));
 	R(31) = PC + UINT32_C(8);
 	PC = AR(1) << UINT32_C(2);
 	break;
