@@ -44,6 +44,18 @@
 #include "w_wad.h"
 #include "m_argv.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+// Stack Bounds
+#define MINSTACKSIZE	4096
+#define DEFSTACKSIZE	16384
+#define MAXSTACKSIZE	65536
+
+// Stack Location
+#define DEFSTACKADDR	UINT32_C(0x70000000)
+
 /*************
 *** LOCALS ***
 *************/
@@ -86,7 +98,10 @@ void BOT_Init(void)
 		l_BotDebug = true;
 	
 	/* Initialize port information */
-	l_PortInfo
+	l_PortInfo.VendorID = LittleSwapUInt32(BLVC_REMOOD);
+	l_PortInfo.Version = LittleSwapUInt32(VERSION);
+	strncpy(l_PortInfo.Name, "ReMooD", MAXPORTINFOFIELDLEN);
+	strncpy(l_PortInfo.VerString, REMOOD_FULLVERSIONSTRING, MAXPORTINFOFIELDLEN);
 }
 
 /* BOT_IndivTic() -- Ticker for individual bot */
@@ -186,6 +201,8 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	
 	Bot->ProcessID = ID;
 	Bot->Stasis = true;
+	Bot->StackLen = DEFSTACKSIZE;
+	Bot->StackAddr = DEFSTACKADDR;
 	
 	/* Process arguments */
 	for (i = 0; i < a_ArgC; i++)
@@ -220,6 +237,20 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 					Bot->CodeLen = Ent->Size;
 				}
 		}
+			// Stack Size
+		else if (!strcasecmp("stacksize", Buf))
+		{
+			Bot->StackLen = C_strtou32(e, NULL, 0);
+			
+			if (Bot->StackLen < MINSTACKSIZE)
+				Bot->StackLen = MINSTACKSIZE;
+			else if (Bot->StackLen > MAXSTACKSIZE)
+				Bot->StackLen = MAXSTACKSIZE;
+		}
+			
+			// Stack Address
+		else if (!strcasecmp("stackaddr", Buf))
+			Bot->StackAddr = C_strtou32(e, NULL, 0);
 	}
 	
 	/* Initialize execution core */
@@ -233,6 +264,11 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Initialize communication layers with VM */
+	// Stack
+	Bot->Stack = Z_Malloc(Bot->StackLen, PU_STATIC, NULL);
+	MIPS_VMAddMap(&Bot->VM, Bot->Stack, Bot->StackAddr, Bot->StackLen, MIPS_MFR | MIPS_MFW | MIPS_MFX);
+	Bot->VM.CPU.r[29] = Bot->StackAddr + (Bot->StackLen - 4);
+	
 	// Port Info
 	MIPS_VMAddMap(&Bot->VM, &l_PortInfo, EXTADDRPORTINFO, sizeof(l_PortInfo), MIPS_MFR);
 	
@@ -282,6 +318,11 @@ void BOT_Destroy(BOT_t* const a_Bot)
 		WL_UnMapEntry(a_Bot->CodeEnt);
 	
 	/* Free resources */
+	// Stack
+	if (a_Bot->Stack)
+		Z_Free(a_Bot->Stack);
+	
+	// Actual bot
 	Z_Free(a_Bot);
 }
 

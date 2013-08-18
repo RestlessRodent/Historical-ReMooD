@@ -197,6 +197,9 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		
 #if defined(_DEBUG)
 		OldCPU = a_VM->CPU;
+		
+		if (a_PrintOp)
+			CONL_PrintF("%08x: ", Op);
 #endif
 		
 		// Which opcode?
@@ -262,7 +265,10 @@ case 8:		PRINTOP(("addi $%u, $%u, %i\n", A(2), A(1), A(3)));
 	break;
 
 case 9:		PRINTOP(("addiu $%u, $%u, %u\n", A(2), A(1), A(3)));
-
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
 	AR(2) = AR(1) + A(3);
 	ADVPC;
 	break;

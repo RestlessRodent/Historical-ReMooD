@@ -94,6 +94,9 @@
 		#define UINT32_C(x) __UINT32_C(x)
 		#define UINT64_C(x) __UINT64_C(x)
 	#endif
+	
+	// ReMooD uses 64-bit Tics
+	typedef uint64_t tic_t;
 #endif
 
 /****************
@@ -101,7 +104,8 @@
 ****************/
 
 #define MAXPORTINFOFIELDLEN		128
-#define MAXBLTCVENDORDATAS		128
+#define MAXBOTINFOFIELDLEN		128
+#define MAXBLVENDORDATAS		128
 #define MAXBLTCFIELDLENGTH		256
 
 /* BL_Button_t -- Buttons for the tic command structure */
@@ -151,13 +155,28 @@ typedef enum BL_VendorCode_e
 	BLVC_PRBOOM			= UINT32_C(0x7072B017),	// PrBoom
 	BLVC_PRBOOMPLUS		= UINT32_C(0x710B2707),	// PrBoom+
 	BLVC_SKULLTAG		= UINT32_C(0x6a554e6b),	// Skulltag
-	BLBC_STRAWBERRY		= UINT32_C(0xDEADF00D),	// Strawberru Doom
+	BLVC_STRAWBERRY		= UINT32_C(0xDEADF00D),	// Strawberru Doom
 	BLVC_VANILLA		= UINT32_C(0x1CEC4EA7),	// Vanilla Doom
 	BLVC_VAVOOM			= UINT32_C(0x5641766D),	// Vavoom
 	BLVC_ZANDRONUM		= UINT32_C(0x7A414E44),	// Zandronum
 	BLVC_ZDAEMON		= UINT32_C(0x4556494C),	// ZDaemon
 	BLVC_ZDOOM			= UINT32_C(0x7A646F6F),	// ZDoom
 } BL_VendorCode_t;
+
+/* BL_Time_t -- Time field */
+typedef enum BL_Time_e
+{
+	BLT_GAME,									// Gametic
+	BLT_PROGRAM,								// Program tic (localtic)
+	BLT_RESERVED01,								// ?????
+	BLT_RESERVED02,								// ?????
+	BLT_PORT01,									// Port Specific 1
+	BLT_PORT02,									// Port Specific 2
+	BLT_PORT03,									// Port Specific 3
+	BLT_PORT04,									// Port Specific 4
+	
+	MAXBLT
+} BL_Time_t;
 
 /*****************
 *** STRUCTURES ***
@@ -170,7 +189,39 @@ typedef struct BL_PortInfo_s
 	uint8_t Name[MAXPORTINFOFIELDLEN];			// Name of sourceport
 	uint32_t Version;							// Version of Port
 	uint8_t VerString[MAXPORTINFOFIELDLEN];		// Version as 
+	
+	uint32_t __REMOOD_RESERVEDPI01;				// ?????
+	uint32_t __REMOOD_RESERVEDPI02;				// ?????
+	uint32_t __REMOOD_RESERVEDPI03;				// ?????
+	uint32_t __REMOOD_RESERVEDPI04;				// ?????
+	uint32_t __REMOOD_RESERVEDPI05;				// ?????
+	uint32_t __REMOOD_RESERVEDPI06;				// ?????
+	uint32_t __REMOOD_RESERVEDPI07;				// ?????
+	uint32_t __REMOOD_RESERVEDPI08;				// ?????
+	
+	/* Port Specific Reserved Area */
+	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
 } BL_PortInfo_t;
+
+/* BL_BotInfo_t -- Bot Info */
+typedef struct BL_BotInfo_s
+{
+	uint32_t Commit;							// Commit structure data
+	uint8_t Name[MAXBOTINFOFIELDLEN];			// Name of Bot
+	uint8_t Skin[MAXBOTINFOFIELDLEN];			// Skin being worn
+	uint8_t HexenClass[MAXBOTINFOFIELDLEN];		// Current Hexen Class (ReMooD Namespace)
+	tic_t JoinTime[2];							// Gametic at join time
+	
+	/* Port Specific Reserved Area */
+	uint32_t PSVendorCode;						// Vendor code of reserved area
+												// The implementation of the VM
+												// in the source port shall not
+												// use vendor specific data
+												// unless the vendor code of
+												// the port matches the value
+												// in this field.
+	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
+} BL_BotInfo_t;
 
 /* BL_TicCmd_t -- Tic Command (controls bot) */
 // NOTE THAT ALL MEMBERS ARE TO BE 32-BIT ALIGNED!
@@ -223,7 +274,7 @@ typedef struct BL_TicCmd_s
 												// unless the vendor code of
 												// the port matches the value
 												// in this field.
-	uint32_t PSVendorData[MAXBLTCVENDORDATAS];	// Vendor specific
+	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
 } BL_TicCmd_t;
 
 /**************

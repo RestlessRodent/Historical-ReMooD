@@ -77,5 +77,7 @@
 /* _start() -- Start function */
 void _start(void)
 {
+	for (;;)
+		;
 }
 

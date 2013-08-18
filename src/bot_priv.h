@@ -66,6 +66,7 @@ typedef struct BOT_s
 	MIPS_VM_t VM;								// MIPS VM
 	void* Stack;								// Stack Data
 	uint32_t StackLen;							// Stack Length
+	uint32_t StackAddr;							// Stack Address
 	
 	/* VM Specials */
 	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command
