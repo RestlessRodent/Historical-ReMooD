@@ -52,6 +52,8 @@ static BOT_t** l_Bots;							// Local Bots
 static int32_t l_NumBots;						// Number of bots
 static bool_t l_BotDebug;						// Debugging
 
+static BL_PortInfo_t l_PortInfo;				// Port Info
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -82,6 +84,9 @@ void BOT_Init(void)
 	/* Debugging Bots? */
 	if (M_CheckParm("-devbot") || M_CheckParm("-botdev"))
 		l_BotDebug = true;
+	
+	/* Initialize port information */
+	l_PortInfo
 }
 
 /* BOT_IndivTic() -- Ticker for individual bot */
@@ -226,6 +231,13 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 		MIPS_VMAddMap(&Bot->VM, Bot->CodeMap, UINT32_C(0x8000), Bot->CodeLen, MIPS_MFR | MIPS_MFX);
 		Bot->VM.CPU.pc = UINT32_C(0x8000);
 	}
+	
+	/* Initialize communication layers with VM */
+	// Port Info
+	MIPS_VMAddMap(&Bot->VM, &l_PortInfo, EXTADDRPORTINFO, sizeof(l_PortInfo), MIPS_MFR);
+	
+	// Tic Command
+	MIPS_VMAddMap(&Bot->VM, &Bot->VMTicCmd, EXTADDRTICCMD, sizeof(Bot->VMTicCmd), MIPS_MFR | MIPS_MFW);
 	
 	/* Link into list */
 	for (i = 0; i < l_NumBots; i++)

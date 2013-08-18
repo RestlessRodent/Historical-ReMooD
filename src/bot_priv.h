@@ -42,6 +42,9 @@
 #include "mips.h"
 #include "w_wad.h"
 
+#define __REMOOD_INCLUDED
+#include "bot_lib.h"
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -61,6 +64,11 @@ typedef struct BOT_s
 	void* CodeMap;								// Code mapping
 	uint32_t CodeLen;							// Length of binary code
 	MIPS_VM_t VM;								// MIPS VM
+	void* Stack;								// Stack Data
+	uint32_t StackLen;							// Stack Length
+	
+	/* VM Specials */
+	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command
 } BOT_t;
 
 /****************

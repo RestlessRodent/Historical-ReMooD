@@ -124,10 +124,15 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	}
 	
 	/* Only 3 instructions use the jump format */
-	if ((a_Out[0] & UINT32_C(0x2)) == UINT32_C(0x2) || a_Out[0] == UINT32_C(0x1A))
+	if (a_Out[0] == UINT32_C(2) || a_Out[0] == UINT32_C(3) || a_Out[0] == UINT32_C(0x1A))
 	{
 		// 26 bits of absolute stuff
 		a_Out[3] = (a_Op) & UINT32_C(0x3FFFFFF);			// i
+		
+		a_Out[1] = 0;
+		a_Out[2] = 0;
+		a_Out[4] = 0;
+		a_Out[5] = 0;
 		return;
 	}
 	
@@ -138,6 +143,9 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	a_Out[1] = (a_Op >> UINT32_C(21)) & UINT32_C(0x1F);		// s
 	a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(0x1F);		// t
 	a_Out[3] = (a_Op) & UINT32_C(0xFFFF);					// i
+	
+	a_Out[4] = 0;
+	a_Out[5] = 0;
 }
 
 /* MIPS_VMRun() -- Runs virtual machine, for count opcodes */
@@ -207,11 +215,11 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #define FOUR UINT32_C(4);
 #define ADVPC PC += FOUR
 
-case 2:		PRINTOP(("j %08x\n", A(3)));
+case 2:		PRINTOP(("j 0x%08x\n", A(3)));
 	PC += A(3) << UINT32_C(2);
 	break;
 
-case 3:		PRINTOP(("jal %08x\n", A(3)));
+case 3:		PRINTOP(("jal 0x%08x\n", A(3)));
 	R(31) = PC + UINT32_C(8);
 	PC += A(3) << UINT32_C(2);
 	break;
@@ -459,14 +467,14 @@ case 43:	PRINTOP(("sltu $%u, $%u, $%u\n", A(3), A(1), A(2)));
 	ADVPC;
 	break;
 
-default:
-	//CONL_PrintF("Unknown Arith %i (%08x)\n", Am[5], Op);
+default:	PRINTOP(("unka%02x\n", Am[5]));
+	ADVPC;
 	break;
 
 ENDARITH
 
-default:
-	//CONL_PrintF("Unknown opcode %i (%08x)\n", Am[0], Op);
+default:	PRINTOP(("unk%02x\n", Am[0]));
+	ADVPC;
 	break;
 
 #undef PC
@@ -481,7 +489,7 @@ default:
 #if defined(_DEBUG)
 		for (x = 0; x < 32; x++)
 			if (OldCPU.r[x] != a_VM->CPU.r[x])
-				CONL_PrintF("r%i = (%08x -> %08x)\n", x, OldCPU.r[x], a_VM->CPU.r[x]);
+				CONL_PrintF("r%i = (0x%08x -> 0x%08x)\n", x, OldCPU.r[x], a_VM->CPU.r[x]);
 #endif
 	}
 	
