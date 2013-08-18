@@ -41,20 +41,7 @@
 #include "m_menu.h"
 #include "p_local.h"
 #include "sn.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#include "bot.h"
 
 //
 // NETWORKING
@@ -107,6 +94,11 @@ void D_RunSingleTic(void)
 	// Legacy Demo Stuff
 	if (demoplayback)
 		G_DemoPreGTicker();
+		
+	// Execute Bots
+		// This is so bots run every gametic
+		// And they do not over process themselves
+	BOT_Ticker();
 	
 	// Run game ticker and increment the gametic
 	G_Ticker();
@@ -123,15 +115,10 @@ void D_RunSingleTic(void)
 void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 {
 	static tic_t LastTic;
-	static int64_t LastMS;
-	int64_t ThisMS, DiffMS;
-	static bool_t ToggleUp;
-	tic_t LocalTic, TargetTic;
-	int STRuns;
-	static tic_t LastSpecTic, LastPT;
-	
-	tic_t XXLocalTic, XXSNAR;
-	static tic_t LastNCSNU = (tic_t)-1;
+	int64_t ThisMS;
+	tic_t LocalTic;
+	static tic_t LastPT;
+	tic_t XXSNAR;
 	
 	/* Basic loop stuff */
 	// Update time
@@ -274,9 +261,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			if (singletics)
 				break;
 		}
-		
-		// Set last MS time
-		LastMS = ThisMS;
 	}
 	
 	// Not behind so sleep

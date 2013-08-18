@@ -961,9 +961,6 @@ void SN_UpdateLocalPorts(void)
 			}
 		}
 	}
-	
-	/* Perform bot magic */
-	BOT_Ticker();
 }
 
 /* SN_CleanupHost() -- Cleans up host */

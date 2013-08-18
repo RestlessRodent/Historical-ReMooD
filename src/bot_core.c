@@ -118,7 +118,7 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 	}
 	
 	/* In statis */
-	if (a_Bot->Statis)
+	if (a_Bot->Stasis)
 	{
 		// Try joining the game
 		if (g_ProgramTic >= a_Bot->LastGameTryJoin)
@@ -134,10 +134,10 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 	}
 	
 	/* Run Virtual Machine */
-	if (!MIPS_VMRun(&a_Bot->VM, 1000, l_BotDebug))
+	if (!MIPS_VMRun(&a_Bot->VM, 1, l_BotDebug))
 	{
 		// Unrecovered exception, destroy
-		a_Bot->Statis = true;
+		a_Bot->Stasis = true;
 		SN_UnplugPort(a_Bot->Port);
 	}
 }
@@ -179,7 +179,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	Bot = Z_Malloc(sizeof(*Bot), PU_STATIC, NULL);
 	
 	Bot->ProcessID = ID;
-	Bot->Statis = true;
+	Bot->Stasis = true;
 	
 	/* Process arguments */
 	for (i = 0; i < a_ArgC; i++)
@@ -335,7 +335,7 @@ void BOT_LeaveStasis(SN_Port_t* const a_Port)
 		return;
 	
 	/* Change stasis mode */
-	Bot->Statis = false;
+	Bot->Stasis = false;
 }
 
 /* BOT_EnterStatis() -- Bot is spectating, do not cost any CPU time */
@@ -348,6 +348,6 @@ void BOT_EnterStatis(SN_Port_t* const a_Port)
 		return;
 	
 	/* Enter stasis mode */
-	Bot->Statis = true;
+	Bot->Stasis = true;
 }
 

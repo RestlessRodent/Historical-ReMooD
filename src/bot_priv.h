@@ -52,7 +52,7 @@ typedef struct BOT_s
 	SN_Port_t* Port;							// Port which bot controls
 	uint32_t ProcessID;							// Process ID of bot
 	tic_t LastXMit;								// Last port transmit
-	bool_t Statis;								// In statis mode
+	bool_t Stasis;								// In statis mode
 	bool_t BasicInit;							// Basic Initialization
 	tic_t LastGameTryJoin;						// Time last tried to join game
 	
