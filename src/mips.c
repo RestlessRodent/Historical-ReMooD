@@ -568,9 +568,10 @@ default:	PRINTOP(("unk%02x\n", Am[0]));
 		
 		// Print changes in CPU registers
 #if defined(_DEBUG)
-		for (x = 0; x < 32; x++)
-			if (OldCPU.r[x] != a_VM->CPU.r[x])
-				CONL_PrintF("r%i = (0x%08x -> 0x%08x)\n", x, OldCPU.r[x], a_VM->CPU.r[x]);
+		if (a_PrintOp)
+			for (x = 0; x < 32; x++)
+				if (OldCPU.r[x] != a_VM->CPU.r[x])
+					CONL_PrintF("r%i = (0x%08x -> 0x%08x)\n", x, OldCPU.r[x], a_VM->CPU.r[x]);
 #endif
 	}
 	

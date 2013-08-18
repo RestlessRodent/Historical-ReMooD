@@ -138,6 +138,9 @@
 #define MAXBLVENDORDATAS		128
 #define MAXBLTCFIELDLENGTH		256
 
+#define MAXWALKSPEED	25
+#define MAXRUNSPEED		50
+
 /* BL_Button_t -- Buttons for the tic command structure */
 // ** = VM shall clear these flags when they are acknowledged. If the flag is
 //      never cleared. Assume port did not yet ACK or does not know of it.

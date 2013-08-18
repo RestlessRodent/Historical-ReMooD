@@ -67,6 +67,7 @@ typedef struct BOT_s
 	void* Stack;								// Stack Data
 	uint32_t StackLen;							// Stack Length
 	uint32_t StackAddr;							// Stack Address
+	uint32_t Speed;								// Execution Speed of Bot
 	
 	/* VM Specials */
 	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command

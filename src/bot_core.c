@@ -64,7 +64,7 @@
 
 static BOT_t** l_Bots;							// Local Bots
 static int32_t l_NumBots;						// Number of bots
-static bool_t l_BotDebug;						// Debugging
+static bool_t l_BotDebug, l_CodeDebug;			// Debugging
 
 static BL_PortInfo_t l_PortInfo;				// Port Info
 
@@ -98,6 +98,8 @@ void BOT_Init(void)
 	/* Debugging Bots? */
 	if (M_CheckParm("-devbot") || M_CheckParm("-botdev"))
 		l_BotDebug = true;
+	if (M_CheckParm("-devbotcode") || M_CheckParm("-botcodedev"))
+		l_CodeDebug = true;
 	
 	/* Initialize port information */
 	l_PortInfo.VendorID = LittleSwapUInt32(BLVC_REMOOD);
@@ -160,7 +162,7 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 	}
 	
 	/* Run Virtual Machine */
-	if (!MIPS_VMRun(&a_Bot->VM, 1, l_BotDebug))
+	if (!MIPS_VMRun(&a_Bot->VM, a_Bot->Speed, l_CodeDebug))
 	{
 		// Unrecovered exception, destroy
 		a_Bot->Stasis = true;
@@ -175,9 +177,21 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 	// Clear old
 	memset(TicCmd, 0, sizeof(*TicCmd));
 	
-	// Most values are copied as is
+	// Prevent Bot from turboing
 	TicCmd->Std.forwardmove = BL->ForwardMove;
 	TicCmd->Std.sidemove = BL->SideMove;
+	
+	if (TicCmd->Std.forwardmove > MAXRUNSPEED)
+		TicCmd->Std.forwardmove = MAXRUNSPEED;
+	else if (TicCmd->Std.forwardmove < -MAXRUNSPEED)
+		TicCmd->Std.forwardmove = -MAXRUNSPEED;
+	
+	if (TicCmd->Std.sidemove > MAXRUNSPEED)
+		TicCmd->Std.sidemove = MAXRUNSPEED;
+	else if (TicCmd->Std.sidemove < -MAXRUNSPEED)
+		TicCmd->Std.sidemove = -MAXRUNSPEED;
+	
+	// Most values are copied as is
 	TicCmd->Std.angleturn = BL->LookAngle >> UINT32_C(16);
 	TicCmd->Std.aiming = BL->Aiming >> UINT32_C(16);
 	TicCmd->Std.StatFlags = BL->StatFlags;
@@ -253,6 +267,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	Bot->Stasis = true;
 	Bot->StackLen = DEFSTACKSIZE;
 	Bot->StackAddr = DEFSTACKADDR;
+	Bot->Speed = 500;
 	
 	/* Process arguments */
 	for (i = 0; i < a_ArgC; i++)
@@ -301,7 +316,15 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 			// Stack Address
 		else if (!strcasecmp("stackaddr", Buf))
 			Bot->StackAddr = C_strtou32(e, NULL, 0);
+		
+			// Speed
+		else if (!strcasecmp("speed", Buf))
+			Bot->Speed = C_strtou32(e, NULL, 0);
 	}
+	
+	/* Cap Speed */
+	if (Bot->Speed < 1)
+		Bot->Speed = 1;
 	
 	/* Initialize execution core */
 	if (!Bot->CodeMap)
@@ -320,14 +343,11 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	MIPS_VMAddMap(&Bot->VM, Bot->Stack, Bot->StackAddr, Bot->StackLen, MIPS_MFR | MIPS_MFW | MIPS_MFX);
 	Bot->VM.CPU.r[29] = Bot->StackAddr + (Bot->StackLen - 4);
 	
-	// Port Info
-	MIPS_VMAddMap(&Bot->VM, &l_PortInfo, EXTADDRPORTINFO, sizeof(l_PortInfo), MIPS_MFR);
+	// Tic Command
+	MIPS_VMAddMap(&Bot->VM, &Bot->VMTicCmd, EXTADDRTICCMD, sizeof(Bot->VMTicCmd), MIPS_MFR | MIPS_MFW);
 	
 	// Bot Info
 	MIPS_VMAddMap(&Bot->VM, &Bot->VMBotInfo, EXTADDRBOTINFO, sizeof(Bot->VMBotInfo), MIPS_MFR | MIPS_MFW);
-	
-	// Tic Command
-	MIPS_VMAddMap(&Bot->VM, &Bot->VMTicCmd, EXTADDRTICCMD, sizeof(Bot->VMTicCmd), MIPS_MFR | MIPS_MFW);
 	
 	// LOOKUP TABLES
 	MIPS_VMAddMap(&Bot->VM, finesine, EXTADDRFINESINE, sizeof(finesine), MIPS_MFR);
@@ -335,6 +355,9 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	MIPS_VMAddMap(&Bot->VM, finetangent, EXTADDRFINETANGENT, sizeof(finetangent), MIPS_MFR);
 	MIPS_VMAddMap(&Bot->VM, tantoangle, EXTADDRTANTOANGLE, sizeof(tantoangle), MIPS_MFR);
 	MIPS_VMAddMap(&Bot->VM, c_AngLUT, EXTADDRANGLUT, sizeof(c_AngLUT), MIPS_MFR);
+	
+	// Port Info
+	MIPS_VMAddMap(&Bot->VM, &l_PortInfo, EXTADDRPORTINFO, sizeof(l_PortInfo), MIPS_MFR);
 	
 	/* Link into list */
 	for (i = 0; i < l_NumBots; i++)

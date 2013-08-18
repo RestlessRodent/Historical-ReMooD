@@ -78,6 +78,11 @@
 void _start(void)
 {
 	for (;;)
+	{
+		g_TicCmd.ForwardMove = MAXRUNSPEED;
+		g_TicCmd.SideMove = -MAXRUNSPEED;
+		g_TicCmd.LookAngle += ANG1;
 		g_TicCmd.Buttons |= BLT_JUMP;
+	}
 }
 
