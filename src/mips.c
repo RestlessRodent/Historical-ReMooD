@@ -228,29 +228,49 @@ case 3:		PRINTOP(("jal 0x%08x\n", A(3) << UINT32_C(2)));
 	break;
 
 case 4:		PRINTOP(("beq $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
 	if (AR(1) == AR(2))
-		PC += A(3) << UINT32_C(2);
+		PC += BN.u32 << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
 case 5:		PRINTOP(("bne $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
 	if (AR(1) != AR(2))
-		PC += A(3) << UINT32_C(2);
+		PC += BN.u32 << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
 case 6:		PRINTOP(("blez $%u, %i\n", A(1), A(3) << UINT32_C(2)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
 	if (((int32_t)AR(1)) <= INT32_C(0))
-		PC += A(3) << UINT32_C(2);
+		PC += BN.u32 << UINT32_C(2);
 	else
 		ADVPC;
 	break;
 
 case 7:		PRINTOP(("bgtz $%u, %i\n", A(1), A(3) << UINT32_C(2)));
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
 	if (((int32_t)AR(1)) > INT32_C(0))
-		PC += A(3) << UINT32_C(2);
+		PC += BN.u32 << UINT32_C(2);
 	else
 		ADVPC;
 	break;

@@ -77,12 +77,24 @@
 /* _start() -- Start function */
 void _start(void)
 {
+	int JumpToggle = 0;			// Jumps too fast is like jump held down	
+	
 	for (;;)
 	{
 		g_TicCmd.ForwardMove = MAXRUNSPEED;
 		g_TicCmd.SideMove = -MAXRUNSPEED;
-		g_TicCmd.LookAngle += ANG1;
-		g_TicCmd.Buttons |= BLT_JUMP;
+		
+		if (!(g_TicCmd.Buttons & BLT_JUMP))
+		{
+			if (JumpToggle)
+				JumpToggle = 0;
+			else
+			{
+				g_TicCmd.LookAngle += ANGLEX(45);
+				g_TicCmd.Buttons |= BLT_JUMP;
+				JumpToggle = 1;
+			}
+		}
 	}
 }
 
