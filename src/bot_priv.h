@@ -70,6 +70,7 @@ typedef struct BOT_s
 	
 	/* VM Specials */
 	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command
+	BL_BotInfo_t VMBotInfo;						// Bot Information
 } BOT_t;
 
 /****************

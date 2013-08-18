@@ -78,6 +78,6 @@
 void _start(void)
 {
 	for (;;)
-		;
+		g_TicCmd.Buttons |= BLT_JUMP;
 }
 

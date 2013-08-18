@@ -141,6 +141,7 @@ struct SN_Port_s
 	int8_t Color;								// Player's Color
 	bool_t CounterOp;							// CounterOp Player
 	CL_View_t* View;							// Port's viewport
+	void* BotPtr;								// Bot Pointer (Speed)
 };
 
 /* SN_Host_t -- Host which controls a set of playing players */
@@ -290,6 +291,7 @@ void SN_DisconnectHost(SN_Host_t* const a_Host, const char* const a_Reason);
 void SN_RequestPortNet(const uint32_t a_ProcessID);
 void SN_UnplugPortNet(SN_Port_t* const a_Port);
 void SN_PortJoinGame(SN_Port_t* const a_Port);
+void SN_ReqSpectatePort(const uint32_t a_Player);
 bool_t SN_WaitingForSave(void);
 void SN_SendSyncCode(const tic_t a_GameTic, const uint32_t a_Code);
 void SN_SendChat(SN_Port_t* const a_Port, const bool_t a_Team, const char* const a_Text);

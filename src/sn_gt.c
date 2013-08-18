@@ -133,16 +133,23 @@ void SN_RemovePlayer(const int32_t a_PlayerID)
 	uint8_t* Wp;
 	
 	/* Check */
-	if (!SN_IsServer() || a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
+	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
 		return;
 	
-	/* Build packet */
-	if (SN_ExtCmdInGlobal(DTCT_SNPARTPLAYER, &Wp))
+	/* Encode directly on server */
+	if (SN_IsServer())
 	{
-		LittleWriteUInt32((uint32_t**)&Wp, 0);
-		LittleWriteUInt32((uint32_t**)&Wp, 0);
-		WriteUInt8((uint8_t**)&Wp, a_PlayerID);
+		if (SN_ExtCmdInGlobal(DTCT_SNPARTPLAYER, &Wp))
+		{
+			LittleWriteUInt32((uint32_t**)&Wp, 0);
+			LittleWriteUInt32((uint32_t**)&Wp, 0);
+			WriteUInt8((uint8_t**)&Wp, a_PlayerID);
+		}
 	}
+	
+	/* Otherwise, ask the server to quit */
+	else
+		SN_ReqSpectatePort(a_PlayerID);
 }
 
 /* SN_ChangeMap() -- Changes the map */

@@ -86,7 +86,7 @@ $(foreach __in,${__BOT_BASE},$(eval $(call __rule,${__in})))
 
 %.lmp:			%.o
 				${GCCDIR}/${GCCPREFIX}objcopy -O binary -j .text $^ $@
-				${GCCDIR}/${GCCPREFIX}objdump --show-raw-insn --prefix-addresses -EL -D -j .text $^
+				${GCCDIR}/${GCCPREFIX}objdump -D -j .text $^
 
 clean:			
 				rm -f ${__BOT_LMPS} ${__BOT_OBJS}

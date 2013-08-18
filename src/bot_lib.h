@@ -188,7 +188,7 @@ typedef struct BL_PortInfo_s
 	uint32_t VendorID;							// Vendor ID of source port
 	uint8_t Name[MAXPORTINFOFIELDLEN];			// Name of sourceport
 	uint32_t Version;							// Version of Port
-	uint8_t VerString[MAXPORTINFOFIELDLEN];		// Version as 
+	uint8_t VerString[MAXPORTINFOFIELDLEN];		// Version as string
 	
 	uint32_t __REMOOD_RESERVEDPI01;				// ?????
 	uint32_t __REMOOD_RESERVEDPI02;				// ?????
@@ -211,6 +211,8 @@ typedef struct BL_BotInfo_s
 	uint8_t Skin[MAXBOTINFOFIELDLEN];			// Skin being worn
 	uint8_t HexenClass[MAXBOTINFOFIELDLEN];		// Current Hexen Class (ReMooD Namespace)
 	tic_t JoinTime[2];							// Gametic at join time
+	uint32_t Color;								// ReMooD Skin Color (0-15)
+	uint32_t RGBColor;							// Color (R << 24, G << 16, B << 8)
 	
 	/* Port Specific Reserved Area */
 	uint32_t PSVendorCode;						// Vendor code of reserved area
@@ -281,14 +283,15 @@ typedef struct BL_TicCmd_s
 *** GLOBALS ***
 **************/
 
-#define EXTADDRPORTINFO			UINT32_C(0x00010000)
-#define EXTADDRTICCMD			UINT32_C(0x00018000)
+#define EXTADDRPORTINFO			UINT32_C(0x00050000)
+#define EXTADDRBOTINFO			UINT32_C(0x00058000)
+#define EXTADDRTICCMD			UINT32_C(0x00060000)
 
 /* Not Included: Globals */
 #if !defined(__REMOOD_INCLUDED)
-	extern const BL_PortInfo_t g_PortInfo;
-	extern const BL_BotInfo_t g_BotInfo;
-	extern BL_TicCmd_t g_TicCmd;
+	extern volatile const BL_PortInfo_t g_PortInfo;
+	extern volatile const BL_BotInfo_t g_BotInfo;
+	extern volatile BL_TicCmd_t g_TicCmd;
 #endif
 
 /****************

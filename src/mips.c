@@ -94,7 +94,7 @@ static inline MIPS_Map_t* MIPS_VMGetAddr(MIPS_VM_t* const a_VM, const uint_fast3
 			if (BaseAddr <= a_VM->Maps[i].Len)
 			{
 				if (a_BaseOfp)
-					*a_BaseOfp = BaseAddr & (~UINT32_C(3));
+					*a_BaseOfp = BaseAddr;
 				return &a_VM->Maps[i];
 			}
 		}
@@ -314,6 +314,11 @@ case 14:	PRINTOP(("xori $%u, $%u, %u\n", A(2), A(1), A(3)));
 	ADVPC;
 	break;
 
+case 15:	PRINTOP(("lui $%u, %u\n", A(2), A(3)));
+	AR(2) = A(3) << UINT32_C(16);
+	ADVPC;
+	break;
+
 case 24:	PRINTOP(("llo $%u, %u\n", A(2), A(3)));
 	AR(2) = (AR(2) & UINT32_C(0x0000FFFF)) | A(3);
 	ADVPC;
@@ -321,6 +326,76 @@ case 24:	PRINTOP(("llo $%u, %u\n", A(2), A(3)));
 
 case 25:	PRINTOP(("lhi $%u, %u\n", A(2), A(3)));
 	AR(2) = (AR(2) & UINT32_C(0xFFFF0000)) | (A(3) << UINT32_C(16));
+	ADVPC;
+	break;
+
+case 32:	PRINTOP(("lb $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		BN.u32 = 0;
+	else
+		BN.u32 = ((uint8_t*)Map->RealMem)[BaseOff];
+	if (BN.u32 & UINT32_C(0x80))
+		BN.u32 |= UINT32_C(0xFFFFFF00);
+	AR(2) = BN.u32;
+	ADVPC;
+	break;
+
+case 33:	PRINTOP(("lh $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		BN.u32 = 0;
+	else
+		BN.u32 = ((uint16_t*)Map->RealMem)[BaseOff >> 1];
+	if (BN.u32 & UINT32_C(0x8000))
+		BN.u32 |= UINT32_C(0xFFFF0000);
+	AR(2) = BN.u32;
+	ADVPC;
+	break;
+
+case 35:	PRINTOP(("lw $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		BN.u32 = 0;
+	else
+		BN.u32 = ((uint32_t*)Map->RealMem)[BaseOff >> 2];
+	AR(2) = BN.u32;
+	ADVPC;
+	break;
+
+case 36:	PRINTOP(("lbu $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		BN.u32 = 0;
+	else
+		BN.u32 = ((uint8_t*)Map->RealMem)[BaseOff];
+	AR(2) = BN.u32;
+	ADVPC;
+	break;
+
+case 37:	PRINTOP(("lhu $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if (!(Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		BN.u32 = 0;
+	else
+		BN.u32 = ((uint16_t*)Map->RealMem)[BaseOff >> 1];
+	AR(2) = BN.u32;
+	ADVPC;
+	break;
+
+case 40:	PRINTOP(("sb $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if ((Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		if (Map->Flags & MIPS_MFW)
+			((uint8_t*)Map->RealMem)[BaseOff] = AR(2) & UINT32_C(0xFF);
+	ADVPC;
+	break;
+	
+case 41:	PRINTOP(("sh $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if ((Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		if (Map->Flags & MIPS_MFW)
+			((uint16_t*)Map->RealMem)[BaseOff >> 1] = AR(2) & UINT32_C(0xFFFF);
+	ADVPC;
+	break;
+	
+case 43:	PRINTOP(("sw $%u, %08x($%u)\n", A(2), A(3), A(1)));
+	if ((Map = MIPS_VMGetAddr(a_VM, AR(1) + A(3), &BaseOff)))
+		if (Map->Flags & MIPS_MFW)
+			((uint32_t*)Map->RealMem)[BaseOff >> 2] = AR(2);
 	ADVPC;
 	break;
 

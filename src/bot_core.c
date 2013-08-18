@@ -43,6 +43,7 @@
 #include "z_zone.h"
 #include "w_wad.h"
 #include "m_argv.h"
+#include "d_player.h"
 
 /****************
 *** CONSTANTS ***
@@ -108,6 +109,8 @@ void BOT_Init(void)
 static inline void BOT_IndivTic(BOT_t* const a_Bot)
 {
 	bool_t Trans;
+	ticcmd_t* TicCmd;
+	BL_TicCmd_t* BL;
 	
 	/* If bot has no port, try to obtain one */
 	if (!a_Bot->Port)
@@ -133,6 +136,7 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 		a_Bot->Port->Bot = true;
 		a_Bot->Port->StatFlags |= DTCJF_ISBOT;	// for scoreboard
 		a_Bot->Port->Screen = -1;	// not on any screen
+		a_Bot->Port->BotPtr = a_Bot;
 		
 		// Change settings to that of a bot
 		SN_PortSetting(a_Bot->Port, DSNPS_NAME, 0, "Bot", 0);
@@ -160,6 +164,51 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 		// Unrecovered exception, destroy
 		a_Bot->Stasis = true;
 		SN_UnplugPort(a_Bot->Port);
+	}
+	
+	/* Handle Tic Commands */
+	TicCmd = &a_Bot->Port->LocalBuf[0];
+	a_Bot->Port->LocalAt = 1;
+	BL = &a_Bot->VMTicCmd;
+	
+	// Clear old
+	memset(TicCmd, 0, sizeof(*TicCmd));
+	
+	// Most values are copied as is
+	TicCmd->Std.forwardmove = BL->ForwardMove;
+	TicCmd->Std.sidemove = BL->SideMove;
+	TicCmd->Std.angleturn = BL->LookAngle >> UINT32_C(16);
+	TicCmd->Std.aiming = BL->Aiming >> UINT32_C(16);
+	TicCmd->Std.StatFlags = BL->StatFlags;
+	TicCmd->Std.FlySwim = BL->FlySwim;
+	
+	// Handle Buttons
+	if (BL->Buttons & BLT_ATTACK)
+		TicCmd->Std.buttons |= BT_ATTACK;
+	if (BL->Buttons & BLT_USE)
+		TicCmd->Std.buttons |= BT_USE;
+	if (BL->Buttons & BLT_JUMP)
+	{
+		TicCmd->Std.buttons |= BT_JUMP;
+		BL->Buttons &= ~BLT_JUMP;
+	}
+	if (BL->Buttons & BLT_SUICIDE)
+	{
+		TicCmd->Std.buttons |= BT_SUICIDE;
+		BL->Buttons &= ~BLT_SUICIDE;
+	}
+	if (BL->Buttons & BLT_CHANGE)
+	{
+		TicCmd->Std.buttons |= BT_CHANGE;
+		strncpy(TicCmd->Std.XSNewWeapon, BL->Weapon, MAXTCWEAPNAME);
+		TicCmd->Std.XSNewWeapon[MAXTCWEAPNAME - 1] = 0;
+		memset(BL->Weapon, 0, sizeof(BL->Weapon));
+		BL->Buttons &= ~BLT_CHANGE;
+	}
+	if (BL->Buttons & BLT_SPECTATE)
+	{
+		SN_RemovePlayer(a_Bot->Port->Player - players);
+		BL->Buttons &= ~BLT_SPECTATE;
 	}
 }
 
@@ -261,6 +310,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 		// Place binary code at start address
 		MIPS_VMAddMap(&Bot->VM, Bot->CodeMap, UINT32_C(0x8000), Bot->CodeLen, MIPS_MFR | MIPS_MFX);
 		Bot->VM.CPU.pc = UINT32_C(0x8000);
+		Bot->VM.CPU.r[31] = Bot->VM.CPU.pc;	// Return to start?
 	}
 	
 	/* Initialize communication layers with VM */
@@ -271,6 +321,9 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	
 	// Port Info
 	MIPS_VMAddMap(&Bot->VM, &l_PortInfo, EXTADDRPORTINFO, sizeof(l_PortInfo), MIPS_MFR);
+	
+	// Bot Info
+	MIPS_VMAddMap(&Bot->VM, &Bot->VMBotInfo, EXTADDRBOTINFO, sizeof(Bot->VMBotInfo), MIPS_MFR | MIPS_MFW);
 	
 	// Tic Command
 	MIPS_VMAddMap(&Bot->VM, &Bot->VMTicCmd, EXTADDRTICCMD, sizeof(Bot->VMTicCmd), MIPS_MFR | MIPS_MFW);

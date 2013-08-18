@@ -1,5 +1,5 @@
-g_PortInfo = 0x00010000;
-g_BotInfo = 0x00012000;
-g_TicCmd = 0x00018000;
+g_PortInfo = 0x00050000;
+g_BotInfo = 0x00058000;
+g_TicCmd = 0x00060000;
 
 

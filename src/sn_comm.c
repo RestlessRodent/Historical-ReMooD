@@ -620,6 +620,21 @@ void SN_PortJoinGame(SN_Port_t* const a_Port)
 	D_BSRecordNetBlock(l_BS, &l_HostAddr);
 }
 
+/* SN_ReqSpectatePort() -- Request port spectate */
+void SN_ReqSpectatePort(const uint32_t a_Player)
+{
+	/* Check */
+	if (!l_BS || !l_Sock || SN_IsServer() || a_Player < 0 || a_Player >= MAXPLAYERS)
+		return;
+	
+	/* Build packet */
+	D_BSBaseBlock(l_BS, "RSPP");
+	
+	D_BSwi32(l_BS, a_Player);
+	
+	D_BSRecordNetBlock(l_BS, &l_HostAddr);
+}
+
 /* SN_WaitingForSave() -- Waiting for save game */
 bool_t SN_WaitingForSave(void)
 {
@@ -2177,7 +2192,37 @@ void DT_SETT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const
 	/* Send to setting writer */
 	SN_PortSetting(Port, Setting, 0, Data, MAXTCSTRINGCAT);
 }
+
+/* DT_RSPP() -- Request Spectation of player */
+void DT_RSPP(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const a_Addr)
+{
+	int32_t PlayerID, i;
+	SN_Port_t* Port;
 	
+	/* Check */
+	if (!SN_IsServer() || !a_Host)
+		return;
+	
+	/* Read player ID */
+	PlayerID = D_BSri32(a_BS);
+	
+	// Check bounds
+	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
+		return;
+	
+	/* Already not playing? */
+	if (!playeringame[PlayerID])
+		return;
+	
+	/* Security check, be sure host OWNS this player */
+	for (i = 0; i < a_Host->NumPorts; i++)
+		if ((Port = a_Host->Ports[i]))
+			if (Port->Player && PlayerID == (Port->Player - players))
+			{
+				SN_RemovePlayer(PlayerID);
+				break;
+			}
+}	
 
 /* l_Packets -- Data packets */
 static const struct
@@ -2211,6 +2256,7 @@ static const struct
 	{{"PJGG"}, DT_PJGG, false},
 	{{"CHAT"}, DT_CHAT, false},
 	{{"SETT"}, DT_SETT, false},
+	{{"RSPP"}, DT_RSPP, false},
 	
 	{{"FPUT"}, SN_FileRecv, false},
 	{{"FOPN"}, SN_FileInit, false},
