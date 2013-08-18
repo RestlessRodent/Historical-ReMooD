@@ -161,6 +161,13 @@ static inline void BOT_IndivTic(BOT_t* const a_Bot)
 		return;
 	}
 	
+	/* Prepare some VM settings */
+	a_Bot->VMBotInfo.IsDead = 0;
+	
+	// Dead Bot?
+	if (a_Bot->Port && a_Bot->Port->Player && a_Bot->Port->Player->health <= 0)
+		a_Bot->VMBotInfo.IsDead = 1;
+	
 	/* Run Virtual Machine */
 	if (!MIPS_VMRun(&a_Bot->VM, a_Bot->Speed, l_CodeDebug))
 	{
@@ -237,6 +244,26 @@ void BOT_Ticker(void)
 	for (i = 0; i < l_NumBots; i++)
 		if ((Bot = l_Bots[i]))
 			BOT_IndivTic(Bot);
+}
+
+/* BOT_VMRead() -- Game Information Registers */
+uint32_t BOT_VMReadGI(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Map, const uint_fast32_t a_BaseAddr)
+{
+	/* Depends on base address */
+	switch (a_BaseAddr)
+	{
+			// gametic lo
+		case UINT32_C(0x00000000):
+			return gametic & UINT64_C(0x00000000FFFFFFFF);
+			
+			// gametic hi
+		case UINT32_C(0x00000004):
+			return (gametic >> UINT64_C(32)) & UINT64_C(0x00000000FFFFFFFF);
+			
+			// Unknown
+		default:
+			break;
+	}
 }
 
 /* BOT_Add() -- Adds bot via command line settings */
@@ -348,6 +375,9 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	
 	// Bot Info
 	MIPS_VMAddMap(&Bot->VM, &Bot->VMBotInfo, EXTADDRBOTINFO, sizeof(Bot->VMBotInfo), MIPS_MFR | MIPS_MFW);
+	
+	// Game Information
+	MIPS_VMAddMapFunc(&Bot->VM, BOT_VMReadGI, NULL, EXTADDRGAMEINFO, sizeof(BL_GameInfo_t), MIPS_MFR);
 	
 	// LOOKUP TABLES
 	MIPS_VMAddMap(&Bot->VM, finesine, EXTADDRFINESINE, sizeof(finesine), MIPS_MFR);

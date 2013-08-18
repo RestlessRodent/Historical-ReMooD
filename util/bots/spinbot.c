@@ -74,29 +74,36 @@
 *** FUNCTIONS ***
 ****************/
 
-/* _start() -- Start function */
-void _start(void)
+/* main() -- Main entry for bot */
+void main(void)
 {
-	int JumpToggle = 0;			// Jumps too fast is like jump held down	
+	tic_t NowTic, LastTic;		// Timing
 	
-	for (;;)
+	for (NowTic = LastTic = 0;; Sleep())
 	{
+		// If bot is dead, respawn
+		if (g_BotInfo.IsDead)
+		{
+			g_TicCmd.Buttons = BLT_USE;
+			continue;
+		}
+		
+		// Always set to max momentum (so bot runs like crazy)
 		g_TicCmd.ForwardMove = MAXRUNSPEED;
 		g_TicCmd.SideMove = -MAXRUNSPEED;
 		
-		if (!(g_TicCmd.Buttons & BLT_JUMP))
+		// Obtain current time
+		NowTic = g_GameInfo.GameTic;
+		
+		// A new tic was entered
+		if (NowTic >= LastTic)
 		{
-			if (JumpToggle > 0)
-				JumpToggle--;
-			else
-			{
-				g_TicCmd.LookAngle += ANGLEX(45);
-				g_TicCmd.Buttons |= BLT_JUMP;
-				JumpToggle = 28;
-			}
+			g_TicCmd.LookAngle += ANGLEX(45);
+			g_TicCmd.Buttons |= BLT_JUMP;
+			
+			// Last last time to now (for the next second)
+			LastTic = NowTic + TICRATE;
 		}
-		else
-			JumpToggle++;
 	}
 }
 

@@ -317,7 +317,7 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 {
 	register uint_fast32_t i;
 	uint32_t Op, BaseOff;
-	uint32_t Am[6];
+	uint32_t Am[6], NopCount;
 	MIPS_Map_t* Map;
 	union
 	{
@@ -334,7 +334,7 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #endif
 	
 	/* Run count opcodes */
-	for (i = 0; i < a_Count; i++)
+	for (NopCount = i = 0; i < a_Count; i++)
 	{
 		// Read memory at PC
 		Op = MIPS_ReadMem(a_VM, a_VM->CPU.pc, 4);
@@ -343,6 +343,21 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #if defined(__REMOOD_BIG_ENDIAN)
 		Op = LittleSwapUInt32(op);
 #endif
+		
+		// No operation? Do not bother entering switch loop
+		if (!Op)
+		{
+			// Increase nop count
+			NopCount++;
+			
+			// Increase PC
+			a_VM->CPU.pc += UINT32_C(4);
+			
+			// 3 Nops trigger sleep, otherwise reloop
+			if (NopCount == 3)
+				break;
+			continue;
+		}
 		
 		// Decode opcode
 		MIPS_DecodeOp(Op, Am);
@@ -585,11 +600,11 @@ case 7:		PRINTOP(("srav $%u, $%u, $%u\n", A(3), A(2), A(1)));
 	ADVPC;
 	break;
 
-case 8:		PRINTOP(("jr $%u\n", A(1) << UINT32_C(2)));
+case 8:		PRINTOP(("jr $%u\n", A(1)));
 	PC = AR(1);
 	break;
 
-case 9:		PRINTOP(("jalr $%u\n", A(1) << UINT32_C(2)));
+case 9:		PRINTOP(("jalr $%u\n", A(1)));
 	R(31) = PC + UINT32_C(8);
 	PC = AR(1) << UINT32_C(2);
 	break;

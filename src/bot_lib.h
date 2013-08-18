@@ -97,6 +97,7 @@
 	
 	// ReMooD uses 64-bit Tics
 	typedef uint64_t tic_t;
+	#define TICRATE UINT64_C(35)
 	
 	// Doom Angles
 	typedef uint32_t angle_t;
@@ -246,6 +247,7 @@ typedef struct BL_BotInfo_s
 	tic_t JoinTime[2];							// Gametic at join time
 	uint32_t Color;								// ReMooD Skin Color (0-15)
 	uint32_t RGBColor;							// Color (R << 24, G << 16, B << 8)
+	uint32_t IsDead;							// Bot is dead?
 	
 	/* Port Specific Reserved Area */
 	uint32_t PSVendorCode;						// Vendor code of reserved area
@@ -315,6 +317,7 @@ typedef struct BL_TicCmd_s
 /* BL_GameInfo_t -- Game Information */
 typedef struct BL_GameInfo_s
 {
+	tic_t GameTic;								// Current Gametic
 } BL_GameInfo_t;
 
 /**************
@@ -389,6 +392,14 @@ typedef struct BL_GameInfo_s
 	static inline fixed_t TBL_BAMToDeg(const angle_t a_Angle)
 	{
 		return ((int64_t)a_Angle << ((int64_t)(FRACBITS + FRACBITS))) / (UINT64_C(0xB60B60) << ((int64_t)FRACBITS));
+	}
+	
+	static inline void Sleep(void)
+	{
+		// 3 nops in a row trigger VM sleep
+		__asm__ volatile ("nop");
+		__asm__ volatile ("nop");
+		__asm__ volatile ("nop");
 	}
 #endif
 

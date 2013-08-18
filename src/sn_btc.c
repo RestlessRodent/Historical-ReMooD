@@ -51,17 +51,6 @@
 #include "p_mobj.h"
 #include "st_stuff.h"
 
-
-
-
-
-
-
-
-
-
-
-
 /****************
 *** CONSTANTS ***
 ****************/

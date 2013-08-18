@@ -62,6 +62,9 @@
 #  * official policies, either expressed or implied, of the ReMooD Project.
 # ----------------------------------------------------------------------------
 # Makefile for bots
+#
+# Note that -G 1 is needed for GCC, because it will try to place unresolved
+# external globals of really small size in the static area (ouch)
 
 GCCDIR			?= ../usr/bin
 GCCPREFIX		?= mips-elf-
@@ -81,13 +84,16 @@ endef
 
 $(foreach __in,${__BOT_BASE},$(eval $(call __rule,${__in})))
 
-%.o:			%.c
-				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -o $@ $^ -Wl,--just-symbols=extern.sym -Wl,--entry=_start -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32
+%.o:			%.c start.o
+				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -o $@ $< start.o -Wl,--just-symbols=extern.sym -T linker.ld -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -G 1
 
 %.lmp:			%.o
-				${GCCDIR}/${GCCPREFIX}objcopy -O binary -j .text $^ $@
-				${GCCDIR}/${GCCPREFIX}objdump -D -j .text $^
+				${GCCDIR}/${GCCPREFIX}objcopy -O binary -j .text $< $@
+				${GCCDIR}/${GCCPREFIX}objdump -D -j .text $<
+
+start.o:		start.s
+				${GCCDIR}/${GCCPREFIX}as -o $@ $< -EL -march=mips32
 
 clean:			
-				rm -f ${__BOT_LMPS} ${__BOT_OBJS}
+				rm -f ${__BOT_LMPS} ${__BOT_OBJS} start.o
 
