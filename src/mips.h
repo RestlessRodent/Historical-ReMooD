@@ -136,6 +136,8 @@ typedef struct MIPS_CPU_s
 {
 	uint32_t r[32];								// MIPS Registers
 	uint32_t pc;								// PC register
+	uint32_t hi;								// HI register
+	uint32_t lo;								// LO register
 } MIPS_CPU_t;
 
 /* MIPS_Map_t -- MIPS Memory Mapping */

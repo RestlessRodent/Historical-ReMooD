@@ -151,6 +151,11 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 	uint32_t Op, BaseOff;
 	uint32_t Am[6];
 	MIPS_Map_t* Map;
+	union
+	{
+		int64_t i;
+		uint64_t u;
+	} BigNum;
 
 #if defined(_DEBUG)
 	MIPS_CPU_t OldCPU;
@@ -192,52 +197,66 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #define R(n) a_VM->CPU.r[(n)]
 #define AR(n) a_VM->CPU.r[Am[(n)]]
 #define PC a_VM->CPU.pc
+#define HI a_VM->CPU.hi
+#define LO a_VM->CPU.lo
 #define BEGINARITH case 0: switch (Am[5]) {
 #define ENDARITH } break;
+#define FOUR UINT32_C(4);
+#define ADVPC PC += FOUR
 
 case 2:		PRINTOP(("j %08x\n", A(3)));
 	PC += A(3) << UINT32_C(2);
 	break;
 
 case 3:		PRINTOP(("jal %08x\n", A(3)));
-	R(31) = PC;
+	R(31) = PC + UINT32_C(8);
 	PC += A(3) << UINT32_C(2);
 	break;
 
 case 4:		PRINTOP(("beq $%u, $%u, %08x\n", A(1), A(2), A(3)));
 	if (AR(1) == AR(2))
 		PC += A(3) << UINT32_C(2);
+	else
+		ADVPC;
 	break;
 
 case 5:		PRINTOP(("bne $%u, $%u, $08x\n", A(1), A(2), A(3)));
 	if (AR(1) != AR(2))
 		PC += A(3) << UINT32_C(2);
+	else
+		ADVPC;
 	break;
 
 BEGINARITH
 
 case 0:		PRINTOP(("sll $%u, $%u, %u\n", A(3), A(2), A(4)));
 	AR(3) = AR(2) << A(4);
+	ADVPC;
 	break;
 
 case 2:		PRINTOP(("srl $%u, $%u, %u\n", A(3), A(2), A(4)));
 	AR(3) = AR(2) >> A(4);
+	ADVPC;
 	break;
 
 case 3:		PRINTOP(("sra $%u, $%u, %u\n", A(3), A(2), A(4)));
 	AR(3) = ((int32_t)AR(2)) >> ((int32_t)A(4));
+	ADVPC;
 	break;
 
 case 4:		PRINTOP(("sllv $%u, $%u, $%u\n", A(3), A(2), A(1)));
 	AR(3) = AR(2) << AR(1);
+	ADVPC;
 	break;
 
 case 6:		PRINTOP(("srlv $%u, $%u, $%u\n", A(3), A(2), A(1)));
 	AR(3) = AR(2) >> AR(1);
+	ADVPC;
 	break;
 	
 case 7:		PRINTOP(("srav $%u, $%u, $%u\n", A(3), A(2), A(1)));
 	AR(3) = ((int32_t)AR(2)) >> ((int32_t)AR(1));
+	ADVPC;
 	break;
 
 case 8:		PRINTOP(("jr $%u\n", A(1)));
@@ -245,8 +264,117 @@ case 8:		PRINTOP(("jr $%u\n", A(1)));
 	break;
 
 case 9:		PRINTOP(("jalr $%u\n", A(1)));
-	R(31) = PC;
-	PC = AR(1);
+	R(31) = PC + UINT32_C(8);
+	PC = AR(1) << UINT32_C(2);
+	break;
+
+case 16:	PRINTOP(("mfhi $%u\n", A(3)));
+	AR(3) = HI;
+	ADVPC;
+	break;
+
+case 17:	PRINTOP(("mthi $%u\n", A(1)));
+	HI = AR(1);
+	ADVPC;
+	break;
+
+case 18:	PRINTOP(("mflo $%u\n", A(3)));
+	AR(3) = LO;
+	ADVPC;
+	break;
+
+case 19:	PRINTOP(("mtlo $%u\n", A(1)));
+	LO = AR(1);
+	ADVPC;
+	break;
+	
+case 24:	PRINTOP(("mult $%u, $%u\n", A(1), A(2)));
+	BigNum.i = ((int64_t)AR(1)) * ((int64_t)AR(2));
+	HI = (BigNum.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
+	LO = BigNum.u & UINT64_C(0xFFFFFFFF);
+	ADVPC;
+	break;
+	
+case 25:	PRINTOP(("multu $%u, $%u\n", A(1), A(2)));
+	BigNum.u = ((uint64_t)AR(1)) * ((uint64_t)AR(2));
+	HI = (BigNum.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
+	LO = BigNum.u & UINT64_C(0xFFFFFFFF);
+	ADVPC;
+	break;
+
+case 26:	PRINTOP(("div $%u, $%u\n", A(1), A(2)));
+	if (AR(2) != UINT32_C(0))
+	{
+		LO = ((int32_t)AR(1)) / ((int32_t)AR(2));
+		HI = ((int32_t)AR(1)) % ((int32_t)AR(2));
+	}
+	ADVPC;
+	break;
+
+case 27:	PRINTOP(("divu $%u, $%u\n", A(1), A(2)));
+	if (AR(2) != UINT32_C(0))
+	{
+		LO = AR(1) / AR(2);
+		HI = AR(1) % AR(2);
+	}
+	ADVPC;
+	break;
+
+case 32:	PRINTOP(("add $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = ((int32_t)AR(1)) + ((int32_t)AR(2));
+	ADVPC;
+	break;
+
+case 33:	PRINTOP(("addu $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = AR(1) + AR(2);
+	ADVPC;
+	break;
+
+case 34:	PRINTOP(("sub $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = ((int32_t)AR(1)) - ((int32_t)AR(2));
+	ADVPC;
+	break;
+
+case 35:	PRINTOP(("subu $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = AR(1) - AR(2);
+	ADVPC;
+	break;
+
+case 36:	PRINTOP(("and $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = AR(1) & AR(2);
+	ADVPC;
+	break;
+
+case 37:	PRINTOP(("or $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = AR(1) | AR(2);
+	ADVPC;
+	break;
+
+case 38:	PRINTOP(("xor $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = AR(1) ^ AR(2);
+	ADVPC;
+	break;
+
+case 39:	PRINTOP(("nor $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	AR(3) = ~(AR(1) | AR(2));
+	ADVPC;
+	break;
+
+case 42:	PRINTOP(("slt $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	if (((int32_t)AR(1)) < ((int32_t)AR(2)))
+		AR(3) = UINT32_C(1);
+	else
+		AR(3) = UINT32_C(0);
+	ADVPC;
+	break;
+
+case 43:	PRINTOP(("sltu $%u, $%u, $%u\n", A(3), A(1), A(2)));
+	if (AR(1) < AR(2))
+		AR(3) = UINT32_C(1);
+	else
+		AR(3) = UINT32_C(0);
+	ADVPC;
+	break;
 
 default:
 	//CONL_PrintF("Unknown Arith %i (%08x)\n", Am[5], Op);
@@ -272,10 +400,6 @@ default:
 			if (OldCPU.r[x] != a_VM->CPU.r[x])
 				CONL_PrintF("r%i = (%08x -> %08x)\n", x, OldCPU.r[x], a_VM->CPU.r[x]);
 #endif
-		
-		// Increase PC by 4
-		a_VM->CPU.pc += UINT32_C(4);
-		a_VM->CPU.pc &= ~UINT32_C(3);
 	}
 	
 	/* No Exceptions met */
