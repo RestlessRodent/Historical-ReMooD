@@ -206,8 +206,6 @@ typedef enum BL_Time_e
 	BLT_RESERVED02,								// ?????
 	BLT_PORT01,									// Port Specific 1
 	BLT_PORT02,									// Port Specific 2
-	BLT_PORT03,									// Port Specific 3
-	BLT_PORT04,									// Port Specific 4
 	
 	MAXBLT
 } BL_Time_t;
@@ -244,7 +242,7 @@ typedef struct BL_BotInfo_s
 	uint8_t Name[MAXBOTINFOFIELDLEN];			// Name of Bot
 	uint8_t Skin[MAXBOTINFOFIELDLEN];			// Skin being worn
 	uint8_t HexenClass[MAXBOTINFOFIELDLEN];		// Current Hexen Class (ReMooD Namespace)
-	tic_t JoinTime[2];							// Gametic at join time
+	tic_t JoinTime;								// Gametic at join time
 	uint32_t Color;								// ReMooD Skin Color (0-15)
 	uint32_t RGBColor;							// Color (R << 24, G << 16, B << 8)
 	uint32_t IsDead;							// Bot is dead?
