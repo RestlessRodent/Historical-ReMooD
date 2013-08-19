@@ -49,7 +49,6 @@
 #include "console.h"
 #include "p_demcmp.h"
 #include "m_menu.h"
-#include "b_bot.h"
 #include "sn.h"
 #include "d_netcmd.h"
 #include "r_main.h"

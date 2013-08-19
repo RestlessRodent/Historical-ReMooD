@@ -46,7 +46,6 @@
 #include "tables.h"
 #include "s_sound.h"
 #include "wi_stuff.h"
-#include "b_bot.h"
 #include "console.h"
 #include "m_argv.h"
 #include "m_random.h"
