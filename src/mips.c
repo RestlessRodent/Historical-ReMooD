@@ -267,7 +267,7 @@ static inline void MIPS_WriteMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Ad
 static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 {
 	/* Decode function */
-	a_Out[0] = (a_Op >> UINT32_C(26)) & UINT32_C(0x3F);
+	a_Out[0] = (a_Op >> UINT32_C(26)) & UINT32_C(63);
 	
 	/* If function is zero, always arithmetic */
 	if (!a_Out[0])
@@ -286,13 +286,18 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	/* Only 3 instructions use the jump format */
 	if (a_Out[0] == UINT32_C(2) || a_Out[0] == UINT32_C(3) || a_Out[0] == UINT32_C(0x1A))
 	{
+#if defined(_DEBUG)
+		a_Out[1] = UINT32_C(0xDEADBEEF);
+		a_Out[2] = UINT32_C(0xCAFEBABE);
+#endif
+		
 		// 26 bits of absolute stuff
 		a_Out[3] = (a_Op) & UINT32_C(0x3FFFFFF);			// i
 		
-		a_Out[1] = 0;
-		a_Out[2] = 0;
-		a_Out[4] = 0;
-		a_Out[5] = 0;
+#if defined(_DEBUG)
+		a_Out[4] = UINT32_C(0xFEEDF00D);
+		a_Out[5] = UINT32_C(0x1337DEAD);
+#endif
 		return;
 	}
 	
@@ -304,8 +309,10 @@ static inline void MIPS_DecodeOp(const uint32_t a_Op, uint32_t* const a_Out)
 	a_Out[2] = (a_Op >> UINT32_C(16)) & UINT32_C(31);		// t
 	a_Out[3] = (a_Op) & UINT32_C(0xFFFF);					// i
 	
-	a_Out[4] = 0;
-	a_Out[5] = 0;
+#if defined(_DEBUG)
+	a_Out[4] = UINT32_C(0xF00D1337);
+	a_Out[5] = UINT32_C(0x12345678);
+#endif
 }
 
 /* MIPS_VMRun() -- Runs virtual machine, for count opcodes */
@@ -341,12 +348,17 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		
 		// Swap operator on big endian
 #if defined(__REMOOD_BIG_ENDIAN)
-		Op = LittleSwapUInt32(op);
+		Op = LittleSwapUInt32(Op);
 #endif
 		
 		// No operation? Do not bother entering switch loop
 		if (!Op)
 		{
+#if defined(_DEBUG)
+			if (a_PrintOp)
+				CONL_PrintF("nop\n");
+#endif
+			
 			// Increase nop count
 			NopCount++;
 			
@@ -359,6 +371,10 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 			continue;
 		}
 		
+		// Clear nop count (to prevent premature sleep)
+		else
+			NopCount = 0;
+		
 		// Decode opcode
 		MIPS_DecodeOp(Op, Am);
 		
@@ -369,7 +385,15 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		OldCPU = a_VM->CPU;
 		
 		if (a_PrintOp)
+		{
+#if 0
+			for (x = 0; x < 6; x++)
+				CONL_PrintF("[%i]=%u (%x) ", x, Am[x], Am[x]);
+			CONL_PrintF("\n");
+#endif
+			
 			CONL_PrintF("%08x (@%08x): ", Op, a_VM->CPU.pc);
+		}
 #endif
 		
 		// Which opcode?
@@ -459,7 +483,7 @@ case 9:		PRINTOP(("addiu $%u, $%u, %u\n", A(2), A(1), A(3)));
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
 		BN.u32 = A(3);
-	AR(2) = AR(1) + A(3);
+	AR(2) = AR(1) + BN.u32;
 	ADVPC;
 	break;
 
