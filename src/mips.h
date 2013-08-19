@@ -138,6 +138,9 @@ typedef struct MIPS_CPU_s
 	uint32_t pc;								// PC register
 	uint32_t hi;								// HI register
 	uint32_t lo;								// LO register
+	
+	uint32_t ds;								// Delay Slot
+	uint32_t dsactive;							// Delay Slot Active
 } MIPS_CPU_t;
 
 typedef struct MIPS_VM_s MIPS_VM_t;

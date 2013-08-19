@@ -58,6 +58,7 @@ typedef struct BOT_s
 	bool_t Stasis;								// In statis mode
 	bool_t BasicInit;							// Basic Initialization
 	tic_t LastGameTryJoin;						// Time last tried to join game
+	int8_t Screen;								// Screen bot is on
 	
 	/* MIPS Stuff */
 	const WL_WADEntry_t* CodeEnt;				// Code Entry

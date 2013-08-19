@@ -77,7 +77,7 @@
 /* main() -- Main entry for bot */
 void main(void)
 {
-	tic_t NowTic, LastTic;		// Timing
+	volatile tic_t NowTic, LastTic;		// Timing
 	
 	for (NowTic = LastTic = 0;; Sleep())
 	{

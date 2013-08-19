@@ -209,7 +209,7 @@ static inline void MIPS_WriteMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Ad
 		if (a_Width == 4)
 			((uint32_t*)Map->RealMem)[BaseOff >> 2] = LittleSwapUInt32(a_Val);
 		else if (a_Width == 2)
-			((uint16_t*)Map->RealMem)[BaseOff >> 1] = LittleSwapUInt16(a_Val);
+			((uint16_t*)Map->RealMem)[BaseOff >> 1] = LittleSwapUInt16(((uint16_t)a_Val));
 		else
 			((uint8_t*)Map->RealMem)[BaseOff] = a_Val;
 	}
@@ -343,6 +343,25 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 	/* Run count opcodes */
 	for (NopCount = i = 0; i < a_Count; i++)
 	{
+		// Handle Delay Slot
+		if (a_VM->CPU.dsactive >= 1)
+		{
+			// 1 = It was just set
+			if (a_VM->CPU.dsactive == 1)
+				a_VM->CPU.dsactive = 2;
+			
+			// 2 = It has been set
+			else
+			{
+				// PC is now at ds
+				a_VM->CPU.pc = a_VM->CPU.ds;
+				
+				// Reset to zero
+				a_VM->CPU.ds = 0;
+				a_VM->CPU.dsactive = 0;
+			}
+		}
+		
 		// Read memory at PC
 		Op = MIPS_ReadMem(a_VM, a_VM->CPU.pc, 4);
 		
@@ -409,16 +428,22 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #define LO a_VM->CPU.lo
 #define BEGINARITH case 0: switch (Am[5]) {
 #define ENDARITH } break;
-#define FOUR UINT32_C(4);
+#define FOUR UINT32_C(4)
 #define ADVPC PC += FOUR
+#define DS a_VM->CPU.ds
+#define DSA a_VM->CPU.dsactive
 
 case 2:		PRINTOP(("j 0x%08x\n", A(3) << UINT32_C(2)));
-	PC = A(3) << UINT32_C(2);
+	DS = (PC & UINT32_C(0xF0000000)) | (A(3) << UINT32_C(2));
+	DSA = 1;
+	ADVPC;
 	break;
 
 case 3:		PRINTOP(("jal 0x%08x\n", A(3) << UINT32_C(2)));
 	R(31) = PC + UINT32_C(8);
-	PC = A(3) << UINT32_C(2);
+	DS = (PC & UINT32_C(0xF0000000)) | (A(3) << UINT32_C(2));
+	DSA = 1;
+	ADVPC;
 	break;
 
 case 4:		PRINTOP(("beq $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
@@ -428,9 +453,12 @@ case 4:		PRINTOP(("beq $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
 		BN.u32 = A(3);
 	
 	if (AR(1) == AR(2))
-		PC += BN.u32 << UINT32_C(2);
-	else
-		ADVPC;
+	{
+		DS = PC + (BN.u32 << UINT32_C(2));
+		DSA = 1;
+	}
+	
+	ADVPC;
 	break;
 
 case 5:		PRINTOP(("bne $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
@@ -440,9 +468,12 @@ case 5:		PRINTOP(("bne $%u, $%u, %u\n", A(1), A(2), A(3) << UINT32_C(2)));
 		BN.u32 = A(3);
 	
 	if (AR(1) != AR(2))
-		PC += BN.u32 << UINT32_C(2);
-	else
-		ADVPC;
+	{
+		DS = PC + (BN.u32 << UINT32_C(2));
+		DSA = 1;
+	}
+	
+	ADVPC;
 	break;
 
 case 6:		PRINTOP(("blez $%u, %i\n", A(1), A(3) << UINT32_C(2)));
@@ -452,9 +483,12 @@ case 6:		PRINTOP(("blez $%u, %i\n", A(1), A(3) << UINT32_C(2)));
 		BN.u32 = A(3);
 	
 	if (((int32_t)AR(1)) <= INT32_C(0))
-		PC += BN.u32 << UINT32_C(2);
-	else
-		ADVPC;
+	{
+		DS = PC + (BN.u32 << UINT32_C(2));
+		DSA = 1;
+	}
+	
+	ADVPC;
 	break;
 
 case 7:		PRINTOP(("bgtz $%u, %i\n", A(1), A(3) << UINT32_C(2)));
@@ -464,17 +498,21 @@ case 7:		PRINTOP(("bgtz $%u, %i\n", A(1), A(3) << UINT32_C(2)));
 		BN.u32 = A(3);
 	
 	if (((int32_t)AR(1)) > INT32_C(0))
-		PC += BN.u32 << UINT32_C(2);
-	else
-		ADVPC;
+	{
+		DS = PC + (BN.u32 << UINT32_C(2));
+		DSA = 1;
+	}
+	
+	ADVPC;
 	break;
 
+	// addi == addiu, since there are no exceptions
 case 8:		PRINTOP(("addi $%u, $%u, %i\n", A(2), A(1), A(3)));
 	if (A(3) & UINT32_C(0x8000))
-		BN.i32 = UINT32_C(0xFFFF0000) | A(3);
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
-		BN.i32 = A(3);
-	AR(2) = ((int32_t)AR(1)) + BN.i32;
+		BN.u32 = A(3);
+	AR(2) = AR(1) + BN.u32;
 	ADVPC;
 	break;
 
@@ -578,12 +616,12 @@ case 37:	PRINTOP(("lhu $%u, %4x($%u)\n", A(2), A(3), A(1)));
 	break;
 
 case 40:	PRINTOP(("sb $%u, %4x($%u)\n", A(2), A(3), A(1)));
-	MIPS_WriteMem(a_VM, AR(1) + A(3), 1, AR(2));
+	MIPS_WriteMem(a_VM, AR(1) + A(3), 1, (AR(2) & UINT32_C(0xFF)));
 	ADVPC;
 	break;
 	
 case 41:	PRINTOP(("sh $%u, %4x($%u)\n", A(2), A(3), A(1)));
-	MIPS_WriteMem(a_VM, AR(1) + A(3), 2, AR(2));
+	MIPS_WriteMem(a_VM, AR(1) + A(3), 2, (AR(2) & UINT32_C(0xFFFF)));
 	ADVPC;
 	break;
 	
@@ -625,12 +663,16 @@ case 7:		PRINTOP(("srav $%u, $%u, $%u\n", A(3), A(2), A(1)));
 	break;
 
 case 8:		PRINTOP(("jr $%u\n", A(1)));
-	PC = AR(1);
+	DS = AR(1);
+	DSA = 1;
+	ADVPC;
 	break;
 
-case 9:		PRINTOP(("jalr $%u\n", A(1)));
-	R(31) = PC + UINT32_C(8);
-	PC = AR(1) << UINT32_C(2);
+case 9:		PRINTOP(("jalr $%u, $%u\n", A(3), A(1)));
+	AR(3) = PC + UINT32_C(8);
+	DS = AR(1);
+	DSA = 1;
+	ADVPC;
 	break;
 
 case 16:	PRINTOP(("mfhi $%u\n", A(3)));
@@ -685,8 +727,9 @@ case 27:	PRINTOP(("divu $%u, $%u\n", A(1), A(2)));
 	ADVPC;
 	break;
 
+	// add == addu, Since I do not support exceptions
 case 32:	PRINTOP(("add $%u, $%u, $%u\n", A(3), A(1), A(2)));
-	AR(3) = ((int32_t)AR(1)) + ((int32_t)AR(2));
+	AR(3) = AR(1) + AR(2);
 	ADVPC;
 	break;
 
@@ -695,13 +738,16 @@ case 33:	PRINTOP(("addu $%u, $%u, $%u\n", A(3), A(1), A(2)));
 	ADVPC;
 	break;
 
+	// sub == subu, Since I do not support exceptions
 case 34:	PRINTOP(("sub $%u, $%u, $%u\n", A(3), A(1), A(2)));
-	AR(3) = ((int32_t)AR(1)) - ((int32_t)AR(2));
+	BN.u32 = ((~AR(2)) + UINT32_C(1));
+	AR(3) = AR(1) + BN.u32;
 	ADVPC;
 	break;
 
 case 35:	PRINTOP(("subu $%u, $%u, $%u\n", A(3), A(1), A(2)));
-	AR(3) = AR(1) - AR(2);
+	BN.u32 = ((~AR(2)) + UINT32_C(1));
+	AR(3) = AR(1) + BN.u32;
 	ADVPC;
 	break;
 

@@ -294,7 +294,8 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	Bot->Stasis = true;
 	Bot->StackLen = DEFSTACKSIZE;
 	Bot->StackAddr = DEFSTACKADDR;
-	Bot->Speed = 500;
+	Bot->Speed = 100;
+	Bot->Screen = -1;
 	
 	/* Process arguments */
 	for (i = 0; i < a_ArgC; i++)
@@ -347,6 +348,15 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 			// Speed
 		else if (!strcasecmp("speed", Buf))
 			Bot->Speed = C_strtou32(e, NULL, 0);
+			
+			// Add bot to splitscreen
+		else if (!strcasecmp("split", Buf))
+		{
+			Bot->Screen = C_strtoi32(e, NULL, 0);
+			
+			if (Bot->Screen < -1 || Bot->Screen >= MAXSPLITSCREEN)
+				Bot->Screen = -1;
+		}
 	}
 	
 	/* Cap Speed */
