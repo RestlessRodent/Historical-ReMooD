@@ -2652,13 +2652,13 @@ void D_DoomMain(void)
 	// Initialize server
 	SN_ServerInit();
 	
-	// Process all + parms
-		// Commands like other things
-	M_PushSpecialParameters();
-	
 	// Warp to map and reset new vars
 	if (NG_IsAutoStart())
 		NG_ResetVars();
+		
+	// Process all + parms
+		// Commands like other things
+	M_PushSpecialParameters();
 
 	// ++ args are done at the first gametic	
 	
