@@ -216,19 +216,6 @@ typedef enum
 	FLOOR_ICE,
 } floortype_t;
 
-// ----- for special tricks with HW renderer -----
-
-//
-// For creating a chain with the lines around a sector
-//
-typedef struct linechain_s
-{
-	struct line_s* line;
-	struct linechain_s* next;
-} linechain_t;
-
-// ----- end special tricks -----
-
 //
 // The SECTORS record, at runtime.
 // Stores things/mobjs.

@@ -427,6 +427,96 @@ typedef struct BL_GameInfo_s
 	}
 #endif
 
+/******************************************************************************
+******************************* EVEN BETTER API *******************************
+******************************************************************************/
+
+/**************************
+*** MAP DATA STRUCTURES ***
+**************************/
+
+// Base address for data structures, everything after this point is some kind
+// of data structure. Least important ones have a lower address, while more
+// important ones have a higher address.
+#define MDSBASEADDR UINT32_C(0x80000000)
+
+// Current Mapping of Structures...
+
+// What?			SizeOf	StartAddr	EndAddr		Total
+// ----------------	-------	----------	----------	----------
+// Vertexes			8		0x80000000	0x8007FFFF	65535
+// Fake Floors		20		0x00080000	0x800809FF	127
+// Sector Nodes		??		0x00080A00
+
+/*** PREDEFINE ***/
+
+typedef struct MVertex_s MVertex_t;
+typedef struct MFakeFloor_s MFakeFloor_t;
+typedef struct MSecNode_s MSecNode_t;
+typedef struct MLine_s MLine_t;
+typedef struct MSector_s MSector_t;
+
+/*** VERTEX ***/
+
+#define MVERTEXBASEADDR (MDSBASEADDR)
+
+/* MVertex_t -- Vertex in map */
+struct MVertex_s
+{
+	fixed_t x;									// X Position of vertex
+	fixed_t y;									// Y Position of vertex
+};
+
+/*** FAKE FLOORS (A.K.A. 3D FLOORS) ***/
+
+#define MFFBASEADDR (MDSBASEADDR + UINT32_C(0x80000))
+
+typedef enum MFakeFloorFlag_e
+{
+	MFFF_EXISTS			= UINT32_C(0x00000001),	//MAKE SURE IT'S VALID
+	MFFF_SOLID			= UINT32_C(0x00000002),	//Does it clip things?
+	MFFF_RENDERSIDES	= UINT32_C(0x00000004),	//Render the sides?
+	MFFF_RENDERPLANES	= UINT32_C(0x00000008),	//Render the floor/ceiling?
+	MFFF_RENDERALL		= UINT32_C(0x0000000C),	//Render everything?
+	MFFF_SWIMMABLE		= UINT32_C(0x00000010),	//Can we swim?
+	MFFF_NOSHADE		= UINT32_C(0x00000020),	//Does it mess with the lighting?
+	MFFF_CUTSOLIDS		= UINT32_C(0x00000040),	//Does it cut out hidden solid pixles?
+	MFFF_CUTEXTRA		= UINT32_C(0x00000080),	//Does it cut out hidden translucent pixles?
+	MFFF_CUTLEVEL		= UINT32_C(0x000000C0),	//Does it cut out all hidden pixles?
+	MFFF_CUTSPRITES		= UINT32_C(0x00000100),	//Final Step in 3D water
+	MFFF_BOTHPLANES		= UINT32_C(0x00000200),	//Render both planes all the time?
+	MFFF_EXTRA			= UINT32_C(0x00000400),	//Does it get cut by FF_CUTEXTRAS?
+	MFFF_TRANSLUCENT	= UINT32_C(0x00000800),	//See through!
+	MFFF_FOG			= UINT32_C(0x00001000),	//Fog "brush"?
+	MFFF_INVERTPLANES	= UINT32_C(0x00002000),	//Reverse the plane visibility rules?
+	MFFF_ALLSIDES		= UINT32_C(0x00004000),	//Render inside and outside sides?
+	MFFF_INVERTSIDES	= UINT32_C(0x00008000),	//Only render inside sides?
+	MFFF_DOUBLESHADOW	= UINT32_C(0x00010000),	//Make two lightlist entries to reset light?
+} MFakeFloorFlag_t;
+
+/* MFakeFloor_t -- Fake Floor */
+struct MFakeFloor_s
+{
+	MSector_t* Target;							// Target Sector
+	MSector_t* Ref;								// Reference Sector
+	uint32_t Flags;								// Flags of floor (as above)
+	MFakeFloor_t* Prev;							// Previous floor
+	MFakeFloor_t* Next;							// Next floor
+};
+
+/*** SECTOR NODES ***/
+
+#define MSECNODEBASEADDR (MDSBASEADDR + UINT32_C(0x80A00))
+
+/* MSecNode_t -- Sector Node */
+struct MSecNode_s
+{
+};
+
+/******************************************************************************
+*******************************************************************************
+******************************************************************************/
+
 /*****************************************************************************/
 
 #endif /* __BOT_LIB_H__ */

@@ -86,9 +86,14 @@ extern bool_t l_BotDebug, g_CodeDebug;
 *** FUNCTIONS ***
 ****************/
 
+/*** BOT_CORE.C ***/
 BOT_t* BOT_ByProcessID(const uint32_t a_ProcessID);
 BOT_t* BOT_ByPort(SN_Port_t* const a_Port);
+
+/*** BOT_TICK.C ***/
 void BOT_IndivTic(BOT_t* const a_Bot);
+
+/*** BOT_VM.C ***/
 
 /*****************************************************************************/
 
