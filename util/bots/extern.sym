@@ -7,4 +7,5 @@ finetangent = 0x00078000;
 tantoangle =  0x00080000;
 c_AngLUT =    0x00088000;
 g_GameInfo =  0x00090000;
+g_Account =   0x00054000;
 

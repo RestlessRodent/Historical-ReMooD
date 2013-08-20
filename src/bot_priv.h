@@ -72,8 +72,15 @@ typedef struct BOT_s
 	
 	/* VM Specials */
 	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command
+	BL_BotAccount_t VMAccount;					// Account for bot
 	BL_BotInfo_t VMBotInfo;						// Bot Information
 } BOT_t;
+
+/**************
+*** GLOBALS ***
+**************/
+
+extern bool_t l_BotDebug, g_CodeDebug;
 
 /****************
 *** FUNCTIONS ***
@@ -81,6 +88,7 @@ typedef struct BOT_s
 
 BOT_t* BOT_ByProcessID(const uint32_t a_ProcessID);
 BOT_t* BOT_ByPort(SN_Port_t* const a_Port);
+void BOT_IndivTic(BOT_t* const a_Bot);
 
 /*****************************************************************************/
 

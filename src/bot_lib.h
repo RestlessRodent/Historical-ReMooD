@@ -135,9 +135,15 @@
 ****************/
 
 #define MAXPORTINFOFIELDLEN		128
-#define MAXBOTINFOFIELDLEN		128
+#define MAXBOTINFOFIELDLEN		64
 #define MAXBLVENDORDATAS		128
-#define MAXBLTCFIELDLENGTH		256
+#define MAXBLTCFIELDLENGTH		64
+
+#define MAXNAMELENGTH			64
+#define MAXSKINLENGTH			64
+#define MAXHEXENCLASSLENGTH		64
+#define MAXWEAPONLENGTH			64
+#define MAXCHATLENGTH			128
 
 #define MAXWALKSPEED	25
 #define MAXRUNSPEED		50
@@ -163,6 +169,12 @@ typedef enum BL_Button_e
 	BLT_AUTOHEALTHITEM	= UINT32_C(0x00000800),	// Use Health Item**	
 	BLT_TAUNT			= UINT32_C(0x00001000),	// Taunt**
 } BL_Button_t;
+
+/* BL_BotInfoFlag_t -- Bot information flag */
+typedef enum BL_BotInfoFlag_e
+{
+	BLBIF_DEAD			= UINT32_C(0x00000001),	// Bot is currently dead
+} BL_BotInfoFlag_t;
 
 /* BL_ChatCommand_t -- Chat Command Code */
 typedef enum BL_ChatCommand_e
@@ -235,18 +247,17 @@ typedef struct BL_PortInfo_s
 	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
 } BL_PortInfo_t;
 
-/* BL_BotInfo_t -- Bot Info */
-typedef struct BL_BotInfo_s
+/* BL_BotAccount_t -- Bot Account */
+typedef struct BL_BotAccount_s
 {
-	uint32_t Commit;							// Commit structure data
-	uint8_t Name[MAXBOTINFOFIELDLEN];			// Name of Bot
-	uint8_t Skin[MAXBOTINFOFIELDLEN];			// Skin being worn
-	uint8_t HexenClass[MAXBOTINFOFIELDLEN];		// Current Hexen Class (ReMooD Namespace)
-	tic_t JoinTime;								// Gametic at join time
+	uint32_t Commit;							// Commit Account Data
+	uint8_t Name[MAXNAMELENGTH];				// Name of Bot
+	uint8_t Skin[MAXSKINLENGTH];				// Skin being worn
+	uint8_t HexenClass[MAXHEXENCLASSLENGTH];	// Current Hexen Class (ReMooD Namespace)
 	uint32_t Color;								// ReMooD Skin Color (0-15)
 	uint32_t RGBColor;							// Color (R << 24, G << 16, B << 8)
-	uint32_t IsDead;							// Bot is dead?
-	
+	uint32_t Team;								// Team bot is on
+		
 	/* Port Specific Reserved Area */
 	uint32_t PSVendorCode;						// Vendor code of reserved area
 												// The implementation of the VM
@@ -255,6 +266,23 @@ typedef struct BL_BotInfo_s
 												// unless the vendor code of
 												// the port matches the value
 												// in this field.
+	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
+} BL_BotAccount_t;
+
+/* BL_BotInfo_t -- Bot Info */
+typedef struct BL_BotInfo_s
+{
+	/* General */
+	tic_t JoinTime;								// Gametic at join time
+	uint32_t Flags;								// Flags for bot
+	int32_t PlayerID;							// Player ID (if in game)
+	void* InternalPlayer;						// Internal player reference
+	void* InternalMobj;							// Bot's internal mobj rep ID
+	fixed_t Pos[3];								// Position of object
+	uint8_t Weapon[MAXWEAPONLENGTH];			// Weapon bot is using
+	uint32_t WeaponID;							// Weapon by class ID number
+	
+	/* Port Specific Reserved Area */
 	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
 } BL_BotInfo_t;
 
@@ -302,13 +330,6 @@ typedef struct BL_TicCmd_s
 	uint32_t __REMOOD_RESERVEDBLTC0F;			// ?????
 	
 	/* Port Specific Reserved Area */
-	uint32_t PSVendorCode;						// Vendor code of reserved area
-												// The implementation of the VM
-												// in the source port shall not
-												// use vendor specific data
-												// unless the vendor code of
-												// the port matches the value
-												// in this field.
 	uint32_t PSVendorData[MAXBLVENDORDATAS];	// Vendor specific
 } BL_TicCmd_t;
 
@@ -326,6 +347,7 @@ typedef struct BL_GameInfo_s
 **************/
 
 #define EXTADDRPORTINFO			UINT32_C(0x00050000)
+#define EXTADDRACCTINFO			UINT32_C(0x00054000)
 #define EXTADDRBOTINFO			UINT32_C(0x00058000)
 #define EXTADDRTICCMD			UINT32_C(0x00060000)
 #define EXTADDRFINESINE			UINT32_C(0x00068000)
@@ -339,6 +361,7 @@ typedef struct BL_GameInfo_s
 #if !defined(__REMOOD_INCLUDED)
 	extern volatile const BL_PortInfo_t g_PortInfo;
 	extern volatile const BL_BotInfo_t g_BotInfo;
+	extern volatile BL_BotAccount_t g_Account;
 	extern volatile BL_TicCmd_t g_TicCmd;
 	extern volatile const BL_GameInfo_t g_GameInfo;
 #endif

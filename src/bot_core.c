@@ -64,7 +64,7 @@
 
 static BOT_t** l_Bots;							// Local Bots
 static int32_t l_NumBots;						// Number of bots
-static bool_t l_BotDebug, l_CodeDebug;			// Debugging
+bool_t l_BotDebug = false, g_CodeDebug = false;	// Debugging
 
 static BL_PortInfo_t l_PortInfo;				// Port Info
 
@@ -99,139 +99,13 @@ void BOT_Init(void)
 	if (M_CheckParm("-devbot") || M_CheckParm("-botdev"))
 		l_BotDebug = true;
 	if (M_CheckParm("-devbotcode") || M_CheckParm("-botcodedev"))
-		l_CodeDebug = true;
+		g_CodeDebug = true;
 	
 	/* Initialize port information */
 	l_PortInfo.VendorID = LittleSwapUInt32(BLVC_REMOOD);
 	l_PortInfo.Version = LittleSwapUInt32(VERSION);
 	strncpy(l_PortInfo.Name, "ReMooD", MAXPORTINFOFIELDLEN);
 	strncpy(l_PortInfo.VerString, REMOOD_FULLVERSIONSTRING, MAXPORTINFOFIELDLEN);
-}
-
-/* BOT_IndivTic() -- Ticker for individual bot */
-static inline void BOT_IndivTic(BOT_t* const a_Bot)
-{
-	bool_t Trans;
-	ticcmd_t* TicCmd;
-	BL_TicCmd_t* BL;
-	
-	/* If bot has no port, try to obtain one */
-	if (!a_Bot->Port)
-	{
-		// Transmission delay
-		Trans = (g_ProgramTic >= a_Bot->LastXMit);
-		
-		// Up the delay and transmit port request
-		a_Bot->LastXMit = g_ProgramTic + TICRATE;
-		a_Bot->Port = SN_RequestPort(a_Bot->ProcessID, Trans);
-		
-		// If still no port, stop
-		if (!a_Bot->Port)
-			return;
-	}
-	
-	/* Needs basic initialization */
-	if (!a_Bot->BasicInit)
-	{
-		a_Bot->BasicInit = true;
-		
-		// Set port as bot
-		a_Bot->Port->Bot = true;
-		a_Bot->Port->StatFlags |= DTCJF_ISBOT;	// for scoreboard
-		a_Bot->Port->Screen = -1;	// not on any screen
-		a_Bot->Port->BotPtr = a_Bot;
-		
-		// Change settings to that of a bot
-		SN_PortSetting(a_Bot->Port, DSNPS_NAME, 0, "Bot", 0);
-	}
-	
-	/* In statis */
-	if (a_Bot->Stasis)
-	{
-		// Try joining the game
-		if (g_ProgramTic >= a_Bot->LastGameTryJoin)
-		{
-			a_Bot->LastGameTryJoin = g_ProgramTic + (TICRATE * 3);
-			
-			// Try to join
-			SN_PortTryJoin(a_Bot->Port);
-		}
-		
-		// Do not perform normal thinking
-		return;
-	}
-	
-	/* Prepare some VM settings */
-	a_Bot->VMBotInfo.IsDead = 0;
-	
-	// Dead Bot?
-	if (a_Bot->Port && a_Bot->Port->Player && a_Bot->Port->Player->health <= 0)
-		a_Bot->VMBotInfo.IsDead = 1;
-	
-	/* Run Virtual Machine */
-	if (!MIPS_VMRun(&a_Bot->VM, a_Bot->Speed, l_CodeDebug))
-	{
-		// Unrecovered exception, destroy
-		a_Bot->Stasis = true;
-		SN_UnplugPort(a_Bot->Port);
-	}
-	
-	/* Handle Tic Commands */
-	TicCmd = &a_Bot->Port->LocalBuf[0];
-	a_Bot->Port->LocalAt = 1;
-	BL = &a_Bot->VMTicCmd;
-	
-	// Clear old
-	memset(TicCmd, 0, sizeof(*TicCmd));
-	
-	// Prevent Bot from turboing
-	TicCmd->Std.forwardmove = BL->ForwardMove;
-	TicCmd->Std.sidemove = BL->SideMove;
-	
-	if (TicCmd->Std.forwardmove > MAXRUNSPEED)
-		TicCmd->Std.forwardmove = MAXRUNSPEED;
-	else if (TicCmd->Std.forwardmove < -MAXRUNSPEED)
-		TicCmd->Std.forwardmove = -MAXRUNSPEED;
-	
-	if (TicCmd->Std.sidemove > MAXRUNSPEED)
-		TicCmd->Std.sidemove = MAXRUNSPEED;
-	else if (TicCmd->Std.sidemove < -MAXRUNSPEED)
-		TicCmd->Std.sidemove = -MAXRUNSPEED;
-	
-	// Most values are copied as is
-	TicCmd->Std.angleturn = BL->LookAngle >> UINT32_C(16);
-	TicCmd->Std.aiming = BL->Aiming >> UINT32_C(16);
-	TicCmd->Std.StatFlags = BL->StatFlags;
-	TicCmd->Std.FlySwim = BL->FlySwim;
-	
-	// Handle Buttons
-	if (BL->Buttons & BLT_ATTACK)
-		TicCmd->Std.buttons |= BT_ATTACK;
-	if (BL->Buttons & BLT_USE)
-		TicCmd->Std.buttons |= BT_USE;
-	if (BL->Buttons & BLT_JUMP)
-	{
-		TicCmd->Std.buttons |= BT_JUMP;
-		BL->Buttons &= ~BLT_JUMP;
-	}
-	if (BL->Buttons & BLT_SUICIDE)
-	{
-		TicCmd->Std.buttons |= BT_SUICIDE;
-		BL->Buttons &= ~BLT_SUICIDE;
-	}
-	if (BL->Buttons & BLT_CHANGE)
-	{
-		TicCmd->Std.buttons |= BT_CHANGE;
-		strncpy(TicCmd->Std.XSNewWeapon, BL->Weapon, MAXTCWEAPNAME);
-		TicCmd->Std.XSNewWeapon[MAXTCWEAPNAME - 1] = 0;
-		memset(BL->Weapon, 0, sizeof(BL->Weapon));
-		BL->Buttons &= ~BLT_CHANGE;
-	}
-	if (BL->Buttons & BLT_SPECTATE)
-	{
-		SN_RemovePlayer(a_Bot->Port->Player - players);
-		BL->Buttons &= ~BLT_SPECTATE;
-	}
 }
 
 /* BOT_Ticker() -- Bot ticker */
@@ -384,7 +258,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	MIPS_VMAddMap(&Bot->VM, &Bot->VMTicCmd, EXTADDRTICCMD, sizeof(Bot->VMTicCmd), MIPS_MFR | MIPS_MFW);
 	
 	// Bot Info
-	MIPS_VMAddMap(&Bot->VM, &Bot->VMBotInfo, EXTADDRBOTINFO, sizeof(Bot->VMBotInfo), MIPS_MFR | MIPS_MFW);
+	MIPS_VMAddMap(&Bot->VM, &Bot->VMBotInfo, EXTADDRBOTINFO, sizeof(Bot->VMBotInfo), MIPS_MFR);
 	
 	// Game Information
 	MIPS_VMAddMapFunc(&Bot->VM, BOT_VMReadGI, NULL, EXTADDRGAMEINFO, sizeof(BL_GameInfo_t), MIPS_MFR);
@@ -398,6 +272,9 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	
 	// Port Info
 	MIPS_VMAddMap(&Bot->VM, &l_PortInfo, EXTADDRPORTINFO, sizeof(l_PortInfo), MIPS_MFR);
+	
+	// Account Information
+	MIPS_VMAddMap(&Bot->VM, &Bot->VMAccount, EXTADDRACCTINFO, sizeof(Bot->VMAccount), MIPS_MFR | MIPS_MFW);
 	
 	/* Link into list */
 	for (i = 0; i < l_NumBots; i++)

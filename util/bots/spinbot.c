@@ -82,7 +82,7 @@ void main(void)
 	for (NowTic = LastTic = 0;; Sleep())
 	{
 		// If bot is dead, respawn
-		if (g_BotInfo.IsDead)
+		if (g_BotInfo.Flags & BLBIF_DEAD)
 		{
 			g_TicCmd.Buttons = BLT_USE;
 			continue;
