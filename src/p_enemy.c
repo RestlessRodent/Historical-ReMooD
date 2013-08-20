@@ -500,8 +500,8 @@ mobj_t* g_LFPRover = NULL;
 //
 static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 {
-	int c;
-	int stop;
+	int32_t c;
+	int32_t stop;
 	player_t* player;
 	sector_t* sector;
 	angle_t an;
@@ -509,7 +509,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	mobj_t* mo;
 	mobj_t* BestMo;
 	thinker_t* currentthinker;
-	bool_t LoopOK;
+	bool_t LoopOK, FFA, NoTarg;
 	int32_t MaxPlayers;
 	
 	/* Demo Compatibility Breaking, but no real break */
@@ -626,183 +626,99 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	
 	/* Then look for other monsters */
 	// Basic loop to handle some things
-	for (BestMo = NULL;;)
+	// This loop is very CPU intensive, so to reduce the possibility of the
+	// game running really slow (like on AV MAP32), I decided that this should
+	// only occur every so often. In most cases, it is not used because only
+	// in scripted levels will monsters target other monsters.
+	if ((gametic & 31) == (actor->SpawnOrder & 31))
 	{
-		// Find the next viable thinker to target
-		for (g_LFPRover = ((thinker_t*)g_LFPRover)->next; g_LFPRover != &thinkercap; g_LFPRover = ((thinker_t*)g_LFPRover)->next)
-			if (((thinker_t*)g_LFPRover)->function.acp1 == (actionf_p1)P_MobjThinker)
-				break;	// stop here for now
+		// These is called a bunch of times
+		FFA = !!P_XGSVal(PGS_FUNMONSTERFFA);
+		NoTarg = !!P_XGSVal(PGS_FUNNOTARGETPLAYER);
 		
-		// If at thinker cap, set to next and stop
-		if (g_LFPRover == &thinkercap)
+		// Find the best object to choose
+		for (BestMo = NULL;; )
 		{
-			g_LFPRover = thinkercap.next;
-			return false;
-		}
+			// Find the next viable thinker to target
+			for (g_LFPRover = ((thinker_t*)g_LFPRover)->next; g_LFPRover != &thinkercap; g_LFPRover = ((thinker_t*)g_LFPRover)->next)
+				if (((thinker_t*)g_LFPRover)->function.acp1 == (actionf_p1)P_MobjThinker)
+					break;	// stop here for now
 		
-		// Try current set object
-		mo = g_LFPRover;
-		
-		// Ourself?
-		if (actor == mo)
-			continue;
-	
-		// Monster FFA is disabled
-		if (!(P_XGSVal(PGS_FUNMONSTERFFA)))
-		{
-			// Only target monsters on another team
-			if (P_MobjOnSameTeam(actor, mo))
-				continue;
-		}
-	
-		// Otherwise, monster FFA enabled
-		else
-		{
-		}
-	
-		// A player? and cannot target them?
-		if (P_XGSVal(PGS_FUNNOTARGETPLAYER) && P_MobjIsPlayer(mo))
-			continue;
-		
-		// Not Shootable?
-		if (!(mo->flags & MF_SHOOTABLE))
-			continue;
-
-		// Dead?
-		if (mo->health <= 0)
-			continue;
-	
-		// Is it in view?
-		if (!P_CheckSight(actor, mo))
-			return false;
-	
-		// Look all around?
-		if (!allaround)
-		{
-			an = R_PointToAngle2(actor->x, actor->y, mo->x, mo->y) - actor->angle;
-
-			if (an > ANG90 && an < ANG270)
+			// If at thinker cap, set to next and stop
+			if (g_LFPRover == &thinkercap)
 			{
-				dist = P_AproxDistance(mo->x - actor->x, mo->y - actor->y);
+				g_LFPRover = thinkercap.next;
+				return false;
+			}
+		
+			// Try current set object
+			mo = g_LFPRover;
+		
+			// Ourself?
+			if (actor == mo)
+				continue;
 			
-				// if real close, react anyway
-				if (dist > MELEERANGE)
-					return false;	// behind back
-			}
-		}
-		
-		// Set object to attack
-		BestMo = mo;
-		
-		// Stop
-		break;
-	}
-	
-	// Found object?
-	if (BestMo)
-	{
-		P_RefMobj(PMRT_TARGET, actor, BestMo);
-		return true;
-	}
-#if 0
-	
-	
-	// If current rover is thinkercap, go to next thinker which is a mobj
-	if (g_LFPRover == &thinkercap)
-		for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
-			if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
-			{
-				// Not Shootable?
-				if (!(((mobj_t*)currentthinker)->flags & MF_SHOOTABLE))
-					continue;
-	
-				// Dead?
-				if (((mobj_t*)currentthinker)->health <= 0)
-					continue;
-				
-				// Set
-				g_LFPRover = currentthinker;
-				break;
-			}
-	
-	// No objects?
-	if (g_LFPRover == &thinkercap)
-		return false;
-	
-	// Get current object
-	mo = g_LFPRover;
-	
-	CONL_PrintF(">> %s (%p)\n", mo->info->RClassName, mo);
-	
-	// Rove to another object
-	for (currentthinker = ((thinker_t*)g_LFPRover)->next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
-		if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
-		{
 			// Not Shootable?
-			if (!(((mobj_t*)currentthinker)->flags & MF_SHOOTABLE))
+			if (!(mo->flags & MF_SHOOTABLE))
 				continue;
-
+			
 			// Dead?
-			if (((mobj_t*)currentthinker)->health <= 0)
+			if (mo->health <= 0)
 				continue;
-				
-			// Set
-			g_LFPRover = currentthinker;
+	
+			// Monster FFA is disabled
+			if (!FFA)
+			{
+				// Only target monsters on another team
+				if (P_MobjOnSameTeam(actor, mo))
+					continue;
+			}
+	
+			// Otherwise, monster FFA enabled
+			else
+			{
+			}
+			
+			// A player? and cannot target them?
+			if (NoTarg && P_MobjIsPlayer(mo))
+				continue;
+		
+			// Is it in view?
+			if (!P_CheckSight(actor, mo))
+				return false;
+	
+			// Look all around?
+			if (!allaround)
+			{
+				an = R_PointToAngle2(actor->x, actor->y, mo->x, mo->y) - actor->angle;
+
+				if (an > ANG90 && an < ANG270)
+				{
+					dist = P_AproxDistance(mo->x - actor->x, mo->y - actor->y);
+			
+					// if real close, react anyway
+					if (dist > MELEERANGE)
+						return false;	// behind back
+				}
+			}
+		
+			// Set object to attack
+			BestMo = mo;
+		
+			// Stop
 			break;
 		}
-		
-	// Ourself?
-	if (actor == mo)
-		return false;
 	
-	// Monster FFA is disabled
-	if (!(P_XGSVal(PGS_FUNMONSTERFFA)))
-	{
-		// Only target monsters on another team
-		if (P_MobjOnSameTeam(actor, mo))
-			return false;
-	}
-	
-	// Otherwise, monster FFA enabled
-	else
-	{
-	}
-	
-	// A player? and cannot target them?
-	if (P_XGSVal(PGS_FUNNOTARGETPLAYER) && P_MobjIsPlayer(mo))
-		return false;
-		
-	// Not Shootable?
-	if (!(((mobj_t*)mo)->flags & MF_SHOOTABLE))
-		continue;
-
-	// Dead?
-	if (((mobj_t*)mo)->health <= 0)
-		continue;
-	
-	// Is it in view?
-	if (!P_CheckSight(actor, mo))
-		return false;
-	
-	// Look all around?
-	if (!allaround)
-	{
-		an = R_PointToAngle2(actor->x, actor->y, mo->x, mo->y) - actor->angle;
-
-		if (an > ANG90 && an < ANG270)
+		// Found object?
+		if (BestMo)
 		{
-			dist = P_AproxDistance(mo->x - actor->x, mo->y - actor->y);
-			
-			// if real close, react anyway
-			if (dist > MELEERANGE)
-				return false;	// behind back
+			P_RefMobj(PMRT_TARGET, actor, BestMo);
+			return true;
 		}
 	}
 	
-	// Target it, all OK
-	P_RefMobj(PMRT_TARGET, actor, mo);
-	return true;
-#endif
+	/* Nothing found */
+	return false;
 }
 
 //

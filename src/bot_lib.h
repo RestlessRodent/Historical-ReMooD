@@ -455,10 +455,12 @@ typedef struct MFakeFloor_s MFakeFloor_t;
 typedef struct MSecNode_s MSecNode_t;
 typedef struct MLine_s MLine_t;
 typedef struct MSector_s MSector_t;
+typedef struct MObject_s MObject_t;
 
 /*** VERTEX ***/
 
 #define MVERTEXBASEADDR (MDSBASEADDR)
+#define MVERTEXMAX		UINT32_C(65535)
 
 /* MVertex_t -- Vertex in map */
 struct MVertex_s
@@ -470,6 +472,7 @@ struct MVertex_s
 /*** FAKE FLOORS (A.K.A. 3D FLOORS) ***/
 
 #define MFFBASEADDR (MDSBASEADDR + UINT32_C(0x80000))
+#define MFFMAX		UINT32_C(127)
 
 typedef enum MFakeFloorFlag_e
 {
@@ -511,6 +514,12 @@ struct MFakeFloor_s
 /* MSecNode_t -- Sector Node */
 struct MSecNode_s
 {
+	MSector_t* Sector;							// Sector containing this thing
+	MObject_t* Thing;							// Specific Thing
+	MSecNode_t* TPrev;							// Previous thing
+	MSecNode_t* TNext;							// Next Thing
+	MSecNode_t* SPrev;							// Previous Sector
+	MSecNode_t* SNext;							// Next Sector
 };
 
 /******************************************************************************
