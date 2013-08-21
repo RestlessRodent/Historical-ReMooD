@@ -78,7 +78,7 @@
 	
 	#define BSleep(x) exit(0)
 	
-	#define GeneralChat(x) puts(x"\n")
+	#define GeneralChat(x) puts(x)
 #endif
 
 /****************
@@ -151,6 +151,51 @@ else\
 		PASSFAIL("AND");
 	
 	__MEM;
+	
+	/* ANDI */
+	var1.u = UINT32_C(0xCAFEBABE);
+	
+	asm __volatile__("andi "VC", "VA", 0x1337");
+	
+	if (var3.u != UINT32_C(0x00001236))
+		PASSFAIL("ANDI");
+	
+	__MEM;
+	
+	/* XOR */
+	var1.u = UINT32_C(0x1337F00F);
+	var2.u = UINT32_C(0xDEADCAFE);
+	
+	asm __volatile__("xor "VC", "VA", "VB"");
+	
+	if (var3.u != UINT32_C(0xCD9A3AF1))
+		PASSFAIL("XOR");
+	
+	__MEM;
+	
+	/* XORI */
+	var1.u = UINT32_C(0x8BADF00D);
+	
+	asm __volatile__("xori "VC", "VA", 0xBADA");
+	
+	if (var3.u != UINT32_C(0x8BAD4AD7))
+		PASSFAIL("XORI");
+	
+	__MEM;
+	
+	/* DIVU */
+	var1.i = INT32_C(25);
+	var2.i = INT32_C(6);
+	
+	asm __volatile__("divu "VA", "VB"");
+	
+	asm __volatile__("mfhi "VC"");
+	if (var3.i != INT32_C(4))
+		PASSFAIL("DIV (HI)");
+	
+	asm __volatile__("mflo "VC"");
+	if (var3.i != INT32_C(1))
+		PASSFAIL("DIV (LO)");
 	
 	/* Done So Loop Forever */
 	__MEM;
