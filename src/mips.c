@@ -648,7 +648,7 @@ case 15:	PRINTOP(("lui %s, %hu\n", l_RegNames[A(2)], A(3)));
 	ADVPC;
 	break;
 
-case 32:	PRINTOP(("lb %s, %hhu(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 32:	PRINTOP(("lb %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -681,7 +681,7 @@ case 35:	PRINTOP(("lw %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]))
 	ADVPC;
 	break;
 
-case 36:	PRINTOP(("lbu %s, %hhu(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 36:	PRINTOP(("lbu %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else

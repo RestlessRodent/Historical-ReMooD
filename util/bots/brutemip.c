@@ -117,6 +117,8 @@ else\
 		unsigned u;
 	} var3 asm("s7");
 	
+	uint32_t LVar[3] = {UINT32_C(0x1337D00D), UINT32_C(0x80BADE42), UINT32_C(0xCAFEBABE)};
+	
 	/* Initial Barrier */
 	__MEM;
 	
@@ -183,6 +185,9 @@ else\
 	
 	__MEM;
 	
+	/* DIV */
+	// TODO FIXME
+	
 	/* DIVU */
 	var1.i = INT32_C(25);
 	var2.i = INT32_C(6);
@@ -190,12 +195,73 @@ else\
 	asm __volatile__("divu "VA", "VB"");
 	
 	asm __volatile__("mfhi "VC"");
-	if (var3.i != INT32_C(4))
+	if (var3.i != INT32_C(1))
 		PASSFAIL("DIV (HI)");
 	
 	asm __volatile__("mflo "VC"");
-	if (var3.i != INT32_C(1))
+	if (var3.i != INT32_C(4))
 		PASSFAIL("DIV (LO)");
+	
+	__MEM;
+	
+	/* LB */
+	var1.u = (uint32_t)&LVar[1];
+	
+	asm __volatile__("lb "VC", 4("VA")");
+	asm __volatile__("lb "VB", 0("VA")");
+	asm __volatile__("lb "VA", -4("VA")");
+	
+	if (var1.u != UINT32_C(0x0000000D))
+		PASSFAIL("LB (4)");
+	
+	if (var2.u != UINT32_C(0x00000042))
+		PASSFAIL("LB (0)");
+	
+	if (var3.u != UINT32_C(0xFFFFFFBE))
+		PASSFAIL("LB (-4)");
+	
+	__MEM;
+		
+	/* LW */
+	var1.u = (uint32_t)&LVar[1];
+	
+	asm __volatile__("lw "VC", 4("VA")");
+	asm __volatile__("lw "VB", 0("VA")");
+	asm __volatile__("lw "VA", -4("VA")");
+	
+	if (var1.u != UINT32_C(0x1337D00D))
+		PASSFAIL("LW (4)");
+	
+	if (var2.u != UINT32_C(0x80BADE42))
+		PASSFAIL("LW (0)");
+	
+	if (var3.u != UINT32_C(0xCAFEBABE))
+		PASSFAIL("LW (-4)");
+	
+	__MEM;
+	
+	/* LUI */
+	asm __volatile__("lui "VC", 0xCAFE");
+	
+	if (var3.u != UINT32_C(0xCAFE0000))
+		PASSFAIL("LUI");
+	
+	__MEM;
+	
+	/* MF SERIES */
+#if 0
+	var1.u = UINT32_C(0xDEADBEEF);
+	var2.u = UINT32_C(0xCAFEBABE);
+	
+	asm __volatile__("mtlo "VA"");
+	asm __volatile__("mthi "VB"");
+	
+	var1.u = UINT32_C(0x0BADB002);
+	var2.u = UINT32_C(
+	
+	asm __volatile__("nop");	// mf* requires 2 instruction gap
+	asm __volatile__("nop");
+#endif
 	
 	/* Done So Loop Forever */
 	__MEM;
