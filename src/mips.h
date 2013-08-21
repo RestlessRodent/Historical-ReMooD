@@ -188,6 +188,7 @@ bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint_fast3
 bool_t MIPS_VMAddMapFunc(MIPS_VM_t* const a_VM, MIPS_VMMapReadFunc_t a_ReadFunc, MIPS_VMMapWriteFunc_t a_WriteFunc, const uint_fast32_t a_Fake, const uint_fast32_t a_Len, const uint_fast32_t a_Flags);
 
 uint32_t MIPS_ReadMemX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width);
+void MIPS_WriteMemX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width, const uint32_t a_Val);
 
 bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #if defined(_DEBUG)

@@ -44,10 +44,81 @@
 #include "w_wad.h"
 #include "m_argv.h"
 #include "d_player.h"
+#include "g_state.h"
+
+/*************
+*** LOCALS ***
+*************/
+
+BReal_t g_BotRT;								// Real time bot info
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* BOT_EBFillRealTime() -- Fills real-time info */
+void BOT_EBFillRealTime(void)
+{
+#define RT g_BotRT
+	uint32_t u;
+	
+	/* Current Time */
+	RT.GameTic = LSu64(gametic);
+	RT.LocalTic = LSu64(g_ProgramTic);
+	RT.LevelTic = LSu64(leveltime);
+	
+	/* Current State */
+	switch (gamestate)
+	{
+		case GS_LEVEL: u = BGS_LEVEL; break;
+		case GS_INTERMISSION: u = BGS_INTER; break;
+		//case ????: u = BGS_STORY; break;
+		case GS_FINALE: u = BGS_FINALE; break;
+		default: u = BGS_UNKNOWN; break;
+	}
+	
+	// Set state
+	RT.State = LSu32(u);
+#undef RT
+}
+
+/* BOT_EBFillBotInfo() -- Fills information structure, which bots can use */
+void BOT_EBFillBotInfo(BOT_t* const a_Bot)
+{
+	BInfo_t* BI = &a_Bot->BInfo;
+	player_t* P;
+	mobj_t* M;
+	
+	/* Only during levels */
+	if (gamestate != GS_LEVEL)
+		return;
+	
+	/* Objects */
+	P = a_Bot->Player = a_Bot->Port->Player;
+	
+	M = a_Bot->Mo = NULL;
+	if (a_Bot->Player)
+		M = a_Bot->Mo = P->mo;
+	
+	/* Quick Info From Objects */
+	// From Player Object
+	if (P)
+	{
+		BI->Health = LSi32(P->health);
+		BI->Armor = LSi32(P->armorpoints);
+		BI->ArmorType = LSi32(P->armorpoints);
+	}
+	
+	// From Map Object
+	if (M)
+	{
+		BI->x = LSi32(M->x);
+		BI->y = LSi32(M->y);
+		BI->z = LSi32(M->z);
+	}
+}
+
+/*****************************************************************************/
 
 /* BOT_RequestPort() -- Requests controller port for bot */
 bool_t BOT_RequestPort(BOT_t* const a_Bot)
@@ -121,12 +192,15 @@ void BOT_IndivTic(BOT_t* const a_Bot)
 		return;
 	}
 	
-	/* Bot is sleeping */
+	/* EBAPI: Bot is sleeping */
 	if (a_Bot->SleepCount > 0)
 	{
 		a_Bot->SleepCount--;
 		return;
 	}
+	
+	/* EBAPI: Fill Bot Info */
+	BOT_EBFillBotInfo(a_Bot);
 	
 	/* Determine VM Bot Info */
 	a_Bot->VMBotInfo.Flags = 0;

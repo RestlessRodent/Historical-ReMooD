@@ -104,8 +104,11 @@
 	
 	#define ANG45		UINT32_C(0x20000000)
 	#define ANG90		UINT32_C(0x40000000)
+	#define ANG135		UINT32_C(0x60000000)
 	#define ANG180		UINT32_C(0x80000000)
-	#define ANG270		UINT32_C(0xc0000000)
+	#define ANG225		UINT32_C(0xA0000000)
+	#define ANG270		UINT32_C(0xC0000000)
+	#define ANG315		UINT32_C(0xE0000000)
 	
 	#define ANGMAX		UINT32_C(0xffffffff)
 	#define ANG1		(ANG45/UINT32_C(45))
@@ -437,62 +440,14 @@ typedef struct BL_GameInfo_s
 
 #define BOTSYSCALL_FMUL			UINT32_C(0x00000001)
 #define BOTSYSCALL_BSLEEP		UINT32_C(0x00000002)
+#define BOTSYSCALL_DISTTO		UINT32_C(0x00000003)
+#define BOTSYSCALL_SIGHTTO		UINT32_C(0x00000004)
+#define BOTSYSCALL_CHAT			UINT32_C(0x00000005)
 
 #if !defined(__REMOOD_INCLUDED)
 	#define VOIDP(x) x
 #else
 	#define VOIDP(x) uint32_t
-#endif
-
-/*********************
-*** MATH FUNCTIONS ***
-*********************/
-
-#if !defined(__REMOOD_INCLUDED)
-
-#define ____SYSCALL_INTRO \
-register unsigned int ko asm("k0");\
-register unsigned int kl asm("k1");
-
-#define ____SYSCALL_DO(t,a) \
-ko = (t);\
-kl = (unsigned int)(a);\
-asm volatile("syscall");\
-asm volatile("nop");
-
-/* BSleep() -- Sleeps for the specified number of tics */
-static inline void BSleep(const uint32_t a_Len)
-{
-	____SYSCALL_INTRO;
-	uint32_t CS[1];
-	
-	/* Initialize the Call Stack */
-	CS[0] = a_Len;
-	
-	/* Call Handler */
-	____SYSCALL_DO(BOTSYSCALL_BSLEEP, CS);
-}
-
-/* FMul() -- Performs fixed multiplication */
-static inline fixed_t FMul(const fixed_t a_A, const fixed_t a_B)
-{
-	____SYSCALL_INTRO;
-	fixed_t CS[3];
-	
-	/* Initialize the Call Stack */
-	CS[0] = a_A;
-	CS[1] = a_B;
-	
-	/* Call Handler */
-	____SYSCALL_DO(BOTSYSCALL_FMUL, CS);
-	
-	/* Return result */
-	return CS[2];
-}
-
-#undef ____SYSCALL_INTRO
-#undef ____SYSCALL_DO
-
 #endif
 
 /**************************
@@ -525,6 +480,7 @@ typedef struct MSide_s MSide_t;
 typedef struct MLine_s MLine_t;
 typedef struct MSector_s MSector_t;
 typedef struct MObject_s MObject_t;
+typedef struct MPlayer_s MPlayer_t;
 
 /*** VERTEX ***/
 
@@ -618,7 +574,7 @@ struct MSeg_s
 
 /*** SIDEDEF ***/
 
-#define MSIDEBASEADDR	(MDSBASEADDR + UINT32_C(0x80330A00))
+#define MSIDEBASEADDR	(MDSBASEADDR + UINT32_C(0x330A00))
 #define MSIDEMAX		UINT32_C(65535)
 #define MSIDESIZE		UINT32_C(4)
 
@@ -627,6 +583,179 @@ struct MSide_t
 {
 	VOIDP(MSector_t*) Sector;					// Sector side faces
 };
+
+/******************
+*** INFORMATION ***
+******************/
+
+typedef struct BInfo_s BInfo_t;
+typedef struct BReal_s BReal_t;
+
+#define BCOREINFOBASEADDR UINT32_C(0x60000000)
+
+/*** BOT INFORMATION ***/
+// This structure contains the information on the current bot, relevant for the
+// current bot being executed.
+
+#define BBINFOBASEADDR (BCOREINFOBASEADDR + UINT32_C(0x10000))
+
+/* BInfo_t -- Bot information structure */
+struct BInfo_s
+{
+	/* Player */
+	VOIDP(MPlayer_t*) Player;					// Player Pointer
+	int32_t Health;								// Current Health
+	int32_t Armor;								// Current Armor
+	int32_t ArmorType;							// Type of armor being worn
+	VOIDP(MObject_t*) Attacker;					// Being attacked by
+	VOIDP(MObject_t*) Attackee;					// Thing attacking
+	
+	/* Map Object */
+	VOIDP(MObject_t*) Mo;						// Map Object Pointer
+	fixed_t x;									// X position
+	fixed_t y;									// Y position
+	fixed_t z;									// Z position
+};
+
+/*** REAL TIME INFORMATION ***/
+
+#define BBREALBASEADDR (BCOREINFOBASEADDR + UINT32_C(0x20000))
+
+/* BGameState_t -- Current game state */
+typedef enum BGameState_e
+{
+	BGS_LEVEL,									// Playing Level
+	BGS_INTER,									// Intermission
+	BGS_STORY,									// Story Text
+	BGS_FINALE,									// Finale Event
+	BGS_UNKNOWN,								// Unknown game state
+} BGameState_t;
+
+/* BReal_t -- Realtime information (per tic) */
+struct BReal_s
+{
+	tic_t GameTic;								// Current game tic
+	tic_t LocalTic;								// Current local tic
+	tic_t LevelTic;								// Current level time
+	uint32_t State;								// Game State
+};
+
+
+/*******************
+*** SYSTEM CALLS ***
+*******************/
+
+#if !defined(__REMOOD_INCLUDED)
+
+#define ____SYSCALL_INTRO \
+volatile register unsigned int ko asm("k0");\
+volatile register unsigned int kl asm("k1");
+
+// System calls require a memory barrier because variable in locals and memory
+// can change without the compiler knowing it.
+#define ____SYSCALL_DO(t,a) \
+ko = (t);\
+kl = (unsigned int)(a);\
+asm __volatile__("syscall");\
+asm __volatile__("nop");\
+asm __volatile__("" : : : "memory");
+
+/* BSleep() -- Sleeps for the specified number of tics */
+static inline void BSleep(const uint32_t a_Len)
+{
+	____SYSCALL_INTRO;
+	volatile uint32_t CS[1];
+	
+	/* Initialize the Call Stack */
+	CS[0] = a_Len;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_BSLEEP, CS);
+}
+
+/* FMul() -- Performs fixed multiplication */
+static inline fixed_t FMul(const fixed_t a_A, const fixed_t a_B)
+{
+	____SYSCALL_INTRO;
+	volatile fixed_t CS[2];
+	
+	/* Initialize the Call Stack */
+	CS[0] = a_A;
+	CS[1] = a_B;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_FMUL, &CS);
+	
+	/* Return result */
+	return kl;
+}
+
+/* DistTo() -- Calculates distance to remote point */
+static inline fixed_t DistTo(const fixed_t a_X, const fixed_t a_Y)
+{
+	____SYSCALL_INTRO;
+	volatile fixed_t CS[2];
+	
+	/* Initialize the Call Stack */
+	CS[0] = a_X;
+	CS[1] = a_Y;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_DISTTO, &CS);
+	
+	/* Return result */
+	return kl;
+}
+
+/* SightTo() -- Determines if remote point is visible */
+static inline int32_t SightTo(const fixed_t a_X, const fixed_t a_Y)
+{
+	____SYSCALL_INTRO;
+	volatile fixed_t CS[2];
+	
+	/* Initialize the Call Stack */
+	CS[0] = a_X;
+	CS[1] = a_Y;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_SIGHTTO, &CS);
+	
+	/* Return result */
+	return kl;
+}
+
+/* GeneralChat() -- Sends general chat message */
+static inline void GeneralChat(const char* const a_Msg)
+{
+	____SYSCALL_INTRO;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_CHAT, a_Msg);
+}
+
+/* MBi32() -- Memory Barrier */
+static inline volatile int32_t MBi32(volatile const int32_t a_In)
+{
+	volatile const int32_t* p = &a_In;
+	asm __volatile__("" : : : "memory");
+	return *p;
+}
+
+#undef ____SYSCALL_INTRO
+#undef ____SYSCALL_DO
+
+#endif
+
+/**************
+*** GLOBALS ***
+**************/
+
+#if !defined(__REMOOD_INCLUDED)
+
+extern volatile BInfo_t g_Info;
+extern volatile const BReal_t g_Real;
+
+#endif
 
 /******************************************************************************
 *******************************************************************************

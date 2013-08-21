@@ -73,6 +73,8 @@ __BOT_SOURCES	:= $(wildcard *.c)
 __BOT_BASE		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}))
 __BOT_LMPS		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}).lmp)
 __BOT_OBJS		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}).o)
+__BOT_SES		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}).s)
+__BOT_INC		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}).i)
 
 .PHONY: all
 all:			${__BOT_BASE}
@@ -88,16 +90,16 @@ endef
 
 $(foreach __in,${__BOT_BASE},$(eval $(call __rule,${__in})))
 
-%.o:			%.c start.o
-				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -o $@ $< start.o -Wl,--just-symbols=extern.sym -T linker.ld -g -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -G 1
+%.o:			%.c start.o ../../src/bot_lib.h
+				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -O0 -o $@ $< start.o -Wl,--just-symbols=extern.sym -T linker.ld -g -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -G 1 -fno-merge-constants
 
 %.lmp:			%.o
 				${GCCDIR}/${GCCPREFIX}objcopy -O binary -j .text $< $@
-				${GCCDIR}/${GCCPREFIX}objdump -S -D -j .text $<
+				${GCCDIR}/${GCCPREFIX}objdump -S -D -j .text $< > $(basename $@).od
 
 start.o:		start.s
 				${GCCDIR}/${GCCPREFIX}as -o $@ $< -EL -march=mips32
 
 clean:			
-				rm -f ${__BOT_LMPS} ${__BOT_OBJS} start.o
+				rm -f ${__BOT_LMPS} ${__BOT_OBJS} ${__BOT_SES} ${__BOT_INC} start.o
 

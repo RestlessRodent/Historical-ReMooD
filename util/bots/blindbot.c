@@ -62,7 +62,9 @@
 //  * those of the authors and should not be interpreted as representing
 //  * official policies, either expressed or implied, of the ReMooD Project.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Performs system calls
+// DESCRIPTION: This bot is blind and will attempt level navigation to an
+// extent by moving in a direction. If moving in direction is proving pointless
+// then it will change direction.
 
 /***************
 *** INCLUDES ***
@@ -74,12 +76,181 @@
 *** FUNCTIONS ***
 ****************/
 
-/* main() -- Main entry for bot */
+/* main() -- Bot main entry */
 void main(void)
 {
-	for (;;)
+	int XDir, YDir;
+	int Mode;
+	fixed_t dx, dy;
+	fixed_t nd, ld;
+	tic_t Now, Then;
+	
+	/* Head in default direction */
+	XDir = 0;
+	YDir = 1;
+	
+	/* Infinite Loop */
+	// Execute once every 2 tics
+	for (Then = 0, Mode = 0;; BSleep(1))
 	{
-		BSleep(TICRATE);
+		// If bot is dead, press use
+		if (g_Info.Health <= 0)
+		{
+			GeneralChat("Respawning");
+			
+			g_TicCmd.Buttons |= BLT_USE;
+			g_TicCmd.ForwardMove = 0;
+			
+			// Change time
+			Now = Then;
+			continue;
+		}
+		
+		GeneralChat("Enter loop");
+		
+		// Let go of use
+		g_TicCmd.Buttons &= ~BLT_USE;
+		
+		// Current time
+		Now = g_Real.GameTic;
+		
+		// Set new direction
+		if (!Mode)
+		{
+			// Face new angle based on direction
+				//             ANG90
+				//              ^
+				//              |
+				// ANG180 <-----*-----> ANG0 (EAST)
+				//              |
+				//              v
+				//            ANG270
+				// NORTH = +y SOUTH = -y
+				// EAST  = +x WEST  = -x
+				//	-1,1	0,1		1,1
+				//	-1,0	0,0		1,0
+				//	-1,-1	0,-1	1,-1
+			if (XDir == 1)
+			{
+				if (YDir == 1)
+				{
+					g_TicCmd.LookAngle = ANG45;
+					GeneralChat("Heading North East");
+				}
+				else if (YDir == 0)
+				{
+					g_TicCmd.LookAngle = 0;
+					GeneralChat("Heading East");
+				}
+				else
+				{
+					g_TicCmd.LookAngle = ANG315;
+					GeneralChat("Heading South East");
+				}
+			}
+			
+			else if (XDir == 0)
+			{
+				if (YDir == 1)
+				{
+					g_TicCmd.LookAngle = ANG90;
+					GeneralChat("Heading North");
+				}
+				else if (YDir == 0)
+				{
+					g_TicCmd.LookAngle = 0;
+					GeneralChat("Heading Nowhere");
+				}
+				else
+				{
+					g_TicCmd.LookAngle = ANG270;
+					GeneralChat("Heading South");
+				}
+			}
+			
+			else
+			{
+				if (YDir == 1)
+				{
+					g_TicCmd.LookAngle = ANG135;
+					GeneralChat("Heading North West");
+				}
+				else if (YDir == 0)
+				{
+					g_TicCmd.LookAngle = ANG180;
+					GeneralChat("Heading West");
+				}
+				else
+				{
+					g_TicCmd.LookAngle = ANG225;
+					GeneralChat("Heading South West");
+				}
+			}
+			
+			// Set destination point
+			dx = g_Info.x + ((1024 << FRACBITS) * XDir);
+			dy = g_Info.y + ((1024 << FRACBITS) * YDir);
+			
+			// Reset point distance
+			ld = DistTo(dx, dy) >> FRACBITS;
+			
+			// Set time until mode recheck target
+			Mode = 1;
+			Then = Now + TICRATE;
+		}
+		
+		// Move to direction
+		else
+		{
+			// Walk to this point
+			g_TicCmd.ForwardMove = MAXRUNSPEED;
+			
+			// Caluclate Distance always
+			nd = DistTo(dx, dy) >> FRACBITS;
+			
+			// Check to see if we are getting closer to our destination
+			if (Now >= Then)
+			{
+				// If we are not getting any closer... change direction
+				if (nd >= ld)
+				{
+					GeneralChat("Moving away!?!?");
+					
+					// Loop prevents 0,0 target
+					do
+					{
+						YDir++;
+					
+						if (YDir >= 2)
+						{
+							YDir = -1;
+							XDir++;
+						
+							if (XDir >= 2)
+								XDir = -1;
+						}
+					}
+					while (XDir == 0 && YDir == 0);
+					
+					// Recalculate target
+					Mode = 0;
+					g_TicCmd.ForwardMove = 0;	// stop moving
+				}
+				
+				// Remember this distance (it will get smaller)
+				else
+				{
+					GeneralChat("In range");
+					
+					// Set destination point
+					dx = g_Info.x + ((1024 << FRACBITS) * XDir);
+					dy = g_Info.y + ((1024 << FRACBITS) * YDir);
+					
+					// Calculate new distance
+					ld = DistTo(dx, dy) >> FRACBITS;
+				}
+			}
+		}
 	}
 }
 

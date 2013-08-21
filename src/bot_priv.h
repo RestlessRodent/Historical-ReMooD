@@ -41,9 +41,20 @@
 #include "bot.h"
 #include "mips.h"
 #include "w_wad.h"
+#include "d_player.h"
+#include "p_mobj.h"
 
 #define __REMOOD_INCLUDED
 #include "bot_lib.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+#define LSi32(x) LittleSwapInt32((x))
+#define LSi64(x) LittleSwapInt64((x))
+#define LSu32(x) LittleSwapUInt32((x))
+#define LSu64(x) LittleSwapUInt64((x))
 
 /*****************
 *** STRUCTURES ***
@@ -69,12 +80,17 @@ typedef struct BOT_s
 	uint32_t StackLen;							// Stack Length
 	uint32_t StackAddr;							// Stack Address
 	uint32_t Speed;								// Execution Speed of Bot
-	int32_t SleepCount;							// Sleep Count
 	
 	/* VM Specials */
 	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command
 	BL_BotAccount_t VMAccount;					// Account for bot
 	BL_BotInfo_t VMBotInfo;						// Bot Information
+	
+	/* EBAPI */
+	int32_t SleepCount;							// Sleep Count
+	player_t* Player;							// Player bot controls
+	mobj_t* Mo;									// Object bot controls
+	BInfo_t BInfo;								// Bot Info
 } BOT_t;
 
 /**************
@@ -82,6 +98,8 @@ typedef struct BOT_s
 **************/
 
 extern bool_t l_BotDebug, g_CodeDebug;
+
+extern BReal_t g_BotRT;
 
 /****************
 *** FUNCTIONS ***
@@ -92,6 +110,7 @@ BOT_t* BOT_ByProcessID(const uint32_t a_ProcessID);
 BOT_t* BOT_ByPort(SN_Port_t* const a_Port);
 
 /*** BOT_TICK.C ***/
+void BOT_EBFillRealTime(void);
 void BOT_IndivTic(BOT_t* const a_Bot);
 
 /*** BOT_VM.C ***/

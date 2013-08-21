@@ -9,6 +9,7 @@ SECTIONS
 		*(.bootup)
 		__START_OF_TEXT = .;
 		*(.text)
+		*(.rodata)
 		__END_OF_TEXT = .;
 	}
 }

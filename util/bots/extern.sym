@@ -9,3 +9,6 @@ c_AngLUT =    0x00088000;
 g_GameInfo =  0x00090000;
 g_Account =   0x00054000;
 
+g_Info		= 0x60010000;
+g_Real		= 0x60020000;
+

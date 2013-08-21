@@ -47,6 +47,8 @@
 #include "bot_lib.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "p_local.h"
+#include "p_maputl.h"
 
 /****************
 *** FUNCTIONS ***
@@ -158,9 +160,14 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 /* BOT_SysCall() -- Handles system calls */
 static bool_t BOT_SysCall(MIPS_VM_t* const a_VM, void* const a_Data)
 {
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	int i;
 	BOT_t* Bot = a_Data;
-	unsigned ko = a_VM->CPU.r[MIPS_K0];
-	unsigned kl = a_VM->CPU.r[MIPS_K1];
+	uint32_t ko = a_VM->CPU.r[MIPS_K0];
+	uint32_t kl = a_VM->CPU.r[MIPS_K1];
+	
+	fixed_t fa, fb, fc, fd;
 	
 	/* Based on syscall performed */
 	switch (ko)
@@ -170,13 +177,75 @@ static bool_t BOT_SysCall(MIPS_VM_t* const a_VM, void* const a_Data)
 			Bot->SleepCount = MIPS_ReadMemX(a_VM, kl, 4);
 			return false;	// Break execution for a bit
 		
+			// FMul(a, b) -> c
+		case BOTSYSCALL_FMUL:
+			a_VM->CPU.r[MIPS_K1] = FixedMul(MIPS_ReadMemX(a_VM, kl, 4), MIPS_ReadMemX(a_VM, kl + 4, 4));
+			break;
+			
+			// DistTo(a, b) -> c
+		case BOTSYSCALL_DISTTO:
+			fa = Bot->BInfo.x;
+			fb = Bot->BInfo.y;
+			fc = MIPS_ReadMemX(a_VM, kl, 4);
+			fd = MIPS_ReadMemX(a_VM, kl + 4, 4);
+			
+			a_VM->CPU.r[MIPS_K1] = P_AproxDistance(fc - fa, fd - fb);
+			
+			CONL_PrintF("(%g, %g) -> (%g, %g) == %g)\n",
+					FIXED_TO_FLOAT(fa),
+					FIXED_TO_FLOAT(fb),
+					FIXED_TO_FLOAT(fc),
+					FIXED_TO_FLOAT(fd),
+					FIXED_TO_FLOAT(a_VM->CPU.r[MIPS_K1])
+				);
+			break;
+			
+			// SightTo(a, b) -> true/false
+		case BOTSYSCALL_SIGHTTO:
+			fa = Bot->BInfo.x;
+			fb = Bot->BInfo.y;
+			fc = MIPS_ReadMemX(a_VM, kl, 4);
+			fd = MIPS_ReadMemX(a_VM, kl + 4, 4);
+			
+			a_VM->CPU.r[MIPS_K1] = P_CheckSightLine(fa, fb, fc, fd);
+			break;
+			
+			// Chat Message (A bit slow)
+		case BOTSYSCALL_CHAT:
+			// Read chat buffer
+			memset(Buf, 0, sizeof(Buf));
+			for (i = 0; i < BUFSIZE - 1; i++)
+			{
+				Buf[i] = MIPS_ReadMemX(a_VM, kl + i, 1);
+				
+				// No more characters
+				if (!Buf[i])
+					break;
+				
+				// Do not permit below non-ASCII characters
+				if (Buf[i] < ' ' || Buf[i] > 0x7F)
+					Buf[i] = '?';
+			}
+			
+			// Send chat to SN system
+			if (Buf[0])
+				;//SN_SendChat(Bot->Port, false, Buf);
+			
+			// Debug
+			CONL_PrintF("Will chat \"%s\"\n", Buf);
+			break;
+		
 			// Unknown SysCall
 		default:
 			break;
 	}
 	
+#define BOTSYSCALL_DISTTO		UINT32_C(0x00000003)
+#define BOTSYSCALL_SIGHTTO		UINT32_C(0x00000004)
+	
 	/* Always continue */
 	return true;
+#undef BUFSIZE
 }
 
 /* BOT_RegisterVMJunk() -- Registers virtual machine hanlders */
@@ -197,6 +266,12 @@ void BOT_RegisterVMJunk(BOT_t* const a_Bot)
 	
 	/* Map Data Structure Handler */
 	MIPS_VMAddMapFunc(VM, BOT_VMFDataStructs, NULL, MDSBASEADDR, MDSENDADDR - MDSBASEADDR, MIPS_MFR);
+	
+	/* Map Static R (possibly W) structures */
+	// Information on the bot
+	MIPS_VMAddMap(VM, &a_Bot->BInfo, BBINFOBASEADDR, sizeof(a_Bot->BInfo), MIPS_MFR | MIPS_MFW);
+	
+	// Real Time
+	MIPS_VMAddMap(VM, &g_BotRT, BBREALBASEADDR, sizeof(g_BotRT), MIPS_MFR);
 }
-
 

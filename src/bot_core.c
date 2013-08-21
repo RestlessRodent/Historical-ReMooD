@@ -114,6 +114,9 @@ void BOT_Ticker(void)
 	int32_t i;
 	BOT_t* Bot;
 	
+	/* Fill real-time info */
+	BOT_EBFillRealTime();
+	
 	/* Go through each bot */
 	for (i = 0; i < l_NumBots; i++)
 		if ((Bot = l_Bots[i]))
