@@ -189,7 +189,13 @@ static inline uint32_t MIPS_ReadMem(MIPS_VM_t* const a_VM, const uint_fast32_t a
 	if (Map->RealMem)
 	{
 		if (a_Width == 4)
-			return LittleSwapUInt32(((uint32_t*)Map->RealMem)[BaseOff >> 2]);
+		{
+			RetVal = LittleSwapUInt32(((uint32_t*)Map->RealMem)[BaseOff >> 2]);
+			
+			if (a_Addr >= 0x70000000)
+				CONL_PrintF("Read %08x <- %08x\n", RetVal, a_Addr);
+			return RetVal;
+		}
 		else if (a_Width == 2)
 			return LittleSwapUInt16(((uint16_t*)Map->RealMem)[BaseOff >> 1]);
 		else
@@ -258,6 +264,9 @@ static inline void MIPS_WriteMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Ad
 	/* Memory Mapped */
 	if (Map->RealMem)
 	{
+		if (a_Addr >= 0x70000000)
+			CONL_PrintF("Write %08x -> %08x\n", LittleSwapUInt32(a_Val), a_Addr);
+		
 		if (a_Width == 4)
 			((uint32_t*)Map->RealMem)[BaseOff >> 2] = LittleSwapUInt32(a_Val);
 		else if (a_Width == 2)
@@ -405,22 +414,22 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 	/* Run count opcodes */
 	for (NopCount = i = 0; i < a_Count; i++)
 	{
-		// Handle Delay Slot
-		if (a_VM->CPU.dsactive >= 1)
+		// Handle Jump Delay Slot
+		if (a_VM->CPU.jdsactive >= 1)
 		{
 			// 1 = It was just set
-			if (a_VM->CPU.dsactive == 1)
-				a_VM->CPU.dsactive = 2;
+			if (a_VM->CPU.jdsactive == 1)
+				a_VM->CPU.jdsactive = 2;
 			
 			// 2 = It has been set
 			else
 			{
 				// PC is now at ds
-				a_VM->CPU.pc = a_VM->CPU.ds;
+				a_VM->CPU.pc = a_VM->CPU.jds;
 				
 				// Reset to zero
-				a_VM->CPU.ds = 0;
-				a_VM->CPU.dsactive = 0;
+				a_VM->CPU.jds = 0;
+				a_VM->CPU.jdsactive = 0;
 			}
 		}
 		
@@ -432,30 +441,6 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		Op = LittleSwapUInt32(Op);
 #endif
 		
-		// No operation? Do not bother entering switch loop
-		if (!Op)
-		{
-#if defined(_DEBUG)
-			if (a_PrintOp)
-				CONL_PrintF("nop\n");
-#endif
-			
-			// Increase nop count
-			NopCount++;
-			
-			// Increase PC
-			a_VM->CPU.pc += UINT32_C(4);
-			
-			// 3 Nops trigger sleep, otherwise reloop
-			if (NopCount == 3)
-				break;
-			continue;
-		}
-		
-		// Clear nop count (to prevent premature sleep)
-		else
-			NopCount = 0;
-		
 		// Decode opcode
 		MIPS_DecodeOp(Op, Am);
 		
@@ -466,15 +451,7 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		OldCPU = a_VM->CPU;
 		
 		if (a_PrintOp)
-		{
-#if 0
-			for (x = 0; x < 6; x++)
-				CONL_PrintF("[%i]=%u (%x) ", x, Am[x], Am[x]);
-			CONL_PrintF("\n");
-#endif
-			
 			CONL_PrintF("%08x (@%08x): ", Op, a_VM->CPU.pc);
-		}
 #endif
 		
 		// Which opcode?
@@ -492,19 +469,46 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #define ENDARITH } break;
 #define FOUR UINT32_C(4)
 #define ADVPC PC += FOUR
-#define DS a_VM->CPU.ds
-#define DSA a_VM->CPU.dsactive
+#define JDS a_VM->CPU.jds
+#define JDSA a_VM->CPU.jdsactive
+
+case 1:
+	if (A(2) == UINT32_C(0x10))
+	{
+		PRINTOP(("bltzal $%s, %4x", l_RegNames[A(1)], A(3)));
+	}
+	else
+	{
+		PRINTOP(("bltz $%s, %4x", l_RegNames[A(1)], A(3)));
+	}
+	
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
+	if (A(2) == UINT32_C(0x10))
+		R(31) = PC + UINT32_C(8);
+		
+	if (AR(1) == UINT32_C(0) || (AR(1) & UINT32_C(0x80000000)))
+	{
+		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDSA = 1;
+	}
+
+	ADVPC;
+	break;
 
 case 2:		PRINTOP(("j 0x%08x\n", A(3) << UINT32_C(2)));
-	DS = (PC & UINT32_C(0xF0000000)) | (A(3) << UINT32_C(2));
-	DSA = 1;
+	JDS = (PC & UINT32_C(0xF0000000)) | (A(3) << UINT32_C(2));
+	JDSA = 1;
 	ADVPC;
 	break;
 
 case 3:		PRINTOP(("jal 0x%08x\n", A(3) << UINT32_C(2)));
 	R(31) = PC + UINT32_C(8);
-	DS = (PC & UINT32_C(0xF0000000)) | (A(3) << UINT32_C(2));
-	DSA = 1;
+	JDS = (PC & UINT32_C(0xF0000000)) | (A(3) << UINT32_C(2));
+	JDSA = 1;
 	ADVPC;
 	break;
 
@@ -516,8 +520,8 @@ case 4:		PRINTOP(("beq $%s, $%s, %u\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3)
 	
 	if (AR(1) == AR(2))
 	{
-		DS = PC + (BN.u32 << UINT32_C(2));
-		DSA = 1;
+		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDSA = 1;
 	}
 	
 	ADVPC;
@@ -531,8 +535,8 @@ case 5:		PRINTOP(("bne $%s, $%s, %u\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3)
 	
 	if (AR(1) != AR(2))
 	{
-		DS = PC + (BN.u32 << UINT32_C(2));
-		DSA = 1;
+		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDSA = 1;
 	}
 	
 	ADVPC;
@@ -546,8 +550,8 @@ case 6:		PRINTOP(("blez $%s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	
 	if (((int32_t)AR(1)) <= INT32_C(0))
 	{
-		DS = PC + (BN.u32 << UINT32_C(2));
-		DSA = 1;
+		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDSA = 1;
 	}
 	
 	ADVPC;
@@ -561,8 +565,8 @@ case 7:		PRINTOP(("bgtz $%s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	
 	if (((int32_t)AR(1)) > INT32_C(0))
 	{
-		DS = PC + (BN.u32 << UINT32_C(2));
-		DSA = 1;
+		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDSA = 1;
 	}
 	
 	ADVPC;
@@ -643,7 +647,7 @@ case 25:	PRINTOP(("lhi $%s, %u\n", l_RegNames[A(2)], A(3)));
 	ADVPC;
 	break;
 
-case 32:	PRINTOP(("lb $%s, %08x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 32:	PRINTOP(("lb $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -655,7 +659,7 @@ case 32:	PRINTOP(("lb $%s, %08x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)
 	ADVPC;
 	break;
 
-case 33:	PRINTOP(("lh $%s, %08x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 33:	PRINTOP(("lh $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -667,37 +671,34 @@ case 33:	PRINTOP(("lh $%s, %08x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)
 	ADVPC;
 	break;
 
-case 35:	PRINTOP(("lw $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 35:	PRINTOP(("lw $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
-	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 4);
-	AR(2) = BN.u32;
+	AR(2) = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 4);
 	ADVPC;
 	break;
 
-case 36:	PRINTOP(("lbu $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 36:	PRINTOP(("lbu $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
-	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 1);
-	AR(2) = BN.u32;
+	AR(2) = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 1);
 	ADVPC;
 	break;
 
-case 37:	PRINTOP(("lhu $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 37:	PRINTOP(("lhu $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
-	BN.u32 = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 2);
-	AR(2) = BN.u32;
+	AR(2) = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 2);
 	ADVPC;
 	break;
 
-case 40:	PRINTOP(("sb $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 40:	PRINTOP(("sb $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -706,7 +707,7 @@ case 40:	PRINTOP(("sb $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]
 	ADVPC;
 	break;
 	
-case 41:	PRINTOP(("sh $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 41:	PRINTOP(("sh $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -715,7 +716,7 @@ case 41:	PRINTOP(("sh $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]
 	ADVPC;
 	break;
 	
-case 43:	PRINTOP(("sw $%s, %4x($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 43:	PRINTOP(("sw $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -757,15 +758,15 @@ case 7:		PRINTOP(("srav $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_
 	break;
 
 case 8:		PRINTOP(("jr $%s\n", l_RegNames[A(1)]));
-	DS = AR(1);
-	DSA = 1;
+	JDS = AR(1);
+	JDSA = 1;
 	ADVPC;
 	break;
 
 case 9:		PRINTOP(("jalr $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)]));
 	AR(3) = PC + UINT32_C(8);
-	DS = AR(1);
-	DSA = 1;
+	JDS = AR(1);
+	JDSA = 1;
 	ADVPC;
 	break;
 
