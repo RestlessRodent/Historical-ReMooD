@@ -74,6 +74,10 @@ __BOT_BASE		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}))
 __BOT_LMPS		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}).lmp)
 __BOT_OBJS		:= $(foreach __c,${__BOT_SOURCES},$(basename ${__c}).o)
 
+.PHONY: all
+all:			${__BOT_BASE}
+				
+
 define __rule
 
 .PHONY: $1

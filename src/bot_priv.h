@@ -69,6 +69,7 @@ typedef struct BOT_s
 	uint32_t StackLen;							// Stack Length
 	uint32_t StackAddr;							// Stack Address
 	uint32_t Speed;								// Execution Speed of Bot
+	int32_t SleepCount;							// Sleep Count
 	
 	/* VM Specials */
 	BL_TicCmd_t VMTicCmd;						// Virtual Machine Tic Command
@@ -94,6 +95,7 @@ BOT_t* BOT_ByPort(SN_Port_t* const a_Port);
 void BOT_IndivTic(BOT_t* const a_Bot);
 
 /*** BOT_VM.C ***/
+void BOT_RegisterVMJunk(BOT_t* const a_Bot);
 
 /*****************************************************************************/
 

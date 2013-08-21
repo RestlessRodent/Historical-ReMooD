@@ -182,6 +182,16 @@ static inline uint32_t MIPS_ReadMem(MIPS_VM_t* const a_VM, const uint_fast32_t a
 	}
 }
 
+/* MIPS_ReadMemX() -- Reads from memory (external) */
+uint32_t MIPS_ReadMemX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width)
+{
+	/* Check */
+	if (!a_VM)
+		return 0;
+	
+	return MIPS_ReadMem(a_VM, a_Addr, a_Width);
+}
+
 /* MIPS_WriteMem() -- Writes to memory */
 static inline void MIPS_WriteMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width, const uint32_t a_Val)
 {
@@ -672,6 +682,13 @@ case 9:		PRINTOP(("jalr $%u, $%u\n", A(3), A(1)));
 	AR(3) = PC + UINT32_C(8);
 	DS = AR(1);
 	DSA = 1;
+	ADVPC;
+	break;
+
+case 12:	PRINTOP(("syscall\n"));
+	if (a_VM->SysCall)
+		if (!a_VM->SysCall(a_VM, a_VM->DataP))
+			i = a_Count;	// Break from loop
 	ADVPC;
 	break;
 

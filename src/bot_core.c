@@ -276,6 +276,9 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 	// Account Information
 	MIPS_VMAddMap(&Bot->VM, &Bot->VMAccount, EXTADDRACCTINFO, sizeof(Bot->VMAccount), MIPS_MFR | MIPS_MFW);
 	
+	// Register virtual machine stuff
+	BOT_RegisterVMJunk(Bot);
+	
 	/* Link into list */
 	for (i = 0; i < l_NumBots; i++)
 		if (!l_Bots[i])

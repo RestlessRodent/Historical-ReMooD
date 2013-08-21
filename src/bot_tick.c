@@ -121,6 +121,13 @@ void BOT_IndivTic(BOT_t* const a_Bot)
 		return;
 	}
 	
+	/* Bot is sleeping */
+	if (a_Bot->SleepCount > 0)
+	{
+		a_Bot->SleepCount--;
+		return;
+	}
+	
 	/* Determine VM Bot Info */
 	a_Bot->VMBotInfo.Flags = 0;
 	

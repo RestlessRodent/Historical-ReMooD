@@ -148,18 +148,22 @@ typedef struct MIPS_Map_s MIPS_Map_t;
 
 // NOTE THAT THE MAP FUNCTION RETURNS NATIVE ENDIAN
 typedef uint32_t (*MIPS_VMMapReadFunc_t)(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Map, const uint_fast32_t a_BaseAddr);
+
 typedef void (*MIPS_VMMapWriteFunc_t)(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Map, const uint_fast32_t a_BaseAddr, const uint32_t a_Val);
+
+// SYSTEM CALL FUNCTION
+typedef bool_t (*MIPS_VMSysCallFunc_t)(MIPS_VM_t* const a_VM, void* const a_Data);
 
 /* MIPS_Map_t -- MIPS Memory Mapping */
 struct MIPS_Map_s
 {
-	uint_fast32_t Len;								// Length of mapping
-	uint_fast32_t VMOff;							// VM Offset
-	uint_fast32_t Flags;							// Flags
+	uint_fast32_t Len;							// Length of mapping
+	uint_fast32_t VMOff;						// VM Offset
+	uint_fast32_t Flags;						// Flags
 	
-	MIPS_VMMapReadFunc_t ReadFunc;					// Function to call
-	MIPS_VMMapWriteFunc_t WriteFunc;				// Write Function
-	void* RealMem;									// Real Memory
+	MIPS_VMMapReadFunc_t ReadFunc;				// Function to call
+	MIPS_VMMapWriteFunc_t WriteFunc;			// Write Function
+	void* RealMem;								// Real Memory
 };
 
 /* MIPS_VM_t -- MIPS Virtual Machine */
@@ -169,7 +173,11 @@ struct MIPS_VM_s
 	
 	// Real buffer memory maps
 	MIPS_Map_t* Maps;							// Memory maps
-	int_fast32_t NumMaps;							// Number of memory maps
+	int_fast32_t NumMaps;						// Number of memory maps
+	
+	// System Call Handler
+	MIPS_VMSysCallFunc_t SysCall;				// System calls handler
+	void* DataP;								// Data Pointer
 };
 
 /****************
@@ -178,6 +186,8 @@ struct MIPS_VM_s
 
 bool_t MIPS_VMAddMap(MIPS_VM_t* const a_VM, void* const a_Real, const uint_fast32_t a_Fake, const uint_fast32_t a_Len, const uint_fast32_t a_Flags);
 bool_t MIPS_VMAddMapFunc(MIPS_VM_t* const a_VM, MIPS_VMMapReadFunc_t a_ReadFunc, MIPS_VMMapWriteFunc_t a_WriteFunc, const uint_fast32_t a_Fake, const uint_fast32_t a_Len, const uint_fast32_t a_Flags);
+
+uint32_t MIPS_ReadMemX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Addr, const uint_fast32_t a_Width);
 
 bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #if defined(_DEBUG)

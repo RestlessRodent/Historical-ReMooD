@@ -431,6 +431,70 @@ typedef struct BL_GameInfo_s
 ******************************* EVEN BETTER API *******************************
 ******************************************************************************/
 
+/****************
+*** CONSTANTS ***
+****************/
+
+#define BOTSYSCALL_FMUL			UINT32_C(0x00000001)
+#define BOTSYSCALL_BSLEEP		UINT32_C(0x00000002)
+
+#if !defined(__REMOOD_INCLUDED)
+	#define VOIDP(x) x
+#else
+	#define VOIDP(x) uint32_t
+#endif
+
+/*********************
+*** MATH FUNCTIONS ***
+*********************/
+
+#if !defined(__REMOOD_INCLUDED)
+
+#define ____SYSCALL_INTRO \
+register unsigned int ko asm("k0");\
+register unsigned int kl asm("k1");
+
+#define ____SYSCALL_DO(t,a) \
+ko = (t);\
+kl = (unsigned int)(a);\
+asm volatile("syscall");\
+asm volatile("nop");
+
+/* BSleep() -- Sleeps for the specified number of tics */
+static inline void BSleep(const uint32_t a_Len)
+{
+	____SYSCALL_INTRO;
+	uint32_t CS[1];
+	
+	/* Initialize the Call Stack */
+	CS[0] = a_Len;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_BSLEEP, CS);
+}
+
+/* FMul() -- Performs fixed multiplication */
+static inline fixed_t FMul(const fixed_t a_A, const fixed_t a_B)
+{
+	____SYSCALL_INTRO;
+	fixed_t CS[3];
+	
+	/* Initialize the Call Stack */
+	CS[0] = a_A;
+	CS[1] = a_B;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_FMUL, CS);
+	
+	/* Return result */
+	return CS[2];
+}
+
+#undef ____SYSCALL_INTRO
+#undef ____SYSCALL_DO
+
+#endif
+
 /**************************
 *** MAP DATA STRUCTURES ***
 **************************/
@@ -439,20 +503,25 @@ typedef struct BL_GameInfo_s
 // of data structure. Least important ones have a lower address, while more
 // important ones have a higher address.
 #define MDSBASEADDR UINT32_C(0x80000000)
+#define MDSENDADDR UINT32_C(0x80370A00)
 
 // Current Mapping of Structures...
 
 // What?			SizeOf	StartAddr	EndAddr		Total
 // ----------------	-------	----------	----------	----------
 // Vertexes			8		0x80000000	0x8007FFFF	65535
-// Fake Floors		20		0x00080000	0x800809FF	127
-// Sector Nodes		??		0x00080A00
+// Fake Floors		20		0x80080000	0x800809FF	127
+// Sector Nodes		24		0x80080A00	0x800B09FF	8191
+// Seg				40		0x800B0A00	0x803309FF	65535
+// SideDef			4		0x80330A00	0x80370A00	65535
 
 /*** PREDEFINE ***/
 
 typedef struct MVertex_s MVertex_t;
 typedef struct MFakeFloor_s MFakeFloor_t;
 typedef struct MSecNode_s MSecNode_t;
+typedef struct MSeg_s MSeg_t;
+typedef struct MSide_s MSide_t;
 typedef struct MLine_s MLine_t;
 typedef struct MSector_s MSector_t;
 typedef struct MObject_s MObject_t;
@@ -461,6 +530,7 @@ typedef struct MObject_s MObject_t;
 
 #define MVERTEXBASEADDR (MDSBASEADDR)
 #define MVERTEXMAX		UINT32_C(65535)
+#define MVERTEXSIZE		UINT32_C(8)
 
 /* MVertex_t -- Vertex in map */
 struct MVertex_s
@@ -473,6 +543,7 @@ struct MVertex_s
 
 #define MFFBASEADDR (MDSBASEADDR + UINT32_C(0x80000))
 #define MFFMAX		UINT32_C(127)
+#define MFFSIZE		UINT32_C(20)
 
 typedef enum MFakeFloorFlag_e
 {
@@ -500,26 +571,61 @@ typedef enum MFakeFloorFlag_e
 /* MFakeFloor_t -- Fake Floor */
 struct MFakeFloor_s
 {
-	MSector_t* Target;							// Target Sector
-	MSector_t* Ref;								// Reference Sector
+	VOIDP(MSector_t*) Target;					// Target Sector
+	VOIDP(MSector_t*) Ref;						// Reference Sector
 	uint32_t Flags;								// Flags of floor (as above)
-	MFakeFloor_t* Prev;							// Previous floor
-	MFakeFloor_t* Next;							// Next floor
+	VOIDP(MFakeFloor_t*) Prev;					// Previous floor
+	VOIDP(MFakeFloor_t*) Next;					// Next floor
 };
 
 /*** SECTOR NODES ***/
 
-#define MSECNODEBASEADDR (MDSBASEADDR + UINT32_C(0x80A00))
+#define MSECNODEBASEADDR	(MDSBASEADDR + UINT32_C(0x80A00))
+#define MSECNODEMAX			UINT32_C(8191)
+#define MSECNODESIZE		UINT32_C(24)
 
 /* MSecNode_t -- Sector Node */
 struct MSecNode_s
 {
-	MSector_t* Sector;							// Sector containing this thing
-	MObject_t* Thing;							// Specific Thing
-	MSecNode_t* TPrev;							// Previous thing
-	MSecNode_t* TNext;							// Next Thing
-	MSecNode_t* SPrev;							// Previous Sector
-	MSecNode_t* SNext;							// Next Sector
+	VOIDP(MSector_t*) Sector;					// Sector containing this thing
+	VOIDP(MObject_t*) Thing;					// Specific Thing
+	VOIDP(MSecNode_t*) TPrev;					// Previous thing
+	VOIDP(MSecNode_t*) TNext;					// Next Thing
+	VOIDP(MSecNode_t*) SPrev;					// Previous Sector
+	VOIDP(MSecNode_t*) SNext;					// Next Sector
+};
+
+/*** SEGS ***/
+
+#define MSEGBASEADDR	(MDSBASEADDR + UINT32_C(0xB0A00))
+#define MSEGMAX			UINT32_C(65535)
+#define MSEGSIZE		UINT32_C(40)
+
+/* MSeg_t -- Seg */
+struct MSeg_s
+{
+	VOIDP(MVertex_t*) Start;					// Starting point
+	VOIDP(MVertex_t*) End;						// Ending point
+	int32_t Side;								// Side
+	fixed_t Offset;								// Offset
+	angle_t Angle;								// Angle
+	VOIDP(MSide_t*) SideDef;					// SideDef used on
+	VOIDP(MLine_t*) LineDef;					// LineDef used on
+	VOIDP(MSector_t*) FrontSector;				// Sector in front of
+	VOIDP(MSector_t*) BackSector;				// Sector behind
+	fixed_t Length;								// Length of line
+};
+
+/*** SIDEDEF ***/
+
+#define MSIDEBASEADDR	(MDSBASEADDR + UINT32_C(0x80330A00))
+#define MSIDEMAX		UINT32_C(65535)
+#define MSIDESIZE		UINT32_C(4)
+
+/* MSide_t -- Side */
+struct MSide_t
+{
+	VOIDP(MSector_t*) Sector;					// Sector side faces
 };
 
 /******************************************************************************

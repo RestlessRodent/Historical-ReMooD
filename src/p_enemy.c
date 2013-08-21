@@ -2504,7 +2504,7 @@ void A_SmokeTrailer(mobj_t* actor, player_t* player, pspdef_t* psp, const PI_sar
 		return;
 	
 	// Only every 4 gametics
-	if (gametic % (4))
+	if (gametic & 3)
 		return;
 		
 	// GhostlyDeath <April 12, 2012> -- Extra puffs before v1.25
