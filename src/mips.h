@@ -141,6 +141,11 @@ typedef struct MIPS_CPU_s
 	
 	uint32_t jds;								// Delay Slot (Jump)
 	uint32_t jdsactive;							// Delay Slot Active (Jump)
+	
+	int32_t ldsat;								// Load Delay Slot At
+	uint32_t lds[2];							// Load Delay Slot
+	uint32_t ldsval[2];							// Load Delay Slot value
+	uint32_t ldsactive[2];						// Load Delay slot active
 } MIPS_CPU_t;
 
 typedef struct MIPS_VM_s MIPS_VM_t;

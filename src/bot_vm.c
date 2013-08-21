@@ -190,14 +190,6 @@ static bool_t BOT_SysCall(MIPS_VM_t* const a_VM, void* const a_Data)
 			fd = MIPS_ReadMemX(a_VM, kl + 4, 4);
 			
 			a_VM->CPU.r[MIPS_K1] = P_AproxDistance(fc - fa, fd - fb);
-			
-			CONL_PrintF("(%g, %g) -> (%g, %g) == %g)\n",
-					FIXED_TO_FLOAT(fa),
-					FIXED_TO_FLOAT(fb),
-					FIXED_TO_FLOAT(fc),
-					FIXED_TO_FLOAT(fd),
-					FIXED_TO_FLOAT(a_VM->CPU.r[MIPS_K1])
-				);
 			break;
 			
 			// SightTo(a, b) -> true/false

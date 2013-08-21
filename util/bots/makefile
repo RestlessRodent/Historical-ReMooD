@@ -92,6 +92,7 @@ $(foreach __in,${__BOT_BASE},$(eval $(call __rule,${__in})))
 
 %.o:			%.c start.o ../../src/bot_lib.h
 				${GCCDIR}/${GCCPREFIX}gcc -I ../../src/ -O0 -o $@ $< start.o -Wl,--just-symbols=extern.sym -T linker.ld -g -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -mabi=32 -G 1 -fno-merge-constants
+				${GCCDIR}/${GCCPREFIX}gcc -S -I ../../src/ -O0 $< -Wl,--just-symbols=extern.sym -T linker.ld -g -nostdlib -nostdinc -Wl,-Ttext,0x8000 -EL -march=mips32 -mabi=32 -G 1 -fno-merge-constants
 
 %.lmp:			%.o
 				${GCCDIR}/${GCCPREFIX}objcopy -O binary -j .text $< $@

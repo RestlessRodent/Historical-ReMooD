@@ -88,10 +88,13 @@ void main(void)
 	/* Head in default direction */
 	XDir = 0;
 	YDir = 1;
+	Mode = 0;
+	dx = dy = nd = ld = 0;
+	Now = Then = 0;
 	
 	/* Infinite Loop */
 	// Execute once every 2 tics
-	for (Then = 0, Mode = 0;; BSleep(1))
+	for (;; BSleep(1))
 	{
 		// If bot is dead, press use
 		if (g_Info.Health <= 0)
@@ -102,6 +105,7 @@ void main(void)
 			g_TicCmd.ForwardMove = 0;
 			
 			// Change time
+			Mode = 0;
 			Now = Then;
 			continue;
 		}
@@ -196,7 +200,7 @@ void main(void)
 			
 			// Set time until mode recheck target
 			Mode = 1;
-			Then = Now + TICRATE;
+			Then = Now/* + TICRATE*/;
 		}
 		
 		// Move to direction
@@ -219,6 +223,7 @@ void main(void)
 					// Loop prevents 0,0 target
 					do
 					{
+						GeneralChat("Run");
 						YDir++;
 					
 						if (YDir >= 2)
@@ -231,6 +236,20 @@ void main(void)
 						}
 					}
 					while (XDir == 0 && YDir == 0);
+					
+					if (YDir == -1)
+						GeneralChat("y = -1");
+					else if (YDir == 0)
+						GeneralChat("y = 0");
+					else
+						GeneralChat("y = 1");
+						
+					if (XDir == -1)
+						GeneralChat("x = -1");
+					else if (XDir == 0)
+						GeneralChat("x = 0");
+					else
+						GeneralChat("x = 1");
 					
 					// Recalculate target
 					Mode = 0;

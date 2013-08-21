@@ -191,9 +191,6 @@ static inline uint32_t MIPS_ReadMem(MIPS_VM_t* const a_VM, const uint_fast32_t a
 		if (a_Width == 4)
 		{
 			RetVal = LittleSwapUInt32(((uint32_t*)Map->RealMem)[BaseOff >> 2]);
-			
-			if (a_Addr >= 0x70000000)
-				CONL_PrintF("Read %08x <- %08x\n", RetVal, a_Addr);
 			return RetVal;
 		}
 		else if (a_Width == 2)
@@ -264,9 +261,6 @@ static inline void MIPS_WriteMem(MIPS_VM_t* const a_VM, const uint_fast32_t a_Ad
 	/* Memory Mapped */
 	if (Map->RealMem)
 	{
-		if (a_Addr >= 0x70000000)
-			CONL_PrintF("Write %08x -> %08x\n", LittleSwapUInt32(a_Val), a_Addr);
-		
 		if (a_Width == 4)
 			((uint32_t*)Map->RealMem)[BaseOff >> 2] = LittleSwapUInt32(a_Val);
 		else if (a_Width == 2)
@@ -393,7 +387,7 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #endif
 	)
 {
-	register uint_fast32_t i;
+	register uint_fast32_t i, j;
 	uint32_t Op, BaseOff;
 	uint32_t Am[6], NopCount;
 	MIPS_Map_t* Map;
@@ -472,15 +466,11 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 #define JDS a_VM->CPU.jds
 #define JDSA a_VM->CPU.jdsactive
 
-case 1:
+case 1:	// TODO FIXME: CONFIRM
 	if (A(2) == UINT32_C(0x10))
-	{
-		PRINTOP(("bltzal $%s, %4x", l_RegNames[A(1)], A(3)));
-	}
+		PRINTOP(("bltzal %s, %4x", l_RegNames[A(1)], A(3)));
 	else
-	{
-		PRINTOP(("bltz $%s, %4x", l_RegNames[A(1)], A(3)));
-	}
+		PRINTOP(("bltz %s, %4x", l_RegNames[A(1)], A(3)));
 	
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
@@ -512,7 +502,7 @@ case 3:		PRINTOP(("jal 0x%08x\n", A(3) << UINT32_C(2)));
 	ADVPC;
 	break;
 
-case 4:		PRINTOP(("beq $%s, $%s, %u\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3) << UINT32_C(2)));
+case 4:		PRINTOP(("beq %s, %s, %hi\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3) << UINT32_C(2)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
@@ -527,7 +517,7 @@ case 4:		PRINTOP(("beq $%s, $%s, %u\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3)
 	ADVPC;
 	break;
 
-case 5:		PRINTOP(("bne $%s, $%s, %u\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3) << UINT32_C(2)));
+case 5:		PRINTOP(("bne %s, %s, %hi\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3) << UINT32_C(2)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
@@ -542,13 +532,13 @@ case 5:		PRINTOP(("bne $%s, $%s, %u\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3)
 	ADVPC;
 	break;
 
-case 6:		PRINTOP(("blez $%s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
+case 6:		PRINTOP(("blez %s, %hi\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
 		BN.u32 = A(3);
 	
-	if (((int32_t)AR(1)) <= INT32_C(0))
+	if ((AR(1) & UINT32_C(0x80000000)) || AR(1) == 0)
 	{
 		JDS = PC + (BN.u32 << UINT32_C(2));
 		JDSA = 1;
@@ -557,13 +547,13 @@ case 6:		PRINTOP(("blez $%s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	ADVPC;
 	break;
 
-case 7:		PRINTOP(("bgtz $%s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
+case 7:	PRINTOP(("bgtz %s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
 		BN.u32 = A(3);
 	
-	if (((int32_t)AR(1)) > INT32_C(0))
+	if (((AR(1) & UINT32_C(0x80000000)) == 0) && AR(1) != 0)
 	{
 		JDS = PC + (BN.u32 << UINT32_C(2));
 		JDSA = 1;
@@ -573,38 +563,68 @@ case 7:		PRINTOP(("bgtz $%s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	break;
 
 	// addi == addiu, since there are no exceptions
-case 8:		PRINTOP(("addi $%s, $%s, %i\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
+case 8:
+case 9:		PRINTOP(("addi%s %s, %s, %i\n", (Am[0] == '8' ? "" : "u"), l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
 		BN.u32 = A(3);
-	AR(2) = AR(1) + BN.u32;
-	ADVPC;
-	break;
-
-case 9:		PRINTOP(("addiu $%s, $%s, %u\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
-	if (A(3) & UINT32_C(0x8000))
-		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
-	else
-		BN.u32 = A(3);
-	AR(2) = AR(1) + BN.u32;
-	ADVPC;
-	break;
-
-case 10:	PRINTOP(("slti $%s, $%s, %i\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
-	if (A(3) & UINT32_C(0x8000))
-		BN.i32 = UINT32_C(0xFFFF0000) | A(3);
-	else
-		BN.i32 = A(3);
 	
-	if (((int32_t)AR(1)) < BN.i32)
-		AR(2) = UINT32_C(1);
-	else
-		AR(2) = UINT32_C(0);
+	if (A(2) == MIPS_V0)
+		CONL_PrintF("addi%s %s, %s, %i (%i + %i = ", (Am[0] == '8' ? "" : "u"), l_RegNames[A(2)], l_RegNames[A(1)], A(3), AR(1), BN.u32);
+	AR(2) = AR(1) + BN.u32;
+	if (A(2) == MIPS_V0)
+		CONL_PrintF("%i\n", AR(2));
 	ADVPC;
 	break;
 
-case 11:	PRINTOP(("sltiu $%s, $%s, %u\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
+case 10:	PRINTOP(("slti %s, %s, %hi\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
+	CONL_PrintF("%08x: slti %s, %s, %hi (%i < %hi?)", PC, l_RegNames[A(2)], l_RegNames[A(1)], A(3), AR(1), A(3));
+
+	if (A(3) & UINT32_C(0x8000))
+		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
+	else
+		BN.u32 = A(3);
+	
+	// Argument 1 is negative
+	if (AR(1) & UINT32_C(0x80000000))
+	{
+		// If argument two is negative, if 1 is greater
+		if (BN.u32 & UINT32_C(0x80000000))
+		{
+			if (AR(1) > BN.u32)
+				AR(2) = UINT32_C(1);
+			else
+				AR(2) = UINT32_C(0);
+		}
+		
+		// Otherwise, always true
+		else 
+			AR(2) = UINT32_C(1);
+	}
+	
+	// Argument 2 is negative
+	else if (BN.u32 & UINT32_C(0x80000000))
+	{
+		// Always false (since 1st argument negativity already set)
+		AR(2) = UINT32_C(0);
+	}
+	
+	// Neither are negative
+	else
+	{
+		if (AR(1) < BN.u32)
+			AR(2) = UINT32_C(1);
+		else
+			AR(2) = UINT32_C(0);
+	}
+	
+	CONL_PrintF("%s\n", (AR(2) ? "yes" : "no"));
+	
+	ADVPC;
+	break;
+
+case 11:	PRINTOP(("sltiu %s, %s, %hu\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
@@ -617,37 +637,27 @@ case 11:	PRINTOP(("sltiu $%s, $%s, %u\n", l_RegNames[A(2)], l_RegNames[A(1)], A(
 	ADVPC;
 	break;
 
-case 12:	PRINTOP(("andi $%s, $%s, %u\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
+case 12:	PRINTOP(("andi %s, %s, %hu\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
 	AR(2) = AR(1) & A(3);
 	ADVPC;
 	break;
 
-case 13:	PRINTOP(("ori $%s, $%s, %u\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
+case 13:	PRINTOP(("ori %s, %s, %hu\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
 	AR(2) = AR(1) | A(3);
 	ADVPC;
 	break;
 
-case 14:	PRINTOP(("xori $%s, $%s, %u\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
+case 14:	PRINTOP(("xori %s, %s, %hu\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
 	AR(2) = AR(1) ^ A(3);
 	ADVPC;
 	break;
 
-case 15:	PRINTOP(("lui $%s, %u\n", l_RegNames[A(2)], A(3)));
+case 15:	PRINTOP(("lui %s, %hu\n", l_RegNames[A(2)], A(3)));
 	AR(2) = A(3) << UINT32_C(16);
 	ADVPC;
 	break;
 
-case 24:	PRINTOP(("llo $%s, %u\n", l_RegNames[A(2)], A(3)));
-	AR(2) = (AR(2) & UINT32_C(0x0000FFFF)) | A(3);
-	ADVPC;
-	break;
-
-case 25:	PRINTOP(("lhi $%s, %u\n", l_RegNames[A(2)], A(3)));
-	AR(2) = (AR(2) & UINT32_C(0xFFFF0000)) | (A(3) << UINT32_C(16));
-	ADVPC;
-	break;
-
-case 32:	PRINTOP(("lb $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 32:	PRINTOP(("lb %s, %hhu(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -659,7 +669,7 @@ case 32:	PRINTOP(("lb $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)])
 	ADVPC;
 	break;
 
-case 33:	PRINTOP(("lh $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 33:	PRINTOP(("lh %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -671,16 +681,20 @@ case 33:	PRINTOP(("lh $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)])
 	ADVPC;
 	break;
 
-case 35:	PRINTOP(("lw $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 35:	PRINTOP(("lw %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
+	if (A(2) == MIPS_V0 && (A(3) == 20 || A(3) == 16))
+		CONL_PrintF("[%08x] -> ", AR(1) + BN.u32);
 	AR(2) = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 4);
+	if (A(2) == MIPS_V0 && (A(3) == 20 || A(3) == 16))
+		CONL_PrintF("%i\n", AR(2));
 	ADVPC;
 	break;
 
-case 36:	PRINTOP(("lbu $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 36:	PRINTOP(("lbu %s, %hhu(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -689,7 +703,7 @@ case 36:	PRINTOP(("lbu $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]
 	ADVPC;
 	break;
 
-case 37:	PRINTOP(("lhu $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 37:	PRINTOP(("lhu %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -698,7 +712,7 @@ case 37:	PRINTOP(("lhu $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]
 	ADVPC;
 	break;
 
-case 40:	PRINTOP(("sb $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 40:	PRINTOP(("sb %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -707,7 +721,7 @@ case 40:	PRINTOP(("sb $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)])
 	ADVPC;
 	break;
 	
-case 41:	PRINTOP(("sh $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 41:	PRINTOP(("sh %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
@@ -716,54 +730,90 @@ case 41:	PRINTOP(("sh $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)])
 	ADVPC;
 	break;
 	
-case 43:	PRINTOP(("sw $%s, %u($%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
+case 43:	PRINTOP(("sw %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
+	if (A(2) == MIPS_V0 && (A(3) == 20 || A(3) == 16))
+		CONL_PrintF("[%08x] <- %i\n", AR(1) + BN.u32, AR(2));
 	MIPS_WriteMem(a_VM, AR(1) + BN.u32, 4, AR(2));
 	ADVPC;
 	break;
 
 BEGINARITH
 
-case 0:		PRINTOP(("sll $%s, $%s, %u\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4)));
+case 0:		PRINTOP(("sll %s, %s, %hu\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4)));
 	AR(3) = AR(2) << A(4);
 	ADVPC;
 	break;
 
-case 2:		PRINTOP(("srl $%s, $%s, %u\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4)));
+case 2:		PRINTOP(("srl %s, %s, %hu\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4)));
 	AR(3) = AR(2) >> A(4);
 	ADVPC;
 	break;
 
-case 3:		PRINTOP(("sra $%s, $%s, %u\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4)));
-	AR(3) = ((int32_t)AR(2)) >> ((int32_t)A(4));
+case 3:		PRINTOP(("sra %s, %s, %hu\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4)));
+	if (AR(2) & UINT32_C(0x80000000))
+	{
+		if (A(4) >= UINT32_C(32))
+			AR(3) = UINT32_C(0xFFFFFFFF);
+		else
+		{
+			AR(2) = AR(3);
+			for (j = 0; j < A(4); j++)
+			{
+				AR(3) >>= 1;
+				AR(3) |= UINT32_C(0x800000000);
+			}
+		}
+	}
+	
+	else
+		AR(3) = AR(2) >> A(4);
+	
 	ADVPC;
 	break;
 
-case 4:		PRINTOP(("sllv $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_RegNames[A(1)]));
+case 4:		PRINTOP(("sllv %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_RegNames[A(1)]));
 	AR(3) = AR(2) << AR(1);
 	ADVPC;
 	break;
 
-case 6:		PRINTOP(("srlv $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_RegNames[A(1)]));
+case 6:		PRINTOP(("srlv %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_RegNames[A(1)]));
 	AR(3) = AR(2) >> AR(1);
 	ADVPC;
 	break;
 	
-case 7:		PRINTOP(("srav $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_RegNames[A(1)]));
-	AR(3) = ((int32_t)AR(2)) >> ((int32_t)AR(1));
+case 7:		PRINTOP(("srav %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_RegNames[A(1)]));
+	if (AR(2) & UINT32_C(0x80000000))
+	{
+		if (AR(1) >= UINT32_C(32))
+			AR(3) = UINT32_C(0xFFFFFFFF);
+		else
+		{
+			AR(2) = AR(3);
+			for (j = 0; j < AR(1); j++)
+			{
+				AR(3) >>= 1;
+				AR(3) |= UINT32_C(0x800000000);
+			}
+		}
+	}
+	
+	else
+		AR(3) = AR(2) >> AR(1);
+	
 	ADVPC;
 	break;
 
-case 8:		PRINTOP(("jr $%s\n", l_RegNames[A(1)]));
+case 8:		PRINTOP(("jr %s\n", l_RegNames[A(1)]));
 	JDS = AR(1);
 	JDSA = 1;
 	ADVPC;
 	break;
 
-case 9:		PRINTOP(("jalr $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)]));
+case 9:		PRINTOP(("jalr %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)]));
 	AR(3) = PC + UINT32_C(8);
 	JDS = AR(1);
 	JDSA = 1;
@@ -777,41 +827,41 @@ case 12:	PRINTOP(("syscall\n"));
 	ADVPC;
 	break;
 
-case 16:	PRINTOP(("mfhi $%s\n", l_RegNames[A(3)]));
+case 16:	PRINTOP(("mfhi %s\n", l_RegNames[A(3)]));
 	AR(3) = HI;
 	ADVPC;
 	break;
 
-case 17:	PRINTOP(("mthi $%s\n", l_RegNames[A(1)]));
+case 17:	PRINTOP(("mthi %s\n", l_RegNames[A(1)]));
 	HI = AR(1);
 	ADVPC;
 	break;
 
-case 18:	PRINTOP(("mflo $%s\n", l_RegNames[A(3)]));
+case 18:	PRINTOP(("mflo %s\n", l_RegNames[A(3)]));
 	AR(3) = LO;
 	ADVPC;
 	break;
 
-case 19:	PRINTOP(("mtlo $%s\n", l_RegNames[A(1)]));
+case 19:	PRINTOP(("mtlo %s\n", l_RegNames[A(1)]));
 	LO = AR(1);
 	ADVPC;
 	break;
 	
-case 24:	PRINTOP(("mult $%s, $%s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
+case 24:	PRINTOP(("mult %s, %s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
 	BN.i = ((int64_t)AR(1)) * ((int64_t)AR(2));
 	HI = (BN.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
 	LO = BN.u & UINT64_C(0xFFFFFFFF);
 	ADVPC;
 	break;
 	
-case 25:	PRINTOP(("multu $%s, $%s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
+case 25:	PRINTOP(("multu %s, %s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
 	BN.u = ((uint64_t)AR(1)) * ((uint64_t)AR(2));
 	HI = (BN.u >> UINT64_C(32)) & UINT64_C(0xFFFFFFFF);
 	LO = BN.u & UINT64_C(0xFFFFFFFF);
 	ADVPC;
 	break;
 
-case 26:	PRINTOP(("div $%s, $%s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
+case 26:	PRINTOP(("div %s, %s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
 	if (AR(2) != UINT32_C(0))
 	{
 		LO = ((int32_t)AR(1)) / ((int32_t)AR(2));
@@ -820,7 +870,7 @@ case 26:	PRINTOP(("div $%s, $%s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
 	ADVPC;
 	break;
 
-case 27:	PRINTOP(("divu $%s, $%s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
+case 27:	PRINTOP(("divu %s, %s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
 	if (AR(2) != UINT32_C(0))
 	{
 		LO = AR(1) / AR(2);
@@ -830,51 +880,51 @@ case 27:	PRINTOP(("divu $%s, $%s\n", l_RegNames[A(1)], l_RegNames[A(2)]));
 	break;
 
 	// add == addu, Since I do not support exceptions
-case 32:	PRINTOP(("add $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 32:	PRINTOP(("add %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	AR(3) = AR(1) + AR(2);
 	ADVPC;
 	break;
 
-case 33:	PRINTOP(("addu $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 33:	PRINTOP(("addu %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	AR(3) = AR(1) + AR(2);
 	ADVPC;
 	break;
 
 	// sub == subu, Since I do not support exceptions
-case 34:	PRINTOP(("sub $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 34:	PRINTOP(("sub %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	BN.u32 = ((~AR(2)) + UINT32_C(1));
 	AR(3) = AR(1) + BN.u32;
 	ADVPC;
 	break;
 
-case 35:	PRINTOP(("subu $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 35:	PRINTOP(("subu %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	BN.u32 = ((~AR(2)) + UINT32_C(1));
 	AR(3) = AR(1) + BN.u32;
 	ADVPC;
 	break;
 
-case 36:	PRINTOP(("and $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 36:	PRINTOP(("and %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	AR(3) = AR(1) & AR(2);
 	ADVPC;
 	break;
 
-case 37:	PRINTOP(("or $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 37:	PRINTOP(("or %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	AR(3) = AR(1) | AR(2);
 	ADVPC;
 	break;
 
-case 38:	PRINTOP(("xor $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 38:	PRINTOP(("xor %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	AR(3) = AR(1) ^ AR(2);
 	ADVPC;
 	break;
 
-case 39:	PRINTOP(("nor $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 39:	PRINTOP(("nor %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	AR(3) = ~(AR(1) | AR(2));
 	ADVPC;
 	break;
 
-case 42:	PRINTOP(("slt $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
-	CONL_PrintF("%i <? %i\n", AR(1), AR(2));	
+case 42:	PRINTOP(("slt %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+	CONL_PrintF("%08x: slt %s, %s, %s (%i < %i?)", PC, l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)], AR(1), AR(2));
 	
 	// Argument 1 is negative
 	if (AR(1) & UINT32_C(0x80000000))
@@ -909,10 +959,12 @@ case 42:	PRINTOP(("slt $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_R
 			AR(3) = UINT32_C(0);
 	}
 	
+	CONL_PrintF("%s\n", (AR(3) ? "yes" : "no"));
+	
 	ADVPC;
 	break;
 
-case 43:	PRINTOP(("sltu $%s, $%s, $%s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
+case 43:	PRINTOP(("sltu %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
 	if (AR(1) < AR(2))
 		AR(3) = UINT32_C(1);
 	else
@@ -944,7 +996,7 @@ default:	PRINTOP(("unk%02x\n", Am[0]));
 		{
 			for (x = 0; x < 32; x++)
 				if (OldCPU.r[x] != a_VM->CPU.r[x])
-					CONL_PrintF("$%s = (0x%08x -> 0x%08x)\n", l_RegNames[x], OldCPU.r[x], a_VM->CPU.r[x]);
+					CONL_PrintF("%s = (0x%08x -> 0x%08x)\n", l_RegNames[x], OldCPU.r[x], a_VM->CPU.r[x]);
 					
 			if (OldCPU.hi != OldCPU.hi)
 				CONL_PrintF("$hi = (0x%08x -> 0x%08x)\n", OldCPU.hi, a_VM->CPU.hi);
