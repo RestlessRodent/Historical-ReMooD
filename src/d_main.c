@@ -2423,6 +2423,9 @@ void D_DoomMain(void)
 	// Initialize Console
 	CONL_Init(4096, 1024);
 	
+	// GhostlyDeath <December 14, 2011> -- Use extended identify version
+	D_LoadGameFilesEx();
+	
 	/* Start Graphics REALLY early! */
 	VHW_Init(VHWMODE_IDXSOFT);			// Just in case!
 	SCR_SetDefaultMode();				// Screen Size
@@ -2458,9 +2461,6 @@ void D_DoomMain(void)
 	//D_CheckNetGame();					// initialize net game
 	BOT_Init();							// Initialize bots
 	/**************************/
-	
-	// GhostlyDeath <December 14, 2011> -- Use extended identify version
-	D_LoadGameFilesEx();
 	
 	nomonsters = M_CheckParm("-nomonsters");
 	
