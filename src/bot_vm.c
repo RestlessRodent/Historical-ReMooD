@@ -221,10 +221,7 @@ static bool_t BOT_SysCall(MIPS_VM_t* const a_VM, void* const a_Data)
 			
 			// Send chat to SN system
 			if (Buf[0])
-				;//SN_SendChat(Bot->Port, false, Buf);
-			
-			// Debug
-			CONL_PrintF("Will chat \"%s\"\n", Buf);
+				SN_SendChat(Bot->Port, false, Buf);
 			break;
 		
 			// Unknown SysCall

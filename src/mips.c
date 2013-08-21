@@ -569,18 +569,11 @@ case 9:		PRINTOP(("addi%s %s, %s, %i\n", (Am[0] == '8' ? "" : "u"), l_RegNames[A
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
 		BN.u32 = A(3);
-	
-	if (A(2) == MIPS_V0)
-		CONL_PrintF("addi%s %s, %s, %i (%i + %i = ", (Am[0] == '8' ? "" : "u"), l_RegNames[A(2)], l_RegNames[A(1)], A(3), AR(1), BN.u32);
 	AR(2) = AR(1) + BN.u32;
-	if (A(2) == MIPS_V0)
-		CONL_PrintF("%i\n", AR(2));
 	ADVPC;
 	break;
 
 case 10:	PRINTOP(("slti %s, %s, %hi\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)));
-	CONL_PrintF("%08x: slti %s, %s, %hi (%i < %hi?)", PC, l_RegNames[A(2)], l_RegNames[A(1)], A(3), AR(1), A(3));
-
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
@@ -618,8 +611,6 @@ case 10:	PRINTOP(("slti %s, %s, %hi\n", l_RegNames[A(2)], l_RegNames[A(1)], A(3)
 		else
 			AR(2) = UINT32_C(0);
 	}
-	
-	CONL_PrintF("%s\n", (AR(2) ? "yes" : "no"));
 	
 	ADVPC;
 	break;
@@ -686,11 +677,7 @@ case 35:	PRINTOP(("lw %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
-	if (A(2) == MIPS_V0 && (A(3) == 20 || A(3) == 16))
-		CONL_PrintF("[%08x] -> ", AR(1) + BN.u32);
 	AR(2) = MIPS_ReadMem(a_VM, AR(1) + BN.u32, 4);
-	if (A(2) == MIPS_V0 && (A(3) == 20 || A(3) == 16))
-		CONL_PrintF("%i\n", AR(2));
 	ADVPC;
 	break;
 
@@ -735,8 +722,6 @@ case 43:	PRINTOP(("sw %s, %hi(%s)\n", l_RegNames[A(2)], A(3), l_RegNames[A(1)]))
 		BN.u32 = A(3) | UINT32_C(0xFFFF0000);
 	else
 		BN.u32 = A(3);
-	if (A(2) == MIPS_V0 && (A(3) == 20 || A(3) == 16))
-		CONL_PrintF("[%08x] <- %i\n", AR(1) + BN.u32, AR(2));
 	MIPS_WriteMem(a_VM, AR(1) + BN.u32, 4, AR(2));
 	ADVPC;
 	break;
@@ -924,8 +909,6 @@ case 39:	PRINTOP(("nor %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegN
 	break;
 
 case 42:	PRINTOP(("slt %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)]));
-	CONL_PrintF("%08x: slt %s, %s, %s (%i < %i?)", PC, l_RegNames[A(3)], l_RegNames[A(1)], l_RegNames[A(2)], AR(1), AR(2));
-	
 	// Argument 1 is negative
 	if (AR(1) & UINT32_C(0x80000000))
 	{
@@ -958,8 +941,6 @@ case 42:	PRINTOP(("slt %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(1)], l_RegN
 		else
 			AR(3) = UINT32_C(0);
 	}
-	
-	CONL_PrintF("%s\n", (AR(3) ? "yes" : "no"));
 	
 	ADVPC;
 	break;
