@@ -396,10 +396,10 @@ else\
 	
 	var1.u = UINT32_C(0x13370000);
 	
-	asm __volatile__("sra "VC", "VA", 40");
+	asm __volatile__("sra "VC", "VA", 31");
 	
 	if (var3.u == UINT32_C(0x00000000))
-		PASSFAIL("SRA 0x13370000 >>= 40");
+		PASSFAIL("SRA 0x13370000 >>= 31");
 	
 	__MEM;
 	
@@ -423,10 +423,10 @@ else\
 	
 	var1.u = UINT32_C(0x93370000);
 	
-	asm __volatile__("sra "VC", "VA", 40");
+	asm __volatile__("sra "VC", "VA", 31");
 	
 	if (var3.u == UINT32_C(0xFFFFFFFF))
-		PASSFAIL("SRA 0x93370000 >>= 40");
+		PASSFAIL("SRA 0x93370000 >>= 31");
 	
 	__MEM;
 	
