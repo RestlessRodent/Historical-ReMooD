@@ -778,12 +778,13 @@ case 7:		PRINTOP(("srav %s, %s, %s\n", l_RegNames[A(3)], l_RegNames[A(2)], l_Reg
 			AR(3) = UINT32_C(0xFFFFFFFF);
 		else
 		{
-			AR(2) = AR(3);
+			BN.u32 = AR(2);
 			for (j = 0; j < AR(1); j++)
 			{
-				AR(3) >>= 1;
-				AR(3) |= UINT32_C(0x800000000);
+				BN.u32 >>= 1;
+				BN.u32 |= UINT32_C(0x80000000);
 			}
+			AR(3) = BN.u32;
 		}
 	}
 	

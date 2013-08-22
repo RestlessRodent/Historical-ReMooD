@@ -430,6 +430,67 @@ else\
 	
 	__MEM;
 	
+	/* SRAV */
+	var1.u = UINT32_C(0x13370000);
+	var2.u = UINT32_C(16);
+	
+	asm __volatile__("srav "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00001337))
+		PASSFAIL("SRAV 0x13370000 >>= 16");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x13370000);
+	var2.u = UINT32_C(24);
+	
+	asm __volatile__("srav "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000013))
+		PASSFAIL("SRAV 0x13370000 >>= 24");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x13370000);
+	var2.u = UINT32_C(31);
+	
+	asm __volatile__("srav "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SRAV 0x13370000 >>= 31");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x93370000);
+	var2.u = UINT32_C(16);
+	
+	asm __volatile__("srav "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0xFFFF9337))
+		PASSFAIL("SRAV 0x93370000 >>= 16");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x93370000);
+	var2.u = UINT32_C(24);
+	
+	asm __volatile__("srav "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0xFFFFFF93))
+		PASSFAIL("SRAV 0x93370000 >>= 24");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x93370000);
+	var2.u = UINT32_C(31);
+	
+	asm __volatile__("srav "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0xFFFFFFFF))
+		PASSFAIL("SRAV 0x93370000 >>= 31");
+	
+	__MEM;
+	
 	/* MF SERIES */
 #if 0
 	var1.u = UINT32_C(0xDEADBEEF);
