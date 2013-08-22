@@ -745,12 +745,13 @@ case 3:		PRINTOP(("sra %s, %s, %hu\n", l_RegNames[A(3)], l_RegNames[A(2)], A(4))
 			AR(3) = UINT32_C(0xFFFFFFFF);
 		else
 		{
-			AR(2) = AR(3);
+			BN.u32 = AR(2);
 			for (j = 0; j < A(4); j++)
 			{
-				AR(3) >>= 1;
-				AR(3) |= UINT32_C(0x800000000);
+				BN.u32 >>= 1;
+				BN.u32 |= UINT32_C(0x80000000);
 			}
+			AR(3) = BN.u32;
 		}
 	}
 	
