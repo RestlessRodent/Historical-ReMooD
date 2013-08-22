@@ -94,10 +94,15 @@ void main(void)
 #define VB "$s6"
 #define VC "$s7"
 	
-#define PASSFAIL(x) \
+#define FAILPASS(x) \
 	GeneralChat("FAIL: "x);\
 else\
 	GeneralChat("PASS: "x);
+	
+#define PASSFAIL(x) \
+	GeneralChat("PASS: "x);\
+else\
+	GeneralChat("FAIL: "x);
 
 	volatile register union
 	{
@@ -129,7 +134,7 @@ else\
 	asm __volatile__("addu "VC", "VA", "VB"");
 	
 	if (var3.u != UINT32_C(0x99999999))
-		PASSFAIL("ADD/ADDU");
+		FAILPASS("ADD/ADDU");
 	
 	__MEM;
 	
@@ -139,7 +144,7 @@ else\
 	asm __volatile__("addiu "VC", "VA", 0x8642");
 	
 	if (var3.u != UINT32_C(0x1233DCBA))
-		PASSFAIL("ADDI/ADDIU");
+		FAILPASS("ADDI/ADDIU");
 	
 	__MEM;
 	
@@ -150,7 +155,7 @@ else\
 	asm __volatile__("and "VC", "VA", "VB"");
 	
 	if (var3.u != UINT32_C(0xCAACBAAE))
-		PASSFAIL("AND");
+		FAILPASS("AND");
 	
 	__MEM;
 	
@@ -160,7 +165,7 @@ else\
 	asm __volatile__("andi "VC", "VA", 0x1337");
 	
 	if (var3.u != UINT32_C(0x00001236))
-		PASSFAIL("ANDI");
+		FAILPASS("ANDI");
 	
 	__MEM;
 	
@@ -171,7 +176,7 @@ else\
 	asm __volatile__("xor "VC", "VA", "VB"");
 	
 	if (var3.u != UINT32_C(0xCD9A3AF1))
-		PASSFAIL("XOR");
+		FAILPASS("XOR");
 	
 	__MEM;
 	
@@ -181,7 +186,7 @@ else\
 	asm __volatile__("xori "VC", "VA", 0xBADA");
 	
 	if (var3.u != UINT32_C(0x8BAD4AD7))
-		PASSFAIL("XORI");
+		FAILPASS("XORI");
 	
 	__MEM;
 	
@@ -196,11 +201,11 @@ else\
 	
 	asm __volatile__("mfhi "VC"");
 	if (var3.i != INT32_C(1))
-		PASSFAIL("DIV (HI)");
+		FAILPASS("DIV (HI)");
 	
 	asm __volatile__("mflo "VC"");
 	if (var3.i != INT32_C(4))
-		PASSFAIL("DIV (LO)");
+		FAILPASS("DIV (LO)");
 	
 	__MEM;
 	
@@ -212,13 +217,13 @@ else\
 	asm __volatile__("lb "VA", -4("VA")");
 	
 	if (var1.u != UINT32_C(0x0000000D))
-		PASSFAIL("LB (4)");
+		FAILPASS("LB (4)");
 	
 	if (var2.u != UINT32_C(0x00000042))
-		PASSFAIL("LB (0)");
+		FAILPASS("LB (0)");
 	
 	if (var3.u != UINT32_C(0xFFFFFFBE))
-		PASSFAIL("LB (-4)");
+		FAILPASS("LB (-4)");
 	
 	__MEM;
 		
@@ -230,13 +235,13 @@ else\
 	asm __volatile__("lw "VA", -4("VA")");
 	
 	if (var1.u != UINT32_C(0x1337D00D))
-		PASSFAIL("LW (4)");
+		FAILPASS("LW (4)");
 	
 	if (var2.u != UINT32_C(0x80BADE42))
-		PASSFAIL("LW (0)");
+		FAILPASS("LW (0)");
 	
 	if (var3.u != UINT32_C(0xCAFEBABE))
-		PASSFAIL("LW (-4)");
+		FAILPASS("LW (-4)");
 	
 	__MEM;
 	
@@ -244,7 +249,184 @@ else\
 	asm __volatile__("lui "VC", 0xCAFE");
 	
 	if (var3.u != UINT32_C(0xCAFE0000))
-		PASSFAIL("LUI");
+		FAILPASS("LUI");
+	
+	__MEM;
+	
+	/* SLT */
+	var1.i = INT32_C(70);
+	var2.i = INT32_C(99);
+	
+	asm __volatile__("slt "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000001))
+		PASSFAIL("SLT 70 < 99");
+		
+	__MEM;
+		
+	var1.i = INT32_C(99);
+	var2.i = INT32_C(70);
+	
+	asm __volatile__("slt "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SLT 99 < 70");
+		
+	__MEM;
+		
+	var1.i = INT32_C(-70);
+	var2.i = INT32_C(99);
+	
+	asm __volatile__("slt "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000001))
+		PASSFAIL("SLT -70 < 99");
+		
+	__MEM;
+		
+	var1.i = INT32_C(-99);
+	var2.i = INT32_C(70);
+	
+	asm __volatile__("slt "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000001))
+		PASSFAIL("SLT -99 < 70");
+		
+	__MEM;
+		
+	var1.i = INT32_C(70);
+	var2.i = INT32_C(-99);
+	
+	asm __volatile__("slt "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SLT 70 < -99");
+		
+	__MEM;
+		
+	var1.i = INT32_C(99);
+	var2.i = INT32_C(-70);
+	
+	asm __volatile__("slt "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SLT 99 < -70");
+		
+	__MEM;
+	
+	/* SLTU */
+	var1.i = INT32_C(70);
+	var2.i = INT32_C(99);
+	
+	asm __volatile__("sltu "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000001))
+		PASSFAIL("SLTU 70 < 99");
+		
+	__MEM;
+		
+	var1.i = INT32_C(99);
+	var2.i = INT32_C(70);
+	
+	asm __volatile__("sltu "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SLTU 99 < 70");
+		
+	__MEM;
+		
+	var1.i = INT32_C(-70);
+	var2.i = INT32_C(99);
+	
+	asm __volatile__("sltu "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SLTU -70 < 99");
+		
+	__MEM;
+		
+	var1.i = INT32_C(-99);
+	var2.i = INT32_C(70);
+	
+	asm __volatile__("sltu "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SLTU -99 < 70");
+		
+	__MEM;
+		
+	var1.i = INT32_C(70);
+	var2.i = INT32_C(-99);
+	
+	asm __volatile__("sltu "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000001))
+		PASSFAIL("SLTU 70 < -99");
+		
+	__MEM;
+		
+	var1.i = INT32_C(99);
+	var2.i = INT32_C(-70);
+	
+	asm __volatile__("sltu "VC", "VA", "VB"");
+	
+	if (var3.u == UINT32_C(0x00000001))
+		PASSFAIL("SLTU 99 < -70");
+		
+	__MEM;
+	
+	/* SRA */
+	var1.u = UINT32_C(0x13370000);
+	
+	asm __volatile__("sra "VC", "VA", 16");
+	
+	if (var3.u == UINT32_C(0x00001337))
+		PASSFAIL("SRA 0x13370000 >>= 16");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x13370000);
+	
+	asm __volatile__("sra "VC", "VA", 24");
+	
+	if (var3.u == UINT32_C(0x00000013))
+		PASSFAIL("SRA 0x13370000 >>= 24");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x13370000);
+	
+	asm __volatile__("sra "VC", "VA", 40");
+	
+	if (var3.u == UINT32_C(0x00000000))
+		PASSFAIL("SRA 0x13370000 >>= 40");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x93370000);
+	
+	asm __volatile__("sra "VC", "VA", 16");
+	
+	if (var3.u == UINT32_C(0xFFFF9337))
+		PASSFAIL("SRA 0x93370000 >>= 16");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x93370000);
+	
+	asm __volatile__("sra "VC", "VA", 24");
+	
+	if (var3.u == UINT32_C(0xFFFFFF93))
+		PASSFAIL("SRA 0x93370000 >>= 24");
+	
+	__MEM;
+	
+	var1.u = UINT32_C(0x93370000);
+	
+	asm __volatile__("sra "VC", "VA", 40");
+	
+	if (var3.u == UINT32_C(0xFFFFFFFF))
+		PASSFAIL("SRA 0x93370000 >>= 40");
 	
 	__MEM;
 	
