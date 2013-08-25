@@ -110,8 +110,6 @@ void main(void)
 			continue;
 		}
 		
-		GeneralChat("Enter loop");
-		
 		// Let go of use
 		g_TicCmd.Buttons &= ~BLT_USE;
 		
@@ -139,17 +137,17 @@ void main(void)
 				if (YDir == 1)
 				{
 					g_TicCmd.LookAngle = ANG45;
-					GeneralChat("Heading North East");
+					//GeneralChat("Heading North East");
 				}
 				else if (YDir == 0)
 				{
 					g_TicCmd.LookAngle = 0;
-					GeneralChat("Heading East");
+					//GeneralChat("Heading East");
 				}
 				else
 				{
 					g_TicCmd.LookAngle = ANG315;
-					GeneralChat("Heading South East");
+					//GeneralChat("Heading South East");
 				}
 			}
 			
@@ -158,17 +156,17 @@ void main(void)
 				if (YDir == 1)
 				{
 					g_TicCmd.LookAngle = ANG90;
-					GeneralChat("Heading North");
+					//GeneralChat("Heading North");
 				}
 				else if (YDir == 0)
 				{
 					g_TicCmd.LookAngle = 0;
-					GeneralChat("Heading Nowhere");
+					//GeneralChat("Heading Nowhere");
 				}
 				else
 				{
 					g_TicCmd.LookAngle = ANG270;
-					GeneralChat("Heading South");
+					//GeneralChat("Heading South");
 				}
 			}
 			
@@ -177,17 +175,17 @@ void main(void)
 				if (YDir == 1)
 				{
 					g_TicCmd.LookAngle = ANG135;
-					GeneralChat("Heading North West");
+					//GeneralChat("Heading North West");
 				}
 				else if (YDir == 0)
 				{
 					g_TicCmd.LookAngle = ANG180;
-					GeneralChat("Heading West");
+					//GeneralChat("Heading West");
 				}
 				else
 				{
 					g_TicCmd.LookAngle = ANG225;
-					GeneralChat("Heading South West");
+					//GeneralChat("Heading South West");
 				}
 			}
 			
@@ -200,16 +198,16 @@ void main(void)
 			
 			// Set time until mode recheck target
 			Mode = 1;
-			Then = Now/* + TICRATE*/;
+			Then = Now + 2;
+			
+			// Walk to this point
+			g_TicCmd.ForwardMove = MAXRUNSPEED;
 		}
 		
 		// Move to direction
 		else
 		{
-			// Walk to this point
-			g_TicCmd.ForwardMove = MAXRUNSPEED;
-			
-			// Caluclate Distance always
+			// Calculate Distance always
 			nd = DistTo(dx, dy) >> FRACBITS;
 			
 			// Check to see if we are getting closer to our destination
@@ -218,38 +216,13 @@ void main(void)
 				// If we are not getting any closer... change direction
 				if (nd >= ld)
 				{
-					GeneralChat("Moving away!?!?");
-					
 					// Loop prevents 0,0 target
 					do
 					{
-						GeneralChat("Run");
-						YDir++;
-					
-						if (YDir >= 2)
-						{
-							YDir = -1;
-							XDir++;
-						
-							if (XDir >= 2)
-								XDir = -1;
-						}
+						XDir = RandomLTZGT();
+						YDir = RandomLTZGT();
 					}
 					while (XDir == 0 && YDir == 0);
-					
-					if (YDir == -1)
-						GeneralChat("y = -1");
-					else if (YDir == 0)
-						GeneralChat("y = 0");
-					else
-						GeneralChat("y = 1");
-						
-					if (XDir == -1)
-						GeneralChat("x = -1");
-					else if (XDir == 0)
-						GeneralChat("x = 0");
-					else
-						GeneralChat("x = 1");
 					
 					// Recalculate target
 					Mode = 0;
@@ -259,8 +232,6 @@ void main(void)
 				// Remember this distance (it will get smaller)
 				else
 				{
-					GeneralChat("In range");
-					
 					// Set destination point
 					dx = g_Info.x + ((1024 << FRACBITS) * XDir);
 					dy = g_Info.y + ((1024 << FRACBITS) * YDir);

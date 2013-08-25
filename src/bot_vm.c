@@ -224,6 +224,15 @@ static bool_t BOT_SysCall(MIPS_VM_t* const a_VM, void* const a_Data)
 				SN_SendChat(Bot->Port, false, Buf);
 			break;
 		
+			// Returns a random number
+		case BOTSYSCALL_RANDLTZGT:
+			fa = M_Random() & 3;
+			
+			a_VM->CPU.r[MIPS_K1] = !!(fa & 1);
+			
+			if (fa & 2)
+				a_VM->CPU.r[MIPS_K1] = (~a_VM->CPU.r[MIPS_K1]) + 1;
+			
 			// Unknown SysCall
 		default:
 			break;

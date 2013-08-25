@@ -443,6 +443,7 @@ typedef struct BL_GameInfo_s
 #define BOTSYSCALL_DISTTO		UINT32_C(0x00000003)
 #define BOTSYSCALL_SIGHTTO		UINT32_C(0x00000004)
 #define BOTSYSCALL_CHAT			UINT32_C(0x00000005)
+#define BOTSYSCALL_RANDLTZGT	UINT32_C(0x00000006)
 
 #if !defined(__REMOOD_INCLUDED)
 	#define VOIDP(x) x
@@ -733,12 +734,16 @@ static inline void GeneralChat(const char* const a_Msg)
 	____SYSCALL_DO(BOTSYSCALL_CHAT, a_Msg);
 }
 
-/* MBi32() -- Memory Barrier */
-static inline volatile int32_t MBi32(volatile const int32_t a_In)
+/* RandomLTZGT() -- Returns either -1, 0, or 1 */
+static inline int32_t RandomLTZGT(void)
 {
-	volatile const int32_t* p = &a_In;
-	asm __volatile__("" : : : "memory");
-	return *p;
+	____SYSCALL_INTRO;
+	
+	/* Call Handler */
+	____SYSCALL_DO(BOTSYSCALL_RANDLTZGT, 0);
+	
+	/* Return result */
+	return kl;
 }
 
 #undef ____SYSCALL_INTRO
