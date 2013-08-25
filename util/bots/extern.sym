@@ -12,3 +12,11 @@ g_Account =   0x00054000;
 g_Info		= 0x60010000;
 g_Real		= 0x60020000;
 
+MVertexes	= 0x80000000;
+MFFloors	= 0x80080000;
+MSecNodes	= 0x80080A00;
+MSegs		= 0x800B0A00;
+MSides		= 0x80330A00;
+MLines		= 0x80370A00;
+MSubSectors = 0x80A30A00;
+

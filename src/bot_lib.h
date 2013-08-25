@@ -447,8 +447,12 @@ typedef struct BL_GameInfo_s
 
 #if !defined(__REMOOD_INCLUDED)
 	#define VOIDP(x) x
+	#define PCAST(s,x) ((s)(x))
+	#define AOF(s,b,z,g,i) &(((s)(g))[(i)])
 #else
 	#define VOIDP(x) uint32_t
+	#define PCAST(s,x) ((uint32_t)(x))
+	#define AOF(s,b,z,g,i) ((uint32_t)((b) + ((z) * (i))))
 #endif
 
 /**************************
@@ -469,7 +473,9 @@ typedef struct BL_GameInfo_s
 // Fake Floors		20		0x80080000	0x800809FF	127
 // Sector Nodes		24		0x80080A00	0x800B09FF	8191
 // Seg				40		0x800B0A00	0x803309FF	65535
-// SideDef			4		0x80330A00	0x80370A00	65535
+// SideDef			4		0x80330A00	0x803709FF	65535
+// LineDef			108		0x80370A00	0x80A309FF	65535
+// SubSector		36		0x80A30A00	0x80C70A00	65535
 
 /*** PREDEFINE ***/
 
@@ -479,6 +485,7 @@ typedef struct MSecNode_s MSecNode_t;
 typedef struct MSeg_s MSeg_t;
 typedef struct MSide_s MSide_t;
 typedef struct MLine_s MLine_t;
+typedef struct MSubS_s MSubS_t;
 typedef struct MSector_s MSector_t;
 typedef struct MObject_s MObject_t;
 typedef struct MPlayer_s MPlayer_t;
@@ -488,6 +495,7 @@ typedef struct MPlayer_s MPlayer_t;
 #define MVERTEXBASEADDR (MDSBASEADDR)
 #define MVERTEXMAX		UINT32_C(65535)
 #define MVERTEXSIZE		UINT32_C(8)
+#define MVERTEXIDTOP(x)	AOF(MVertex_t,MVERTEXBASEADDR,MVERTEXSIZE,MVertexes,(x))
 
 /* MVertex_t -- Vertex in map */
 struct MVertex_s
@@ -501,6 +509,7 @@ struct MVertex_s
 #define MFFBASEADDR (MDSBASEADDR + UINT32_C(0x80000))
 #define MFFMAX		UINT32_C(127)
 #define MFFSIZE		UINT32_C(20)
+#define MFFIDTOP(x)	AOF(MFakeFloor_t,MFFBASEADDR,MFFSIZE,MFFloors,(x))
 
 typedef enum MFakeFloorFlag_e
 {
@@ -540,6 +549,7 @@ struct MFakeFloor_s
 #define MSECNODEBASEADDR	(MDSBASEADDR + UINT32_C(0x80A00))
 #define MSECNODEMAX			UINT32_C(8191)
 #define MSECNODESIZE		UINT32_C(24)
+#define MSECNODEIDTOP(x)	AOF(MSecNode_t,MSECNODEBASEADDR,MSECNODESIZE,MSecNodes,(x))
 
 /* MSecNode_t -- Sector Node */
 struct MSecNode_s
@@ -557,6 +567,7 @@ struct MSecNode_s
 #define MSEGBASEADDR	(MDSBASEADDR + UINT32_C(0xB0A00))
 #define MSEGMAX			UINT32_C(65535)
 #define MSEGSIZE		UINT32_C(40)
+#define MSEGIDTOP(x)	AOF(MSeg_t,MSEGBASEADDR,MSEGSIZE,MSegs,(x))
 
 /* MSeg_t -- Seg */
 struct MSeg_s
@@ -578,11 +589,66 @@ struct MSeg_s
 #define MSIDEBASEADDR	(MDSBASEADDR + UINT32_C(0x330A00))
 #define MSIDEMAX		UINT32_C(65535)
 #define MSIDESIZE		UINT32_C(4)
+#define MSIDEIDTOP(x)	AOF(MSide_t,MSIDEBASEADDR,MSIDESIZE,MSides,(x))
 
 /* MSide_t -- Side */
 struct MSide_t
 {
 	VOIDP(MSector_t*) Sector;					// Sector side faces
+};
+
+/*** LINEDEF ***/
+
+#define MLINEBASEADDR	(MDSBASEADDR + UINT32_C(0x370A00))
+#define MLINEMAX		UINT32_C(65535)
+#define MLINESIZE		UINT32_C(108)
+#define MLINEIDTOP(x)	AOF(MLine_t,MLINEBASEADDR,MLINESIZE,MLines,(x))
+
+/* MLine_t -- LineDef */ 
+struct MLine_s
+{
+	VOIDP(MVertex_t*) Start;					// Start of line
+	VOIDP(MVertex_t*) End;						// End of line
+	fixed_t DiffX;								// Start-End Difference
+	fixed_t DiffY;
+	uint32_t Flags;								// Flags
+	uint32_t Special;							// Special
+	uint32_t Tag;								// Tag
+	uint32_t Side[2];							// Side in front/back
+	VOIDP(MSector_t*) Sector[2];				// Sector in front/back
+	uint32_t HexenSpecial;						// Hexen Special
+	uint32_t HexenArgs[5];						// Hexen Arguments
+	int32_t FirstTag;							// First Tag
+	int32_t NextTag;							// Next Tag
+	uint32_t Reserved1;							// Reserved
+	uint32_t Reserved2;							// Reserved
+	uint32_t Reserved3;							// Reserved
+	uint32_t Reserved4;							// Reserved
+	uint32_t Reserved5;							// Reserved
+	uint32_t Reserved6;							// Reserved
+	uint32_t Reserved7;							// Reserved
+	uint32_t Reserved8;							// Reserved
+};
+
+/*** SUBSECTORS ***/
+
+#define MSUBSBASEADDR	(MDSBASEADDR + UINT32_C(0xA30A00))
+#define MSUBSMAX		UINT32_C(65535)
+#define MSUBSSIZE		UINT32_C(36)
+#define MSUBSIDTOP(x)	AOF(MSubS_t,MSUBSBASEADDR,MSUBSSIZE,MSubSectors,(x))
+
+/* MSubS_t -- Subsector */
+struct MSubS_s
+{
+	VOIDP(MSector_t*) Sector;					// Sector this belongs to
+	uint32_t NumSegs;							// Number of segs
+	uint32_t FirstSeg;							// First seg reference
+	fixed_t CenterX;							// Center Position (!0 if valid)
+	fixed_t CenterY;							//  "  "   "    "
+	uint32_t Reserved1;							// Reserved
+	uint32_t Reserved2;							// Reserved
+	uint32_t Reserved3;							// Reserved
+	uint32_t Reserved4;							// Reserved
 };
 
 /******************
@@ -616,6 +682,7 @@ struct BInfo_s
 	fixed_t x;									// X position
 	fixed_t y;									// Y position
 	fixed_t z;									// Z position
+	VOIDP(MSubS_t*) SubS;						// Subsector bot is in
 };
 
 /*** REAL TIME INFORMATION ***/

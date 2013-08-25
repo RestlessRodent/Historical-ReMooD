@@ -61,6 +61,8 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 	uint32_t ABase, SBase;
 	union
 	{
+		subsector_t* Sub;
+		line_t* Line;
 		side_t* Side;
 		seg_t* Seg;
 		msecnode_t* MSec;
@@ -68,8 +70,36 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 		vertex_t* V;
 	} p;
 	
+	/* Sub Sector */
+	if (a_BaseAddr >= MSUBSBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MSUBSBASEADDR);
+		Index = ABase / MSUBSSIZE;
+		SBase = ABase % MSUBSSIZE;
+		
+		if (Index < numsubsectors)
+			p.Sub = &subsectors[Index];
+		else
+			return 0;
+	}
+	
+	/* LineDef */
+	else if (a_BaseAddr >= MLINEBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MLINEBASEADDR);
+		Index = ABase / MLINESIZE;
+		SBase = ABase % MLINESIZE;
+		
+		if (Index < numlines)
+			p.Line = &lines[Index];
+		else
+			return 0;
+	}
+	
 	/* SideDef */
-	if (a_BaseAddr >= MSIDEBASEADDR)
+	else if (a_BaseAddr >= MSIDEBASEADDR)
 	{
 		// Obtain Index
 		ABase = (a_BaseAddr - MSIDEBASEADDR);
@@ -149,7 +179,7 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 		switch (SBase)
 		{
 			case 0: return p.V->x;
-			case 1: return p.V->y;
+			case 4: return p.V->y;
 		}
 	}
 	
