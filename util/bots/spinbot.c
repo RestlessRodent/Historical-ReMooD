@@ -79,7 +79,7 @@ void main(void)
 {
 	volatile tic_t NowTic, LastTic;		// Timing
 	
-	for (NowTic = LastTic = 0;; Sleep())
+	for (NowTic = LastTic = 0;; BSleep(1))
 	{
 		// If bot is dead, respawn
 		if (g_BotInfo.Flags & BLBIF_DEAD)

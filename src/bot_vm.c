@@ -61,6 +61,9 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 	uint32_t ABase, SBase;
 	union
 	{
+		sector_t* Sect;
+		mapthing_t* MT;
+		node_t* Node;
 		subsector_t* Sub;
 		line_t* Line;
 		side_t* Side;
@@ -70,8 +73,50 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 		vertex_t* V;
 	} p;
 	
+	/* Sectors */
+	if (a_BaseAddr >= MSECTORBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MSECTORBASEADDR);
+		Index = ABase / MSECTORSIZE;
+		SBase = ABase % MSECTORSIZE;
+		
+		if (Index < numsectors)
+			p.Sect = &sectors[Index];
+		else
+			return 0;
+	}
+	
+	/* Map Things */
+	else if (a_BaseAddr >= MTHINGBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MTHINGBASEADDR);
+		Index = ABase / MTHINGSIZE;
+		SBase = ABase % MTHINGSIZE;
+		
+		if (Index < nummapthings)
+			p.MT = &mapthings[Index];
+		else
+			return 0;
+	}
+	
+	/* Nodes */
+	else if (a_BaseAddr >= MNODEBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MNODEBASEADDR);
+		Index = ABase / MNODESIZE;
+		SBase = ABase % MNODESIZE;
+		
+		if (Index < numnodes)
+			p.Node = &numnodes[Index];
+		else
+			return 0;
+	}
+	
 	/* Sub Sector */
-	if (a_BaseAddr >= MSUBSBASEADDR)
+	else if (a_BaseAddr >= MSUBSBASEADDR)
 	{
 		// Obtain Index
 		ABase = (a_BaseAddr - MSUBSBASEADDR);

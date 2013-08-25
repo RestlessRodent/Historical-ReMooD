@@ -390,46 +390,6 @@ typedef struct BL_GameInfo_s
 	extern const int16_t c_AngLUT[8192];
 #endif
 
-/****************
-*** FUNCTIONS ***
-****************/
-
-/* Not Included: Functions */
-#if !defined(__REMOOD_INCLUDED)
-	static inline fixed_t FixedMul(fixed_t a, fixed_t b)
-	{
-		return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
-	}
-	
-	static inline fixed_t FixedDiv(fixed_t a, fixed_t b)
-	{
-		if (b == 0)
-			return 0x7FFFFFFF | (a & 0x80000000);
-		else
-			return (fixed_t)((((((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b)) & INT64_C(0xFFFFFFFF)));
-	}
-
-	static inline fixed_t FixedMod(fixed_t a, fixed_t b)
-	{
-		fixed_t dVal = FixedDiv(a, b);
-		fixed_t iVal = dVal & 0xFFFF0000;
-		return a - FixedMul(dVal, iVal); 
-	}
-	
-	static inline fixed_t TBL_BAMToDeg(const angle_t a_Angle)
-	{
-		return ((int64_t)a_Angle << ((int64_t)(FRACBITS + FRACBITS))) / (UINT64_C(0xB60B60) << ((int64_t)FRACBITS));
-	}
-	
-	static inline void Sleep(void)
-	{
-		// 3 nops in a row trigger VM sleep
-		__asm__ volatile ("nop");
-		__asm__ volatile ("nop");
-		__asm__ volatile ("nop");
-	}
-#endif
-
 /******************************************************************************
 ******************************* EVEN BETTER API *******************************
 ******************************************************************************/
@@ -475,7 +435,11 @@ typedef struct BL_GameInfo_s
 // Seg				40		0x800B0A00	0x803309FF	65535
 // SideDef			4		0x80330A00	0x803709FF	65535
 // LineDef			108		0x80370A00	0x80A309FF	65535
-// SubSector		36		0x80A30A00	0x80C70A00	65535
+// SubSector		36		0x80A30A00	0x80C709FF	65535
+// Nodes			40		0x80C70A00	0x80EF09FF	65535
+// Map Thing		72		0x80EF0A00	0x813709FF	65535
+// Sectors			452		0x81370A00	0x82FB09FF	65535
+// Objects			???		0x82FB0A00	0x????????	65535
 
 /*** PREDEFINE ***/
 
@@ -486,9 +450,13 @@ typedef struct MSeg_s MSeg_t;
 typedef struct MSide_s MSide_t;
 typedef struct MLine_s MLine_t;
 typedef struct MSubS_s MSubS_t;
+typedef struct MNode_s MNode_t;
+typedef struct MThing_s MThing_t;
 typedef struct MSector_s MSector_t;
 typedef struct MObject_s MObject_t;
 typedef struct MPlayer_s MPlayer_t;
+typedef struct MObjInfo_s MObjInfo_t;
+typedef struct MState_s MState_t;
 
 /*** VERTEX ***/
 
@@ -651,6 +619,129 @@ struct MSubS_s
 	uint32_t Reserved4;							// Reserved
 };
 
+/*** NODES ***/
+
+#define MNODEBASEADDR	(MDSBASEADDR + UINT32_C(0xC70A00))
+#define MNODEMAX		UINT32_C(65535)
+#define MNODESIZE		UINT32_C(40)
+#define MNODEIDTOP(x)	AOF(MNode_t,MNODEBASEADDR,MNODESIZE,MNodes,(x))
+
+/* MNode_t -- Subsector */
+struct MNode_s
+{
+	fixed_t Splice[4];							// Partition Line
+	fixed_t BBox[4];							// Bounding box
+	uint32_t Kids[2];							// Kids
+};
+
+/*** MAP THINGS ***/
+
+#define MTHINGBASEADDR	(MDSBASEADDR + UINT32_C(0xEF0A00))
+#define MTHINGMAX		UINT32_C(65535)
+#define MTHINGSIZE		UINT32_C(72)
+#define MTHINGIDTOP(x)	AOF(MThing_t,MTHINGBASEADDR,MTHINGSIZE,MThings,(x))
+
+/* MThing_t -- Map Thing */
+struct MThing_s
+{
+	fixed_t Pos[3];								// Spawn Position
+	angle_t Angle;								// Angle
+	uint32_t Flags;								// Flags
+	VOIDP(MObject_t*) Object;					// Object last spawned
+	uint32_t HexenID;							// Hexen ID
+	fixed_t HexenHeightOff;						// Hexen Height Offset
+	uint32_t HexenSpecial;						// Hexen Special
+	uint32_t HexenArgs[5];						// Hexen Arguments
+	uint32_t Reserved1;							// Reserved
+	uint32_t Reserved2;							// Reserved
+	uint32_t Reserved3;							// Reserved
+	uint32_t Reserved4;							// Reserved
+};
+
+/*** SECTORS ***/
+
+#define MSECTORBASEADDR	(MDSBASEADDR + UINT32_C(0x1370A00))
+#define MSECTORMAX		UINT32_C(65535)
+#define MSECTORSIZE		UINT32_C(452)
+#define MSECTORIDTOP(x)	AOF(MSector_t,MSECTORBASEADDR,MSECTORSIZE,MSectors,(x))
+
+#define MAXMSECTORLINES UINT32_C(32)
+#define MAXMSECTORATTACHED UINT32_C(32)
+#define MAXMSECTORADJ UINT32_C(32)
+
+/* MSector_t -- Sector */
+struct MSector_s
+{
+	fixed_t Z[2];								// Floor/Ceiling Height
+	int32_t LightLevel;							// Light Level
+	uint32_t Special;							// Special Action
+	int32_t Tag;								// Tag
+	int32_t NextTag;							// Next in tag list
+	int32_t FirstTag;							// First in tag list
+	VOIDP(MObject_t*) SoundTarget;				// Thing which made a noise
+	fixed_t BlockBox[4];						// Sector blocking box
+	uint32_t NumLines;							// Number of lines
+	VOIDP(MLine_t*) Lines[MAXMSECTORLINES];		// Lines of sector
+	VOIDP(MFakeFloor_t*) FFloor;				// Fake Floor
+	uint32_t NumAttached;						// Number of attached??
+	uint32_t Attached[MAXMSECTORATTACHED];		// Attached Lines??
+	uint32_t NumAdj;							// Number of adjacent sectors
+	VOIDP(MSector_t*) Adj[MAXMSECTORADJ];		// Adjacent Sectors
+	VOIDP(MSecNode_t*) TouchThingList;			// Touching thing list
+};
+
+/*** OBJECTS ***/
+
+#define MOBJECTBASEADDR	(MDSBASEADDR + UINT32_C(0x2FB0A00))
+#define MOBJECTMAX		UINT32_C(65535)
+#define MOBJECTSIZE		UINT32_C(0)
+#define MOBJECTIDTOP(x)	AOF(MObject_t,MOBJECTBASEADDR,MOBJECTSIZE,MObjects,(x))
+
+/* MObject_t -- Object */
+struct MObject_s
+{
+	int32_t Health;								// Health
+	fixed_t Pos[3];								// Position
+	fixed_t Mom[3];								// Momentum
+	angle_t Angle;								// Angle
+	fixed_t SurfaceZ[2];						// floorz/ceilingz
+	fixed_t Radius;								// Radius
+	fixed_t Height;								// Height
+	uint32_t Flags[12];							// Object Flags
+	uint32_t Type;								// Type of thing
+	VOIDP(MSubS_t*) SubS;						// Subsector object is in
+	VOIDP(MObjInfo_t*) Info;					// Object Information
+	int32_t Tic;								// Tics of current state
+	VOIDP(MState_t*) State;						// Current State
+	VOIDP(MObject_t*) Target;					// Target Object
+	VOIDP(MObject_t*) Tracer;					// Tracer
+	VOIDP(MPlayer_t*) Player;					// Player
+	int32_t Move[2];							// Move direction/count
+	int32_t ReactionTime;						// Reaction Time
+	int32_t LastLook;							// Last Look
+	int32_t Threshold;							// Threshold
+	VOIDP(MThing_t*) SpawnThing;				// Thing spawned at
+	uint32_t SpawnID;							// Object Spawn ID
+	fixed_t MaxZ;								// Max Z of object
+	int32_t Team;								// Team Object is on
+	int32_t DroppedAmmo;						// Dropped Ammo
+	int32_t Special[2];							// Special Property
+	int32_t KilledByPlayer;						// Player that killed this
+	uint32_t FraggerID;							// ID of killer
+	VOIDP(MObject_t*) SPrev;					// Previous in sector
+	VOIDP(MObject_t*) SNext;					// Next in sector
+	VOIDP(MObject_t*) BPrev;					// Previous in blockmap
+	VOIDP(MObject_t*) BNext;					// Next in blockmap
+	uint32_t Reserved1;							// Reserved
+	uint32_t Reserved2;							// Reserved
+	uint32_t Reserved3;							// Reserved
+	uint32_t Reserved4;							// Reserved
+	uint32_t Reserved5;							// Reserved
+	uint32_t Reserved6;							// Reserved
+	uint32_t Reserved7;							// Reserved
+	uint32_t Reserved8;							// Reserved
+};
+
 /******************
 *** INFORMATION ***
 ******************/
@@ -707,7 +798,6 @@ struct BReal_s
 	tic_t LevelTic;								// Current level time
 	uint32_t State;								// Game State
 };
-
 
 /*******************
 *** SYSTEM CALLS ***

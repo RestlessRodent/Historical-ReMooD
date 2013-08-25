@@ -19,4 +19,8 @@ MSegs		= 0x800B0A00;
 MSides		= 0x80330A00;
 MLines		= 0x80370A00;
 MSubSectors = 0x80A30A00;
+MNodes		= 0x80C70A00;
+MThings		= 0x80EF0A00;
+MSectors	= 0x81370A00;
+MObjects	= 0x82FB0A00;
 

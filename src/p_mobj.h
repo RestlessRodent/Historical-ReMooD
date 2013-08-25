@@ -638,10 +638,6 @@ struct mobj_s
 	bool_t (*AltTouchFunc)(mobj_t* const a_Special, mobj_t* const a_Toucher);
 };
 
-/* Converts natural flags to/from extended flags */
-int P_MobjFlagsNaturalToExtended(mobj_t* MObj);
-int P_MobjFlagsExtendedToNatural(mobj_t* MObj);
-
 // check mobj against water content, before movement code
 void P_MobjCheckWater(mobj_t* mobj);
 
