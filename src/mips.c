@@ -482,7 +482,7 @@ case 1:	// TODO FIXME: CONFIRM
 		
 	if (AR(1) == UINT32_C(0) || (AR(1) & UINT32_C(0x80000000)))
 	{
-		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDS = PC + (BN.u32 << UINT32_C(2)) + UINT32_C(4);
 		JDSA = 1;
 	}
 
@@ -510,7 +510,7 @@ case 4:		PRINTOP(("beq %s, %s, %hi\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3) 
 	
 	if (AR(1) == AR(2))
 	{
-		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDS = PC + (BN.u32 << UINT32_C(2)) + UINT32_C(4);
 		JDSA = 1;
 	}
 	
@@ -525,7 +525,7 @@ case 5:		PRINTOP(("bne %s, %s, %hi\n", l_RegNames[A(1)], l_RegNames[A(2)], A(3) 
 	
 	if (AR(1) != AR(2))
 	{
-		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDS = PC + (BN.u32 << UINT32_C(2)) + UINT32_C(4);
 		JDSA = 1;
 	}
 	
@@ -540,14 +540,14 @@ case 6:		PRINTOP(("blez %s, %hi\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	
 	if ((AR(1) & UINT32_C(0x80000000)) || AR(1) == 0)
 	{
-		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDS = PC + (BN.u32 << UINT32_C(2)) + UINT32_C(4);
 		JDSA = 1;
 	}
 	
 	ADVPC;
 	break;
 
-case 7:	PRINTOP(("bgtz %s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
+case 7:	PRINTOP(("bgtz %s, %hi\n", l_RegNames[A(1)], A(3)));
 	if (A(3) & UINT32_C(0x8000))
 		BN.u32 = UINT32_C(0xFFFF0000) | A(3);
 	else
@@ -555,7 +555,7 @@ case 7:	PRINTOP(("bgtz %s, %i\n", l_RegNames[A(1)], A(3) << UINT32_C(2)));
 	
 	if (((AR(1) & UINT32_C(0x80000000)) == 0) && AR(1) != 0)
 	{
-		JDS = PC + (BN.u32 << UINT32_C(2));
+		JDS = PC + (BN.u32 << UINT32_C(2)) + UINT32_C(4);
 		JDSA = 1;
 	}
 	

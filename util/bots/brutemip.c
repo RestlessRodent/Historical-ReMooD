@@ -127,6 +127,8 @@ else\
 	/* Initial Barrier */
 	__MEM;
 	
+	/*** STANDARD OPS ***/
+	
 	/* ADD/ADDU */
 	var1.u = UINT32_C(0x12345678);
 	var2.u = UINT32_C(0x87654321);
@@ -442,7 +444,7 @@ else\
 		
 	var1.i = INT32_C(99);
 	
-	asm __volatile__("sltiu "VC", "VA", -70");
+	asm __volatile__("sltiu "VC", "VA", 70");
 	
 	if (var3.u == UINT32_C(0x00000000))
 		PASSFAIL("SLTIU 99 < 70");
