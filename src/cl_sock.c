@@ -27,78 +27,60 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Local Game Client
-
-#ifndef __CL_H__
-#define __CL_H__
-
-/*****************************************************************************/
+// DESCRIPTION: Game Sockets
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-
-/****************
-*** CONSTANTS ***
-****************/
-
-/* CL_SockFlags_t -- Socket Flags */
-typedef enum CL_SockFlags_e
-{
-	CLSF_JOYSTICK		= UINT32_C(0x00000001),	// Using joystick
-} CL_SockFlags_t;
+#include "cl.h"
+#include "i_util.h"
+#include "z_zone.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* Define SN_Port_t */
-#if !defined(__REMOOD_SNPORT_DEFINED)
-	typedef struct SN_Port_s SN_Port_t;
-	#define __REMOOD_SNPORT_DEFINED
-#endif
-
-/* Define CL_View_t */
-#if !defined(__REMOOD_CLVIEW_DEFINED)
-	typedef struct CL_View_s CL_View_t;
-	#define __REMOOD_CLVIEW_DEFINED
-#endif
-
-/* Define CL_Socket_t */
-#if !defined(__REMOOD_CLSOCKET_DEFINED)
-	typedef struct CL_Socket_s CL_Socket_t;
-	#define __REMOOD_CLSOCKET_DEFINED
-#endif
-
-/* CL_View_t -- Client viewport */
-struct CL_View_s
-{
-	SN_Port_t* Port;							// Port to control
-};
-
-/* CL_Socket_t -- Socket which recieves controller input */
-struct CL_Socket_s
-{
-	uint32_t Flags;								// Flags
-	int8_t JoyID;								// JoyStick ID
-};
-
 /**************
 *** GLOBALS ***
 **************/
 
-extern CL_View_t g_CLViews[MAXSPLITSCREEN];		// Viewports
+CL_Socket_t** g_CLSocks = NULL;					// Sockets
+int32_t g_NumCLSocks = 0;						// Number of sockets
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-int32_t CL_InitSocks(void);
-
-/*****************************************************************************/
-
-#endif /* __CL_H__ */
+/* CL_InitSocks() -- Initialize sockets */
+int32_t CL_InitSocks(void)
+{
+	int32_t i;
+	CL_Socket_t* This;
+	
+	/* Allocate sturctures */
+	g_NumCLSocks = 1 + I_NumJoysticks();
+	g_CLSocks = Z_Malloc(sizeof(*g_CLSocks) * g_NumCLSocks, PU_STATIC, NULL);
+	
+	/* Add Keyboard/Mouse Socket */
+	This = g_CLSocks[0] = Z_Malloc(sizeof(*This), PU_STATIC, NULL);
+	
+	// Initialize
+	This->JoyID = -1;
+	
+	/* Add sockets for every joystick */
+	for (i = 0; i < I_NumJoysticks(); i++)
+	{
+		// Allocate
+		This = g_CLSocks[1 + i] = Z_Malloc(sizeof(*This), PU_STATIC, NULL);
+		
+		// Initialize
+		This->Flags |= CLSF_JOYSTICK;
+		This->JoyID = i;
+	}
+	
+	/* Return number of control sockets */
+	return g_NumCLSocks;
+}
 
 

@@ -2550,6 +2550,8 @@ void D_DoomMain(void)
 	CONL_PrintF("I_StartupKeyboard...\n");
 	I_StartupKeyboard();
 	
+	CL_InitSocks();	// Initialize sockets here, for joysticks
+	
 	T_AddCommands();
 	R_RegisterEngineStuff();
 	S_RegisterSoundStuff();

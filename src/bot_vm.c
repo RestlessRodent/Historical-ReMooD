@@ -49,6 +49,8 @@
 #include "r_state.h"
 #include "p_local.h"
 #include "p_maputl.h"
+#include "p_setup.h"
+#include "m_random.h"
 
 /****************
 *** FUNCTIONS ***
@@ -110,7 +112,7 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 		SBase = ABase % MNODESIZE;
 		
 		if (Index < numnodes)
-			p.Node = &numnodes[Index];
+			p.Node = &nodes[Index];
 		else
 			return 0;
 	}
