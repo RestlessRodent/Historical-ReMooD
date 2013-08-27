@@ -189,10 +189,7 @@ static inline uint32_t MIPS_ReadMem(MIPS_VM_t* const a_VM, const uint_fast32_t a
 	if (Map->RealMem)
 	{
 		if (a_Width == 4)
-		{
-			RetVal = LittleSwapUInt32(((uint32_t*)Map->RealMem)[BaseOff >> 2]);
-			return RetVal;
-		}
+			return LittleSwapUInt32(((uint32_t*)Map->RealMem)[BaseOff >> 2]);
 		else if (a_Width == 2)
 			return LittleSwapUInt16(((uint16_t*)Map->RealMem)[BaseOff >> 1]);
 		else
@@ -429,11 +426,6 @@ bool_t MIPS_VMRunX(MIPS_VM_t* const a_VM, const uint_fast32_t a_Count
 		
 		// Read memory at PC
 		Op = MIPS_ReadMem(a_VM, a_VM->CPU.pc, 4);
-		
-		// Swap operator on big endian
-#if defined(__REMOOD_BIG_ENDIAN)
-		Op = LittleSwapUInt32(Op);
-#endif
 		
 		// Decode opcode
 		MIPS_DecodeOp(Op, Am);

@@ -161,8 +161,8 @@ void main(void)
 			}
 			
 			// Set destination point
-			dx = g_Info.x + ((1024 << FRACBITS) * XDir);
-			dy = g_Info.y + ((1024 << FRACBITS) * YDir);
+			dx = g_Info.x + ((256 << FRACBITS) * XDir);
+			dy = g_Info.y + ((256 << FRACBITS) * YDir);
 			
 			// Reset point distance
 			ld = DistTo(dx, dy) >> FRACBITS;
@@ -204,8 +204,8 @@ void main(void)
 				else
 				{
 					// Set destination point
-					dx = g_Info.x + ((1024 << FRACBITS) * XDir);
-					dy = g_Info.y + ((1024 << FRACBITS) * YDir);
+					dx = g_Info.x + ((256 << FRACBITS) * XDir);
+					dy = g_Info.y + ((256 << FRACBITS) * YDir);
 					
 					// Calculate new distance
 					ld = DistTo(dx, dy) >> FRACBITS;
