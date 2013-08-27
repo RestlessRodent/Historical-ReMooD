@@ -36,8 +36,14 @@
 #include "cl.h"
 #include "i_util.h"
 #include "z_zone.h"
-#include "v_video.h"
 #include "sn.h"
+#include "g_state.h"
+
+// Interface Friendly Stuff
+#include "v_video.h"
+#include "s_sound.h"
+#include "console.h"
+#include "m_menu.h"
 
 /*****************
 *** STRUCTURES ***
@@ -79,6 +85,8 @@ int32_t CL_InitSocks(void)
 		// Initialize
 		This->Flags |= CLSF_JOYSTICK;
 		This->JoyID = i;
+		
+		This->View = &g_CLViews[0];
 	}
 	
 	/* Return number of control sockets */
@@ -125,6 +133,9 @@ CL_View_t* CL_BindSocket(CL_Socket_t* const a_Sock, const int8_t a_JoyID)
 		
 		// Increase bind count
 		g_CLBinds++;
+		
+		// Play bind sound (a nice nice tone)
+		S_StartSound(NULL, sfx_dialup);
 		
 		// Claimed
 		return View;
@@ -240,5 +251,156 @@ bool_t CL_SockEvent(const I_EventEx_t* const a_Event)
 /* CL_SockDrawer() -- Draws socket interface */
 void CL_SockDrawer(void)
 {
+#define BUFSIZE 9
+	int32_t i, h, x, y, la, wa, Lots;
+	CL_Socket_t* Sock;
+	char Color, *Text;
+	char Buf[BUFSIZE];
+	bool_t Flash, Ready;
+	
+	/* Only draw if a menu or console is active */
+	if (!(CONL_IsActive() || M_SMMenuVisible() || gamestate == GS_DEMOSCREEN || g_TitleScreenDemo || gamestate == GS_INTERMISSION || gamestate == GS_FINALE))
+		return;
+	
+	/* Height of font */
+	h = V_FontHeight(VFONT_SMALL);
+	
+	/* Flash? */
+	Flash = false;
+	if ((g_ProgramTic >> 4) & 1)
+		Flash = true;
+	
+	/* Go through all sockets */
+	for (i = 0; i < g_NumCLSocks; i++)
+	{
+		// Get socket here
+		if (!(Sock = g_CLSocks[i]))
+			continue;
+		
+		// If a viewport is set, then it is active
+		if (Sock->View)
+		{
+			// Ready!
+			Ready = true;
+			Text = "{1READY!";
+		}
+		
+		// Otherwise, press some buttons
+		else
+		{
+			Ready = false;
+			
+			// Flash message every half second
+			if (Flash)
+				Text = "";
+			else
+			{
+				if (Sock->Flags & CLSF_JOYSTICK)
+					Text = "{5PRESS 1ST BUTTON!";
+				else
+					Text = "{5PRESS SPACE!";
+			}
+		}
+		
+		// Determine their color
+		Color = i & 15;
+		
+		if (Color >= 10)
+			Color = (Color - 10) + 'a';
+		else
+			Color += '0';
+		
+		// Setup string to display (just P whatever)
+		Buf[0] = '{';
+		Buf[1] = 'x';
+		Buf[2] = '7';
+		Buf[3] = Color;
+		Buf[4] = 'P';
+		
+		if (i < 9)
+		{
+			Buf[5] = '1' + i;
+			Buf[6] = 0;
+		}
+		else
+		{
+			Buf[5] = '1' + ((i - 9) / 10);
+			Buf[6] = '0' + ((i - 9) % 10);
+			Buf[7] = 0;
+		}
+		
+		// Determine lots count
+		Lots = i / 4;	// so many joysticks!
+		
+		// Same size
+		la = V_StringWidthA(VFONT_SMALL, 0, Buf);
+		
+		// Determine draw location
+		switch (i & 3)
+		{
+			case 0:
+				x = 2;
+				y = 2 + ((h + 2) * Lots);
+				
+				if (Ready)
+				{
+					wa = la + 2;
+					la = 0;
+				}
+				else
+					wa = la = 0;
+				break;
+				
+			case 1:
+				x = 318;
+				y = 2 + ((h + 2) * Lots);
+				la = -la;
+				wa = -V_StringWidthA(VFONT_SMALL, 0, Text);
+				
+				if (Ready)
+					wa -= 2;
+				break;
+				
+			case 2:
+				x = 2;
+				y = (198 - ((h + 2) * Lots)) - h;
+				
+				if (Ready)
+				{
+					wa = la + 2;
+					la = 0;
+				}
+				else
+					wa = la = 0;
+				break;
+				
+			default:
+				x = 318;
+				y = (198 - ((h + 2) * Lots)) - h;
+				la = -la;
+				wa = -V_StringWidthA(VFONT_SMALL, 0, Text);
+				
+				if (Ready)
+					wa -= 2;
+				break;
+		}
+		
+		// Draw ready next to player
+		if (Ready)
+		{
+			V_DrawStringA(VFONT_SMALL, 0, Buf, x + la, y);
+			V_DrawStringA(VFONT_SMALL, 0, Text, x + la + wa, y);
+		}
+		
+		// Flash between
+		else
+		{
+			if (Flash)
+				V_DrawStringA(VFONT_SMALL, 0, Buf, x + la, y);
+			else
+				V_DrawStringA(VFONT_SMALL, 0, Text, x + wa, y);
+		}
+	}
+#undef BUFSIZE
 }
 

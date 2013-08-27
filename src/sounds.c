@@ -275,6 +275,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 	{ "elvcal", false, 64, 0, -1, -1, 0},
 	{ "gerror", false, 64, 0, -1, -1, 0},
 	{ "zzsqwv", false, 64, 0, -1, -1, 0},
+	{ "dialup", false, 64, 0, -1, -1, 0},
 	
 	// GhostlyDeath <August 31, 2012> -- Heretic Sounds
 	{"gldhit", false, 32, NULL, -1, -1, NULL, -1},

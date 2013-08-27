@@ -354,6 +354,7 @@ typedef enum
 	sfx_elvcal,
 	sfx_gerror,
 	sfx_zzsqwv,
+	sfx_dialup,
 	
 	// GhostlyDeath <August 31, 2012> -- Heretic Sounds
 	sfx_gldhit,
