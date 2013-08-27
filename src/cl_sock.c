@@ -84,9 +84,7 @@ int32_t CL_InitSocks(void)
 		
 		// Initialize
 		This->Flags |= CLSF_JOYSTICK;
-		This->JoyID = i;
-		
-		This->View = &g_CLViews[0];
+		This->JoyID = i;]
 	}
 	
 	/* Return number of control sockets */
