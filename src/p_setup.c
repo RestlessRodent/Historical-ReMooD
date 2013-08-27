@@ -238,7 +238,7 @@ bool_t P_ExClearLevel(void)
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
 	
 	/* Clear split automap zoom */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		g_Splits[i].MapZoom = 0;
 	
 	/* Wipe Player Stuff */
@@ -1351,7 +1351,7 @@ bool_t P_ExFinalizeLevel(void)
 			}
 	
 	/* Correct local player angles */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (g_Splits[i].Active && playeringame[g_Splits[i].Console])
 		{
 			if (players[g_Splits[i].Console].mo)

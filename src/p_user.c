@@ -800,7 +800,7 @@ void P_PlayerThink(player_t* player)
 	
 	/* Find screen for this player */
 	// This is the display player that is
-	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
+	for (Screen = 0; Screen < MAXSPLITS; Screen++)
 		if (P_SpecGetPOV(Screen) == player)
 			break;
 	
@@ -810,7 +810,7 @@ void P_PlayerThink(player_t* player)
 			if (player->KeyFlash[i][j])
 			{
 				// Play sound every half second or so
-				if (Screen >= 0 && Screen < MAXSPLITSCREEN)
+				if (Screen >= 0 && Screen < MAXSPLITS)
 					if ((player->KeyFlash[i][j] & 0xF) == 0)
 						S_StartSound(NULL, sfx_itemup);
 				
@@ -1333,7 +1333,7 @@ void P_UpdateViewAngles(mobj_t* const a_Mo)
 		return;
 	
 	// Not on screen
-	if (Port->Screen < 0 || Port->Screen >= MAXSPLITSCREEN)
+	if (Port->Screen < 0 || Port->Screen >= MAXSPLITS)
 		return;
 	
 	/* Change viewing angle */
@@ -1342,8 +1342,8 @@ void P_UpdateViewAngles(mobj_t* const a_Mo)
 
 /*** SPECTATOR PLAYER ***/
 
-static player_t l_SpecPlayers[MAXSPLITSCREEN];	// Fake Player
-static mobj_t l_SpecMobjs[MAXSPLITSCREEN];		// Fake Mobj
+static player_t l_SpecPlayers[MAXSPLITS];	// Fake Player
+static mobj_t l_SpecMobjs[MAXSPLITS];		// Fake Mobj
 
 /* P_SpecInitOne() -- Initializes single player */
 static void P_SpecInitOne(const int32_t a_PlayerNum)
@@ -1354,7 +1354,7 @@ static void P_SpecInitOne(const int32_t a_PlayerNum)
 	subsector_t* SubS;
 	
 	/* Check */
-	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITS)
 		return;
 	
 	/* Only During Levels */
@@ -1454,7 +1454,7 @@ void P_SpecInit(const int32_t a_PlayerNum)
 		LastFlipped = P_XGSVal(PGS_FUNFLIPLEVELS);
 		
 		// Initialize each player
-		for (i = 0; i < MAXSPLITSCREEN; i++)
+		for (i = 0; i < MAXSPLITS; i++)
 			P_SpecInitOne(i);
 		
 		// Verify Coop spy
@@ -1470,7 +1470,7 @@ void P_SpecInit(const int32_t a_PlayerNum)
 struct player_s* P_SpecGet(const int32_t a_Screen)
 {
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return NULL;
 	
 	/* Return associated screen */
@@ -1487,7 +1487,7 @@ void P_SpecTicker(void)
 	mobj_t* CamMo;
 	
 	/* Run tics for all screens */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitHasPlayer(i))
 		{
 			// Port of player
@@ -1517,7 +1517,7 @@ void P_SpecTicker(void)
 		return;
 	
 	/* Apply momentum */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 	{
 		// Get Objects
 		Mod = &l_SpecPlayers[i];
@@ -1570,7 +1570,7 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	mobj_t* Mo;
 	
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN || !a_TicCmd)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS || !a_TicCmd)
 		return;
 	
 	/* Player to modify */
@@ -1617,7 +1617,7 @@ void P_SpecRunTics(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 {
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return NULL;
 	
 	/* Demo playing back? */

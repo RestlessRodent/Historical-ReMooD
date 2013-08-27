@@ -499,7 +499,7 @@ bool_t SN_StartServer(const int32_t a_NumLocal, const char** const a_Profs, cons
 bool_t SN_StartLocalServer(const int32_t a_NumLocal, const char** const a_Profs, const bool_t a_JoinPlayers, const bool_t a_MakePlayer)
 {
 	int32_t Local;
-	const char* Profs[MAXSPLITSCREEN];
+	const char* Profs[MAXSPLITS];
 	
 	/* Local copy */
 	// If there are no local players, always make one
@@ -516,7 +516,7 @@ bool_t SN_StartLocalServer(const int32_t a_NumLocal, const char** const a_Profs,
 		}
 		else
 			for (Local = 0; Local < a_NumLocal; Local++)
-				if (Local < MAXSPLITSCREEN)
+				if (Local < MAXSPLITS)
 					Profs[Local] = a_Profs[Local];
 	}
 	
@@ -643,7 +643,7 @@ bool_t SN_ServerInit(void)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
-	const char* PProfs[MAXSPLITSCREEN];
+	const char* PProfs[MAXSPLITS];
 	int32_t np, i;
 	char* Addr;
 	uint16_t Port;
@@ -682,7 +682,7 @@ bool_t SN_ServerInit(void)
 		l_DedSv = false;
 		
 		// Add more players, if they are set
-		for (np = 0, i = 0; i < MAXSPLITSCREEN; i++)
+		for (np = 0, i = 0; i < MAXSPLITS; i++)
 		{
 			// Command to check for (-pX)
 			snprintf(Buf, BUFSIZE - 1, "-p%i", i + 1);
@@ -814,7 +814,7 @@ void SN_UpdateLocalPorts(void)
 		pc = 0;
 		
 		// Go through all screens
-		for (i = 0; i < MAXSPLITSCREEN; i++)
+		for (i = 0; i < MAXSPLITS; i++)
 		{
 			// Does not have player
 			if (!D_ScrSplitHasPlayer(i))
@@ -868,13 +868,13 @@ void SN_UpdateLocalPorts(void)
 					if (g_KeyDefaultProfile)
 					{
 						// Go through other screens
-						for (j = 0; j < MAXSPLITSCREEN; j++)
+						for (j = 0; j < MAXSPLITS; j++)
 							if (i != j && D_ScrSplitHasPlayer(j))
 								if (g_Splits[j].Profile == g_KeyDefaultProfile)
 									break;
 						
 						// Nobody is using default
-						if (j >= MAXSPLITSCREEN)
+						if (j >= MAXSPLITS)
 							Split->Profile = g_KeyDefaultProfile;
 					}
 				
@@ -927,7 +927,7 @@ void SN_UpdateLocalPorts(void)
 		{
 			// Get split
 			Split = NULL;
-			if (Port->Screen >= 0 && Port->Screen < MAXSPLITSCREEN)
+			if (Port->Screen >= 0 && Port->Screen < MAXSPLITS)
 				Split = &g_Splits[Port->Screen];
 			
 			// If no profile set, ask for one
@@ -1292,7 +1292,7 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 			players[i].Port = NULL;
 	
 	// Screen
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitVisible(i))
 			if (g_Splits[i].Port == a_Port)
 			{
@@ -1409,7 +1409,7 @@ bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const
 	D_SplitInfo_t* Split;
 	
 	/* Check */
-	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITS)
 		return false;
 		
 	// Find Profile
@@ -1420,7 +1420,7 @@ bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const
 	/* Find first free slot */
 	// Find the last screened player
 	UngrabbedScreen = -1;
-	for (LastScreen = 0; LastScreen < MAXSPLITSCREEN; LastScreen++)
+	for (LastScreen = 0; LastScreen < MAXSPLITS; LastScreen++)
 	{
 		if (!D_ScrSplitHasPlayer(LastScreen))
 			break;
@@ -1440,7 +1440,7 @@ bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const
 	else
 	{
 		// Cannot fit any more players
-		if (LastScreen >= MAXSPLITSCREEN)
+		if (LastScreen >= MAXSPLITS)
 			return false;	
 		
 		if (UngrabbedScreen != -1)
@@ -1562,12 +1562,12 @@ void SN_LocalTurn(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	if (a_Port->Host && a_Port->Host->Local)
 	{
 		// Find screen number
-		for (h = 0; h < MAXSPLITSCREEN; h++)
+		for (h = 0; h < MAXSPLITS; h++)
 			if (D_ScrSplitHasPlayer(h))
 				if (g_Splits[h].Port == a_Port)
 					break;
 		
-		if (h < MAXSPLITSCREEN)
+		if (h < MAXSPLITS)
 		{
 			// Absolute Angles
 			if (P_XGSVal(PGS_COABSOLUTEANGLE))
@@ -1802,7 +1802,7 @@ void SN_SetPortProfile(SN_Port_t* const a_Port, D_Prof_t* const a_Profile)
 	a_Port->Profile = a_Profile;
 	
 	// Clone to screen
-	if (a_Port->Screen >= 0 && a_Port->Screen < MAXSPLITSCREEN)
+	if (a_Port->Screen >= 0 && a_Port->Screen < MAXSPLITS)
 		g_Splits[a_Port->Screen].Profile = a_Profile;
 		
 	// No profile
@@ -1866,7 +1866,7 @@ void SN_PortRequestJoin(SN_Port_t* const a_Port)
 					LocN++;
 		
 		// There is room
-		if (LocN < MAXSPLITSCREEN)
+		if (LocN < MAXSPLITS)
 			a_Port->WillJoin = true;
 	}
 	

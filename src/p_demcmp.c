@@ -1844,7 +1844,7 @@ void NG_FromCLine(void)
 	
 	/* Multiplayer? */
 	// Count player screen things by command line (-p1, -p2, ...)
-	for (LocalP = 0, i = 0; i < MAXSPLITSCREEN; i++)
+	for (LocalP = 0, i = 0; i < MAXSPLITS; i++)
 	{
 		// Make parameter name
 		snprintf(Buf, BUFSIZE, "-p%i", i + 1);

@@ -530,7 +530,7 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 	/* Handle Message for everyone (multiple screens) */
 	// This is so that if multiple players are viewing the same player, they get
 	// the same pickup messages rather than the first one.
-	for (s = 0; s < MAXSPLITSCREEN; s++)
+	for (s = 0; s < MAXSPLITS; s++)
 	{
 		// Not POV player?
 		if (P_SpecGetPOV(s) != a_Picker->player)
@@ -1667,7 +1667,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		P_DropWeapon(target->player);	// put weapon away
 		
 		// GhostlyDeath <December 28, 2012> -- Reset aiming angle on death
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+		for (i = 0; i < MAXSPLITS; i++)
 			if (D_ScrSplitHasPlayer(i))
 				if (g_Splits[i].Port && target->player->Port && g_Splits[i].Port == target->player->Port)
 					localaiming[i] = 0;

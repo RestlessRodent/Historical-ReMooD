@@ -1879,7 +1879,7 @@ void DT_WANT(D_BS_t* const a_BS, SN_Host_t* const a_Host, I_HostAddress_t* const
 	
 	/* No match and total exceeds count */
 	// They can only have 4 players connected at once
-	if (!PIDMatch && Total >= MAXSPLITSCREEN)
+	if (!PIDMatch && Total >= MAXSPLITS)
 	{
 		D_BSBaseBlock(a_BS, "FULL");
 		

@@ -231,7 +231,7 @@ void BOT_Add(const int32_t a_ArgC, const char** const a_ArgV)
 		{
 			Bot->Screen = C_strtoi32(e, NULL, 0);
 			
-			if (Bot->Screen < -1 || Bot->Screen >= MAXSPLITSCREEN)
+			if (Bot->Screen < -1 || Bot->Screen >= MAXSPLITS)
 				Bot->Screen = -1;
 		}
 	}

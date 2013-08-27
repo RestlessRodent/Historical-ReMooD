@@ -72,7 +72,7 @@ static tic_t l_MouseLastTime[32];				// Last time pressed
 static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
 static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
 static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
-static CONCTI_Inputter_t* l_ChatBox[MAXSPLITSCREEN];	// Splitscreen chat
+static CONCTI_Inputter_t* l_ChatBox[MAXSPLITS];	// Splitscreen chat
 
 /****************
 *** FUNCTIONS ***
@@ -84,7 +84,7 @@ void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, 
 	uint32_t Flags;
 	
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return;
 	
 	/* Not chatting? */
@@ -117,7 +117,7 @@ void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, 
 void SN_ClearChat(const int32_t a_Screen)
 {
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return;
 	
 	/* Get out of chat mode */
@@ -507,7 +507,7 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 	/* Check Joysticks */
 	//if (a_Profile->Flags & DPEXF_GOTJOY)
 		//if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
-	if (a_SID >= 0 && a_SID < MAXSPLITSCREEN && g_Splits[a_SID].JoyBound)
+	if (a_SID >= 0 && a_SID < MAXSPLITS && g_Splits[a_SID].JoyBound)
 		if (g_Splits[a_SID].JoyID >= 1 && g_Splits[a_SID].JoyID <= MAXLOCALJOYS)
 			if (l_JoyButtons[g_Splits[a_SID].JoyID - 1])
 				for (i = 0; i < 4; i++)
@@ -586,13 +586,13 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	PID = a_Port->Player - players;
 	
 	/* Find Screen ID */
-	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+	for (SID = 0; SID < MAXSPLITS; SID++)
 		if (D_ScrSplitVisible(SID))
 			if (g_Splits[SID].Port == a_Port)
 				break;
 	
 	// Not found?
-	if (SID >= MAXSPLITSCREEN)
+	if (SID >= MAXSPLITS)
 	{
 		// Force first screen in demo?
 		if (demoplayback)
@@ -697,7 +697,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	
 	/* Player has joystick input? */
 	// Read input for all axis
-	if (SID >= 0 && SID < MAXSPLITSCREEN && SSplit->JoyBound)
+	if (SID >= 0 && SID < MAXSPLITS && SSplit->JoyBound)
 		if (SSplit->JoyID >= 1 && SSplit->JoyID <= MAXLOCALJOYS)
 			for (i = 0; i < MAXJOYAXIS; i++)
 			{

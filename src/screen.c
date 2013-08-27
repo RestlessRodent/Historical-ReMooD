@@ -407,7 +407,7 @@ void SCR_ReclassBuffers(void)
 	SCRFREE(ylookup);
 	SCRFREE(ylookup1);
 	SCRFREE(ylookup2);
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		SCRFREE(ylookup4[i]);
 	SCRFREE(yslopetab);
 	SCRFREE(cachedheight);
@@ -434,7 +434,7 @@ void SCR_ReclassBuffers(void)
 	ylookup = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
 	ylookup1 = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
 	ylookup2 = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		ylookup4[i] = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
 	yslopetab = Z_Malloc(sizeof(fixed_t) * (vid.height * 4), PU_STATIC, NULL);
 	

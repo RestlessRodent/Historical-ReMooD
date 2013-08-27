@@ -284,7 +284,7 @@ static void SN_HGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 		G_DoReborn(a_PID);
 	
 	/* Bind to split screens, if any on the local side */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitVisible(i))
 		{
 			// Current split
@@ -358,7 +358,7 @@ static void SN_HGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 	playeringame[a_PID] = false;
 	
 	/* Make local split a spectator */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitVisible(i))
 			if (g_Splits[i].Console == a_PID)
 			{
@@ -524,7 +524,7 @@ static void SN_HGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Ho
 	
 	/* Speak for all local screens */
 	Sound = 0;
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 	{
 		// Split inactive?
 		if (!D_ScrSplitVisible(i))

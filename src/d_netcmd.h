@@ -119,12 +119,12 @@ typedef struct D_SplitInfo_s
 /*** GLOBALS ***/
 
 extern int g_SplitScreen;						// Players in splits
-extern D_SplitInfo_t g_Splits[MAXSPLITSCREEN];	// Split Information
+extern D_SplitInfo_t g_Splits[MAXSPLITS];	// Split Information
 
 extern bool_t g_NetDev;
 
-extern angle_t localangle[MAXSPLITSCREENPLAYERS];
-extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
+extern angle_t localangle[MAXSPLITS];
+extern int localaiming[MAXSPLITS];	// should be a angle_t but signed
 
 /*** FUNCTIONS ***/
 

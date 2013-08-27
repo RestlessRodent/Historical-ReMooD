@@ -1012,7 +1012,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			continue;
 		
 		// Ignore bot or non-screened players
-		if (Port->Bot || Port->Screen < 0 || Port->Screen >= MAXSPLITSCREEN)
+		if (Port->Bot || Port->Screen < 0 || Port->Screen >= MAXSPLITS)
 			continue;
 		
 		// Get this split
@@ -1136,12 +1136,12 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				if (i < 0)
 				{
 					// Find first free spot (hopefuly)
-					for (i = 0; i < MAXSPLITSCREEN; i++)
+					for (i = 0; i < MAXSPLITS; i++)
 						if (!D_ScrSplitHasPlayer(i))
 							break;
 					
 					// There is room
-					if (i < MAXSPLITSCREEN)
+					if (i < MAXSPLITS)
 					{
 						g_Splits[i].Waiting = true;
 						g_Splits[i].ProcessID = XPlay->ClProcessID;
@@ -1168,7 +1168,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				}
 				
 				// Set common stuff
-				if (i < MAXSPLITSCREEN)
+				if (i < MAXSPLITS)
 				{
 					XPlay->ScreenID = i;
 					g_Splits[i].ProcessID = XPlay->ClProcessID;
@@ -1218,7 +1218,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 				XPlay->Flags |= DXPF_LOCAL;
 				
 				// Re-assign to current splits, if possible
-				if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+				if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITS)
 				{
 					// Playing the game
 					if (XPlay->InGameID >= 0)
@@ -1271,7 +1271,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 			//	XPlay->Profile = D_FindProfileEx(XPlay->ProfileUUID);
 			
 			// Set screen profile
-			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+			if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITS)
 				if (!g_Splits[XPlay->ScreenID].Profile)
 					g_Splits[XPlay->ScreenID].Profile = XPlay->Profile;
 		}
@@ -3803,7 +3803,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		// Correct player angles
 			// This is so you are still facing the desired angle when you load
 			// the game and not some random angle previously used.
-		for (i = 0; i < MAXSPLITSCREEN; i++)
+		for (i = 0; i < MAXSPLITS; i++)
 		{
 			if (!D_ScrSplitHasPlayer(i))
 				continue;

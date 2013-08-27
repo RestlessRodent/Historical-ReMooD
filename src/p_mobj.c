@@ -1916,7 +1916,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	/* Set local angle, if applicable */
 	if ((Port = p->Port))
 		if (Port->Host && Port->Host->Local)
-			for (i = 0; i < MAXSPLITSCREEN; i++)
+			for (i = 0; i < MAXSPLITS; i++)
 				if (D_ScrSplitHasPlayer(i))
 					if (g_Splits[i].Port == p->Port)
 					{

@@ -1268,7 +1268,7 @@ void ST_GetScreenCDP(const int32_t a_Split, player_t** const a_ConsolePP, player
 	int i;
 	
 	/* Check */
-	if (a_Split < 0 || a_Split >= MAXSPLITSCREEN)
+	if (a_Split < 0 || a_Split >= MAXSPLITS)
 		return;
 	
 	// Get players to draw for
@@ -1334,7 +1334,7 @@ void ST_DrawPlayerBarsEx(void)
 	}
 	
 	/* Draw each player */
-	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1) && p < MAXSPLITSCREEN; p++)
+	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1) && p < MAXSPLITS; p++)
 	{
 		// Reference split
 		Split = &g_Splits[p];
@@ -1515,7 +1515,7 @@ void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* cons
 	int right, bottom;
 	
 	/* Check */
-	if (a_ThisPlayer < 0 || a_ThisPlayer >= MAXSPLITSCREEN)
+	if (a_ThisPlayer < 0 || a_ThisPlayer >= MAXSPLITS)
 		return;	
 	
 	/* Get players */
@@ -1582,7 +1582,7 @@ void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* cons
 bool_t ST_CheckDrawGameView(const int32_t a_Screen)
 {
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return false;	
 	
 	/* Automap disables view */

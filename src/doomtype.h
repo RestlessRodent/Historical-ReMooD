@@ -419,8 +419,7 @@ typedef union FColorRGBA RGBA_t;
 ******************/
 
 #define MAXPLAYERS              32
-#define MAXSPLITSCREENPLAYERS	4
-#define MAXSPLITSCREEN			MAXSPLITSCREENPLAYERS
+#define MAXSPLITS	4
 #define MAXSKINS                MAXPLAYERS
 #define MAXPLAYERNAME           32
 #define MAXSKINCOLORS           16

@@ -55,7 +55,7 @@
 //
 // mouse and joystick buttons are handled as 'virtual' keys
 //
-#if (MAXSPLITSCREENPLAYERS > 4)
+#if (MAXSPLITS > 4)
 #error MODIFY INPUTS (Max Splitscreen players is now > 4)!
 #endif
 

@@ -89,7 +89,7 @@ struct CL_Socket_s
 *** GLOBALS ***
 **************/
 
-extern CL_View_t g_CLViews[MAXSPLITSCREEN];		// Viewports
+extern CL_View_t g_CLViews[MAXSPLITS];		// Viewports
 
 /****************
 *** FUNCTIONS ***

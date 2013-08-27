@@ -153,7 +153,7 @@ int con_clipviewtop = 0;						// Console clip down
 
 static bool_t l_CONLActive = false;	// Console active?
 static CONL_BasicBuffer_t l_CONLBuffers[2];	// Input/Output Buffer
-static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];	// Player message queue
+static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITS][MAXCONLPLAYERMQ];	// Player message queue
 static uint32_t l_CONLLineOff = 0;	// Line offset
 static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 
@@ -1024,7 +1024,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	
 	/* Add messages to queues */
 	CurrentTime = g_ProgramTic;
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (pNum & (1 << i))	// Only if selected
 		{
 			// Find blank spot
@@ -1710,7 +1710,7 @@ void CONL_Ticker(void)
 	
 	/* Remove old messages */
 	CurrentTime = g_ProgramTic;
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		for (j = 0; j < MAXCONLPLAYERMQ; j++)
 			if (l_CONLMessageQ[i][j].Text[0])
 			{
@@ -2120,16 +2120,16 @@ static const struct
 	},
 };
 
-static int8_t l_OSKSel[MAXSPLITSCREEN][2];
-static uint32_t l_OSKLast[MAXSPLITSCREEN][2];
-static bool_t l_OSKVis[MAXSPLITSCREEN];
-static int32_t l_OSKShift[MAXSPLITSCREEN];
+static int8_t l_OSKSel[MAXSPLITS][2];
+static uint32_t l_OSKLast[MAXSPLITS][2];
+static bool_t l_OSKVis[MAXSPLITS];
+static int32_t l_OSKShift[MAXSPLITS];
 
 /* CONL_OSKIsActive() -- OSK is active */
 bool_t CONL_OSKIsActive(const size_t a_PlayerNum)
 {
 	/* Check */
-	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITS)
 		return false;
 	
 	/* Set and return */
@@ -2140,7 +2140,7 @@ bool_t CONL_OSKIsActive(const size_t a_PlayerNum)
 bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis)
 {
 	/* Check */
-	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITS)
 		return false;
 	
 	/* Set and return */
@@ -2157,7 +2157,7 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 	int32_t x, y, ex, ey;
 	
 	/* Check */
-	if (a_SplitP >= MAXSPLITSCREEN)
+	if (a_SplitP >= MAXSPLITS)
 		return;
 	
 	/* Draw The Layout */
@@ -2220,7 +2220,7 @@ void CONL_OSKDrawForPlayer(const int32_t a_PlayerNum)
 	int32_t x, y, w, h;
 	
 	/* Cap */
-	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITS)
 		Player = -1;
 	else
 		Player = a_PlayerNum;
@@ -2254,7 +2254,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	int8_t Shift;
 	
 	/* Check */
-	if (!a_Event || a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+	if (!a_Event || a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITS)
 		return false;
 	
 	/* Only Handle OSK Events */
@@ -2762,8 +2762,8 @@ bool_t CONL_DrawConsole(const bool_t a_BigConsole)
 			n = g_SplitScreen + 1;
 		
 		// Limit, just in case
-		if (n > MAXSPLITSCREEN)
-			n = MAXSPLITSCREEN;
+		if (n > MAXSPLITS)
+			n = MAXSPLITS;
 		
 		// Run through each player
 		for (i = 0; i < n; i++)

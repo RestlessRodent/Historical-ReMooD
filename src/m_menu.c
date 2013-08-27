@@ -86,8 +86,8 @@
 
 /*** LOCALS ***/
 
-static M_SWidget_t** l_SMWi[MAXSPLITSCREEN];
-static size_t l_NumSMWi[MAXSPLITSCREEN];
+static M_SWidget_t** l_SMWi[MAXSPLITS];
+static size_t l_NumSMWi[MAXSPLITS];
 
 /*** HELPERS ***/
 
@@ -117,7 +117,7 @@ static void MS_SMDestroy(M_SWidget_t* const a_Widget)
 static void MS_SMStackPush(const int32_t a_ScreenID, M_SWidget_t* const a_Widget)
 {
 	/* Check */
-	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || !a_Widget)
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITS || !a_Widget)
 		return;
 	
 	/* Resize array */
@@ -141,7 +141,7 @@ void M_StackPop(const int32_t a_ScreenID)
 	M_SWidget_t* Popped;
 	
 	/* Check */
-	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITS)
 		return;
 	
 	/* No items? */
@@ -162,7 +162,7 @@ void M_StackPop(const int32_t a_ScreenID)
 void M_StackPopAllScreen(const int32_t a_Screen)
 {
 	/* Check */
-	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return;
 	
 	/* Pop */
@@ -176,7 +176,7 @@ void M_StackPopAll(void)
 	int32_t i;
 	
 	/* Pop */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		while (l_NumSMWi[i])
 			M_StackPop(i);
 }
@@ -863,7 +863,7 @@ bool_t M_SMDoGrab(void)
 bool_t M_SMPlayerMenuVisible(const int32_t a_ScreenID)
 {
 	/* Check */
-	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITS)
 		return false;	
 	
 	return !!l_NumSMWi[a_ScreenID];
@@ -875,7 +875,7 @@ bool_t M_SMMenuVisible(void)
 	int32_t i;
 	
 	/* If any player has a visible menu */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (M_SMPlayerMenuVisible(i))
 			return true;
 	
@@ -886,7 +886,7 @@ bool_t M_SMMenuVisible(void)
 /* M_SMGenSynth() -- Generate synth events? */
 bool_t M_SMGenSynth(const int32_t a_ScreenID)
 {
-	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN)
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITS)
 		return false;
 	return !!l_NumSMWi[a_ScreenID];
 }
@@ -922,7 +922,7 @@ void M_SMDrawer(void)
 	
 	/* For all screens */
 	DrawCursor = false;
-	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
+	for (Screen = 0; Screen < MAXSPLITS; Screen++)
 	{
 		// No Menus?
 		if (!l_NumSMWi[Screen])
@@ -948,7 +948,7 @@ void M_SMTicker(void)
 	M_SWidget_t* TopMenu;
 	
 	/* For all screens */
-	for (Screen = 0; Screen < MAXSPLITSCREEN; Screen++)
+	for (Screen = 0; Screen < MAXSPLITS; Screen++)
 	{
 		// No Menus?
 		if (!l_NumSMWi[Screen])
@@ -985,7 +985,7 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 	int32_t i;
 	
 	/* Check */
-	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || a_MenuID < 0 || a_MenuID >= NUMMSMMENUS)
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITS || a_MenuID < 0 || a_MenuID >= NUMMSMMENUS)
 		return NULL;
 	
 	/* Init */

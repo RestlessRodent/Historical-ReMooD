@@ -143,7 +143,7 @@ const int32_t c_TCDataSize[NUMDTCT] =
 
 bool_t g_NetDev = false;						// Network Debug
 int g_SplitScreen = -1;							// Split screen players (-1 based)
-D_SplitInfo_t g_Splits[MAXSPLITSCREEN];			// Split Information
+D_SplitInfo_t g_Splits[MAXSPLITS];			// Split Information
 
 /*** LOCALS ***/
 
@@ -153,7 +153,7 @@ D_SplitInfo_t g_Splits[MAXSPLITSCREEN];			// Split Information
 bool_t D_ScrSplitHasPlayer(const int8_t a_Player)
 {
 	/* Check */
-	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+	if (a_Player < 0 || a_Player >= MAXSPLITS)
 		return false;
 	
 	/* Active (Non-Demo Only) */
@@ -172,7 +172,7 @@ bool_t D_ScrSplitHasPlayer(const int8_t a_Player)
 bool_t D_ScrSplitVisible(const int8_t a_Player)
 {
 	/* Check */
-	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+	if (a_Player < 0 || a_Player >= MAXSPLITS)
 		return false;
 	
 	/* Visible if has a player */
@@ -278,7 +278,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 		return -1;
 	
 	/* Loop */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		//if (D_ScrSplitHasPlayer(i))
 			if (g_Splits[i].ProcessID == a_ID)
 				return i;
@@ -293,7 +293,7 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 	int i;
 	
 	/* Check */
-	if (a_Split < 0 || a_Split >= MAXSPLITSCREEN)
+	if (a_Split < 0 || a_Split >= MAXSPLITS)
 		return;	
 	
 	/* Not in demo */
@@ -307,9 +307,9 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 		//D_XNetClearChat(a_Split);
 		
 		// Move splits down, to replace this split
-		for (i = a_Split; i < MAXSPLITSCREEN; i++)
+		for (i = a_Split; i < MAXSPLITS; i++)
 			// Last spot?
-			if (i == MAXSPLITSCREEN - 1)
+			if (i == MAXSPLITS - 1)
 			{
 				memset(&g_Splits[i], 0, sizeof(g_Splits[i]));
 				g_Splits[i].Display = -1;
@@ -340,9 +340,9 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 #endif
 		
 		// Move splits down, to replace this split
-		for (i = a_Split; i < MAXSPLITSCREEN; i++)
+		for (i = a_Split; i < MAXSPLITS; i++)
 			// Last spot?
-			if (i == MAXSPLITSCREEN - 1)
+			if (i == MAXSPLITS - 1)
 			{
 				// Make inactive
 				g_Splits[i].Active = false;
@@ -374,7 +374,7 @@ void D_NCResetSplits(const bool_t a_Demo)
 	int i;
 	
 	/* Wipe all splits */
-	for (i = MAXSPLITSCREEN; i > 0; i--)
+	for (i = MAXSPLITS; i > 0; i--)
 		D_NCRemoveSplit(i - 1, a_Demo);
 }
 

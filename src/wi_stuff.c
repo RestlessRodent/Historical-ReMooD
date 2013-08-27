@@ -1716,7 +1716,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			l_TotalDeaths += Player->TotalDeaths;
 			
 			// Determine if is local player (on screen)
-			for (k = 0; k < MAXSPLITSCREEN; k++)
+			for (k = 0; k < MAXSPLITS; k++)
 				if (g_Splits[k].Active && i == g_Splits[k].Console)
 				{
 					TempDP[NumTempDP].LocalPlayer = true;
@@ -1777,7 +1777,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			strncpy(TempDP[NumTempDP].PlayerName, XPlay->AccountName, MAXPLAYERNAME - 1);
 		
 		// Determine if is local player (on screen)
-		for (k = 0; k < MAXSPLITSCREEN; k++)
+		for (k = 0; k < MAXSPLITS; k++)
 			if (XPlay == g_Splits[k].XPlayer)
 			{
 				TempDP[NumTempDP].LocalPlayer = true;

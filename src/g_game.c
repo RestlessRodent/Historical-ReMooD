@@ -189,8 +189,8 @@ int16_t G_ClipAimingPitch(int32_t* aiming)
 //
 // set secondaryplayer true to build player 2's ticcmd in splitscreen mode
 //
-int localaiming[MAXSPLITSCREENPLAYERS];
-angle_t localangle[MAXSPLITSCREENPLAYERS];
+int localaiming[MAXSPLITS];
+angle_t localangle[MAXSPLITS];
 
 //added:06-02-98: mouseaiming (looking up/down with the mouse or keyboard)
 #define KB_LOOKSPEED    (1 << 25)

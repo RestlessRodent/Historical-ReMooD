@@ -76,7 +76,7 @@ extern uint8_t** activeylookup;
 extern uint8_t** ylookup;
 extern uint8_t** ylookup1;
 extern uint8_t** ylookup2;
-extern uint8_t** ylookup4[MAXSPLITSCREENPLAYERS];
+extern uint8_t** ylookup4[MAXSPLITS];
 extern int* columnofs;
 
 // -------------------------

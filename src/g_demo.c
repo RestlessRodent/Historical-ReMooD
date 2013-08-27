@@ -2830,7 +2830,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 		SN_Disconnect(true, "Playing demo");
 	
 	/* Reset Spectating watchers */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		g_Splits[i].Console = g_Splits[i].Display = -1;
 	
 	/* Play demo in any factory */

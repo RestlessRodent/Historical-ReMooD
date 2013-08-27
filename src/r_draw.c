@@ -74,7 +74,7 @@ uint8_t** activeylookup;		// Active ylookup table (for 4 way splits)
 uint8_t** ylookup;
 uint8_t** ylookup1;				// for view1 (splitscreen)
 uint8_t** ylookup2;				// for view2 (splitscreen)
-uint8_t** ylookup4[MAXSPLITSCREENPLAYERS];	// for 4 way split screen
+uint8_t** ylookup4[MAXSPLITS];	// for 4 way split screen
 
 // x uint8_t offset for columns inside the viewwindow
 // so the first column starts at (SCRWIDTH-VIEWWIDTH)/2

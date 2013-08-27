@@ -843,7 +843,7 @@ void D_StartTitle(void)
 	int i;
 		
 	gameaction = ga_nothing;
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		g_Splits[i].Display = g_Splits[i].Console = 0;
 	demosequence = -1;
 	paused = false;
@@ -1844,7 +1844,7 @@ void D_MakeTitleString(char* s)
 
 static int16_t l_JoyLastAxis[MAXPORTJOYS][3];
 static uint8_t l_JoyTime[MAXPORTJOYS];
-static I_EventEx_t l_JoyKeepEvent[MAXSPLITSCREEN];
+static I_EventEx_t l_JoyKeepEvent[MAXSPLITS];
 
 /* D_JoyPortsEmpty() -- Returns true if all ports are empty */
 bool_t D_JoyPortsEmpty(void)
@@ -1852,7 +1852,7 @@ bool_t D_JoyPortsEmpty(void)
 	size_t i;
 	
 	/* Run through */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (g_Splits[i].JoyBound)
 			return false;	// Bound
 	
@@ -1864,7 +1864,7 @@ bool_t D_JoyPortsEmpty(void)
 uint32_t D_PortToJoy(const uint8_t a_PortID)
 {
 	/* Check */
-	if (a_PortID < 0 || a_PortID >= MAXSPLITSCREEN)
+	if (a_PortID < 0 || a_PortID >= MAXSPLITS)
 		return 0;
 	
 	/* Only if bound */
@@ -1885,7 +1885,7 @@ uint8_t D_JoyToPort(const uint32_t a_PortID)
 		return 0;
 	
 	/* Look in list */
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (g_Splits[i].JoyBound)
 			if (g_Splits[i].JoyID == a_PortID)
 				return i + 1;
@@ -1899,9 +1899,9 @@ void D_JoySpecialTicker(void)
 {
 	bool_t LastOK;
 	int i, dx, dy, PWanted;
-	static tic_t MultiEventTic[MAXSPLITSCREEN][2];
+	static tic_t MultiEventTic[MAXSPLITS][2];
 	uint32_t NumJoys;
-	uint8_t WantForJoy[MAXSPLITSCREEN];
+	uint8_t WantForJoy[MAXSPLITS];
 	bool_t Wanted;
 		
 	/* Obtain joy count */
@@ -1913,11 +1913,11 @@ void D_JoySpecialTicker(void)
 	
 #if 0
 	/* Profile */
-	l_JoyMagicAt = MAXSPLITSCREEN;
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	l_JoyMagicAt = MAXSPLITS;
+	for (i = 0; i < MAXSPLITS; i++)
 		// Choose location
 		if (!D_ScrSplitHasPlayer(i))
-			if (l_JoyMagicAt == MAXSPLITSCREEN)
+			if (l_JoyMagicAt == MAXSPLITS)
 				l_JoyMagicAt = i;
 #endif
 	
@@ -1928,7 +1928,7 @@ void D_JoySpecialTicker(void)
 	/* Send OSK Events multiple times */
 	// If there are any events and only about every 1/4th of a second
 	LastOK = D_JoyPortsEmpty();
-	for (i = 0; i < MAXSPLITSCREEN; i++)
+	for (i = 0; i < MAXSPLITS; i++)
 		if (l_JoyKeepEvent[i].Data.SynthOSK.Down ||
 			l_JoyKeepEvent[i].Data.SynthOSK.Right ||
 			l_JoyKeepEvent[i].Data.SynthOSK.Press ||
@@ -2052,7 +2052,7 @@ void D_JoySpecialTicker(void)
 	// the same time for this to ever happen. So if they are a tic off, then
 	// they are out of order.
 	if (Wanted)
-		for (i = 0; i < MAXSPLITSCREEN; i++)
+		for (i = 0; i < MAXSPLITS; i++)
 			if (WantForJoy[i])
 			{
 				// Add local player (super handled)
@@ -2225,7 +2225,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	
 	/* Determine Player to Handle */
 	if (D_JoyPortsEmpty())
-		ForPlayer = MAXSPLITSCREEN + 1;
+		ForPlayer = MAXSPLITS + 1;
 	else
 	{
 		// See if the joystick is bound to a port first
@@ -2242,7 +2242,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	}
 	
 	// Convert to real player
-	if (ForPlayer == (MAXSPLITSCREEN + 1))
+	if (ForPlayer == (MAXSPLITS + 1))
 		RealPlayer = 0;
 	else
 		RealPlayer = ForPlayer;
@@ -2270,7 +2270,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	}
 	
 	/* Synthetic OSK Events */
-	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
+	if (ForPlayer == (MAXSPLITS + 1) || g_Splits[RealPlayer].JoyBound)
 		// Only if a menu is active, console, chat string, etc.
 		if (((RealPlayer == 0 && CONL_IsActive()) ||
 			CONL_OSKIsActive(RealPlayer) ||
