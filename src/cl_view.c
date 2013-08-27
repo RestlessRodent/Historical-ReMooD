@@ -27,100 +27,33 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Local Game Client
-
-#ifndef __CL_H__
-#define __CL_H__
-
-/*****************************************************************************/
+// DESCRIPTION: Game Sockets
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
-
-/****************
-*** CONSTANTS ***
-****************/
-
-/* CL_SockFlags_t -- Socket Flags */
-typedef enum CL_SockFlags_e
-{
-	CLSF_JOYSTICK		= UINT32_C(0x00000001),	// Using joystick
-} CL_SockFlags_t;
+#include "cl.h"
+#include "i_util.h"
+#include "z_zone.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* Define SN_Port_t */
-#if !defined(__REMOOD_SNPORT_DEFINED)
-	typedef struct SN_Port_s SN_Port_t;
-	#define __REMOOD_SNPORT_DEFINED
-#endif
-
-/* Define CL_View_t */
-#if !defined(__REMOOD_CLVIEW_DEFINED)
-	typedef struct CL_View_s CL_View_t;
-	#define __REMOOD_CLVIEW_DEFINED
-#endif
-
-/* Define CL_Socket_t */
-#if !defined(__REMOOD_CLSOCKET_DEFINED)
-	typedef struct CL_Socket_s CL_Socket_t;
-	#define __REMOOD_CLSOCKET_DEFINED
-#endif
-
-/* Define CL_Client_t */
-#if !defined(__REMOOD_CLCLIENT_DEFINED)
-	typedef struct CL_Client_s CL_Client_t;
-	#define __REMOOD_CLCLIENT_DEFINED
-#endif
-
-/* CL_View_t -- Client viewport */
-struct CL_View_s
-{
-	CL_Client_t* Client;						// Client controlled by
-};
-
-/* CL_Socket_t -- Socket which recieves controller input */
-// Sockets are attached to viewports
-struct CL_Socket_s
-{
-	CL_Client_t* Client;						// Client which controls this
-	uint32_t Flags;								// Flags
-	int8_t JoyID;								// JoyStick ID
-};
-
-/* CL_Client_t -- Clients that actually play the game */
-struct CL_Client_s
-{
-	SN_Port_t* Port;							// Port to control
-	CL_Socket_t* Sock;							// Socket for input
-	CL_View_t* View;							// Viewport controller
-	
-	int32_t Console;							// Console Player
-	int32_t Display;							// Display Player
-	
-	angle_t VRot;								// Left/Right Look
-	angle_t VPitch;								// Up/Down Look
-};
-
 /**************
 *** GLOBALS ***
 **************/
 
-extern CL_View_t g_CLViews[MAXSPLITS];			// Viewports
+CL_View_t g_CLViews[MAXSPLITS];					// Viewports
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-int32_t CL_InitSocks(void);
-
-/*****************************************************************************/
-
-#endif /* __CL_H__ */
-
+/* CL_InitViews() -- Initializes viewports */
+void CL_InitViews(void)
+{
+	memset(g_CLViews, 0, sizeof(g_CLViews));
+}
 

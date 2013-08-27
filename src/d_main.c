@@ -2445,6 +2445,7 @@ void D_DoomMain(void)
 	g_EarlyBootConsole = true;
 	
 	/* Adapters */
+	CL_InitViews();						// Initialize views
 	V_ImageFindA(NULL, 0);				// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD
 	V_MapGraphicalCharacters();			// Unicode chars
