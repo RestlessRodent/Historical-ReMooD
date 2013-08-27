@@ -296,7 +296,7 @@ typedef struct I_EventEx_s
 		
 		struct
 		{
-			uint8_t PNum;		// Player Number
+			uint8_t SNum;		// Socket Number
 			int8_t Right;		// Right movement
 			int8_t Down;		// Down movement
 			uint8_t Press;		// Press Button

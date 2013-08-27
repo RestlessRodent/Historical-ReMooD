@@ -39,6 +39,7 @@
 ***************/
 
 #include "doomtype.h"
+#include "i_util.h"
 
 /****************
 *** CONSTANTS ***
@@ -81,24 +82,17 @@ typedef enum CL_SockFlags_e
 /* CL_View_t -- Client viewport */
 struct CL_View_s
 {
-	CL_Client_t* Client;						// Client controlled by
+	CL_Socket_t* Socket;						// Control Socket
 };
 
 /* CL_Socket_t -- Socket which recieves controller input */
 // Sockets are attached to viewports
 struct CL_Socket_s
 {
-	CL_Client_t* Client;						// Client which controls this
+	SN_Port_t* Port;							// Port to control
+	CL_View_t* View;							// Viewer
 	uint32_t Flags;								// Flags
 	int8_t JoyID;								// JoyStick ID
-};
-
-/* CL_Client_t -- Clients that actually play the game */
-struct CL_Client_s
-{
-	SN_Port_t* Port;							// Port to control
-	CL_Socket_t* Sock;							// Socket for input
-	CL_View_t* View;							// Viewport controller
 	
 	int32_t Console;							// Console Player
 	int32_t Display;							// Display Player
@@ -112,12 +106,19 @@ struct CL_Client_s
 **************/
 
 extern CL_View_t g_CLViews[MAXSPLITS];			// Viewports
+extern int32_t g_CLBinds;						// Number of bound viewports
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/*** CL_SOCK.C **/
+
 int32_t CL_InitSocks(void);
+CL_View_t* CL_BindSocket(CL_Socket_t* const a_Sock, const int8_t a_JoyID);
+
+bool_t CL_SockEvent(const I_EventEx_t* const a_Event);
+void CL_SockDrawer(void);
 
 /*****************************************************************************/
 

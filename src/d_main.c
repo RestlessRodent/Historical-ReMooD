@@ -384,11 +384,11 @@ void D_Display(void)
 //#endif
 	}
 	
-	// Simple Networking Drawiung below everything
+	// Simple Networking Draws below everything
 	SN_Drawer();
 	
-	// GhostlyDeath <September 5, 2012> -- Joystick specials
-	D_JoySpecialDrawer();
+	// Client Related Stuff
+	CL_SockDrawer();
 	
 	// GhostlyDeath <March 22, 2013> -- Draw player text under menus
 	CONL_DrawConsole(false);
@@ -2279,7 +2279,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 		{
 			// Clear Event
 			l_JoyKeepEvent[RealPlayer].Type = IET_SYNTHOSK;
-			l_JoyKeepEvent[RealPlayer].Data.SynthOSK.PNum = RealPlayer;
+			l_JoyKeepEvent[RealPlayer].Data.SynthOSK.SNum = RealPlayer;
 			Changed = false;
 			
 			// Up/Down Movement?

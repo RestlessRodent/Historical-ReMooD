@@ -280,7 +280,7 @@ static bool_t MS_SMTBFEvent(M_SWidget_t* const a_Widget, const I_EventEx_t* cons
 	else if (a_Event->Type == IET_SYNTHOSK)
 	{
 		// Ignore events belonging to another screen
-		if (a_Event->Data.SynthOSK.PNum != a_Widget->Screen)
+		if (a_Event->Data.SynthOSK.SNum != a_Widget->Screen)
 			return false;
 		
 		// Check if cancel is pressed
@@ -806,7 +806,7 @@ bool_t M_SMHandleEvent(const I_EventEx_t* const a_Event)
 	/* Get screen event is for, otherwise it is for player 1 */
 	Screen = 0;
 	if (a_Event->Type == IET_SYNTHOSK)
-		Screen = a_Event->Data.SynthOSK.PNum;
+		Screen = a_Event->Data.SynthOSK.SNum;
 	
 	/* No menus for this player */
 	if (!l_NumSMWi[Screen])

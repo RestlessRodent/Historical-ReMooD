@@ -357,7 +357,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 	else if (a_Event->Type == IET_SYNTHOSK)
 	{
 		// Screen mismatch
-		if (a_Input->Screen != a_Event->Data.SynthOSK.PNum)
+		if (a_Input->Screen != a_Event->Data.SynthOSK.SNum)
 			return false;
 		
 		// Only events with code or char
@@ -1807,7 +1807,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	else if (a_Event->Type == IET_SYNTHOSK)
 	{
 		// Only for P1
-		if (a_Event->Data.SynthOSK.PNum != 0)
+		if (a_Event->Data.SynthOSK.SNum != 0)
 			return false;
 		
 		// Ignore non-keycode events
@@ -2203,7 +2203,7 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 					
 					// Set
 					VirtEvent.Type = IET_SYNTHOSK;
-					VirtEvent.Data.SynthOSK.PNum = a_SplitP;
+					VirtEvent.Data.SynthOSK.SNum = a_SplitP;
 					VirtEvent.Data.SynthOSK.Direct |= 0x800000 | (i & 0xF) | ((j & 0xFF) << 4);
 					I_EventExPush(&VirtEvent);
 				}
@@ -2262,7 +2262,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 		return false;
 	
 	/* Not visible? Ignore */
-	if (!l_OSKVis[a_Event->Data.SynthOSK.PNum])
+	if (!l_OSKVis[a_Event->Data.SynthOSK.SNum])
 		return false;
 	
 	/* Ignore Character Presses */
@@ -2272,7 +2272,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 		// However, handle synthetic shift
 		if (a_Event->Data.SynthOSK.KeyCode == IKBK_SHIFT)
 		{
-			l_OSKShift[a_Event->Data.SynthOSK.PNum] ^= 1;
+			l_OSKShift[a_Event->Data.SynthOSK.SNum] ^= 1;
 			return true;
 		}
 		
@@ -2297,23 +2297,23 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 				c--;
 			
 			// And not already there?
-			if (l_OSKSel[a_Event->Data.SynthOSK.PNum][0] != r ||
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] != c)
+			if (l_OSKSel[a_Event->Data.SynthOSK.SNum][0] != r ||
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][1] != c)
 			{
 				// Emit sound to inform user
 				S_StartSound(NULL, sfx_oskmov);
 			
 				// Place selected here
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][0] = r;
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] = c;
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][0] = r;
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][1] = c;
 			}
 		}
 	}
 	
 	/* Move Around Board */
-	else if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][0] + 100))
+	else if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.SNum][0] + 100))
 	{
-		l_OSKLast[a_Event->Data.SynthOSK.PNum][0] = ThisTime;
+		l_OSKLast[a_Event->Data.SynthOSK.SNum][0] = ThisTime;
 		
 		// Emit sound to inform user
 		S_StartSound(NULL, sfx_oskmov);
@@ -2322,32 +2322,32 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 		do
 		{
 			// Move Around
-			l_OSKSel[a_Event->Data.SynthOSK.PNum][0] += a_Event->Data.SynthOSK.Down;
-			l_OSKSel[a_Event->Data.SynthOSK.PNum][1] += a_Event->Data.SynthOSK.Right;
+			l_OSKSel[a_Event->Data.SynthOSK.SNum][0] += a_Event->Data.SynthOSK.Down;
+			l_OSKSel[a_Event->Data.SynthOSK.SNum][1] += a_Event->Data.SynthOSK.Right;
 		
 			// Move around rows
-			if (l_OSKSel[a_Event->Data.SynthOSK.PNum][0] < 0)
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][0] = LOSKROWS - 1;
-			else if (l_OSKSel[a_Event->Data.SynthOSK.PNum][0] >= LOSKROWS)
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][0] = 0;
+			if (l_OSKSel[a_Event->Data.SynthOSK.SNum][0] < 0)
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][0] = LOSKROWS - 1;
+			else if (l_OSKSel[a_Event->Data.SynthOSK.SNum][0] >= LOSKROWS)
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][0] = 0;
 	
 			// Move around columns
-			if (l_OSKSel[a_Event->Data.SynthOSK.PNum][1] < 0)
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] = LOSKCOLS - 1;
-			else if (l_OSKSel[a_Event->Data.SynthOSK.PNum][1] >= LOSKCOLS)
-				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] = 0;
-		} while (!l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].KeySize);
+			if (l_OSKSel[a_Event->Data.SynthOSK.SNum][1] < 0)
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][1] = LOSKCOLS - 1;
+			else if (l_OSKSel[a_Event->Data.SynthOSK.SNum][1] >= LOSKCOLS)
+				l_OSKSel[a_Event->Data.SynthOSK.SNum][1] = 0;
+		} while (!l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.SNum][0]][l_OSKSel[a_Event->Data.SynthOSK.SNum][1]].KeySize);
 	}
 	
 	/* Type On Board */
 	if (a_Event->Data.SynthOSK.Press || g_MouseDown)
-		if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][1] + 100))
+		if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.SNum][1] + 100))
 		{
-			l_OSKLast[a_Event->Data.SynthOSK.PNum][1] = ThisTime;
+			l_OSKLast[a_Event->Data.SynthOSK.SNum][1] = ThisTime;
 			
 			// Get pos
-			r = l_OSKSel[a_Event->Data.SynthOSK.PNum][0];
-			c = l_OSKSel[a_Event->Data.SynthOSK.PNum][1];
+			r = l_OSKSel[a_Event->Data.SynthOSK.SNum][0];
+			c = l_OSKSel[a_Event->Data.SynthOSK.SNum][1];
 		
 			// Emit sound to inform user
 			S_StartSound(NULL, sfx_osktyp);
@@ -2358,7 +2358,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 			// Determine Shift
 			Shift = 0;
 			if (!VirtOnly)
-				Shift = l_OSKShift[a_Event->Data.SynthOSK.PNum];
+				Shift = l_OSKShift[a_Event->Data.SynthOSK.SNum];
 				
 			// Clear event
 			memset(&FakeEvent, 0, sizeof(FakeEvent));
@@ -2380,7 +2380,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 			{
 #endif
 				FakeEvent.Type = IET_SYNTHOSK;
-				FakeEvent.Data.SynthOSK.PNum = a_PlayerNum;
+				FakeEvent.Data.SynthOSK.SNum = a_PlayerNum;
 				FakeEvent.Data.SynthOSK.KeyCode = l_OSKLayout[r][c].IkbkKey[Shift];
 		
 				if (!VirtOnly || FakeEvent.Data.SynthOSK.KeyCode == IKBK_SPACE)
@@ -2401,7 +2401,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 #if 0
 			// If it was shift, toggle
 			if (FakeEvent.Data.Keyboard.KeyCode == IKBK_SHIFT)
-				l_OSKShift[a_Event->Data.SynthOSK.PNum] ^= 1;
+				l_OSKShift[a_Event->Data.SynthOSK.SNum] ^= 1;
 #endif
 		}
 	

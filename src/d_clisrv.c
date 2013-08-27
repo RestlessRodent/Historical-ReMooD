@@ -131,7 +131,6 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	if (LastPT != g_ProgramTic)
 	{
 		CONL_Ticker();
-		D_JoySpecialTicker();
 		M_SMTicker();				// Simple Menu Ticker
 		
 		LastPT = g_ProgramTic;

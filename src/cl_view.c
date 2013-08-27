@@ -46,6 +46,7 @@
 **************/
 
 CL_View_t g_CLViews[MAXSPLITS];					// Viewports
+int32_t g_CLBinds;								// Number of bound viewports
 
 /****************
 *** FUNCTIONS ***
@@ -55,5 +56,6 @@ CL_View_t g_CLViews[MAXSPLITS];					// Viewports
 void CL_InitViews(void)
 {
 	memset(g_CLViews, 0, sizeof(g_CLViews));
+	g_CLBinds = 0;
 }
 

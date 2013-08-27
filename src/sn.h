@@ -114,6 +114,12 @@ typedef struct SN_Host_s SN_Host_t;
 	#define __REMOOD_CLVIEW_DEFINED
 #endif
 
+/* Define CL_Socket_t */
+#if !defined(__REMOOD_CLSOCKET_DEFINED)
+	typedef struct CL_Socket_s CL_Socket_t;
+	#define __REMOOD_CLSOCKET_DEFINED
+#endif
+
 /* SN_Port_t -- Port which controls a specific player or a spectator */
 struct SN_Port_s
 {
@@ -142,6 +148,7 @@ struct SN_Port_s
 	bool_t CounterOp;							// CounterOp Player
 	CL_View_t* View;							// Port's viewport
 	void* BotPtr;								// Bot Pointer (Speed)
+	CL_Socket_t* Socket;						// Port's Socket
 };
 
 /* SN_Host_t -- Host which controls a set of playing players */
@@ -270,7 +277,7 @@ void SN_SetServerLagWarn(const tic_t a_EstPD);
 
 void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
 void SN_ClearChat(const int32_t a_Screen);
-bool_t SN_HandleEvent(const I_EventEx_t* const a_Event);
+bool_t SN_HandleEvent(const I_EventEx_t* const a_Event, CL_Socket_t* const a_Sock);
 void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd);
 
 uint32_t SN_TicBufSum(SN_TicBuf_t* const a_TicBuf,  const SN_TicBufVersion_t a_VersionNum, const uint32_t a_Players);

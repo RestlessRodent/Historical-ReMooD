@@ -85,6 +85,7 @@
 #include "g_game.h"
 #include "m_menu.h"
 #include "sn.h"
+#include "cl.h"
 
 /****************
 *** CONSTANTS ***
@@ -468,8 +469,8 @@ void I_OsPolling(void)
 					
 					// OSK
 				case IET_SYNTHOSK:
-					CONL_PrintF("Event: SYNOSK Pl:%2u Ri:%+1i Dn:%+1i Pr:%u Sh:%u Dr:%08x Cn:%u Kc:%03X Ch:%c [aka %s]\n",
-							Event.Data.SynthOSK.PNum,
+					CONL_PrintF("Event: SYNOSK So:%2u Ri:%+1i Dn:%+1i Pr:%u Sh:%u Dr:%08x Cn:%u Kc:%03X Ch:%c [aka %s]\n",
+							Event.Data.SynthOSK.SNum,
 							Event.Data.SynthOSK.Right,
 							Event.Data.SynthOSK.Down,
 							Event.Data.SynthOSK.Press,
@@ -495,16 +496,13 @@ void I_OsPolling(void)
 		}
 		
 		// Translate
-		if (D_JoySpecialEvent(&Event))
-			continue;
-			
 		if (CONL_HandleEvent(&Event))
 			continue;
-			
+		
 		if (M_SMHandleEvent(&Event))
 			continue;
-			
-		if (SN_HandleEvent(&Event))
+		
+		if (CL_SockEvent(&Event))
 			continue;
 	}
 }

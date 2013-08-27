@@ -37,15 +37,6 @@
 #include "doomtype.h"
 #include "i_util.h"
 
-
-
-
-
-
-
-
-
-
 /*******************
 *** SIMPLE MENUS ***
 *******************/

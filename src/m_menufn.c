@@ -694,7 +694,7 @@ void M_CTUS_ConnectFSelect(M_SWidget_t* const a_Widget)
 					memset(&Evt, 0, sizeof(Evt));
 					
 					Evt.Type = IET_SYNTHOSK;
-					Evt.Data.SynthOSK.PNum = Wid->Screen;
+					Evt.Data.SynthOSK.SNum = Wid->Screen;
 					Evt.Data.SynthOSK.KeyCode = IKBK_RETURN;
 					
 					// Fake a handle event

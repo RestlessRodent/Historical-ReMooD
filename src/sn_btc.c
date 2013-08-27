@@ -145,7 +145,7 @@ static bool_t SN_CONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* c
 }
 
 /* SN_HandleEvent() -- Handle advanced events */
-bool_t SN_HandleEvent(const I_EventEx_t* const a_Event)
+bool_t SN_HandleEvent(const I_EventEx_t* const a_Event, CL_Socket_t* const a_Sock)
 {
 	int32_t ButtonNum, LocalJoy;
 	uint32_t Bit;
@@ -154,17 +154,6 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event)
 	if (!a_Event)
 		return false;
 	
-	/* Clear events if not playing */
-	// Only on a title screen (walk around in demos)
-	if (gamestate == GS_DEMOSCREEN || (demoplayback))
-	{
-		memset(l_MouseMove, 0, sizeof(l_MouseMove));
-		memset(l_KeyDown, 0, sizeof(l_KeyDown));
-		memset(l_JoyButtons, 0, sizeof(l_JoyButtons));
-		memset(l_JoyAxis, 0, sizeof(l_JoyAxis));
-		return false;
-	}
-	
 	/* Handle chatting for players */
 	// Keyboard for P1 only
 	if (a_Event->Type == IET_KEYBOARD)
@@ -172,7 +161,7 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event)
 	
 	// Synth OSK always work
 	else if (a_Event->Type == IET_SYNTHOSK)
-		Bit = a_Event->Data.SynthOSK.PNum + 1;
+		Bit = a_Event->Data.SynthOSK.SNum + 1;
 	
 	// No player specified (mouse, joy, etc.)
 	else
@@ -257,6 +246,7 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event)
 				l_KeyDown[a_Event->Data.Keyboard.KeyCode] = a_Event->Data.Keyboard.Down;
 			return true;
 			
+#if 0
 			// Joystick
 		case IET_JOYSTICK:
 			// Get local joystick
@@ -302,6 +292,7 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event)
 				}
 			}
 			return true;
+#endif
 		
 			// Unknown
 		default:

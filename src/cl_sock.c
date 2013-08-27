@@ -36,6 +36,8 @@
 #include "cl.h"
 #include "i_util.h"
 #include "z_zone.h"
+#include "v_video.h"
+#include "sn.h"
 
 /*****************
 *** STRUCTURES ***
@@ -83,4 +85,160 @@ int32_t CL_InitSocks(void)
 	return g_NumCLSocks;
 }
 
+/* CL_BindSocket() -- Binds socket to viewport */
+CL_View_t* CL_BindSocket(CL_Socket_t* const a_Sock, const int8_t a_JoyID)
+{
+	int32_t i;
+	CL_View_t* View;
+	
+	/* Check */
+	if (!a_Sock)
+		return NULL;
+	
+	/* If socket already owns a view, do not double bind */
+	if (a_Sock->View)
+		return a_Sock->View;
+	
+	/* Find a viewport that is not taken */
+	for (i = 0; i < MAXSPLITS; i++)
+	{
+		View = &g_CLViews[i];
+		
+		// Already taken?
+		if (View->Socket)
+			continue;
+		
+		// Take over this view
+		View->Socket = a_Sock;
+		a_Sock->View = View;
+		
+		// No Joystick
+		if (a_JoyID < 0)
+			a_Sock->JoyID = -1;
+		
+		// Using joystick
+		else
+		{
+			a_Sock->JoyID = a_JoyID;
+			a_Sock->Flags |= CLSF_JOYSTICK;
+		}
+		
+		// Increase bind count
+		g_CLBinds++;
+		
+		// Claimed
+		return View;
+	}
+	
+	/* No view found */
+	return NULL;
+}
+
+/* CL_SockEvent() -- Handle events on sockets */
+bool_t CL_SockEvent(const I_EventEx_t* const a_Event)
+{
+	CL_Socket_t* Sock;
+	CL_View_t* View;
+	int32_t i;
+	bool_t DoBind;
+	
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Determine who gets the event, for said socket */
+	Sock = NULL;
+	
+	// Synthetic OSK
+	if (a_Event->Type == IET_SYNTHOSK)
+		Sock = g_CLSocks[a_Event->Data.SynthOSK.SNum];
+	
+	// Keyboard/Mouse == Always first
+	else if (a_Event->Type == IET_KEYBOARD || a_Event->Type == IET_MOUSE)
+		Sock = g_CLSocks[0];
+	
+	// Joystick
+	else if (a_Event->Type == IET_JOYSTICK)
+	{
+		for (i = 1; i < g_NumCLSocks; i++, Sock = NULL)
+			if ((Sock = g_CLSocks[i]))
+			{
+				// No joystick here
+				if (!(Sock->Flags & CLSF_JOYSTICK))
+					continue;
+				
+				// Wrong joy
+				if (Sock->JoyID != a_Event->Data.Joystick.JoyID)
+					continue;
+				
+				// This is it
+				break;
+			}
+	}
+	
+	// Some other event
+	else
+		return false;
+	
+	/* No socket gets this */
+	if (!Sock)
+		return false;
+	
+	/* If socket is not bound, do bind code */
+	if (!Sock->View)
+	{
+		DoBind = false;
+		i = -1;
+		
+		// Use space on the keyboard
+		if (a_Event->Type == IET_KEYBOARD)
+		{
+			if (a_Event->Data.Keyboard.KeyCode == IKBK_SPACE &&
+					a_Event->Data.Keyboard.Down)
+				DoBind = true;
+		}
+		
+		// First mouse button takes control
+		else if (a_Event->Type == IET_MOUSE)
+		{
+			if (a_Event->Data.Mouse.Button == 1 &&
+					a_Event->Data.Mouse.Down)
+				DoBind = true;
+		}
+		
+		// Otherwise, use the first joystick button
+		else if (a_Event->Type == IET_JOYSTICK)
+		{
+			if (a_Event->Data.Joystick.Button == 1 &&
+					a_Event->Data.Joystick.Down)
+				DoBind = true;
+		}
+		
+		// If binding, do the bind
+		if (DoBind)
+			if ((View = CL_BindSocket(Sock, i)))
+				return true;
+	}
+	
+	/* Otherwise it is bound for some reason */
+	else
+	{
+		// Always generate synthosk commands with joysticks
+		if (a_Event->Type == IET_JOYSTICK)
+		{
+		}
+		
+		// Send control to port
+		if (SN_HandleEvent(a_Event, Sock))
+			return true;
+	}
+	
+	/* Not Handled */
+	return false;
+}
+
+/* CL_SockDrawer() -- Draws socket interface */
+void CL_SockDrawer(void)
+{
+}
 
