@@ -23,4 +23,5 @@ MNodes		= 0x80C70A00;
 MThings		= 0x80EF0A00;
 MSectors	= 0x81370A00;
 MObjects	= 0x82FB0A00;
+MPlayers	= 0x83E70A00
 

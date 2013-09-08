@@ -409,10 +409,13 @@ typedef struct BL_GameInfo_s
 	#define VOIDP(x) x
 	#define PCAST(s,x) ((s)(x))
 	#define AOF(s,b,z,g,i) &(((s)(g))[(i)])
+	#define PTI(t,b,s,g,p) ((uint32_t)(((t*)(p)) - (g)))
+	
 #else
 	#define VOIDP(x) uint32_t
 	#define PCAST(s,x) ((uint32_t)(x))
 	#define AOF(s,b,z,g,i) ((uint32_t)((b) + ((z) * (i))))
+	#define PTI(t,b,s,g,p) ((((uint32_t)(p)) - ((uint32_t)(b))) / (s))
 #endif
 
 /**************************
@@ -467,6 +470,7 @@ typedef struct MWeapon_s MWeapon_t;
 #define MVERTEXMAX		UINT32_C(65535)
 #define MVERTEXSIZE		UINT32_C(8)
 #define MVERTEXIDTOP(x)	AOF(MVertex_t,MVERTEXBASEADDR,MVERTEXSIZE,MVertexes,(x))
+#define MVERTEXPTOID(x) PTI(MVertex_t,MVERTEXBASEADDR,MVERTEXSIZE,MVertexes,(x))
 
 /* MVertex_t -- Vertex in map */
 struct MVertex_s
@@ -481,6 +485,7 @@ struct MVertex_s
 #define MFFMAX		UINT32_C(127)
 #define MFFSIZE		UINT32_C(20)
 #define MFFIDTOP(x)	AOF(MFakeFloor_t,MFFBASEADDR,MFFSIZE,MFFloors,(x))
+#define MFFPTOID(x)	PTI(MFakeFloor_t,MFFBASEADDR,MFFSIZE,MFFloors,(x))
 
 typedef enum MFakeFloorFlag_e
 {
@@ -521,6 +526,7 @@ struct MFakeFloor_s
 #define MSECNODEMAX			UINT32_C(8191)
 #define MSECNODESIZE		UINT32_C(24)
 #define MSECNODEIDTOP(x)	AOF(MSecNode_t,MSECNODEBASEADDR,MSECNODESIZE,MSecNodes,(x))
+#define MSECNODEPTOID(x)	PTI(MSecNode_t,MSECNODEBASEADDR,MSECNODESIZE,MSecNodes,(x))
 
 /* MSecNode_t -- Sector Node */
 struct MSecNode_s
@@ -539,6 +545,7 @@ struct MSecNode_s
 #define MSEGMAX			UINT32_C(65535)
 #define MSEGSIZE		UINT32_C(40)
 #define MSEGIDTOP(x)	AOF(MSeg_t,MSEGBASEADDR,MSEGSIZE,MSegs,(x))
+#define MSEGPTOID(x)	PTI(MSeg_t,MSEGBASEADDR,MSEGSIZE,MSegs,(x))
 
 /* MSeg_t -- Seg */
 struct MSeg_s
@@ -561,6 +568,7 @@ struct MSeg_s
 #define MSIDEMAX		UINT32_C(65535)
 #define MSIDESIZE		UINT32_C(4)
 #define MSIDEIDTOP(x)	AOF(MSide_t,MSIDEBASEADDR,MSIDESIZE,MSides,(x))
+#define MSIDEPTODI(x)	PTI(MSide_t,MSIDEBASEADDR,MSIDESIZE,MSides,(x))
 
 /* MSide_t -- Side */
 struct MSide_t
@@ -574,6 +582,7 @@ struct MSide_t
 #define MLINEMAX		UINT32_C(65535)
 #define MLINESIZE		UINT32_C(108)
 #define MLINEIDTOP(x)	AOF(MLine_t,MLINEBASEADDR,MLINESIZE,MLines,(x))
+#define MLINEPTOID(x)	PTI(MLine_t,MLINEBASEADDR,MLINESIZE,MLines,(x))
 
 /* MLine_t -- LineDef */ 
 struct MLine_s
@@ -607,6 +616,7 @@ struct MLine_s
 #define MSUBSMAX		UINT32_C(65535)
 #define MSUBSSIZE		UINT32_C(36)
 #define MSUBSIDTOP(x)	AOF(MSubS_t,MSUBSBASEADDR,MSUBSSIZE,MSubSectors,(x))
+#define MSUBSPTOID(x)	PTI(MSubS_t,MSUBSBASEADDR,MSUBSSIZE,MSubSectors,(x))
 
 /* MSubS_t -- Subsector */
 struct MSubS_s
@@ -628,6 +638,7 @@ struct MSubS_s
 #define MNODEMAX		UINT32_C(65535)
 #define MNODESIZE		UINT32_C(40)
 #define MNODEIDTOP(x)	AOF(MNode_t,MNODEBASEADDR,MNODESIZE,MNodes,(x))
+#define MNODEPTOID(x)	PTI(MNode_t,MNODEBASEADDR,MNODESIZE,MNodes,(x))
 
 /* MNode_t -- Subsector */
 struct MNode_s
@@ -643,6 +654,7 @@ struct MNode_s
 #define MTHINGMAX		UINT32_C(65535)
 #define MTHINGSIZE		UINT32_C(72)
 #define MTHINGIDTOP(x)	AOF(MThing_t,MTHINGBASEADDR,MTHINGSIZE,MThings,(x))
+#define MTHINGPTOID(x)	PTI(MThing_t,MTHINGBASEADDR,MTHINGSIZE,MThings,(x))
 
 /* MThing_t -- Map Thing */
 struct MThing_s
@@ -667,6 +679,7 @@ struct MThing_s
 #define MSECTORMAX		UINT32_C(65535)
 #define MSECTORSIZE		UINT32_C(452)
 #define MSECTORIDTOP(x)	AOF(MSector_t,MSECTORBASEADDR,MSECTORSIZE,MSectors,(x))
+#define MSECTORPTOID(x)	PTI(MSector_t,MSECTORBASEADDR,MSECTORSIZE,MSectors,(x))
 
 #define MAXMSECTORLINES UINT32_C(32)
 #define MAXMSECTORATTACHED UINT32_C(32)
@@ -699,6 +712,7 @@ struct MSector_s
 #define MOBJECTMAX		UINT32_C(65535)
 #define MOBJECTSIZE		UINT32_C(236)
 #define MOBJECTIDTOP(x)	AOF(MObject_t,MOBJECTBASEADDR,MOBJECTSIZE,MObjects,(x))
+#define MOBJECTPTOID(x)	PTI(MObject_t,MOBJECTBASEADDR,MOBJECTSIZE,MObjects,(x))
 
 /* MObject_t -- Object */
 struct MObject_s
@@ -746,6 +760,7 @@ struct MObject_s
 #define MPLAYERMAX		UINT32_C(256)
 #define MPLAYERSIZE		UINT32_C(1876)
 #define MPLAYERIDTOP(x)	AOF(MPlayer_t,MPLAYERBASEADDR,MPLAYERSIZE,MPlayers,(x))
+#define MPLAYERPTOID(x)	PTI(MPlayer_t,MPLAYERBASEADDR,MPLAYERSIZE,MPlayers,(x))
 
 #define MPLAYERMAXWEAPON	128
 #define MPLAYERMAXAMMO		128
@@ -963,6 +978,20 @@ static inline int32_t RandomLTZGT(void)
 
 extern volatile BInfo_t g_Info;
 extern volatile const BReal_t g_Real;
+
+// Generate with: grep '#.* M.*AOF' < bot_lib.h | sed 's/.*AOF(\(.*\),.*,.*,\(.*\),.*)/extern \1* \2;/g'
+extern MVertex_t* MVertexes;
+extern MFakeFloor_t* MFFloors;
+extern MSecNode_t* MSecNodes;
+extern MSeg_t* MSegs;
+extern MSide_t* MSides;
+extern MLine_t* MLines;
+extern MSubS_t* MSubSectors;
+extern MNode_t* MNodes;
+extern MThing_t* MThings;
+extern MSector_t* MSectors;
+extern MObject_t* MObjects;
+extern MPlayer_t* MPlayers;
 
 #endif
 

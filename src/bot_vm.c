@@ -63,6 +63,7 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 	uint32_t ABase, SBase;
 	union
 	{
+		player_t* pl;
 		mobj_t* mo;
 		sector_t* Sect;
 		mapthing_t* MT;
@@ -76,8 +77,22 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 		vertex_t* V;
 	} p;
 	
+	/* Players */
+	if (a_BaseAddr >= MPLAYERBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MPLAYERBASEADDR);
+		Index = ABase / MPLAYERSIZE;
+		SBase = ABase % MPLAYERSIZE;
+		
+		if (Index < MAXPLAYERS)
+			p.pl = &players[Index];
+		else
+			return 0;
+	}
+	
 	/* Mobjs */
-	if (a_BaseAddr >= MOBJECTBASEADDR)
+	else if (a_BaseAddr >= MOBJECTBASEADDR)
 	{
 		// Obtain Index
 		ABase = (a_BaseAddr - MOBJECTBASEADDR);
