@@ -439,7 +439,9 @@ typedef struct BL_GameInfo_s
 // Nodes			40		0x80C70A00	0x80EF09FF	65535
 // Map Thing		72		0x80EF0A00	0x813709FF	65535
 // Sectors			452		0x81370A00	0x82FB09FF	65535
-// Objects			???		0x82FB0A00	0x????????	65535
+// Objects			236		0x82FB0A00	0x83E709FF	65535
+// Players			1876	0x83E70A00	0x83EE5DFF	256
+// ???				???		0xE3EE5E00	0x????????	???
 
 /*** PREDEFINE ***/
 
@@ -457,6 +459,7 @@ typedef struct MObject_s MObject_t;
 typedef struct MPlayer_s MPlayer_t;
 typedef struct MObjInfo_s MObjInfo_t;
 typedef struct MState_s MState_t;
+typedef struct MWeapon_s MWeapon_t;
 
 /*** VERTEX ***/
 
@@ -694,12 +697,14 @@ struct MSector_s
 
 #define MOBJECTBASEADDR	(MDSBASEADDR + UINT32_C(0x2FB0A00))
 #define MOBJECTMAX		UINT32_C(65535)
-#define MOBJECTSIZE		UINT32_C(0)
+#define MOBJECTSIZE		UINT32_C(236)
 #define MOBJECTIDTOP(x)	AOF(MObject_t,MOBJECTBASEADDR,MOBJECTSIZE,MObjects,(x))
 
 /* MObject_t -- Object */
 struct MObject_s
 {
+	uint32_t InUse;								// This object slot is in use
+	uint32_t SpawnID;							// Object Spawn ID
 	int32_t Health;								// Health
 	fixed_t Pos[3];								// Position
 	fixed_t Mom[3];								// Momentum
@@ -721,9 +726,9 @@ struct MObject_s
 	int32_t LastLook;							// Last Look
 	int32_t Threshold;							// Threshold
 	VOIDP(MThing_t*) SpawnThing;				// Thing spawned at
-	uint32_t SpawnID;							// Object Spawn ID
 	fixed_t MaxZ;								// Max Z of object
 	int32_t Team;								// Team Object is on
+	uint32_t SameTeam;							// Same team as you
 	int32_t DroppedAmmo;						// Dropped Ammo
 	int32_t Special[2];							// Special Property
 	int32_t KilledByPlayer;						// Player that killed this
@@ -732,14 +737,55 @@ struct MObject_s
 	VOIDP(MObject_t*) SNext;					// Next in sector
 	VOIDP(MObject_t*) BPrev;					// Previous in blockmap
 	VOIDP(MObject_t*) BNext;					// Next in blockmap
-	uint32_t Reserved1;							// Reserved
-	uint32_t Reserved2;							// Reserved
-	uint32_t Reserved3;							// Reserved
-	uint32_t Reserved4;							// Reserved
-	uint32_t Reserved5;							// Reserved
-	uint32_t Reserved6;							// Reserved
-	uint32_t Reserved7;							// Reserved
-	uint32_t Reserved8;							// Reserved
+	uint32_t Reserved[7];						// Reserved
+};
+
+/*** PLAYERS ***/
+
+#define MPLAYERBASEADDR	(MDSBASEADDR + UINT32_C(0x3E70A00))
+#define MPLAYERMAX		UINT32_C(256)
+#define MPLAYERSIZE		UINT32_C(1876)
+#define MPLAYERIDTOP(x)	AOF(MPlayer_t,MPLAYERBASEADDR,MPLAYERSIZE,MPlayers,(x))
+
+#define MPLAYERMAXWEAPON	128
+#define MPLAYERMAXAMMO		128
+
+/* MPlayer_t -- Player */
+struct MPlayer_s
+{
+	uint32_t InGame;							// Player is in game
+	VOIDP(MObject_t*) Obj;						// Object of player
+	VOIDP(MObject_t*) Attacker;					// Attacker of player
+	VOIDP(MObject_t*) Attackee;					// Player is attacking this
+	int32_t Health;								// Health
+	int32_t Armor;								// Armor
+	uint32_t ArmorType;							// Type of armor
+	int32_t Team;								// Player's Team
+	uint32_t SameTeam;							// Same Team as you
+	uint32_t MaxHealth[2];						// Max Health (normal/super)
+	uint32_t MaxArmor[2];						// Max Armor (normal/super)
+	uint32_t Cards;								// Cards (bitfield)
+	int32_t PendingWeapon;						// Weapon to change to
+	int32_t ReadyWeapon;						// Weapon to ready
+	VOIDP(MWeapon_t*) PendingWeaponP;			// Pointer to pending weapon
+	VOIDP(MWeapon_t*) ReadyWeaponP;				// Pointer to ready weapon
+	uint32_t WeaponOwned[MPLAYERMAXWEAPON];		// Weapons owned by player
+	struct
+	{
+		int32_t Now;							// Current Ammo
+		int32_t Max;							// Max Ammo
+	} Ammo[MPLAYERMAXAMMO];
+	uint32_t Backpack;							// Has a backpack
+	angle_t Aiming;								// Up/Down Angle
+	int32_t DamageCount;						// How red the screen is
+	int32_t BonusCount;							// Palette of items picked up
+	int32_t Frags;								// Frags
+	int32_t Deaths;								// Number of deaths
+	int32_t Kills;								// Monster Kills
+	int32_t Items;								// Items picked up
+	int32_t Secrets;							// Secrets Found
+	VOIDP(MObject_t*) Rain[2];					// Heretic Rain
+	uint32_t Reserved[56];						// Reserved
 };
 
 /******************
@@ -767,6 +813,7 @@ struct BInfo_s
 	int32_t ArmorType;							// Type of armor being worn
 	VOIDP(MObject_t*) Attacker;					// Being attacked by
 	VOIDP(MObject_t*) Attackee;					// Thing attacking
+	VOIDP(MWeapon_t*) Weapon;					// Weapon bot is using
 	
 	/* Map Object */
 	VOIDP(MObject_t*) Mo;						// Map Object Pointer

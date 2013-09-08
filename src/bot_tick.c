@@ -107,6 +107,7 @@ void BOT_EBFillBotInfo(BOT_t* const a_Bot)
 		BI->Health = LSi32(P->health);
 		BI->Armor = LSi32(P->armorpoints);
 		BI->ArmorType = LSi32(P->armorpoints);
+		BI->Player = MPLAYERIDTOP(P - players);
 	}
 	
 	// From Map Object

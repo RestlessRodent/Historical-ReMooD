@@ -219,6 +219,7 @@ typedef enum D_ProfBarType_e
 
 struct mobj_s;
 
+/* Define D_Prof_t */
 #if !defined(__REMOOD_DPROFTDEFINED)
 	#define __REMOOD_DPROFTDEFINED
 	typedef struct D_Prof_s D_Prof_t;

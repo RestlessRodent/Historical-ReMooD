@@ -95,6 +95,8 @@ void BOT_Init(void)
 	/* Add console commands */
 	CONL_AddCommand("addbot", BOT_BotCommand);
 	
+	CONL_PrintF(">>>>>>>>>>>> sizeof %u <<<<<<<<<<<<<<\n", sizeof(MPlayer_t));
+	
 	/* Debugging Bots? */
 	if (M_CheckParm("-devbot") || M_CheckParm("-botdev"))
 		l_BotDebug = true;

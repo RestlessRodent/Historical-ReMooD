@@ -250,7 +250,7 @@ bool_t CL_SockEvent(const I_EventEx_t* const a_Event)
 void CL_SockDrawer(void)
 {
 #define BUFSIZE 9
-	int32_t i, h, x, y, la, wa, Lots;
+	int32_t i, j, h, x, y, la, wa, Lots;
 	CL_Socket_t* Sock;
 	char Color, *Text;
 	char Buf[BUFSIZE];
@@ -286,6 +286,11 @@ void CL_SockDrawer(void)
 		// Otherwise, press some buttons
 		else
 		{
+			// All players inside, who cares about those who cannot join?
+			if (g_CLBinds >= MAXSPLITS)
+				continue;
+			
+			// Not ready
 			Ready = false;
 			
 			// Flash message every half second
@@ -328,13 +333,13 @@ void CL_SockDrawer(void)
 		}
 		
 		// Determine lots count
-		Lots = i / 4;	// so many joysticks!
+		Lots = j / 4;	// so many joysticks!
 		
 		// Same size
 		la = V_StringWidthA(VFONT_SMALL, 0, Buf);
 		
 		// Determine draw location
-		switch (i & 3)
+		switch (j & 3)
 		{
 			case 0:
 				x = 2;
@@ -398,6 +403,9 @@ void CL_SockDrawer(void)
 			else
 				V_DrawStringA(VFONT_SMALL, 0, Text, x + wa, y);
 		}
+		
+		// Was drawn, increase j
+		j++;
 	}
 #undef BUFSIZE
 }

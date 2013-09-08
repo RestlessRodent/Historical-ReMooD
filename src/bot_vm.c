@@ -63,6 +63,7 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 	uint32_t ABase, SBase;
 	union
 	{
+		mobj_t* mo;
 		sector_t* Sect;
 		mapthing_t* MT;
 		node_t* Node;
@@ -75,8 +76,19 @@ static uint32_t BOT_VMFDataStructs(MIPS_VM_t* const a_VM, MIPS_Map_t* const a_Ma
 		vertex_t* V;
 	} p;
 	
+	/* Mobjs */
+	if (a_BaseAddr >= MOBJECTBASEADDR)
+	{
+		// Obtain Index
+		ABase = (a_BaseAddr - MOBJECTBASEADDR);
+		Index = ABase / MOBJECTSIZE;
+		SBase = ABase % MOBJECTSIZE;
+		
+		return 0;
+	}
+	
 	/* Sectors */
-	if (a_BaseAddr >= MSECTORBASEADDR)
+	else if (a_BaseAddr >= MSECTORBASEADDR)
 	{
 		// Obtain Index
 		ABase = (a_BaseAddr - MSECTORBASEADDR);

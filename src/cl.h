@@ -79,6 +79,12 @@ typedef enum CL_SockFlags_e
 	#define __REMOOD_CLCLIENT_DEFINED
 #endif
 
+/* Define D_Prof_t */
+#if !defined(__REMOOD_DPROFTDEFINED)
+	#define __REMOOD_DPROFTDEFINED
+	typedef struct D_Prof_s D_Prof_t;
+#endif
+
 /* CL_View_t -- Client viewport */
 struct CL_View_s
 {
@@ -99,6 +105,9 @@ struct CL_Socket_s
 	
 	angle_t VRot;								// Left/Right Look
 	angle_t VPitch;								// Up/Down Look
+	
+	// TO BE REMOVED IN THE FUTURE
+	D_Prof_t* Profile;							// Profile to use
 };
 
 /**************

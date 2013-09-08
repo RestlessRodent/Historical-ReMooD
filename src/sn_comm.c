@@ -383,6 +383,10 @@ int32_t SN_OkTics(tic_t* const a_LocalP, tic_t* const a_LastP)
 				}
 			}
 		
+		// Single tics, screw networked players
+		if (singletics)
+			return 1;
+		
 		// Not enough time has passed
 		if (*a_LocalP <= *a_LastP)
 			return 0;

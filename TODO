@@ -34,6 +34,17 @@ C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
 These are the following things that need to be done to progress: When done
 mark as completed, too bad there is no ASCII checkmark.
 
+ * p_saveg.c:	Implement dependency based savegames with save chunk
+ 				registration. Basically, in initialization functions, a handler
+ 				will be registered which will write the specific chunk. That
+ 				chunk will then depend on other chunks. Dependencies will be
+ 				calculated, and during a game save the chunks will be in any
+ 				dependent order, and the handler passed at registration will be
+ 				called. This way, save games can have slightly out of order
+ 				chunks along with leaner save game code (as it can be placed
+ 				else where in the source code) along with easier version
+ 				handling.
+
  * d_main.c:	Do major cleanup of this, this is just a gigantic unorganized
  				mess of code that does everything.
 
