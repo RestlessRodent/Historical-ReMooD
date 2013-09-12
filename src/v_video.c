@@ -1266,10 +1266,10 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 			{
 				// Set buf
 				buf = (int*)(vBase + (Pitch * y) + X1);
-				i = (((intptr_t)buf) & (intptr_t)7);
+				i = (((uintptr_t)buf) & (uintptr_t)7);
 			
 				// Pre-8 loop (prevents signaling buses)
-				while (((intptr_t)&(((uint8_t*)buf)[x])) & (intptr_t)7)
+				while ((((uintptr_t)&(((uint8_t*)buf)[x])) & (uintptr_t)7) != 0)
 				{
 					if (x < (X2 - X1))
 						((uint8_t*)buf)[x++] = c & 0xFFU;
@@ -1370,7 +1370,7 @@ void V_DrawColorMapEx(const uint32_t a_Flags, const uint8_t* const a_ColorMap, c
 	{
 		// Set buf
 		buf = (int*)(vBase + (Pitch * y) + X1);
-		i = (((intptr_t)buf) & (intptr_t)7);
+		i = (((uintptr_t)buf) & (uintptr_t)7);
 		
 		// Loop entire row
 		for (x = 0; x < (X2 - X1); x++)
