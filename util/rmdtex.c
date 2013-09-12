@@ -66,6 +66,50 @@
 *** BYTE SWAPPING ***
 ********************/
 
+
+/* Just check for big endian */
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+	// GCC has endian.h (but only on linux)
+	#if defined(__GNUC__) && defined(__linux__)
+		#include <endian.h>
+
+		#if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
+		#elif defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
+		#endif
+	#endif
+	
+	// Mac OS X has machine/endian.h
+	#if defined(__APPLE__) && defined(__MACH__)
+		#include <machine/endian.h>
+		
+		// Big endian? PowerPC system?
+		#if __DARWIN_BYTE_ORDER == __DARWIN_BIG_ENDIAN
+			#define __REMOOD_BIG_ENDIAN
+		#endif
+	#endif
+
+	// Known Big endian systems
+	#if !defined(__REMOOD_BIG_ENDIAN)
+		#if defined(__MIPSEB__) || defined(__BIG_ENDIAN__)
+			#define __REMOOD_BIG_ENDIAN 1
+		#endif
+	#endif
+
+	// Otherwise it is little
+	#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+		#define __REMOOD_LITTLE_ENDIAN 1
+	#endif
+#endif
+
+// Doubly be sure
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+	#error Error No endian set
+#elif defined(__REMOOD_BIG_ENDIAN) && defined(__REMOOD_LITTLE_ENDIAN)
+	#error Error Both endians set
+#endif
+
 /* SwapUInt32() -- Swap 32-bits */
 static uint32_t SwapUInt32(const uint32_t In)
 {
@@ -75,7 +119,7 @@ static uint32_t SwapUInt32(const uint32_t In)
 /* LittleSwapuInt16() -- Swap 16-bits for little endien */
 static uint16_t LittleSwapUInt16(const uint16_t In)
 {
-#if defined(__BIG_ENDIAN__)
+#if defined(__REMOOD_BIG_ENDIAN)
 	return ((In & 0xFFU) << 8) | ((In & 0xFF00U) >> 8);
 #else
 	return In;
@@ -85,10 +129,30 @@ static uint16_t LittleSwapUInt16(const uint16_t In)
 /* LittleSwapUInt32() -- Swap 32-bits for little endien */
 static uint32_t LittleSwapUInt32(const uint32_t In)
 {
-#if defined(__BIG_ENDIAN__)
+#if defined(__REMOOD_BIG_ENDIAN)
 	return SwapUInt32(In);
 #else
 	return In;
+#endif
+}
+
+/* BigSwapUInt16() -- Swap 16-bits for big endien */
+static uint16_t BigSwapUInt16(const uint16_t In)
+{
+#if defined(__REMOOD_BIG_ENDIAN)
+	return In;
+#else
+	return ((In & 0xFFU) << 8) | ((In & 0xFF00U) >> 8);
+#endif
+}
+
+/* BigSwapUInt32() -- Swap 32-bits for big endien */
+static uint32_t BigSwapUInt32(const uint32_t In)
+{
+#if defined(__REMOOD_BIG_ENDIAN)
+	return In;
+#else
+	return SwapUInt32(In);
 #endif
 }
 
@@ -1109,11 +1173,11 @@ static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, co
 		fread(&Channels, 4, 1, File);
 		
 		// Byte swap
-		Offset = LittleSwapUInt32(SwapUInt32(Offset));
-		AUSize = LittleSwapUInt32(SwapUInt32(AUSize));
-		Mode = LittleSwapUInt32(SwapUInt32(Mode));
-		Rate = LittleSwapUInt32(SwapUInt32(Rate));
-		Channels = LittleSwapUInt32(SwapUInt32(Channels));
+		Offset = BigSwapUInt32(Offset);
+		AUSize = BigSwapUInt32(AUSize);
+		Mode = BigSwapUInt32(Mode);
+		Rate = BigSwapUInt32(Rate);
+		Channels = BigSwapUInt32(Channels);
 		
 		// Check if mode is not 2 (only these are supported)
 		if (Mode != 2)
