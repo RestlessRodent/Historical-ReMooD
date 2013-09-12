@@ -234,7 +234,7 @@ int32_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 
 #define BP_MERGE(a,b) a##b
 
-#if defined(__arm__) || defined(_M_ARM) || defined(__sparc__) || defined(__sparc)
+#if defined(__REMOOD_FORCEALIGN)
 	/* Access to pointer data for system that can't handle unaligned access */
 	// Lets say we have the following data:
 	// { 01  23  45  67  |  89  AB  CD  EF }
@@ -285,6 +285,25 @@ BP_READ(UInt16R, uint16_t)
 BP_READ(UInt32R, uint32_t)
 BP_READ(UInt64R, uint64_t)
 
+#if defined(__REMOOD_FORCEALIGN)
+
+#define BP_WRITE(w,x) void BP_MERGE(Write,w)(x** const Ptr, const x Val)\
+{\
+	uint8_t* p8;\
+	size_t i;\
+	\
+	if (!Ptr || !(*Ptr))\
+		return 0;\
+	\
+	p8 = (uint8_t*)*Ptr;\
+	for (i = 0; i < sizeof(x); i++)\
+		p8[i] = ((uint8_t*)&Val)[i];\
+	\
+	(*Ptr)++;\
+}
+
+#else
+
 #define BP_WRITE(w,x) void BP_MERGE(Write,w)(x** const Ptr, const x Val)\
 {\
 	if (!Ptr || !(*Ptr))\
@@ -292,6 +311,9 @@ BP_READ(UInt64R, uint64_t)
 	**Ptr = Val;\
 	(*Ptr)++;\
 }
+
+#endif
+
 BP_WRITE(Int8R, int8_t)
 BP_WRITE(Int16R, int16_t)
 BP_WRITE(Int32R, int32_t)

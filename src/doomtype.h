@@ -151,6 +151,14 @@
 	#error Error Both endians set
 #endif
 
+/******************************************
+*** SYSTEMS THAT REQUIRE ALIGNED ACCESS ***
+******************************************/
+
+#if defined(__arm__) || defined(_M_ARM) || defined(__sparc__) || defined(__sparc)
+	#define __REMOOD_FORCEALIGN
+#endif
+
 /***********************
 *** FIXED SIZE TYPES ***
 ***********************/
