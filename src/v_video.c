@@ -1269,8 +1269,13 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 				i = (((intptr_t)buf) & (intptr_t)7);
 			
 				// Pre-8 loop (prevents signaling buses)
-				for (x = 0; x < i; x++)
-					((uint8_t*)buf)[x] = c & 0xFFU;
+				while (((intptr_t)&(((uint8_t*)buf)[x])) & (intptr_t)7)
+				{
+					if (x < (X2 - X1))
+						((uint8_t*)buf)[x++] = c & 0xFFU;
+					else
+						break;
+				}
 			
 				// Loop
 				for (; x < (X2 - X1) - 8; x += 8)
