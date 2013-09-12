@@ -293,7 +293,7 @@ BP_READ(UInt64R, uint64_t)
 	size_t i;\
 	\
 	if (!Ptr || !(*Ptr))\
-		return 0;\
+		return;\
 	\
 	p8 = (uint8_t*)*Ptr;\
 	for (i = 0; i < sizeof(x); i++)\
