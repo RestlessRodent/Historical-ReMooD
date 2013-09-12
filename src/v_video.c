@@ -1267,7 +1267,11 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 				// Set buf
 				buf = (int*)(vBase + (Pitch * y) + X1);
 				i = (((uintptr_t)buf) & (uintptr_t)7);
-			
+
+#if defined(__sparc__)
+				for (; x < (X2 - X1); x++)
+					((uint8_t*)buf)[x] = c & 0xFFU;
+#else
 				// Pre-8 loop (prevents signaling buses)
 				while ((((uintptr_t)&(((uint8_t*)buf)[x])) & (uintptr_t)7) != 0)
 				{
@@ -1287,6 +1291,7 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 				// Final bits
 				for (; x < (X2 - X1); x++)
 					((uint8_t*)buf)[x] = c & 0xFFU;
+#endif
 			
 				// Inner second loop
 				for (i = 1; i < 8 && (y + i) < Y2; i++)
