@@ -779,6 +779,24 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_Ne
 #undef BUFSIZE
 }
 
+/* CONL_VarSetIntByName() -- Sets variable to integer based on name */
+const char* CONL_VarSetIntByName(const char* const a_Var, const int32_t a_NewVal)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	
+	/* Check */
+	if (!a_Var)
+		return NULL;
+	
+	/* Just sprintf it */
+	snprintf(Buf, BUFSIZE - 1, "%i\0", (int)a_NewVal);
+	
+	/* Now set */
+	return CONL_VarSetStrByName(a_Var, Buf);
+#undef BUFSIZE
+}
+
 /* CONL_VarSetStr() -- Sets variable value, and returns actual set value */
 const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal)
 {

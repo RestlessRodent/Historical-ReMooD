@@ -265,6 +265,7 @@ bool_t CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP);
 CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name);
 CONL_StaticVar_t* CONL_VarLocateHash(const uint32_t a_Hash);
 const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_NewVal);
+const char* CONL_VarSetIntByName(const char* const a_Var, const int32_t a_NewVal);
 
 const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal);
 int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const int32_t a_NewVal);

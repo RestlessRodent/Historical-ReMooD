@@ -338,7 +338,7 @@ void SCR_CheckDefaultMode(void)
 	if (M_CheckParm("-gl") || M_CheckParm("-opengl"))
 	{
 		// Attempt GL Mode
-		CONL_VarSetByName("scr_depth", I_VIDEOGLMODECONST);
+		CONL_VarSetIntByName("scr_depth", I_VIDEOGLMODECONST);
 	}
 	
 	else
@@ -364,7 +364,7 @@ void SCR_CheckDefaultMode(void)
 				p = 32;	// User is dumb, force 32-bit
 			
 			// Set as the divide of that
-			CONL_VarSetByName("scr_depth", p / 8);
+			CONL_VarSetIntByName("scr_depth", p / 8);
 		}
 	}
 		
