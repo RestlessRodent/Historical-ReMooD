@@ -77,6 +77,7 @@ typedef struct viddef_s
 	
 	int baseratio;				// SoM: Used to get the correct value for lighting walls
 	bool_t HWDblBuf;			// Hardware Double Buffering
+	int gl;						// GL Mode
 } viddef_t;
 
 #define VIDWIDTH    vid.width

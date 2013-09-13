@@ -50,23 +50,6 @@
 #include "r_things.h"
 #include "r_state.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void VID_PrepareModeList(void);	// from i_video_xshm.c
 
 #ifdef DIRECTFULLSCREEN
@@ -103,6 +86,20 @@ bool_t fuzzymode = false;		// use original Doom fuzzy effect instead
 
 // of translucency
 
+// c_CVPVColorDepth --  Color Depth
+const CONL_VarPossibleValue_t c_CVPVColorDepth[] =
+{
+	{1, "8-bit"},
+	{2, "16-bit"},
+	{4, "32-bit"},
+	{I_VIDEOGLMODECONST, "OpenGL"},
+	
+	// End
+	{1, "MINVAL"},
+	{I_VIDEOGLMODECONST, "MAXVAL"},
+	{0, NULL},
+};
+
 // scr_width -- Width of screen
 CONL_StaticVar_t l_SCRWidth =
 {
@@ -116,6 +113,14 @@ CONL_StaticVar_t l_SCRHeight =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
 	"scr_height", DSTR_CVHINT_SCRHEIGHT, CLVVT_STRING, "480",
+	NULL
+};
+
+// scr_depth -- Depth of screen
+CONL_StaticVar_t l_SCRDepth =
+{
+	CLVT_INTEGER, c_CVPVColorDepth, CLVF_SAVE,
+	"scr_depth", DSTR_CVHINT_SCRDEPTH, CLVVT_STRING, "32",
 	NULL
 };
 
@@ -203,6 +208,7 @@ void SCR_Startup(void)
 	
 	CONL_VarRegister(&l_SCRWidth);
 	CONL_VarRegister(&l_SCRHeight);
+	CONL_VarRegister(&l_SCRDepth);
 	CONL_VarRegister(&l_SCRFullScreen);
 		
 	if (!graphics_started)
@@ -328,6 +334,39 @@ void SCR_CheckDefaultMode(void)
 	p = M_CheckParm("-height");
 	if (p && p < myargc - 1)
 		scr_forcey = atoi(myargv[p + 1]);
+	
+	if (M_CheckParm("-gl") || M_CheckParm("-opengl"))
+	{
+		// Attempt GL Mode
+		CONL_VarSetByName("scr_depth", I_VIDEOGLMODECONST);
+	}
+	
+	else
+	{
+		// Otherwise, based by command line
+		p = M_CheckParm("-bpp");
+		
+		if (!p)
+			p = M_CheckParm("-depth");
+		
+		if (p && p < myargc - 1)
+		{
+			p = atoi(myargv[p + 1]) * 8;
+			
+			// Illegal?
+			if (p > 32)
+				p = 32;
+			else if (p < 8)
+				p = 8;
+			
+			// Force these 3 values only
+			if (p != 8 && p != 16 && p != 32)
+				p = 32;	// User is dumb, force 32-bit
+			
+			// Set as the divide of that
+			CONL_VarSetByName("scr_depth", p / 8);
+		}
+	}
 		
 	if (scr_forcex && scr_forcey)
 	{

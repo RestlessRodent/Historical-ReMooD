@@ -792,6 +792,7 @@ bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscr
 
 extern CONL_StaticVar_t l_SCRWidth;
 extern CONL_StaticVar_t l_SCRHeight;
+extern CONL_StaticVar_t l_SCRDepth;
 extern CONL_StaticVar_t l_SCRFullScreen;
 
 /* VID_SetMode() -- Sets the specified video mode */
@@ -853,7 +854,7 @@ int VID_SetMode(int a_ModeNum)
 		}
 		
 		// Try it
-		if (I_SetVideoMode(w, h, l_SCRFullScreen.Value[0].Int))
+		if (I_SetVideoMode(w, h, l_SCRFullScreen.Value[0].Int, l_SCRDepth.Value->Int))
 			break;
 	}
 	
@@ -888,6 +889,8 @@ bool_t I_VideoPreInit(void)
 	vid.height = BASEVIDHEIGHT;
 	vid.rowbytes = vid.width * vid.bpp;
 	vid.recalc = true;
+	vid.bpp = 1;
+	vid.gl = 0;
 	return true;
 }
 
@@ -909,9 +912,24 @@ bool_t I_VideoPostInit(void)
 	return true;
 }
 
+/* I_VideoGenericInit() -- Generic Initialization */
+bool_t I_VideoGenericInit(void)
+{
+	/* Initialize before mode set */
+	if (!I_VideoBefore320200Init())
+		return;
+	
+	if (!I_SetVideoMode(320, 200, false, l_SCRDepth.Value->Int))	// 320x200 console scroller, never fullscreen
+		return;
+		
+	/* Prepare the video mode list */
+	if (!I_VideoPostInit())
+		return;
+}
+
 /* I_VideoSetBuffer() -- Sets the video buffer */
 // This is here so I do not constantly repeat code in I_SetVideoMode()
-void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf, const bool_t a_GL)
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf, const bool_t a_GL, const uint32_t a_Depth)
 {
 	int w, h;
 	
@@ -929,7 +947,15 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	
 	/* Nothing after this is done in GL mode */
 	if (a_GL)
+	{
+		vid.bpp = 0;
+		vid.gl = 1;
 		return;
+	}
+	
+	// Bitdepth and GL mode
+	vid.bpp = a_Depth;
+	vid.gl = 0;
 	
 	/* Allocate buffer for mode */
 	// If hardware double buffer is enabled, use direct buffer
@@ -939,14 +965,14 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	// Otherwise create a buffer
 	else
 	{
-		vid.buffer = I_SysAlloc(a_Width * a_Height * NUMSCREENS);
+		vid.buffer = I_SysAlloc(a_Width * a_Height * vid.bpp * NUMSCREENS);
 	
 		// Oops!
 		if (!vid.buffer)
 			return;
 		
 		// Clear buffer
-		memset(vid.buffer, 0, a_Width * a_Height * NUMSCREENS);
+		memset(vid.buffer, 0, a_Width * a_Height * vid.bpp * NUMSCREENS);
 	}
 	
 	/* Initialize video stuff (ouch) */

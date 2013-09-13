@@ -29,6 +29,10 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: User Interface Visibility
 
+/* NOT IN DEDICATED SERVER */
+#if !defined(__REMOOD_DEDICATED)
+/***************************/
+
 /***************
 *** INCLUDES ***
 ***************/
@@ -69,4 +73,9 @@ void UI_Ticker(void)
 void UI_Drawer(void) {}	// Move to UI_DRAW.C
 
 bool_t UI_HandleEvent(I_EventEx_t* const a_Event, const bool_t a_Early) {return false;}	// Move to UI_EVENT.C
+
+/* NOT IN DEDICATED SERVER */
+#endif
+/***************************/
+
 

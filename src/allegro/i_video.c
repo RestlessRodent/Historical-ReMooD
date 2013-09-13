@@ -622,41 +622,59 @@ void VID_PrepareModeList(void)
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
-bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen, const uint8_t a_Depth)
 {
 #if defined(_WIN32)
 	HWND hWnd;
 	HICON icoBig, icoSmall;
 #endif
+	int32_t TruDepth;
 	
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
+	
+	/* Set wanted color depth */
+	if (a_Depth == I_VIDEOGLMODECONST)
+		TruDepth = 32;	// OpenGL not supported in Allegro
+	else
+		TruDepth = a_Depth * 8;
 		
 	/* Destroy old buffer */
 	I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Set new video mode */
 	request_refresh_rate(70);
-	set_color_depth(8);			// always 8-bit color
 	
-	// Try initial set with a_Fullscreen honored
-	if (set_gfx_mode((a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
+	for (;;)
 	{
-		// Print warnings
-		CONL_PrintF("I_SetVideoMode: Failed to set %ux%u %s\n", a_Width, a_Height, (a_Fullscreen ? "fullscreen" : "windowed"));
-		
-		// Try again with a_Fullscreen inverted
-		if (set_gfx_mode((!a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
+		// Set color depth to the desired depth
+		set_color_depth(TruDepth);
+	
+		// Try initial set with a_Fullscreen honored
+		if (set_gfx_mode((a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
 		{
-			// Oh well
-			CONL_PrintF("I_SetVideoMode: Failed to fallback to %s\n", (!a_Fullscreen ? "fullscreen" : "windowed"));
-			return false;
+			// Print warnings
+			CONL_PrintF("I_SetVideoMode: Failed to set %ux%u %s\n", a_Width, a_Height, (a_Fullscreen ? "fullscreen" : "windowed"));
+		
+			// Try again with a_Fullscreen inverted
+			if (set_gfx_mode((!a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
+			{
+				// Oh well
+				CONL_PrintF("I_SetVideoMode: Failed to fallback to %s\n", (!a_Fullscreen ? "fullscreen" : "windowed"));
+				
+				// Reduce color depth
+				TruDepth >>= 1;
+				
+				// If reached the end, fail
+				if (TruDepth <= 0)
+					return false;
+			}
 		}
 	}
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false, TruDepth / 8);
 	
 	/* Set title and icon */
 	// Set Title
@@ -701,15 +719,8 @@ void I_StartupGraphics(void)
 	/* Set allegro stuff */
 	set_display_switch_mode(SWITCH_BACKAMNESIA);
 	
-	/* Initialize before mode set */
-	if (!I_VideoBefore320200Init())
-		return;
-	if (!I_SetVideoMode(320, 200, false))	// 320x200 console scroller, never fullscreen
-		return;
-		
-	/* Prepare the video mode list */
-	if (!I_VideoPostInit())
-		return;
+	/* Generic Init */
+	I_VideoGenericInit();
 }
 
 /* I_ShutdownGraphics() -- Turns off graphics */

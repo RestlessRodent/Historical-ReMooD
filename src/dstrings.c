@@ -187,6 +187,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "CVHINT_SCRFULLSCREEN", "Use fullscreen video mode."},
 	{				   "CVHINT_SCRWIDTH", "Width of the screen to use."},
 	{				  "CVHINT_SCRHEIGHT", "Height of the screen to use."},
+	{				   "CVHINT_SCRDEPTH", "Depth of the screen to use."},
 	
 	{			  "CVHINT_VIDSCREENLINK", "Special effect to perform when linking together screens."},
 	{				 "CVHINT_VIDDRAWFPS", "Draw frames per second on the screen."},

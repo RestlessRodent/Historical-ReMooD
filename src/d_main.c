@@ -538,7 +538,6 @@ void D_DoomLoop(void)
 	   I_DoStartupMouse();
 	   #endif */
 	
-	oldentertics = I_GetTime();
 	FPSLastTime = I_GetTimeMS();
 	
 	// Playing any demos?
@@ -561,19 +560,6 @@ void D_DoomLoop(void)
 	
 	for (;;)
 	{
-		// get real tics
-		entertic = I_GetTime();
-		realtics = entertic - oldentertics;
-		oldentertics = entertic;
-		
-#ifdef SAVECPU_EXPERIMENTAL
-		if (realtics == 0)
-		{
-			usleep(10000);
-			continue;
-		}
-#endif
-		
 		// GhostlyDeath <August 30, 2011> -- Mouse grabbing
 		I_DoMouseGrabbing();
 		

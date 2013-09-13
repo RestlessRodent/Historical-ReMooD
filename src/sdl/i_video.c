@@ -1136,9 +1136,10 @@ void VID_PrepareModeList(void)
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
-bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen, const uint8_t a_Depth)
 {
 	uint32_t SDLFlags = 0;
+	int32_t TruDepth;
 	
 	/* Check */
 	if (!a_Width || !a_Height)
@@ -1163,7 +1164,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		SDLFlags |= SDL_SWSURFACE;
 		
 	/* OpenGL? */
-	l_SDLGL = VHW_UseGLMode();
+	l_SDLGL = (a_Depth == I_VIDEOGLMODECONST);
 	
 	// Set OpenGL Flags
 	if (l_SDLGL)
@@ -1173,8 +1174,30 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	SDL_WM_SetIcon(l_Icon, NULL);
 	SDL_WM_SetCaption("ReMooD " REMOOD_FULLVERSIONSTRING, "ReMooD");
 	
-	/* Create SDL surface */
-	l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, 8, SDLFlags);
+	/* Create SDL surface (in a loop) */
+	// Attempt set of OpenGL mode, if that is even possible
+	if (l_SDLGL)
+		TruDepth = 32;
+	
+	// Use specified depth, times 8
+	else
+		TruDepth = a_Depth * 8;
+	
+	for (l_SDLSurface = NULL; !l_SDLSurface && TruDepth != 0;)
+	{
+		l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, TruDepth, SDLFlags);
+		
+		// If GL mode fails, try non-gl
+		if (l_SDLGL)
+		{
+			SDLFlags &= ~SDL_OPENGL;
+			l_SDLGL = false;
+		}
+		
+		// Otherwise, cut the depth in half
+		else
+			TruDepth >>= 1;
+	}
 	
 	// Failed?
 	if (!l_SDLSurface)
@@ -1186,7 +1209,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	if ((l_SDLSurface->flags & SDL_DOUBLEBUF) || !l_SDLInternalBuffer.Value->Int)
 		l_DblBuf = true;
 	
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), l_DblBuf, l_SDLGL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), l_DblBuf, l_SDLGL, TruDepth / 8);
 	
 	/* Initialize Mode */
 	VHW_Init((l_SDLGL ? VHWMODE_OPENGL : VHWMODE_IDXSOFT));
@@ -1239,16 +1262,9 @@ void I_StartupGraphics(void)
 	/* Create Icon */
 	if (!l_Icon)
 		l_Icon = SDL_CreateRGBSurfaceFrom(c_ReMooDLogo, 32, 32, 32, 4 * 32, IcoMasks[0].u32, IcoMasks[1].u32, IcoMasks[2].u32, IcoMasks[3].u32);
-		
-	/* Initialize before mode set */
-	if (!I_VideoBefore320200Init())
-		return;
-	if (!I_SetVideoMode(320, 200, false))	// 320x200 console scroller, never fullscreen
-		return;
-		
-	/* Prepare the video mode list */
-	if (!I_VideoPostInit())
-		return;
+	
+	/* Generic Init */
+	I_VideoGenericInit();
 }
 
 /* I_ShutdownGraphics() -- Turns off graphics */

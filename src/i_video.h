@@ -51,8 +51,10 @@ void I_ReadScreen(uint8_t* scr);
 *** FUNCTIONS ***
 ****************/
 
+#define I_VIDEOGLMODECONST 5
+
 void VID_PrepareModeList(void);
-bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen);
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen, const uint8_t a_Depth);
 void I_StartupGraphics(void);
 void I_ShutdownGraphics(void);
 bool_t I_TextMode(const bool_t a_OnOff);
