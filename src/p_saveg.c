@@ -3781,7 +3781,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
 	{
 		// Initialize Spectators
-		P_SpecInit(-2);
+		CL_InitLevelSocks();
 		
 		// Music
 		if (g_CurrentLevelInfo)

@@ -613,7 +613,7 @@ static void WI_initDeathmatchStats(void)
 				if (playeringame[j])
 					dm_frags[i][j] = plrs[i].frags[j];
 					
-			dm_totals[i] = ST_PlayerFrags(i);
+			dm_totals[i] = P_PlayerFrags(i);
 		}
 		
 	WI_initAnimatedBack();
@@ -795,7 +795,7 @@ static void WI_initNetgameStats(void)
 			
 		cnt_kills[i] = cnt_items[i] = cnt_secret[i] = cnt_frags[i] = 0;
 		
-		dofrags += ST_PlayerFrags(i);
+		dofrags += P_PlayerFrags(i);
 	}
 	
 	dofrags = !!dofrags;
@@ -827,7 +827,7 @@ static void WI_updateNetgameStats(void)
 			cnt_secret[i] = (plrs[i].ssecret * 100) / wbs->maxsecret;
 			
 			if (dofrags)
-				cnt_frags[i] = ST_PlayerFrags(i);
+				cnt_frags[i] = P_PlayerFrags(i);
 		}
 		if (g_CurrentLevelInfo && g_CurrentLevelInfo->InterDoneSound)
 			S_StartSoundName(NULL, g_CurrentLevelInfo->InterDoneSound);
@@ -931,7 +931,7 @@ static void WI_updateNetgameStats(void)
 				
 			cnt_frags[i] += 1;
 			
-			if (cnt_frags[i] >= (fsum = ST_PlayerFrags(i)))
+			if (cnt_frags[i] >= (fsum = P_PlayerFrags(i)))
 				cnt_frags[i] = fsum;
 			else
 				stillticking = true;
@@ -1712,7 +1712,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			l_TotalKills += Player->killcount;
 			l_TotalItems += Player->itemcount;
 			l_TotalSecrets += Player->secretcount;
-			l_TotalFrags += ST_PlayerFrags(i);
+			l_TotalFrags += P_PlayerFrags(i);
 			l_TotalDeaths += Player->TotalDeaths;
 			
 			// Determine if is local player (on screen)
@@ -1737,7 +1737,7 @@ void WI_BuildScoreBoard(wbstartstruct_t* const wbstartstruct, const bool_t a_IsI
 			TempDP[NumTempDP].Kills = Player->killcount;
 			TempDP[NumTempDP].Items = Player->itemcount;
 			TempDP[NumTempDP].Secrets = Player->secretcount;
-			TempDP[NumTempDP].Frags = ST_PlayerFrags(i);
+			TempDP[NumTempDP].Frags = P_PlayerFrags(i);
 			TempDP[NumTempDP].Deaths = Player->TotalDeaths;
 			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
 			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];

@@ -130,8 +130,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	// This stuff is only important once a program tic
 	if (LastPT != g_ProgramTic)
 	{
-		CONL_Ticker();
-		M_SMTicker();				// Simple Menu Ticker
+		UI_Ticker();
 		
 		LastPT = g_ProgramTic;
 	}
@@ -173,8 +172,7 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 	/* Run spectators independent of game timing */
 	// So they move around during lag and other events
 	if ((gamestate == GS_INTERMISSION || gamestate == GS_LEVEL) && LocalTic > LastTic)
-		//for (XXSNAR = LocalTic - LastTic; XXSNAR > 0; XXSNAR--)
-			P_SpecTicker();
+		CL_SpecTicker();
 	
 	/* Title screen? */
 	if (gamestate == GS_DEMOSCREEN)

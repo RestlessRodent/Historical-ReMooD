@@ -303,6 +303,7 @@ void D_Display(void)
 		CoolDemo = (demoplayback && g_TitleScreenDemo);
 		
 		// Better render loop
+#if 0
 		for (i = 0; i < g_CLBinds; i++)
 			if (ST_CheckDrawGameView(i))
 			{
@@ -325,16 +326,17 @@ void D_Display(void)
 				// Draw game view
 				R_RenderPlayerView(P_SpecGetPOV(i), i);
 			}
+#endif
 		
 		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
-		ST_DrawPlayerBarsEx();
+		//ST_DrawPlayerBarsEx();
 	}
 	
 	// change gamma if needed
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
 		
-	menuactivestate = M_SMFreezeGame();
+	menuactivestate = UI_ShouldFreezeGame();
 	oldgamestate = wipegamestate = gamestate;
 	
 	// draw pause pic
@@ -385,6 +387,10 @@ void D_Display(void)
 //#endif
 	}
 	
+	// Draw entire UI
+	UI_Drawer();
+	
+#if 0
 	// Simple Networking Draws below everything
 	SN_Drawer();
 	
@@ -399,7 +405,8 @@ void D_Display(void)
 	
 	// GhostlyDeath <March 22, 2013> -- Draw big dropped down console over menus
 	CONL_DrawConsole(true);
-	
+#endif
+
 	// GhostlyDeath <May 5, 2012> -- Update Music
 	I_UpdateMusic();
 	
@@ -456,7 +463,9 @@ void D_Display(void)
 		// Do other stuff
 		I_OsPolling();
 		I_UpdateNoBlit();
-		M_SMDrawer();
+		
+		// Draw UI during wipe
+		UI_Drawer();
 		
 		if (!noblit)
 			I_FinishUpdate();		// page flip or blit buffer
@@ -476,8 +485,6 @@ void D_Display(void)
 		// Force an end
 		wipe_ScreenWipe(l_VIDScreenLink.Value->Int - 1, 0, 0, vid.width, vid.height, -tics);
 	}
-	
-	ST_Invalidate();
 #undef BUFSIZE
 }
 
@@ -1947,9 +1954,7 @@ void D_DoomMain(void)
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	P_XGSRegisterStuff();				// Extended Game Settings stuff
 	//M_CheatInit();						// Initialize Cheats
-	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
-	M_SMInit();							// Simple Menus
 	G_PrepareDemoStuff();				// Demos
 	//B_InitBotCodes();					// Initialize bot coding
 	//D_CheckNetGame();					// initialize net game
@@ -2110,9 +2115,6 @@ void D_DoomMain(void)
 	nomusic = M_CheckParm("-nomusic");	// WARNING: DOS version initmusic in I_StartupSound
 	digmusic = M_CheckParm("-digmusic");	// SSNTails 12-13-2002
 	S_Init(-1, -1);
-	
-	CONL_PrintF("Initializing the HUD...\n");
-	ST_Init();
 	
 	////////////////////////////////
 	// SoM: Init FraggleScript

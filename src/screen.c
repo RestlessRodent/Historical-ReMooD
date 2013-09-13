@@ -296,8 +296,6 @@ void SCR_Recalc(void)
 	// vid.recalc lasts only for the next refresh...
 //    CON_ToggleOff ();  // make sure con height is right for new screen height
 
-	st_recalc = true;
-	
 	dc_drawymove = vid.width;
 }
 

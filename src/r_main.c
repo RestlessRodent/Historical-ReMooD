@@ -56,29 +56,10 @@
 #include "r_sky.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048
+
+int deleteme_stbarheight;
 
 int viewangleoffset;
 
@@ -706,14 +687,14 @@ void R_ExecuteSetViewSize_DOOM(void)
 	// status bar overlay at viewsize 11
 	st_overlay = (l_RViewSize.Value->Int == 11);
 	
-	stbarheight = ST_HEIGHT;
+	deleteme_stbarheight = ST_HEIGHT;
 	
-	if ((0/*g_SplitScreen*/ <= 0) && ST_ExSoloViewScaledSBar() || l_RViewSize.Value->Int >= 11)
-		stbarheight *= vid.fdupy;
+	if ((0/*g_SplitScreen*/ <= 0) && false/*ST_ExSoloViewScaledSBar()*/ || l_RViewSize.Value->Int >= 11)
+		deleteme_stbarheight *= vid.fdupy;
 		
 		
 	//added 01-01-98: full screen view, without statusbar
-	if (0/*g_SplitScreen*/ || l_RViewSize.Value->Int > 10 || ST_ExSoloViewTransSBar())
+	if (0/*g_SplitScreen*/ || l_RViewSize.Value->Int > 10 || false/*ST_ExSoloViewTransSBar()*/)
 	{
 		scaledviewwidth = vid.width;
 		viewheight = vid.height;
@@ -724,7 +705,7 @@ void R_ExecuteSetViewSize_DOOM(void)
 		scaledviewwidth = (l_RViewSize.Value->Int * vid.width / 10) & ~7;
 		//added:05-02-98: make viewheight multiple of 2 because sometimes
 		//                a line is not refreshed by R_DrawViewBorder()
-		viewheight = (l_RViewSize.Value->Int * (vid.height - stbarheight) / 10) & ~1;
+		viewheight = (l_RViewSize.Value->Int * (vid.height - deleteme_stbarheight) / 10) & ~1;
 	}
 	
 	// added 16-6-98:splitscreen
@@ -809,8 +790,6 @@ void R_ExecuteSetViewSize_DOOM(void)
 			scalelight[i][j] = colormaps + level * 256;
 		}
 	}
-	
-	st_recalc = true;
 }
 
 //

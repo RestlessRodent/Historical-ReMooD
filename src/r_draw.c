@@ -500,6 +500,8 @@ void R_VideoErase(unsigned ofs, int count)
 	//memcpy(screens[0] + ofs, screens[1] + ofs, count);
 }
 
+extern int deleteme_stbarheight;
+
 //
 // R_DrawViewBorder
 // Draws the border around the view
@@ -536,7 +538,7 @@ void R_DrawViewBorder(void)
 	if (scaledviewwidth == vid.width)
 		return;
 		
-	top = (vid.height - stbarheight - viewheight) >> 1;
+	top = (vid.height - deleteme_stbarheight - viewheight) >> 1;
 	side = (vid.width - scaledviewwidth) >> 1;
 	
 	// copy top and one line of left side

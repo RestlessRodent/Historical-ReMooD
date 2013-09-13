@@ -1748,6 +1748,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	}
 	
 	/* Handle Virtual OSK Events? */
+#if 0
 	if (CONL_IsActive())
 	{
 		CONL_OSKSetVisible(0, true);
@@ -1756,6 +1757,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	}
 	else
 		CONL_OSKSetVisible(0, false);
+#endif
 		
 	/* Only handle keyboard events and keyed synthosk for P1 */
 	// keyboard
@@ -2714,8 +2716,8 @@ bool_t CONL_DrawConsole(const bool_t a_BigConsole)
 		}
 		
 		// Draw OSK
-		if (!con_startup)
-			CONLS_DrawOSK(80, 120, 320, 100, 0);
+		//if (!con_startup)
+		//	CONLS_DrawOSK(80, 120, 320, 100, 0);
 	}
 	
 	/* Not active, draw per player messages */

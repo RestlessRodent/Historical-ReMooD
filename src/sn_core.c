@@ -285,8 +285,8 @@ void SN_Disconnect(const bool_t a_FromDemo, const char* const a_Reason)
 		}
 	
 	/* Remove splits */
-	if (l_Connected || SN_HasSocket())
-		D_NCResetSplits(a_FromDemo);
+	//if (l_Connected || SN_HasSocket())
+	//	D_NCResetSplits(a_FromDemo);
 	
 	/* Clear hosts */
 	SN_DropAllClients(a_Reason);

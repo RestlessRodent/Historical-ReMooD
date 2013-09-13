@@ -219,7 +219,7 @@ bool_t P_ExClearLevel(void)
 	size_t i;
 	
 	/* De-initialize Fake Player */
-	P_SpecInit(-3);
+	CL_ClearLevelSocks();
 	
 	/* Stop Playing Music and Sound */
 	S_StopSounds();
@@ -1402,8 +1402,8 @@ bool_t P_ExFinalizeLevel(void)
 	// Dedicated Level Script
 	TVM_CompileEntry(TVMNS_LEVEL, g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
 	
-	/* Initialize Fake Player */
-	P_SpecInit(-1);
+	/* Init Sockets */
+	CL_InitLevelSocks();
 	
 	/* Initialize current game mode */
 	if (P_XGSVal(PGS_CONEWGAMEMODES))

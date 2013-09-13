@@ -742,8 +742,6 @@ void G_Ticker(void)
 		case GS_LEVEL:
 			//B_GHOST_Ticker();
 			P_Ticker();			// tic the game
-			ST_Ticker();
-			ST_TickerEx();
 			break;
 			
 		case GS_INTERMISSION:

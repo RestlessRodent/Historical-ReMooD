@@ -341,7 +341,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	D_NCResetSplits(true);
+	//D_NCResetSplits(true);
 	
 	// Set them all up (split-screen)
 	for (j = 0, i = 0; i < 4; i++)
@@ -943,7 +943,7 @@ bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	D_NCResetSplits(true);
+	//D_NCResetSplits(true);
 	
 	// Set them all up (split-screen)
 	for (ss = 0, i = 0; i < MAXPLAYERS; i++)

@@ -257,7 +257,7 @@ void CL_SockDrawer(void)
 	bool_t Flash, Ready;
 	
 	/* Only draw if a menu or console is active */
-	if (!(CONL_IsActive() || M_SMMenuVisible() || gamestate == GS_DEMOSCREEN || g_TitleScreenDemo || gamestate == GS_INTERMISSION || gamestate == GS_FINALE))
+	if (UI_Visible())
 		return;
 	
 	/* Height of font */
@@ -410,6 +410,18 @@ void CL_SockDrawer(void)
 #undef BUFSIZE
 }
 
+/* CL_InitLevelSocks() -- Ininitialize Sockets (and spectators) for a new level */
+void CL_InitLevelSocks(void)
+{
+	// TODO FIXME: Implement
+}
+
+/* CL_ClearLevelSocks() -- Clears Sockets (and spectators) for a cleared level */
+void CL_ClearLevelSocks(void)
+{
+	// TODO FIXME: Implement
+}
+
 /* CL_DoResetMapZoom() -- Resets zoom for all sockets */
 void CL_DoResetMapZoom(void)
 {
@@ -461,4 +473,6 @@ void CL_DoTactileP(player_t* const a_Player, const int32_t a_On, const int32_t a
 	
 	// TODO FIXME: Electrocute real player
 }
+
+void CL_SpecTicker(void) {}// Move to cl_spec.c
 

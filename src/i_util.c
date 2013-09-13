@@ -495,14 +495,13 @@ void I_OsPolling(void)
 			continue;
 		}
 		
-		// Translate
-		if (CONL_HandleEvent(&Event))
-			continue;
-		
-		if (M_SMHandleEvent(&Event))
+		if (UI_HandleEvent(&Event, true))
 			continue;
 		
 		if (CL_SockEvent(&Event))
+			continue;
+			
+		if (UI_HandleEvent(&Event, false))
 			continue;
 	}
 }
@@ -519,7 +518,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// g_DedicatedServer Server, Watching demo, not playing, in a menu, in the console
-	New = !(g_DedicatedServer || demoplayback || CONL_IsActive() || M_SMDoGrab() || gamestate == GS_DEMOSCREEN);
+	New = !(g_DedicatedServer || demoplayback || UI_GrabMouse() || gamestate == GS_DEMOSCREEN);
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

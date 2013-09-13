@@ -514,13 +514,17 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 	// the same pickup messages rather than the first one.
 	for (s = 0; s < MAXSPLITS; s++)
 	{
+#if 1
+		continue;
+#else
 		// Not POV player?
 		if (P_SpecGetPOV(s) != a_Picker->player)
 			continue;
 		
 		// Invisible split?
-		//if (s > g_SplitScreen)
-		//	continue;
+		if (s > g_SplitScreen)
+			continue;
+#endif
 	
 		// Get Profile
 		Prof = a_Picker->player->ProfileEx;
@@ -1490,14 +1494,14 @@ void P_CheckFragLimit(player_t* p)
 		
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (P_MobjOnSameTeam(p->mo, players[i].mo))
-				fragteam += ST_PlayerFrags(i);
+				fragteam += P_PlayerFrags(i);
 				
 		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= fragteam)
 			G_ExitLevel(false, NULL, DS_GetString(DSTR_PINTERC_FRAGLIMITREACHED));
 	}
 	else
 	{
-		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= ST_PlayerFrags(p - players))
+		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= P_PlayerFrags(p - players))
 			G_ExitLevel(false, NULL, DS_GetString(DSTR_PINTERC_FRAGLIMITREACHED));
 	}
 }

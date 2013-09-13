@@ -800,9 +800,11 @@ void P_PlayerThink(player_t* player)
 	
 	/* Find screen for this player */
 	// This is the display player that is
+#if 0
 	for (Screen = 0; Screen < MAXSPLITS; Screen++)
 		if (P_SpecGetPOV(Screen) == player)
 			break;
+#endif
 	
 	/* Handle keycard flashing */
 	for (i = 0; i < 2; i++)
@@ -1330,6 +1332,82 @@ void P_UpdateViewAngles(mobj_t* const a_Mo)
 	
 	/* Change viewing angle */
 	CL_DoSetYawP(a_Mo->player, a_Mo->angle);
+}
+
+/* P_SameTeam() -- Two players are on the same team */
+bool_t P_SameTeam(player_t* a, player_t* b)
+{
+	// New Modes
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+	{
+		// Team Play?
+		if (P_GMIsTeam())
+		{
+			// One player is neutral?
+			if (P_GetPlayerTeam(a) <= -1 || P_GetPlayerTeam(b) <= -1)
+				return false;
+			
+			// Same VTeam?
+			if (P_GetPlayerTeam(a) == P_GetPlayerTeam(b))
+				return true;
+			
+			// Not same team
+			return false;
+		}
+		
+		// Coop
+		else if (P_GMIsCoop())
+		{
+			// If counter-op, depends on monster player
+			if (P_GMIsCounter())
+				if (a->CounterOpPlayer != b->CounterOpPlayer)
+					return false;
+			
+			// Otherwise, same team
+			return true;
+		}
+		
+		// Otherwise not
+		else
+			return false;
+	}
+	
+	// Old Modes
+	else
+		switch (P_XGSVal(PGS_GAMETEAMPLAY))
+		{
+			case 0:
+				return false;
+			case 1:
+				return (a->skincolor == b->skincolor);
+			case 2:
+				return (a->skin == b->skin);
+		}
+	
+	return false;
+}
+
+/* P_PlayerFrags() -- Frags for players */
+int P_PlayerFrags(int playernum)
+{
+	int32_t i, frags;
+	
+	/* If using game modes, use new count method */
+	// This prevents disconnect "cheats"
+	if (P_XGSVal(PGS_CONEWGAMEMODES))
+		return players[playernum].TotalFrags;
+	
+	/* Old Frag Counting Method */
+	frags = players[playernum].addfrags;
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if ((!P_GMIsTeam() && i != playernum) || (P_GMIsTeam() && !P_SameTeam(&players[i], &players[playernum])))
+			frags += players[playernum].frags[i];
+		else
+			frags -= players[playernum].frags[i];
+	}
+	
+	return frags;
 }
 
 /*** SPECTATOR PLAYER ***/

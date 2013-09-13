@@ -152,12 +152,16 @@ CL_View_t* CL_BindSocket(CL_Socket_t* const a_Sock, const int8_t a_JoyID);
 bool_t CL_SockEvent(const I_EventEx_t* const a_Event);
 void CL_SockDrawer(void);
 
+void CL_InitLevelSocks(void);
+void CL_ClearLevelSocks(void);
 void CL_DoResetMapZoom(void);
 void CL_DoAngleSync(void);
 void CL_DoSetYawP(player_t* const a_Player, const angle_t a_Yaw);
 void CL_DoSetAnglesP(player_t* const a_Player, const angle_t a_Yaw, const angle_t a_Pitch);
 void CL_DoDeathViewP(player_t* const a_Player);
 void CL_DoTactileP(player_t* const a_Player, const int32_t a_On, const int32_t a_Off, const int32_t a_Total);
+
+void CL_SpecTicker(void);// Move to cl_spec.c
 
 /*****************************************************************************/
 

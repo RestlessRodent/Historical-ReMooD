@@ -162,6 +162,7 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event, CL_Socket_t* const a_Soc
 		return false;
 	
 	/* Handle chatting for players */
+#if 0
 	// Keyboard for P1 only
 	if (a_Event->Type == IET_KEYBOARD)
 		Bit = 1;
@@ -204,6 +205,7 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event, CL_Socket_t* const a_Soc
 		
 		// Profile select
 	}
+#endif
 	
 	/* Which kind of event? */
 	switch (a_Event->Type)
@@ -1154,6 +1156,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 		Socket->MapKeyStillDown = false;
 	
 	// Coop Spy
+#if 0
 	if (GKD(DPEXIC_COOPSPY))
 	{
 		// Only every half second
@@ -1222,6 +1225,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	// Key is unpressed to reduce time
 	else
 		Socket->CoopSpyTime = 0;
+#endif
 	
 	/* Set Movement Now */
 	// Cap
