@@ -286,8 +286,8 @@ void SF_Tip()
 	char* tempstr;
 	int strsize = 0;
 	
-	if (current_script->trigger->player != &players[g_Splits[0].Display])
-		return;
+	//if (current_script->trigger->player != &players[g_Splits[0].Display])
+	//	return;
 		
 	for (i = 0; i < t_argc; i++)
 		strsize += strlen(stringvalue(t_argv[i]));
@@ -318,8 +318,8 @@ void SF_TimedTip()
 	
 	tiptime = (intvalue(t_argv[0]) * 35) / 100;
 	
-	if (current_script->trigger->player != &players[g_Splits[0].Display])
-		return;
+	//if (current_script->trigger->player != &players[g_Splits[0].Display])
+	//	return;
 		
 	for (i = 0; i < t_argc; i++)
 		strsize += strlen(stringvalue(t_argv[i]));
@@ -350,8 +350,8 @@ void SF_PlayerTip()
 	
 	plnum = intvalue(t_argv[0]);
 	
-	if (g_Splits[0].Console != plnum)
-		return;
+	//if (g_Splits[0].Console != plnum)
+	//	return;
 		
 	for (i = 0; i < t_argc; i++)
 		strsize += strlen(stringvalue(t_argv[i]));
@@ -374,8 +374,8 @@ void SF_Message()
 	char* tempstr;
 	int strsize = 0;
 	
-	if (current_script->trigger->player != &players[g_Splits[0].Display])
-		return;
+	//if (current_script->trigger->player != &players[g_Splits[0].Display])
+	//	return;
 		
 	for (i = 0; i < t_argc; i++)
 		strsize += strlen(stringvalue(t_argv[i]));
@@ -428,8 +428,8 @@ void SF_PlayerMsg()
 	
 	plnum = intvalue(t_argv[0]);
 	
-	if (g_Splits[0].Display != plnum)
-		return;
+	//if (g_Splits[0].Display != plnum)
+	//	return;
 		
 	for (i = 0; i < t_argc; i++)
 		strsize += strlen(stringvalue(t_argv[i]));
@@ -3027,8 +3027,8 @@ int fov;
 void init_functions()
 {
 	// add all the functions
-	add_game_int("consoleplayer", &g_Splits[0].Console);
-	add_game_int("displayplayer", &g_Splits[0].Display);
+	//add_game_int("consoleplayer", &g_Splits[0].Console);
+	//add_game_int("displayplayer", &g_Splits[0].Display);
 	add_game_int("fov", &fov);
 	add_game_int("zoom", &fov);	//SoM: BAKWARDS COMPATABILITY!
 	add_game_mobj("trigger", &trigger_obj);

@@ -203,7 +203,6 @@ static void SN_HGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 	SN_Host_t* Host;
 	SN_Port_t* Port;
 	player_t* Player;
-	D_SplitInfo_t* Split;
 	uint8_t VTeam, Color;
 	uint32_t Flags;
 	
@@ -283,6 +282,7 @@ static void SN_HGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 	else
 		G_DoReborn(a_PID);
 	
+#if 0
 	/* Bind to split screens, if any on the local side */
 	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitVisible(i))
@@ -307,6 +307,7 @@ static void SN_HGTJoinPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 				SN_SetPortProfile(Port, Split->Profile);
 			}
 		}
+#endif
 	
 	/* Tell bot to leave statis mode */
 	BOT_LeaveStasis(Port);
@@ -357,6 +358,7 @@ static void SN_HGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 	Player->mo = NULL;
 	playeringame[a_PID] = false;
 	
+#if 0
 	/* Make local split a spectator */
 	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitVisible(i))
@@ -375,6 +377,7 @@ static void SN_HGTPartPlayer(const uint8_t a_ID, const uint8_t** const a_PP, SN_
 				if (!demoplayback)
 					g_Splits[i].Waiting = true;
 			}
+#endif
 	
 	/* Unassign port */
 	Player->Port = NULL;
@@ -482,7 +485,6 @@ static void SN_HGTJoinPort(const uint8_t a_ID, const uint8_t** const a_PP, SN_Ho
 /* SN_HGTChatFrag() -- Chat fragment */
 static void SN_HGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Host_t* const a_Host, SN_Port_t* const a_Port, const uint32_t a_HID, const uint32_t a_UID, const uint8_t a_PID)
 {
-	D_SplitInfo_t* Split;
 	SN_Port_t* PortTarget, *Port;
 	uint32_t Target;
 	uint8_t Mode, Char;
@@ -523,6 +525,7 @@ static void SN_HGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Ho
 	PortTarget = SN_PortByID(Target);
 	
 	/* Speak for all local screens */
+#if 0
 	Sound = 0;
 	for (i = 0; i < MAXSPLITS; i++)
 	{
@@ -612,6 +615,7 @@ static void SN_HGTChatFrag(const uint8_t a_ID, const uint8_t** const a_PP, SN_Ho
 		if (!Sound)
 			Sound = sfx_generic_chat;
 	}
+#endif
 	
 	/* Clear chat buffer */
 	a_Port->ChatAt = 0;

@@ -50,6 +50,7 @@
 #include "p_local.h"
 #include "p_mobj.h"
 #include "st_stuff.h"
+#include "cl.h"
 
 /****************
 *** CONSTANTS ***
@@ -81,6 +82,7 @@ static CONCTI_Inputter_t* l_ChatBox[MAXSPLITS];	// Splitscreen chat
 /* SN_ChatDrawer() -- Draws chat line */
 void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
 {
+#if 0
 	uint32_t Flags;
 	
 	/* Check */
@@ -111,11 +113,13 @@ void SN_ChatDrawer(const int8_t a_Screen, const int32_t a_X, const int32_t a_Y, 
 		// Draw it
 		CONCTI_DrawInput(l_ChatBox[a_Screen], Flags, a_X, a_H - V_FontHeight(l_ChatBox[a_Screen]->Font), a_W);
 	}
+#endif
 }
 
 /* SN_ClearChat() -- Clears player chat */
 void SN_ClearChat(const int32_t a_Screen)
 {
+#if 0
 	/* Check */
 	if (a_Screen < 0 || a_Screen >= MAXSPLITS)
 		return;
@@ -128,11 +132,13 @@ void SN_ClearChat(const int32_t a_Screen)
 	/* Remove line */
 	if (l_ChatBox[a_Screen])
 		CONCTI_SetText(l_ChatBox[a_Screen], "");
+#endif
 }
 
 /* SN_CONCTIChatLine() -- For when enter is pressed */
 static bool_t SN_CONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* const a_Text)
 {
+#if 0
 	/* Handle chat string and send to server (or local) */
 	SN_SendChat(g_Splits[a_Input->Screen].Port, (g_Splits[a_Input->Screen].ChatMode == 2 || g_Splits[a_Input->Screen].ChatMode == 3), a_Text);
 	
@@ -142,6 +148,7 @@ static bool_t SN_CONCTIChatLine(struct CONCTI_Inputter_s* a_Input, const char* c
 	
 	/* always keep box */
 	return true;
+#endif
 }
 
 /* SN_HandleEvent() -- Handle advanced events */
@@ -174,7 +181,7 @@ bool_t SN_HandleEvent(const I_EventEx_t* const a_Event, CL_Socket_t* const a_Soc
 		Bit -= 1;
 		
 		// If they are chatting
-		if (g_Splits[Bit].ChatMode && D_ScrSplitHasPlayer(Bit))
+		if (a_Sock->ChatMode && D_ScrSplitHasPlayer(Bit))
 		{
 			// Cancel chat?
 			if ((a_Event->Type == IET_KEYBOARD && a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE && a_Event->Data.Keyboard.Down) || (a_Event->Type == IET_SYNTHOSK && a_Event->Data.SynthOSK.Cancel))
@@ -496,6 +503,7 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 		}
 	
 	/* Check Joysticks */
+#if 0
 	//if (a_Profile->Flags & DPEXF_GOTJOY)
 		//if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
 	if (a_SID >= 0 && a_SID < MAXSPLITS && g_Splits[a_SID].JoyBound)
@@ -512,6 +520,7 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 							if (l_JoyButtons[g_Splits[a_SID].JoyID - 1] & (1 << CurrentButton))
 								return true;
 					}
+#endif
 				
 	/* Check Mice */
 	if (a_Profile->Flags & DPEXF_GOTMOUSE)
@@ -563,7 +572,8 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	int slot, j, l, k;
 	PI_wepid_t newweapon;
 	PI_wepid_t SlotList[MAXWEAPONSLOTS];
-	D_SplitInfo_t* SSplit;
+	
+	CL_Socket_t* Socket;
 	
 	/* Check */
 	if (!a_Port || !a_TicCmd)
@@ -577,35 +587,20 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	PID = a_Port->Player - players;
 	
 	/* Find Screen ID */
-	for (SID = 0; SID < MAXSPLITS; SID++)
-		if (D_ScrSplitVisible(SID))
-			if (g_Splits[SID].Port == a_Port)
-				break;
+	Socket = NULL;
 	
-	// Not found?
-	if (SID >= MAXSPLITS)
-	{
-		// Force first screen in demo?
-		if (demoplayback)
-			SID = 0;
-		
-		// Otherwise don't make any commands
-		else
-			return;
-	}
-	
-	// Quick ref
-	SSplit = &g_Splits[SID];
+	if (!Socket)
+		return;
 	
 	// No profile? Try from split, then from player
 	if (!Profile)
-		if (!(Profile = SSplit->Profile))
+		if (!(Profile = Socket->Profile))
 			if (!(Profile = Player->ProfileEx))
 				return;
 	
 	/* Chatting? */
 	// Not in chat mode
-	if (!SSplit->ChatMode)
+	if (!Socket->ChatMode)
 	{
 		i = 0;
 
@@ -621,8 +616,8 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 		if (i)
 		{
 			// Initiate Chat Mode
-			SSplit->ChatMode = i;
-			SSplit->ChatTargetID = 0;
+			Socket->ChatMode = i;
+			Socket->ChatTargetID = 0;
 			
 			// If player 1 is chatting, let go of all keyboard keys
 				// Otherwise, stuck keys and re-chatting when chat is done!
@@ -670,7 +665,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 		MoveSpeed = 0;
 	
 	// Turn Speed
-	if ((Profile->SlowTurn) && g_ProgramTic < (SSplit->TurnHeld + Profile->SlowTurnTime))
+	if ((Profile->SlowTurn) && g_ProgramTic < (Socket->TurnHeld + Profile->SlowTurnTime))
 		TurnSpeed = 2;
 	else if (MoveSpeed)
 		TurnSpeed = 1;
@@ -688,12 +683,13 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	
 	/* Player has joystick input? */
 	// Read input for all axis
-	if (SID >= 0 && SID < MAXSPLITS && SSplit->JoyBound)
-		if (SSplit->JoyID >= 1 && SSplit->JoyID <= MAXLOCALJOYS)
+#if 0
+	if (SID >= 0 && SID < MAXSPLITS && Socket->JoyBound)
+		if (Socket->JoyID >= 1 && Socket->JoyID <= MAXLOCALJOYS)
 			for (i = 0; i < MAXJOYAXIS; i++)
 			{
 				// Modify with sensitivity
-				TargetMove = ((float)l_JoyAxis[SSplit->JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+				TargetMove = ((float)l_JoyAxis[Socket->JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
 			
 				// Which movement to perform?
 				NegMod = 1;
@@ -748,7 +744,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 						NegMod = -1;
 						
 					case DPEXCMA_PANY:
-						BaseAM = (((double)l_JoyAxis[SSplit->JoyID - 1][i]) / ((double)32767.0)) * ((double)5856.0);
+						BaseAM = (((double)l_JoyAxis[Socket->JoyID - 1][i]) / ((double)32767.0)) * ((double)5856.0);
 						BaseAM *= -1 * NegMod;
 						
 						// Make sure panning look is set
@@ -761,7 +757,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 						
 					case DPEXCMA_ANGPANY:
 						// Get angle to extract
-						TargetMove = abs(l_JoyAxis[SSplit->JoyID - 1][i]) >> 2;
+						TargetMove = abs(l_JoyAxis[Socket->JoyID - 1][i]) >> 2;
 						
 						// Cap to valid precision in LUT
 						if (TargetMove >= 8192)
@@ -774,7 +770,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 						BaseAM *= -1 * NegMod;
 						
 						// Negative?
-						if (l_JoyAxis[SSplit->JoyID - 1][i] < 0)
+						if (l_JoyAxis[Socket->JoyID - 1][i] < 0)
 							BaseAM *= -1;
 						
 						// Make sure panning look is set
@@ -785,6 +781,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 						break;
 				}
 			}
+#endif
 	
 	/* Player has mouse input? */
 	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
@@ -894,14 +891,14 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	// 180 Degree Turn (don't allow repeat on it, otherwise it is useless)
 	slot = GKD(DPEXIC_TURNSEMICIRCLE);
 	
-	if (!SSplit->Turned180 && slot)
+	if (!Socket->Turned180 && slot)
 	{
 		BaseAT = 0x7FFF;
 		IsTurning = true;
-		SSplit->Turned180 = true;
+		Socket->Turned180 = true;
 	}
-	else if (SSplit->Turned180 && !slot)
-		SSplit->Turned180 = false;
+	else if (Socket->Turned180 && !slot)
+		Socket->Turned180 = false;
 	
 	// Keyboard Moving
 	if (GKD(DPEXIC_STRAFELEFT))
@@ -1118,49 +1115,49 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	/* Handle special functions */
 	// Show Scores
 	if (GKD(DPEXIC_TOPSCORES))
-		SSplit->Scores = 1;
+		Socket->Scores = 1;
 	else if (GKD(DPEXIC_BOTTOMSCORES))
-		SSplit->Scores = -1;
+		Socket->Scores = -1;
 	else
-		SSplit->Scores = 0;
+		Socket->Scores = 0;
 	
 	// Automap
 	if (GKD(DPEXIC_AUTOMAP))
 	{
 		// Don't flash the automap like crazy
-		if (!SSplit->MapKeyStillDown)
+		if (!Socket->MapKeyStillDown)
 		{
 			// Map not active, activate
-			if (!SSplit->AutomapActive)
+			if (!Socket->AutomapActive)
 			{
-				SSplit->AutomapActive = true;
-				SSplit->OverlayMap = false;
+				Socket->AutomapActive = true;
+				Socket->OverlayMap = false;
 			}
 			
 			// Is active
 			else
 			{
 				// Overlay now active, activate
-				if (!SSplit->OverlayMap)
-					SSplit->OverlayMap = true;
+				if (!Socket->OverlayMap)
+					Socket->OverlayMap = true;
 				
 				// Otherwise, stop the map
 				else
-					SSplit->AutomapActive = false;
+					Socket->AutomapActive = false;
 			}
 			
 			// Place key down to prevent massive flashing
-			SSplit->MapKeyStillDown = true;
+			Socket->MapKeyStillDown = true;
 		}
 	}
 	else
-		SSplit->MapKeyStillDown = false;
+		Socket->MapKeyStillDown = false;
 	
 	// Coop Spy
 	if (GKD(DPEXIC_COOPSPY))
 	{
 		// Only every half second
-		if (g_ProgramTic > (SSplit->CoopSpyTime + (TICRATE >> 1)))
+		if (g_ProgramTic > (Socket->CoopSpyTime + (TICRATE >> 1)))
 		{
 			// Get current POV
 			SpyPOV = P_SpecGetPOV(SID);
@@ -1178,23 +1175,23 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 				// Go through all players
 					// If watching self, find first player
 					// If watching someone, find next player
-				for (j = ((SpyPOV == SpyFake) ? 0 : SSplit->Display + 1); j < MAXPLAYERS; j++)
+				for (j = ((SpyPOV == SpyFake) ? 0 : Socket->Display + 1); j < MAXPLAYERS; j++)
 					if (playeringame[j])
 					{
-						SSplit->Display = j;
-						SpyPOV = &players[SSplit->Display];
+						Socket->Display = j;
+						SpyPOV = &players[Socket->Display];
 						break;
 					}
 				
 				// Nobody?
 				if (j >= MAXPLAYERS)
 				{
-					SSplit->Display = -1;
+					Socket->Display = -1;
 					SpyPOV = SpyFake;
 				}
 				
 				else
-					SpyPOV = &players[SSplit->Display];
+					SpyPOV = &players[Socket->Display];
 			}
 			
 			// Normal Game Mode
@@ -1203,28 +1200,28 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 				j = 0;
 				do
 				{
-					SSplit->Display = (SSplit->Display + 1) % MAXPLAYERS;
+					Socket->Display = (Socket->Display + 1) % MAXPLAYERS;
 					j++;
-				} while (j < MAXPLAYERS && (!playeringame[SSplit->Display] || (!ST_SameTeam(&players[SSplit->Console], &players[SSplit->Display]))));
+				} while (j < MAXPLAYERS && (!playeringame[Socket->Display] || (!ST_SameTeam(&players[Socket->Console], &players[Socket->Display]))));
 				
 				// Change POV
-				SpyPOV = &players[SSplit->Display];
+				SpyPOV = &players[Socket->Display];
 			}
 			
 			// Print Message
 			CONL_PrintF("%sYou are now watching %s.\n",
 					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
-					(SpyCon == SpyPOV ? "Yourself" : D_NCSGetPlayerName(SSplit->Display))
+					(SpyCon == SpyPOV ? "Yourself" : D_NCSGetPlayerName(Socket->Display))
 				);
 			
 			// Reset timeout
-			SSplit->CoopSpyTime = g_ProgramTic + (TICRATE >> 1);
+			Socket->CoopSpyTime = g_ProgramTic + (TICRATE >> 1);
 		}
 	}
 	
 	// Key is unpressed to reduce time
 	else
-		SSplit->CoopSpyTime = 0;
+		Socket->CoopSpyTime = 0;
 	
 	/* Set Movement Now */
 	// Cap
@@ -1245,7 +1242,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	
 	/* Slow turning? */
 	if (!IsTurning)
-		SSplit->TurnHeld = g_ProgramTic;
+		Socket->TurnHeld = g_ProgramTic;
 	
 	/* Turning */
 	a_TicCmd->Std.BaseAngleTurn = BaseAT;

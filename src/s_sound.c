@@ -315,6 +315,7 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 	/* Find the closest listener */
 	*a_Listen = NULL;
 	ApproxDist = 32000 << FRACBITS;
+#if 0
 	for (i = 0; i <= (g_SplitScreen < 0 ? 0 : g_SplitScreen); i++)
 	{
 		// Try to find listening player
@@ -343,6 +344,7 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 			*a_Listen = Attempt;
 		}
 	}
+#endif
 	
 	/* Normalize distance */
 	ApproxDist -= 120 << FRACBITS;

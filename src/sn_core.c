@@ -420,6 +420,7 @@ void SN_StartWaiting(void)
 /* SN_AddLocalProfiles() -- Adds local profile */
 void SN_AddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 {
+#if 0
 	int32_t i;
 	const char* ProfN;
 	
@@ -440,6 +441,7 @@ void SN_AddLocalProfiles(const int32_t a_NumLocal, const char** const a_Profs)
 		//if (!i && !ProfN)
 			g_Splits[i].DoNotSteal = true;
 	}
+#endif
 }
 
 /* SN_StartServer() -- Starts local server */
@@ -798,7 +800,6 @@ bool_t SN_ServerInit(void)
 void SN_UpdateLocalPorts(void)
 {
 	int32_t i, j, pc;
-	D_SplitInfo_t* Split;
 	SN_Port_t* Port;
 	ticcmd_t* TicCmdP;
 	char* Profs[1];
@@ -810,6 +811,7 @@ void SN_UpdateLocalPorts(void)
 	/* Go through local screens */
 	if (!l_DedSv)	// Dedicated server only has bots
 	{
+#if 0
 		// No players in game
 		pc = 0;
 		
@@ -898,6 +900,7 @@ void SN_UpdateLocalPorts(void)
 			Profs[0] = NULL;
 			SN_AddLocalProfiles(1, (const char ** const)Profs);
 		}
+#endif
 	}
 	
 	/* My host not set? */
@@ -925,6 +928,7 @@ void SN_UpdateLocalPorts(void)
 		// Is a player
 		else
 		{
+#if 0
 			// Get split
 			Split = NULL;
 			if (Port->Screen >= 0 && Port->Screen < MAXSPLITS)
@@ -945,6 +949,7 @@ void SN_UpdateLocalPorts(void)
 			
 			// Add tic commands for this port
 			else
+#endif
 			{
 				// Place tic command at last spot, when possible
 				TicCmdP = NULL;
@@ -1291,6 +1296,7 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 		if (players[i].Port == a_Port)
 			players[i].Port = NULL;
 	
+#if 0
 	// Screen
 	for (i = 0; i < MAXSPLITS; i++)
 		if (D_ScrSplitVisible(i))
@@ -1299,6 +1305,7 @@ void SN_RemovePort(SN_Port_t* const a_Port)
 				D_NCRemoveSplit(i, false);
 				i = -1;
 			}
+#endif
 	
 	/* Free */
 	Z_Free(a_Port);
@@ -1402,6 +1409,7 @@ SN_Port_t* SN_RequestPort(const uint32_t a_ProcessID, const bool_t a_XMit)
 /* SN_AddLocalPlayer() -- Adds local player to game */
 bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
+#if 0
 	uint32_t LastScreen;
 	int32_t PlaceAt, UngrabbedScreen;
 	D_Prof_t* Profile;
@@ -1509,6 +1517,7 @@ bool_t SN_AddLocalPlayer(const char* const a_Name, const uint32_t a_JoyID, const
 	
 	/* Added OK */
 	return true;
+#endif
 }
 
 /* SN_BufForGameTic() -- Returns buffer for gametic */
@@ -1556,6 +1565,7 @@ int32_t SN_NumSeqTics(void)
 /* SN_LocalTurn() -- Perform local turning */
 void SN_LocalTurn(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 {
+#if 0
 	int32_t h;
 	
 	// Handle local angles, if a local player
@@ -1598,6 +1608,7 @@ void SN_LocalTurn(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 			a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[h]);
 		}
 	}
+#endif
 }
 
 /* SN_Tics() -- Handles tic commands */
@@ -1802,8 +1813,10 @@ void SN_SetPortProfile(SN_Port_t* const a_Port, D_Prof_t* const a_Profile)
 	a_Port->Profile = a_Profile;
 	
 	// Clone to screen
+#if 0
 	if (a_Port->Screen >= 0 && a_Port->Screen < MAXSPLITS)
 		g_Splits[a_Port->Screen].Profile = a_Profile;
+#endif
 		
 	// No profile
 	if (!a_Profile)
