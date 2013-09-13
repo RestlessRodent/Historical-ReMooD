@@ -698,7 +698,7 @@ void R_ExecuteSetViewSize_DOOM(void)
 	setsizeneeded = false;
 	
 	// no reduced view in splitscreen mode
-	if (g_SplitScreen && l_RViewSize.Value->Int < 11)
+	if (0/*g_SplitScreen*/ && l_RViewSize.Value->Int < 11)
 		CONL_VarSetInt(&l_RViewSize, 11);
 		
 	setdetail = 0;
@@ -708,12 +708,12 @@ void R_ExecuteSetViewSize_DOOM(void)
 	
 	stbarheight = ST_HEIGHT;
 	
-	if ((g_SplitScreen <= 0) && ST_ExSoloViewScaledSBar() || l_RViewSize.Value->Int >= 11)
+	if ((0/*g_SplitScreen*/ <= 0) && ST_ExSoloViewScaledSBar() || l_RViewSize.Value->Int >= 11)
 		stbarheight *= vid.fdupy;
 		
 		
 	//added 01-01-98: full screen view, without statusbar
-	if (g_SplitScreen || l_RViewSize.Value->Int > 10 || ST_ExSoloViewTransSBar())
+	if (0/*g_SplitScreen*/ || l_RViewSize.Value->Int > 10 || ST_ExSoloViewTransSBar())
 	{
 		scaledviewwidth = vid.width;
 		viewheight = vid.height;
@@ -728,9 +728,9 @@ void R_ExecuteSetViewSize_DOOM(void)
 	}
 	
 	// added 16-6-98:splitscreen
-	if (g_SplitScreen >= 1)
+	if (0/*g_SplitScreen*/ >= 1)
 		viewheight >>= 1;
-	if (g_SplitScreen > 1)
+	if (0/*g_SplitScreen*/ > 1)
 		scaledviewwidth >>= 1;
 		
 	detailshift = setdetail;
@@ -979,9 +979,9 @@ void R_SetupFrame(player_t* player)
 			aimingangle = player->aiming;
 			viewangle = viewmobj->angle + viewangleoffset;
 			
-#if 1
+#if 0
 			if (!demoplayback && player->playerstate != PST_DEAD && P_XGSVal(PGS_COABSOLUTEANGLE))
-				for (i = 0; i < g_SplitScreen + 1; i++)
+				for (i = 0; i < 0/*g_SplitScreen*/ + 1; i++)
 					if (g_Splits[i].Active && playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console] && g_Splits[i].Console == g_Splits[i].Display)
 					{
 						viewangle = localangle[i];
@@ -1023,7 +1023,7 @@ void R_SetupFrame(player_t* player)
 	// (lmps, nework and use F12...)
 	G_ClipAimingPitch(&aimingangle);
 	
-	if (g_SplitScreen != 1)
+	if (0/*g_SplitScreen*/ != 1)
 		dy = AIMINGTODY(aimingangle) * viewheight / BASEVIDHEIGHT;
 	else
 		dy = AIMINGTODY(aimingangle) * viewheight * 2 / BASEVIDHEIGHT;
@@ -1091,7 +1091,7 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 	// ylookup is the row and columnofs is the column in the row
 #if 0
 	if (((!cv_chasecam.value && player->mo && player->mo->eflags & MF_UNDERWATER) ||
-	(cv_chasecam.value && camera.mo && camera.mo->eflags & MF_UNDERWATER)) && (g_SplitScreen <= 0))
+	(cv_chasecam.value && camera.mo && camera.mo->eflags & MF_UNDERWATER)) && (0/*g_SplitScreen*/ <= 0))
 	{
 		for (y = 0; y < viewheight; y++)
 		{
@@ -1151,7 +1151,7 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 	
 	// GhostlyDeath <May 22, 2012> -- Fake palette hacking
-	if (g_SplitScreen > 0 && l_RFakeSSPal.Value[0].Int)
+	if (0/*g_SplitScreen*/ > 0 && l_RFakeSSPal.Value[0].Int)
 	{
 		// Get the map
 		if (player->PalChoice > 0)

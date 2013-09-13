@@ -951,7 +951,7 @@ void R_DrawPSprite(pspdef_t* psp)
 	vis->MoSkinColor = 0;
 	for (w = 0; w < NUMINFORXFIELDS; w++)
 		vis->RXFlags[w] = 0;
-	if (g_SplitScreen == 1)
+	if (0/*g_SplitScreen*/ == 1)
 		vis->texturemid = (120 << (FRACBITS)) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 	else
 		vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);

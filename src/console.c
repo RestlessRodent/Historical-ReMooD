@@ -42,6 +42,7 @@
 #include "p_setup.h"
 #include "m_argv.h"
 #include "d_prof.h"
+#include "cl.h"
 
 // TODO FIXME: Remove this by splitting UI console code from actual console
 #include "v_video.h"	// Video Code
@@ -51,41 +52,6 @@
 #include "d_netcmd.h"	// SplitScreen Junk
 #include "vhw_wrap.h"
 #include "i_video.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /****************
 *** CONSTANTS ***
@@ -1994,6 +1960,7 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 #undef BUFSIZE
 }
 
+#if 0
 /* l_OSKLayout -- On Screen Keyboard */
 // --- STANDARD BOARD ---        -- EXTRA --
 // ` 1 2 3 4 5 6 7 8 9 0 - =  BP IN HM PU 14/3 keys 
@@ -2408,6 +2375,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	/* Always eat as handled */
 	return true;
 }
+#endif
 
 /* CONL_DrawConsole() -- Draws the console */
 bool_t CONL_DrawConsole(const bool_t a_BigConsole)
@@ -2754,12 +2722,12 @@ bool_t CONL_DrawConsole(const bool_t a_BigConsole)
 	else if (!a_BigConsole)
 	{
 		// On intermission, only draw player 1's stuff
-		if (gamestate == GS_INTERMISSION || g_SplitScreen < 0)
+		if (gamestate == GS_INTERMISSION || g_CLBinds <= 1)
 			n = 1;
 		
 		// Otherwise for each player
 		else
-			n = g_SplitScreen + 1;
+			n = g_CLBinds;
 		
 		// Limit, just in case
 		if (n > MAXSPLITS)

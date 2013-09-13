@@ -1896,12 +1896,6 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		p->KeyCards[0] = 0;
 		p->KeyCards[0] = p->KeyCards[1] = ~p->KeyCards[0];
 	}
-		
-	if (playernum == g_Splits[0].Console)
-	{
-		// wake up the status bar
-		ST_Start();
-	}
 	
 	if (p->camera.chase)
 		P_ResetCamera(p);
@@ -1914,15 +1908,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	}
 	
 	/* Set local angle, if applicable */
-	if ((Port = p->Port))
-		if (Port->Host && Port->Host->Local)
-			for (i = 0; i < MAXSPLITS; i++)
-				if (D_ScrSplitHasPlayer(i))
-					if (g_Splits[i].Port == p->Port)
-					{
-						localaiming[i] = 0;
-						localangle[i] = p->mo->angle;
-					}
+	CL_DoSetAnglesP(p, p->mo->angle, 0);
 }
 
 //

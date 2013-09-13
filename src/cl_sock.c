@@ -410,3 +410,55 @@ void CL_SockDrawer(void)
 #undef BUFSIZE
 }
 
+/* CL_DoResetMapZoom() -- Resets zoom for all sockets */
+void CL_DoResetMapZoom(void)
+{
+	// TODO FIXME: Clear Zooms
+}
+
+/* CL_DoAngleSync() -- Syncrhonize all player angles with their true angles */
+void CL_DoAngleSync(void)
+{
+	// TODO FIXME: Implement
+}
+
+/* CL_DoSetYawP() -- Sets yaw for player */
+void CL_DoSetYawP(player_t* const a_Player, const angle_t a_Yaw)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	// TODO FIXME: Set localangle
+}
+
+/* CL_DoSetAnglesP() -- Set local angles for player */
+void CL_DoSetAnglesP(player_t* const a_Player, const angle_t a_Yaw, const angle_t a_Pitch)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	// TODO FIXME: Set Angles
+}
+
+/* CL_DoDeathViewP() -- Initializes Death View */
+void CL_DoDeathViewP(player_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	// TODO FIXME: Set aiming angle to zero
+}
+
+/* CL_DoTactileP() -- Force feedback */
+void CL_DoTactileP(player_t* const a_Player, const int32_t a_On, const int32_t a_Off, const int32_t a_Total)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	// TODO FIXME: Electrocute real player
+}
+

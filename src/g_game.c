@@ -317,9 +317,6 @@ uint8_t BestWeapon(player_t* player)
 	return 0;
 }
 
-static fixed_t originalforwardmove[2] = { 0x19, 0x32 };
-static fixed_t originalsidemove[2] = { 0x18, 0x28 };
-
 //
 // G_DoLoadLevel
 //
@@ -1131,7 +1128,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	
 		//added:16-01-98:consoleplayer -> displayplayer (hear snds from viewpt)
 		// removed 9-12-98: why not ????
-		if (players[g_Splits[0].Display].viewz != 1)
+//		if (players[g_Splits[0].Display].viewz != 1)
 			S_StartSound(mo, sfx_telept);	// don't start sound on first frame
 	}
 		
@@ -1928,7 +1925,7 @@ void G_DoCompleted(void)
 	
 	// Did secret level?
 	if (!g_DedicatedServer)
-		wminfo.didsecret = players[g_Splits[0].Console].didsecret;
+		wminfo.didsecret = false;//players[g_Splits[0].Console].didsecret;
 	wminfo.epsd = gameepisode - 1;
 	wminfo.last = gamemap - 1;
 	wminfo.maxkills = totalkills;
@@ -1936,7 +1933,7 @@ void G_DoCompleted(void)
 	wminfo.maxsecret = totalsecret;
 	wminfo.maxfrags = 0;
 	wminfo.partime = TICRATE * g_CurrentLevelInfo->ParTime;
-	wminfo.pnum = g_Splits[0].Console;
+	wminfo.pnum = 0;//g_Splits[0].Console;
 	
 	/* Level going to enter, possibly */
 	NewInfo = NULL;

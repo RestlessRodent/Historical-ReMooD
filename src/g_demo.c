@@ -372,6 +372,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 				strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
 			
 			// Put in split screen
+#if 0
 			if (j < 4)
 			{
 				g_SplitScreen++;
@@ -379,6 +380,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 				g_Splits[j].Console = g_Splits[j].Display = i;
 				j++;
 			}
+#endif
 		}
 	
 	// Recalc Split-screen
@@ -1001,6 +1003,7 @@ bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 					strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
 			}
 			
+#if 0
 			// Put in split screen
 			// And before 1.30, only the display player (1.30 added ingame joining)
 				// But just make 1.30 use the first 4 players
@@ -1012,6 +1015,7 @@ bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 					g_Splits[ss].Display = g_Splits[ss].Console = i;
 					ss++;
 				}
+#endif
 		}
 	
 	/* Modify Settings required for level loading (as needed) */
@@ -1581,6 +1585,8 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(G_CDemo_t* a_Current, const G_Legacy
 				
 				// Splitscreen the player?
 				if (u8a == Data->DisplayPNode)
+					;
+#if 0
 					if (g_SplitScreen < 3)	// 0 = 1p, 1 = 2p, 2 = 3p, 3 = 4p
 					{
 						g_SplitScreen++;
@@ -1591,6 +1597,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(G_CDemo_t* a_Current, const G_Legacy
 						// Recalc Split-screen
 						R_ExecuteSetViewSize();
 					}
+#endif
 				
 				// Players who join a game (during a session) and record a demo
 				// do not have valid playbackable demos. Only the host can record
@@ -2830,8 +2837,8 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 		SN_Disconnect(true, "Playing demo");
 	
 	/* Reset Spectating watchers */
-	for (i = 0; i < MAXSPLITS; i++)
-		g_Splits[i].Console = g_Splits[i].Display = -1;
+	//for (i = 0; i < MAXSPLITS; i++)
+	//	g_Splits[i].Console = g_Splits[i].Display = -1;
 	
 	/* Play demo in any factory */
 	Demo = G_DemoPlay(Stream, Factory);

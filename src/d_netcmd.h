@@ -78,9 +78,6 @@ void Command_ExitGame_f(void);
 
 extern bool_t g_NetDev;
 
-extern angle_t localangle[MAXSPLITS];
-extern int localaiming[MAXSPLITS];	// should be a angle_t but signed
-
 /*** FUNCTIONS ***/
 
 bool_t D_ScrSplitHasPlayer(const int8_t a_Player);

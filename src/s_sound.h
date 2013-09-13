@@ -83,6 +83,9 @@ void S_XStartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
 void S_XStartSoundNameRev(S_NoiseThinker_t* a_Origin, char* soundname);
 void S_XStopSound(S_NoiseThinker_t* a_Origin);
 
+// Start sound but emit sound only for a specific player
+#define S_StartSoundScreen(o,i,p) S_XStartSound(((S_NoiseThinker_t*)(o)), (i))
+
 // To cancel out those annoying (expected S_NoiseThinker_t* but not mobj_t*)
 #define S_StartSound(o,i) S_XStartSound(((S_NoiseThinker_t*)(o)), (i))
 #define S_StartSoundRev(o,i) S_XStartSoundRev(((S_NoiseThinker_t*)(o)), (i))

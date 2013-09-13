@@ -52,23 +52,7 @@
 #include "i_system.h"
 #include "m_random.h"
 #include "st_stuff.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#include "cl.h"
 
 #define BONUSADD        6
 
@@ -324,9 +308,7 @@ bool_t P_GiveWeapon(player_t* player, PI_wepid_t weapon, bool_t dropped)
 			
 		//added:16-01-98:changed consoleplayer to displayplayer
 		//               (hear the sounds from the viewpoint)
-		for (i = 0; i < g_SplitScreen + 1; i++)
-			if (player == &players[g_Splits[i].Display])
-				S_StartSound(NULL, sfx_wpnup);
+		S_StartSoundScreen(player, NULL, sfx_wpnup);
 		return true;
 	}
 	
@@ -537,8 +519,8 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 			continue;
 		
 		// Invisible split?
-		if (s > g_SplitScreen)
-			continue;
+		//if (s > g_SplitScreen)
+		//	continue;
 	
 		// Get Profile
 		Prof = a_Picker->player->ProfileEx;
@@ -914,9 +896,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			player->bonuscount += BONUSADD;
 			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			for (i = 0; i < g_SplitScreen + 1; i++)
-				if (player == &players[g_Splits[i].Display])
-					S_StartSound(NULL, sound);
+			S_StartSoundScreen(NULL, sound, player);
 		}
 		
 			// For Monster
@@ -948,6 +928,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		
 		// Message?
 			// 3/4 Player (Hacky)
+#if 0
 		if (g_SplitScreen > 1)
 		{
 			// Get characters of short name (of the object)
@@ -975,6 +956,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		}
 			// 1/2 Player
 		else
+#endif
 		{
 			if (Current->PickupMsgRef)
 				P_PlayerMessage(PPM_PICKUP, toucher, special, Current->PickupMsgRef);
@@ -1249,15 +1231,18 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			if (!a_IsInflictor)
 			{
 				// Return nice name of object
+#if 0
 				if (g_SplitScreen > 1)
 					return a_Mobj->info->RSNiceName;
 				else
+#endif
 					return a_Mobj->info->RNiceName;
 			}
 			
 			// Return attack type if the inflictor is the source
 			else if (a_IsInflictor && a_Mobj == a_Source)
 			{
+#if 0
 				// 3/4 Player Split
 				if (g_SplitScreen > 1)
 					switch (a_Mobj->RXAttackAttackType)
@@ -1281,6 +1266,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 				
 				// 1/2 Player Split
 				else
+#endif
 					switch (a_Mobj->RXAttackAttackType)
 					{
 						case PRXAT_MELEE:
@@ -1305,9 +1291,11 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			else if (a_IsInflictor && a_Mobj != a_Source)
 			{
 				// Return nice name of object
+#if 0
 				if (g_SplitScreen > 1)
 					return a_Mobj->info->RSNiceName;
 				else
+#endif
 					return a_Mobj->info->RNiceName;
 			}
 		}
@@ -1417,6 +1405,7 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	/* Remap source and target? */
 	// This is for 3/4 split to make some room available
+#if 0
 	if (g_SplitScreen > 1)
 		for (i = 0; i < 2; i++)
 		{
@@ -1470,9 +1459,11 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			// Set use new buffer
 			*chNoun = NameBuf;
 		}
+#endif
 	
 	/* Print message */
 	// 3/4 Split
+#if 0
 	if (g_SplitScreen > 1)
 		if (target == source)
 			CONL_PrintF("\x7{%s%c%s{0< {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
@@ -1481,6 +1472,7 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	// 1/2 Split
 	else
+#endif
 		if (target == source)
 			CONL_PrintF("\x7{%s%c%s{0 <- {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
 		else
@@ -1667,10 +1659,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		P_DropWeapon(target->player);	// put weapon away
 		
 		// GhostlyDeath <December 28, 2012> -- Reset aiming angle on death
-		for (i = 0; i < MAXSPLITS; i++)
-			if (D_ScrSplitHasPlayer(i))
-				if (g_Splits[i].Port && target->player->Port && g_Splits[i].Port == target->player->Port)
-					localaiming[i] = 0;
+		CL_DoDeathViewP(target->player);
 	}
 	
 	// Target is playing as a monster, needs to be dead for recontrol
@@ -1930,8 +1919,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				player->damagecount = 100;	// teleport stomp does 10k points...
 				
 			//added:22-02-98: force feedback ??? electro-shock???
-			if (player == &players[g_Splits[0].Console])
-				I_Tactile(40, 10, 40 + (damage < 100 ? damage : 100) * 2);
+			CL_DoTactileP(player, 40, 10, 40 + (damage < 100 ? damage : 100) * 2);
 		}
 	}
 	

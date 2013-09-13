@@ -359,7 +359,7 @@ void R_InitViewBuffer(int width, int height, int yextra)
 	// Handle resize,
 	//  e.g. smaller view windows
 	//  with border and/or status bar.
-	if ((g_SplitScreen <= 0))
+	if ((0/*g_SplitScreen*/ <= 0))
 		viewwindowx = (vid.width - width) >> 1;
 	else
 		viewwindowx = 0;
@@ -374,7 +374,7 @@ void R_InitViewBuffer(int width, int height, int yextra)
 		viewwindowy = 0;
 	else
 	{
-		if ((g_SplitScreen <= 0))
+		if ((0/*g_SplitScreen*/ <= 0))
 			viewwindowy = (vid.height - yextra - height) >> 1;
 		else
 			viewwindowy = 0;
@@ -426,7 +426,7 @@ void R_FillBackScreen(void)
 	patch_t* patch;
 	int step, boff;
 	
-	if (g_SplitScreen)
+	if (0/*g_SplitScreen*/)
 		return;
 		
 	//added:08-01-98:draw pattern around the status bar too (when hires),

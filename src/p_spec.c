@@ -2672,9 +2672,7 @@ bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 		thing->reactiontime = 18;
 		
 		// added : absolute angle position
-		for (i = 0; i < MAXSPLITS; i++)
-			if (playeringame[g_Splits[i].Console] && thing == players[g_Splits[i].Console].mo)
-				localangle[i] = angle;
+		CL_DoSetYawP(thing->player, angle);
 		
 		// move chasecam at new player location
 		if (thing->player->camera.chase)

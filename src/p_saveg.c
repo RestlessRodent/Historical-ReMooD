@@ -844,7 +844,6 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	uint32_t ID, ReadID, PortID, LocalID;
 	int32_t TempI, j;
 	bool_t Local;
-	D_SplitInfo_t* Split;
 	D_Prof_t* Prof;
 	
 	/* Get current host, if connected */
@@ -1000,11 +999,14 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 	/* Reset all splits */
 	if (l_SoloLoad)
 	{
+#if 0
 		D_NCResetSplits(demoplayback);
 		g_SplitScreen = -1;
+#endif
 	}
 	
 	/* Re-allocate local screens to determine who is who */
+#if 0
 	for (TempI = 0; TempI < MyHost->NumPorts; TempI++)
 	{
 		// Get current port
@@ -1043,6 +1045,7 @@ static bool_t PS_LoadNetState(D_BS_t* const a_Str)
 		// Increase split count
 		g_SplitScreen++;
 	}
+#endif
 	
 	// Fixup splits
 	R_ExecuteSetViewSize();
@@ -3803,6 +3806,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 		// Correct player angles
 			// This is so you are still facing the desired angle when you load
 			// the game and not some random angle previously used.
+#if 0
 		for (i = 0; i < MAXSPLITS; i++)
 		{
 			if (!D_ScrSplitHasPlayer(i))
@@ -3819,6 +3823,7 @@ bool_t P_LoadFromStream(D_BS_t* const a_Str, const bool_t a_DemoPlay)
 			if (players[g_Splits[i].Console].mo)
 				localangle[i] = players[g_Splits[i].Console].mo->angle;
 		}
+#endif
 		
 		// Update Scores
 		P_UpdateScores();

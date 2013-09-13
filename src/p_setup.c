@@ -238,8 +238,7 @@ bool_t P_ExClearLevel(void)
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
 	
 	/* Clear split automap zoom */
-	for (i = 0; i < MAXSPLITS; i++)
-		g_Splits[i].MapZoom = 0;
+	CL_DoResetMapZoom();
 	
 	/* Wipe Player Stuff */
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -1351,13 +1350,7 @@ bool_t P_ExFinalizeLevel(void)
 			}
 	
 	/* Correct local player angles */
-	for (i = 0; i < MAXSPLITS; i++)
-		if (g_Splits[i].Active && playeringame[g_Splits[i].Console])
-		{
-			if (players[g_Splits[i].Console].mo)
-				localangle[i] = players[g_Splits[i].Console].mo->angle;
-			localaiming[i] = players[g_Splits[i].Console].aiming;
-		}
+	CL_DoAngleSync();
 	
 	/* Setup sky */
 	P_SetupLevelSky();
