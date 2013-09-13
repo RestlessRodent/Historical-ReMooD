@@ -919,7 +919,7 @@ bool_t I_VideoGenericInit(void)
 	if (!I_VideoBefore320200Init())
 		return;
 	
-	if (!I_SetVideoMode(320, 200, false, l_SCRDepth.Value->Int))	// 320x200 console scroller, never fullscreen
+	if (!I_SetVideoMode(320, 200, false, 4))	// 320x200 console scroller, never fullscreen
 		return;
 		
 	/* Prepare the video mode list */
