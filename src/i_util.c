@@ -969,7 +969,7 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	
 		// Oops!
 		if (!vid.buffer)
-			return;
+			I_Error("You do not have enough memory to use this video mode!");
 		
 		// Clear buffer
 		memset(vid.buffer, 0, a_Width * a_Height * vid.bpp * NUMSCREENS);
@@ -998,13 +998,15 @@ void I_VideoUnsetBuffer(void)
 }
 
 /* I_VideoSoftBuffer() -- Returns the soft buffer */
-uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
+uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP, uint32_t* const a_DepthP)
 {
 	/* Set sizes */
 	if (a_WidthP)
 		*a_WidthP = vid.width;
 	if (a_HeightP)
 		*a_HeightP = vid.height;
+	if (a_DepthP)
+		*a_DepthP = vid.bpp;
 		
 	/* Return soft buffer */
 	return I_GetVideoBuffer(IVS_BACKBUFFER, a_WidthP);
@@ -1077,15 +1079,15 @@ bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uin
 void I_ReadScreen(uint8_t* scr)
 {
 	uint8_t* p;
-	uint32_t w, h;
+	uint32_t w, h, b;
 	
 	/* Check */
 	if (!scr)
 		return;
 		
 	/* Blind copy */
-	p = I_VideoSoftBuffer(&w, &h);
-	memcpy(scr, p, w * h);
+	p = I_VideoSoftBuffer(&w, &h, &b);
+	memcpy(scr, p, w * h * b);
 }
 
 /* I_ShowEndTxt() -- Shows the ending text screen */

@@ -974,7 +974,7 @@ void I_StartFrame(void)
 void I_FinishUpdate(void)
 {
 	register uint32_t y;
-	uint32_t w, h;
+	uint32_t w, h, b;
 	uint8_t* Buffer;
 	void* Dest, *Src;
 	
@@ -986,7 +986,8 @@ void I_FinishUpdate(void)
 	}
 	
 	/* Obtain pointer to buffer */
-	Buffer = I_VideoSoftBuffer(&w, &h);
+	Buffer = I_VideoSoftBuffer(&w, &h, &b);
+	w *= b;
 	
 	// Failed?
 	if (!Buffer || !l_SDLSurface)
@@ -1164,7 +1165,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		SDLFlags |= SDL_SWSURFACE;
 		
 	/* OpenGL? */
-	l_SDLGL = (a_Depth == I_VIDEOGLMODECONST);
+	l_SDLGL = !!(a_Depth == I_VIDEOGLMODECONST);
 	
 	// Set OpenGL Flags
 	if (l_SDLGL)
@@ -1185,7 +1186,8 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	
 	for (l_SDLSurface = NULL; !l_SDLSurface && TruDepth != 0;)
 	{
-		l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, TruDepth, SDLFlags);
+		if ((l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, TruDepth, SDLFlags)))
+			break;	// It worked, so do not cut depth
 		
 		// If GL mode fails, try non-gl
 		if (l_SDLGL)

@@ -522,7 +522,7 @@ bool_t I_VideoPostInit(void);
 bool_t I_VideoGenericInit(void);
 void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct, const bool_t a_HWDblBuf, const bool_t a_GL, const uint32_t a_Depth);
 void I_VideoUnsetBuffer(void);
-uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
+uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP, uint32_t* const a_DepthP);
 void I_BeginRead(void);
 void I_EndRead(void);
 

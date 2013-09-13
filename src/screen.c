@@ -120,7 +120,7 @@ CONL_StaticVar_t l_SCRHeight =
 CONL_StaticVar_t l_SCRDepth =
 {
 	CLVT_INTEGER, c_CVPVColorDepth, CLVF_SAVE,
-	"scr_depth", DSTR_CVHINT_SCRDEPTH, CLVVT_STRING, "32",
+	"scr_depth", DSTR_CVHINT_SCRDEPTH, CLVVT_STRING, "4",
 	NULL
 };
 
@@ -174,7 +174,7 @@ void SCR_SetMode(void)
 	//
 	//  setup the right draw routines for either 8bpp or 16bpp
 	//
-	if (vid.bpp == 1)
+	//if (vid.bpp == 1)
 	{
 		colfunc = basecolfunc = R_DrawColumn_8;
 		
@@ -191,8 +191,8 @@ void SCR_SetMode(void)
 		skydrawerfunc[0] = R_DrawColumn_8;	//old skies
 		skydrawerfunc[1] = R_DrawSkyColumn_8;	//tall sky
 	}
-	else
-		I_Error("unknown bytes per pixel mode %d\n", vid.bpp);
+	//else
+		//I_Error("unknown bytes per pixel mode %d\n", vid.bpp);
 		
 	// set the apprpriate drawer for the sky (tall or short)
 	
@@ -351,7 +351,7 @@ void SCR_CheckDefaultMode(void)
 		
 		if (p && p < myargc - 1)
 		{
-			p = atoi(myargv[p + 1]) * 8;
+			p = atoi(myargv[p + 1]);
 			
 			// Illegal?
 			if (p > 32)

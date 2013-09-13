@@ -85,7 +85,7 @@ void wipe_shittyColMajorXform(short* array, int width, int height)
 	int y;
 	short* dest;
 	
-	dest = (short*)Z_Malloc(width * height * 2, PU_STATIC, 0);
+	dest = (short*)Z_Malloc(width * height * vid.bpp * 2, PU_STATIC, 0);
 	
 	for (y = 0; y < height; y++)
 		for (x = 0; x < width; x++)
@@ -104,7 +104,7 @@ static int BlindDone = 0;
 int wipe_initBlindsXForm(int width, int height, int ticks)
 {
 	BlindDone = 0;
-	BlindMarks = Z_Malloc(sizeof(bool_t) * width, PU_STATIC, &BlindMarks);
+	BlindMarks = Z_Malloc(sizeof(bool_t) * width * vid.bpp , PU_STATIC, &BlindMarks);
 	memcpy(wipe_scr, wipe_scr_start, width * height * scr_bpp);
 	return 0;
 }
@@ -215,7 +215,7 @@ int wipe_initMelt(int width, int height, int ticks)
 	
 	// setup initial column positions
 	// (y<0 => not ready to scroll yet)
-	y = (int*)Z_Malloc(width * sizeof(int), PU_STATIC, 0);
+	y = (int*)Z_Malloc(width * sizeof(int) * vid.bpp , PU_STATIC, 0);
 	y[0] = -(M_Random() % 16);
 	for (i = 1; i < width; i++)
 	{
@@ -300,7 +300,7 @@ int wipe_exitMelt(int width, int height, int ticks)
 int wipe_StartScreen(int x, int y, int width, int height)
 {
 	// Not in OpenGL
-	if (VHW_UseGLMode())
+	if (vid.gl)
 		return 0;
 	
 	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
@@ -316,7 +316,7 @@ int wipe_StartScreen(int x, int y, int width, int height)
 int wipe_EndScreen(int x, int y, int width, int height)
 {
 	// Not in OpenGL
-	if (VHW_UseGLMode())
+	if (vid.gl)
 		return 0;
 		
 	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
@@ -339,7 +339,7 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 	};
 	
 	// Not in OpenGL
-	if (VHW_UseGLMode())
+	if (vid.gl)
 		return 0;
 	
 	// GhostlyDeath <June 4, 2010> -- Force done?

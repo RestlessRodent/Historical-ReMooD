@@ -517,12 +517,13 @@ void I_StartFrame(void)
 void I_FinishUpdate(void)
 {
 	register uint32_t y, x;
-	uint32_t w, h;
+	uint32_t w, h, b;
 	uint8_t* Buffer, *p;
 	unsigned long Address;
 	
 	/* Obtain pointer to buffer */
-	Buffer = I_VideoSoftBuffer(&w, &h);
+	Buffer = I_VideoSoftBuffer(&w, &h, &b);
+	w *= b;
 	
 	// Failed?
 	if (!Buffer)

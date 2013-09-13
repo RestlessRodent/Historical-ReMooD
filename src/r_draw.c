@@ -353,8 +353,10 @@ void R_InitViewBuffer(int width, int height, int yextra)
 	int j;
 	int bytesperpixel = vid.bpp;
 	
+#if 0
 	if (bytesperpixel < 1 || bytesperpixel > 4)
 		I_Error("R_InitViewBuffer : wrong bytesperpixel value %d\n", bytesperpixel);
+#endif
 		
 	// Handle resize,
 	//  e.g. smaller view windows
