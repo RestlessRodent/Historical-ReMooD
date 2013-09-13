@@ -31,8 +31,8 @@
 //              part of layer 4 (transport) (tp4) of the osi model
 //              assure the reception of packet and proceed a checksums
 
-#ifndef __D_NET_H__
-#define __D_NET_H__
+#ifndef __SN_H__
+#define __SN_H__
 
 /***************
 *** INCLUDES ***
@@ -330,5 +330,5 @@ SN_Server_t* SN_FindServerByAddr(I_HostAddress_t* const a_Addr);
 SN_Server_t* SN_FindServerByIndex(const int32_t a_Index);
 SN_Server_t* SN_CreateServer(I_HostAddress_t* const a_Addr);
 
-#endif							/* __D_NET_H__ */
+#endif							/* __SN_H__ */
 

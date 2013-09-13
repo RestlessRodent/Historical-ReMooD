@@ -12,6 +12,9 @@ g_Account =   0x00054000;
 g_Info		= 0x60010000;
 g_Real		= 0x60020000;
 
+BGlobal		= 0x30000000;
+BCodeGlobal	= 0x38000000;
+
 MVertexes	= 0x80000000;
 MFFloors	= 0x80080000;
 MSecNodes	= 0x80080A00;
@@ -23,5 +26,5 @@ MNodes		= 0x80C70A00;
 MThings		= 0x80EF0A00;
 MSectors	= 0x81370A00;
 MObjects	= 0x82FB0A00;
-MPlayers	= 0x83E70A00
+MPlayers	= 0x83E70A00;
 

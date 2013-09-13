@@ -108,6 +108,23 @@ struct CL_Socket_s
 	
 	// TO BE REMOVED IN THE FUTURE
 	D_Prof_t* Profile;							// Profile to use
+	
+	// Local Control Specs
+	uint8_t RequestSent;						// Sent join request
+	tic_t GiveUpAt;								// Give up joining at this time
+	bool_t OverlayMap;							// Overlay automap
+	bool_t MapKeyStillDown;						// Automap key still down
+	int8_t ChatMode;							// All? Spec? Team?
+	uint32_t ChatTargetID;						// Player to talk to
+	tic_t ChatTimeOut;							// Chat timeout
+	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
+	int32_t Scores;								// Scoreboard showing
+	bool_t Turned180;							// Did 180 degre turn
+	bool_t AutomapActive;						// Activated Automap
+	fixed_t MapZoom;							// Zoom in the map
+	bool_t MapFreeMode;							// Free movement mode
+	fixed_t MapPos[2];							// Map position
 };
 
 /**************

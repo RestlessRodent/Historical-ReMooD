@@ -14,8 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // ----------------------------------------------------------------------------
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2013 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
 //                                      <ghostlydeath@gmail.com>
 // ----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -28,74 +27,35 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: host/client network commands
-//              commands are executed through the command buffer
-//              like console commands
+// DESCRIPTION: Generic Render Interface
 
-#ifndef __D_NETCMD_H__
-#define __D_NETCMD_H__
+#ifndef __QX_H__
+#define __QX_H__
 
+/*****************************************************************************/
 
+/***************
+*** INCLUDES ***
+***************/
 
+#include "doomtype.h"
 
+/*****************
+*** STRUCTURES ***
+*****************/
 
-
-
-// add game commands, needs cleanup
-void D_RegisterClientCommands(void);
-void D_SendPlayerConfig(void);
-void Command_ExitGame_f(void);
-
-/*****************************
-*** EXTENDED NETWORK STUFF ***
-*****************************/
-
-/*** CONSTANTS ***/
-
-#define MAXDNETTICCMDCOUNT					64	// Max allowed buffered tics
-
-/*** STRUCTURES ***/
-
-/* Define D_Prof_t */
-#if !defined(__REMOOD_DPROFTDEFINED)
-	#define __REMOOD_DPROFTDEFINED
-	typedef struct D_Prof_s D_Prof_t;
+/* Define QX_Visual_t */
+#if !defined(__REMOOD_QXVISUAL_DEFINED)
+	typedef struct QX_Visual_s QX_Visual_t;
+	#define __REMOOD_QXVISUAL_DEFINED
 #endif
 
-/* Define ticcmd_t */
-#if !defined(__REMOOD_TICCMDT_DEFINED)
-	typedef union ticcmd_u ticcmd_t;
-	#define __REMOOD_TICCMDT_DEFINED
-#endif
+/****************
+*** FUNCTIONS ***
+****************/
 
-/* Define SN_Port_t */
-#if !defined(__REMOOD_SNPORT_DEFINED)
-	typedef struct SN_Port_s SN_Port_t;
-	#define __REMOOD_SNPORT_DEFINED
-#endif
+/*****************************************************************************/
 
-/*** GLOBALS ***/
+#endif /* __QX_H__ */
 
-extern bool_t g_NetDev;
-
-extern angle_t localangle[MAXSPLITS];
-extern int localaiming[MAXSPLITS];	// should be a angle_t but signed
-
-/*** FUNCTIONS ***/
-
-bool_t D_ScrSplitHasPlayer(const int8_t a_Player);
-bool_t D_ScrSplitVisible(const int8_t a_Player);
-
-void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo);
-void D_NCResetSplits(const bool_t a_Demo);
-int8_t D_NCSFindSplitByProcess(const uint32_t a_ID);
-
-void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc);
-
-const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
-
-uint32_t D_CMakePureRandom(void);
-void D_CMakeUUID(char* const a_Buf);
-
-#endif
 

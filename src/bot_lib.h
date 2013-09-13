@@ -976,22 +976,31 @@ static inline int32_t RandomLTZGT(void)
 
 #if !defined(__REMOOD_INCLUDED)
 
+/* Bot Info */
 extern volatile BInfo_t g_Info;
 extern volatile const BReal_t g_Real;
 
-// Generate with: grep '#.* M.*AOF' < bot_lib.h | sed 's/.*AOF(\(.*\),.*,.*,\(.*\),.*)/extern \1* \2;/g'
-extern MVertex_t* MVertexes;
-extern MFakeFloor_t* MFFloors;
-extern MSecNode_t* MSecNodes;
-extern MSeg_t* MSegs;
-extern MSide_t* MSides;
-extern MLine_t* MLines;
-extern MSubS_t* MSubSectors;
-extern MNode_t* MNodes;
-extern MThing_t* MThings;
-extern MSector_t* MSectors;
-extern MObject_t* MObjects;
-extern MPlayer_t* MPlayers;
+/* Bot Global Memory Area */
+typedef struct BGlobal_s BGlobal_t;
+typedef struct BCodeGlobal_s BCodeGlobal_t;
+
+extern volatile BGlobal_t BGlobal;
+extern volatile BCodeGlobal_t BCodeGlobal;
+
+/* Map Data */
+// Generate with: grep '#.* M.*AOF' < bot_lib.h | sed 's/.*AOF(\(.*\),.*,.*,\(.*\),.*)/extern volatile \1* \2;/g'
+extern volatile MVertex_t* MVertexes;
+extern volatile MFakeFloor_t* MFFloors;
+extern volatile MSecNode_t* MSecNodes;
+extern volatile MSeg_t* MSegs;
+extern volatile MSide_t* MSides;
+extern volatile MLine_t* MLines;
+extern volatile MSubS_t* MSubSectors;
+extern volatile MNode_t* MNodes;
+extern volatile MThing_t* MThings;
+extern volatile MSector_t* MSectors;
+extern volatile MObject_t* MObjects;
+extern volatile MPlayer_t* MPlayers;
 
 #endif
 
