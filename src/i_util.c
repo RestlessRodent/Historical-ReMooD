@@ -945,6 +945,8 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	vid.modenum = VID_ClosestMode(&w, &h, true);
 	vid.HWDblBuf = a_HWDblBuf;
 	
+	UI_SetBitDepth((a_GL ? I_VIDEOGLMODECONST : a_Depth));
+	
 	/* Nothing after this is done in GL mode */
 	if (a_GL)
 	{

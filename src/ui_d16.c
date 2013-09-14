@@ -38,6 +38,7 @@
 ***************/
 
 #include "ui.h"
+#include "ui_dloc.h"
 
 /****************
 *** FUNCTIONS ***

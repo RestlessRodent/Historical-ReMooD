@@ -1931,6 +1931,7 @@ void D_DoomMain(void)
 	g_EarlyBootConsole = true;
 	
 	/* Adapters */
+	UI_Init();							// Initialize UI
 	CL_InitViews();						// Initialize views
 	V_ImageFindA(NULL, 0);				// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD

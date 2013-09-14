@@ -27,24 +27,37 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: OpenGL Drawers
+// DESCRIPTION: Local Drawing Operations
+
+#ifndef __UI_DLOC_H__
+#define __UI_DLOC_H__
 
 /* NOT IN DEDICATED SERVER */
 #if !defined(__REMOOD_DEDICATED)
 /***************************/
+
+/*****************************************************************************/
 
 /***************
 *** INCLUDES ***
 ***************/
 
 #include "ui.h"
-#include "ui_dloc.h"
+
+/*****************
+*** STRUCTURES ***
+*****************/
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+
+/*****************************************************************************/
+
 /* NOT IN DEDICATED SERVER */
 #endif
 /***************************/
+
+#endif /* __UI_DLOC_H__ */
 

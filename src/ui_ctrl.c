@@ -38,10 +38,23 @@
 ***************/
 
 #include "ui.h"
+#include "i_video.h"
+#include "ui_dloc.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* UI_Init() -- Initializes the UI */
+void UI_Init(void)
+{
+}
+
+/* UI_SetBitDepth() -- Sets bit depth of rendering */
+void UI_SetBitDepth(const uint32_t a_Depth)
+{
+	/* Set functions */
+}
 
 /* NOT IN DEDICATED SERVER */
 #endif
