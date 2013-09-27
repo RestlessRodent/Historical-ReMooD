@@ -60,6 +60,7 @@ typedef enum UI_ImgRef_e
 {
 	UIIR_WAD,									// Reference by WAD
 	UIIR_RAW,									// Reference by Raw Data
+	UIIR_BOOTLOGO,								// Boot Logo
 } UI_ImgRef_t;
 
 /* UI_ColorMap_t -- Color Mapping of Image */
@@ -128,6 +129,14 @@ struct UI_Img_s
 	
 	int32_t Count;								// Reference Count
 };
+
+/* UI_RGB_t -- RGB Table Entry */
+typedef struct UI_RGB_s
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+} UI_RGB_t;
 
 /****************
 *** FUNCTIONS ***

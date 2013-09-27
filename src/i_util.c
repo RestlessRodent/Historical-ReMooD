@@ -492,6 +492,8 @@ void I_OsPolling(void)
 		// Quit event?
 		if (Event.Type == IET_QUIT)
 		{
+			if (gamestate == GS_DEMOSCREEN || demoplayback)
+				I_Quit();
 			continue;
 		}
 		

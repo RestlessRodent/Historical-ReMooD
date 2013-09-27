@@ -117,6 +117,12 @@ typedef enum WL_FindFlags_e
 	#define __REMOOD_ZHT_DEFINED
 #endif
 
+/* Define UI_Img_t */
+#if !defined(__REMOOD_UIIMG_DEFINED)
+	typedef struct UI_Img_s UI_Img_t;
+	#define __REMOOD_UIIMG_DEFINED
+#endif
+
 // WAD Data loading
 typedef void (*WL_RemoveFunc_t)(const WL_WADFile_t* a_WAD);
 typedef bool_t (*WL_PCCreatorFunc_t)(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
@@ -158,6 +164,8 @@ struct WL_WADEntry_s
 		bool_t __MapReal;		// REAL memory map (not faked)
 		int32_t __MapCount;		// Memory Map Count
 		void* __MapPtr;			// Map Pointer
+		
+		UI_Img_t* __Img;		// Loaded image
 	} __Private;				// Don't mess with me
 };
 
