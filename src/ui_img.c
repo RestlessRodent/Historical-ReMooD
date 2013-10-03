@@ -72,6 +72,45 @@ static UI_Img_t* l_ImgList = NULL;				// List of images
 *** FUNCTIONS ***
 ****************/
 
+/* UI_ImgClearList() -- Clears the image list */
+void UI_ImgClearList(void)
+{
+	UI_Img_t* Rover, *Next;
+	
+	/* Go through all images */
+	for (Rover = l_ImgList, Next = NULL; Rover; Rover = Next)
+	{
+		// Get next, may be lost
+		Next = Rover->Next;
+		
+		// If still referenced, I_Error
+		if (Rover->Count > 0)
+			I_Error("Image still referenced!");
+		
+		// Free associated data
+		if (Rover->Data)
+			Z_Free(Rover->Data);
+		
+		if (Rover->Mask)
+			Z_Free(Rover->Mask);
+		
+		// Unlink
+		if (Rover->Prev)
+			Rover->Prev->Next = Rover->Next;
+		if (Rover->Next)
+			Rover->Next->Prev = Rover->Prev;
+		
+		if (l_ImgList == Rover)
+			if (Rover->Prev)
+				l_ImgList = Rover->Prev;
+			else
+				l_ImgList = Rover->Next;
+		
+		// Delete image
+		Z_Free(Rover);
+	}
+}
+
 /* UI_ImgPutI() -- Puts single pixel in image */
 static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const uint32_t a_Index)
 {

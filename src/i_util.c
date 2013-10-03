@@ -1002,7 +1002,7 @@ void I_VideoUnsetBuffer(void)
 }
 
 /* I_VideoSoftBuffer() -- Returns the soft buffer */
-uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP, uint32_t* const a_DepthP)
+uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP, uint32_t* const a_DepthP, uint32_t* const a_PitchP)
 {
 	/* Set sizes */
 	if (a_WidthP)
@@ -1011,6 +1011,8 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP, 
 		*a_HeightP = vid.height;
 	if (a_DepthP)
 		*a_DepthP = vid.bpp;
+	if (a_PitchP)
+		*a_PitchP = vid.rowbytes;
 		
 	/* Return soft buffer */
 	return I_GetVideoBuffer(IVS_BACKBUFFER, a_WidthP);
@@ -1090,7 +1092,7 @@ void I_ReadScreen(uint8_t* scr)
 		return;
 		
 	/* Blind copy */
-	p = I_VideoSoftBuffer(&w, &h, &b);
+	p = I_VideoSoftBuffer(&w, &h, &b, NULL);
 	memcpy(scr, p, w * h * b);
 }
 

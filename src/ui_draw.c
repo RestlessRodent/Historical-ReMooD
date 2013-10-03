@@ -27,7 +27,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: Interface Drawing Control
+// DESCRIPTION: User Interface Drawer
 
 /* NOT IN DEDICATED SERVER */
 #if !defined(__REMOOD_DEDICATED)
@@ -38,98 +38,31 @@
 ***************/
 
 #include "ui.h"
-#include "i_video.h"
-#include "ui_dloc.h"
-#include "w_wad.h"
 
-/****************
-*** CONSTANTS ***
-****************/
-
-#define UIPROT(d) \
-void UI_##d##_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y);
-
-#define UISET(d) \
-UI_DrawImg = UI_##d##_DrawImg;
-
-UIPROT(d8)
-UIPROT(d16)
-UIPROT(d32)
-UIPROT(dgl)
-
-/**************
-*** GLOBALS ***
-**************/
-
-void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y) = NULL;
+/*****************
+*** STRUCTURES ***
+*****************/
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* UI_WLOrder() -- WAD order list */
-bool_t UI_WLOrder(const bool_t a_Pushed, const WL_WADFile_t* const a_WAD)
+/* UI_DrawLoop() -- UI Drawing Loop */
+// This replaces D_Display()!
+void UI_DrawLoop(void)
 {
-	/* Clear image list */
-	UI_ImgClearList();
+	UI_BufferSpec_t Spec;
 	
-	/* Always works */
-	return true;
-}
-
-/* UI_Init() -- Initializes the UI */
-void UI_Init(void)
-{
-	if (!WL_RegisterOCCB(UI_WLOrder, WLDCO_UIIMAGES))
-		I_Error("Failed to register UI_WLOrder");
-}
-
-/* UI_SetBitDepth() -- Sets bit depth of rendering */
-void UI_SetBitDepth(const uint32_t a_Depth)
-{
-	static bool_t FirstDepth;
+	/* Obtain screen spec */
+	// Screen is locked by soft buffer, if needed
+	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
 	
-	/* Remove boot logo */
-	if (FirstDepth)
-		UI_ConBootClear();
-	
-	/* Clear currently loaded images */
-	UI_ImgClearList();
-	
-	/* Initialize the boot logo */
-	if (!FirstDepth)
-	{
-		FirstDepth = true;
-		
-		UI_ConBootInit();
-	}
-	
-	/* Set drawer functions */
-	switch (a_Depth)
-	{
-			// 8-bit
-		case 1:
-			UISET(d8);
-			break;
-			
-			// 16-bit
-		case 2:
-			UISET(d16);
-			break;
-			
-			// 32-bit
-		case 4:
-			UISET(d32);
-			break;
-			
-			// OpenGL
-		case I_VIDEOGLMODECONST:
-			UISET(dgl);
-			break;
-	}
+	/* Unlock the screen */
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 }
 
 /* NOT IN DEDICATED SERVER */
 #endif
 /***************************/
+
 

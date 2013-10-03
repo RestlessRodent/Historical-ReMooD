@@ -70,6 +70,7 @@ typedef enum WL_DataOCCBOrder_e
 {
 	WLDCO_IWADDETECT = 1,			// IWAD Detection
 	WLDCO_RWADDETECT = 2,			// ReMooD.WAD Detection
+	WLDCO_UIIMAGES = 29,			// UI Image Stuff
 	WLDCO_RMOD = 30,				// ReMooD Map Object Data
 	WLDCO_VVIDEO = 70,				// Video
 	WLDCO_VFONTS = 75,				// Fonts

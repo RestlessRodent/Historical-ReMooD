@@ -652,7 +652,7 @@ void D_DoomLoop(void)
 		{
 			// Render Game
 			FPSRenders++;
-			D_Display();
+			UI_DrawLoop();
 			
 			// Set as rendered
 			DidRender = true;

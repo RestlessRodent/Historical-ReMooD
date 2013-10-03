@@ -70,3 +70,4 @@ bool_t I_RemoveMouse(const size_t a_ID);
 void I_MouseGrab(const bool_t a_Grab);
 
 #endif
+

@@ -114,7 +114,7 @@ struct UI_Img_s
 		{
 			uint8_t* Data;						// Data Reference
 			size_t Len;							// Size of data
-		}
+		} Raw;									// Raw data
 	} Ref;										// Reference
 	
 	int32_t o[2];								// Offset
@@ -138,6 +138,13 @@ typedef struct UI_RGB_s
 	uint8_t b;
 } UI_RGB_t;
 
+/* UI_BufferSpec_t -- Buffer specification */
+typedef struct UI_BufferSpec_s
+{
+	uint8_t* Data;								// Buffer Data
+	uint32_t w, h, d, p;						// Width, Height, Depth, Pitch
+} UI_BufferSpec_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -153,14 +160,28 @@ bool_t UI_HandleEvent(I_EventEx_t* const a_Event, const bool_t a_Early);	// Move
 
 /*** UI_CON.C ***/
 
+void UI_ConBootInit(void);
+void UI_ConBootClear(void);
+void UI_ConPassLine(const char* const a_Line);
+
 /*** UI_CTRL.C ***/
 
 void UI_Init(void);
 void UI_SetBitDepth(const uint32_t a_Depth);
 
+void UI_GetVideo(UI_BufferSpec_t* const a_Spec);
+
+/*** UI_DRAW.C ***/
+
+void UI_DrawLoop(void);
+
 /*** UI_D*.C ***/
 
+extern void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y);
+
 /*** UI_IMG.C ***/
+
+void UI_ImgClearList(void);
 
 UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t a_Map);
 UI_Img_t* UI_ImgLoadEnt(const WL_WADEntry_t* const a_Entry);

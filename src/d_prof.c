@@ -38,20 +38,6 @@
 #include "console.h"
 #include "d_netcmd.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /************************
 *** EXTENDED PROFILES ***
 ************************/

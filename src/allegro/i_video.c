@@ -522,7 +522,7 @@ void I_FinishUpdate(void)
 	unsigned long Address;
 	
 	/* Obtain pointer to buffer */
-	Buffer = I_VideoSoftBuffer(&w, &h, &b);
+	Buffer = I_VideoSoftBuffer(&w, &h, &b, NULL);
 	w *= b;
 	
 	// Failed?

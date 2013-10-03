@@ -986,7 +986,7 @@ void I_FinishUpdate(void)
 	}
 	
 	/* Obtain pointer to buffer */
-	Buffer = I_VideoSoftBuffer(&w, &h, &b);
+	Buffer = I_VideoSoftBuffer(&w, &h, &b, NULL);
 	w *= b;
 	
 	// Failed?

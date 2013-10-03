@@ -44,6 +44,11 @@
 *** FUNCTIONS ***
 ****************/
 
+/* UI_d16_DrawImg() -- Draws image */
+void UI_d16_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y)
+{
+}
+
 /* NOT IN DEDICATED SERVER */
 #endif
 /***************************/
