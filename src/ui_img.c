@@ -238,7 +238,7 @@ UI_Img_t* UI_ImgLoadBootLogo(const uint8_t* const a_Data, const size_t a_Len)
 		memset(New->Mask, 1, (New->l[0] * New->l[1]));
 		
 		// Run decoder loop
-		for (x = 0, y = 0, i = 0; i < a_Len;)
+		for (x = 0, y = 0, i = 0; i < a_Len; i++)
 		{
 			// Read RLE count
 			Count = a_Data[i++];
@@ -248,20 +248,19 @@ UI_Img_t* UI_ImgLoadBootLogo(const uint8_t* const a_Data, const size_t a_Len)
 			{
 				// Get bits
 				px[0] = ((a_Data[i] & 0x0F)) + 1;
-				px[1] = ((a_Data[i++] & 0xF0) >> 4) + 1;
+				px[1] = ((a_Data[i] & 0xF0) >> 4) + 1;
 				
 				// Draw into image
-				UI_ImgPutI(New, x, y, px[0]);
-				UI_ImgPutI(New, x + 1, y, px[1]);
-				
-				// Move x up
-				x += 2;
-				
-				// Reached length of image
-				if (x >= 198)
+				for (j = 0; j < 2; j++)
 				{
-					x = 0;
-					y++;
+					UI_ImgPutI(New, x++, y, px[j]);
+				
+					// Reached length of image
+					if (x >= 198)
+					{
+						x = 0;
+						y++;
+					}
 				}
 			}
 		}
