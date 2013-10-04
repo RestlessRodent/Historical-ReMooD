@@ -45,16 +45,6 @@
 ****************/
 
 /* UI_d32_DrawImg() -- Draws image */
-// (0,0)
-//      +--------------> w
-//      |
-//      |     (ix,iy)
-//      |      +-----------+
-//      |      |           |
-//      |      |           |
-//      |      +-----------+ (iw/ih)
-//      v
-//		h
 void UI_d32_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y)
 {
 	register int x1, y1, x2, y2;
