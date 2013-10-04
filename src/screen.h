@@ -88,7 +88,7 @@ typedef struct viddef_s
 #define SVG(x) (((((uint32_t)(x)) & UINT32_C(0xFF)) >> vid.gv) << vid.gs)
 #define SVB(x) (((((uint32_t)(x)) & UINT32_C(0xFF)) >> vid.bv) << vid.bs)
 
-#define SVRGB(r,g,b) (SVR(r) | SVR(g) | SVR(b))
+#define SVRGB(r,g,b) (SVR(r) | SVG(g) | SVB(b))
 
 #define VIDWIDTH    vid.width
 #define VIDHEIGHT   vid.height
