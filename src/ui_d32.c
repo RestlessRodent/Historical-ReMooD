@@ -106,8 +106,8 @@ void UI_d32_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const 
 	}
 	
 	/* Draw loop */
-	Dest = (uint32_t*)((uintptr_t)a_Spec->Data + (y1 * a_Spec->pd) + x1);
-	Src = (uint32_t*)((uintptr_t)a_Img->Data + (oy * a_Img->pd) + ox);
+	Dest = ((uint32_t*)a_Spec->Data) + (uintptr_t)((y1 * a_Spec->pd) + x1);
+	Src = ((uint32_t*)a_Img->Data) + (uintptr_t)((oy * a_Img->pd) + ox);
 	for (y = y1; y < y2; y++)
 	{
 		memcpy(Dest, Src, (x2 - x1) * sizeof(uint32_t));
