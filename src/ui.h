@@ -119,6 +119,7 @@ struct UI_Img_s
 	
 	int32_t o[2];								// Offset
 	int32_t l[2];								// Size
+	int32_t p, pd;								// Pitch, Pitch + Depth
 	uint32_t Depth;								// Depth image exists for
 	
 	UI_ColorMap_t Map;							// Color Mapping
@@ -143,6 +144,7 @@ typedef struct UI_BufferSpec_s
 {
 	uint8_t* Data;								// Buffer Data
 	uint32_t w, h, d, p;						// Width, Height, Depth, Pitch
+	uint32_t pd;
 } UI_BufferSpec_t;
 
 /****************

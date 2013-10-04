@@ -78,7 +78,17 @@ typedef struct viddef_s
 	int baseratio;				// SoM: Used to get the correct value for lighting walls
 	bool_t HWDblBuf;			// Hardware Double Buffering
 	int gl;						// GL Mode
+	
+	uint32_t rs, rv, rm;		// Red Values
+	uint32_t gs, gv, gm;		// Green Values
+	uint32_t bs, bv, bm;		// Blue Values
 } viddef_t;
+
+#define SVR(x) (((((uint32_t)(x)) & UINT32_C(0xFF)) >> vid.rv) << vid.rs)
+#define SVG(x) (((((uint32_t)(x)) & UINT32_C(0xFF)) >> vid.gv) << vid.gs)
+#define SVB(x) (((((uint32_t)(x)) & UINT32_C(0xFF)) >> vid.bv) << vid.bs)
+
+#define SVRGB(r,g,b) (SVR(r) | SVR(g) | SVR(b))
 
 #define VIDWIDTH    vid.width
 #define VIDHEIGHT   vid.height

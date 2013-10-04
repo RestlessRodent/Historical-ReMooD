@@ -48,6 +48,7 @@
 #include "z_zone.h"
 #include "vhw_wrap.h"
 #include "dstrings.h"
+#include "screen.h"
 
 #define __G_INPUT_H__
 #include "console.h"
@@ -1212,6 +1213,19 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		l_DblBuf = true;
 	
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, (l_SDLGL ? NULL : l_SDLSurface->pixels), l_DblBuf, l_SDLGL, TruDepth / 8);
+	
+	/* Set color options */
+	vid.rs = l_SDLSurface->format->Rshift;
+	vid.rv = l_SDLSurface->format->Rloss;
+	vid.rm = l_SDLSurface->format->Rmask;
+	
+	vid.gs = l_SDLSurface->format->Gshift;
+	vid.gv = l_SDLSurface->format->Gloss;
+	vid.gm = l_SDLSurface->format->Gmask;
+	
+	vid.bs = l_SDLSurface->format->Bshift;
+	vid.bv = l_SDLSurface->format->Bloss;
+	vid.bm = l_SDLSurface->format->Bmask;
 	
 	/* Initialize Mode */
 	VHW_Init((l_SDLGL ? VHWMODE_OPENGL : VHWMODE_IDXSOFT));

@@ -115,7 +115,7 @@ void UI_ImgClearList(void)
 static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const uint32_t a_Index)
 {
 	uint32_t Color;
-	UI_RGB_t (*OrigPal)[256];
+	UI_RGB_t *OrigPal;
 	
 	/* Check */
 	if (!a_Img)
@@ -128,7 +128,7 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	/* Translate resulting color */
 	// Boot logo?
 	if (a_Img->RefType == UIIR_BOOTLOGO)
-		OrigPal = &l_BootPal;
+		OrigPal = l_BootPal;
 	
 	// Other palette, either native or remapped (ex: Doom images on Heretic)
 	else
@@ -143,22 +143,24 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	
 	// Otherwise, use the referenced index from the mapping
 	else
-	{
 		Color = 0;
-	}
+	
+	// Translate color to real palette color
+	if (a_Img->Depth > 1)
+		Color = SVRGB(OrigPal[Color].r, OrigPal[Color].b, OrigPal[Color].g);
 	
 	/* Draw real color */
 	// Indexed Mode
 	if (a_Img->Depth == 1)
-		a_Img->Data[(a_Y * a_Img->l[0]) + a_X] = Color;
+		a_Img->Data[(a_Y * a_Img->p) + a_X] = Color;
 	
 	// High Color
 	else if (a_Img->Depth == 2)
-		((uint16_t*)a_Img->Data)[(a_Y * a_Img->l[0]) + a_X] = 0xFF;
+		((uint16_t*)a_Img->Data)[(a_Y * a_Img->p) + a_X] = Color;
 	
 	// True Color
 	else if (a_Img->Depth == 4)
-		((uint32_t*)a_Img->Data)[(a_Y * a_Img->l[0]) + a_X] = 0xFF;
+		((uint32_t*)a_Img->Data)[(a_Y * a_Img->p) + a_X] = D_CMakePureRandom();//Color;
 	
 	// Set Mask
 	a_Img->Mask[(a_Y * a_Img->l[0]) + a_X] = 1;
@@ -225,6 +227,8 @@ UI_Img_t* UI_ImgLoadBootLogo(const uint8_t* const a_Data, const size_t a_Len)
 		New->l[0] = 198;
 		New->l[1] = 198;
 		New->Depth = vid.bpp;
+		New->p = 198;
+		New->pd = New->p * New->Depth;
 		
 		// Allocate buffer
 		New->Data = Z_Malloc((New->l[0] * New->l[1]) * New->Depth, PU_STATIC, NULL);
@@ -234,7 +238,7 @@ UI_Img_t* UI_ImgLoadBootLogo(const uint8_t* const a_Data, const size_t a_Len)
 		memset(New->Mask, 1, (New->l[0] * New->l[1]));
 		
 		// Run decoder loop
-		for (x = 0, y = 0, i = 0; i < a_Len; i++)
+		for (x = 0, y = 0, i = 0; i < a_Len;)
 		{
 			// Read RLE count
 			Count = a_Data[i++];
@@ -244,10 +248,14 @@ UI_Img_t* UI_ImgLoadBootLogo(const uint8_t* const a_Data, const size_t a_Len)
 			{
 				// Get bits
 				px[0] = ((a_Data[i] & 0x0F)) + 1;
-				px[1] = ((a_Data[i] & 0xF0) >> 4) + 1;
+				px[1] = ((a_Data[i++] & 0xF0) >> 4) + 1;
 				
 				// Draw into image
+				UI_ImgPutI(New, x, y, px[0]);
+				UI_ImgPutI(New, x + 1, y, px[1]);
 				
+				// Move x up
+				x += 2;
 				
 				// Reached length of image
 				if (x >= 198)

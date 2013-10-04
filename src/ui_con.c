@@ -38,6 +38,8 @@
 ***************/
 
 #include "ui.h"
+#include "g_state.h"
+#include "screen.h"
 
 #include "bootdata.h"
 
@@ -65,8 +67,6 @@ void UI_ConBootInit(void)
 /* UI_ConBootClear() -- Clear the boot logo */
 void UI_ConBootClear(void)
 {
-	return;
-	
 	/* If image does not exist, do not bother */
 	if (!l_BootLogo)
 		return;	
@@ -95,7 +95,10 @@ void UI_ConPassLine(const char* const a_Line)
 /* UI_ConDebug() -- Debug only */
 void UI_ConDebug(UI_BufferSpec_t* const a_Spec)
 {
-	UI_DrawImg(a_Spec, l_BootLogo, 1, 1);
+	if (!(l_BootLogo = UI_ImgLoadBootLogo(c_BootLogo, CBOOTLOGOSIZE)))
+		I_Error("Failed to load boot logo!");
+	
+	UI_DrawImg(a_Spec, l_BootLogo, 1 + (g_ProgramTic % vid.width), 1);
 }
 
 /* NOT IN DEDICATED SERVER */

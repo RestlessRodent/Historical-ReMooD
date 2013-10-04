@@ -63,6 +63,7 @@ void UI_DrawLoop(void)
 	/* Obtain screen spec */
 	// Screen is locked by soft buffer, if needed
 	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
+	Spec.pd = Spec.p * Spec.d;
 	
 	/* Debug */
 	UI_ConDebug(&Spec);
