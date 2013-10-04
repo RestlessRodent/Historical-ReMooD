@@ -160,7 +160,7 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	
 	// True Color
 	else if (a_Img->Depth == 4)
-		((uint32_t*)a_Img->Data)[(a_Y * a_Img->p) + a_X] = D_CMakePureRandom();//Color;
+		((uint32_t*)a_Img->Data)[(a_Y * a_Img->p) + a_X] = Color;
 	
 	// Set Mask
 	a_Img->Mask[(a_Y * a_Img->l[0]) + a_X] = 1;
