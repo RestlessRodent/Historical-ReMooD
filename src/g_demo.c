@@ -2703,7 +2703,7 @@ void G_StopDemoPlay(void)
 	// Advance
 	else if (Advance)
 	{
-		D_AdvanceDemo();
+		D_UITitleBump();
 		gamestate = GS_DEMOSCREEN;
 	}
 	

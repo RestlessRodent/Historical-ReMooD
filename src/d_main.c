@@ -69,6 +69,7 @@
 #include "wi_stuff.h"
 #include "cl.h"
 #include "ui.h"
+#include "t_ini.h"
 
 /* Define VideoFont_t */
 #if !defined(__REMOOD_VIDEOFONTT_DEFINED)
@@ -841,7 +842,7 @@ void D_StartTitle(void)
 	demosequence = -1;
 	paused = false;
 	gamestate = GS_DEMOSCREEN;
-	D_AdvanceDemo();
+	D_UITitleBump();
 }
 
 //
@@ -2285,15 +2286,114 @@ struct D_TitleSeq_s
 
 static D_TitleSeq_t* l_TTSeqHead = NULL;		// First sequence
 static D_TitleSeq_t* l_TTSeqAt = NULL;			// Current sequence at
+static UI_Img_t* l_TTPic = NULL;				// Title Pic
+static tic_t l_TTTicker = NULL;					// Title Ticker
 
 /* D_UILoadTitles() -- Loads title screen data */
 void D_UILoadTitles(void)
 {
+	D_IWADInfoEx_t* Info;
+	D_TitleSeq_t* New, *Tail;
+	WL_WADEntry_t* Ent;
+	WL_ES_t* Stream;
+	TINI_Section_t* CurSect;
+	TINI_ConfigLine_t* ConfLine;
+	char* Opt, *Val;
+	
+	/* Clear loaded image, would have been bleh */
+	// Would have been destroyed on new WAD load
+	l_TTPic = NULL;
+	
+	/* Clear old sequences */
+	while (l_TTSeqHead)
+	{
+		New = l_TTSeqHead->Next;
+		Z_Free(l_TTSeqHead);
+		l_TTSeqHead = New;
+	}
+	
+	// Current position
+	l_TTSeqAt = NULL;
+	
+	/* Get current IWAD */
+	if (!(Info = D_GetThisIWAD()))
+		return;
+	
+	/* If there is no lump specified, ignore */
+	if (!Info->TitleScreenLump)
+		return;
+	
+	/* Attempt open of title sequences lump */
+	if (!(Ent = WL_FindEntry(NULL, 0, Info->TitleScreenLump)))
+		return;
+	
+	/* Open stream, if possible */
+	if (!(Stream = WL_StreamOpen(Ent)))
+		return;
+	
+	/* Begin */
+	// Unicode
+	WL_StreamCheckUnicode(Stream);
+	
+	// Read each section
+	New = Tail = NULL;
+	for (CurSect = TINI_FindNextSection(NULL, Stream); CurSect; CurSect = CurSect->Next)
+	{
+		// Start reading section
+		ConfLine = TINI_BeginRead(CurSect);
+		
+		// Create new link
+		New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+		New->Prev = Tail;
+		
+		if (!Tail)
+			l_TTSeqHead = New;
+		else
+			Tail->Next = New;
+		Tail = New;
+		
+		// Read configuration lines
+		while (TINI_ReadLine(ConfLine, &Opt, &Val))
+		{
+			// Picture
+			if (!strcasecmp(Opt, "pic"))
+				strncpy(New->Pic, Val, WLMAXENTRYNAME);
+			
+			// Music
+			else if (!strcasecmp(Opt, "music"))
+				strncpy(New->Music, Val, WLMAXENTRYNAME);
+			
+			// Demo
+			else if (!strcasecmp(Opt, "demo"))
+				strncpy(New->Demo, Val, WLMAXENTRYNAME);
+			
+			// Tic
+			else if (!strcasecmp(Opt, "tic"))
+				New->Tic = C_strtou32(Val, NULL, 10);
+		}
+		
+		// End reading section
+		TINI_EndRead(ConfLine);
+	}
+	
+	/* Close Stream */
+	WL_StreamClose(Stream);
 }
 
 /* D_UITitle() -- Title Screen Drawer */
 void D_UITitle(UI_BufferSpec_t* const a_Spec)
 {
 }
+
+/* D_UITitleTick() -- Tics title screen */
+void D_UITitleTick(void)
+{
+}
+
+/* D_UITitleBump() -- Bumps title screen up */
+void D_UITitleBump(void)
+{
+}
+
 #endif
 

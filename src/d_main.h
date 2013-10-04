@@ -82,5 +82,7 @@ void D_StartTitle(void);
 void D_BuildMapName(char* const a_Dest, const size_t a_Len, const int32_t a_Epi, const int32_t a_Map);
 bool_t D_CheckWADBlacklist(const char* const a_Sum);
 
+void D_UITitleBump(void);
+
 #endif							//__D_MAIN__
 
