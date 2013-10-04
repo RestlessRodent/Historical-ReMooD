@@ -154,11 +154,11 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	
 	// High Color
 	else if (a_Img->Depth == 2)
-		((uint16_t*)a_Img->Data)[(a_Y * a_Img->l[0]) + a_X] = 0;
+		((uint16_t*)a_Img->Data)[(a_Y * a_Img->l[0]) + a_X] = 0xFF;
 	
 	// True Color
 	else if (a_Img->Depth == 4)
-		((uint32_t*)a_Img->Data)[(a_Y * a_Img->l[0]) + a_X] = 0;
+		((uint32_t*)a_Img->Data)[(a_Y * a_Img->l[0]) + a_X] = 0xFF;
 	
 	// Set Mask
 	a_Img->Mask[(a_Y * a_Img->l[0]) + a_X] = 1;

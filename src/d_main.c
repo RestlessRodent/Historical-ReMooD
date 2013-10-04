@@ -68,6 +68,7 @@
 #include "st_stuff.h"
 #include "wi_stuff.h"
 #include "cl.h"
+#include "ui.h"
 
 /* Define VideoFont_t */
 #if !defined(__REMOOD_VIDEOFONTT_DEFINED)
@@ -719,6 +720,11 @@ void D_PageTicker(void)
 {	
 	if (--pagetic < 0)
 		D_AdvanceDemo();
+}
+
+/* D_UITitle() -- Title Screen Drawer */
+void D_UITitle(UI_BufferSpec_t* const a_Spec)
+{
 }
 
 /* D_PageDrawer() -- Draws the title screen page */

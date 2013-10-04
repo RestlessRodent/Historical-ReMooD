@@ -38,10 +38,17 @@
 ***************/
 
 #include "ui.h"
+#include "g_state.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+void D_UITitle(UI_BufferSpec_t* const a_Spec);
 
 /****************
 *** FUNCTIONS ***
@@ -56,6 +63,27 @@ void UI_DrawLoop(void)
 	/* Obtain screen spec */
 	// Screen is locked by soft buffer, if needed
 	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
+	
+	/* Debug */
+	UI_ConDebug(&Spec);
+	
+	/* Drawing is based on the current game state */
+	switch (gamestate)
+	{
+			// Title Screen
+		case GS_DEMOSCREEN:
+			D_UITitle(&Spec);
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Draw any user interface elements on top */
+	
+	/* Update the screen */
+	I_FinishUpdate();
 	
 	/* Unlock the screen */
 	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
