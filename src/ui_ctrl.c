@@ -63,6 +63,12 @@ UIPROT(dgl)
 
 void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y) = NULL;
 
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+void D_UILoadTitles(void);
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -72,6 +78,9 @@ bool_t UI_WLOrder(const bool_t a_Pushed, const WL_WADFile_t* const a_WAD)
 {
 	/* Clear image list */
 	UI_ImgClearList();
+	
+	/* Initialize the title screen */
+	D_UILoadTitles();
 	
 	/* Always works */
 	return true;

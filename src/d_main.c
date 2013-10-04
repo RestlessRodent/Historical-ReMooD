@@ -722,11 +722,6 @@ void D_PageTicker(void)
 		D_AdvanceDemo();
 }
 
-/* D_UITitle() -- Title Screen Drawer */
-void D_UITitle(UI_BufferSpec_t* const a_Spec)
-{
-}
-
 /* D_PageDrawer() -- Draws the title screen page */
 void D_PageDrawer(const char* const a_LumpName)
 {
@@ -893,6 +888,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		false,
 		"MI_DOOM2",
+		"RMD_TTD2",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
 		"map##",
 		
@@ -917,6 +913,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		false,
 		"MI_TNT",
+		"RMD_TTD2",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
 		"map##",
 		
@@ -941,6 +938,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		false,
 		"MI_PLUT",
+		"RMD_TTD2",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL,
 		"map##",
 		
@@ -965,6 +963,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		false,
 		"MI_DOOM1",
+		"RMD_TTUD",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_DOUBLEWARP,
 		"e$m#",
 		
@@ -989,6 +988,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		false,
 		"MI_DOOM1",
+		"RMD_TTD1",
 		CIF_CANFILE | CIF_REGISTERED | CIF_DOUBLEWARP,
 		"e$m#",
 		
@@ -1013,6 +1013,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		true,
 		"MI_DOOM1",
+		"RMD_TTDS",
 		CIF_SHAREWARE | CIF_DOWNLOADABLE | CIF_DOUBLEWARP,
 		"e$m#",
 		
@@ -1037,6 +1038,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_DOOM,
 		false,
 		"MI_FDOM2",
+		"RMD_TTD2",
 		CIF_CANFILE | CIF_REGISTERED | CIF_COMMERCIAL | CIF_FREEDOOM,
 		"map##",
 		
@@ -1061,6 +1063,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		CG_HERETIC,
 		false,
 		"MI_HERTC",
+		"RMD_TTHE",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_DOUBLEWARP,
 		"e$m#",
 		
@@ -1077,7 +1080,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Hexen Shareware
 
 	/* Last */
-	{NULL, "indeterminate", NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, 0, "", 0}
+	{NULL, "indeterminate", NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, CG_DOOM, false, NULL, NULL, 0, "", 0}
 };
 
 // l_BlockSums -- Checksums to disallow downloading from
@@ -2220,9 +2223,9 @@ void D_DoomMain(void)
 #endif
 }
 
-/*****************
-*** MODEL MODE ***
-*****************/
+/****************
+*** FUNCTIONS ***
+****************/
 
 // GhostlyDeath <December 1, 2012> -- Default System Model
 #if !defined(__REMOOD_MODEL)
@@ -2235,6 +2238,7 @@ void D_DoomMain(void)
 
 D_ModelMode_t g_ModelMode = 0;					// Model to use
 
+/* D_InitModelMode() -- Hardware specific features */
 void D_InitModelMode(void)
 {
 	const char* Input;
@@ -2259,3 +2263,37 @@ void D_InitModelMode(void)
 	else
 		g_ModelMode = DMM_DEFAULT;
 }
+
+/*********************************
+*** CUSTOMIZED TITLE SEQUENCES ***
+*********************************/
+
+#if !defined(__REMOOD_DEDICATED)
+typedef struct D_TitleSeq_s D_TitleSeq_t;
+
+/* D_TitleSeq_t -- Title Sequence Info */
+struct D_TitleSeq_s
+{
+	char Pic[WLMAXENTRYNAME];					// Picture to show
+	char Music[WLMAXENTRYNAME];					// Music to play
+	char Demo[WLMAXENTRYNAME];					// Demo to play
+	uint32_t Tic;								// Tics sequence should last
+	
+	D_TitleSeq_t* Prev;							// Prev Sequence
+	D_TitleSeq_t* Next;							// Next sequence
+};
+
+static D_TitleSeq_t* l_TTSeqHead = NULL;		// First sequence
+static D_TitleSeq_t* l_TTSeqAt = NULL;			// Current sequence at
+
+/* D_UILoadTitles() -- Loads title screen data */
+void D_UILoadTitles(void)
+{
+}
+
+/* D_UITitle() -- Title Screen Drawer */
+void D_UITitle(UI_BufferSpec_t* const a_Spec)
+{
+}
+#endif
+
