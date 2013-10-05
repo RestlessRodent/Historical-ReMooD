@@ -79,6 +79,9 @@ bool_t UI_WLOrder(const bool_t a_Pushed, const WL_WADFile_t* const a_WAD)
 	/* Clear image list */
 	UI_ImgClearList();
 	
+	/* Load the default palette (PLAYPAL) */
+	UI_ImgLoadPalette();
+	
 	/* Initialize the title screen */
 	D_UILoadTitles();
 	

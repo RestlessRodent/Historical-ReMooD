@@ -2384,6 +2384,17 @@ void D_UILoadTitles(void)
 /* D_UITitle() -- Title Screen Drawer */
 void D_UITitle(UI_BufferSpec_t* const a_Spec)
 {
+	/* If no image, try loading it */
+	if (!l_TTPic)
+	{
+		// There may be no sequence, or the bit depth changed on the title screen
+		if (l_TTSeqAt && l_TTSeqAt->Pic[0])
+			l_TTPic = UI_ImgLoadEntS(l_TTSeqAt->Pic);
+		
+		// Still failed
+		if (!l_TTPic)
+			return;
+	}
 }
 
 /* D_UITitleTick() -- Tics title screen */

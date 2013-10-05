@@ -41,6 +41,7 @@
 #include "ui_dloc.h"
 #include "z_zone.h"
 #include "screen.h"
+#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***
@@ -67,10 +68,47 @@ static const UI_RGB_t l_BootPal[256] =
 *************/
 
 static UI_Img_t* l_ImgList = NULL;				// List of images
+static UI_RGB_t l_GamePal[256];					// Game palette
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* UI_ImgLoadPalette() -- Loads palette */
+void UI_ImgLoadPalette(void)
+{
+	const WL_WADEntry_t* Ent;
+	WL_ES_t* Stream;
+	int32_t i;
+	
+	/* Clear palette */
+	// Make an initial grayscale palette
+	for (i = 0; i < 256; i++)
+	{
+		l_GamePal[i].r = i;
+		l_GamePal[i].g = i;
+		l_GamePal[i].b = i;
+	}
+	
+	/* Attempt locating PLAYPAL */
+	if (!(Ent = WL_FindEntry(NULL, 0, "PLAYPAL")))
+		return;
+	
+	/* Open stream */
+	if (!(Stream = WL_StreamOpen(Ent)))
+		return;
+	
+	/* Read in palette entries */
+	for (i = 0; i < 256; i++)
+	{
+		l_GamePal[i].r = WL_Sru8(Stream);
+		l_GamePal[i].g = WL_Sru8(Stream);
+		l_GamePal[i].b = WL_Sru8(Stream);
+	}
+	
+	/* Close stream */
+	WL_StreamClose(Stream);
+}
 
 /* UI_ImgDelete() -- Delete image */
 void UI_ImgDelete(UI_Img_t* const a_Img)
@@ -93,10 +131,12 @@ void UI_ImgDelete(UI_Img_t* const a_Img)
 		a_Img->Next->Prev = a_Img->Prev;
 	
 	if (l_ImgList == a_Img)
+	{
 		if (a_Img->Prev)
 			l_ImgList = a_Img->Prev;
 		else
 			l_ImgList = a_Img->Next;
+	}
 	
 	/* Delete image */
 	Z_Free(a_Img);
@@ -122,7 +162,7 @@ void UI_ImgClearList(void)
 static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const uint32_t a_Index)
 {
 	uint32_t Color;
-	UI_RGB_t *OrigPal;
+	const UI_RGB_t *OrigPal;
 	
 	/* Check */
 	if (!a_Img)
@@ -137,14 +177,11 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	if (a_Img->RefType == UIIR_BOOTLOGO)
 		OrigPal = l_BootPal;
 	
-	// Other palette, either native or remapped (ex: Doom images on Heretic)
+	// Native palette
 	else
-	{
-		// TODO FIXME
-		return;
-	}
+		OrigPal = l_GamePal;
 	
-	// If using native pallete, direct copy
+	// If using native palette, direct copy
 	if (a_Img->Map == UICM_NATIVE)
 		Color = a_Index;
 	
@@ -176,6 +213,25 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 /* UI_ImgLoadEntC() -- Lodas image with specified mapping */
 UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t a_Map)
 {
+	WL_ES_t* Stream;
+	UI_Img_t* New = NULL;
+	
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Open stream */
+	if (!(Stream = WL_StreamOpen(a_Entry)))
+		return NULL;
+	
+	/* Detect type of image */
+	// PNG, patch_t, pic_t, raw flat
+	
+	/* Close stream */
+	WL_StreamClose(Stream);
+	
+	/* OK */
+	return New;
 }
 
 /* UI_ImgLoadEnt() -- Loads image with assumed native mapping */
@@ -187,9 +243,18 @@ UI_Img_t* UI_ImgLoadEnt(const WL_WADEntry_t* const a_Entry)
 /* UI_ImgLoadEntSC() -- Finds entry by name, then uses a map */
 UI_Img_t* UI_ImgLoadEntSC(const char* const a_Name, const UI_ColorMap_t a_Map)
 {
+	const WL_WADEntry_t* Ent;
+	
 	/* Check */
 	if (!a_Name)
 		return NULL;
+	
+	/* Attempt locating of entry */
+	if (!(Ent = WL_FindEntry(NULL, 0, a_Name)))
+		return NULL;
+	
+	/* Return loaded image */
+	return UI_ImgLoadEntC(Ent, a_Map);
 }
 
 /* UI_ImgLoadEntS() -- Loads image by name */
