@@ -185,11 +185,10 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 		}
 		
 		// If demo needs advancing
-		if (advancedemo)
-			D_DoAdvanceDemo();
+		D_UITitleNext();
 		
 		// Tic the title screen
-		D_PageTicker();
+		D_UITitleTick();
 		
 		// Set last time
 		LastTic = LocalTic;

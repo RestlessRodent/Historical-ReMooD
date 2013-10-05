@@ -2287,7 +2287,8 @@ struct D_TitleSeq_s
 static D_TitleSeq_t* l_TTSeqHead = NULL;		// First sequence
 static D_TitleSeq_t* l_TTSeqAt = NULL;			// Current sequence at
 static UI_Img_t* l_TTPic = NULL;				// Title Pic
-static tic_t l_TTTicker = NULL;					// Title Ticker
+static int32_t l_TTTicker = 0;					// Title Ticker
+static bool_t l_TTBump = false;					// Do title bump
 
 /* D_UILoadTitles() -- Loads title screen data */
 void D_UILoadTitles(void)
@@ -2388,11 +2389,69 @@ void D_UITitle(UI_BufferSpec_t* const a_Spec)
 /* D_UITitleTick() -- Tics title screen */
 void D_UITitleTick(void)
 {
+	if (--l_TTTicker < 0)
+		D_UITitleBump();
 }
 
 /* D_UITitleBump() -- Bumps title screen up */
 void D_UITitleBump(void)
 {
+	l_TTBump = true;
+}
+
+/* D_UITitleNext() -- Possibly goes to next title screen page */
+void D_UITitleNext(void)
+{
+	/* Only if bumped */
+	if (!l_TTBump)
+		return;
+	
+	// Do not bump again
+	l_TTBump = false;
+	
+	/* Set initial action */
+	gameaction = ga_nothing;
+	
+	/* Go to next sequence */
+	if (l_TTSeqAt)
+		l_TTSeqAt = l_TTSeqAt->Next;
+	
+	// Start from beginning
+	if (!l_TTSeqAt)
+		l_TTSeqAt = l_TTSeqHead;
+	
+	// No sequences still?
+	if (!l_TTSeqAt)
+		return;
+	
+	/* Attempt playing demo */
+	if (l_TTSeqAt->Demo[0])
+	{
+		// Demos last a long time
+		l_TTTicker = 9999999;
+		
+		// Attempt play of demo
+		if (G_DoPlayDemo(l_TTSeqAt->Demo, true))
+			return;	// Demo did play
+		
+		// Otherwise fail, set a short timer
+		l_TTTicker = 1;
+		return;
+	}
+	
+	/* Switch title page */
+	// Tic time
+	l_TTTicker = l_TTSeqAt->Tic;
+	
+	// Prevent infinitely long pages
+	if (l_TTTicker <= 0)
+		l_TTTicker = 1;
+	
+	// Change music
+	if (l_TTSeqAt->Music[0])
+		S_ChangeMusicName(l_TTSeqAt->Music, false);
+	
+	// Change picture
 }
 
 #endif
