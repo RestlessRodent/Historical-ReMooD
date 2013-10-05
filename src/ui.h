@@ -183,6 +183,7 @@ extern void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, 
 
 /*** UI_IMG.C ***/
 
+void UI_ImgDelete(UI_Img_t* const a_Img);
 void UI_ImgClearList(void);
 
 UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t a_Map);

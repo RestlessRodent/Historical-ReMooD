@@ -72,6 +72,36 @@ static UI_Img_t* l_ImgList = NULL;				// List of images
 *** FUNCTIONS ***
 ****************/
 
+/* UI_ImgDelete() -- Delete image */
+void UI_ImgDelete(UI_Img_t* const a_Img)
+{		
+	/* If still referenced, I_Error */
+	if (a_Img->Count > 0)
+		I_Error("Image still referenced!");
+	
+	/* Free associated data */
+	if (a_Img->Data)
+		Z_Free(a_Img->Data);
+	
+	if (a_Img->Mask)
+		Z_Free(a_Img->Mask);
+	
+	/* Unlink */
+	if (a_Img->Prev)
+		a_Img->Prev->Next = a_Img->Next;
+	if (a_Img->Next)
+		a_Img->Next->Prev = a_Img->Prev;
+	
+	if (l_ImgList == a_Img)
+		if (a_Img->Prev)
+			l_ImgList = a_Img->Prev;
+		else
+			l_ImgList = a_Img->Next;
+	
+	/* Delete image */
+	Z_Free(a_Img);
+}
+
 /* UI_ImgClearList() -- Clears the image list */
 void UI_ImgClearList(void)
 {
@@ -83,31 +113,8 @@ void UI_ImgClearList(void)
 		// Get next, may be lost
 		Next = Rover->Next;
 		
-		// If still referenced, I_Error
-		if (Rover->Count > 0)
-			I_Error("Image still referenced!");
-		
-		// Free associated data
-		if (Rover->Data)
-			Z_Free(Rover->Data);
-		
-		if (Rover->Mask)
-			Z_Free(Rover->Mask);
-		
-		// Unlink
-		if (Rover->Prev)
-			Rover->Prev->Next = Rover->Next;
-		if (Rover->Next)
-			Rover->Next->Prev = Rover->Prev;
-		
-		if (l_ImgList == Rover)
-			if (Rover->Prev)
-				l_ImgList = Rover->Prev;
-			else
-				l_ImgList = Rover->Next;
-		
-		// Delete image
-		Z_Free(Rover);
+		// Delete
+		UI_ImgDelete(Rover);
 	}
 }
 

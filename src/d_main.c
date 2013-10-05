@@ -2451,7 +2451,19 @@ void D_UITitleNext(void)
 	if (l_TTSeqAt->Music[0])
 		S_ChangeMusicName(l_TTSeqAt->Music, false);
 	
+	// Delete old picture
+	if (l_TTPic)
+	{
+		UI_ImgDelete(l_TTPic);
+		l_TTPic = NULL;
+	}
+	
 	// Change picture
+	if (l_TTSeqAt->Pic[0])
+		l_TTPic = UI_ImgLoadEntS(l_TTSeqAt->Pic);
+	
+	// Set new state
+	gamestate = GS_DEMOSCREEN;
 }
 
 #endif
