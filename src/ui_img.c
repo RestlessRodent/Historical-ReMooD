@@ -215,6 +215,8 @@ UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t
 {
 	WL_ES_t* Stream;
 	UI_Img_t* New = NULL;
+	int i;
+	int16_t Head[4];
 	
 	/* Check */
 	if (!a_Entry)
@@ -226,6 +228,32 @@ UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t
 	
 	/* Detect type of image */
 	// PNG, patch_t, pic_t, raw flat
+	// pic_ts are   {w 0 h 0 data}
+	// patch_ts are {w h x y cols}
+	
+	// Read 4 shorts
+	for (i = 0; i < 4; i++)
+		Head[i] = WL_Srli16(Stream);
+	
+	// PNG
+	if (Head[0] == 0x5089 && Head[1] == 0x474e && Head[2] == 0x0a0d && Head[3] == 0x0a1a)
+	{
+	}
+	
+	// pic_t
+	else if (Head[0] > 0 && Head[1] == 0 && Head[2] > 0 && Head[3] == 0)
+	{
+	}
+	
+	// patch_t
+	else if (Head[0] > 0 && Head[1] > 0)
+	{
+	}
+	
+	// Unknown, assume raw flat
+	else
+	{
+	}
 	
 	/* Close stream */
 	WL_StreamClose(Stream);
