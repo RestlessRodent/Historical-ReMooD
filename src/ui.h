@@ -73,6 +73,15 @@ typedef enum UI_ColorMap_e
 	UICM_STRIFE,								// Strife Colors
 } UI_ColorMap_t;
 
+/* UI_ImgType_t -- Type of image loaded */
+typedef enum UI_ImgType_e
+{
+	UIIT_PNG,
+	UIIT_PATCH,
+	UIIT_PIC,
+	UIIT_FLAT,
+} UI_ImgType_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -101,7 +110,22 @@ struct UI_Img_s
 	UI_Img_t* Prev;								// Previous Image
 	UI_Img_t* Next;								// Next Image
 	
+	UI_ImgType_t Type;							// Image Type
 	UI_ImgRef_t RefType;						// Type of reference
+	
+	int32_t o[2];								// Offset
+	int32_t l[2];								// Size
+	int32_t p, pd;								// Pitch, Pitch + Depth
+	uint32_t Depth;								// Depth image exists for
+	
+	UI_ColorMap_t Map;							// Color Mapping
+	
+	uint8_t* Data;								// Image Data (Native)
+	uint8_t* Mask;								// Image Mask
+	uint32_t GLRef;								// OpenGL Reference
+	
+	int32_t Count;								// Reference Count
+	
 	union
 	{
 		struct
@@ -116,19 +140,6 @@ struct UI_Img_s
 			size_t Len;							// Size of data
 		} Raw;									// Raw data
 	} Ref;										// Reference
-	
-	int32_t o[2];								// Offset
-	int32_t l[2];								// Size
-	int32_t p, pd;								// Pitch, Pitch + Depth
-	uint32_t Depth;								// Depth image exists for
-	
-	UI_ColorMap_t Map;							// Color Mapping
-	
-	uint8_t* Data;								// Image Data (Native)
-	uint8_t* Mask;								// Image Mask
-	uint32_t GLRef;								// OpenGL Reference
-	
-	int32_t Count;								// Reference Count
 };
 
 /* UI_RGB_t -- RGB Table Entry */

@@ -217,6 +217,7 @@ UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t
 	UI_Img_t* New = NULL;
 	int i;
 	int16_t Head[4];
+	UI_ImgType_t Type;
 	
 	/* Check */
 	if (!a_Entry)
@@ -237,23 +238,19 @@ UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t
 	
 	// PNG
 	if (Head[0] == 0x5089 && Head[1] == 0x474e && Head[2] == 0x0a0d && Head[3] == 0x0a1a)
-	{
-	}
+		Type = UIIT_PNG;
 	
 	// pic_t
 	else if (Head[0] > 0 && Head[1] == 0 && Head[2] > 0 && Head[3] == 0)
-	{
-	}
+		Type = UIIT_PIC;
 	
 	// patch_t
 	else if (Head[0] > 0 && Head[1] > 0)
-	{
-	}
+		Type = UIIT_PATCH;
 	
 	// Unknown, assume raw flat
 	else
-	{
-	}
+		Type = UIIT_FLAT;
 	
 	/* Close stream */
 	WL_StreamClose(Stream);
