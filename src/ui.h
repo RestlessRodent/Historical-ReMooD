@@ -130,8 +130,8 @@ struct UI_Img_s
 	{
 		struct
 		{
-			WL_WADFile_t* WAD;					// WAD This belongs to
-			WL_WADEntry_t* Entry;				// Entry this belongs to
+			const WL_WADFile_t* WAD;			// WAD This belongs to
+			const WL_WADEntry_t* Entry;			// Entry this belongs to
 		} WAD;									// WAD Storage
 		
 		struct

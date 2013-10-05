@@ -252,6 +252,24 @@ UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t
 	else
 		Type = UIIT_FLAT;
 	
+	/* Seek back to start */
+	WL_StreamSeek(Stream, 0, false);
+	
+	/* Create skeleton image */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	New->Type = Type;
+	New->RefType = UIIR_WAD;
+	New->Map = a_Map;
+	New->Depth = vid.bpp;
+	New->Ref.WAD.Entry = a_Entry;
+	New->Ref.WAD.WAD = a_Entry->Owner;
+	
+	// Link into chain
+	New->Next = l_ImgList;
+	if (l_ImgList)
+		l_ImgList->Prev = New;
+	l_ImgList = New;
+	
 	/* Close stream */
 	WL_StreamClose(Stream);
 	
