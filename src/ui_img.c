@@ -210,6 +210,26 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	a_Img->Mask[(a_Y * a_Img->l[0]) + a_X] = 1;
 }
 
+/* UI_LoadPNG() -- Loads PNG */
+void UI_LoadPNG(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
+{
+}
+
+/* UI_LoadPatchT() -- Loads patch_t */
+void UI_LoadPatchT(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
+{
+}
+
+/* UI_LoadPicT() -- Loads pic_t */
+void UI_LoadPicT(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
+{
+}
+
+/* UI_LoadRAW() -- Loads flat image */
+void UI_LoadFlat(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
+{
+}
+
 /* UI_ImgLoadEntC() -- Lodas image with specified mapping */
 UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t a_Map)
 {
@@ -251,6 +271,29 @@ UI_Img_t* UI_ImgLoadEntC(const WL_WADEntry_t* const a_Entry, const UI_ColorMap_t
 	// Unknown, assume raw flat
 	else
 		Type = UIIT_FLAT;
+	
+	/* Basic info */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Link
+	if (l_ImgList)
+		l_ImgList->Prev = New;
+	New->Next = l_ImgList;
+	l_ImgList = New;
+	
+	// Fill
+	New->Type = Type;
+	New->RefType = UIIR_WAD;
+	
+	/* Load based on type */
+	switch (New->Type)
+	{
+		case UIIT_PIC:		UI_LoadPicT(New, Stream); break;
+		case UIIT_PATCH:	UI_LoadPatchT(New, Stream); break;
+		case UIIT_PNG:		UI_LoadPNG(New, Stream); break;
+		case UIIT_FLAT:		UI_LoadFlat(New, Stream); break;
+		default: break;
+	}
 	
 	/* Close stream */
 	WL_StreamClose(Stream);
