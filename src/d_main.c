@@ -207,9 +207,23 @@ void D_Display(void)
 	bool_t viewactivestate = false;
 	V_Image_t* PausePic;
 	int32_t Junk;
+	UI_BufferSpec_t Spec;
 	
 	if (dedicated)
 		return;
+		
+	/* Retrograde Stub to new UI Code */
+	// Screen is locked by soft buffer, if needed
+	// Note that, the drawing code explicitely virtual always calls this
+	// function which results in multiple relocks.
+	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
+	Spec.pd = Spec.p * Spec.d;
+	
+	// Draw into spec
+	UI_DrawLoopIntoSpec(&Spec);
+	
+	// Unlock buffer
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 	
 	redrawsbar = false;
 	
@@ -267,8 +281,6 @@ void D_Display(void)
 			SN_DrawLobby();
 			break;
 			
-		case GS_DEMOSCREEN:
-			D_PageDrawer(pagename);
 		case GS_NULL:
 			break;
 	}
@@ -716,123 +728,7 @@ void D_DoomLoop(void)
 	}
 }
 
-// =========================================================================
-//   D_AdvanceDemo
-// =========================================================================
-
-//
-// D_PageTicker
-// Handles timing for warped projection
-//
-void D_PageTicker(void)
-{	
-	if (--pagetic < 0)
-		D_AdvanceDemo();
-}
-
-/* D_PageDrawer() -- Draws the title screen page */
-void D_PageDrawer(const char* const a_LumpName)
-{
-	V_Image_t* Image;
-	
-	/* Check */
-	if (!a_LumpName)
-		return;
-	
-	/* Find image */
-	Image = V_ImageFindA(a_LumpName, VCP_NONE);
-	
-	// Not found?
-	if (!Image)
-		return;
-	
-	/* Draw Image to screen */
-	V_ImageUsage(Image, true);
-	V_ImageDraw(0, Image, 0, 0, NULL);
-	V_ImageUsage(Image, false);
-}
-
-//
-// D_AdvanceDemo
-// Called after each demo or intro demosequence finishes
-//
-void D_AdvanceDemo(void)
-{
-	advancedemo = true;
-}
-
 bool_t g_TitleScreenDemo = false;				// Titlescreen demo
-
-//
-// This cycles through the demo sequences.
-// FIXME - version dependend demo numbers?
-//
-void D_DoAdvanceDemo(void)
-{
-	players[g_Splits[0].Console].playerstate = PST_LIVE;	// not reborn
-	advancedemo = false;
-	gameaction = ga_nothing;
-	
-	if (gamemode == retail)
-		demosequence = (demosequence + 1) % 7;
-	else
-		demosequence = (demosequence + 1) % 6;
-	
-	switch (demosequence)
-	{
-		case 0:
-			switch (gamemode)
-			{
-				case commercial:
-					pagename = "TITLEPIC";
-					pagetic = TICRATE * 11;
-					S_ChangeMusic(mus_dm2ttl, false);
-					break;
-				default:
-					pagename = "TITLEPIC";
-					pagetic = 170;
-					S_ChangeMusic(mus_intro, false);
-					break;
-			}
-			gamestate = GS_DEMOSCREEN;
-			break;
-		case 1:
-			pagetic = 9999999;
-			G_DoPlayDemo("demo1", true);
-			break;
-		case 2:
-			pagetic = 200;
-			gamestate = GS_DEMOSCREEN;
-			pagename = (g_CoreGame == CG_HERETIC ? "RMD_CR_H" : "RMD_CR_D");
-			break;
-		case 3:
-			pagetic = 9999999;
-			G_DoPlayDemo("demo2", true);
-			break;
-		case 4:
-			gamestate = GS_DEMOSCREEN;
-			if (gamemode == commercial)
-			{
-				pagetic = TICRATE * 11;
-				pagename = "CREDIT";
-				S_ChangeMusic(mus_dm2ttl, false);
-			}
-			else
-			{
-				pagetic = 200;
-				pagename = "CREDIT";
-			}
-			break;
-		case 5:
-			pagetic = 9999999;
-			G_DoPlayDemo("demo3", true);
-			break;
-		case 6:			// THE DEFINITIVE DOOM Special Edition demo
-			pagetic = 9999999;
-			G_DoPlayDemo("demo4", true);
-			break;
-	}
-}
 
 // =========================================================================
 //   D_DoomMain
@@ -851,7 +747,7 @@ void D_StartTitle(void)
 	demosequence = -1;
 	paused = false;
 	gamestate = GS_DEMOSCREEN;
-	D_AdvanceDemo();
+	D_UITitleBump();
 }
 
 //

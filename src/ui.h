@@ -186,6 +186,7 @@ void UI_SetBitDepth(const uint32_t a_Depth);
 
 /*** UI_DRAW.C ***/
 
+void UI_DrawLoopIntoSpec(UI_BufferSpec_t* const a_Spec);
 void UI_DrawLoop(void);
 
 /*** UI_D*.C ***/

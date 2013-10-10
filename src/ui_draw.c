@@ -54,6 +54,26 @@ void D_UITitle(UI_BufferSpec_t* const a_Spec);
 *** FUNCTIONS ***
 ****************/
 
+/* UI_DrawLoopIntoSpec() -- Single Instance Drawing Specification */
+void UI_DrawLoopIntoSpec(UI_BufferSpec_t* const a_Spec)
+{
+	/* Drawing is based on the current game state */
+	switch (gamestate)
+	{
+			// Title Screen
+		case GS_DEMOSCREEN:
+			D_UITitle(a_Spec);
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Draw any user interface elements on top */
+	
+}
+
 /* UI_DrawLoop() -- UI Drawing Loop */
 // This replaces D_Display()!
 void UI_DrawLoop(void)
@@ -65,20 +85,8 @@ void UI_DrawLoop(void)
 	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
 	Spec.pd = Spec.p * Spec.d;
 	
-	/* Drawing is based on the current game state */
-	switch (gamestate)
-	{
-			// Title Screen
-		case GS_DEMOSCREEN:
-			D_UITitle(&Spec);
-			break;
-		
-			// Unknown
-		default:
-			break;
-	}
-	
-	/* Draw any user interface elements on top */
+	/* Draw single loop */
+	UI_DrawLoopIntoSpec(&Spec);
 	
 	/* Update the screen */
 	I_FinishUpdate();
