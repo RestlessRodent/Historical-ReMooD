@@ -212,19 +212,6 @@ void D_Display(void)
 	if (dedicated)
 		return;
 		
-	/* Retrograde Stub to new UI Code */
-	// Screen is locked by soft buffer, if needed
-	// Note that, the drawing code explicitely virtual always calls this
-	// function which results in multiple relocks.
-	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
-	Spec.pd = Spec.p * Spec.d;
-	
-	// Draw into spec
-	UI_DrawLoopIntoSpec(&Spec);
-	
-	// Unlock buffer
-	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
-	
 	redrawsbar = false;
 	
 	//added:21-01-98: check for change of screen size (video mode)
@@ -253,6 +240,19 @@ void D_Display(void)
 	}
 	else
 		wipe = false;
+		
+	/* Retrograde Stub to new UI Code */
+	// Screen is locked by soft buffer, if needed
+	// Note that, the drawing code explicitely virtual always calls this
+	// function which results in multiple relocks.
+	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
+	Spec.pd = Spec.p * Spec.d;
+	
+	// Draw into spec
+	UI_DrawLoopIntoSpec(&Spec);
+	
+	// Unlock buffer
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 		
 	// draw buffered stuff to screen
 	// BP: Used only by linux GGI version
