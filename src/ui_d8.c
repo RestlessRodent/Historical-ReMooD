@@ -46,7 +46,8 @@
 
 typedef uint8_t ui_pixel_t;
 
-#define UIDG_DRAWIMG UI_d8_DrawImg
+#define UIDG_DEPTH 1
+#define UIDG_CODE d8
 
 #include "ui_dgen.h"
 

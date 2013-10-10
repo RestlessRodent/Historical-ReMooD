@@ -49,6 +49,10 @@ void UI_dgl_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const 
 {
 }
 
+void UI_dgl_DrawImgScale(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const fixed_t a_sW, const fixed_t a_sH)
+{
+}
+
 /* NOT IN DEDICATED SERVER */
 #endif
 /***************************/

@@ -46,7 +46,8 @@
 
 typedef uint32_t ui_pixel_t;
 
-#define UIDG_DRAWIMG UI_d32_DrawImg
+#define UIDG_DEPTH 4
+#define UIDG_CODE d32
 
 #include "ui_dgen.h"
 

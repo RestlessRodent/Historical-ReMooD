@@ -193,6 +193,8 @@ void UI_DrawLoop(void);
 extern void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y);
 extern void (*UI_DrawImgScale)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const fixed_t a_sW, const fixed_t a_sH);
 
+#define UI_DrawImgFull(s,i) UI_DrawImgScale((s), (i), 0, 0, vid.fxdupx, vid.fxdupy)
+
 /*** UI_IMG.C ***/
 
 void UI_ImgDelete(UI_Img_t* const a_Img);

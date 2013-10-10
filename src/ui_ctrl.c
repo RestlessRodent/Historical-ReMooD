@@ -47,10 +47,12 @@
 ****************/
 
 #define UIPROT(d) \
-void UI_##d##_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y);
+void UI_##d##_DrawImg(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y);\
+void UI_##d##_DrawImgScale(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const fixed_t a_sW, const fixed_t a_sH);
 
 #define UISET(d) \
-UI_DrawImg = UI_##d##_DrawImg;
+UI_DrawImg = UI_##d##_DrawImg;\
+UI_DrawImgScale = UI_##d##_DrawImgScale
 
 UIPROT(d8)
 UIPROT(d16)
@@ -62,6 +64,7 @@ UIPROT(dgl)
 **************/
 
 void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y) = NULL;
+void (*UI_DrawImgScale)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const fixed_t a_sW, const fixed_t a_sH) = NULL;
 
 /*****************
 *** PROTOTYPES ***
