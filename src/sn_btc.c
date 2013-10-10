@@ -1206,7 +1206,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 				{
 					SSplit->Display = (SSplit->Display + 1) % MAXPLAYERS;
 					j++;
-				} while (j < MAXPLAYERS && (!playeringame[SSplit->Display] || (!ST_SameTeam(&players[SSplit->Console], &players[SSplit->Display]))));
+				} while (j < MAXPLAYERS && (!playeringame[SSplit->Display] || (!P_SameTeam(&players[SSplit->Console], &players[SSplit->Display]))));
 				
 				// Change POV
 				SpyPOV = &players[SSplit->Display];

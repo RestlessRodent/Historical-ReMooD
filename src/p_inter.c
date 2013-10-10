@@ -1478,7 +1478,7 @@ void P_CheckFragLimit(player_t* p)
 		
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (P_MobjOnSameTeam(p->mo, players[i].mo))
-				fragteam += ST_PlayerFrags(i);
+				fragteam += P_PlayerFrags(i);
 				
 		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= fragteam)
 			G_ExitLevel(false, NULL, DS_GetString(DSTR_PINTERC_FRAGLIMITREACHED));

@@ -2765,7 +2765,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 }
 
 /* G_DoPlayDemo() -- Plays demo */
-void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
+bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 {
 	char Base[12];
 	const WL_WADEntry_t* Entry;
@@ -2777,7 +2777,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	
 	/* Check */
 	if (!defdemoname)
-		return;
+		return false;
 	
 	/* At sign in name? */
 	// Get Base name
@@ -2811,7 +2811,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 		// If stuck in NULL state, go to title screen
 		if (gamestate == GS_NULL)
 			gamestate = GS_DEMOSCREEN;
-		return;
+		return false;
 	}
 	
 	/* Open stream */
@@ -2819,7 +2819,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	
 	// Failed?
 	if (!Stream)
-		return;
+		return false;
 	
 	/* Stop currently playing demo */
 	G_StopDemoPlay();
@@ -2838,7 +2838,7 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	
 	// Failed?
 	if (!Demo)
-		return;
+		return false;
 	
 	/* Set as playing */
 	demoplayback = true;
@@ -2850,6 +2850,9 @@ void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	/* Encode savegame for ReMooD Demos */
 	if (demorecording)
 		G_EncodeSaveGame();
+	
+	/* Now playing */
+	return true;
 }
 
 /* G_DeferedPlayDemo() -- Defers playing back demo */

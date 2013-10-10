@@ -120,7 +120,7 @@ CONL_StaticVar_t l_SCRHeight =
 CONL_StaticVar_t l_SCRDepth =
 {
 	CLVT_INTEGER, c_CVPVColorDepth, CLVF_SAVE,
-	"scr_depth", DSTR_CVHINT_SCRDEPTH, CLVVT_STRING, "4",
+	"scr_depth", DSTR_CVHINT_SCRDEPTH, CLVVT_STRING, "1",
 	NULL
 };
 

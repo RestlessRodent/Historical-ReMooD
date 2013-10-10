@@ -149,7 +149,7 @@ void G_StopDemo(void);
 void G_StopDemoRecord(void);
 void G_StopDemoPlay(void);
 void G_BeginRecording(const char* const a_Output, const char* const a_FactoryName);
-void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen);
+bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen);
 void G_TimeDemo(char* name);
 void G_DeferedPlayDemo(char* demo);
 bool_t G_CheckDemoStatus(void);
