@@ -34,8 +34,6 @@
 //      Does the face/direction indicator animatin.
 //      Does palette indicators as well (red pain/berserk, bright pickup)
 
-#if 0
-
 #include "st_stuff.h"
 #include "screen.h"
 #include "d_player.h"
@@ -1520,6 +1518,4 @@ bool_t ST_CheckDrawGameView(const int32_t a_Screen)
 	/* Otherwise, draw it */
 	return true;
 }
-
-#endif
 

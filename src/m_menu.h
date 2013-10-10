@@ -31,8 +31,6 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu widget stuff, episode selection and such.
 
-#if 0
-
 #ifndef __M_MENU__
 #define __M_MENU__
 
@@ -77,8 +75,6 @@ bool_t M_SMPlayerMenuVisible(const int32_t a_ScreenID);
 void M_SMDrawer(void);
 void M_SMTicker(void);
 void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID);
-
-#endif
 
 #endif
 

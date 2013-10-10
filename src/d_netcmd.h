@@ -74,9 +74,57 @@ void Command_ExitGame_f(void);
 	#define __REMOOD_SNPORT_DEFINED
 #endif
 
+/* D_SplitInfo_t -- Split Screen Info */
+typedef struct D_SplitInfo_s
+{
+	bool_t Active;								// Is Active
+	bool_t Waiting;								// Waiting for fill
+	int32_t Console;							// The console player
+	int32_t Display;							// Display Player
+	uint32_t ProcessID;							// Local Processing ID
+	D_Prof_t* Profile;							// Player Profile
+	
+	SN_Port_t* Port;							// Control Port
+	bool_t DoNotSteal;							// Do not steal port
+	tic_t PortTimeOut;							// Timeout for port
+	
+	bool_t JoyBound;							// Joystick Bound
+	uint32_t JoyID;								// Joystick ID
+	
+	uint8_t RequestSent;						// Sent join request
+	tic_t GiveUpAt;								// Give up joining at this time
+	bool_t OverlayMap;							// Overlay automap
+	bool_t MapKeyStillDown;						// Automap key still down
+	
+	int8_t ChatMode;							// All? Spec? Team?
+	uint32_t ChatTargetID;						// Player to talk to
+	tic_t ChatTimeOut;							// Chat timeout
+	
+	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
+	int32_t Scores;								// Scoreboard showing
+	bool_t Turned180;							// Did 180 degre turn
+	
+	// Automap Stuff
+	bool_t AutomapActive;						// Activated Automap
+	fixed_t MapZoom;							// Zoom in the map
+	bool_t MapFreeMode;							// Free movement mode
+	fixed_t MapPos[2];							// Map position
+	
+	// Profile Select
+	bool_t SelProfile;							// Selecting profile
+	D_Prof_t* AtProf;							// At this profile
+} D_SplitInfo_t;
+
 /*** GLOBALS ***/
 
+extern int g_SplitScreen;						// Players in splits
+extern D_SplitInfo_t g_Splits[MAXSPLITS];	// Split Information
+
 extern bool_t g_NetDev;
+
+extern angle_t localangle[MAXSPLITS];
+extern int localaiming[MAXSPLITS];	// should be a angle_t but signed
 
 /*** FUNCTIONS ***/
 

@@ -353,15 +353,13 @@ void R_InitViewBuffer(int width, int height, int yextra)
 	int j;
 	int bytesperpixel = vid.bpp;
 	
-#if 0
 	if (bytesperpixel < 1 || bytesperpixel > 4)
 		I_Error("R_InitViewBuffer : wrong bytesperpixel value %d\n", bytesperpixel);
-#endif
 		
 	// Handle resize,
 	//  e.g. smaller view windows
 	//  with border and/or status bar.
-	if ((0/*g_SplitScreen*/ <= 0))
+	if ((g_SplitScreen <= 0))
 		viewwindowx = (vid.width - width) >> 1;
 	else
 		viewwindowx = 0;
@@ -376,7 +374,7 @@ void R_InitViewBuffer(int width, int height, int yextra)
 		viewwindowy = 0;
 	else
 	{
-		if ((0/*g_SplitScreen*/ <= 0))
+		if ((g_SplitScreen <= 0))
 			viewwindowy = (vid.height - yextra - height) >> 1;
 		else
 			viewwindowy = 0;
@@ -428,7 +426,7 @@ void R_FillBackScreen(void)
 	patch_t* patch;
 	int step, boff;
 	
-	if (0/*g_SplitScreen*/)
+	if (g_SplitScreen)
 		return;
 		
 	//added:08-01-98:draw pattern around the status bar too (when hires),
@@ -502,8 +500,6 @@ void R_VideoErase(unsigned ofs, int count)
 	//memcpy(screens[0] + ofs, screens[1] + ofs, count);
 }
 
-extern int deleteme_stbarheight;
-
 //
 // R_DrawViewBorder
 // Draws the border around the view
@@ -540,7 +536,7 @@ void R_DrawViewBorder(void)
 	if (scaledviewwidth == vid.width)
 		return;
 		
-	top = (vid.height - deleteme_stbarheight - viewheight) >> 1;
+	top = (vid.height - stbarheight - viewheight) >> 1;
 	side = (vid.width - scaledviewwidth) >> 1;
 	
 	// copy top and one line of left side

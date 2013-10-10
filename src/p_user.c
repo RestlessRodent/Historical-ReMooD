@@ -800,11 +800,9 @@ void P_PlayerThink(player_t* player)
 	
 	/* Find screen for this player */
 	// This is the display player that is
-#if 0
 	for (Screen = 0; Screen < MAXSPLITS; Screen++)
 		if (P_SpecGetPOV(Screen) == player)
 			break;
-#endif
 	
 	/* Handle keycard flashing */
 	for (i = 0; i < 2; i++)
@@ -889,14 +887,18 @@ void P_PlayerThink(player_t* player)
 	{
 		//Fab:25-04-98: show the dm rankings while dead, only in deathmatch
 		//DarkWolf95:July 03, 2003:fixed bug where rankings only show on player1's death
+		if (player == &players[g_Splits[0].Display] || player == &players[g_Splits[1].Display])
+			playerdeadview = true;
+			
 		P_DeathThink(player);
 		
 		//added:26-02-98:camera may still move when guy is dead
 		if (player->camera.chase)
 			P_MoveChaseCamera(player);
-		
 		return;
 	}
+	else if (player == &players[g_Splits[0].Display])
+		playerdeadview = false;
 		
 	// check water content, set stuff in mobj
 	P_MobjCheckWater(player->mo);
@@ -1330,6 +1332,10 @@ void P_UpdateViewAngles(mobj_t* const a_Mo)
 	if (!Port->Host || !Port->Host->Local)
 		return;
 	
+	// Not on screen
+	if (Port->Screen < 0 || Port->Screen >= MAXSPLITS)
+		return;
+	
 	/* Change viewing angle */
 	CL_DoSetYawP(a_Mo->player, a_Mo->angle);
 }
@@ -1411,8 +1417,6 @@ int P_PlayerFrags(int playernum)
 }
 
 /*** SPECTATOR PLAYER ***/
-
-#if 0
 
 static player_t l_SpecPlayers[MAXSPLITS];	// Fake Player
 static mobj_t l_SpecMobjs[MAXSPLITS];		// Fake Mobj
@@ -1753,6 +1757,4 @@ struct player_s* P_SpecGetPOV(const int32_t a_Screen)
 void P_VerifyCoopSpy(void)
 {
 }
-
-#endif
 

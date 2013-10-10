@@ -1896,6 +1896,12 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		p->KeyCards[0] = 0;
 		p->KeyCards[0] = p->KeyCards[1] = ~p->KeyCards[0];
 	}
+		
+	if (playernum == g_Splits[0].Console)
+	{
+		// wake up the status bar
+		ST_Start();
+	}
 	
 	if (p->camera.chase)
 		P_ResetCamera(p);

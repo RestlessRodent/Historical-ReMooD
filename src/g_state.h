@@ -184,7 +184,6 @@ typedef struct D_IWADInfoEx_s
 	CoreGame_t CoreGame;						// Core Game
 	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
 	const char* MapInfoLump;					// Map Info Lump
-	const char* TitleScreenLump;				// Title screen sequence lump
 	uint32_t Flags;								// Flags for game
 	const char* MapNameFormat;					// Format of map names
 	

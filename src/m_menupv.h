@@ -29,8 +29,6 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Private Stuff
 
-#if 0
-
 #ifndef __M_MENUPV_H__
 #define __M_MENUPV_H__
 
@@ -189,6 +187,4 @@ bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget);
 bool_t M_ProfMan_AcctBCB(struct CONCTI_Inputter_s*, const char* const);
 
 #endif /* __M_MENUPV_H__ */
-
-#endif
 

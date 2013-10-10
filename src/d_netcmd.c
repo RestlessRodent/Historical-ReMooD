@@ -142,10 +142,46 @@ const int32_t c_TCDataSize[NUMDTCT] =
 /*** GLOBALS ***/
 
 bool_t g_NetDev = false;						// Network Debug
+int g_SplitScreen = -1;							// Split screen players (-1 based)
+D_SplitInfo_t g_Splits[MAXSPLITS];			// Split Information
 
 /*** LOCALS ***/
 
 /*** FUNCTIONS ***/
+
+/* D_ScrSplitHasPlayer() -- Split-screen has player */
+bool_t D_ScrSplitHasPlayer(const int8_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITS)
+		return false;
+	
+	/* Active (Non-Demo Only) */
+	if (!demoplayback && g_Splits[a_Player].Active)
+		return true;
+	
+	/* Waiting for player */
+	if (g_Splits[a_Player].Waiting)
+		return true;
+	
+	/* No player */
+	return false;
+}
+
+/* D_ScrSplitVisible() -- Screen can be seen */
+bool_t D_ScrSplitVisible(const int8_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITS)
+		return false;
+	
+	/* Visible if has a player */
+	if (a_Player == 0 || D_ScrSplitHasPlayer(a_Player))
+		return true;
+	
+	/* Not visible */
+	return false;
+}
 
 /* D_XNetMergeTics() -- Merges all tic commands */
 void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc)
@@ -230,6 +266,116 @@ void D_XNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList,
 	a_DestCmd->Std.BaseAngleTurn = AT;
 	a_DestCmd->Std.BaseAiming = AM;
 #endif
+}
+
+/* D_NCSFindSplitByProcess() -- Finds split screen by process */
+int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
+{
+	int i;
+	
+	/* Check */
+	if (!a_ID)
+		return -1;
+	
+	/* Loop */
+	for (i = 0; i < MAXSPLITS; i++)
+		//if (D_ScrSplitHasPlayer(i))
+			if (g_Splits[i].ProcessID == a_ID)
+				return i;
+	
+	/* Not found */
+	return -1;
+}
+
+/* D_NCRemoveSplit() -- Removes Split */
+void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
+{
+	int i;
+	
+	/* Check */
+	if (a_Split < 0 || a_Split >= MAXSPLITS)
+		return;	
+	
+	/* Not in demo */
+	if (!a_Demo)
+	{
+		// Tell the server that the player is no longer going to be around
+		//if (g_Splits[a_Split].XPlayer)
+		//	D_XNetPartLocal(g_Splits[a_Split].XPlayer);
+		
+		// Remove chat
+		//D_XNetClearChat(a_Split);
+		
+		// Move splits down, to replace this split
+		for (i = a_Split; i < MAXSPLITS; i++)
+			// Last spot?
+			if (i == MAXSPLITS - 1)
+			{
+				memset(&g_Splits[i], 0, sizeof(g_Splits[i]));
+				g_Splits[i].Display = -1;
+			}
+			
+			// Move the stuff from the next spot over this one
+			else
+			{
+				memmove(&g_Splits[i], &g_Splits[i + 1], sizeof(g_Splits[i]));
+				
+				if (g_Splits[i].Port)
+					g_Splits[i].Port->Screen = i;
+			}
+	}
+	
+	/* In demo */
+	else
+	{
+		// Remove current info
+#if 0
+		g_Splits[a_Split].ProcessID = 0;
+		g_Splits[a_Split].Profile = NULL;
+		g_Splits[a_Split].XPlayer = NULL;
+		g_Splits[a_Split].JoyBound = false;
+		g_Splits[a_Split].JoyID = 0;
+		g_Splits[a_Split].RequestSent = false;
+		g_Splits[a_Split].GiveUpAt = 0;
+#endif
+		
+		// Move splits down, to replace this split
+		for (i = a_Split; i < MAXSPLITS; i++)
+			// Last spot?
+			if (i == MAXSPLITS - 1)
+			{
+				// Make inactive
+				g_Splits[i].Active = false;
+			}
+			
+			// Move the stuff from the next spot over this one
+			else
+			{
+				// Grab non breaking stuff from demos over
+				g_Splits[i].Active = g_Splits[i + 1].Active;
+				g_Splits[i].Console = g_Splits[i + 1].Console;
+				g_Splits[i].Display = g_Splits[i + 1].Display;
+				g_Splits[i].Port = g_Splits[i + 1].Port;
+			}
+	}
+	
+	/* Correctsplit screen */
+	// Subtract the removed player
+	if (g_SplitScreen >= 0)
+		g_SplitScreen--;
+	
+	// Correct visual display
+	R_ExecuteSetViewSize();
+}
+
+/* D_NCResetSplits() -- Resets all splits */
+void D_NCResetSplits(const bool_t a_Demo)
+{
+	int i;
+	
+	/* Wipe all splits */
+	for (i = MAXSPLITS; i > 0; i--)
+		D_NCRemoveSplit(i - 1, a_Demo);
 }
 
 /* D_NCSGetPlayerName() -- Get player name */

@@ -514,9 +514,6 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 	// the same pickup messages rather than the first one.
 	for (s = 0; s < MAXSPLITS; s++)
 	{
-#if 1
-		continue;
-#else
 		// Not POV player?
 		if (P_SpecGetPOV(s) != a_Picker->player)
 			continue;
@@ -524,7 +521,6 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		// Invisible split?
 		if (s > g_SplitScreen)
 			continue;
-#endif
 	
 		// Get Profile
 		Prof = a_Picker->player->ProfileEx;
@@ -932,7 +928,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		
 		// Message?
 			// 3/4 Player (Hacky)
-#if 0
 		if (g_SplitScreen > 1)
 		{
 			// Get characters of short name (of the object)
@@ -960,7 +955,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		}
 			// 1/2 Player
 		else
-#endif
 		{
 			if (Current->PickupMsgRef)
 				P_PlayerMessage(PPM_PICKUP, toucher, special, Current->PickupMsgRef);
@@ -1235,18 +1229,15 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			if (!a_IsInflictor)
 			{
 				// Return nice name of object
-#if 0
 				if (g_SplitScreen > 1)
 					return a_Mobj->info->RSNiceName;
 				else
-#endif
 					return a_Mobj->info->RNiceName;
 			}
 			
 			// Return attack type if the inflictor is the source
 			else if (a_IsInflictor && a_Mobj == a_Source)
 			{
-#if 0
 				// 3/4 Player Split
 				if (g_SplitScreen > 1)
 					switch (a_Mobj->RXAttackAttackType)
@@ -1270,7 +1261,6 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 				
 				// 1/2 Player Split
 				else
-#endif
 					switch (a_Mobj->RXAttackAttackType)
 					{
 						case PRXAT_MELEE:
@@ -1295,11 +1285,9 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			else if (a_IsInflictor && a_Mobj != a_Source)
 			{
 				// Return nice name of object
-#if 0
 				if (g_SplitScreen > 1)
 					return a_Mobj->info->RSNiceName;
 				else
-#endif
 					return a_Mobj->info->RNiceName;
 			}
 		}
@@ -1409,7 +1397,6 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	/* Remap source and target? */
 	// This is for 3/4 split to make some room available
-#if 0
 	if (g_SplitScreen > 1)
 		for (i = 0; i < 2; i++)
 		{
@@ -1463,11 +1450,9 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			// Set use new buffer
 			*chNoun = NameBuf;
 		}
-#endif
 	
 	/* Print message */
 	// 3/4 Split
-#if 0
 	if (g_SplitScreen > 1)
 		if (target == source)
 			CONL_PrintF("\x7{%s%c%s{0< {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
@@ -1476,7 +1461,6 @@ void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	// 1/2 Split
 	else
-#endif
 		if (target == source)
 			CONL_PrintF("\x7{%s%c%s{0 <- {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
 		else
@@ -1494,7 +1478,7 @@ void P_CheckFragLimit(player_t* p)
 		
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (P_MobjOnSameTeam(p->mo, players[i].mo))
-				fragteam += P_PlayerFrags(i);
+				fragteam += ST_PlayerFrags(i);
 				
 		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= fragteam)
 			G_ExitLevel(false, NULL, DS_GetString(DSTR_PINTERC_FRAGLIMITREACHED));

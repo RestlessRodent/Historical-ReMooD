@@ -54,6 +54,41 @@
 #include "vhw_wrap.h"
 #include "i_video.h"
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -972,17 +1007,15 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	Buf[MAXCONLPMQBUFSIZE - 1] = 0;
 	
 	/* Print text to console */
-#if !defined(__REMOOD_DEDICATED)
-	UI_ConPassLine(Buf);
-#endif
+	// Early Boot
+	if (g_EarlyBootConsole)
+		CONL_EarlyBootTic(Buf, true);
 	
-#if !defined(__REMOOD_DEDICATED)
+#if !defined(_DEBUG)
 	if (devparm || !con_started || g_DedicatedServer)
 	{
-#endif
 		I_OutputText(Buf);
 		I_OutputText("\n");
-#if !defined(__REMOOD_DEDICATED)
 	}
 #endif
 
@@ -1385,6 +1418,14 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 {
 	va_list ArgPtr;
 	size_t RetVal;
+	static bool_t AlreadyDrawn = false;
+	bool_t Drew;
+	
+	uint32_t ThisTime;
+	static uint32_t LastTime;
+	
+	/* Get the time */
+	ThisTime = I_GetTimeMS();
 	
 	/* Check */
 	if (!a_Format)
@@ -1394,6 +1435,26 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 	va_start(ArgPtr, a_Format);
 	RetVal = CONL_PrintV(false, a_Format, ArgPtr);
 	va_end(ArgPtr);
+	
+	/* Console just starting up?  */
+	if (con_startup || g_EarlyBootConsole)
+	{
+		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
+		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
+		{
+			Drew = CONL_DrawConsole(true);
+			
+			if ((!g_EarlyBootConsole && Drew) || g_EarlyBootConsole)
+				if (!LastTime || (ThisTime > LastTime + 250))
+				{
+					I_FinishUpdate();
+					LastTime = ThisTime;
+				}
+				
+			if (!g_EarlyBootConsole)
+				AlreadyDrawn = true;
+		}
+	}
 	
 	/* Return value */
 	return RetVal;
@@ -1415,6 +1476,12 @@ size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_A
 	vsnprintf(Buf, BUFSIZE, a_Format, a_ArgPtr);
 	RetVal = CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], Buf);
 	
+	/* Debug print here */
+#if defined(_DEBUG)
+	if (devparm || !con_started || g_DedicatedServer)
+		I_OutputText(Buf);
+#endif
+	
 	/* Return */
 	return RetVal;
 #undef BUFSIZE
@@ -1434,6 +1501,12 @@ size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID,
 	D_USPrint(Buf, BUFSIZE, a_StrID, a_Format, a_ArgPtr);
 	RetVal = CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], Buf);
 	__REMOOD_VA_COPYEND(ArgPtrCopy);
+	
+	/* Debug print here */
+#if defined(_DEBUG)
+	if (devparm || !con_started || g_DedicatedServer)
+		I_OutputText(Buf);
+#endif
 
 	return RetVal;
 }
@@ -1711,7 +1784,6 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	}
 	
 	/* Handle Virtual OSK Events? */
-#if 0
 	if (CONL_IsActive())
 	{
 		CONL_OSKSetVisible(0, true);
@@ -1720,7 +1792,6 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	}
 	else
 		CONL_OSKSetVisible(0, false);
-#endif
 		
 	/* Only handle keyboard events and keyed synthosk for P1 */
 	// keyboard
@@ -1925,7 +1996,6 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 #undef BUFSIZE
 }
 
-#if 0
 /* l_OSKLayout -- On Screen Keyboard */
 // --- STANDARD BOARD ---        -- EXTRA --
 // ` 1 2 3 4 5 6 7 8 9 0 - =  BP IN HM PU 14/3 keys 
@@ -2340,7 +2410,6 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	/* Always eat as handled */
 	return true;
 }
-#endif
 
 /* CONL_DrawConsole() -- Draws the console */
 bool_t CONL_DrawConsole(const bool_t a_BigConsole)
@@ -2679,20 +2748,20 @@ bool_t CONL_DrawConsole(const bool_t a_BigConsole)
 		}
 		
 		// Draw OSK
-		//if (!con_startup)
-		//	CONLS_DrawOSK(80, 120, 320, 100, 0);
+		if (!con_startup)
+			CONLS_DrawOSK(80, 120, 320, 100, 0);
 	}
 	
 	/* Not active, draw per player messages */
 	else if (!a_BigConsole)
 	{
 		// On intermission, only draw player 1's stuff
-		if (gamestate == GS_INTERMISSION || g_CLBinds <= 1)
+		if (gamestate == GS_INTERMISSION || g_SplitScreen < 0)
 			n = 1;
 		
 		// Otherwise for each player
 		else
-			n = g_CLBinds;
+			n = g_SplitScreen + 1;
 		
 		// Limit, just in case
 		if (n > MAXSPLITS)

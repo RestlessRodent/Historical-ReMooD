@@ -29,8 +29,6 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Code
 
-#if 0
-
 /***************
 *** INCLUDES ***
 ***************/
@@ -887,5 +885,4 @@ bool_t M_ProfMan_AcctBCB(struct CONCTI_Inputter_s* a_Inputter, const char* const
 
 /* ----------------------- */
 
-#endif
 

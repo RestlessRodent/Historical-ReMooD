@@ -257,7 +257,7 @@ void CL_SockDrawer(void)
 	bool_t Flash, Ready;
 	
 	/* Only draw if a menu or console is active */
-	if (UI_Visible())
+	if (!(CONL_IsActive() || M_SMMenuVisible() || gamestate == GS_DEMOSCREEN || g_TitleScreenDemo || gamestate == GS_INTERMISSION || gamestate == GS_FINALE))
 		return;
 	
 	/* Height of font */

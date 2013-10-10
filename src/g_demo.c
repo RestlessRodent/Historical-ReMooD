@@ -341,7 +341,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	//D_NCResetSplits(true);
+	D_NCResetSplits(true);
 	
 	// Set them all up (split-screen)
 	for (j = 0, i = 0; i < 4; i++)
@@ -372,7 +372,6 @@ bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 				strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
 			
 			// Put in split screen
-#if 0
 			if (j < 4)
 			{
 				g_SplitScreen++;
@@ -380,7 +379,6 @@ bool_t G_DEMO_Vanilla_StartPlaying(G_CDemo_t* a_Current)
 				g_Splits[j].Console = g_Splits[j].Display = i;
 				j++;
 			}
-#endif
 		}
 	
 	// Recalc Split-screen
@@ -943,7 +941,7 @@ bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	//D_NCResetSplits(true);
+	D_NCResetSplits(true);
 	
 	// Set them all up (split-screen)
 	for (ss = 0, i = 0; i < MAXPLAYERS; i++)
@@ -1003,7 +1001,6 @@ bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 					strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
 			}
 			
-#if 0
 			// Put in split screen
 			// And before 1.30, only the display player (1.30 added ingame joining)
 				// But just make 1.30 use the first 4 players
@@ -1015,7 +1012,6 @@ bool_t G_DEMO_Legacy_StartPlaying(G_CDemo_t* a_Current)
 					g_Splits[ss].Display = g_Splits[ss].Console = i;
 					ss++;
 				}
-#endif
 		}
 	
 	/* Modify Settings required for level loading (as needed) */
@@ -1585,8 +1581,6 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(G_CDemo_t* a_Current, const G_Legacy
 				
 				// Splitscreen the player?
 				if (u8a == Data->DisplayPNode)
-					;
-#if 0
 					if (g_SplitScreen < 3)	// 0 = 1p, 1 = 2p, 2 = 3p, 3 = 4p
 					{
 						g_SplitScreen++;
@@ -1597,7 +1591,6 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(G_CDemo_t* a_Current, const G_Legacy
 						// Recalc Split-screen
 						R_ExecuteSetViewSize();
 					}
-#endif
 				
 				// Players who join a game (during a session) and record a demo
 				// do not have valid playbackable demos. Only the host can record
@@ -2703,7 +2696,7 @@ void G_StopDemoPlay(void)
 	// Advance
 	else if (Advance)
 	{
-		D_UITitleBump();
+		D_AdvanceDemo();
 		gamestate = GS_DEMOSCREEN;
 	}
 	
@@ -2772,7 +2765,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 }
 
 /* G_DoPlayDemo() -- Plays demo */
-bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
+void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 {
 	char Base[12];
 	const WL_WADEntry_t* Entry;
@@ -2784,7 +2777,7 @@ bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	
 	/* Check */
 	if (!defdemoname)
-		return false;
+		return;
 	
 	/* At sign in name? */
 	// Get Base name
@@ -2818,7 +2811,7 @@ bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 		// If stuck in NULL state, go to title screen
 		if (gamestate == GS_NULL)
 			gamestate = GS_DEMOSCREEN;
-		return false;
+		return;
 	}
 	
 	/* Open stream */
@@ -2826,7 +2819,7 @@ bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	
 	// Failed?
 	if (!Stream)
-		return false;
+		return;
 	
 	/* Stop currently playing demo */
 	G_StopDemoPlay();
@@ -2837,15 +2830,15 @@ bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 		SN_Disconnect(true, "Playing demo");
 	
 	/* Reset Spectating watchers */
-	//for (i = 0; i < MAXSPLITS; i++)
-	//	g_Splits[i].Console = g_Splits[i].Display = -1;
+	for (i = 0; i < MAXSPLITS; i++)
+		g_Splits[i].Console = g_Splits[i].Display = -1;
 	
 	/* Play demo in any factory */
 	Demo = G_DemoPlay(Stream, Factory);
 	
 	// Failed?
 	if (!Demo)
-		return false;
+		return;
 	
 	/* Set as playing */
 	demoplayback = true;
@@ -2857,9 +2850,6 @@ bool_t G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 	/* Encode savegame for ReMooD Demos */
 	if (demorecording)
 		G_EncodeSaveGame();
-	
-	/* Demo is playing */
-	return true;
 }
 
 /* G_DeferedPlayDemo() -- Defers playing back demo */

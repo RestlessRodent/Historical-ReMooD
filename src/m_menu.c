@@ -29,8 +29,6 @@
 // ----------------------------------------------------------------------------
 // DESCRIPTION: Menu Code
 
-#if 0
-
 #include "m_menu.h"
 #include "m_menupv.h"
 #include "dstrings.h"
@@ -39,6 +37,48 @@
 #include "s_sound.h"
 #include "z_zone.h"
 #include "vhw_wrap.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*******************
 *** SIMPLE MENUS ***
@@ -1253,6 +1293,4 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 #undef SUBMENUFLAGS
 #undef SORTFLAGS
 }
-
-#endif
 

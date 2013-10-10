@@ -431,7 +431,6 @@ typedef union FColorRGBA RGBA_t;
 #define MAXSKINS                MAXPLAYERS
 #define MAXPLAYERNAME           32
 #define MAXSKINCOLORS           16
-
 #define TICRATE				UINT64_C(35)
 #define TICSPERMS			29	// 28.5, but the benefit of the doubt
 
