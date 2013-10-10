@@ -109,6 +109,7 @@ void MAKENAME(DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, con
 
 /* DrawImgScale() -- Draws Image scaled */
 // Start coords are NOT scaled!
+// TODO FIXME: RANGE CAP THIS FUNCTION FOR SECURITY AND TO PREVENT CRASHES!
 void MAKENAME(DrawImgScale)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const fixed_t a_sW, const fixed_t a_sH)
 {
 	register fixed_t ix, iy;

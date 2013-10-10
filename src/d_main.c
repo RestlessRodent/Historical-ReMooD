@@ -389,9 +389,6 @@ void D_Display(void)
 //#endif
 	}
 	
-	// Draw entire UI
-	UI_Drawer();
-	
 #if 0
 	// Simple Networking Draws below everything
 	SN_Drawer();
@@ -465,9 +462,6 @@ void D_Display(void)
 		// Do other stuff
 		I_OsPolling();
 		I_UpdateNoBlit();
-		
-		// Draw UI during wipe
-		UI_Drawer();
 		
 		if (!noblit)
 			I_FinishUpdate();		// page flip or blit buffer

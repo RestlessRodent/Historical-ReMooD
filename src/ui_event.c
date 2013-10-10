@@ -27,7 +27,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // ----------------------------------------------------------------------------
-// DESCRIPTION: User Interface Visibility
+// DESCRIPTION: Event Handling
 
 /* NOT IN DEDICATED SERVER */
 #if !defined(__REMOOD_DEDICATED)
@@ -47,27 +47,10 @@
 *** FUNCTIONS ***
 ****************/
 
-/* UI_Visible() -- Any user interface is visible */
-bool_t UI_Visible(void)
+/* UI_HandleEvent() -- Handles UI Event */
+bool_t UI_HandleEvent(I_EventEx_t* const a_Event, const bool_t a_Early)
 {
 	return false;
-}
-
-/* UI_GrabMouse() -- Grabs the mouse? */
-bool_t UI_GrabMouse(void)
-{
-	return false;
-}
-
-/* UI_ShouldFreezeGame() -- Should the game freeze? */
-bool_t UI_ShouldFreezeGame(void)
-{
-	return false;
-}
-
-/* UI_Ticker() -- User interface ticker */
-void UI_Ticker(void)
-{
 }
 
 /* NOT IN DEDICATED SERVER */
