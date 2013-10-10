@@ -65,9 +65,6 @@ void UI_DrawLoop(void)
 	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
 	Spec.pd = Spec.p * Spec.d;
 	
-	/* Debug */
-	UI_ConDebug(&Spec);
-	
 	/* Drawing is based on the current game state */
 	switch (gamestate)
 	{

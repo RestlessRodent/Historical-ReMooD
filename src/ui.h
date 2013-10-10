@@ -191,6 +191,7 @@ void UI_DrawLoop(void);
 /*** UI_D*.C ***/
 
 extern void (*UI_DrawImg)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y);
+extern void (*UI_DrawImgScale)(UI_BufferSpec_t* const a_Spec, UI_Img_t* const a_Img, const int32_t a_X, const int32_t a_Y, const fixed_t a_sW, const fixed_t a_sH);
 
 /*** UI_IMG.C ***/
 

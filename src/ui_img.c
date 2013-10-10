@@ -191,7 +191,7 @@ static void UI_ImgPutI(UI_Img_t* const a_Img, const int32_t a_X, const int32_t a
 	
 	// Translate color to real palette color
 	if (a_Img->Depth > 1)
-		Color = SVRGB(OrigPal[Color].r, OrigPal[Color].b, OrigPal[Color].g);
+		Color = SVRGB(OrigPal[Color].r, OrigPal[Color].g, OrigPal[Color].b);
 	
 	/* Draw real color */
 	// Indexed Mode
@@ -218,6 +218,77 @@ void UI_LoadPNG(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
 /* UI_LoadPatchT() -- Loads patch_t */
 void UI_LoadPatchT(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
 {
+	uint32_t i, zc, y;
+	uint32_t Off;
+	uint32_t TopOff, Count, Delt, OldDelt;
+	
+	/* Read Header */
+	a_Img->l[0] = WL_Srlu16(a_Str);
+	a_Img->l[1] = WL_Srlu16(a_Str);
+	a_Img->o[0] = WL_Srli16(a_Str);
+	a_Img->o[1] = WL_Srli16(a_Str);
+	a_Img->p = (a_Img->l[0] + 7) & ~7;
+	a_Img->pd = a_Img->p * a_Img->Depth;
+	
+	// Allocate data and mask
+	a_Img->Data = Z_Malloc(a_Img->pd * a_Img->l[1], PU_STATIC, NULL);
+	a_Img->Mask = Z_Malloc(a_Img->p * a_Img->l[1], PU_STATIC, NULL);
+	
+	/* Read each column and draw into image */
+	OldDelt = 0;	// Old delta of zero
+	for (i = 0; i < a_Img->l[0]; i++)
+	{
+		// Seek to offsets table
+		WL_StreamSeek(a_Str, 8 + (4 * i), false);
+		
+		// Read offset
+		Off = WL_Srlu32(a_Str);
+		
+		// Illegal offset?
+		if (!Off)
+			continue;
+		
+		// Seek to offset
+		WL_StreamSeek(a_Str, Off, false);
+		
+		for (OldDelt = zc = 0;;)
+		{
+			// Read top offset and count
+			Delt = WL_Sru8(a_Str);
+			
+			// End of column
+			if (Delt == 0xFF)
+				break;
+			
+			Count = WL_Sru8(a_Str);
+			
+			// Determine actual offset (for tall patches)
+			if (Delt < OldDelt)
+				TopOff = OldDelt + Delt;
+			else
+				TopOff = Delt;
+		
+			// Set old delta value
+			OldDelt = Delt;
+		
+			// If count is zero, increase counter
+				// If two zeros are encountered, break out (since the WL reader
+				// zeroes by default)
+			if (Count == 0)
+				if (++zc >= 2)
+					break;
+			
+			// Skip 1 byte
+			WL_Sru8(a_Str);
+			
+			// Read count bytes
+			for (y = 0; y < Count; y++)
+				UI_ImgPutI(a_Img, i, TopOff + y, WL_Sru8(a_Str));
+			
+			// Skip 1 byte
+			WL_Sru8(a_Str);
+		}
+	}
 }
 
 /* UI_LoadPicT() -- Loads pic_t */

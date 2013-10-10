@@ -2394,9 +2394,10 @@ void D_UITitle(UI_BufferSpec_t* const a_Spec)
 		// Still failed
 		if (!l_TTPic)
 			return;
-		
-		// Draw fullscreen
 	}
+	
+	/* Draw fullscreen */
+	UI_DrawImg(a_Spec, l_TTPic, 0, 0);
 }
 
 /* D_UITitleTick() -- Tics title screen */
