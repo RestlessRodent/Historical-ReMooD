@@ -747,7 +747,8 @@ void D_StartTitle(void)
 	demosequence = -1;
 	paused = false;
 	gamestate = GS_DEMOSCREEN;
-	D_UITitleBump();
+	
+	//D_UITitleBump();
 }
 
 //
@@ -2706,6 +2707,55 @@ static UI_Img_t* l_TTPic = NULL;				// Title Pic
 static int32_t l_TTTicker = 0;					// Title Ticker
 static bool_t l_TTBump = false;					// Do title bump
 
+/* D_UITitleInitScreen() -- Initializes title screen */
+bool_t D_UITitleInitScreen(void)
+{
+	/* No current sequence? */
+	if (!l_TTSeqAt)
+		return false;	
+	
+	/* Attempt playing demo */
+	if (l_TTSeqAt->Demo[0])
+	{
+		// Demos last a long time
+		l_TTTicker = 9999999;
+		
+		// Attempt play of demo
+		if (G_DoPlayDemo(l_TTSeqAt->Demo, true))
+			return false;	// Demo did play
+		
+		// Otherwise fail, set a short timer
+		l_TTTicker = 1;
+		return false;
+	}
+	
+	/* Switch title page */
+	// Tic time
+	l_TTTicker = l_TTSeqAt->Tic;
+	
+	// Prevent infinitely long pages
+	if (l_TTTicker <= 0)
+		l_TTTicker = 1;
+	
+	// Change music
+	if (l_TTSeqAt->Music[0])
+		S_ChangeMusicName(l_TTSeqAt->Music, false);
+	
+	// Delete old picture
+	if (l_TTPic)
+	{
+		UI_ImgDelete(l_TTPic);
+		l_TTPic = NULL;
+	}
+	
+	// Change picture
+	//if (l_TTSeqAt->Pic[0])
+	//	l_TTPic = UI_ImgLoadEntS(l_TTSeqAt->Pic);
+	
+	// Reached end
+	return true;
+}
+
 /* D_UILoadTitles() -- Loads title screen data */
 void D_UILoadTitles(void)
 {
@@ -2795,6 +2845,12 @@ void D_UILoadTitles(void)
 	
 	/* Close Stream */
 	WL_StreamClose(Stream);
+	
+	/* Set first sequence */
+	l_TTSeqAt = l_TTSeqHead;
+	
+	// Initialize
+	D_UITitleInitScreen();
 }
 
 /* D_UITitle() -- Title Screen Drawer */
@@ -2850,47 +2906,9 @@ void D_UITitleNext(void)
 	if (!l_TTSeqAt)
 		l_TTSeqAt = l_TTSeqHead;
 	
-	// No sequences still?
-	if (!l_TTSeqAt)
+	// Initialize
+	if (!D_UITitleInitScreen())
 		return;
-	
-	/* Attempt playing demo */
-	if (l_TTSeqAt->Demo[0])
-	{
-		// Demos last a long time
-		l_TTTicker = 9999999;
-		
-		// Attempt play of demo
-		if (G_DoPlayDemo(l_TTSeqAt->Demo, true))
-			return;	// Demo did play
-		
-		// Otherwise fail, set a short timer
-		l_TTTicker = 1;
-		return;
-	}
-	
-	/* Switch title page */
-	// Tic time
-	l_TTTicker = l_TTSeqAt->Tic;
-	
-	// Prevent infinitely long pages
-	if (l_TTTicker <= 0)
-		l_TTTicker = 1;
-	
-	// Change music
-	if (l_TTSeqAt->Music[0])
-		S_ChangeMusicName(l_TTSeqAt->Music, false);
-	
-	// Delete old picture
-	if (l_TTPic)
-	{
-		UI_ImgDelete(l_TTPic);
-		l_TTPic = NULL;
-	}
-	
-	// Change picture
-	if (l_TTSeqAt->Pic[0])
-		l_TTPic = UI_ImgLoadEntS(l_TTSeqAt->Pic);
 	
 	// Set new state
 	gamestate = GS_DEMOSCREEN;
