@@ -294,6 +294,26 @@ void UI_LoadPatchT(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
 /* UI_LoadPicT() -- Loads pic_t */
 void UI_LoadPicT(UI_Img_t* const a_Img, WL_ES_t* const a_Str)
 {
+	register int x, y;
+	
+	/* Read Header */
+	a_Img->l[0] = WL_Srlu16(a_Str);
+	WL_Srlu16(a_Str);	// Zero
+	a_Img->l[1] = WL_Srlu16(a_Str);
+	WL_Srlu16(a_Str);	// Zero
+	a_Img->o[0] = 0;
+	a_Img->o[1] = 0;
+	a_Img->p = (a_Img->l[0] + 7) & ~7;
+	a_Img->pd = a_Img->p * a_Img->Depth;
+	
+	// Allocate data and mask
+	a_Img->Data = Z_Malloc(a_Img->pd * a_Img->l[1], PU_STATIC, NULL);
+	a_Img->Mask = Z_Malloc(a_Img->p * a_Img->l[1], PU_STATIC, NULL);
+	
+	/* Read Data */
+	for (y = 0; y < a_Img->l[1]; y++)
+		for (x = 0; x < a_Img->l[0]; x++)
+			UI_ImgPutI(a_Img, x, y, WL_Sru8(a_Str));
 }
 
 /* UI_LoadRAW() -- Loads flat image */
