@@ -954,7 +954,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	/* Check */
 	if (!a_Buf)
 		return;
-
+	
 	/* Default destination is player 1's buffer */
 	pNum = 1;
 	memset(Buf, 0, sizeof(Buf));

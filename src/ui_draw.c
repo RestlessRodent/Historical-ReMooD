@@ -54,8 +54,8 @@ void D_UITitle(UI_BufferSpec_t* const a_Spec);
 *** FUNCTIONS ***
 ****************/
 
-/* UI_DrawLoopIntoSpec() -- Single Instance Drawing Specification */
-void UI_DrawLoopIntoSpec(UI_BufferSpec_t* const a_Spec)
+/* UI_DrawBGLayer() -- Single Instance Drawing Specification */
+void UI_DrawBGLayer(UI_BufferSpec_t* const a_Spec)
 {
 	/* Drawing is based on the current game state */
 	switch (gamestate)
@@ -69,9 +69,11 @@ void UI_DrawLoopIntoSpec(UI_BufferSpec_t* const a_Spec)
 		default:
 			break;
 	}
-	
-	/* Draw any user interface elements on top */
-	
+}
+
+/* UI_DrawFGLayer() -- Draws the foreground layer */
+void UI_DrawFGLayer(UI_BufferSpec_t* const a_Spec)
+{
 }
 
 /* UI_DrawLoop() -- UI Drawing Loop */
@@ -86,7 +88,11 @@ void UI_DrawLoop(void)
 	Spec.pd = Spec.p * Spec.d;
 	
 	/* Draw single loop */
-	UI_DrawLoopIntoSpec(&Spec);
+	// Background
+	UI_DrawBGLayer(&Spec);
+	
+	// Foreground
+	UI_DrawFGLayer(&Spec);
 	
 	/* Update the screen */
 	I_FinishUpdate();

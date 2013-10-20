@@ -177,7 +177,7 @@ void UI_ConBootInit(void);
 void UI_ConBootClear(void);
 void UI_ConPassLine(const char* const a_Line);
 
-void UI_ConDebug(UI_BufferSpec_t* const a_Spec);
+void UI_ConDraw(UI_BufferSpec_t* const a_Spec);
 
 /*** UI_CTRL.C ***/
 
@@ -186,7 +186,8 @@ void UI_SetBitDepth(const uint32_t a_Depth);
 
 /*** UI_DRAW.C ***/
 
-void UI_DrawLoopIntoSpec(UI_BufferSpec_t* const a_Spec);
+void UI_DrawBGLayer(UI_BufferSpec_t* const a_Spec);
+void UI_DrawFGLayer(UI_BufferSpec_t* const a_Spec);
 void UI_DrawLoop(void);
 
 /*** UI_D*.C ***/

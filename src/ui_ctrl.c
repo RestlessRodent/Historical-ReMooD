@@ -76,14 +76,24 @@ void D_UILoadTitles(void);
 *** FUNCTIONS ***
 ****************/
 
-/* UI_WLOrder() -- WAD order list */
-bool_t UI_WLOrder(const bool_t a_Pushed, const WL_WADFile_t* const a_WAD)
+/* UI_ColorRelated() -- Color related changes */
+static void UI_ColorRelated(void)
 {
 	/* Clear image list */
 	UI_ImgClearList();
 	
 	/* Load the default palette (PLAYPAL) */
 	UI_ImgLoadPalette();
+	
+	/* Indicate depth changes */
+	D_UITitleDepthChange();
+}
+
+/* UI_WLOrder() -- WAD order list */
+bool_t UI_WLOrder(const bool_t a_Pushed, const WL_WADFile_t* const a_WAD)
+{
+	/* Color change related */
+	UI_ColorRelated();
 	
 	/* Initialize the title screen */
 	D_UILoadTitles();
@@ -108,8 +118,8 @@ void UI_SetBitDepth(const uint32_t a_Depth)
 	if (FirstDepth)
 		UI_ConBootClear();
 	
-	/* Clear currently loaded images */
-	UI_ImgClearList();
+	/* Color change related */
+	UI_ColorRelated();
 	
 	/* Initialize the boot logo */
 	if (!FirstDepth)

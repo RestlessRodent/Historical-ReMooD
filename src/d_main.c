@@ -240,7 +240,7 @@ void D_Display(void)
 	}
 	else
 		wipe = false;
-		
+	
 	/* Retrograde Stub to new UI Code */
 	// Screen is locked by soft buffer, if needed
 	// Note that, the drawing code explicitely virtual always calls this
@@ -249,11 +249,11 @@ void D_Display(void)
 	Spec.pd = Spec.p * Spec.d;
 	
 	// Draw into spec
-	UI_DrawLoopIntoSpec(&Spec);
+	UI_DrawBGLayer(&Spec);
 	
 	// Unlock buffer
 	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
-		
+	
 	// draw buffered stuff to screen
 	// BP: Used only by linux GGI version
 	I_UpdateNoBlit();
@@ -416,6 +416,19 @@ void D_Display(void)
 	
 	// GhostlyDeath <May 5, 2012> -- Update Music
 	I_UpdateMusic();
+	
+	/* Retrograde Stub to new UI Code */
+	// Screen is locked by soft buffer, if needed
+	// Note that, the drawing code explicitely virtual always calls this
+	// function which results in multiple relocks.
+	Spec.Data = I_VideoSoftBuffer(&Spec.w, &Spec.h, &Spec.d, &Spec.p);
+	Spec.pd = Spec.p * Spec.d;
+	
+	// Draw into spec
+	UI_DrawFGLayer(&Spec);
+	
+	// Unlock buffer
+	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
 	
 	//I_BeginProfile();
 	if (!noblit)
@@ -2706,6 +2719,12 @@ static D_TitleSeq_t* l_TTSeqAt = NULL;			// Current sequence at
 static UI_Img_t* l_TTPic = NULL;				// Title Pic
 static int32_t l_TTTicker = 0;					// Title Ticker
 static bool_t l_TTBump = false;					// Do title bump
+
+/* D_UITitleDepthChange() -- Depth Change */
+void D_UITitleDepthChange(void)
+{
+	l_TTPic = NULL;
+}
 
 /* D_UITitleInitScreen() -- Initializes title screen */
 bool_t D_UITitleInitScreen(void)

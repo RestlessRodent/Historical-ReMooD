@@ -92,13 +92,9 @@ void UI_ConPassLine(const char* const a_Line)
 	}
 }
 
-/* UI_ConDebug() -- Debug only */
-void UI_ConDebug(UI_BufferSpec_t* const a_Spec)
+/* UI_ConDraw() -- Draws the console */
+void UI_ConDraw(UI_BufferSpec_t* const a_Spec)
 {
-	if (!(l_BootLogo = UI_ImgLoadBootLogo(c_BootLogo, CBOOTLOGOSIZE)))
-		I_Error("Failed to load boot logo!");
-	
-	UI_DrawImg(a_Spec, l_BootLogo, 1 + (g_ProgramTic % vid.width), 1 + (g_ProgramTic % vid.height));
 }
 
 /* NOT IN DEDICATED SERVER */
