@@ -53,6 +53,8 @@
 #include "g_game.h"
 #include "bot.h"
 
+#include "t_bfs.h"
+
 //#define COOLFLIPLEVELS
 
 //
@@ -220,6 +222,9 @@ bool_t P_ExClearLevel(void)
 	
 	/* De-initialize Fake Player */
 	CL_ClearLevelSocks();
+	
+	/* Clear level script */
+	TBFS_ClearScripts(TBFSV_LEVEL);
 	
 	/* Stop Playing Music and Sound */
 	S_StopSounds();

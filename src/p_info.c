@@ -39,18 +39,6 @@
 #include "console.h"
 #include "doomdef.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
 /*** CONSTANTS ***/
 
 // c_LevelLumpNames -- Names of the level lumps
@@ -112,57 +100,51 @@ static size_t l_NumCompInfos = 0;				// Number of composites
 // c_PMIFields -- Map info fields
 static const struct
 {
-	bool_t IsEnd;								// Parse no more
 	P_PMFIFieldType_t Type;						// Type of variable
 	const char* MapInfo;
 	const char* NewInfo;
 	uintptr_t Offset;
 } c_PMIFields[MAXPINFOSETFLAGS] =
 {
-	{false, PPMFIFT_STRING, NULL, "levelname", offsetof(P_LevelInfoEx_t, Title)},
-	{false, PPMFIFT_STRING, "creator", "creator", offsetof(P_LevelInfoEx_t, Author)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "titlepatch", "levelpic", offsetof(P_LevelInfoEx_t, LevelPic)},
-	{false, PPMFIFT_STRING, "sky1", "skyname", offsetof(P_LevelInfoEx_t, SkyTexture)},
-	{false, PPMFIFT_INTEGER, "par", "partime", offsetof(P_LevelInfoEx_t, ParTime)},
-	{false, PPMFIFT_STRING, "exitpic", "interpic", offsetof(P_LevelInfoEx_t, InterPic)},
-	{false, PPMFIFT_STRING, "intermusic", "intermusic", offsetof(P_LevelInfoEx_t, InterMus)},
-	{false, PPMFIFT_STRING, "next", "nextlevel", offsetof(P_LevelInfoEx_t, NormalNext)},
-	{false, PPMFIFT_STRING, "secretnext", "nextsecret", offsetof(P_LevelInfoEx_t, SecretNext)},
-	{false, PPMFIFT_STRING, NULL, "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
-	{false, PPMFIFT_WIDEBITFIELD, NULL, "defaultweapons", offsetof(P_LevelInfoEx_t, Weapons)},
-	{false, PPMFIFT_INTEGER, "sucktime", "sucktime", offsetof(P_LevelInfoEx_t, SuckTime)},
-	{false, PPMFIFT_STRING, "enterpic", "enterpic", offsetof(P_LevelInfoEx_t, EnterPic)},
-	{false, PPMFIFT_INTEGER, "levelnum", "mapnumber", offsetof(P_LevelInfoEx_t, LevelNum)},
-	{false, PPMFIFT_INTEGER, "cluster", "episodenumber", offsetof(P_LevelInfoEx_t, EpisodeNum)},
-	{false, PPMFIFT_STRING, "entersound", "entersound", offsetof(P_LevelInfoEx_t, EnterSound)},
-	{false, PPMFIFT_STRING, "interticsound", "interticsound", offsetof(P_LevelInfoEx_t, InterTicSound)},
-	{false, PPMFIFT_STRING, "interdonesound", "interdonesound", offsetof(P_LevelInfoEx_t, InterDoneSound)},
-	{false, PPMFIFT_STRING, "interfragsound", "interfragsound", offsetof(P_LevelInfoEx_t, InterFragSound)},
-	{false, PPMFIFT_STRING, "interdmsound", "interdmsound", offsetof(P_LevelInfoEx_t, InterDMSound)},
+	{PPMFIFT_STRING, "exremoodtitle", "levelname", offsetof(P_LevelInfoEx_t, Title)},
+	{PPMFIFT_STRING, "creator", "creator", offsetof(P_LevelInfoEx_t, Author)},
+	{PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{PPMFIFT_STRING, "titlepatch", "levelpic", offsetof(P_LevelInfoEx_t, LevelPic)},
+	{PPMFIFT_STRING, "sky1", "skyname", offsetof(P_LevelInfoEx_t, SkyTexture)},
+	{PPMFIFT_INTEGER, "par", "partime", offsetof(P_LevelInfoEx_t, ParTime)},
+	{PPMFIFT_STRING, "exitpic", "interpic", offsetof(P_LevelInfoEx_t, InterPic)},
+	{PPMFIFT_STRING, "intermusic", "intermusic", offsetof(P_LevelInfoEx_t, InterMus)},
+	{PPMFIFT_STRING, "next", "nextlevel", offsetof(P_LevelInfoEx_t, NormalNext)},
+	{PPMFIFT_STRING, "secretnext", "nextsecret", offsetof(P_LevelInfoEx_t, SecretNext)},
+	{PPMFIFT_STRING, "exremoodconsole", "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
+	{PPMFIFT_WIDEBITFIELD, NULL, "defaultweapons", offsetof(P_LevelInfoEx_t, Weapons)},
+	{PPMFIFT_INTEGER, "sucktime", "sucktime", offsetof(P_LevelInfoEx_t, SuckTime)},
+	{PPMFIFT_STRING, "enterpic", "enterpic", offsetof(P_LevelInfoEx_t, EnterPic)},
+	{PPMFIFT_INTEGER, "levelnum", "mapnumber", offsetof(P_LevelInfoEx_t, LevelNum)},
+	{PPMFIFT_INTEGER, "cluster", "episodenumber", offsetof(P_LevelInfoEx_t, EpisodeNum)},
+	{PPMFIFT_STRING, "entersound", "entersound", offsetof(P_LevelInfoEx_t, EnterSound)},
+	{PPMFIFT_STRING, "interticsound", "interticsound", offsetof(P_LevelInfoEx_t, InterTicSound)},
+	{PPMFIFT_STRING, "interdonesound", "interdonesound", offsetof(P_LevelInfoEx_t, InterDoneSound)},
+	{PPMFIFT_STRING, "interfragsound", "interfragsound", offsetof(P_LevelInfoEx_t, InterFragSound)},
+	{PPMFIFT_STRING, "interdmsound", "interdmsound", offsetof(P_LevelInfoEx_t, InterDMSound)},
 	
 	// Level special endings
-	{false, PPMFIFT_BOOL, "map07special", NULL, offsetof(P_LevelInfoEx_t, MapSevenSpecial)},
-	{false, PPMFIFT_BOOL, "baronspecial", NULL, offsetof(P_LevelInfoEx_t, BaronSpecial)},
-	{false, PPMFIFT_BOOL, "cyberdemonspecial", NULL, offsetof(P_LevelInfoEx_t, CyberSpecial)},
-	{false, PPMFIFT_BOOL, "spidermastermindspecial", NULL, offsetof(P_LevelInfoEx_t, SpiderdemonSpecial)},
-	{false, PPMFIFT_BOOL, "specialaction_exitlevel", NULL, offsetof(P_LevelInfoEx_t, ExitOnSpecial)},
-	{false, PPMFIFT_BOOL, "specialaction_opendoor", NULL, offsetof(P_LevelInfoEx_t, OpenDoorOnSpecial)},
-	{false, PPMFIFT_BOOL, "specialaction_lowerfloor", NULL, offsetof(P_LevelInfoEx_t, LowerFloorOnSpecial)},
-	{false, PPMFIFT_BOOL, "specialaction_killmonsters", NULL, offsetof(P_LevelInfoEx_t, KillMonstersOnSpecial)},
-	{false, PPMFIFT_BOOL, "monstertelestomp", NULL, offsetof(P_LevelInfoEx_t, MonsterTeleStomp)},
+	{PPMFIFT_BOOL, "map07special", "map07special", offsetof(P_LevelInfoEx_t, MapSevenSpecial)},
+	{PPMFIFT_BOOL, "baronspecial", "baronspecial", offsetof(P_LevelInfoEx_t, BaronSpecial)},
+	{PPMFIFT_BOOL, "cyberdemonspecial", "cyberdemonspecial", offsetof(P_LevelInfoEx_t, CyberSpecial)},
+	{PPMFIFT_BOOL, "spidermastermindspecial", "spidermastermindspecial", offsetof(P_LevelInfoEx_t, SpiderdemonSpecial)},
+	{PPMFIFT_BOOL, "specialaction_exitlevel", "specialaction_exitlevel", offsetof(P_LevelInfoEx_t, ExitOnSpecial)},
+	{PPMFIFT_BOOL, "specialaction_opendoor", "specialaction_opendoor", offsetof(P_LevelInfoEx_t, OpenDoorOnSpecial)},
+	{PPMFIFT_BOOL, "specialaction_lowerfloor", "specialaction_lowerfloor", offsetof(P_LevelInfoEx_t, LowerFloorOnSpecial)},
+	{PPMFIFT_BOOL, "specialaction_killmonsters", "specialaction_killmonsters", offsetof(P_LevelInfoEx_t, KillMonstersOnSpecial)},
+	{PPMFIFT_BOOL, "monstertelestomp", "monstertelestomp", offsetof(P_LevelInfoEx_t, MonsterTeleStomp)},
 	
-	
-	/*{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
-	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},*/
+	// Hubs
+	{PPMFIFT_INTEGER, "exremoodhubid", "hubid", offsetof(P_LevelInfoEx_t, HubID)},
+	{PPMFIFT_STRING, "exremoodhubscript", "hubscript", offsetof(P_LevelInfoEx_t, HubScript)},
 	
 	// End
-	{true, MAXPPMFIFIELDTYPES, NULL, NULL, 0},
+	{MAXPPMFIFIELDTYPES, NULL, NULL, 0},
 };
 
 /* PS_ParseLumpHeader() -- Parses lump header */
@@ -263,13 +245,13 @@ static bool_t PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_ES_t* 
 			CONL_PrintF("PS_ParseLumpHeader: \"%s\" == \"%s\"\n", SideA, SideB);
 			
 		// Look through list for a match
-		for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
+		for (FNum = 0; c_PMIFields[FNum].Type != MAXPPMFIFIELDTYPES; FNum++)
 			if (c_PMIFields[FNum].NewInfo)
 				if (strcasecmp(SideA, c_PMIFields[FNum].NewInfo) == 0)
 					break;
 		
 		// Reached end?
-		if (c_PMIFields[FNum].IsEnd)
+		if (c_PMIFields[FNum].Type == MAXPPMFIFIELDTYPES)
 		{
 			if (devparm)
 				CONL_PrintF("PS_ParseLumpHeader: Unknown \"%s\".\n", SideA);
@@ -526,7 +508,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 			if (CurrentInfo && CurrentInfo != &DefaultStore)
 			{
 				// For every field...
-				for (i = 0; !c_PMIFields[i].IsEnd; i++)
+				for (i = 0; c_PMIFields[i].Type != MAXPPMFIFIELDTYPES; i++)
 				{
 					// Check to see if already set or the default is unset
 						// But have MAPINFO levels replace each other
@@ -590,13 +572,13 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 		else
 		{
 			// Look through list for a match
-			for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
+			for (FNum = 0; c_PMIFields[FNum].Type != MAXPPMFIFIELDTYPES; FNum++)
 				if (c_PMIFields[FNum].MapInfo)
 					if (strcasecmp(Token, c_PMIFields[FNum].MapInfo) == 0)
 						break;
 			
 			// Reached end?
-			if (c_PMIFields[FNum].IsEnd)
+			if (c_PMIFields[FNum].Type == MAXPPMFIFIELDTYPES)
 			{
 #if 0
 				if (devparm)
@@ -713,7 +695,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 	WL_StreamClose(Stream);
 	
 	/* Clear default settings */
-	for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
+	for (FNum = 0; c_PMIFields[FNum].Type != MAXPPMFIFIELDTYPES; FNum++)
 		switch (c_PMIFields[FNum].Type)
 		{
 				// Delete String
@@ -1173,7 +1155,7 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 				{
 					// Clear out strings
 					// Copy fields over (all but authors)
-					for (Field = 0; !c_PMIFields[Field].IsEnd; Field++)
+					for (Field = 0; c_PMIFields[Field].Type != MAXPPMFIFIELDTYPES; Field++)
 					{
 						// Get source
 						vP = (void*)(((uintptr_t)l_CompInfos[i]) + c_PMIFields[Field].Offset);
@@ -1311,7 +1293,7 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 						CopyFrom = CurrentInfo;
 					
 					// Copy fields over (all but authors)
-					for (Field = NUMPINFOIGNOREFIELDS; !c_PMIFields[Field].IsEnd; Field++)
+					for (Field = NUMPINFOIGNOREFIELDS; c_PMIFields[Field].Type != MAXPPMFIFIELDTYPES; Field++)
 					{
 						// Not set here?
 						if (!CopyFrom->SetBits[Field])

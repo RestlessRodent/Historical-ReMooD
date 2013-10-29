@@ -166,6 +166,8 @@ typedef struct P_LevelInfoEx_s
 	char* InterDoneSound;						// Intermission done sound
 	char* InterFragSound;						// Sound to play for Coop Frags
 	char* InterDMSound;							// Sound to play when DM starts
+	int32_t HubID;								// Hub ID Number
+	char* HubScript;							// Hub Script
 } P_LevelInfoEx_t;
 
 /*** GLOBALS ***/
