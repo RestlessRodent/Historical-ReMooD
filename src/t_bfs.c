@@ -65,3 +65,8 @@ bool_t TBFS_LoadScript(const TBFS_Vis_t a_Vis, WL_ES_t* const a_WL, const uint32
 		return false;
 }
 
+/* TBFS_LoadEntry() -- Loads entire entry */
+bool_t TBFS_LoadEntry(const TBFS_Vis_t a_Vis, const WL_WADEntry_t* const a_Ent)
+{
+}
+

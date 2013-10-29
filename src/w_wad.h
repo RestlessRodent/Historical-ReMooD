@@ -264,7 +264,10 @@ bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorF
 void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr);
 
 // Entry Handling
+#define WL_BasicFind(n) (WL_FindEntry(NULL, 0, (n)))
+#define WL_BasicFindF(b) (WL_FindEntry(NULL, WLFF_FORWARDS, (n)))
 const WL_WADEntry_t* WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name);
+
 uintptr_t WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry);
 size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
 

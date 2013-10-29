@@ -62,12 +62,19 @@ typedef enum TBFS_Vis_e
 	#define __REMOOD_WLEST_DEFINED
 #endif
 
+/* Define WL_WADEntry_t */
+#if !defined(__REMOOD_WLWADENT_DEFINED)
+	typedef struct WL_WADEntry_s WL_WADEntry_t;
+	#define __REMOOD_WLWADENT_DEFINED
+#endif
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
 void TBFS_ClearScripts(const TBFS_Vis_t a_Vis);
 bool_t TBFS_LoadScript(const TBFS_Vis_t a_Vis, WL_ES_t* const a_WL, const uint32_t a_Start, const uint32_t a_End);
+bool_t TBFS_LoadEntry(const TBFS_Vis_t a_Vis, const WL_WADEntry_t* const a_Ent);
 
 /*****************************************************************************/
 

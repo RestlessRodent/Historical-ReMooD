@@ -223,9 +223,6 @@ bool_t P_ExClearLevel(void)
 	/* De-initialize Fake Player */
 	CL_ClearLevelSocks();
 	
-	/* Clear level script */
-	TBFS_ClearScripts(TBFSV_LEVEL);
-	
 	/* Stop Playing Music and Sound */
 	S_StopSounds();
 	//S_StopMusic();
@@ -320,8 +317,8 @@ bool_t P_ExClearLevel(void)
 	// Cheats
 	//g_CheatFlags = 0;
 	
-	/* Scripting */
-	TVM_Clear(TVMNS_LEVEL);
+	/* Clear level script */
+	TBFS_ClearScripts(TBFSV_LEVEL);
 	
 	/* Scores */
 	P_UpdateScores();
@@ -1335,6 +1332,7 @@ bool_t P_ExFinalizeLevel(void)
 	size_t i;
 	WL_ES_t* ScriptStream;
 	const WL_WADFile_t* WAD;
+	const WL_WADEntry_t* Ent;
 	
 	/* Set gamestate to level */
 	// So that we can play it now
@@ -1376,9 +1374,9 @@ bool_t P_ExFinalizeLevel(void)
 	//	G_InitPlayer(&players[i]);
 	
 	/* Compile Level Scripts */
-	// Top Level Scripts, from each WAD
-	for (WAD = WL_IterateVWAD(NULL, true); WAD; WAD = WL_IterateVWAD(WAD, true))
-		TVM_CompileEntry(TVMNS_LEVEL, WL_FindEntry(WAD, 0, "TLSCRIPT"));
+	// Level prefix script (ReMooD fixers, etc.)
+	if ((Ent = WL_BasicFind("RMD_SPFX")))
+		TBFS_LoadEntry(TBFSV_LEVEL, Ent);
 	
 	// Header script
 	if (g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1] -
@@ -1396,8 +1394,8 @@ bool_t P_ExFinalizeLevel(void)
 			// Seek to script start
 			WL_StreamSeek(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0], false);
 			
-			// Compile it
-			TVM_CompileWLES(TVMNS_LEVEL, ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
+			// Load Script
+			TBFS_LoadScript(TBFSV_LEVEL, ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0], g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
 			
 			// Close it
 			WL_StreamClose(ScriptStream);
@@ -1405,7 +1403,12 @@ bool_t P_ExFinalizeLevel(void)
 	}
 	
 	// Dedicated Level Script
-	TVM_CompileEntry(TVMNS_LEVEL, g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
+	if (g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS])
+		TBFS_LoadEntry(TBFSV_LEVEL, g_CurrentLevelInfo->EntryPtr[PLIEDS_RSCRIPTS]);
+		
+	// Level suffix script (ReMooD fixers, etc.)
+	if ((Ent = WL_BasicFind("RMD_SSFX")))
+		TBFS_LoadEntry(TBFSV_LEVEL, Ent);
 	
 	/* Init Sockets */
 	CL_InitLevelSocks();
