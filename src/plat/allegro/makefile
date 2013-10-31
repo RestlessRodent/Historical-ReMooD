@@ -31,25 +31,25 @@
 # Use allegro-config if ALLEGRO_LIB and ALLEGRO_INCLUDE are not set
 ifeq (,$(strip $(ALLEGRO_LIB))$(strip $(ALLEGRO_INCLUDE)))
 	ifneq (,$(findstring 4.2,$(strip $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)allegro-config --version)))))
-		export ___ALLEGROCFLAGS  := $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)allegro-config --cflags))
-		export ___ALLEGROLDFLAGS := $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)allegro-config --libs))
+		___ALLEGROCFLAGS  := $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)allegro-config --cflags))
+		___ALLEGROLDFLAGS := $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)allegro-config --libs))
 	endif
 endif
 
 # Fall back to environment variables
 ifeq (,$(strip $(___ALLEGROCFLAGS)))
 	ifneq (,$(strip $(ALLEGRO_INCLUDE)))
-		export ___ALLEGROCFLAGS  := -I$(ALLEGRO_INCLUDE)
+		___ALLEGROCFLAGS  := -I$(ALLEGRO_INCLUDE)
 	else
-		export ___ALLEGROCFLAGS  := -Iinclude -Iallegro
+		___ALLEGROCFLAGS  := -Iinclude -Iallegro
 	endif
 endif
 
 ifeq (,$(strip $(___ALLEGROLDFLAGS)))
 	ifneq (,$(strip $(ALLEGRO_LIB)))
-		export ___ALLEGROLDFLAGS := -L$(ALLEGRO_LIB) -lalleg
+		___ALLEGROLDFLAGS := -L$(ALLEGRO_LIB) -lalleg
 	else
-		export ___ALLEGROLDFLAGS := -Llib -lalleg
+		___ALLEGROLDFLAGS := -Llib -lalleg
 	endif
 endif
 

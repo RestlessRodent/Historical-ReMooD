@@ -29,7 +29,7 @@
 
 ___DEFAULTINTERFACE := palmos
 ___OSOBJCODE := g
-___OSCFLAGS  :=
-___OSLDFLAGS :=
+___OSCFLAGS  := -D__REMOOD_SYSTEM_PALMOS -D__REMOOD_USECCSTUB -Isrc -mshort-load-bytes -ffixed-r9
+___OSLDFLAGS := 
 ___NOSERVER  := yes
 

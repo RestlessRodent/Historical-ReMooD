@@ -29,6 +29,6 @@
 
 ___DEFAULTINTERFACE := allegro
 ___OSOBJCODE := a
-___OSCFLAGS  :=
+___OSCFLAGS  := -D__REMOOD_SYSTEM_AMIGA
 ___OSLDFLAGS :=
 

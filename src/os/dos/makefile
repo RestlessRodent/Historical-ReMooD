@@ -29,8 +29,8 @@
 
 ___DEFAULTINTERFACE := allegro
 ___OSOBJCODE := b
-___OSCFLAGS  :=
-___OSLDFLAGS :=
+___OSCFLAGS  := -D__REMOOD_SYSTEM_DOS -Ilib/glib/include
+___OSLDFLAGS := -lm -lglib
 ___NOSERVER  := yes
 
 ifeq (yes,${___DEBUG})

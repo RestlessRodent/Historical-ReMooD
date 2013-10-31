@@ -29,8 +29,8 @@
 
 ___DEFAULTINTERFACE := win36c
 ___OSOBJCODE := k
-___OSCFLAGS  :=
-___OSLDFLAGS :=
+___OSCFLAGS  := -D__REMOOD_SYSTEM_WINCE -D_WIN32_WCE=0x0420
+___OSLDFLAGS := -lws2 -lm -Wl,--major-subsystem-version,4 -Wl,--minor-subsystem-version,20
 
 ifeq (yes,${___DEBUG})
 ___CLEXENAME := remoodd.exe

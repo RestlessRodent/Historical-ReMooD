@@ -29,8 +29,8 @@
 
 ___DEFAULTINTERFACE := sdl
 ___OSOBJCODE := j
-___OSCFLAGS  :=
-___OSLDFLAGS :=
+___OSCFLAGS  := -D__REMOOD_SYSTEM_WINDOWS
+___OSLDFLAGS := -lm -lws2_32 -lwinmm -lmingw32 -mwindows
 
 ifeq (yes,${___DEBUG})
 ___CLEXENAME := remoodd.exe
