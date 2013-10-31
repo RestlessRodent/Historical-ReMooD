@@ -671,7 +671,11 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 				if (TruDepth <= 0)
 					return false;
 			}
+			else
+				break;
 		}
+		else
+			break;
 	}
 	
 	/* Allocate Buffer */
