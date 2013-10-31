@@ -54,6 +54,6 @@ ifeq (,$(strip $(___ALLEGROLDFLAGS)))
 endif
 
 ___INTOBJCODE := b
-___INTCFLAGS  :=
-___INTLDFLAGS :=
+___INTCFLAGS  := ${___ALLEGROCFLAGS}
+___INTLDFLAGS := ${___ALLEGROLDFLAGS}
 

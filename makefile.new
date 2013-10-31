@@ -74,14 +74,20 @@ ifeq ($(strip $(___LSHELL)),$(strip $(___LCOMSPEC)))
 	___RUNCURDIR  = 
 	___DELETE     = del
 	___RUNCOMMAND = $(COMSPEC) /C $1
-	export ___ISONDOS = yes
+	___DIRSEP     := $(strip \ )
+	___DOSPATH    = $(subst /,\,$1)
+	___DEVNULL	:= NUL
+	___ISONDOS = yes
 
 # Otherwise assume a UNIX shell, or at least a compatible one
 else
 	___RUNCURDIR  = ./
 	___DELETE     = rm -f
 	___RUNCOMMAND = $(SHELL) -c "$1"
-	export ___ISONDOS = no
+	___ISONDOS = no
+	___DIRSEP     := /
+	___DOSPATH    = $1
+	___DEVNULL    := /dev/null
 
 #
 endif
@@ -255,12 +261,14 @@ ___SHSRC := $(wildcard src/*.c src/plat/${___INTERFACE}/*.c src/os/${___OS}/*.c)
 # Objects for client
 ___CLSRC := ${___SHSRC} $(wildcard src/client/*.c)
 ___CLOBJ := $(foreach __c,${___CLSRC},o/c/$(notdir $(basename ${__c}).${___OBJEXT}))
+___CLDEL := $(foreach __o,${___CLOBJ},ccl___${__o})
 
 # Objects for server
 ifndef ___NOSERVER
 
 ___SVSRC := ${___SHSRC} $(wildcard src/server/*.c)
 ___SVOBJ := $(foreach __c,${___SVSRC},o/s/$(notdir $(basename ${__c}).${___OBJEXT}))
+___SVDEL := $(foreach __o,${___SVOBJ},csv___${__o})
 
 endif
 
@@ -289,6 +297,11 @@ endif
 all:						client server
 							@:
 
+# Clean All
+.PHONY: clean
+clean:						clean-client clean-server
+							@:
+
 # Client
 .PHONY: client
 client:						bin/${___CLEXENAME}
@@ -298,7 +311,6 @@ client:						bin/${___CLEXENAME}
 bin/${___CLEXENAME}:		${___CLOBJ} bin/remood.wad
 							@echo [LD] $@
 							@${___CC} ${___CLXLDFLAGS} -o $@ ${___CLOBJ}
-
 
 # Versions of make before 3.80 do not support $(eval) =[
 o/c/%.${___OBJEXT}:			src/%.c
@@ -368,4 +380,30 @@ wad:						bin/remood.wad
 rmdtext.exe:				util/rmdtex.c
 							@echo [CC] rmdtex
 							@$(___HOSTCC) -o $@ $<
+
+# Clean Targets
+
+.PHONY: clean-client
+clean-client:				${___CLDEL}
+							@echo [RM] ${___CLEXENAME}
+							@$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,bin/${___CLEXENAME})) > $(___DEVNULL)
+
+.PHONY: ccl___o/c/%.${___OBJEXT}
+ccl___o/c/%.${___OBJEXT}:	
+							@$(if $(wildcard $(subst ccl___,,$@)),echo [RM] $(notdir $(subst ccl___,,$(basename $@)).o),)
+							@$(if $(wildcard $(subst ccl___,,$@)),$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,$(subst ccl___,,$@))) > $(___DEVNULL),)
+
+ifndef ___NOSERVER
+
+.PHONY: clean-server
+clean-server:				${___SVDEL}
+							@echo [RM] ${___SVEXENAME}
+							@$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,bin/${___SVEXENAME})) > $(___DEVNULL)
+
+.PHONY: csv___o/c/%.${___OBJEXT}
+csv___o/s/%.${___OBJEXT}:	
+							@$(if $(wildcard $(subst ccl___,,$@)),echo [RM] $(notdir $(subst ccl___,,$(basename $@)).o),)
+							@$(if $(wildcard $(subst ccl___,,$@)),$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,$(subst ccl___,,$@))) > $(___DEVNULL),)
+
+endif
 
