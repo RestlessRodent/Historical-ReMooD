@@ -345,7 +345,7 @@ __XX_OBJPRIME := $(__INT_OBJPREFIX)$(__XX_OBJPREFIX)$(__XX_FPREFIX)
 ### OBJECTS ###
 ###############
 
-__XX_OBJS := $(foreach __X_SOURCE, $(__XX_EXTRAOBJ) $(wildcard $(__XX_SRC)/*.c) $(wildcard $(__XX_SRC)/$(__XX_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
+__XX_OBJS := $(foreach __X_SOURCE, $(__XX_EXTRAOBJ) $(wildcard $(__XX_SRC)/*.c) $(wildcard $(__XX_SRC)/plat/$(__XX_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
 __XX_OBJSCLEAN := $(foreach __X_OBJ, $(__XX_OBJS), __$(notdir $(__X_OBJ)))
 
 ###############
@@ -378,7 +378,7 @@ $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
 
 # Source files in interfaces
-$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__XX_IFACEDIR)/%.c
+$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/plat/$(__XX_IFACEDIR)/%.c
 														@echo [CC] $(notdir $<)
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS) $(__XX_IXFCFLAGS)
 
