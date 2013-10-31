@@ -29,3 +29,11 @@
 
 ___DEFAULTINTERFACE=allegro
 
+ifeq (yes,${___DEBUG})
+___CLEXENAME := remoodd.exe
+___SVEXENAME := remoodt.exe
+else
+___CLEXENAME := remood.exe
+___SVEXENAME := remoods.exe
+endif
+

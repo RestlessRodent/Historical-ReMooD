@@ -134,6 +134,23 @@ export ___HOSTPREFIX := $(strip $(HOSTPREFIX))
 endif
 export ___HOSTCC := $(___HOSTPREFIX)gcc
 
+#################
+### DEBUGGING ###
+#################
+
+# Enabled or not?
+ifdef DEBUG
+
+___DEBUG := yes
+-include util/debug.y
+
+else
+
+___DEBUG := no
+-include util/debug.n
+
+endif
+
 ########################
 ### OPERATING SYSTEM ###
 ########################
@@ -187,7 +204,69 @@ endif
 # Print Interface
 $(info Interface: ${___INTERFACE})
 
+# Include interface makefile
+-include src/plat/${___INTERFACE}/makefile
+
+##############################
+### DEFAULT INITIALIZATION ###
+##############################
+
+# Set output binary to just remood, if interface has nothing set
+ifeq (,$(strip ${___CLEXENAME}))
+
+ifeq (yes,${___DEBUG})
+___CLEXENAME := remood-dbg
+else
+___CLEXENAME := remood
+endif
+
+endif
+
+# Same goes for server
+ifeq (,$(strip ${___SVEXENAME}))
+
+ifeq (yes,${___DEBUG})
+___SVEXENAME := remood-server-dbg
+else
+___SVEXENAME := remood-server
+endif
+
+endif
+
+###########################
+### CLIENT/SERVER RULES ###
+###########################
+
+-include src/client/makefile
+-include src/server/makefile
+
 #############
 ### RULES ###
 #############
+
+# Build All
+.PHONY: all
+all:						client server
+							@:
+
+# Client
+.PHONY: client
+client:						bin/${___CLEXENAME}
+							@:
+
+# Server
+.PHONY: server
+server:						bin/${___SVEXENAME}
+							@:
+
+# ReMooD Client
+bin/${___CLEXENAME}:		
+							@echo LD $@
+							@${___CC} -o $@
+
+# ReMooD Server
+bin/${___SVEXENAME}:		
+							@echo LD $@
+							@${___CC} -o $@
+
 
