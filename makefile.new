@@ -294,25 +294,38 @@ bin/${___SVEXENAME}:		${___SVOBJ}
 							@echo [LD] $@
 							@${___CC} ${___SVXLDFLAGS} -o $@ ${___SVOBJ}
 
-# Generic
-define ___genrule
+# Versions of make before 3.80 do not support $(eval) =[
+o/c/%.${___OBJEXT}:			src/%.c
+							@echo [CC] $<
+							@${___CC} ${___CLXCFLAGS} -o $@ -c $<
 
-o/$1/%.${___OBJEXT}:		$2/%.c
-							@echo [CC] $$<
-							@${___CC} $${$3} -o $$@ -c $$<
+o/c/%.${___OBJEXT}:			src/client/%.c
+							@echo [CC] $<
+							@${___CC} ${___CLXCFLAGS} -o $@ -c $<
 
-endef
+o/c/%.${___OBJEXT}:			src/plat/${___INTERFACE}/%.c
+							@echo [CC] $<
+							@${___CC} ${___CLXCFLAGS} -o $@ -c $<
 
-# Mixed
-define ___mixrule
+o/c/%.${___OBJEXT}:			src/os/${___OS}/%.c
+							@echo [CC] $<
+							@${___CC} ${___CLXCFLAGS} -o $@ -c $<
 
-$$(eval $$(call ___genrule,$1,src,$3))
-$$(eval $$(call ___genrule,$1,src/$2,$3))
-$$(eval $$(call ___genrule,$1,src/os/${___OS},$3))
-$$(eval $$(call ___genrule,$1,src/plat/${___INTERFACE},$3))
 
-endef
+o/s/%.${___OBJEXT}:			src/%.c
+							@echo [CC] $<
+							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
 
-$(eval $(call ___mixrule,c,client,___CLXCFLAGS))
-$(eval $(call ___mixrule,s,server,___SVXCFLAGS))
+o/s/%.${___OBJEXT}:			src/server/%.c
+							@echo [CC] $<
+							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
+
+o/s/%.${___OBJEXT}:			src/plat/${___INTERFACE}/%.c
+							@echo [CC] $<
+							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
+
+o/s/%.${___OBJEXT}:			src/os/${___OS}/%.c
+							@echo [CC] $<
+							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
+
 
