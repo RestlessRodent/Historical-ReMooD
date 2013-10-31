@@ -31,6 +31,7 @@ ___DEFAULTINTERFACE := allegro
 ___OSOBJCODE := b
 ___OSCFLAGS  :=
 ___OSLDFLAGS :=
+___NOSERVER  := yes
 
 ifeq (yes,${___DEBUG})
 ___CLEXENAME := remoodd.exe

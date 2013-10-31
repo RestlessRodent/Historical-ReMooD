@@ -242,7 +242,12 @@ ___OBJEXT := ${___OSOBJCODE}${___INTOBJCODE}${___DBGOBJCODE}
 
 # Internals
 -include src/client/makefile
+
+ifndef ___NOSERVER
+
 -include src/server/makefile
+
+endif
 
 # Shared source files
 ___SHSRC := $(wildcard src/*.c src/plat/${___INTERFACE}/*.c src/os/${___OS}/*.c)
@@ -252,8 +257,12 @@ ___CLSRC := ${___SHSRC} $(wildcard src/client/*.c)
 ___CLOBJ := $(foreach __c,${___CLSRC},o/c/$(notdir $(basename ${__c}).${___OBJEXT}))
 
 # Objects for server
+ifndef ___NOSERVER
+
 ___SVSRC := ${___SHSRC} $(wildcard src/server/*.c)
 ___SVOBJ := $(foreach __c,${___SVSRC},o/s/$(notdir $(basename ${__c}).${___OBJEXT}))
+
+endif
 
 # Combined flags
 ___BASECFLAGS := -Isrc/ -Isrc/plat/${___INTERFACE} -Isrc/os/${___OS}
@@ -264,8 +273,12 @@ ___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS}
 ___CLXCFLAGS  := -Isrc/client ${___SHXCFLAGS}
 ___CLXLDFLAGS := ${___SHXLDFLAGS}
 
+ifndef ___NOSERVER
+
 ___SVXCFLAGS  := -Isrc/server ${___SHXCFLAGS}
 ___SVXLDFLAGS := ${___SHXLDFLAGS}
+
+endif
 
 #############
 ### RULES ###
@@ -281,20 +294,11 @@ all:						client server
 client:						bin/${___CLEXENAME}
 							@:
 
-# Server
-.PHONY: server
-server:						bin/${___SVEXENAME}
-							@:
-
 # ReMooD Client
 bin/${___CLEXENAME}:		${___CLOBJ} bin/remood.wad
 							@echo [LD] $@
 							@${___CC} ${___CLXLDFLAGS} -o $@ ${___CLOBJ}
 
-# ReMooD Server
-bin/${___SVEXENAME}:		${___SVOBJ} bin/remood.wad
-							@echo [LD] $@
-							@${___CC} ${___SVXLDFLAGS} -o $@ ${___SVOBJ}
 
 # Versions of make before 3.80 do not support $(eval) =[
 o/c/%.${___OBJEXT}:			src/%.c
@@ -314,6 +318,19 @@ o/c/%.${___OBJEXT}:			src/os/${___OS}/%.c
 							@${___CC} ${___CLXCFLAGS} -o $@ -c $<
 
 
+# Server
+ifndef ___NOSERVER
+
+# Generic Target
+.PHONY: server
+server:						bin/${___SVEXENAME}
+							@:
+
+# ReMooD Server
+bin/${___SVEXENAME}:		${___SVOBJ} bin/remood.wad
+							@echo [LD] $@
+							@${___CC} ${___SVXLDFLAGS} -o $@ ${___SVOBJ}
+
 o/s/%.${___OBJEXT}:			src/%.c
 							@echo [CC] $<
 							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
@@ -330,13 +347,22 @@ o/s/%.${___OBJEXT}:			src/os/${___OS}/%.c
 							@echo [CC] $<
 							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
 
+else
+
+# Generic Target
+.PHONY: server
+server:						
+							@:
+
+endif
+
 # ReMooD.wad
 bin/remood.wad:				rmdtext.exe wad/wadinfo.txt
 							@echo [RMDTEX] $@
 							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad
-							
+							@:
 
 # RMDTEX -- DeuTex Clone For ReMooD
 rmdtext.exe:				util/rmdtex.c

@@ -31,4 +31,5 @@ ___DEFAULTINTERFACE := palmos
 ___OSOBJCODE := g
 ___OSCFLAGS  :=
 ___OSLDFLAGS :=
+___NOSERVER  := yes
 
