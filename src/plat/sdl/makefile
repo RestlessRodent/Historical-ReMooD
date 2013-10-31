@@ -27,7 +27,32 @@
 # -----------------------------------------------------------------------------
 # SDL
 
+# Use sdl-config if SDL_LIB and SDL_INCLUDE are not set
+ifeq (,$(strip $(SDL_LIB))$(strip $(SDL_INCLUDE)))
+	ifneq (,$(findstring 1.2,$(strip $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)sdl-config --version)))))
+		export ___SDLCFLAGS  := $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)sdl-config --cflags))
+		export ___SDLLDFLAGS := $(shell $(call ___RUNCOMMAND,$(CONFIGPREFIX)sdl-config --libs))
+	endif
+endif
+
+# Fall back to environment variables
+ifeq (,$(strip $(___SDLCFLAGS)))
+	ifneq (,$(strip $(SDL_INCLUDE)))
+		export ___SDLCFLAGS  := -I$(SDL_INCLUDE)
+	else
+		export ___SDLCFLAGS  := -Iinclude -ISDL -Iinclude/SDL
+	endif
+endif
+
+ifeq (,$(strip $(___SDLLDFLAGS)))
+	ifneq (,$(strip $(SDL_LIB)))
+		export ___SDLLDFLAGS := -L$(SDL_LIB) -lSDLmain -lSDL
+	else
+		export ___SDLLDFLAGS := -Llib -LSDL -lSDLmain -lSDL
+	endif
+endif
+
 ___INTOBJCODE := g
-___INTCFLAGS  :=
-___INTLDFLAGS :=
+___INTCFLAGS  := ${___SDLCFLAGS}
+___INTLDFLAGS := ${___SDLLDFLAGS}
 

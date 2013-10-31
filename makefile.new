@@ -256,13 +256,15 @@ ___SVSRC := ${___SHSRC} $(wildcard src/server/*.c)
 ___SVOBJ := $(foreach __c,${___SVSRC},o/s/$(notdir $(basename ${__c}).${___OBJEXT}))
 
 # Combined flags
-___SHXCFLAGS  := ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
+___BASECFLAGS := -Isrc/ -Isrc/plat/${___INTERFACE} -Isrc/os/${___OS}
+
+___SHXCFLAGS  := ${___BASECFLAGS} ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
 ___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS}
 
-___CLXCFLAGS  := ${___SHXCFLAGS}
+___CLXCFLAGS  := -Isrc/client ${___SHXCFLAGS}
 ___CLXLDFLAGS := ${___SHXLDFLAGS}
 
-___SVXCFLAGS  := ${___SHXCFLAGS}
+___SVXCFLAGS  := -Isrc/server ${___SHXCFLAGS}
 ___SVXLDFLAGS := ${___SHXLDFLAGS}
 
 #############
@@ -285,12 +287,12 @@ server:						bin/${___SVEXENAME}
 							@:
 
 # ReMooD Client
-bin/${___CLEXENAME}:		${___CLOBJ}
+bin/${___CLEXENAME}:		${___CLOBJ} bin/remood.wad
 							@echo [LD] $@
 							@${___CC} ${___CLXLDFLAGS} -o $@ ${___CLOBJ}
 
 # ReMooD Server
-bin/${___SVEXENAME}:		${___SVOBJ}
+bin/${___SVEXENAME}:		${___SVOBJ} bin/remood.wad
 							@echo [LD] $@
 							@${___CC} ${___SVXLDFLAGS} -o $@ ${___SVOBJ}
 
@@ -328,4 +330,16 @@ o/s/%.${___OBJEXT}:			src/os/${___OS}/%.c
 							@echo [CC] $<
 							@${___CC} ${___SVXCFLAGS} -o $@ -c $<
 
+# ReMooD.wad
+bin/remood.wad:				rmdtext.exe wad/wadinfo.txt
+							@echo [RMDTEX] $@
+							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
+
+wad:						bin/remood.wad
+							
+
+# RMDTEX -- DeuTex Clone For ReMooD
+rmdtext.exe:				util/rmdtex.c
+							@echo [CC] rmdtex
+							@$(___HOSTCC) -o $@ $<
 
