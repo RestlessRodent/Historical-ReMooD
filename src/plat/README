@@ -1,0 +1,10 @@
+Platform Dependent Code (System)
+	allegro  -- Allegro 4.x
+	allegro5 -- Allegro 5.x
+	glutal   -- OpenGL + GLUT
+	headless -- Generic (No sound, no video, no input)
+	libogc   -- Nintendo GameCube/Wii
+	palmos   -- Palm OS 5.x
+	sdl      -- SDL 1.2
+	sdl2     -- SDL 2.0
+	win36c   -- Windows (32-bit/64-bit/CE)
