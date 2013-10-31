@@ -25,109 +25,43 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
-# Another makefile setup, dynamic recursive makes
-# Root makefile, calls other makefiles
-# Lean and mean!
-
-################
-### COMPILER ###
-################
-
-# If $(CC) is cc, make it gcc!
-ifndef KEEPCC
-	ifeq (cc,$(CC))
-		export CC := gcc
-	endif
-endif
-
-ifndef AR
-	export AR := ar
-endif
-
-# Check if $(WINDRES) is set (resource compiler)
-ifndef WINDRES
-	export WINDRES := windres
-endif
-
-# Use toolchain prefix on default $(CC)
-ifneq (,$(TOOLPREFIX))
-	export __INT_CC := $(strip $(TOOLPREFIX))
-	export __INT_WINDRES := $(strip $(TOOLPREFIX))
-	export __INT_AR := $(strip $(TOOLPREFIX))
-endif
-export __INT_CC := $(__INT_CC)$(CC)
-export __INT_WINDRES := $(__INT_WINDRES)$(WINDRES)
-export __INT_AR := $(__INT_AR)$(AR)
-
-# Have a prefix for the host's GCC
-ifneq (,$(HOSTPREFIX))
-	export __INT_HOSTPREFIX := $(strip $(HOSTPREFIX))
-endif
-export __INT_HOSTCC := $(__INT_HOSTPREFIX)gcc
-
-#####################
-### COMPILE FLAGS ###
-#####################
-
-__INT_COMMONCFLAGS  := -fno-strict-aliasing
-__INT_COMMONLDFLAGS :=
-
-# Debugging?
-ifdef DEBUG
-	__INT_MCFLAGS := -g3 -O0 -D_DEBUG -Wall
-	__INT_MLDFLAGS := -g3 -O0
-	__INT_RCFLAGS := -D_DEBUG
-	export __INT_OBJPREFIX := d
-	export __INT_EXESUFFIX := -dbg$(EXESUFFIX)
-else
-	__INT_MCFLAGS := -g0 -O2 -DNDEBUG
-	__INT_MLDFLAGS := -g0 -O2
-	__INT_RCFLAGS := -DNDEBUG
-	export __INT_OBJPREFIX := r
-	export __INT_EXESUFFIX := $(EXESUFFIX)
-endif
-
-# CC Flags
-export __INT_CFLAGS := $(CFLAGS) $(__INT_COMMONCFLAGS) $(__INT_MCFLAGS)
-
-# Linker Flags
-export __INT_LDFLAGS := $(LDFLAGS) $(__INT_COMMONLDFLAGS) $(__INT_MLDFLAGS)
-
-# Interface?
-export __INT_INTERFACE := $(USEINTERFACE)
+# A third makefile setup, even meaner and even leaner!
+# Might not work on ancient Win98 systems using ancient Dev-C++'s GNU Make.
 
 ##################################
 ### HOW DO WE EXECUTE COMMANDS ###
 ##################################
+# This is here so that the makefile can still execute certain commands on DOS.
 
 # Ugly lowercasing for shells
-__INT_LOWERJUNK = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+___LOWERJUNK = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 
 # Do lowercasing
-__INT_LSHELL   := $(call __INT_LOWERJUNK,$(SHELL))
-__INT_LCOMSPEC := $(call __INT_LOWERJUNK,$(COMSPEC))
+___LSHELL   := $(call ___LOWERJUNK,$(SHELL))
+___LCOMSPEC := $(call ___LOWERJUNK,$(COMSPEC))
 
 # When using GNUWin32's make on Windows, it seems COMSPEC is NOT passed to
 # make when it should be. Therefor, set COMPSPEC since ths shell must be known.
-ifeq (,$(strip $(__INT_LCOMSPEC)))
-	__INT_HCOMSPEC := $(strip $(shell ____spec))
-	__INT_LCOMSPEC := $(call __INT_LOWERJUNK,$(__INT_HCOMSPEC))
+ifeq (,$(strip $(___LCOMSPEC)))
+	# This produces an annoying: `make: ____spec: Command not found`
+	___HCOMSPEC := $(strip $(shell ____spec))
+	___LCOMSPEC := $(call ___LOWERJUNK,$(___HCOMSPEC))
 	
-	ifneq (,$(strip $(__INT_LCOMSPEC)))
-		__INT_CHECKREALSH := yes
+	ifneq (,$(strip $(___LCOMSPEC)))
+		___CHECKREALSH := yes
 	endif
 endif
 
 # Another thing to check on GNUWin32 is that SHELL is set to sh.exe (which in
 # most cases, does not exist). A simple case is to check whether a command
 # actually prints what I want it to print.
-ifeq (yes,$(strip $(__INT_CHECKREALSH)))
-	__INT_CHECKSHELL := $(call __INT_LOWERJUNK,$(strip $(shell $(SHELL) echo hello)))
+ifeq (yes,$(strip $(___CHECKREALSH)))
+	___CHECKSHELL := $(call ___LOWERJUNK,$(strip $(shell $(SHELL) echo hello)))
 	
 	# If it does not say hello then it does not exist
-	ifneq (hello,$(strip $(__INT_CHECKSHELL)))
-		__INT_LSHELL := $(__INT_LCOMSPEC)
-		export COMSPEC := $(__INT_HCOMSPEC)
+	ifneq (hello,$(strip $(___CHECKSHELL)))
+		___LSHELL := $(___LCOMSPEC)
+		export COMSPEC := $(___HCOMSPEC)
 	endif
 endif
 
@@ -136,176 +70,340 @@ endif
 #    DOS    : COMSPEC should match SHELL (for DJGPP at least)
 #    CygWin : SHELL == /bin/sh, COMPSPEC = command (Use shell here)
 #    Windows: COMPSEC should match SHELL
-ifeq ($(strip $(__INT_LSHELL)),$(strip $(__INT_LCOMSPEC)))
-	__INT_RUNCURDIR  = 
-	__INT_DELETE     = del
-	__INT_RUNCOMMAND = $(COMSPEC) /C $1
-	export __INT_ISONDOS = yes
+ifeq ($(strip $(___LSHELL)),$(strip $(___LCOMSPEC)))
+	___RUNCURDIR  = 
+	___DELETE     = del
+	___RUNCOMMAND = $(COMSPEC) /C $1
+	___DIRSEP     := $(strip \ )
+	___DOSPATH    = $(subst /,\,$1)
+	___DEVNULL	:= NUL
+	___ISONDOS = yes
 
 # Otherwise assume a UNIX shell, or at least a compatible one
 else
-	__INT_RUNCURDIR  = ./
-	__INT_DELETE     = rm -f
-	__INT_RUNCOMMAND = $(SHELL) -c "$1"
-	export __INT_ISONDOS = no
+	___RUNCURDIR  = ./
+	___DELETE     = rm -f
+	___RUNCOMMAND = $(SHELL) -c "$1"
+	___ISONDOS = no
+	___DIRSEP     := /
+	___DOSPATH    = $1
+	___DEVNULL    := /dev/null
 
 #
 endif
 
-#####################
-### LIBRARY STUFF ###
-#####################
+#############################
+### PREFIX AND C COMPILER ###
+#############################
 
-### SDL ###
+# If $(CC) is cc, make it gcc!
+ifndef KEEPCC
+ifeq (cc,$(CC))
 
-# Use sdl-config if SDL_LIB and SDL_INCLUDE are not set
-ifeq (,$(strip $(SDL_LIB))$(strip $(SDL_INCLUDE)))
-	ifneq (,$(findstring 1.2,$(strip $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)sdl-config --version)))))
-		export __INT_SDLCFLAGS  := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)sdl-config --cflags))
-		export __INT_SDLLDFLAGS := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)sdl-config --libs))
-	endif
+export CC := gcc
+
+endif
 endif
 
-# Fall back to environment variables
-ifeq (,$(strip $(__INT_SDLCFLAGS)))
-	ifneq (,$(strip $(SDL_INCLUDE)))
-		export __INT_SDLCFLAGS  := -I$(SDL_INCLUDE)
-	else
-		export __INT_SDLCFLAGS  := -Iinclude -ISDL -Iinclude/SDL
-	endif
+# Makes libraries
+ifndef AR
+
+export AR := ar
+
 endif
 
-ifeq (,$(strip $(__INT_SDLLDFLAGS)))
-	ifneq (,$(strip $(SDL_LIB)))
-		export __INT_SDLLDFLAGS := -L$(SDL_LIB) -lSDLmain -lSDL
-	else
-		export __INT_SDLLDFLAGS := -Llib -LSDL -lSDLmain -lSDL
-	endif
+# Check if $(WINDRES) is set (resource compiler)
+ifndef WINDRES
+
+export WINDRES := windres
+
 endif
 
-### ALLEGRO ###
+# Use toolchain prefix on default $(CC)
+ifneq (,$(TOOLPREFIX))
 
-# Use allegro-config if ALLEGRO_LIB and ALLEGRO_INCLUDE are not set
-ifeq (,$(strip $(ALLEGRO_LIB))$(strip $(ALLEGRO_INCLUDE)))
-	ifneq (,$(findstring 4.2,$(strip $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)allegro-config --version)))))
-		export __INT_ALLEGROCFLAGS  := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)allegro-config --cflags))
-		export __INT_ALLEGROLDFLAGS := $(shell $(call __INT_RUNCOMMAND,$(CONFIGPREFIX)allegro-config --libs))
-	endif
+export ___CC := $(strip $(TOOLPREFIX))
+export ___WINDRES := $(strip $(TOOLPREFIX))
+export ___AR := $(strip $(TOOLPREFIX))
+
 endif
 
-# Fall back to environment variables
-ifeq (,$(strip $(__INT_ALLEGROCFLAGS)))
-	ifneq (,$(strip $(ALLEGRO_INCLUDE)))
-		export __INT_ALLEGROCFLAGS  := -I$(ALLEGRO_INCLUDE)
-	else
-		export __INT_ALLEGROCFLAGS  := -Iinclude -Iallegro
-	endif
+export ___CC := $(___CC)$(CC)
+export ___WINDRES := $(___WINDRES)$(WINDRES)
+export ___AR := $(___AR)$(AR)
+
+# Have a prefix for the host's GCC
+ifneq (,$(HOSTPREFIX))
+
+export ___HOSTPREFIX := $(strip $(HOSTPREFIX))
+
 endif
+export ___HOSTCC := $(___HOSTPREFIX)gcc
 
-ifeq (,$(strip $(__INT_ALLEGROLDFLAGS)))
-	ifneq (,$(strip $(ALLEGRO_LIB)))
-		export __INT_ALLEGROLDFLAGS := -L$(ALLEGRO_LIB) -lalleg
-	else
-		export __INT_ALLEGROLDFLAGS := -Llib -lalleg
-	endif
-endif
+#################
+### DEBUGGING ###
+#################
 
-### ALSA ###
+# Enabled or not?
+ifdef DEBUG
 
-ifneq (,$(strip $(ALSA_LDFLAGS)))
-	export __INT_ALSALDFLAGS := $(ALSA_LDFLAGS)
+___DEBUG := yes
+-include util/debug.y
+
 else
-	export __INT_ALSALDFLAGS := -lasound
+
+___DEBUG := no
+-include util/debug.n
+
 endif
 
-### OPENGL ###
+########################
+### OPERATING SYSTEM ###
+########################
 
-#$(__INT_OPENGLCFLAGS) $(__INT_GLUTCFLAGS) $(__INT_OPENALCFLAGS)
-#$(__INT_OPENGLLDFLAGS) $(__INT_GLUTLDFLAGS) $(__INT_OPENALLDFLAGS)
+# OS Detection Code (For Target Compiler)
+include util/detect.os
 
-ifneq (,$(strip $(OPENGL_LDFLAGS)))
-	export __INT_OPENGLLDFLAGS := $(OPENGL_LDFLAGS)
+# Operating system not found
+ifeq (,${___OS})
+
+$(error Operating system could not be detected, use OS=whatever)
+
 else
-	export __INT_OPENGLLDFLAGS :=
+
+# Print OS
+$(info Target OS: ${___OS})
+
 endif
 
-### GLUT ###
+# Include OS makefile
+-include src/os/${___OS}/makefile
 
-# C Flags
-ifeq (,$(strip $(__INT_GLUTCFLAGS)))
-	ifneq (,$(strip $(GLUT_INCLUDE)))
-		export __INT_GLUTCFLAGS  := -I$(GLUT_INCLUDE)
-	else
-		export __INT_GLUTCFLAGS  := -Iinclude -IGL
-	endif
+##################
+### INTERFACES ###
+##################
+
+# Every available interface
+___ALLINTERFACES := $(foreach __mk,$(wildcard src/plat/*/makefile),$(word 3,$(subst /,${___SPACE} ${___SPACE},${__mk})))
+
+# Specified by command line
+ifneq (,$(strip ${INTERFACE}))
+
+___INTERFACE=$(strip ${INTERFACE})
+
+else
+
+# Use default, if specified...
+ifneq (,$(strip ${___DEFAULTINTERFACE}))
+
+___INTERFACE=${___DEFAULTINTERFACE}
+
+# Use headless interface, if not specified
+else
+
+___INTERFACE=headless
+
 endif
 
-# LD Flags
-ifeq (,$(strip $(__INT_GLUTLDFLAGS)))
-	ifneq (,$(strip $(GLUT_LIB)))
-		export __INT_GLUTLDFLAGS := -L$(GLUT_LIB) -lglut
-	else
-		export __INT_GLUTLDFLAGS := -Llib -lglut
-	endif
 endif
 
-###############
-### TARGETS ###
-##############/
+# Print Interface
+$(info Interface: ${___INTERFACE})
 
-# Object Location
-export __INT_BIN := bin
-export __INT_OBJ := objs
+# Include interface makefile
+-include src/plat/${___INTERFACE}/makefile
 
-# Default
+##############################
+### DEFAULT INITIALIZATION ###
+##############################
+
+# Set output binary to just remood, if interface has nothing set
+ifeq (,$(strip ${___CLEXENAME}))
+
+ifeq (yes,${___DEBUG})
+___CLEXENAME := remood-dbg
+else
+___CLEXENAME := remood
+endif
+
+endif
+
+# Same goes for server
+ifeq (,$(strip ${___SVEXENAME}))
+
+ifeq (yes,${___DEBUG})
+___SVEXENAME := remood-server-dbg
+else
+___SVEXENAME := remood-server
+endif
+
+endif
+
+###########################
+### CLIENT/SERVER RULES ###
+###########################
+
+# Object Code
+___OBJEXT := ${___OSOBJCODE}${___INTOBJCODE}${___DBGOBJCODE}
+
+# Internals
+-include src/client/makefile
+
+ifndef ___NOSERVER
+
+-include src/server/makefile
+
+endif
+
+# Shared source files
+___SHSRC := $(wildcard src/*.c src/plat/${___INTERFACE}/*.c src/os/${___OS}/*.c)
+
+# Objects for client
+___CLSRC := ${___SHSRC} $(wildcard src/client/*.c)
+___CLOBJ := $(foreach __c,${___CLSRC},o/c/$(notdir $(basename ${__c}).${___OBJEXT}))
+___CLDEL := $(foreach __o,${___CLOBJ},ccl___${__o})
+
+# Objects for server
+ifndef ___NOSERVER
+
+___SVSRC := ${___SHSRC} $(wildcard src/server/*.c)
+___SVOBJ := $(foreach __c,${___SVSRC},o/s/$(notdir $(basename ${__c}).${___OBJEXT}))
+___SVDEL := $(foreach __o,${___SVOBJ},csv___${__o})
+
+endif
+
+# Combined flags
+___BASECFLAGS := -Isrc/ -Isrc/plat/${___INTERFACE} -Isrc/os/${___OS}
+
+___SHXCFLAGS  := ${___BASECFLAGS} ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
+___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS}
+
+___CLXCFLAGS  := -Isrc/client ${___SHXCFLAGS}
+___CLXLDFLAGS := ${___SHXLDFLAGS}
+
+ifndef ___NOSERVER
+
+___SVXCFLAGS  := -Isrc/server ${___SHXCFLAGS}
+___SVXLDFLAGS := ${___SHXLDFLAGS}
+
+endif
+
+#############
+### RULES ###
+#############
+
+# Build All
 .PHONY: all
-all:			wad $(__INT_OBJ) ____make.___
-				@$(MAKE) -f ____make.___ all
+all:						client server
+							@:
 
-# Clean
-clean:			$(__INT_OBJ) ____make.___
-				@$(MAKE) -f ____make.___ clean
+# Clean All
+.PHONY: clean
+clean:						clean-client clean-server
+							@:
 
-# The game
-remood:			wad $(__INT_OBJ) ____make.___
-				@$(MAKE) -f ____make.___ remood
+# Client
+.PHONY: client
+client:						bin/${___CLEXENAME} bin/remood.wad
+							@:
 
-# Object directory
-$(__INT_OBJ):	
-				$(__INT_RUNCOMMAND,mkdir $@)
+# ReMooD Client
+bin/${___CLEXENAME}:		${___CLOBJ}
+							@echo [LD] $@
+							@${___CC} -o $@ ${___CLOBJ} ${___CLXLDFLAGS}
 
-# ReMooD.WAD
-$(__INT_BIN)/remood.wad:	rmdtext.exe wad/wadinfo.txt
-							@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
+# Versions of make before 3.80 do not support $(eval) =[
+o/c/%.${___OBJEXT}:			src/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
+
+o/c/%.${___OBJEXT}:			src/client/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
+
+o/c/%.${___OBJEXT}:			src/plat/${___INTERFACE}/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
+
+o/c/%.${___OBJEXT}:			src/os/${___OS}/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
+
+
+# Server
+ifndef ___NOSERVER
+
+# Generic Target
+.PHONY: server
+server:						bin/${___SVEXENAME} bin/remood.wad
+							@:
+
+# ReMooD Server
+bin/${___SVEXENAME}:		${___SVOBJ}
+							@echo [LD] $@
+							@${___CC} -o $@ ${___SVOBJ} ${___SVXLDFLAGS}
+
+o/s/%.${___OBJEXT}:			src/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
+
+o/s/%.${___OBJEXT}:			src/server/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
+
+o/s/%.${___OBJEXT}:			src/plat/${___INTERFACE}/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
+
+o/s/%.${___OBJEXT}:			src/os/${___OS}/%.c
+							@echo [CC] $<
+							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
+
+else
+
+# Generic Target
+.PHONY: server
+server:						
+							@:
+
+endif
+
+# ReMooD.wad
+bin/remood.wad:				rmdtext.exe wad/wadinfo.txt
+							@echo [RMDTEX] $@
+							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad
-
-###################################
-### MAGICAL MAKEFILE GENERATION ###
-###################################
-
-# Phony WAD Target
-.PHONY:
-wad/wadinfo.txt:	
-					
-
-# Preprocessor for environment
-.PHONY: ____cdef.___
-____cdef.___:	version
-				@$(__INT_CC) $(CDEFFLAGS) -E -x c -dM $< -o $@
-
-# Program that builds the makefile (always rebuild)
-# It is suffixed with exe for DOS, UNIX could care less
-.PHONY: ____bild.exe
-____bild.exe:	____makc.___ ____cdef.___
-				@$(__INT_HOSTCC) -o $@ -x c $<
-
-# The actual makefile, generated by ____bild.exe
-____make.___:	____bild.exe
-				@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)____bild.exe ____cdef.___ ____mtmp.___ $@)
+							@:
 
 # RMDTEX -- DeuTex Clone For ReMooD
-rmdtext.exe:	util/rmdtex.c
-				@$(__INT_HOSTCC) -o $@ $<
+rmdtext.exe:				util/rmdtex.c
+							@echo [CC] rmdtex
+							@$(___HOSTCC) -o $@ $<
 
+# Clean Targets
+
+.PHONY: clean-client
+clean-client:				${___CLDEL}
+							@echo [RM] ${___CLEXENAME}
+							@$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,bin/${___CLEXENAME})) > $(___DEVNULL)
+
+.PHONY: ccl___o/c/%.${___OBJEXT}
+ccl___o/c/%.${___OBJEXT}:	
+							@$(if $(wildcard $(subst ccl___,,$@)),echo [RM] $(notdir $(subst ccl___,,$(basename $@)).o),)
+							@$(if $(wildcard $(subst ccl___,,$@)),$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,$(subst ccl___,,$@))) > $(___DEVNULL),)
+
+ifndef ___NOSERVER
+
+.PHONY: clean-server
+clean-server:				${___SVDEL}
+							@echo [RM] ${___SVEXENAME}
+							@$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,bin/${___SVEXENAME})) > $(___DEVNULL)
+
+.PHONY: csv___o/c/%.${___OBJEXT}
+csv___o/s/%.${___OBJEXT}:	
+							@$(if $(wildcard $(subst ccl___,,$@)),echo [RM] $(notdir $(subst ccl___,,$(basename $@)).o),)
+							@$(if $(wildcard $(subst ccl___,,$@)),$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,$(subst ccl___,,$@))) > $(___DEVNULL),)
+
+endif
 
