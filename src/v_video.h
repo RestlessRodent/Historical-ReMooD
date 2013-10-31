@@ -259,8 +259,6 @@ enum
 	
 	VFONT_STATUSBARLARGE,		// Large Status Bar Font (Numbers)
 	
-	VFONT_TERMINUS,				// Terminus Font
-	
 	NUMVIDEOFONTS
 };
 

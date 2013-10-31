@@ -1591,15 +1591,6 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 		{"UFNL", "STTNUM", "UFNL", "STTNUM"},
 		{VFNR_UNIVERSAL, VFNR_STBARNUM},
 	},
-	
-	// New ReMooD UI Font
-	{
-		true,
-		"New UI",
-		"newui",
-		{"UFNU", "", "UFNU", ""},
-		{VFNR_UNIVERSAL, VFNR_NULL},
-	},
 };
 
 static V_UniChar_t l_VSpace[NUMVIDEOFONTS];			// Virtual space character
@@ -1893,7 +1884,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 			// Which translation?
 				// Doom
 			if (a_Font == VFONT_STATUSBARSMALL || a_Font == VFONT_BOOMHUD ||
-				a_Font == VFONT_OEM || a_Font == VFONT_SMALL_DOOM || a_Font == VFONT_LARGE_DOOM || a_Font == VFONT_TERMINUS)
+				a_Font == VFONT_OEM || a_Font == VFONT_SMALL_DOOM || a_Font == VFONT_LARGE_DOOM)
 				VCP = VCP_DOOM;
 				
 				// Heretic
