@@ -283,7 +283,7 @@ ___CLXLDFLAGS := ${___SHXLDFLAGS}
 
 ifndef ___NOSERVER
 
-___SVXCFLAGS  := -Isrc/server ${___SHXCFLAGS}
+___SVXCFLAGS  := -D__REMOOD_DEDICATED -Isrc/server ${___SHXCFLAGS}
 ___SVXLDFLAGS := ${___SHXLDFLAGS}
 
 endif
