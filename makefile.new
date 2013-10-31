@@ -148,6 +148,7 @@ $(error Operating system could not be detected, use OS=whatever)
 
 else
 
+# Print OS
 $(info Target OS: ${___OS})
 
 endif
@@ -159,9 +160,32 @@ endif
 ### INTERFACES ###
 ##################
 
+# Every available interface
 ___ALLINTERFACES := $(foreach __mk,$(wildcard src/plat/*/makefile),$(word 3,$(subst /,${___SPACE} ${___SPACE},${__mk})))
 
-$(info ${___ALLINTERFACES})
+# Specified by command line
+ifneq (,$(strip ${INTERFACE}))
+
+___INTERFACE=$(strip ${INTERFACE})
+
+else
+
+# Use default, if specified...
+ifneq (,$(strip ${___DEFAULTINTERFACE}))
+
+___INTERFACE=${___DEFAULTINTERFACE}
+
+# Use headless interface, if not specified
+else
+
+___INTERFACE=headless
+
+endif
+
+endif
+
+# Print Interface
+$(info Interface: ${___INTERFACE})
 
 #############
 ### RULES ###
