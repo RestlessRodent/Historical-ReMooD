@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # Amiga
 
-___DEFAULTINTERFACE=allegro
+___DEFAULTINTERFACE := allegro
+___OSOBJCODE := a
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 

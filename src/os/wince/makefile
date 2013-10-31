@@ -27,7 +27,10 @@
 # -----------------------------------------------------------------------------
 # Windows CE
 
-___DEFAULTINTERFACE=win36c
+___DEFAULTINTERFACE := win36c
+___OSOBJCODE := k
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 
 ifeq (yes,${___DEBUG})
 ___CLEXENAME := remoodd.exe

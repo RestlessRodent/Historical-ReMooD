@@ -237,8 +237,33 @@ endif
 ### CLIENT/SERVER RULES ###
 ###########################
 
+# Object Code
+___OBJEXT := ${___OSOBJCODE}${___INTOBJCODE}${___DBGOBJCODE}
+
+# Internals
 -include src/client/makefile
 -include src/server/makefile
+
+# Shared source files
+___SHSRC := $(wildcard src/*.c src/plat/${___INTERFACE}/*.c src/os/${___OS}/*.c)
+
+# Objects for client
+___CLSRC := ${___SHSRC} $(wildcard src/client/*.c)
+___CLOBJ := $(foreach __c,${___CLSRC},o/c/$(notdir $(basename ${__c}).${___OBJEXT}))
+
+# Objects for server
+___SVSRC := ${___SHSRC} $(wildcard src/server/*.c)
+___SVOBJ := $(foreach __c,${___SVSRC},o/s/$(notdir $(basename ${__c}).${___OBJEXT}))
+
+# Combined flags
+___SHXCFLAGS  := ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
+___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS}
+
+___CLXCFLAGS  := ${___SHXCFLAGS}
+___CLXLDFLAGS := ${___SHXLDFLAGS}
+
+___SVXCFLAGS  := ${___SHXCFLAGS}
+___SVXLDFLAGS := ${___SHXLDFLAGS}
 
 #############
 ### RULES ###
@@ -260,13 +285,34 @@ server:						bin/${___SVEXENAME}
 							@:
 
 # ReMooD Client
-bin/${___CLEXENAME}:		
-							@echo LD $@
-							@${___CC} -o $@
+bin/${___CLEXENAME}:		${___CLOBJ}
+							@echo [LD] $@
+							@${___CC} ${___CLXLDFLAGS} -o $@ ${___CLOBJ}
 
 # ReMooD Server
-bin/${___SVEXENAME}:		
-							@echo LD $@
-							@${___CC} -o $@
+bin/${___SVEXENAME}:		${___SVOBJ}
+							@echo [LD] $@
+							@${___CC} ${___SVXLDFLAGS} -o $@ ${___SVOBJ}
 
+# Generic
+define ___genrule
+
+o/$1/%.${___OBJEXT}:		$2/%.c
+							@echo [CC] $$<
+							@${___CC} $${$3} -o $$@ -c $$<
+
+endef
+
+# Mixed
+define ___mixrule
+
+$$(eval $$(call ___genrule,$1,src,$3))
+$$(eval $$(call ___genrule,$1,src/$2,$3))
+$$(eval $$(call ___genrule,$1,src/os/${___OS},$3))
+$$(eval $$(call ___genrule,$1,src/plat/${___INTERFACE},$3))
+
+endef
+
+$(eval $(call ___mixrule,c,client,___CLXCFLAGS))
+$(eval $(call ___mixrule,s,server,___SVXCFLAGS))
 

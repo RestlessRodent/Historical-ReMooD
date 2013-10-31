@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # GameCube/Wii
 
-___DEFAULTINTERFACE=libogc
+___DEFAULTINTERFACE := libogc
+___OSOBJCODE := c
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 

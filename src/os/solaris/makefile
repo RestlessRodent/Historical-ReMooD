@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # Solaris
 
-___DEFAULTINTERFACE=sdl
+___DEFAULTINTERFACE := sdl
+___OSOBJCODE := h
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 

@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # SDL
 
-___DEFAULTINTERFACE=sdl
+___DEFAULTINTERFACE := sdl
+___OSOBJCODE := d
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 

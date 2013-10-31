@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # Mac OS X
 
-___DEFAULTINTERFACE=sdl
+___DEFAULTINTERFACE := sdl
+___OSOBJCODE := f
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 

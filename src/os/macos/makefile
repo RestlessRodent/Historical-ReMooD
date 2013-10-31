@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # Mac OS (Classic)
 
-___DEFAULTINTERFACE=allegro
+___DEFAULTINTERFACE := allegro
+___OSOBJCODE := e
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 

@@ -27,7 +27,10 @@
 # -----------------------------------------------------------------------------
 # Windows 64-bit
 
-___DEFAULTINTERFACE=sdl
+___DEFAULTINTERFACE := sdl
+___OSOBJCODE := j
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 
 ifeq (yes,${___DEBUG})
 ___CLEXENAME := remoodd.exe

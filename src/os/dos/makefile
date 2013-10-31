@@ -27,7 +27,10 @@
 # -----------------------------------------------------------------------------
 # DOS
 
-___DEFAULTINTERFACE=allegro
+___DEFAULTINTERFACE := allegro
+___OSOBJCODE := b
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 
 ifeq (yes,${___DEBUG})
 ___CLEXENAME := remoodd.exe

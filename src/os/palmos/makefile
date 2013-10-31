@@ -27,5 +27,8 @@
 # -----------------------------------------------------------------------------
 # PalmOS 5.x
 
-___DEFAULTINTERFACE=palmos
+___DEFAULTINTERFACE := palmos
+___OSOBJCODE := g
+___OSCFLAGS  :=
+___OSLDFLAGS :=
 
