@@ -304,11 +304,11 @@ clean:						clean-client clean-server
 
 # Client
 .PHONY: client
-client:						bin/${___CLEXENAME}
+client:						bin/${___CLEXENAME} bin/remood.wad
 							@:
 
 # ReMooD Client
-bin/${___CLEXENAME}:		${___CLOBJ} bin/remood.wad
+bin/${___CLEXENAME}:		${___CLOBJ}
 							@echo [LD] $@
 							@${___CC} -o $@ ${___CLOBJ} ${___CLXLDFLAGS}
 
@@ -335,11 +335,11 @@ ifndef ___NOSERVER
 
 # Generic Target
 .PHONY: server
-server:						bin/${___SVEXENAME}
+server:						bin/${___SVEXENAME} bin/remood.wad
 							@:
 
 # ReMooD Server
-bin/${___SVEXENAME}:		${___SVOBJ} bin/remood.wad
+bin/${___SVEXENAME}:		${___SVOBJ}
 							@echo [LD] $@
 							@${___CC} -o $@ ${___SVOBJ} ${___SVXLDFLAGS}
 
