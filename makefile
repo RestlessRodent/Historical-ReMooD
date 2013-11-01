@@ -295,17 +295,17 @@ endif
 # Build All
 .PHONY: all
 all:						client server
-							@:
+							-@:
 
 # Clean All
 .PHONY: clean
 clean:						clean-client clean-server
-							@:
+							-@:
 
 # Client
 .PHONY: client
 client:						bin/${___CLEXENAME} bin/remood.wad
-							@:
+							-@:
 
 # ReMooD Client
 bin/${___CLEXENAME}:		${___CLOBJ}
@@ -336,7 +336,7 @@ ifndef ___NOSERVER
 # Generic Target
 .PHONY: server
 server:						bin/${___SVEXENAME} bin/remood.wad
-							@:
+							-@:
 
 # ReMooD Server
 bin/${___SVEXENAME}:		${___SVOBJ}
@@ -364,7 +364,7 @@ else
 # Generic Target
 .PHONY: server
 server:						
-							@:
+							-@:
 
 endif
 
@@ -374,7 +374,7 @@ bin/remood.wad:				rmdtext.exe wad/wadinfo.txt
 							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad
-							@:
+							-@:
 
 # RMDTEX -- DeuTex Clone For ReMooD
 rmdtext.exe:				util/rmdtex.c
