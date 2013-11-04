@@ -42,6 +42,8 @@ ifdef __WIN32_TOOLPREFIX
     # Check to see if allegro works with this compiler
     ifeq (${__WIN32_ALLEGROBIN},ok)
         $(info +++ Win32 Allegro Downloaded)
+        
+        __WIN32_CHECKALLEGRO := $(shell ${__MASTER_PROJ}/conf/check.sh "win32all")
     endif
     
     # Add to the list, if the target worked
@@ -51,4 +53,19 @@ ifdef __WIN32_TOOLPREFIX
     endif
 endif
 
+#############
+### RULES ###
+#############
+
+### PREPARE BUILD ###
+_win32all_prep:			
+						@:
+
+### PERFORM BUILD ###
+_win32all_build:		_win32all_prep
+						@:
+
+### ARCHIVE FILES ###
+_win32all_archive:		
+						@:
 

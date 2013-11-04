@@ -137,7 +137,6 @@ _dos_prep_dosemu:
 # Do build
 .PHONY: _dos_build_dosemu
 _dos_build_dosemu:		
-						echo "wtf ${__MASTER_ROOT}"
 						${__MASTER_PROJ}/conf/demub.sh "${__MASTER_DOSEMUPATH}" "${__MASTER_ROOT}"
 
 ### DOSEMU ###

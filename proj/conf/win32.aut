@@ -1,0 +1,66 @@
+#!/usr/bin/make -f
+#         :oCCCCOCoc.
+#     .cCO8OOOOOOOOO8Oo:
+#   .oOO8OOOOOOOOOOOOOOOCc
+#  cO8888:         .:oOOOOC.                                                TM
+# :888888:   :CCCc   .oOOOOC.     ###      ###                    #########
+# C888888:   .ooo:   .C########   #####  #####  ######    ######  ##########
+# O888888:         .oO###    ###  #####  ##### ########  ######## ####    ###
+# C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
+# :8@@@@8:   :888c   o###         ### #### ### ########  ######## ##########
+#  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######    ######  #########
+#    cO@@@@@@@@@@@@@@@@@Oc0
+#      :oO8@@@@@@@@@@Oo.
+#         .oCOOOOOCc.                                      http://remood.org/
+# -----------------------------------------------------------------------------
+# Copyright (C) 2013-2013 GhostlyDeath <ghostlydeath@remood.org>
+#                                      <ghostlydeath@gmail.com>
+# -----------------------------------------------------------------------------
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# -----------------------------------------------------------------------------
+# Auto-chooses win32 target to builds
+
+__WIN32_ORDER := win32sdl win32all
+
+define __defwin32
+ifeq (,${__WIN32_USERULE})
+ifeq ($1,$(findstring $1,${__MASTER_OKTARGETS}))
+__WIN32_USERULE := win32sdl
+endif
+endif
+endef
+
+$(foreach __o,${__WIN32_ORDER},$(eval $(call __defwin32,${__o})))
+
+# Add to OK rules
+ifneq (,${__WIN32_USERULE})
+	__MASTER_OKTARGETS := win32 ${__MASTER_OKTARGETS}
+endif
+
+#############
+### RULES ###
+#############
+
+### PREPARE BUILD ###
+.PHONY: _win32_prep
+_win32_prep:			_${__WIN32_USERULE}_prep
+						@:
+
+### PERFORM BUILD ###
+.PHONY: _win32_build
+_win32_build:			_${__WIN32_USERULE}_build
+						@:
+
+### ARCHIVE FILES ###
+_win32_archive:			_${__WIN32_USERULE}_archive
+						@:
+
+

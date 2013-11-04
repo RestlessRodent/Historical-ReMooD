@@ -34,6 +34,14 @@ DOSEMUPATH="$1"
 # ReMooD Root is here
 REMOODDIR="$2"
 
+# Cached?
+if [ -f /tmp/remood-dosemu-cache ]
+then
+	echo "+++ DOSEMU Cached Check" 1>&2
+	echo "ok"
+	exit 0
+fi
+
 # Auto fail if there is no unix2dos
 if ! which unix2dos 2> /dev/null > /dev/null
 then
@@ -92,6 +100,7 @@ if [ -f "/tmp/$$.exe" ]
 then
 	echo "ok"
 	rm -f /tmp/$$.exe
+	touch /tmp/remood-dosemu-cache
 	exit 0
 else
 	exit 1

@@ -44,17 +44,6 @@
 #include "p_local.h"
 #include "p_spec.h"
 
-
-
-
-
-
-
-
-
-
-
-
 /*****************************
 *** EXTENDED GAME SETTINGS ***
 *****************************/

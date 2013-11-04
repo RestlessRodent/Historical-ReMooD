@@ -41,6 +41,13 @@ __MASTER_DOSEMUPATH	:= $(shell which dosemu)
 __MASTER_VERSION	:= $(shell cat ${__MASTER_ROOT}/version)
 __MASTER_VERSIONND	:= $(shell cat ${__MASTER_ROOT}/version | sed 's/\.//')
 
+#########################
+### FILES IN ARCHIVES ###
+#########################
+
+__MASTER_TXTFILES := AUTHORS LICENSE README version
+__MASTER_BINFILES := bin/remood.wad
+
 ####################
 ### TARGET SETUP ###
 ####################
@@ -88,7 +95,7 @@ define __autoconftarget
 -include conf/$1.aut
 endef
 
-$(foreach __auttarget,${__MASTER_TARGETS},$(eval $(call __autoconftarget,$(__auttarget))))
+$(foreach __auttarget,${__MASTER_AUTOTARG},$(eval $(call __autoconftarget,$(__auttarget))))
 
 ####################
 ### DEBUG OUTPUT ###

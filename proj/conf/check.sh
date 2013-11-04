@@ -1,4 +1,4 @@
-#!/usr/bin/make -f
+#!/bin/sh
 #         :oCCCCOCoc.
 #     .cCO8OOOOOOOOO8Oo:
 #   .oOO8OOOOOOOOOOOOOOOCc
@@ -26,36 +26,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
-# Auto-chooses win64 target to builds
+# Checks build environment (simple check)
 
-# Prefer SDL
-ifeq (win64sdl,$(findstring win64sdl,${__MASTER_OKTARGETS}))
-	__WIN64_USERULE := win64sdl
-
-else
-endif
-
-# Add to OK rules
-ifneq (,${__WIN64_USERULE})
-	__MASTER_OKTARGETS := win64 ${__MASTER_OKTARGETS}
-endif
-
-#############
-### RULES ###
-#############
-
-### PREPARE BUILD ###
-.PHONY: _win64_prep
-_win64_prep:			_${__WIN64_USERULE}_prep
-						@:
-
-### PERFORM BUILD ###
-.PHONY: _win64_build
-_win64_build:			_${__WIN64_USERULE}_build
-						@:
-
-### ARCHIVE FILES ###
-_win64_archive:			
-						@:
-
+# Bother to check at all?
+echo ok
 

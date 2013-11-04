@@ -31,19 +31,25 @@
 # Use wget, since I know that the most
 if which wget 2> /dev/null > /dev/null
 then
-	wget --progress=dot "$1" -O "$2" 1>&2 || rm -f "$2"
-	
-	# If file exist, download worked
-	if [ -f "$2" ]
-	then
-		exit 0
-	fi
-	
-	# Failed
-	exit 1
+	wget -c --progress=dot "$1" -O "$2" 1>&2 || rm -f "$2"
+
+# Curl
+elif which curl 2> /dev/null > /dev/null
+then
+	curl -C -f -o "$2" "$1" 1>&2 || rm -f "$2"
 
 # No downloader available, very sad =(
 else
 	exit 1
 fi
+	
+# If file exists, download worked
+if [ -f "$2" ]
+then
+	exit 0
+fi
+
+# Failed
+exit 1
+
 
