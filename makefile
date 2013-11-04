@@ -28,6 +28,24 @@
 # A third makefile setup, even meaner and even leaner!
 # Might not work on ancient Win98 systems using ancient Dev-C++'s GNU Make.
 
+##########################
+### CURRENT BUILD ROOT ###
+##########################
+
+# Directory where make is
+__WORDCOUNT := $(words $(MAKEFILE_LIST))
+
+# If this is zero, then just use current dir
+ifeq (0, ${__WORDCOUNT})
+
+__BUILDROOT := .
+
+else
+
+__BUILDROOT	:= $(subst //,/,$(dir $(word ${__WORDCOUNT},$(MAKEFILE_LIST))))
+
+endif
+
 ##################################
 ### HOW DO WE EXECUTE COMMANDS ###
 ##################################
@@ -148,12 +166,12 @@ export ___HOSTCC := $(___HOSTPREFIX)gcc
 ifdef DEBUG
 
 ___DEBUG := yes
--include util/debug.y
+-include ${__BUILDROOT}/util/debug.y
 
 else
 
 ___DEBUG := no
--include util/debug.n
+-include ${__BUILDROOT}/util/debug.n
 
 endif
 
@@ -162,7 +180,7 @@ endif
 ########################
 
 # OS Detection Code (For Target Compiler)
-include util/detect.os
+include ${__BUILDROOT}/util/detect.os
 
 # Operating system not found
 ifeq (,${___OS})
@@ -177,14 +195,14 @@ $(info Target OS: ${___OS})
 endif
 
 # Include OS makefile
--include src/os/${___OS}/makefile
+-include ${__BUILDROOT}/src/os/${___OS}/makefile
 
 ##################
 ### INTERFACES ###
 ##################
 
 # Every available interface
-___ALLINTERFACES := $(foreach __mk,$(wildcard src/plat/*/makefile),$(word 3,$(subst /,${___SPACE} ${___SPACE},${__mk})))
+___ALLINTERFACES := $(foreach __mk,$(wildcard ${__BUILDROOT}/src/plat/*/makefile),$(word 3,$(subst /,${___SPACE} ${___SPACE},${__mk})))
 
 # Specified by command line
 ifneq (,$(strip ${INTERFACE}))
@@ -211,7 +229,7 @@ endif
 $(info Interface: ${___INTERFACE})
 
 # Include interface makefile
--include src/plat/${___INTERFACE}/makefile
+-include ${__BUILDROOT}/src/plat/${___INTERFACE}/makefile
 
 ##############################
 ### DEFAULT INITIALIZATION ###
@@ -247,43 +265,43 @@ endif
 ___OBJEXT := ${___OSOBJCODE}${___INTOBJCODE}${___DBGOBJCODE}
 
 # Internals
--include src/client/makefile
+-include ${__BUILDROOT}/src/client/makefile
 
 ifndef ___NOSERVER
 
--include src/server/makefile
+-include ${__BUILDROOT}/src/server/makefile
 
 endif
 
 # Shared source files
-___SHSRC := $(wildcard src/*.c src/plat/${___INTERFACE}/*.c src/os/${___OS}/*.c)
+___SHSRC := $(wildcard ${__BUILDROOT}/src/*.c ${__BUILDROOT}/src/plat/${___INTERFACE}/*.c ${__BUILDROOT}/src/os/${___OS}/*.c)
 
 # Objects for client
-___CLSRC := ${___SHSRC} $(wildcard src/client/*.c)
+___CLSRC := ${___SHSRC} $(wildcard ${__BUILDROOT}/src/client/*.c)
 ___CLOBJ := $(foreach __c,${___CLSRC},o/c/$(notdir $(basename ${__c}).${___OBJEXT}))
 ___CLDEL := $(foreach __o,${___CLOBJ},ccl___${__o})
 
 # Objects for server
 ifndef ___NOSERVER
 
-___SVSRC := ${___SHSRC} $(wildcard src/server/*.c)
+___SVSRC := ${___SHSRC} $(wildcard ${__BUILDROOT}/src/server/*.c)
 ___SVOBJ := $(foreach __c,${___SVSRC},o/s/$(notdir $(basename ${__c}).${___OBJEXT}))
 ___SVDEL := $(foreach __o,${___SVOBJ},csv___${__o})
 
 endif
 
 # Combined flags
-___BASECFLAGS := -Isrc/ -Isrc/plat/${___INTERFACE} -Isrc/os/${___OS}
+___BASECFLAGS := -I${__BUILDROOT}/src/ -I${__BUILDROOT}/src/plat/${___INTERFACE} -I${__BUILDROOT}/src/os/${___OS}
 
 ___SHXCFLAGS  := ${___BASECFLAGS} ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
 ___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS}
 
-___CLXCFLAGS  := -Isrc/client ${___SHXCFLAGS}
+___CLXCFLAGS  := -I${__BUILDROOT}/src/client ${___SHXCFLAGS}
 ___CLXLDFLAGS := ${___SHXLDFLAGS}
 
 ifndef ___NOSERVER
 
-___SVXCFLAGS  := -D__REMOOD_DEDICATED -Isrc/server ${___SHXCFLAGS}
+___SVXCFLAGS  := -D__REMOOD_DEDICATED -I${__BUILDROOT}/src/server ${___SHXCFLAGS}
 ___SVXLDFLAGS := ${___SHXLDFLAGS}
 
 endif
@@ -309,24 +327,24 @@ client:						bin/${___CLEXENAME} bin/remood.wad
 
 # ReMooD Client
 bin/${___CLEXENAME}:		${___CLOBJ}
-							@echo [LD] $@
+							@echo [LD] $(notdir $@)
 							@${___CC} -o $@ ${___CLOBJ} ${___CLXLDFLAGS}
 
 # Versions of make before 3.80 do not support $(eval) =[
-o/c/%.${___OBJEXT}:			src/%.c
-							@echo [CC] $<
+o/c/%.${___OBJEXT}:			${__BUILDROOT}/src/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
 
-o/c/%.${___OBJEXT}:			src/client/%.c
-							@echo [CC] $<
+o/c/%.${___OBJEXT}:			${__BUILDROOT}/src/client/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
 
-o/c/%.${___OBJEXT}:			src/plat/${___INTERFACE}/%.c
-							@echo [CC] $<
+o/c/%.${___OBJEXT}:			${__BUILDROOT}/src/plat/${___INTERFACE}/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
 
-o/c/%.${___OBJEXT}:			src/os/${___OS}/%.c
-							@echo [CC] $<
+o/c/%.${___OBJEXT}:			${__BUILDROOT}/src/os/${___OS}/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___CLXCFLAGS}
 
 
@@ -343,20 +361,20 @@ bin/${___SVEXENAME}:		${___SVOBJ}
 							@echo [LD] $@
 							@${___CC} -o $@ ${___SVOBJ} ${___SVXLDFLAGS}
 
-o/s/%.${___OBJEXT}:			src/%.c
-							@echo [CC] $<
+o/s/%.${___OBJEXT}:			${__BUILDROOT}/src/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
 
-o/s/%.${___OBJEXT}:			src/server/%.c
-							@echo [CC] $<
+o/s/%.${___OBJEXT}:			${__BUILDROOT}/src/server/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
 
-o/s/%.${___OBJEXT}:			src/plat/${___INTERFACE}/%.c
-							@echo [CC] $<
+o/s/%.${___OBJEXT}:			${__BUILDROOT}/src/plat/${___INTERFACE}/%.c
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
 
 o/s/%.${___OBJEXT}:			src/os/${___OS}/%.c
-							@echo [CC] $<
+							@echo [CC] $(notdir $<)
 							@${___CC} -o $@ -c $< ${___SVXCFLAGS}
 
 else
@@ -369,15 +387,15 @@ server:
 endif
 
 # ReMooD.wad
-bin/remood.wad:				rmdtext.exe wad/wadinfo.txt
-							@echo [RMDTEX] $@
+bin/remood.wad:				rmdtext.exe ${__BUILDROOT}/wad/wadinfo.txt
+							@echo [RMDTEX] $(notdir $@)
 							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad
 							-@:
 
 # RMDTEX -- DeuTex Clone For ReMooD
-rmdtext.exe:				util/rmdtex.c
+rmdtext.exe:				${__BUILDROOT}/util/rmdtex.c
 							@echo [CC] rmdtex
 							@$(___HOSTCC) -o $@ $<
 
@@ -385,7 +403,7 @@ rmdtext.exe:				util/rmdtex.c
 
 .PHONY: clean-client
 clean-client:				${___CLDEL}
-							@echo [RM] ${___CLEXENAME}
+							@echo [RM] $(notdir ${___CLEXENAME})
 							@$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,bin/${___CLEXENAME})) > $(___DEVNULL)
 
 .PHONY: ccl___o/c/%.${___OBJEXT}
@@ -397,7 +415,7 @@ ifndef ___NOSERVER
 
 .PHONY: clean-server
 clean-server:				${___SVDEL}
-							@echo [RM] ${___SVEXENAME}
+							@echo [RM] $(notdir ${___SVEXENAME})
 							@$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,bin/${___SVEXENAME})) > $(___DEVNULL)
 
 .PHONY: csv___o/c/%.${___OBJEXT}

@@ -43,7 +43,7 @@ ifndef __$2_TOOLPREFIX
     __$2_TESTPREFIX := $$(shell which $1-gcc)
     
     ifneq ($${__$2_TESTPREFIX},)
-        __$2_TOOLPREFIX := $1
+        __$2_TOOLPREFIX := $1-
     endif
 endif
 endef

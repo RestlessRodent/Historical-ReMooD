@@ -33,6 +33,7 @@
 ##########################
 
 __MASTER_TMPDIR		:= /tmp
+__MASTER_CURDIR     := $(CURDIR)
 __MASTER_THISMAKE	:= $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 __MASTER_PROJ		:= $(dir ${__MASTER_THISMAKE})
 __MASTER_ROOT		:= ${__MASTER_PROJ}/..

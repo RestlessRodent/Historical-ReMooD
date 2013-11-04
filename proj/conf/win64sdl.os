@@ -55,13 +55,16 @@ endif
 ### RULES ###
 #############
 
+__WIN64SDL_BASE := make -C /tmp/remood-win64sdl -f ${__MASTER_ROOT}/makefile OS=win32 INTERFACE=sdl TOOLPREFIX=${__WIN32_TOOLPREFIX} SDL_INCLUDE=${__MASTER_ROOT}/win64sdl/include/SDL SDL_LIB=${__MASTER_ROOT}/win64sdl/lib
+
 ### PREPARE BUILD ###
 _win64sdl_prep:			
-						@:
+						mkdir -p /tmp/remood-win64sdl /tmp/remood-win64sdl/bin /tmp/remood-win64sdl/o /tmp/remood-win64sdl/o/c /tmp/remood-win64sdl/o/s
 
 ### PERFORM BUILD ###
 _win64sdl_build:		_win64sdl_prep
-						@:
+						${__WIN64SDL_BASE} clean
+						${__WIN64SDL_BASE}
 
 ### ARCHIVE FILES ###
 _win64sdl_archive:		

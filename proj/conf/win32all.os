@@ -57,13 +57,16 @@ endif
 ### RULES ###
 #############
 
+__WIN32ALL_BASE := make -C /tmp/remood-win32all -f ${__MASTER_ROOT}/makefile OS=win32 INTERFACE=allegro TOOLPREFIX=${__WIN32_TOOLPREFIX} ALLEGRO_INCLUDE=${__MASTER_ROOT}/win32all/include ALLEGRO_LIB=${__MASTER_ROOT}/win32all/lib
+
 ### PREPARE BUILD ###
 _win32all_prep:			
-						@:
+						mkdir -p /tmp/remood-win32all /tmp/remood-win32all/bin /tmp/remood-win32all/o /tmp/remood-win32all/o/c /tmp/remood-win32all/o/s
 
 ### PERFORM BUILD ###
 _win32all_build:		_win32all_prep
-						@:
+						${__WIN32ALL_BASE} clean
+						${__WIN32ALL_BASE}
 
 ### ARCHIVE FILES ###
 _win32all_archive:		
