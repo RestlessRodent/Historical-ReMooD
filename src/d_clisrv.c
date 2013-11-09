@@ -185,12 +185,14 @@ void TryRunTics(tic_t realtics, tic_t* const a_TicRunCount)
 			I_WaitVBL(20);
 			return;
 		}
-		
+
+#if !defined(__REMOOD_DEDICATED)
 		// If demo needs advancing
 		D_UITitleNext();
 		
 		// Tic the title screen
 		D_UITitleTick();
+#endif
 		
 		// Set last time
 		LastTic = LocalTic;

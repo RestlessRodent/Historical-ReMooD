@@ -207,7 +207,9 @@ void D_Display(void)
 	bool_t viewactivestate = false;
 	V_Image_t* PausePic;
 	int32_t Junk;
+#if !defined(__REMOOD_DEDICATED)
 	UI_BufferSpec_t Spec;
+#endif
 	
 	if (dedicated)
 		return;
@@ -242,6 +244,7 @@ void D_Display(void)
 		wipe = false;
 	
 	/* Retrograde Stub to new UI Code */
+#if !defined(__REMOOD_DEDICATED)
 	// Screen is locked by soft buffer, if needed
 	// Note that, the drawing code explicitely virtual always calls this
 	// function which results in multiple relocks.
@@ -253,6 +256,7 @@ void D_Display(void)
 	
 	// Unlock buffer
 	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
+#endif
 	
 	// draw buffered stuff to screen
 	// BP: Used only by linux GGI version
@@ -418,6 +422,7 @@ void D_Display(void)
 	I_UpdateMusic();
 	
 	/* Retrograde Stub to new UI Code */
+#if !defined(__REMOOD_DEDICATED)
 	// Screen is locked by soft buffer, if needed
 	// Note that, the drawing code explicitely virtual always calls this
 	// function which results in multiple relocks.
@@ -429,6 +434,7 @@ void D_Display(void)
 	
 	// Unlock buffer
 	I_GetVideoBuffer(IVS_DONEWITHBUFFER, NULL);
+#endif
 	
 	//I_BeginProfile();
 	if (!noblit)
@@ -2366,7 +2372,9 @@ void D_DoomMain(void)
 	g_EarlyBootConsole = true;
 	
 	/* Adapters */
+#if !defined(__REMOOD_DEDICATED)
 	UI_Init();							// Initialize UI
+#endif
 	CL_InitViews();						// Initialize views
 	V_ImageFindA(NULL, 0);				// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD

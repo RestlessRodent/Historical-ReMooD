@@ -389,7 +389,7 @@ endif
 # ReMooD.wad
 bin/remood.wad:				rmdtext.exe ${__BUILDROOT}/wad/wadinfo.txt
 							@echo [RMDTEX] $(notdir $@)
-							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
+							@$(call ___RUNCOMMAND,$(___RUNCURDIR)rmdtext.exe ${__BUILDROOT}/wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad
 							-@:

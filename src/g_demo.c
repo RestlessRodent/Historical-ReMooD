@@ -2696,7 +2696,9 @@ void G_StopDemoPlay(void)
 	// Advance
 	else if (Advance)
 	{
+#if !defined(__REMOOD_DEDICATED)
 		D_UITitleBump();
+#endif
 		gamestate = GS_DEMOSCREEN;
 	}
 	

@@ -497,8 +497,10 @@ void I_OsPolling(void)
 			continue;
 		}
 		
+#if !defined(__REMOOD_DEDICATED)
 		if (UI_HandleEvent(&Event, true))
 			continue;
+#endif
 			
 		if (CONL_HandleEvent(&Event))
 			continue;
@@ -508,15 +510,18 @@ void I_OsPolling(void)
 		
 		if (CL_SockEvent(&Event))
 			continue;
-			
+
+#if !defined(__REMOOD_DEDICATED)		
 		if (UI_HandleEvent(&Event, false))
 			continue;
+#endif
 	}
 }
 
 /* I_DoMouseGrabbing() -- Does grabbing if the mouse should be grabbed */
 void I_DoMouseGrabbing(void)
 {
+#if !defined(__REMOOD_DEDICATED)
 	static bool_t Grabbed = false;
 	bool_t New = false;
 	
@@ -536,6 +541,9 @@ void I_DoMouseGrabbing(void)
 		// Set grabbed to new
 		Grabbed = New;
 	}
+#else
+	return;
+#endif
 }
 
 /* I_StartupMouse() -- Initializes the mouse */
@@ -953,7 +961,9 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	vid.modenum = VID_ClosestMode(&w, &h, true);
 	vid.HWDblBuf = a_HWDblBuf;
 	
+#if !defined(__REMOOD_DEDICATED)
 	UI_SetBitDepth((a_GL ? I_VIDEOGLMODECONST : a_Depth));
+#endif
 	
 	/* Nothing after this is done in GL mode */
 	if (a_GL)
