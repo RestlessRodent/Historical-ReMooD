@@ -1,9 +1,0 @@
-This repository replaces the SVN repository. However, all of the history before
-the last trunk has been erased.
-
-If you still wish to see the said history then visit:
-	* http://sourceforge.net/scm/?type=svn&group_id=184616
-		> svn co https://remood.svn.sourceforge.net/svnroot/remood remood
-		> http://remood.svn.sourceforge.net/viewvc/remood/
-	* Or you can e-mail me for a complete repository dump.
-
