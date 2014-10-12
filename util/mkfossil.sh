@@ -82,7 +82,7 @@ then
 	fossil settings -R "/tmp/$$.fsl" case-sensitive 1
 	
 	fossil config push shun "/tmp/$$.fsl"
-
+	
 	fossil rebuild --force --vacuum --pagesize 1024 --compress \
 		--stats "/tmp/$$.fsl"
 	
