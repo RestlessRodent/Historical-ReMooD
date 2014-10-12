@@ -77,7 +77,7 @@ then
 	
 	fossil remote-url -R "/tmp/$$.fsl" off
 	fossil remote-url -R "/tmp/$$.fsl" \
-		http://remood.org/remood.fsl
+		http://remood.org:8080/remood/
 	fossil settings -R "/tmp/$$.fsl" autosync 0
 	fossil settings -R "/tmp/$$.fsl" case-sensitive 1
 	
