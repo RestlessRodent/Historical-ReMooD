@@ -1,0 +1,12 @@
+# 2016/05/05
+
+## 19:47
+
+Decided to go the JNI and slow convert route. Due to the complexity and the
+potential of conversion, there will be bridging interfaces along with many
+natives. Once the conversion is complete I will remove all of the natives.
+
+## 19:51
+
+I suppose the easiest code to convert would be the demo code.
+
