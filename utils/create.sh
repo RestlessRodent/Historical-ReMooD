@@ -185,6 +185,16 @@ do
 					cat "$__exedir/base.java"
 				fi
 			
+			# C source
+			elif [ "$__tfext" = "c" ]
+			then
+				cat "$__exedir/base.c"
+			
+			# C header
+			elif [ "$__tfext" = "h" ]
+			then
+				cat "$__exedir/base.h"
+			
 			# Resource bundle
 			elif [ "$__tfext" = "properties" ]
 			then
