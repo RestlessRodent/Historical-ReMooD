@@ -312,7 +312,7 @@ endif
 
 # Build All
 .PHONY: all
-all:						client server
+all:						client
 							-@:
 
 # Clean All
