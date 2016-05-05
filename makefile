@@ -175,6 +175,20 @@ ___DEBUG := no
 
 endif
 
+############
+### JAVA ###
+############
+
+# Java header not found
+ifeq (,${JAVA_INCLUDE})
+$(error JAVA_INCLUDE not specified)
+endif
+
+# Java library not found
+ifeq (,${JAVA_LIB})
+$(error JAVA_LIB not specified)
+endif
+
 ########################
 ### OPERATING SYSTEM ###
 ########################
