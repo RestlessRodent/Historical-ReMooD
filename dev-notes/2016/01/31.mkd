@@ -1,0 +1,9 @@
+# 2016/01/31
+
+## 23:58
+
+Took a month break, was busy and such. I decided instead of just having a
+developer blog thing on my site posting once in awhile, I can just have a file
+where I can store specific notes. Might be better to determine my thought
+process.
+

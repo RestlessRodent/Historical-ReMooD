@@ -1,0 +1,29 @@
+# 2014/12/01
+
+## 04:53
+
+The main news feed has more information. On part of development however, I
+have started to slowly port ReMooD to Java 8 since after programming Java for
+quite some time it just kind of sticks to you. However I would say that I am
+an efficient programmer when it comes to Java so it should not run like
+snails. This would be a complete rewrite as when changing from on language to
+another (in this case C to Java), if you decide that you want the EXACT
+behavior or layout that C code has then you are going to get really slow
+terrible code. On the other hand, this would allow me to add some new features
+that would be difficult to put in C ReMooD because of the age of the code and
+all of the interdependencies. Basically when Doom Legacy was written it was
+not exactly future proof, so you got hacks upon hacks upon hacks (which is why
+it crashed all the time). With ReMooD I spent most of my time changing those
+hacks and making them better (which is how you got 4 player splitscreen and my
+20 menu rewrites). I suppose ReMooD dragged on because I wanted it to be not
+buggy and to have nice code attached to it. But it started to develop twords
+very object oriented nature but I did not want to switch to C++ because that
+would be a huge mess, so I went the other route. Why not another language such
+as C#, Perl, Python, Ruby, Javascript, Forth, Brainfuck, Scala, Visual Basic,
+D, Objective-C, Rust, Go, HTML5, Groovy, ACS, or Intercal; since I already
+know Java and learning another programming language is something that takes
+time.
+
+The package ReMooD resides in is called "org.remood.remood".
+
+

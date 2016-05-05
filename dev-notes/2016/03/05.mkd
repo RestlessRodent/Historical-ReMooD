@@ -1,0 +1,12 @@
+# 2016/03/05
+
+## 20:46
+
+Going to close down the 1.0a dev news RSS feed and instead just have it point
+to the fossil repository with dates.
+
+## 21:05
+
+And I finished the migration, so spurious posts going back to 2012 have been
+migrated.
+

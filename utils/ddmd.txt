@@ -1,0 +1,172 @@
+==============================================================================
+ STANDARD DOOM DEMO META-DATA FORMAT
+                                                          VERSION 20150926001
+==============================================================================
+
+*** 1.0 PURPOSE ***
+
+	The purpose of this standard is to describe standard meta-data that can
+be attached to any kind of demo so that multiple source ports and tools may
+access the meta-data to describe information about a demo. This can also
+support adding extra features to demos which lack support for them (for example
+Vanilla Doom).
+
+	This may be attached to any demo, even non-vanilla demos across the various
+source ports.
+
+--- 1.1 CONTACTS ---
+
+	This standard has been drafted/updated/enhanced by the following:
+
+	* GhostlyDeath <ghostlydeath@remood.org>
+
+*** 2.0 CHANGELOG ***
+
+20150926001: Initial version
+	* Changes
+	+ Additions
+	- Removals 
+
+*** 3.0 FORMAT ***
+
+	The primary format of the meta-data is the ZIP file format. The ZIP file is
+to be placed at the end of the demo. ZIP is a neutral format and is able to be
+easily appended to other files to make then ZIP files. Since many demo formats
+use the beginning of the file to describe the demos, this does not conflict
+with them.
+
+	The ZIP MUST ONLY use DEFLATE and/or NONE compression.
+	
+	The ZIP entry names MUST USE forward slashes if directories are denoted.
+	
+	The ZIP entry names MUST NEVER start with a forward slash.
+	
+	The ZIP directory MUST BE locatable by standard ZIP utilties (such as
+unzip, WinZip, 7-zip, Java's java.util.zip.ZipFile, etc.).
+
+	All DDMD related files are to be prefixed with "ddmd/" which places them
+within the "ddmd" directory.
+
+*** 4.0 SOURCE PORTS ***
+
+	If a source port supports the STANDARD DOOM DEMO META-DATA FORMAT, then it
+must have the following:
+
+	If the source port supports a console where commands may be typed, then the
+command "dmdversion" must be a valid command which prints the version of
+this standard it supports.
+
+	All source ports MUST HAVE a command line switch "-ddmdversion" which
+prints out the supported version to standard output (stdout) then terminates.
+This may be used for scripts or launcher to check if a source port supports
+the STANDARD DOOM DEMO META-DATA FORMAT.
+
+*** 5.0 ENTRIES ***
+
+	The ZIP file contains entries which describe the meta-data they represent.
+Some entries (they will be marked) are REQUIRED to be placed in the ZIP so as
+to identify that they follow the standard.
+
+	Standardized entries are defined in section 6.0.
+	
+	Non-standard entries must start with "x-" followed by the source port or
+utility defining them. Examples would be "x-remood", "x-chocolatedoom", etc.
+
+*** 6.0 "standard" ***
+
+	Since 20150926001.
+	
+	THIS IS A REQUIRED ENTRY.
+
+	This represents the standard in which the demo was recorded in. It must
+always be the latest standard of the DOOM DEMO META-DATA FORMAT that the
+source port supports. This is used so that if a source port supports a new
+standard version, it may change specific logic as needed.
+
+^^^ Example:
+20150926001
+^^^
+
+*** 6.1 "recorder" ***
+
+	Since 20150926001.
+	
+	THIS IS A REQUIRED ENTRY.
+	
+	This is the source port (or utility) which recorded/created this demo. It
+identifies it so that another source port can identify which port should be
+used to play a demo if it is given one that it does not understand (for example
+playing ReMooD formatted demos in Odamex).
+
+^^^ Example:
+ReMooD 1.0a
+^^^
+
+^^^ Example:
+PrBoom-Plus v2.6.1.4
+^^^
+
+*** 6.2 "files" ***
+
+	Since 20150926001.
+	
+	THIS IS A REQUIRED ENTRY.
+	
+	This identifies the WADs/PK3s which were used to record this demo.
+	
+	Port specific WADs MUST NOT be included. A port specific WAD is one that
+is automatically added by a source port and contains its resources. Examples
+would be odamex.wad, prboom.wad, and remood.wad. The first WAD in the list is
+always the IWAD used to record the demo.
+
+	The WADs SHOULD BE followed by a checksum identifying the WAD, however it
+is not required. If there is one then it should be used to verify that the
+correct WADs were given to a demo (or they can automatically be loaded by a
+source port if applicable). The checksum must be prefixed by the algorithm it
+represents. Multiple checksums may be specified and an if any are valid then
+the WAD is OK.
+
+	In order from BEST to WORST:
+	
+	* sha-1     -- Standard SHA-1 Algorithm
+	* md5       -- MD5 Algorithm
+	* crc32     -- CRC32
+	* wadheader -- IndexOffset + (LumpCount * 1048576)
+	
+	If checksums are specified and the source port DOES NOT support ANY of them
+then a warning should be emitted.
+	
+^^^ Example:
+plutonia.wad sha-1:90361e2a538d2388506657252ae41aceeb1ba360
+dwango6.wad sha-1:6a92d2228bf609296b6899fed6f7e2bae55f64b0
+^^^
+
+*** 6.3 "date" ***
+
+	Since 20150926001.
+	
+	THIS IS AN OPTIONAL ENTRY.
+	
+	This represents when the demo was recorded. It MUST BE in ISO-8601 format.
+
+^^^ Example:
+2015-09-26
+^^^
+
+^^^ Example:
+2015-09-26T19:47:03Z
+^^^
+
+*** 6.4 "length" ***
+
+	Since 20150926001.
+	
+	THIS IS AN OPTIONAL ENTRY.
+	
+	This represents the length of the demo in Doom tics. A tic is 1/35th of a
+second and represents a single frame in Doom logic.
+
+^^^ Example:
+98216431
+^^^
+

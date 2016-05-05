@@ -1,0 +1,47 @@
+# 2012/05/07
+
+## 20:00
+
+I've made numerous changes over the last month, the more pressing ones i've
+explained in more detail. Some minor changes include an OPL emulator from
+Chocolate Doom (although it cannot make any noise), Generalized LineDef Types
+(LineDef specials defined in a lump), replaced non-free dsjump/dsouch with
+free versions, extra resolutions, initial bot support, joystick control,
+better profiles, cluster spawning, console history, Beta BFG, and some more
+things.
+
+I have also added a loading screen indicator for when levels load to indicate
+how far along levels have been loaded. This is to show at least some progress
+rather than indicating nothing. Note that the loading screen will not appear
+for the first 2 seconds of map loading, after that point it appears. I do this
+because drawing the loading screen costs time and the time could be spent
+loading the level rather than drawing.
+
+I also got plans down for a new intermission layout as seen below. It should
+be rather simple and show information for more than a few players. Any
+scoreboards will probably look the same and could share the same code.
+
+I have also brought the video initialization code to the near start of the
+game to inform the user that the game is loading (since it takes a bit longer
+due to all of the dynamic data being loaded). The single line message informs
+the user of what is happening (in this case it is loading objects). The red
+piece on the bar moves around to indicate activity.
+
+I am currently working on the save game code so that you will be able to save
+and load games. The save games are made in a way so it should feel like you
+never even stopped playing.
+
+As a small fun thing to do, you can play as a monster, although you move like
+a monster.
+
+![Level Loading Screen](
+http://remood.org/images/remood_20120507_levelloadingscreen.png)
+![Loading Screen](
+http://remood.org/images/remood_20120507_loadingscreen.png)
+![New Intermission \(A\)](
+http://remood.org/images/remood_20120507_newintera.png)
+![New Intermission \(B\)](
+http://remood.org/images/remood_20120507_newinterb.png)
+![New Intermission \(B\)](
+http://remood.org/images/remood_20120507_selfmonster.png)
+

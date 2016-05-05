@@ -1,0 +1,17 @@
+# 2016/02/17
+
+## 22:42
+
+I need to decouple and not use AWT/Swing in core classes at all because that
+can get messy and break portability.
+
+## 22:51
+
+Thinking about it, technically the main game and such is launched from the
+main menu which is a sort of launcher. In C, the game is just highly coupled
+while in Java it would be more sane to have a launcher interface (such as one
+like Doom 95) which then spawns individual games. Minecraft does this. With
+a slight decouple of the rendering engine and the gameplay engine, there can
+be three distinct parts: The launcher (title screen), gameplay, and the
+renderer. Then ReMooD could be used as a sort of library to play the game.
+

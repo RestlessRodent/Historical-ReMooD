@@ -1,0 +1,9 @@
+# 2013/10/31
+
+## 10:46
+
+I have created a new build system and started initialization on massive code
+reorganization. So the auto build system will be offline until I resetup the
+automatic build system to be able to use the new build system.
+
+

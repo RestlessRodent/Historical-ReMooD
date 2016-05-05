@@ -1,0 +1,30 @@
+# 2012/02/07
+
+## 00:06
+
+As of this posting, ReMooD's new console is in place and is ready and waiting
+to take over console based functions. The new code appears to be more
+efficient and replaces the existing console code (which is of questionable
+legal status). The old deprecated console code will remain until everything is
+moved over to the new system. Below is a screenshot of what the new console
+looks like, not much different from the old one. There's also a change in
+where ReMooD places its configuration files (mostly affects UNIX users), on
+UNIX systems it uses the XDG specifications (a.k.a. "~/.config" and
+"~/.local/share".
+
+The formerly called ReMooD Map Object Data now called ReMooD Data is supported
+and parsed, but only menus are handled so far. However, due to security
+concerns you are not able to replace menus in PWADs unless you modify
+remood.wad and remove the write-over lock. But in spite of this, you are
+allowed to replace the "PWAD Menu" which would be the place where user WADs
+could add their own menu stuff.
+
+There also exists the new imaging system (you can see it below). It handles
+both the internal patch\_t and pic\_t formats. If you edit for Doom you are
+probably familiar with patch\_t already, pic\_t is similar however it was
+created by Doom Legacy. However, patches are not directly drawn to the screen
+currently and are translated internally to another format. Thus, you get the
+image on a black rectangle.
+
+![New console](http://remood.org/images/201202-console.png)
+

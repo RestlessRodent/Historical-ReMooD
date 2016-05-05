@@ -1,0 +1,41 @@
+# 2012/06/20
+
+## 05:00
+
+Since my last posting I have made a bunch of updates, there are now workable
+menus (although you need the console to access some of them). Each player can
+have its own menu to control (per player menus). I moved virtually all the
+game state variables to the new variable system and it works quite well. I did
+not make much progress in the save game or netcode areas though (the netcode
+needs some re-factoring before I go further with it). The intermission screen
+looks much nicer. Textures and floors are now animated with ANIMATED along
+with SWITCHES for switch textures. Generalized LineDefs and Sector Types for
+somewhat customized line def types for internal usage. I started base work on
+a script interpreter and compiler for faster and hopefully cleaner script
+execution. A basic Legacy-like status bar overlay (the standard Doom bar is
+not yet implemented). An improved hash function. I added MiniZ into the game
+but it is not yet used, so this would pave the way for compression and stuff
+like PNG output rather than PCX.
+
+I am currently working on demo support so you can play back and record various
+demo types. I entitled the demo support backend as "Demo Factories" which
+basically can encode and decode demos at the same time. As of this writing you
+can play back Vanilla demos (and record them), but they pretty much instantly
+desync which is being worked on. However in the mean time I'm currently adding
+Legacy demo support so you could play old Legacy demos better than Legacy
+itself, provided you did not open the menu while recording a demo in Legacy.
+
+I also started base work on Heretic support so the maps load without problems
+and most of the line and sector types work, however there are no map things,
+weapons, or inventory objects. I'll need to add support for those.
+
+In the end, menus will be mostly independent but glued together. I need to
+implement per player automaps however. The profile system also needs to be
+able to be modified with loading/saving of profiles.
+
+![1 Player Menu](http://remood.org/images/remood_20120620_1pmenu.png)
+![4 Player Menu](http://remood.org/images/remood_20120620_4pmenu.png)
+![Bots!](http://remood.org/images/remood_20120620_shoot32.png)
+![Text Colors](http://remood.org/images/remood_20120620_textcolors.png)
+
+

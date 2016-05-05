@@ -1,0 +1,9 @@
+# 2016/03/16
+
+## 09:47
+
+When playing a game, perhaps in multiplayer, it could be detected if the IWAD
+is at least somewhat compatible. That is if you are playing D5M1 and the server
+uses _doom2.wad_, then you could join with say _tnt.wad_ or _plutonia.wad_.
+If the game is not compatible then the player will just desync out.
+

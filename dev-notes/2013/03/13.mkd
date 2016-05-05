@@ -1,0 +1,28 @@
+# 2013/03/13
+
+## 00:00
+
+I have worked on networking the past month, which means you can currently
+somewhat play with others. Some things are still missing, such as clients
+moving, and uploading/downloading WAD files, adding new split screens in game.
+Along with networking save games work, loading and saving. Save games in
+ReMooD are planned to be perfect, so that when you save the game it is exactly
+how you left it. Currently the entire state is not saved, but a huge chunk of
+it is.
+
+However, the menus have no changed a bit at all, so most of the game usage is
+via command line or via console.
+
+Bots have been partialy coded, they can partially run around a level to a
+certain extent.
+
+Here is a list of things I have done with the code:
+
+  * The line type functions have been simplified for implementation sake. 
+  * Save games, partial data is saved. 
+  * Work on bots and their navigation. 
+  * Misc. Code Cleanups. 
+  * Switch to a game mode setup, Coop, DM, CTF, etc. 
+  * MIDI music can be played on Linux with ALSA. 
+
+

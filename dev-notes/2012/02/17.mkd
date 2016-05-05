@@ -1,0 +1,21 @@
+# 2012/02/17
+
+## 15:30
+
+ReMooD can load levels now somewhat although walls and floors have no activity
+and there is no block map (no collisions). Both Doom and Hexen format maps are
+supported and can be loaded by the game. Support for textual map formats (such
+as UDMF) will come at a later time.
+
+There also exists new texture loading code that unifies wall and floor
+textures. This means that it is possible to use flats as wall textures and
+wall textures as flats.
+
+Level loading takes some time, but this is due to unoptimized WAD reading
+code. Most of the time spent loading levels is accessing data from a WAD. Data
+loading can be improved later with buffered reading rather than the current
+slow method.
+
+![E1M1 \(Bugged\)](http://remood.org/images/remood-e1m1-bugged.png) ![E1M1
+\(Bugged\)](http://remood.org/images/remood-e1m1-zigzagbugged.png)
+

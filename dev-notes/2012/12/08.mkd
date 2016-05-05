@@ -1,0 +1,43 @@
+# 2012/12/08
+
+## 02:00
+
+Site wise, I added automatic builds links to the download page so you can
+download them better. On other things, I got my hands on a GCW Zero prototype
+through zear (thanks!), the GCW Zero is a portable game system (a handheld
+like the Game Boy Advance) which runs Linux. More info about it is here: <http
+://game-consoles-worldwide.com/>. All in all, it is a pretty cool device with
+a nice screen and it is rather fast too (runs ReMooD rather smooth). ReMooD
+uses PlayStation Doom alike controls on it but there is no weapon switching
+(i'll have to switch to GBA controls despite never playing GBA Doom except
+only once). I'd take a picture of the GCW Zero running ReMooD but it seems my
+digital camera has lost its own charger yet again (not to mention the battery
+is always dead and the SD Card always needs to be reformatted when I plug it
+into a computer and back into the camera). So when it is released I would
+recommend getting one of these as it can do other things also such as emulate
+other games.
+
+Here is a list of things I have done with the code:
+
+  * **WADs are now case insensitive searched inside of directories to match DOS
+ behavior.**
+  * **Also, WADs are searched for in the directory where the ReMooD executable 
+exists (so you can plop your WADs there for portable stuff).**
+  * Added basic Heretic thing support (the entire tables need to be fixed up, t
+hen weapons need to be added).
+  * Potential for slope support.
+  * Scripts are tokenized, which is one step closer to compilation of scripts.
+  * Fixed a big endian crash related to splats on walls.
+  * Fixed a big endian bug where sounds are not played.
+  * Alternative initial grabbing of joysticks, makes assigning them much easier
+ now.
+  * Code cleanup.
+  * Copyright boost to 2013.
+  * Fixed REMOODAT overflow related to weapons.
+  * Implemented 180 degree turning.
+  * Support for the GCW Zero.
+  * Added Terminus Font.
+  * WADs are now identified by their MD5 now, partially.
+
+No images currently.
+

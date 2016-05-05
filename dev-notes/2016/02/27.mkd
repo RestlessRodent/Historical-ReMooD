@@ -1,0 +1,11 @@
+# 2016/02/27
+
+## 12:47
+
+If I made the core of ReMooD compatible with CLDC 8 then that would mean that
+ReMooD could run on mobile devices. That however would mean that I cannot use
+lambdas and some classes would be missing. However, from a logical perspective
+it can work out. Lambdas and method handles are not truly needed. I also would
+not be able to use reflection either, but other than scripting I do not see
+a real need for reflection.
+

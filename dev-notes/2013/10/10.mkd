@@ -1,0 +1,11 @@
+# 2013/10/10
+
+## 17:46
+
+For those that have been checking the automated builds, you may have noticed
+that ReMooD was a bit unplayable. I've decided on partially reverting the
+changes I have made. My changes were not lost, just they are hidden. Since I
+am rather busy, it would be better if ReMooD was at least playable to an
+extent rather than being unplayable with major overhauls in effect.
+
+

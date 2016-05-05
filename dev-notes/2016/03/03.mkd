@@ -1,0 +1,7 @@
+# 2016/03/03
+
+## 22:08
+
+I do like this new command line handling stuff, it is similar to the way my
+old C code did it. It groups first, then it has fun with it.
+

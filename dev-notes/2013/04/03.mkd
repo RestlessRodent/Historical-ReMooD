@@ -1,0 +1,23 @@
+# 2013/04/03
+
+## 19:00
+
+Networking now works and you can play with others. Pretty much most of the
+work that has been done has been with the core networking code. Note that if
+you do play with others, it will be a bit laggy. Recommended one uses the
+command line to host servers with -host, and others connect with -connect. It
+has not been long since my last update, only half a month, so there have not
+been many changes. Hopefully soon I can create the master server and make the
+game nicely playable on any connection.
+
+Here is a list of things I have done with the code:
+
+  * MIDI on Windows now. 
+  * Fix remood.wad building on Windows/DOS. 
+  * Console can now access variables and game variables plainly. 
+  * Minor menu work. 
+  * In game chatting, note that macros are not implemented yet. 
+
+![2013/04/03](http://remood.org/images/remood_netplay20130403.jpg)
+
+

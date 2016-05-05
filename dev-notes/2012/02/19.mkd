@@ -1,0 +1,11 @@
+# 2012/02/19
+
+## 00:00
+
+Just as an update to the previous posting, the renderer issues have been
+fixed. The messed up textures were due to applying patch offsets to drawing,
+when they are never considered, there was also a counting error which was
+fixed also. And along with the slime trails across every sector (floor
+bleeding), that was related to the wrong sectors being chosen for the seg
+sides.
+

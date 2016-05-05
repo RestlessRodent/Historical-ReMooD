@@ -1,0 +1,7 @@
+# 2016/02/18
+
+## 16:24
+
+I believe it would be best to split the code off into launchers which provide
+a front end interface for starting ReMooD.
+

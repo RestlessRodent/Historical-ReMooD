@@ -1,0 +1,27 @@
+# 2012/04/17
+
+## 12:00
+
+As of this writing, I have implemented custom Weapons and Ammo support into
+REMOODAT (RMOD), this enables you to create your own weapons and custom
+ammunition types. I also implemented the Beta BFG, also known as the
+BFG2074(?) or BFG2704(?), but it is also the own that looked like Christmas.
+As such, the current weapon shoots red and green fireballs so it really does
+look more like it. After this, my next target is getting actual map objects
+and such moved to REMOODAT so that you can create as many new objects as
+memory permits.
+
+Besides that, I also implemented console history (you can go back and execute
+commands). I added some new console commands that allow you to cheat in the
+game (testing for me personally) and to change game settings. Unlike Doom
+Legacy, I decided to fork off the game settings away from the console code so
+I can remove the bloat there. Also the new setting manager is capable of
+selecting demo versions and is in a single spot. Since it is in the same spot,
+it can easily be added into save games and networking in the future so that
+game settings are not just a hack on the console code.
+
+On a note of demo compatibility, the new variable code enables older demos to
+be supported better so that you could possibly watch a demo from Doom Legacy
+1.11 (the first version of Legacy) and such. Although you cannot play or
+record demos currently, it will make things easier to support them now.
+

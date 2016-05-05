@@ -1,0 +1,25 @@
+# 2016/02/01
+
+## 00:03
+
+And the month that I have decided to continue working on ReMooD has arrived.
+Over time I have been thinking of going the slow adaptation route potentially.
+That is, I have a libremood.so which a Java interface over it. Then over time
+I eventually move more and more things over into Java land. Doing it this way
+might end up being easier in the long run and I would have an actually runnable
+game instead of just porting everything other slowly.
+
+## 11:50
+
+Actually this will complicate things greatly and would end up being very
+boilerplated.
+
+## 13:06
+
+It might be better in the long run to have separated JARs that are merged in
+the end. So for example the core stuff such as the console and WAD code would
+be in its own project. Then stuff such as level handling would be in another.
+Then the complete remood.jar will just be a merger of all sub-jars. Then I can
+have some kind of separation and not have to recompile the entire thing over
+and over again.
+

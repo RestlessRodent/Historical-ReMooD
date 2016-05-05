@@ -1,0 +1,53 @@
+# 2012/09/17
+
+## 14:00
+
+I've been silently working on ReMooD for the past two months, sorry about not
+posting any updates. Although work is slow (due to my job), the changes are
+plentiful. One major note if you read the last news posting is that I switched
+from C to C+++, well I went back to C. In the end I figured the switch to C++
+was not worth it. Increased code complexity, longer compile times, the ability
+to no longer reliably static link, lack of C++ on some platforms, lack of C++
+standard on certail platforms. I've always been comfortable working in C
+however so it will make coding a bit easier for me, rather than beutifying all
+the code into C++ when there is no real point to it. There was a one month gap
+of no development happening before I went back to C, and once I switched back
+development shot off.
+
+Major changes would be, highlighted in bold and notes in parenthesis:
+**Simpler identifiers in the code** (this means there are no more 30 character
+typedefs and what not so it should be easier on the eyes); **Profiles are now
+supported again** (and their settings are saved, although currently rather
+cheaply, needs improvement); **Improved the timing code** (the game should run
+closer to the standard frame rate now); **Client/Server Networking support**
+(although it desyncs if you are not on the same type of system as the host and
+if your game options are not the same); **Joystick Support** (you can play
+with up to 3 other friends in the same game now and you can join them in via
+the sticks too)
+
+Minor changes would be: **Mouse Button Support** (i.e. mouse buttons now do
+something rather than nothing); **Improved socket code** (the old code was a
+huge mess); **Improved block stream performance** (Block streamers work faster
+now); **WAD loader bottlenecks reduced** (it will no longer take forever to
+load a simple WAD); **Basic Demo Support** (you can record and play back a
+demo, but it will most likely desync); **Transition to support Heretic**
+(converting some of the old data tables and code into the new format);
+**Improved split screen code** (works much better now and is much cleaner);
+**Even drawing of patches** (the graphics are no longer jiggly when you are
+playing on a resolution above 320x200); **Intermission screen with counting
+up** (The new-style scoreboard but one where all the numbers count up like the
+standard Doom one); **OSS MIDI Support** (if you have a /dev/midi or whatever,
+you can listen to MIDI music)
+
+As of this writing my current work includes improving the ReMooD Data loader
+(contains all the object data). It currently is much faster and instead of the
+game taking 5 minutes to load it is much much less than that. I am also
+working on an auto build system located at <http://remood.org:10080/>, so once
+this is up and running you'll be able to download bleeding edge ReMooD and
+test it out.
+
+No real screenshots to show anything new and whatnot since most of the changes
+that were made are under the hood.
+
+![2012/09/17](http://remood.org/images/remood_20120917.png)
+

@@ -1,0 +1,11 @@
+# 2015/10/01
+
+## 13:13
+
+Performed some more work in the translation of ReMooD into Java. Apart from
+the internal WAD code, the current user visible thing is the displaying of
+TITLEPIC.
+
+![2015/10/01](http://remood.org/images/reallysrgb.png)
+
+

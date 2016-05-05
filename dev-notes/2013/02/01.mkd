@@ -1,0 +1,48 @@
+# 2013/02/01
+
+## 22:00
+
+I have not posted in awhile, but there has been a bunch of work on the code.
+Some of it minor, most of it is major. You can check out the latest work on
+the latest builds page. The stuff I really like is the new menu code, it is
+far simpler and more elegant than before, you should also be happy that the
+original Doom main menu has been restored. That is for WAD compatibility.
+Another big thing is the good improvement in FPS. Basically the code was
+sleeping the CPU at the wrong location which would cause an FPS drop when
+there should not be any. With moving the functions around and optimizing the
+code path in general, things should run much smoother now. Another thing
+related to FPS I changed is the FPS monitor (`cvset vid_drawfps true`) in that
+it is much more accurate and contains better information, the drawn FPS, the
+number of game tics ran during the last frame, and the amount of time it took
+to pass one game second. Work has been a bit slow, due to being busy at work,
+but I hope you enjoy the changes.
+
+Here is a list of things I have done with the code:
+
+  * DeHackEd partly works. Only thing and state table modifications are current
+ly handled, more soon to come. 
+  * Minor work on demos, they are recorded a bit better now. 
+  * Spectating while playing demos (you can fly around in them). 
+  * Work on revamping the menu, it is much simpler and much better now. 
+  * Basic netgame save handling for future usage. 
+  * IPv6 bug fixes. 
+  * Code cleanup. 
+  * Mouse issues with the SDL interface have been fixed, there should be no mor
+e jagged movements. 
+  * Ability to set values for the next game, so you can setup a new game while 
+in a current one (most ports do not allow one to change variables when connecte
+d to a server). 
+  * Profile configuration fixes related to mice and joystick buttons. 
+  * Increases the max player name length from 21 to 32. 
+  * Add displace spawning, this is done after cluster spawning. It basically sp
+awns players adjacent to alive players so that they can fit inside of the level
+ in case no spawn spots are available. 
+  * Much improved joystick grabbing code. 
+  * The FPS the game maintains and now much more optimized, so a choppy frame r
+ate on decent computers should be a thing of the past. 
+  * Use a much better method of calculating the frames per second. 
+  * Implement keycard status flashing for when you press on a door you lack key
+s for (similar to PSX Doom). 
+
+
+

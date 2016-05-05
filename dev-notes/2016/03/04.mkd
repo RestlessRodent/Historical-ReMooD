@@ -1,0 +1,19 @@
+# 2016/03/04
+
+## 16:14
+
+One thing which will take awhile is translation of all the game settings
+which are available in ReMooD, due to the requirements of having
+a compatible source port (one which can replace Doom Legacy).
+
+## 16:27
+
+There are 161 individual settings. The one setting I am not going to translate
+is PGS_COENABLESLOPES, I will just remove that completely since it is complex
+and never worked anyway. I do not really have any intention to support slopes,
+at least initially.
+
+## 16:45
+
+I will have to have default sets for various missions (such as Final Doom).
+

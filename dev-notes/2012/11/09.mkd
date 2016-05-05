@@ -1,0 +1,21 @@
+# 2012/11/09
+
+## 06:00
+
+Still working on ReMooD. As of currently I rewrote the REMOODAT code, so now
+it runs better not to mention ReMooD starts in seconds rather than minutes
+now. WADs are opened faster (the speed penalty was due to the checksum being
+calculated on the WAD, but it did it in an innefficient matter. Fixed a crash
+when playing on a system with no sound card and also a crash related to
+switching to an unsupported video mode. Basic Menus, they need to be populated
+with options and permit access to hidden features. Basic gameplay, you can
+join the game and run around, kill things, etc. but there's not much to
+setting up a real game yet. Basic OpenGL Support, it is currently just
+experimental. Spectators, you can watch a game and move around, but once you
+join the game you cannot go back to spectating as of this writing. A
+scoreboard, which is the same as the intermission screen.
+
+![2012/11/09](http://remood.org/images/remood_20121109_opengl.png)
+![2012/11/09](http://remood.org/images/remood_20121109_scores.png)
+
+

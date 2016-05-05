@@ -1,0 +1,92 @@
+# ReMooD 1.0a
+
+  * Main Website: **<http://remood.org/>**
+  * (C) 2006-2016 GhostlyDeath <ghostlydeath@remood.org>
+  * (C) 1998-2005 Doom Legacy Team <http://doomlegacy.sourceforge.net/>
+   * Thierry Van Elsuwe
+   * Denis Fabrice
+   * Stephen McGranahan
+   * Boris Pereria
+   * Various Others
+  * (C) 2000-2000 Simon Howard <fraggle@gmail.com>
+  * (C) ????-???? Raven Software
+  * (C) 1993-1996 id Software <http://idsoftware.com/>
+  * _Extra copyrights for deprecated C sources._
+   * (C) 1996-2011 Markus Franz Xaver Johannes Oberhumer
+     <http://www.oberhumer.com/opensource/lzo/>
+
+ReMooD is a source port of the popular game Doom based on Doom Legacy 1.42 and
+aims to provide a similar experience yet enhanced and much more stable. It is
+licensed under the GNU General Public License Version 3 (or at your option any
+later version).
+
+## Other Links
+
+  * **Official Repository** \-- <http://remood.org:8080/remood> \--
+    You can pull the latest developmental changes from here.
+  * [**Freedoom**](http://freedoom.github.io/) \-- a freely available and open
+    source IWAD replacement (if you do not have a copy of Doom).
+
+## Donations
+
+If you like ReMooD and are feeling generous you may donate:
+
+  * LiteCoin (LTC) [`LMRzV9UxaUUVvJ71nA58fBNc3VZvwLPonL`](
+    litecoin:LMRzV9UxaUUVvJ71nA58fBNc3VZvwLPonL)
+  * BitCoin (BTC) [`1CRTjt7qjoNjjJeRpourpjzaapH9YckBur`](
+    bitcoin:1CRTjt7qjoNjjJeRpourpjzaapH9YckBur)
+
+## Compatibility
+
+### With Doom Legacy
+
+Doom Legacy versions between 1.11 and 1.42 should be fully supported.
+
+### With ReMooD
+
+The only available compatibility is with ReMooD 0.8a.
+
+## Command Line and System Usage
+
+### WAD File Directories
+
+Directories which contain WAD files may be shared between various other source
+ports which support said feature.
+
+ * Environment Variable `DOOMWADDIR`: A single directory.
+ * Environment Variable `DOOMWADPATH`: A `PATH`-like setting (on UNIX fields
+   are split by `:` while on Windows it is split by `;`, this may vary for
+   other operating systems) which contains multiple directories.
+
+ReMooD itself has the following along with the above:
+
+ * Command-Line Switch `-doomwaddir`: A single directory.
+ * Command-Line Switch `-doomwadpath`: A `PATH`-like setting listing multiple
+   directories.
+ * Java System Property `org.remood.wad.dir`: A single directory.
+ * Java System Property `org.remood.wad.path`: A `PATH`-like setting listing
+   multiple directories.
+
+## Building
+
+You require a Java 8 development environment.
+
+You have two choices for building:
+
+ * Apache Ant
+ * Eclipse (Requires 4.3 or later)
+
+### Apache Ant
+
+You can type `ant jar` which will build the JAR. The default rule is to build
+the JAR then run ReMooD.
+
+Out of tree builds are supported.
+
+### Eclipse
+
+You can import this directory as a project into your workspace.
+
+Note that I personally do not use Eclipse so during active development the
+Eclipse project may be out of date.
+

@@ -1,0 +1,13 @@
+# 2013/08/07
+
+## 10:00
+
+Have not made any updates in quite some months, but I pretty much did an
+entire rework of the old networking code (as it got rather messy). However
+this new code is faster and more efficient. So if you ever did have a chance
+to test the old code out, you would find this much improved. With the old
+code, it was really slow and extremely laggy. You would get spurious lag
+spikes which would exponentially increase until you got kicked out of the
+game.
+
+

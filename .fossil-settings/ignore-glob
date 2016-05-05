@@ -1,4 +1,7 @@
+ci-comment*.txt
 *~
+/bin/
+*.class
 allegw32
 a.out
 ____bild.exe
@@ -105,4 +108,8 @@ win64sdl.tgz
 *.xcodeproj/*.pbxuser
 *.xcodeproj/*.perspective*
 *.zip
+*.dgr
+remood.jar
+__old__/bin/remood
+__old__/bin/remood-server
 

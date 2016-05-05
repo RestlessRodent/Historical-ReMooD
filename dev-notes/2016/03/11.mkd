@@ -1,0 +1,7 @@
+# 2016/03/11
+
+## 21:13
+
+I do wonder though if the current WAD being played should be a game variable.
+That would be interesting, however it would likely be very ugly.
+

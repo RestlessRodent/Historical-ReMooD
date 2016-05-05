@@ -1,0 +1,23 @@
+# 2012/07/20
+
+## 09:00
+
+Since my last update, i have switched from C to C++. However it is not a full
+blown rewrite, just anything new I write might be full of C++ stuff. I am
+avoiding templates and STL in the interest of speed, since the code base is
+still pretty much in C it will not make much difference anyway. The switch was
+mostly done for convenience, certain sections of the code are much easier to
+read and work smoother. I was also able to remove some duplicate code that did
+not need to be duplicated everywhere.
+
+On other things, I have worked on demo support, so ReMooD is capable of
+playing certain demo kinds, although they usually desync due to
+incompatibilities.
+
+In other news, I have a job now so I will not be able to work on ReMooD much
+since it is very busy. I know I promised to hopefully make a July or August
+release but I do not have much days being off to work on ReMooD, so currently
+when ReMooD comes out it comes out. I will set up automated builds in the
+future sometime after a few things are completed so that you could run the
+game.
+

@@ -1,0 +1,13 @@
+# 2012/03/18
+
+## 00:00
+
+I merged the "wadwwxtowl" branch into "default" replacing that branch. When
+the game was playable again to a certain extent I was planning on merging it
+back in, so I decided to it a few days back. Although the game seems to be
+broken and partly implemented, work still needs to be done to move everything
+over to a newer code base. However, as more code adapts to the new methods,
+the easier and quicker the stuff can be done. I have added stuff to do still
+in the file TODO, which also contains other things to do, so that I can keep
+track of what was done and what still needs to be done.
+

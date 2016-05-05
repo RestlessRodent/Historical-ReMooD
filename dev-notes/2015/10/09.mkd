@@ -1,0 +1,41 @@
+# 2015/10/09
+
+## 00:30
+
+There have been many different demo formats during the lifetime of ReMooD.
+Obviously before ReMooD you have the various Doom Legacy demos. However at
+least the official versions on the Download page there are varying differences
+in them. 0.7a uses just a notch up from Doom Legacy demos and is in a very
+similar format. 0.7b and 0.7c use a new demo format which uses a new layout.
+0.8a is the most complex, it has packet based demos which may vary based on
+the endian which they are. 1.0a uses a bit simpler packet based demo format.
+The actual number of demos recorded with Doom Legacy and ReMooD will probably
+be quite low, but for compatibility (and nostalgia) I will support playing
+them back. However synchronization might not be perfect. However, in 1.0a when
+it came to demos, Doom Legacy demos played back better than in Doom Legacy.
+The only non-playable Doom Legacy demos that will never play back in ReMooD or
+Doom Legacy are those which were not recorded by the host (due to changes in
+Doom Legacy how things were done).
+
+As for Vanilla Doom and Longtic demos, they will also be supported of course.
+Like in 1.0a, playing back vanilla demos will result in splitscreen being
+activated to watch what goes on by all the viewports.
+
+As of this writing however, I have basic loops setup for game initialization
+and such. I am not too sure how I want to handle user input currenly
+(keyboard, mice, joysticks) so I going port the C 1.0a code over so that
+eventually demos are played and such. At least then when the game logic is
+more in place I can determine the best way to support input, profiles, and
+splitscreen. Since I require speed when it comes to rendering the game, I plan
+on the renderer being multi-threaded where possible to potentially increase
+rendering speed. I would suppose that the game logic and the renderer would be
+the most complex to port over. Another consideration I am considering is
+having a slightly faster renderer by drawing columns in bulk rather than one
+by one. The column heavy Doom renderer is slow due to the massive amounts of
+cache misses, especially on higher resolutions. At least in Java the renderer
+will be secure, because in Doom Legacy when 3D floors are used it can
+overwrite game memory (usually crashing it). So if you were recording a demo
+in Doom Legacy while looking at a 3D floor a certain way, it is possible your
+demo will never play back properly unless all the conditions are perfect.
+
+
