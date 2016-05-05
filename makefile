@@ -305,18 +305,19 @@ ___SVDEL := $(foreach __o,${___SVOBJ},csv___${__o})
 endif
 
 # Combined flags
-___BASECFLAGS := -I${__BUILDROOT}/src/ -I${__BUILDROOT}/src/plat/${___INTERFACE} -I${__BUILDROOT}/src/os/${___OS}
+___BASECFLAGS := -I${__BUILDROOT}/src/ -I${__BUILDROOT}/src/plat/${___INTERFACE} -I${__BUILDROOT}/src/os/${___OS} -I${JAVA_INCLUDE}
+___BASELDFLAGS := -L${JAVA_LIB} -ljvm
 
 ___SHXCFLAGS  := ${___BASECFLAGS} ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
-___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS}
+___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS} ${___BASELDFLAGS}
 
 ___CLXCFLAGS  := -I${__BUILDROOT}/src/client ${___SHXCFLAGS}
-___CLXLDFLAGS := ${___SHXLDFLAGS}
+___CLXLDFLAGS := ${___SHXLDFLAGS} ${___BASELDFLAGS}
 
 ifndef ___NOSERVER
 
 ___SVXCFLAGS  := -D__REMOOD_DEDICATED -I${__BUILDROOT}/src/server ${___SHXCFLAGS}
-___SVXLDFLAGS := ${___SHXLDFLAGS}
+___SVXLDFLAGS := ${___SHXLDFLAGS} ${___BASELDFLAGS}
 
 endif
 

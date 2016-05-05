@@ -11,7 +11,7 @@
 __majorversions="7 8"
 
 # Architectures
-__architectures="$(uname -m) powerpc i386 amd64 x86_64"
+__architectures="$(uname -m) ppc powerpc i386 amd64 x86_64"
 
 # Available VMs
 __vms="server zero jamvm"
@@ -23,7 +23,7 @@ __findinclude()
 	do
 		for __ja in $__architectures
 		do
-			__p="/usr/lib/jvm/java-$__jv-openjdk-$__ja/include/"
+			__p=""
 			if [ -f "$__p/jni.h" ]
 			then
 				echo "$__p"
@@ -42,7 +42,7 @@ __findlib()
 		do
 			for __vm in $__vms
 			do
-				__p="/usr/lib/jvm/java-$__jv-openjdk-$__ja/jre/lib/$__ja/$__vm/"
+				__p=""
 				if [ -f "$__p/libjvm.so" ]
 				then
 					echo "$__p"
@@ -54,7 +54,8 @@ __findlib()
 }
 
 # Build and run it
-if make "JAVA_INCLUDE=$(__findinclude)" "JAVA_LIB=$(__findlib)" DEBUG=1
+if make "JAVA_INCLUDE=/usr/lib/jvm/java-7-openjdk-powerpc/include/" \
+	"JAVA_LIB=/usr/lib/jvm/java-7-openjdk-powerpc/jre/lib/ppc/server/" DEBUG=1
 then
 	gdb --args bin/remood-dbg -nomouse -devparm
 fi
