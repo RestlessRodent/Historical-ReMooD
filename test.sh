@@ -57,6 +57,7 @@ __findlib()
 if make "JAVA_INCLUDE=/usr/lib/jvm/java-7-openjdk-powerpc/include/" \
 	"JAVA_LIB=/usr/lib/jvm/java-7-openjdk-powerpc/jre/lib/ppc/server/" DEBUG=1
 then
-	gdb --args bin/remood-dbg -nomouse -devparm
+	LD_LIBRARY_PATH="/usr/lib/jvm/java-7-openjdk-powerpc/jre/lib/ppc/jamvm/" \
+		gdb --args bin/remood-dbg -nomouse -devparm
 fi
 

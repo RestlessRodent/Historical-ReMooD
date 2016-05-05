@@ -10,6 +10,15 @@
 #ifndef REMOOD_J_H__
 #define REMOOD_J_H__
 
-#endif /* REMOOD_J_H__ */
+#include "doomtype.h"
 
+/**
+ * Initializes the Java interface.
+ *
+ * @return {@code true} on success.
+ * @since 2016/05/05
+ */
+bool_t J_Init();
+
+#endif /* REMOOD_J_H__ */
 

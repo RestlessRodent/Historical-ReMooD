@@ -327,7 +327,7 @@ endif
 
 # Build All
 .PHONY: all
-all:						client
+all:						client remood.jar
 							-@:
 
 # Clean All
@@ -439,4 +439,10 @@ csv___o/s/%.${___OBJEXT}:
 							@$(if $(wildcard $(subst ccl___,,$@)),$(call ___RUNCOMMAND,$(___DELETE) $(call ___DOSPATH,$(subst ccl___,,$@))) > $(___DEVNULL),)
 
 endif
+
+## The ReMooD JAR ###
+
+.PHONY: remood.jar
+remood.jar:					
+							ant -f build.xml jar-core
 

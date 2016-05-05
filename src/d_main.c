@@ -45,6 +45,8 @@
 #include "ui.h"
 #include "t_ini.h"
 
+#include "j.h"
+
 /* Define VideoFont_t */
 #if !defined(__REMOOD_VIDEOFONTT_DEFINED)
 	typedef int VideoFont_t;
@@ -2268,6 +2270,13 @@ void D_DoomMain(void)
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
 	g_QuietConsole = M_CheckParm("-quiet");
+	
+	// Initialize Java Interface
+	if (!J_Init())
+	{
+		I_Error("Failed to initialize the JVM!");
+		return;
+	}
 	
 	// GhostlyDeath <January 15, 2012> -- Check for dedicated server
 #if !defined(__REMOOD_DEDICATED)
