@@ -30,7 +30,7 @@ bool_t J_Init()
 	jclass versionclass;
 	jfieldID rjver;
 	jobject jvx;
-	char* jstr;
+	const char* jstr;
 	int rv;
 	
 	/* Setup arguments used to initialize the virtual machine with. */
@@ -51,16 +51,83 @@ bool_t J_Init()
     	return false;
     
     // Print version informaion
-    versionclass = (*g_Env)->FindClass(g_Env,
-    	"org/remood/remood/core/Version");
-    rjver = (*g_Env)->GetStaticFieldID(g_Env, versionclass,
+    versionclass = J_FindClass("org/remood/remood/core/Version");
+    rjver = J_GetStaticFieldID(versionclass,
     	"FULL_DISPLAY_STRING", "Ljava/lang/String;");
-    jvx = (*g_Env)->GetStaticObjectField(g_Env, versionclass, rjver);
-    jstr = (*g_Env)->GetStringUTFChars(g_Env, (jstring)jvx, 0);
+    jvx = J_GetStaticObjectField(versionclass, rjver);
+    jstr = J_GetStringUTFChars((jstring)jvx, 0);
     printf("ReMooD Java Version: %s\n", jstr);
-    (*g_Env)->ReleaseStringUTFChars(g_Env, (jstring)jvx, jstr);
+    J_ReleaseStringUTFChars((jstring)jvx, jstr);
 	
 	// Ok
 	return true;
+}
+
+/** JNI Mirrors. */
+
+jclass J_FindClass(const char *name)
+{
+	return (*g_Env)->FindClass(g_Env, name);
+}
+
+jmethodID J_GetMethodID(jclass clazz, const char *name, const char *sig)
+{
+	return (*g_Env)->GetMethodID(g_Env, clazz, name, sig);
+}
+
+jobject J_NewObject(jclass clazz, jmethodID methodID, ...)
+{
+	jobject rv;
+	va_list ap;
+	
+	va_start(ap, methodID);
+	rv = (*g_Env)->NewObjectV(g_Env, clazz, methodID, ap);
+	va_end(ap);
+	
+	return rv;
+}
+
+jobject J_GetStaticObjectField(jclass clazz, jfieldID fieldID)
+{
+	return (*g_Env)->GetStaticObjectField(g_Env, clazz, fieldID);
+}
+
+const char* J_GetStringUTFChars(jstring str, jboolean *isCopy)
+{
+	return (*g_Env)->GetStringUTFChars(g_Env, str, isCopy);
+}
+
+void J_ReleaseStringUTFChars(jstring str, const char* chars)
+{
+	(*g_Env)->ReleaseStringUTFChars(g_Env, str, chars);
+}
+
+jint J_CallIntMethod(jobject obj, jmethodID methodID, ...)
+{
+	jint rv;
+	va_list ap;
+	
+	va_start(ap, methodID);
+	rv = (*g_Env)->CallIntMethodV(g_Env, obj, methodID, ap);
+	va_end(ap);
+	
+	return rv;
+}
+
+jobject J_CallObjectMethod(jobject obj, jmethodID methodID, ...)
+{
+	jobject rv;
+	va_list ap;
+	
+	va_start(ap, methodID);
+	rv = (*g_Env)->CallObjectMethodV(g_Env, obj, methodID, ap);
+	va_end(ap);
+	
+	return rv;
+}
+
+jfieldID J_GetStaticFieldID(jclass clazz, const char *name, const char *sig)
+{
+	return (*g_Env)->GetStaticFieldID(g_Env, clazz, name, sig);
 }
 

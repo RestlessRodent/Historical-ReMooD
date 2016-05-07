@@ -30,34 +30,34 @@ void __loadRandomClass(void)
 	/** Need to load the data? */
 	if (__randomclass == NULL)
 	{
-		__randomclass = (*g_Env)->FindClass(g_Env,
+		__randomclass = J_FindClass(
 			"org/remood/remood/core/random/DoomRandom");
 			
 		if (__randomclass == NULL)
 			I_Error("JAVA: Could not find DoomRandom!?");
 		
 		/** Allocate that class. */
-		con = (*g_Env)->GetMethodID(g_Env, __randomclass, "<init>", "()V");
-		__singlerandom = (*g_Env)->NewObject(g_Env, __randomclass, con);
+		con = J_GetMethodID(__randomclass, "<init>", "()V");
+		__singlerandom = J_NewObject(__randomclass, con);
 		
 		/** Bind methods. */
-		__next = (*g_Env)->GetMethodID(g_Env, __randomclass, "next", "()I");
-		__nextSigned = (*g_Env)->GetMethodID(g_Env, __randomclass,
+		__next = J_GetMethodID(__randomclass, "next", "()I");
+		__nextSigned = J_GetMethodID(__randomclass,
 			"nextSigned", "()I");
-		__getIndex = (*g_Env)->GetMethodID(g_Env, __randomclass, "getIndex",
+		__getIndex = J_GetMethodID(__randomclass, "getIndex",
 			"()I");
-		__setIndex = (*g_Env)->GetMethodID(g_Env, __randomclass, "setIndex",
+		__setIndex = J_GetMethodID(__randomclass, "setIndex",
 			"(I)Lorg/remood/remood/core/random/DoomRandom;");
 		
 		/** Setup global random generator. */
-		stdrandom = (*g_Env)->FindClass(g_Env, "java/util/Random");
+		stdrandom = J_FindClass("java/util/Random");
 		
 		if (stdrandom == NULL)
 			I_Error("JAVA: Could not find java/util/Random!?");
 		
-		stdcon = (*g_Env)->GetMethodID(g_Env, stdrandom, "<init>", "()V");
-		__globalrandom = (*g_Env)->NewObject(g_Env, stdrandom, stdcon);
-		__stdnextint = (*g_Env)->GetMethodID(g_Env, stdrandom, "nextInt",
+		stdcon = J_GetMethodID(stdrandom, "<init>", "()V");
+		__globalrandom = J_NewObject(stdrandom, stdcon);
+		__stdnextint = J_GetMethodID(stdrandom, "nextInt",
 			"(I)I");
 	}
 }
@@ -68,7 +68,7 @@ uint8_t P_Random(void)
 	__loadRandomClass();
 	
 	/** Get value. */
-	return (uint8_t)((*g_Env)->CallIntMethod(g_Env, __singlerandom, __next));
+	return (uint8_t)(J_CallIntMethod(__singlerandom, __next));
 }
 
 int P_SignedRandom(void)
@@ -77,7 +77,7 @@ int P_SignedRandom(void)
 	__loadRandomClass();
 	
 	/** Get value. */
-	return (int)((*g_Env)->CallIntMethod(g_Env, __singlerandom, __nextSigned));
+	return (int)(J_CallIntMethod(__singlerandom, __nextSigned));
 }
 
 void M_ClearRandom(void)
@@ -91,7 +91,7 @@ uint8_t P_GetRandIndex(void)
 	/** Load PRNG. */
 	__loadRandomClass();
 	
-	return (uint8_t)((*g_Env)->CallIntMethod(g_Env, __singlerandom,
+	return (uint8_t)(J_CallIntMethod(__singlerandom,
 		__getIndex));
 }
 
@@ -100,7 +100,7 @@ void P_SetRandIndex(uint8_t rindex)
 	/** Load PRNG. */
 	__loadRandomClass();
 	
-	(*g_Env)->CallObjectMethod(g_Env, __singlerandom, __setIndex, (int)rindex);
+	J_CallObjectMethod(__singlerandom, __setIndex, (int)rindex);
 }
 
 uint8_t M_Random(void)
@@ -108,7 +108,7 @@ uint8_t M_Random(void)
 	/** Load PRNG. */
 	__loadRandomClass();
 	
-	return (uint8_t)((*g_Env)->CallIntMethod(g_Env, __globalrandom,
+	return (uint8_t)(J_CallIntMethod(__globalrandom,
 		__stdnextint, 256));
 }
 

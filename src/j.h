@@ -28,5 +28,17 @@ extern JNIEnv* g_Env;
  */
 bool_t J_Init();
 
+
+/** Mirrors of JNI library (removes env). */
+jclass J_FindClass(const char *name);
+jmethodID J_GetMethodID(jclass clazz, const char *name, const char *sig);
+jobject J_NewObject(jclass clazz, jmethodID methodID, ...);
+jobject J_GetStaticObjectField(jclass clazz, jfieldID fieldID);
+const char* J_GetStringUTFChars(jstring str, jboolean *isCopy);
+void J_ReleaseStringUTFChars(jstring str, const char* chars);
+jint J_CallIntMethod(jobject obj, jmethodID methodID, ...);
+jobject J_CallObjectMethod(jobject obj, jmethodID methodID, ...);
+jfieldID J_GetStaticFieldID(jclass clazz, const char *name, const char *sig);
+
 #endif /* REMOOD_J_H__ */
 
