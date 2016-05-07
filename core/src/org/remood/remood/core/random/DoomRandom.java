@@ -85,7 +85,7 @@ public class DoomRandom
 	 */
 	public int next()
 	{
-		return _RANDOM_TABLE[(++_prndindex) & 0xFF];
+		return ((int)_RANDOM_TABLE[(++_prndindex) & 0xFF]) & 0xFF;
 	}
 	
 	/**
