@@ -100,6 +100,17 @@ public class DoomRandom
 	}
 	
 	/**
+	 * Resets the random number index to zero.
+	 *
+	 * @return {@code this}.
+	 * @since 2016/05/07
+	 */
+	public DoomRandom resetIndex()
+	{
+		return setIndex(0);
+	}
+	
+	/**
 	 * Sets the pseudo random index.
 	 *
 	 * @param __dx The index to set.

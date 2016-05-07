@@ -14,6 +14,12 @@
 
 #include "doomtype.h"
 
+/** The global virtual machine. */
+extern JavaVM* g_JVM;
+
+/** The global environment. */
+extern JNIEnv* g_Env;
+
 /**
  * Initializes the Java interface.
  *
