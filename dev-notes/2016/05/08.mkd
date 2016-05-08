@@ -1,0 +1,7 @@
+# 2016/05/08
+
+## 16:15
+
+Next goal for translation is the WAD and Order Change CallBack code. Then
+perhaps following that REMOODAT and DeHackEd support in Java.
+
