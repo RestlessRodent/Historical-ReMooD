@@ -16,7 +16,7 @@ package org.remood.remood.core.profile;
  *
  * @since 2016/05/10
  */
-public class ControlledProfile
+public abstract class ControlledProfile
 	extends SavedProfile
 {
 }
