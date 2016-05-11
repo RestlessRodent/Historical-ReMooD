@@ -32,8 +32,17 @@ typedef struct D_Prof_s
 	const char* accountnamecache;
 } D_Prof_t;
 
+/** Get the display name. */
 const char* D_ProfileDisplayName(D_Prof_t* __prof);
+
+/** Get the account name. */
 const char* D_ProfileAccountName(D_Prof_t* __prof);
+
+/** Get profile by the appearance order index. */
+D_Prof_t* D_ProfileGetIndex(int __i);
+
+/** Rename profile to the given string. */
+void D_ProfileRename(D_Prof_t* __prof, const char* __new);
 
 #if 0
 

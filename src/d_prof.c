@@ -45,6 +45,23 @@ const char* D_ProfileDisplayName(D_Prof_t* __prof)
 	return NULL;
 }
 
+const char* D_ProfileAccountName(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+D_Prof_t* D_ProfileGetIndex(int __i)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+void D_ProfileRename(D_Prof_t* __prof, const char* __new)
+{
+	I_Error("TODO");
+}
+
 /****************************************************************************/
 
 #if 0

@@ -744,7 +744,7 @@ void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
 		Wid = a_Widget->Kids[i + 1];
 		
 		// Get profile
-		Prof = g_ProfList[i];
+		Prof = D_ProfileGetIndex(i);
 		
 		// If not profile, disable selection
 		if (!Prof)
@@ -761,9 +761,7 @@ void M_ProfMan_FTicker(M_SWidget_t* const a_Widget)
 		Wid->Flags &= ~(MSWF_NOSELECT | MSWF_DISABLED);
 		
 		// Set profile to name
-		Prof->AccountRef = Prof->AccountName;
-		Prof->DisplayRef = Prof->DisplayName;
-		Wid->Data.Label.Ref = &Prof->AccountRef;
+		Wid->Data.Label.Ref = &Prof->accountnamecache;
 	}
 }
 
@@ -805,7 +803,7 @@ bool_t M_ProfMan_CreateProf(M_SWidget_t* const a_Widget)
 	
 	/* See if profile is in slot */
 	for (i = 0; i < MAXPROFCONST; i++)
-		if (g_ProfList[i] == Prof)
+		if (D_ProfileGetIndex(i) == Prof)
 			break;
 	
 	// Not in first n profiles
@@ -829,11 +827,11 @@ bool_t M_ProfMan_IndvFSel(M_SWidget_t* const a_Widget)
 	M_SWidget_t* Sub;
 	
 	/* Create submenu to modify profile */
-	g_DoProf = g_ProfList[a_Widget->Option];
+	g_DoProf = D_ProfileGetIndex(a_Widget->Option);
 	Sub = M_SMSpawn(a_Widget->Screen, MSM_PROFMOD);
 	
 	if (Sub)
-		Sub->Prof = g_ProfList[a_Widget->Option];
+		Sub->Prof = D_ProfileGetIndex(a_Widget->Option);
 	
 	/* Success? */
 	return true;
@@ -853,10 +851,10 @@ bool_t M_ProfMan_AcctBCB(struct CONCTI_Inputter_s* a_Inputter, const char* const
 	Widget->Data.TextBox.StealInput = false;
 	
 	/* Attempt rename of profile */
-	D_ProfRename(Widget->Parent->Prof, a_Str);
+	D_ProfileRename(Widget->Parent->Prof, a_Str);
 	
 	// Set text to account name regardless if change failed
-	CONCTI_SetText(a_Inputter, Widget->Parent->Prof->AccountName);
+	CONCTI_SetText(a_Inputter, D_ProfileAccountName(Widget->Parent->Prof));
 	
 	/* Return false, do not want box destroyed */
 	return false;
