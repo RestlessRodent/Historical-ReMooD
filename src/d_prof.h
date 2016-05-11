@@ -36,35 +36,6 @@ typedef struct D_Prof_s
 	const char* uuidcache;
 } D_Prof_t;
 
-/** Get the display name. */
-const char* D_ProfileDisplayName(D_Prof_t* __prof);
-
-/** Get the account name. */
-const char* D_ProfileAccountName(D_Prof_t* __prof);
-
-/** Get profile by the appearance order index. */
-D_Prof_t* D_ProfileGetIndex(int __i);
-
-/** Rename profile to the given string. */
-void D_ProfileRename(D_Prof_t* __prof, const char* __new);
-
-/** Returns the view height of the profile. */
-fixed_t D_ProfileViewHeight(D_Prof_t* __prof);
-
-/** The account UUID. */
-const char* D_ProfileUUID(D_Prof_t* __prof);
-
-/** The profile's bob mode. */
-int D_ProfileBobMode(D_Prof_t* __prof);
-
-/** Draw gun sprite? */
-bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof);
-
-/** Returns raw control information. */
-int D_ProfileRawControl(D_Prof_t* __prof, int __key, int __i);
-
-/** Obtains profile flags. */
-int D_ProfileFlags(D_Prof_t* __prof);
 
 /* Key bits for profiles */
 // This gives extra keys and such for each action performed
@@ -104,8 +75,6 @@ typedef enum D_ProfileExBotFlags_e
 /* D_ProfileExInputCtrl_t -- Input control */
 typedef enum D_ProfileExInputCtrl_e
 {
-	DPEXIC_NULL,
-	
 	/* Modifiers */
 	DPEXIC_SPEED,
 	DPEXIC_MOVEMENT,
@@ -173,6 +142,8 @@ typedef enum D_ProfileExInputCtrl_e
 	DPEXIC_QUICKMENU,							// Perfect Dark-like Quick Menu
 	DPEXIC_MOREMORESTUFF,						// Access to even more stuff
 	
+	DPEXIC_NULL,
+	
 	NUMDPROFILEEXINPUTCTRLS
 } D_ProfileExInputCtrl_t;
 
@@ -198,6 +169,59 @@ typedef enum D_ProfileExCtrlMA_e
 	
 	NUMDPROFILEEXCTRLMAS
 } D_ProfileExCtrlMA_t;
+
+#define MAXJOYAXIS 8
+
+/** Get the display name. */
+const char* D_ProfileDisplayName(D_Prof_t* __prof);
+
+/** Get the account name. */
+const char* D_ProfileAccountName(D_Prof_t* __prof);
+
+/** Get profile by the appearance order index. */
+D_Prof_t* D_ProfileGetIndex(int __i);
+
+/** Rename profile to the given string. */
+void D_ProfileRename(D_Prof_t* __prof, const char* __new);
+
+/** Returns the view height of the profile. */
+fixed_t D_ProfileViewHeight(D_Prof_t* __prof);
+
+/** The account UUID. */
+const char* D_ProfileUUID(D_Prof_t* __prof);
+
+/** The profile's bob mode. */
+int D_ProfileBobMode(D_Prof_t* __prof);
+
+/** Draw gun sprite? */
+bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof);
+
+/** Returns raw control information. */
+int D_ProfileRawControl(D_Prof_t* __prof, int __key, int __i);
+
+/** Obtains profile flags. */
+int D_ProfileFlags(D_Prof_t* __prof);
+
+/** Convert enumeration to input control. */
+D_ProfileExInputCtrl_t D_ProfileEnumToInputCtrl(jobject __jo);
+
+/** Convert input control to enumeration. */
+jobject D_ProfileInputCtrlToControl(D_ProfileExInputCtrl_t __ctrl);
+
+/** Use slow turning. */
+bool_t D_ProfileUseSlowTurn(D_Prof_t* __prof);
+
+/** Time to slow turn for. */
+int D_ProfileSlowTurnTime(D_Prof_t* __prof);
+
+/** Use auto-run? */
+bool_t D_ProfileUseAutoRun(D_Prof_t* __prof);
+
+/** Use look spring? */
+bool_t D_ProfileUseLookSpring(D_Prof_t* __prof);
+
+/** Look up/down speed. */
+int D_ProfileLookUpDownSpeed(D_Prof_t* __prof);
 
 #if 0
 

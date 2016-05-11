@@ -60,20 +60,11 @@ public enum DigitalControl
 	/** Turn 180 degrees and go right. */
 	TURN_180_CLOCKWISE,
 	
-	/** Turn 180 degrees and go left. */
-	TURN_180_COUNTERCLOCKWISE,
-	
 	/** Look up. */
 	LOOK_UP,
 	
-	/** Look entirely up. */
-	LOOK_COMPLETELY_UP,
-	
 	/** Look down. */
 	LOOK_DOWN,
-	
-	/** Look entirely down. */
-	LOOK_COMPLETELY_DOWN,
 	
 	/** Center look .*/
 	LOOK_CENTER,
@@ -171,26 +162,35 @@ public enum DigitalControl
 	/** Spy the next player. */
 	COOPSPY_NEXT,
 	
-	/** Spy the previous player. */
-	COOPSPY_PREV,
-	
-	/** Stop spying players and view through your eyes. */
-	COOPSPY_STOP,
-	
 	/** Toggle the automap. */
 	AUTOMAP,
 	
 	/** Show the player menu. */
 	POPUP_MENU,
 	
-	/** Quick item selection menu (similar to Perfect Dark). */
-	QUICK_MENU,
-	
 	/** Binding mask. */
 	MORE_STUFF,
 	
+	/** Quick item selection menu (similar to Perfect Dark). */
+	QUICK_MENU,
+	
 	/** Additional binding mask. */
 	MORE_MORE_STUFF,
+	
+	/** Spy the previous player. */
+	COOPSPY_PREV,
+	
+	/** Stop spying players and view through your eyes. */
+	COOPSPY_STOP,
+	
+	/** Turn 180 degrees and go left. */
+	TURN_180_COUNTERCLOCKWISE,
+	
+	/** Look entirely up. */
+	LOOK_COMPLETELY_UP,
+	
+	/** Look entirely down. */
+	LOOK_COMPLETELY_DOWN,
 	
 	/** End. */
 	;

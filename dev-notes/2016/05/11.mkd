@@ -4,3 +4,9 @@
 
 This code brings back some memories.
 
+## 19:38
+
+Porting the profile code also requires a new interface code which can handle
+key bindings and such. Then on top of that the tic command building interface
+would use such a thing instead.
+

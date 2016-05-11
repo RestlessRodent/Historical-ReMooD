@@ -650,7 +650,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 		MoveSpeed = 0;
 	
 	// Turn Speed
-	if ((Profile->SlowTurn) && g_ProgramTic < (SSplit->TurnHeld + Profile->SlowTurnTime))
+	if ((D_ProfileUseSlowTurn(Profile)) && g_ProgramTic < (SSplit->TurnHeld + D_ProfileSlowTurnTime(Profile)))
 		TurnSpeed = 2;
 	else if (MoveSpeed)
 		TurnSpeed = 1;
@@ -658,7 +658,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 		TurnSpeed = 0;
 	
 	// Auto-run? If so, invert speeds
-	if (Profile->AutoRun)
+	if (D_ProfileUseAutoRun(Profile))
 	{
 		MoveSpeed = !MoveSpeed;
 		
@@ -666,6 +666,8 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 			TurnSpeed = !TurnSpeed;
 	}
 	
+	// TODO: Redo interface input system and profile for this
+#if 0
 	/* Player has joystick input? */
 	// Read input for all axis
 	if (SID >= 0 && SID < MAXSPLITS && SSplit->JoyBound)
@@ -824,6 +826,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 		// Clear mouse input
 		l_MouseMove[0] = l_MouseMove[1] = 0;
 	}
+#endif
 	
 	/* Handle Player Control Keyboard Stuff */
 	// Weapon Attacks
@@ -900,10 +903,10 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	else
 	{
 		if (GKD(DPEXIC_LOOKUP))
-			BaseAM += Profile->LookUpDownSpeed >> 16;
+			BaseAM += D_ProfileUseLookSpring(Profile) >> 16;
 		
 		if (GKD(DPEXIC_LOOKDOWN))
-			BaseAM -= Profile->LookUpDownSpeed >> 16;
+			BaseAM -= D_ProfileUseLookSpring(Profile) >> 16;
 	}
 	
 	// Flying
@@ -1236,7 +1239,7 @@ void SN_PortTicCmd(SN_Port_t* const a_Port, ticcmd_t* const a_TicCmd)
 	
 	/* Handle Look Spring */
 	// This resets aim to center once you move
-	if (Profile->LookSpring)
+	if (D_ProfileUseLookSpring(Profile))
 		if (!BaseAM && (abs(ForwardMove) >= c_forwardmove[0] || abs(SideMove) >= c_sidemove[0]))
 		{
 			a_TicCmd->Std.BaseAiming = 0;

@@ -92,6 +92,48 @@ int D_ProfileRawControl(D_Prof_t* __prof, int __key, int __i)
 	return 0;
 }
 
+D_ProfileExInputCtrl_t D_ProfileEnumToInputCtrl(jobject __jo)
+{
+	I_Error("TODO");
+	return 0;
+}
+
+jobject D_ProfileInputCtrlToControl(D_ProfileExInputCtrl_t __ctrl)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+bool_t D_ProfileUseSlowTurn(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return false;
+}
+
+int D_ProfileSlowTurnTime(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 0;
+}
+
+bool_t D_ProfileUseAutoRun(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return false;
+}
+
+bool_t D_ProfileUseLookSpring(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return false;
+}
+
+int D_ProfileLookUpDownSpeed(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 1;
+}
+
 /****************************************************************************/
 
 #if 0
