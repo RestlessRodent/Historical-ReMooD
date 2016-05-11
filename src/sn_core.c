@@ -489,7 +489,7 @@ bool_t SN_StartLocalServer(const int32_t a_NumLocal, const char** const a_Profs,
 		{
 			if (g_KeyDefaultProfile)
 			{
-				Profs[0] = g_KeyDefaultProfile->AccountName;
+				Profs[0] = D_ProfileAccountName(g_KeyDefaultProfile);
 				Local = 1;
 			}
 		}
@@ -1790,10 +1790,10 @@ void SN_SetPortProfile(SN_Port_t* const a_Port, D_Prof_t* const a_Profile)
 	
 	/* Broadcast information to everyone else */
 	// This also sets in game details, if playing, etc.
-	SN_PortSetting(a_Port, DSNPS_NAME, 0, a_Profile->DisplayName, 0);
-	SN_PortSetting(a_Port, DSNPS_VTEAM, a_Profile->VTeam, NULL, 0);
-	SN_PortSetting(a_Port, DSNPS_COLOR, a_Profile->Color, NULL, 0);
-	SN_PortSetting(a_Port, DSNPS_COUNTEROP, a_Profile->CounterOp, NULL, 0);
+	SN_PortSetting(a_Port, DSNPS_NAME, 0, D_ProfileAccount(a_Profile), 0);
+	SN_PortSetting(a_Port, DSNPS_VTEAM, D_ProfileVTeam(a_Profile), NULL, 0);
+	SN_PortSetting(a_Port, DSNPS_COLOR, D_ProfileColor(a_Profile), NULL, 0);
+	SN_PortSetting(a_Port, DSNPS_COUNTEROP, D_ProfileIsCounterOp(a_Profile), NULL, 0);
 }
 
 /* SN_PortRequestJoin() -- Request join on the server */

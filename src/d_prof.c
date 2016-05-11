@@ -134,6 +134,24 @@ int D_ProfileLookUpDownSpeed(D_Prof_t* __prof)
 	return 1;
 }
 
+int D_ProfileVTeam(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 0;
+}
+
+int D_ProfileColor(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 0;
+}
+
+bool_t D_ProfileIsCounterOp(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return false;
+}
+
 /****************************************************************************/
 
 #if 0

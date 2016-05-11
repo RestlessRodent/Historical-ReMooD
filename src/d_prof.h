@@ -36,6 +36,7 @@ typedef struct D_Prof_s
 	const char* uuidcache;
 } D_Prof_t;
 
+extern D_Prof_t* g_KeyDefaultProfile;
 
 /* Key bits for profiles */
 // This gives extra keys and such for each action performed
@@ -222,6 +223,15 @@ bool_t D_ProfileUseLookSpring(D_Prof_t* __prof);
 
 /** Look up/down speed. */
 int D_ProfileLookUpDownSpeed(D_Prof_t* __prof);
+
+/** The player's team. */
+int D_ProfileVTeam(D_Prof_t* __prof);
+
+/** The player's color. */
+int D_ProfileColor(D_Prof_t* __prof);
+
+/** Is the profile a counterop player? */
+bool_t D_ProfileIsCounterOp(D_Prof_t* __prof);
 
 #if 0
 
