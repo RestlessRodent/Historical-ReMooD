@@ -80,6 +80,12 @@ int D_ProfileBobMode(D_Prof_t* __prof)
 	return 0;
 }
 
+bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return true;
+}
+
 /****************************************************************************/
 
 #if 0

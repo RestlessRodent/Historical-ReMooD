@@ -57,6 +57,9 @@ const char* D_ProfileUUID(D_Prof_t* __prof);
 /** The profile's bob mode. */
 int D_ProfileBobMode(D_Prof_t* __prof);
 
+/** Draw gun sprite? */
+bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof);
+
 #if 0
 
 /************************
