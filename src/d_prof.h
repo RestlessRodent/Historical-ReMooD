@@ -15,17 +15,25 @@
 
 #include "j.h"
 
+/** Compatibility to specify the max profiles in the menu. */
+#define MAXPROFCONST 24
+
 typedef struct D_Prof_s
 {
 	/** The associated Java object for the profile. */
 	jobject java;
 	
-	/** The profile name and cache. */
+	/** The profile display name and cache. */
 	jstring displayname;
 	const char* displaynamecache;
+	
+	/** The account name and cache. */
+	jstring accountname;
+	const char* accountnamecache;
 } D_Prof_t;
 
 const char* D_ProfileDisplayName(D_Prof_t* __prof);
+const char* D_ProfileAccountName(D_Prof_t* __prof);
 
 #if 0
 

@@ -1251,7 +1251,7 @@ void* M_SMSpawn(const int32_t a_ScreenID, const M_SMMenus_t a_MenuID)
 			if (Work)
 			{
 				if (g_DoProf)
-					CONCTI_SetText(Work->Data.TextBox.Inputter, g_DoProf->AccountName);
+					CONCTI_SetText(Work->Data.TextBox.Inputter, D_ProfileAccountName(g_DoProf));
 			}
 			break;
 		
