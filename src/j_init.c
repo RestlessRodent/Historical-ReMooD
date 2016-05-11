@@ -58,6 +58,8 @@ bool_t J_Init()
     jstr = J_GetStringUTFChars((jstring)jvx, 0);
     printf("ReMooD Java Version: %s\n", jstr);
     J_ReleaseStringUTFChars((jstring)jvx, jstr);
+    
+    // Initialize some things
 	
 	// Ok
 	return true;
@@ -129,5 +131,10 @@ jobject J_CallObjectMethod(jobject obj, jmethodID methodID, ...)
 jfieldID J_GetStaticFieldID(jclass clazz, const char *name, const char *sig)
 {
 	return (*g_Env)->GetStaticFieldID(g_Env, clazz, name, sig);
+}
+
+jstring J_NewStringUTF(const char* str)
+{
+	return (*g_Env)->NewStringUTF(g_Env, str);
 }
 

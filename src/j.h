@@ -39,6 +39,7 @@ void J_ReleaseStringUTFChars(jstring str, const char* chars);
 jint J_CallIntMethod(jobject obj, jmethodID methodID, ...);
 jobject J_CallObjectMethod(jobject obj, jmethodID methodID, ...);
 jfieldID J_GetStaticFieldID(jclass clazz, const char *name, const char *sig);
+jstring J_NewStringUTF(const char* str);
 
 #endif /* REMOOD_J_H__ */
 

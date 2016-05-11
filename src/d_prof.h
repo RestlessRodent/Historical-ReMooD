@@ -13,6 +13,8 @@
 
 #include "doomtype.h"
 
+#include "j.h"
+
 /************************
 *** EXTENDED PROFILES ***
 ************************/

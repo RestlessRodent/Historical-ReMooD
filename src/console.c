@@ -136,7 +136,7 @@ static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITS][MAXCONLPLAYERMQ];	// Playe
 static uint32_t l_CONLLineOff = 0;	// Line offset
 static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 
-static char l_ConfigDir[PATH_MAX];				// Configuration directory
+char g_ConfigDir[PATH_MAX];				// Configuration directory
 static char l_DataDir[PATH_MAX];				// Data directory
 static char l_DefaultConfig[PATH_MAX];			// The default config
 
@@ -1201,12 +1201,15 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_VarLocate("theconsolesystemwasjustbooted");
 	
 	/* Get directories for files */
-	I_GetStorageDir(l_ConfigDir, PATH_MAX, DST_CONFIG);
+	I_GetStorageDir(g_ConfigDir, PATH_MAX, DST_CONFIG);
 	I_GetStorageDir(l_DataDir, PATH_MAX, DST_DATA);
 	
 	// Print the info about them
-	CONL_PrintF("CONL_Init: Config directory is \"%s\".\n", l_ConfigDir);
+	CONL_PrintF("CONL_Init: Config directory is \"%s\".\n", g_ConfigDir);
 	CONL_PrintF("CONL_Init: Data directory is \"%s\".\n", l_DataDir);
+	
+	// Setup Java profiles
+	J_InitProfiles();
 	
 	/* Load configuration file */
 	if (CONL_FindDefaultConfig())
@@ -2841,7 +2844,7 @@ bool_t CONL_DrawConsole(const bool_t a_BigConsole)
 /*** Configuration Files ***/
 
 #if 0
-static char l_ConfigDir[PATH_MAX];				// Configuration directory
+static char g_ConfigDir[PATH_MAX];				// Configuration directory
 static char l_DataDir[PATH_MAX];				// Data directory
 static char l_DefaultConfig[PATH_MAX];			// The default config
 #endif
@@ -3078,7 +3081,7 @@ bool_t CONL_FindDefaultConfig(void)
 	if (!ConfigOK)
 	{
 		// Concat config dir
-		strncat(l_DefaultConfig, l_ConfigDir, PATH_MAX);
+		strncat(l_DefaultConfig, g_ConfigDir, PATH_MAX);
 		strncat(l_DefaultConfig, "/remoodex.cfg", PATH_MAX);
 	}
 	

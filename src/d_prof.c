@@ -17,10 +17,30 @@
 #include "console.h"
 #include "d_netcmd.h"
 
+#include "j.h"
+
+static jclass __profman_class = NULL;
+static jobject __profman = NULL;
+
+extern char g_ConfigDir[PATH_MAX];
+
+void J_InitProfiles(void)
+{
+	jmethodID con;
+	
+	// Find and construct the profile manager
+	__profman_class =
+		J_FindClass("org/remood/remood/core/profile/ProfileManager");
+	
+	// Get the constructor
+	con = J_GetMethodID(__profman_class, "<init>", "(Ljava/lang/String;)V");
+	
+	// Construct profile manager
+	__profman = J_NewObject(__profman_class, con, J_NewStringUTF(g_ConfigDir));
+}
 
 
-
-
+/****************************************************************************/
 
 
 
