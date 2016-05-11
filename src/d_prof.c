@@ -74,6 +74,12 @@ const char* D_ProfileUUID(D_Prof_t* __prof)
 	return NULL;
 }
 
+int D_ProfileBobMode(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 0;
+}
+
 /****************************************************************************/
 
 #if 0

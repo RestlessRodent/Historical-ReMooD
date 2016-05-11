@@ -98,7 +98,7 @@ void P_CalcHeight(player_t* player)
 	fixed_t Diff;
 	fixed_t bob;
 	fixed_t AvgMomX, AvgMomY;
-	int angle;
+	int angle, bmmmm;
 	subsector_t* SubS;
 	
 	/* Calculate Vanilla Bob Value */
@@ -118,7 +118,7 @@ void P_CalcHeight(player_t* player)
 	// Player
 	if (P_MobjIsPlayer(player->mo))
 		if (player->ProfileEx)
-			ViewHeight = player->ProfileEx->ViewHeight;
+			ViewHeight = D_ProfileViewHeight(player->ProfileEx);
 		else
 			ViewHeight = VIEWHEIGHT << FRACBITS;
 	
@@ -128,19 +128,20 @@ void P_CalcHeight(player_t* player)
 	
 	// Calculate bobbing
 		// Middle
-	if (!player->ProfileEx || (player->ProfileEx && player->ProfileEx->BobMode == 1))
+	bmmmm = D_ProfileBobMode(player->ProfileEx);
+	if (!player->ProfileEx || (player->ProfileEx && bmmmm == 1))
 	{
 		AvgMomX = (player->FakeMom[0] + player->mo->momx) >> 1;
 		AvgMomY = (player->FakeMom[1] + player->mo->momy) >> 1;
 	}
 		// Doom
-	else if (player->ProfileEx && player->ProfileEx->BobMode == 0)
+	else if (player->ProfileEx && bmmmm == 0)
 	{
 		AvgMomX = player->mo->momx;
 		AvgMomY = player->mo->momy;
 	}
 		// Effort
-	else if (player->ProfileEx && player->ProfileEx->BobMode == 2)
+	else if (player->ProfileEx && bmmmm == 2)
 	{
 		AvgMomX = player->FakeMom[0];
 		AvgMomY = player->FakeMom[1];

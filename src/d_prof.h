@@ -54,6 +54,9 @@ fixed_t D_ProfileViewHeight(D_Prof_t* __prof);
 /** The account UUID. */
 const char* D_ProfileUUID(D_Prof_t* __prof);
 
+/** The profile's bob mode. */
+int D_ProfileBobMode(D_Prof_t* __prof);
+
 #if 0
 
 /************************
