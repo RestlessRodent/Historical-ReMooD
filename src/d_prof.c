@@ -42,13 +42,7 @@ void J_InitProfiles(void)
 
 /****************************************************************************/
 
-
-
-
-
-
-
-
+#if 0
 
 
 /************************
@@ -1228,4 +1222,6 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 	return 0;
 #undef BUFSIZE
 }
+
+#endif
 
