@@ -86,6 +86,12 @@ bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof)
 	return true;
 }
 
+int D_ProfileRawControl(D_Prof_t* __prof, int __key, int __i)
+{
+	I_Error("TODO");
+	return 0;
+}
+
 /****************************************************************************/
 
 #if 0

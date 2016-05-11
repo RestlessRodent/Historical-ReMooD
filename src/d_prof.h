@@ -60,15 +60,28 @@ int D_ProfileBobMode(D_Prof_t* __prof);
 /** Draw gun sprite? */
 bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof);
 
-#if 0
+/** Returns raw control information. */
+int D_ProfileRawControl(D_Prof_t* __prof, int __key, int __i);
 
-/************************
-*** EXTENDED PROFILES ***
-************************/
+/** Obtains profile flags. */
+int D_ProfileFlags(D_Prof_t* __prof);
 
-/*** CONSTANTS ***/
-
-#define MAXPROFCONST 12							// Max quick access profiles
+/* Key bits for profiles */
+// This gives extra keys and such for each action performed
+#define PRFKBIT_MASK	UINT32_C(0xFFFFF000)
+#define PRFKBIT_VMASK	UINT32_C(0x00000FFF)
+#define PRFKBIT_KEY		UINT32_C(0x00000000)
+#define PRFKBIT_JOY		UINT32_C(0x00001000)
+#define PRFKBIT_MOUSE	UINT32_C(0x00002000)
+#define PRFKBIT_DMOUSE	UINT32_C(0x00003000)
+#define PRFKBIT_JOYP	UINT32_C(0x00004000)
+#define PRFKBIT_MOUSEP	UINT32_C(0x00005000)
+#define PRFKBIT_DMOUSEP	UINT32_C(0x00006000)
+#define PRFKBIT_KEYP	UINT32_C(0x00007000)
+#define PRFKBIT_JOYX	UINT32_C(0x00008000)
+#define PRFKBIT_MOUSEX	UINT32_C(0x00009000)
+#define PRFKBIT_DMOUSEX	UINT32_C(0x0000A000)
+#define PRFKBIT_KEYX	UINT32_C(0x0000B000)
 
 /* D_ProfileExFlags_t -- Extended profile flags */
 typedef enum D_ProfileExFlags_e
@@ -186,6 +199,16 @@ typedef enum D_ProfileExCtrlMA_e
 	NUMDPROFILEEXCTRLMAS
 } D_ProfileExCtrlMA_t;
 
+#if 0
+
+/************************
+*** EXTENDED PROFILES ***
+************************/
+
+/*** CONSTANTS ***/
+
+#define MAXPROFCONST 12							// Max quick access profiles
+
 /* D_ProfAutoMapColors_t -- Automap colors */
 typedef enum D_ProfAutoMapColors_e
 {
@@ -225,23 +248,6 @@ typedef enum D_ProfBarType_e
 #if !defined(MAXUUIDLENGTH)
 	#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)	// Length of UUIDs
 #endif
-
-/* Key bits for profiles */
-// This gives extra keys and such for each action performed
-#define PRFKBIT_MASK	UINT32_C(0xFFFFF000)
-#define PRFKBIT_VMASK	UINT32_C(0x00000FFF)
-#define PRFKBIT_KEY		UINT32_C(0x00000000)
-#define PRFKBIT_JOY		UINT32_C(0x00001000)
-#define PRFKBIT_MOUSE	UINT32_C(0x00002000)
-#define PRFKBIT_DMOUSE	UINT32_C(0x00003000)
-#define PRFKBIT_JOYP	UINT32_C(0x00004000)
-#define PRFKBIT_MOUSEP	UINT32_C(0x00005000)
-#define PRFKBIT_DMOUSEP	UINT32_C(0x00006000)
-#define PRFKBIT_KEYP	UINT32_C(0x00007000)
-#define PRFKBIT_JOYX	UINT32_C(0x00008000)
-#define PRFKBIT_MOUSEX	UINT32_C(0x00009000)
-#define PRFKBIT_DMOUSEX	UINT32_C(0x0000A000)
-#define PRFKBIT_KEYX	UINT32_C(0x0000B000)
 
 /*** STRUCTURES ***/
 

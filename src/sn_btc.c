@@ -464,10 +464,10 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 	
 	/* Check Keyboard */
 	for (i = 0; i < 4; i++)
-		if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == KeyBit)
+		if ((D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_MASK) == KeyBit)
 		{
 			// Get current key
-			CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
+			CurrentButton = (D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_VMASK);
 			
 			// Check if key is down
 			if (CurrentButton >= 0 && CurrentButton < NUMIKEYBOARDKEYS)
@@ -482,10 +482,10 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 		if (g_Splits[a_SID].JoyID >= 1 && g_Splits[a_SID].JoyID <= MAXLOCALJOYS)
 			if (l_JoyButtons[g_Splits[a_SID].JoyID - 1])
 				for (i = 0; i < 4; i++)
-					if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == JoyBit)
+					if ((D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_MASK) == JoyBit)
 					{
 						// Get current button
-						CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
+						CurrentButton = (D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_VMASK);
 				
 						// Button pressed?
 						if (CurrentButton >= 0 && CurrentButton < 32)
@@ -494,15 +494,15 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 					}
 				
 	/* Check Mice */
-	if (a_Profile->Flags & DPEXF_GOTMOUSE)
+	if (D_ProfileFlags(a_Profile) & DPEXF_GOTMOUSE)
 		if (l_MouseButtons[0] || l_MouseButtons[1])
 			for (i = 0; i < 4; i++)
 			{
 				// Single
-				if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == MouseBit)
+				if ((D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_MASK) == MouseBit)
 				{
 					// Get current button
-					CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
+					CurrentButton = (D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_VMASK);
 		
 					// Button pressed?
 					if (CurrentButton >= 0 && CurrentButton < 32)
@@ -511,10 +511,10 @@ static bool_t GAMEKEYDOWN(D_Prof_t* const a_Profile, const uint8_t a_SID, const 
 				}
 		
 				// Double
-				if ((a_Profile->Ctrls[a_Key][i] & PRFKBIT_MASK) == DMouseBit)
+				if ((D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_MASK) == DMouseBit)
 				{
 					// Get current button
-					CurrentButton = (a_Profile->Ctrls[a_Key][i] & PRFKBIT_VMASK);
+					CurrentButton = (D_ProfileRawControl(a_Profile, a_Key, i) & PRFKBIT_VMASK);
 		
 					// Button pressed?
 					if (CurrentButton >= 0 && CurrentButton < 32)
