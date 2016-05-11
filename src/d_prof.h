@@ -15,6 +15,12 @@
 
 #include "j.h"
 
+typedef struct D_Prof_s
+{
+	/** The associated Java object for the profile. */
+	jobject java;
+} D_Prof_t;
+
 #if 0
 
 /************************
