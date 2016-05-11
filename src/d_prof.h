@@ -19,7 +19,13 @@ typedef struct D_Prof_s
 {
 	/** The associated Java object for the profile. */
 	jobject java;
+	
+	/** The profile name and cache. */
+	jstring displayname;
+	const char* displaynamecache;
 } D_Prof_t;
+
+const char* D_ProfileDisplayName(D_Prof_t* __prof);
 
 #if 0
 

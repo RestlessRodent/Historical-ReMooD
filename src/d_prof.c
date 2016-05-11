@@ -39,6 +39,11 @@ void J_InitProfiles(void)
 	__profman = J_NewObject(__profman_class, con, J_NewStringUTF(g_ConfigDir));
 }
 
+const char* D_ProfileDisplayName(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return NULL;
+}
 
 /****************************************************************************/
 

@@ -355,6 +355,8 @@ void D_NCResetSplits(const bool_t a_Demo)
 /* D_NCSGetPlayerName() -- Get player name */
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 {
+	const char* dss;
+	
 	/* Check */
 	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
 		return NULL;
@@ -364,8 +366,11 @@ const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 	{
 		// Try from profiles
 		if (players[a_PlayerID].ProfileEx)
-			if (players[a_PlayerID].ProfileEx->DisplayName[0])
-				return players[a_PlayerID].ProfileEx->DisplayName;
+		{
+			dss = D_ProfileDisplayName(players[a_PlayerID].ProfileEx);
+			if (dss != NULL)
+				return dss;
+		}
 	}
 	
 	/* Return default */
