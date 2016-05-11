@@ -30,6 +30,10 @@ typedef struct D_Prof_s
 	/** The account name and cache. */
 	jstring accountname;
 	const char* accountnamecache;
+	
+	/** The UUID. */
+	jstring uuid;
+	const char* uuidcache;
 } D_Prof_t;
 
 /** Get the display name. */
@@ -46,6 +50,9 @@ void D_ProfileRename(D_Prof_t* __prof, const char* __new);
 
 /** Returns the view height of the profile. */
 fixed_t D_ProfileViewHeight(D_Prof_t* __prof);
+
+/** The account UUID. */
+const char* D_ProfileUUID(D_Prof_t* __prof);
 
 #if 0
 

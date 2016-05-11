@@ -68,6 +68,12 @@ fixed_t D_ProfileViewHeight(D_Prof_t* __prof)
 	return 0;
 }
 
+const char* D_ProfileUUID(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
 /****************************************************************************/
 
 #if 0

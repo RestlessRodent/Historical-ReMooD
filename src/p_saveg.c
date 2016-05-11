@@ -781,8 +781,8 @@ static void PS_SaveNetState(D_BS_t* const a_Str)
 			// Profile
 			if (Port->Profile)
 			{
-				D_BSws(a_Str, Port->Profile->UUID);
-				D_BSws(a_Str, Port->Profile->AccountName);
+				D_BSws(a_Str, D_ProfileUUID(Port->Profile));
+				D_BSws(a_Str, D_ProfileAccountName(Port->Profile));
 			}
 			else
 			{
