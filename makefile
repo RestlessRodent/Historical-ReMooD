@@ -306,7 +306,7 @@ endif
 
 # Combined flags
 ___BASECFLAGS := -I${__BUILDROOT}/src/ -I${__BUILDROOT}/src/plat/${___INTERFACE} -I${__BUILDROOT}/src/os/${___OS} -I${JAVA_INCLUDE} ${CFLAGS}
-___BASELDFLAGS := -L${JAVA_LIB} -ljvm
+___BASELDFLAGS := -L${JAVA_LIB} -ljvm ${LDFLAGS}
 
 ___SHXCFLAGS  := ${___BASECFLAGS} ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
 ___SHXLDFLAGS := ${___DBGLDFLAGS} ${___OSLDFLAGS} ${___INTLDFLAGS} ${___BASELDFLAGS}
