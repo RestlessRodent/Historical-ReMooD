@@ -44,6 +44,9 @@ D_Prof_t* D_ProfileGetIndex(int __i);
 /** Rename profile to the given string. */
 void D_ProfileRename(D_Prof_t* __prof, const char* __new);
 
+/** Returns the view height of the profile. */
+fixed_t D_ProfileViewHeight(D_Prof_t* __prof);
+
 #if 0
 
 /************************

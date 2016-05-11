@@ -62,6 +62,12 @@ void D_ProfileRename(D_Prof_t* __prof, const char* __new)
 	I_Error("TODO");
 }
 
+fixed_t D_ProfileViewHeight(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 0;
+}
+
 /****************************************************************************/
 
 #if 0

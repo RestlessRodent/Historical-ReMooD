@@ -567,7 +567,7 @@ void P_ZMovement(mobj_t* mo)
 			mo->player->viewheight -= mo->floorz - mo->z;
 			
 			if (mo->player->ProfileEx)
-				mo->player->deltaviewheight = ((mo->player->ProfileEx->ViewHeight) - mo->player->viewheight) >> 3;
+				mo->player->deltaviewheight = ((D_ProfileViewHeight(mo->player->ProfileEx)) - mo->player->viewheight) >> 3;
 			else
 				mo->player->deltaviewheight = ((VIEWHEIGHT << FRACBITS) - mo->player->viewheight) >> 3;
 		}
@@ -1845,7 +1845,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	p->fixedcolormap = 0;
 	
 	if (p->ProfileEx)
-		p->viewheight = p->ProfileEx->ViewHeight;
+		p->viewheight = D_ProfileViewHeight(p->ProfileEx);
 	else
 		p->viewheight = VIEWHEIGHT << FRACBITS;
 	
