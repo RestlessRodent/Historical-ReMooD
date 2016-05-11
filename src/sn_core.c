@@ -1790,7 +1790,7 @@ void SN_SetPortProfile(SN_Port_t* const a_Port, D_Prof_t* const a_Profile)
 	
 	/* Broadcast information to everyone else */
 	// This also sets in game details, if playing, etc.
-	SN_PortSetting(a_Port, DSNPS_NAME, 0, D_ProfileAccount(a_Profile), 0);
+	SN_PortSetting(a_Port, DSNPS_NAME, 0, D_ProfileAccountName(a_Profile), 0);
 	SN_PortSetting(a_Port, DSNPS_VTEAM, D_ProfileVTeam(a_Profile), NULL, 0);
 	SN_PortSetting(a_Port, DSNPS_COLOR, D_ProfileColor(a_Profile), NULL, 0);
 	SN_PortSetting(a_Port, DSNPS_COUNTEROP, D_ProfileIsCounterOp(a_Profile), NULL, 0);

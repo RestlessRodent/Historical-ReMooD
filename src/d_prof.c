@@ -24,6 +24,8 @@ static jobject __profman = NULL;
 
 extern char g_ConfigDir[PATH_MAX];
 
+D_Prof_t* g_KeyDefaultProfile = NULL;
+
 void J_InitProfiles(void)
 {
 	jmethodID con;
@@ -92,6 +94,12 @@ int D_ProfileRawControl(D_Prof_t* __prof, int __key, int __i)
 	return 0;
 }
 
+int D_ProfileFlags(D_Prof_t* __prof)
+{
+	I_Error("TODO");
+	return 0;
+}
+
 D_ProfileExInputCtrl_t D_ProfileEnumToInputCtrl(jobject __jo)
 {
 	I_Error("TODO");
@@ -150,6 +158,52 @@ bool_t D_ProfileIsCounterOp(D_Prof_t* __prof)
 {
 	I_Error("TODO");
 	return false;
+}
+
+void D_ProfFixAccountName(char* const a_Buffer)
+{
+	I_Error("TODO");
+}
+
+D_Prof_t* D_ProfFirst(void)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+bool_t D_ProfRename(D_Prof_t* a_Prof, const char* const a_NewName)
+{
+	I_Error("TODO");
+	return false;
+}
+
+D_Prof_t* D_CreateProfileEx(const char* const a_Name)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+D_Prof_t* D_FindProfileEx(const char* const a_Name)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+D_Prof_t* D_FindProfileExByInstance(const uint32_t a_ID)
+{
+	I_Error("TODO");
+	return NULL;
+}
+
+void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data)
+{
+	I_Error("TODO");
+}
+
+int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	I_Error("TODO");
+	return 0;
 }
 
 /****************************************************************************/

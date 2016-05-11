@@ -14,7 +14,7 @@ package org.remood.remood.core.profile.automap;
  *
  * @since 2016/05/11
  */
-public class AutomapColors
+public enum AutomapColors
 {
 	/** Background Color. */
 	BACKGROUND,
