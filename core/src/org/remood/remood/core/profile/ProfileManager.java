@@ -13,6 +13,9 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class manages profiles which are basically user accounts that may be
@@ -24,6 +27,10 @@ public class ProfileManager
 {
 	/** The root directory where profiles are stored. */
 	protected final Path root;
+	
+	/** The currently loaded profiles. */
+	protected final Map<String, Profile> profiles =
+		new HashMap<>();
 	
 	/**
 	 * Initializes the profile manager which uses the given directory as the
@@ -42,8 +49,6 @@ public class ProfileManager
 		
 		// Set
 		root = __r;
-		
-		System.err.printf("DEBUG -- Profile root: %s%n", __r);
 	}
 	
 	/**

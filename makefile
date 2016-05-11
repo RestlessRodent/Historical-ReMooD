@@ -305,7 +305,7 @@ ___SVDEL := $(foreach __o,${___SVOBJ},csv___${__o})
 endif
 
 # Combined flags
-___BASECFLAGS := -I${__BUILDROOT}/src/ -I${__BUILDROOT}/src/plat/${___INTERFACE} -I${__BUILDROOT}/src/os/${___OS} -I${JAVA_INCLUDE}
+___BASECFLAGS := -I${__BUILDROOT}/src/ -I${__BUILDROOT}/src/plat/${___INTERFACE} -I${__BUILDROOT}/src/os/${___OS} -I${JAVA_INCLUDE} ${CFLAGS}
 ___BASELDFLAGS := -L${JAVA_LIB} -ljvm
 
 ___SHXCFLAGS  := ${___BASECFLAGS} ${___DBGCFLAGS} ${___OSCFLAGS} ${___INTCFLAGS}
