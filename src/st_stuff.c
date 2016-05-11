@@ -434,6 +434,7 @@ void ST_changeDemoView(void)
 /*** CONSTANTS ***/
 
 // c_DefMapColors -- Default automap colors
+#define NUMPROFAUTOMAPCOLORS 14
 static const uint32_t c_DefMapColors[NUMPROFAUTOMAPCOLORS][3] =
 {
 	{0, 0, 0},									// DPAMC_BACKGROUND
@@ -654,6 +655,7 @@ static void STS_DrawMapLine(ST_MapDrawInfo_t* const a_Info, const fixed_t a_Xa, 
 /* STS_DrawMapThing() -- Draws map thing */
 static void STS_DrawMapThing(ST_MapDrawInfo_t* const a_Info, mobj_t* a_Mo, const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Radius, const angle_t a_Angle)
 {
+#if 0
 	int8_t Shape;
 	fixed_t x, y, c, d, l, m;
 	uint32_t (*rgb)[3];
@@ -726,11 +728,13 @@ static void STS_DrawMapThing(ST_MapDrawInfo_t* const a_Info, mobj_t* a_Mo, const
 		STS_DrawMapLine(a_Info, a_X + a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y + a_Radius, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
 		STS_DrawMapLine(a_Info, a_X - a_Radius, a_Y + a_Radius, a_X - a_Radius, a_Y - a_Radius, (*rgb)[0], (*rgb)[1], (*rgb)[2]);
 	}
+#endif
 }
 
 /* STS_DrawPlayerMap() -- Draws player automap */
 static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP)
 {
+#if 0
 	ST_MapDrawInfo_t Info;
 	int32_t i;
 	line_t* Line;
@@ -869,6 +873,7 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 	
 	/* Current Level Name */
 	V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), a_X + STS_SBX(Info.Profile, 20, a_W, a_H), a_Y + (a_H - V_FontHeight(VFONT_SMALL)));
+#endif
 }
 
 //extern bool_t g_NetBoardDown;
@@ -876,6 +881,7 @@ static void STS_DrawPlayerMap(const size_t a_PID, const int32_t a_X, const int32
 /* STS_DrawPlayerBarEx() -- Draws a player's status bar, and a few other things */
 static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, player_t* const a_ConsoleP, player_t* const a_DisplayP, D_Prof_t* a_Profile)
 {
+#if 0
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
 	player_t* ConsoleP, *DisplayP;
@@ -1134,10 +1140,12 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Chatting */
 	SN_ChatDrawer(a_PID, a_X, a_Y, a_W, a_H);
 #undef BUFSIZE
+#endif
 }
 
 /*** FUNCTIONS ***/
 
+#if 0
 // c_STBars -- Status bar implementations
 static const struct
 {
@@ -1148,14 +1156,19 @@ static const struct
 	{ST_DoomBar, ST_DoomModShape},
 	{STS_DrawPlayerBarEx, NULL},
 };
+#endif
 
 /* ST_GetDefaultBar() -- Returns the default status bar */
-D_ProfBarType_t ST_GetDefaultBar(void)
+int ST_GetDefaultBar(void)
 {
+#if 0
 	/*if (g_SplitScreen < 0)
 		return DPBT_DEFAULT;
 	else*/
 		return DPBT_REMOOD;
+#else
+	return 0;
+#endif
 }
 
 /* ST_GetScreenCDP() -- Get console, display, and profile */
@@ -1200,6 +1213,7 @@ void ST_GetScreenCDP(const int32_t a_Split, player_t** const a_ConsolePP, player
 /* ST_DrawPlayerBarsEx() -- Draw player status bars */
 void ST_DrawPlayerBarsEx(void)
 {
+#if 0
 	player_t* ConsoleP, *DisplayP;
 	int p, x, y, w, h, i;
 	bool_t BigLetters;
@@ -1291,6 +1305,7 @@ void ST_DrawPlayerBarsEx(void)
 			}
 		}
 	}
+#endif
 }
 
 /* ST_InitEx() -- Initializes the extended status bar */
@@ -1406,6 +1421,7 @@ int32_t ST_ExViewBarHeight(void)
 /* ST_CalcScreen() -- Calculates render screen size for local player */
 void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* const a_Y, int32_t* const a_W, int32_t* const a_H)
 {
+#if 0
 	player_t* ConsoleP, *DisplayP;
 	D_Prof_t* Prof;
 	int right, bottom;
@@ -1472,6 +1488,7 @@ void ST_CalcScreen(const int32_t a_ThisPlayer, int32_t* const a_X, int32_t* cons
 				c_STBars[ST_GetDefaultBar()].Shape(a_ThisPlayer, a_X, a_Y, a_W, a_H, ConsoleP, DisplayP, Prof);
 		}
 	}
+#endif
 }
 
 /* ST_CheckDrawGameView() -- Checks if game view can be drawn */
