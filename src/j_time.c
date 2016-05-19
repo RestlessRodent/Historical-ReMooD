@@ -26,6 +26,10 @@ uint32_t I_GetTimeMS(void)
 		__TimeUtils = J_FindClass("org/remood/remood/core/system/TimeUtils");
 		__TimeUtils_getMilliseconds = J_GetStaticMethodID(__TimeUtils,
 			"getMilliseconds", "()L");
+		
+		// Fail?
+		if (__TimeUtils_getMilliseconds == NULL)
+			I_Error("Could not find __TimeUtils_getMilliseconds");
 	}
 	
 	// Call method
