@@ -1,0 +1,7 @@
+# 2016/05/19
+
+## 07:59
+
+Use `SetByteArrayRegion` instead of `byte[]` to `uint8_t*` with
+`GetByteArrayElements`/`ReleaseByteArrayElements`.
+
