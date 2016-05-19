@@ -27,6 +27,15 @@ public class InputEvents
 	 */
 	public enum Type
 	{
+		/** Keyboard events. */
+		KEYBOARD,
+		
+		/** Mouse events. */
+		MOUSE,
+		
+		/** Joystick events. */
+		JOYSTICK,
+		
 		/** End. */
 		;
 	}
