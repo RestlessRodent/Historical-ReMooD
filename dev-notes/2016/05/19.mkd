@@ -5,3 +5,13 @@
 Use `SetByteArrayRegion` instead of `byte[]` to `uint8_t*` with
 `GetByteArrayElements`/`ReleaseByteArrayElements`.
 
+## 12:10
+
+I suppose when it comes to player selection (which screen they control) I can
+have something similar to Quake 3 on the Dreamcast. Basically moving mice and
+keyboards to the player to play as when setting up a game. Or alternatively
+something similar to what I was doing before, but have it intelligent so to
+speak. It has to be easy in a way though, does Player 1 always get the
+keyboard and mouse or can they also get a Joystick too? Or can an alternative
+player use the keyboard and mouse?
+
