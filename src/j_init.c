@@ -145,3 +145,29 @@ jstring J_NewStringUTF(const char* str)
 	return (*g_Env)->NewStringUTF(g_Env, str);
 }
 
+jmethodID J_GetStaticMethodID(jclass clazz, const char *name, const char *sig)
+{
+	return (*g_Env)->GetStaticMethodID(g_Env, clazz, name, sig);
+}
+
+void J_CallStaticVoidMethod(jclass cls, jmethodID methodID, ...)
+{
+	va_list ap;
+	
+	va_start(ap, methodID);
+	(*g_Env)->CallStaticVoidMethodV(g_Env, cls, methodID, ap);
+	va_end(ap);
+}
+
+jlong J_CallStaticLongMethod(jclass cls, jmethodID methodID, ...)
+{
+	va_list ap;
+	jlong rv;
+	
+	va_start(ap, methodID);
+	rv = (*g_Env)->CallStaticLongMethodV(g_Env, cls, methodID, ap);
+	va_end(ap);
+	
+	return rv;
+}
+

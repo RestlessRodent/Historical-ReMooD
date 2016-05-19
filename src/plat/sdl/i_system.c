@@ -115,34 +115,11 @@ void I_Tactile(int on, int off, int total)
 	on = off = total = 0;
 }
 
-/* I_GetTimeMS() -- Returns time since the game started (in MS) */
-uint32_t I_GetTimeMS(void)
-{
-	static uint32_t FirstTick;
-	uint32_t ThisTick = 0;
-	
-	/* Get current tick */
-	ThisTick = SDL_GetTicks();
-	
-	// FirstTick not set?
-	if (!FirstTick)
-		FirstTick = ThisTick;
-		
-	/* Return time passed */
-	return ThisTick - FirstTick;
-}
-
 //
 // I_Init
 //
 void I_Init(void)
 {
-}
-
-/* I_WaitVBL() -- Wait for vertical blank */
-void I_WaitVBL(int count)
-{
-	SDL_Delay(count);
 }
 
 /****************
