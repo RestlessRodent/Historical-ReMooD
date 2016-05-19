@@ -7,7 +7,7 @@
 // ReMooD is under the GNU General Public License v3+, see license.mkd.
 // ---------------------------------------------------------------------------
 
-package org.remood.remood.core.system;
+package org.remood.remood.core.system.input;
 
 /**
  * This class implements a dynamically event queue which is used for handling
