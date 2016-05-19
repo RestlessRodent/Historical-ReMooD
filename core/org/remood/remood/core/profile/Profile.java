@@ -25,5 +25,8 @@ package org.remood.remood.core.profile;
  */
 public abstract class Profile
 {
+	/** Lock. */
+	protected final Object lock =
+		new Object();
 }
 
