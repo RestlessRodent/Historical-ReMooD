@@ -22,9 +22,10 @@ later version).
 
 ## Other Links
 
-  * **Official Repository** \-- <http://remood.org:8080/remood> \--
+  * [**Official Repository**](http://remood.org:8080/remood) \--
     You can pull the latest developmental changes from here.
-  * [**Freedoom**](http://freedoom.github.io/) \-- a freely available and open
+  * [Downloads](downloads.mkd)
+  * [Freedoom](http://freedoom.github.io/) \-- a freely available and open
     source IWAD replacement (if you do not have a copy of Doom).
 
 ## Donations

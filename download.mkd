@@ -1,0 +1,73 @@
+# Downloads
+
+# ReMooD 1.0a Automated Builds
+
+**WARNING:** These are automatic builds and are for testing purposes only and
+they do not represent the released versions.
+
+ * [Automatic Builds](http://remood.org:8079/)
+ 
+# ReMooD 0.8a (__February 28, 2009__)
+
+ * Windows/ReactOS
+  * [EXE](http://downloads.sourceforge.net/remood/remoodsetup-win32_08a.exe)
+  * [ZIP](http://downloads.sourceforge.net/remood/remood-win32_08a.zip)
+  * [7Z](http://downloads.sourceforge.net/remood/remood-win32_08a.7z)
+ * Debian GNU/Linux
+  * [lenny/i386]
+  (http://downloads.sourceforge.net/remood/remood-debian%2Blenny_08a_i386.deb)
+  * [etch/i386]
+  (http://downloads.sourceforge.net/remood/remood-debian%2Betch_08a_i386.deb)
+ * Ubuntu Linux
+  * [hardy/i386]
+  (http://downloads.sourceforge.net/remood/remood-ubuntu%2Bhardy_08a_i386.deb)
+  * [gutsy/i386]
+  (http://downloads.sourceforge.net/remood/remood-ubuntu%2Bgutsy_08a_i386.deb)
+ * Source Code
+  * [TGZ](http://downloads.sourceforge.net/remood/remoodsrc_08a.tar.gz)
+  * [ZIP](http://downloads.sourceforge.net/remood/remoodsrc_08a.zip)
+  * [7Z](http://downloads.sourceforge.net/remood/remoodsrc_08a.7z)
+
+# ReMooD 0.7c (__December 31, 2008__)
+
+ * Windows/ReactOS
+  * [EXE](http://downloads.sourceforge.net/remood/remoodsetup-win32_07c.exe)
+  * [ZIP](http://downloads.sourceforge.net/remood/remood-win32_07c.zip)
+  * [7Z](http://downloads.sourceforge.net/remood/remood-win32_07c.7z)
+ * Debian GNU/Linux
+  * [etch/i386]
+  (http://downloads.sourceforge.net/remood/remood-debian%2Betch_07c_i386.deb)
+ * Ubuntu Linux
+  * [hardy/i386]
+  (http://downloads.sourceforge.net/remood/remood-ubuntu%2Bhardy_07c_i386.deb)
+  * [gutsy/i386]
+  (http://downloads.sourceforge.net/remood/remood-ubuntu%2Bgutsy_07c_i386.deb)
+ * Source Code
+  * [TGZ](http://downloads.sourceforge.net/remood/remoodsrc_07c.tar.gz)
+  * [ZIP](http://downloads.sourceforge.net/remood/remoodsrc_07c.zip)
+  * [7Z](http://downloads.sourceforge.net/remood/remoodsrc_07c.7z)
+
+# ReMooD 0.7b (__July 13, 2008__)
+
+ * Windows/ReactOS
+  * [ZIP](http://downloads.sourceforge.net/remood/remood-win32_07b.zip)
+  * [7Z](http://downloads.sourceforge.net/remood/remood-win32_07b.7z)
+ * Source Code
+  * [TGZ](http://downloads.sourceforge.net/remood/remoodsrc_07b.tar.gz)
+  * [ZIP](http://downloads.sourceforge.net/remood/remoodsrc_07b.zip)
+  * [7Z](http://downloads.sourceforge.net/remood/remoodsrc_07b.7z)
+
+# ReMooD 0.7a (__March 22, 2008__)
+
+**WARNING:** This version is unstable and will crash, it is only here for
+historical reasons. It is highly recommended that you use a later version
+instead. This version is not supported.
+
+ * Windows/ReactOS
+   * [ZIP](http://downloads.sourceforge.net/remood/remood_win32-0_7-1.zip)
+   * [7Z](http://downloads.sourceforge.net/remood/remood_win32-0_7-1.7z)
+ * Source Code
+   * [TGZ](http://downloads.sourceforge.net/remood/remood_src-0_7-1.tar.gz)
+   * [ZIP](http://downloads.sourceforge.net/remood/remood_src-0_7-1.zip)
+   * [7Z](http://downloads.sourceforge.net/remood/remood_src-0_7-1.7z)
+
