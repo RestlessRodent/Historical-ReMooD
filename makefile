@@ -444,5 +444,5 @@ endif
 
 .PHONY: remood.jar
 remood.jar:					
-							ant -f build.xml jar-core
+							ant -f build.xml jar
 

@@ -7,19 +7,12 @@
 	<!-- Output classes -->
 	<property name="remood.out" value="${user.dir}/ant-build" />
 	
-	<!-- Output JAR -->
-	<property name="remood.jar" value="${user.dir}/remood.jar" />
-	
 	<!-- ReMooD Core JAR -->
 	<property name="remood.jar.core" value="${user.dir}/remood-core.jar" />
 	
-	<!-- ReMooD Desktop JAR -->
-	<property name="remood.jar.desktop"
-		value="${user.dir}/remood-desktop.jar" />
-	
-	<!-- Simple Demo Editor -->
-	<property name="remood.jar.sde"
-		value="${user.dir}/remood-sde.jar" />
+	<!-- ReMooD sdl JAR -->
+	<property name="remood.jar.sdl"
+		value="${user.dir}/remood-sdl.jar" />
 	
 	<!-- Compile: ReMooD Core Library -->
 	<target name="compile-core">
@@ -65,66 +58,53 @@
 		<delete dir="${remood.jar.core}" />
 	</target>
 	
-		<!-- DESKTOP -->
+		<!-- sdl -->
 	
-	<!-- Compile: ReMooD Desktop Interface -->
-	<target name="compile-desktop" depends="jar-core">
+	<!-- Compile: ReMooD sdl Interface -->
+	<target name="compile-sdl" depends="jar-core">
 		<mkdir dir="${remood.out}" />
-		<mkdir dir="${remood.out}/desktop" />
-		<javac srcdir="${remood.src}/desktop"
-			destdir="${remood.out}/desktop"
+		<mkdir dir="${remood.out}/sdl" />
+		<javac srcdir="${remood.src}/sdl"
+			destdir="${remood.out}/sdl"
 			includeantruntime="false"
 			classpath="${remood.jar.core}" debug="true">
 			<compilerarg value="-source" />
-			<compilerarg value="1.8" />
+			<compilerarg value="1.7" />
 			<compilerarg value="-target" />
-			<compilerarg value="1.8" />
+			<compilerarg value="1.7" />
 			<compilerarg value="-g" />
 		</javac>
 	</target>
 	
-	<!-- JAR: ReMooD Desktop Interface -->
-	<target name="jar-desktop" depends="compile-desktop">
+	<!-- JAR: ReMooD sdl Interface -->
+	<target name="jar-sdl" depends="compile-sdl">
 		<mkdir dir="${remood.out}" />
-		<jar destfile="${remood.jar.desktop}"
+		<jar destfile="${remood.jar.sdl}"
 			filesetmanifest="merge"
 			indexMetaInf="true"
 			level="9">
-			<fileset dir="${remood.out}/desktop" />
-			<fileset dir="${remood.src}/desktop">
+			<fileset dir="${remood.out}/sdl" />
+			<fileset dir="${remood.src}/sdl">
 				<exclude name="**/*.java" />
 			</fileset>
 		</jar>
 	</target>
 	
 	<!-- Clean: SDE -->
-	<target name="clean-desktop">
-		<delete dir="${remood.out}/desktop" />
-		<delete dir="${remood.jar.desktop}" />
+	<target name="clean-sdl">
+		<delete dir="${remood.out}/sdl" />
+		<delete dir="${remood.jar.sdl}" />
 	</target>
 	
 	<!-- ================================================================== -->
 	
 	<!-- Default JAR -->
-	<target name="jar" depends="jar-desktop">
-		<jar destfile="${remood.jar}"
-			filesetmanifest="merge"
-			indexMetaInf="true"
-			level="9">
-			<zipfileset includes="**/*" src="${remood.jar.core}" />
-			<zipfileset includes="**/*" src="${remood.jar.desktop}" />
-		</jar>
+	<target name="jar" depends="jar-core,jar-sdl">
 	</target>
 	
 	<!-- Default clean -->
-	<target name="clean" depends="clean-core,clean-desktop">
+	<target name="clean" depends="clean-core,clean-sdl">
 		<delete dir="${remood.out}" />
-		<delete file="${remood.jar}" />
-	</target>
-	
-	<!-- Default Run -->
-	<target name="run" depends="jar">
-		<java jar="${remood.jar}" fork="true" />
 	</target>
 	
 	<!-- Default Main -->

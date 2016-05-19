@@ -19,6 +19,12 @@ JavaVM* g_JVM = NULL;
 /** The global environment. */
 JNIEnv* g_Env = NULL;
 
+#if defined(_WIN32) || defined(__WIN32__)
+	#define PATH_SEP ";"
+#else
+	#define PATH_SEP ":"
+#endif
+
 /**
  * {@inheritDoc}
  * @since 2016/05/05
@@ -43,7 +49,8 @@ bool_t J_Init()
 	args.options = &options;
 	
 	/* Setup options. */
-    options.optionString = "-Djava.class.path=remood-core.jar";
+    options.optionString = "-Djava.class.path=remood-core.jar" PATH_SEP
+    	"remood-sdl.jar";
     
     /* Setup the virtual machine. */
     rv = JNI_CreateJavaVM(&g_JVM, (void**)&g_Env, &args);
