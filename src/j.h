@@ -28,7 +28,6 @@ extern JNIEnv* g_Env;
  */
 bool_t J_Init();
 
-
 /** Mirrors of JNI library (removes env). */
 jclass J_FindClass(const char *name);
 jmethodID J_GetMethodID(jclass clazz, const char *name, const char *sig);
