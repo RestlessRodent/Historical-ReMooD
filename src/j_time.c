@@ -25,7 +25,7 @@ uint32_t I_GetTimeMS(void)
 	{
 		__TimeUtils = J_FindClass("org/remood/remood/core/system/TimeUtils");
 		__TimeUtils_getMilliseconds = J_GetStaticMethodID(__TimeUtils,
-			"getMilliseconds", "()L");
+			"getMilliseconds", "()J");
 		
 		// Fail?
 		if (__TimeUtils_getMilliseconds == NULL)
@@ -44,7 +44,7 @@ void I_WaitVBL(int count)
 	if (__Thread == NULL)
 	{
 		__Thread = J_FindClass("java/lang/Thread");
-		__Thread_sleep = J_GetStaticMethodID(__Thread, "sleep", "(L)V");
+		__Thread_sleep = J_GetStaticMethodID(__Thread, "sleep", "(J)V");
 	}
 	
 	// Call sleep
