@@ -9,6 +9,8 @@
 
 package org.remood.remood.core.system.video;
 
+import org.remood.remood.core.system.DeviceDriver;
+
 /**
  * This package contains the video driver interface which is implemented by
  * libraries so that the user can actually see and interact with the game.
@@ -16,6 +18,7 @@ package org.remood.remood.core.system.video;
  * @since 2016/05/19
  */
 public interface VideoDriver
+	extends DeviceDriver
 {
 }
 
