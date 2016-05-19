@@ -21,5 +21,14 @@ import org.remood.remood.core.system.video.VideoDriver;
 public class SDLVideoDriver
 	implements InputDriver, VideoDriver
 {
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/05/19
+	 */
+	@Override
+	public String name()
+	{
+		return "sdl-video";
+	}
 }
 
