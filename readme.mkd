@@ -68,26 +68,3 @@ ReMooD itself has the following along with the above:
  * Java System Property `org.remood.wad.path`: A `PATH`-like setting listing
    multiple directories.
 
-## Building
-
-You require a Java 8 development environment.
-
-You have two choices for building:
-
- * Apache Ant
- * Eclipse (Requires 4.3 or later)
-
-### Apache Ant
-
-You can type `ant jar` which will build the JAR. The default rule is to build
-the JAR then run ReMooD.
-
-Out of tree builds are supported.
-
-### Eclipse
-
-You can import this directory as a project into your workspace.
-
-Note that I personally do not use Eclipse so during active development the
-Eclipse project may be out of date.
-
