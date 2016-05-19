@@ -31,6 +31,7 @@
 #endif
 
 // ALSA MIDI on Linux
+#define __REMOOD_NOALSAMIDI
 #if defined(__linux__) && !defined(__REMOOD_NOALSAMIDI)
 	#include <alsa/asoundlib.h>
 	#include <alsa/seq.h>
