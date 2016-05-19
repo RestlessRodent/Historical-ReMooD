@@ -123,8 +123,7 @@ __findpkname()
 	while [ "$__indir" != "/" ]
 	do
 		# Is the root of the source tree?
-		if [ -f "$__indir/../../build.xml" ] || \
-			[ -f "$__indir/../build.xml" ] || \
+		if [ -f "$__indir/../build.xml" ] || \
 			[ -f "$__indir/build.xml" ]
 		then
 			__pkout="$__chop"
