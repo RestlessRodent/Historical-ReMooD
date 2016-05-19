@@ -9,6 +9,7 @@
 
 package org.remood.sdlremood;
 
+import org.remood.remood.core.system.input.InputDriver;
 import org.remood.remood.core.system.video.VideoDriver;
 
 /**
@@ -18,7 +19,7 @@ import org.remood.remood.core.system.video.VideoDriver;
  * @since 2016/05/19
  */
 public class SDLVideoDriver
-	implements VideoDriver
+	implements InputDriver, VideoDriver
 {
 }
 
