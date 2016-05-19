@@ -14,7 +14,7 @@ package org.remood.remood.core.system;
  *
  * @since 2016/05/19
  */
-public interface class DeviceDriver
+public interface DeviceDriver
 {
 	/**
 	 * Returns the name of the device driver.
