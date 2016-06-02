@@ -1,5 +1,0 @@
-
-In relation to versions of ReMooD before 1.0a
- * `allowjump` has no true effect, it only disables jumping in the tic builder
-    code. So now `co_enablejumping` has a true effect.
-
