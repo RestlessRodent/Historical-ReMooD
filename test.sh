@@ -92,8 +92,8 @@ __ji="$(__findinc)"
 __jl="$(__findlib)"
 echo ">> INC: $__ji"
 echo ">> LIB: $__jl"
-if "$__exedir/build.sh" -i "$__ji" \
-	-l "$__jl" DEBUG=1
+if make "JAVA_INCLUDE=$__ji" \
+	"JAVA_LIB=$__jl" DEBUG=1
 then
 	LD_LIBRARY_PATH="$__jl:." \
 		gdb --args bin/remood-dbg -nomouse -devparm $*
