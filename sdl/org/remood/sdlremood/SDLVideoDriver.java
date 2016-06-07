@@ -11,6 +11,9 @@ package org.remood.sdlremood;
 
 import org.remood.remood.core.system.input.InputDriver;
 import org.remood.remood.core.system.video.VideoDriver;
+import org.remood.remood.core.system.video.VideoException;
+import org.remood.remood.core.system.video.VideoSoftwareSurface;
+import org.remood.remood.core.system.video.VideoSurface;
 
 /**
  * This class implements SDL so that it can display graphics to the user using
@@ -21,6 +24,17 @@ import org.remood.remood.core.system.video.VideoDriver;
 public class SDLVideoDriver
 	implements InputDriver, VideoDriver
 {
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/06/07
+	 */
+	@Override
+	public VideoSurface createSurface(boolean __hw, int __w, int __h)
+		throws VideoException
+	{
+		throw new Error("TODO");
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 * @since 2016/05/19
