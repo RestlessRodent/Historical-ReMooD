@@ -7,6 +7,9 @@
 # ReMooD is under the GNU General Public License v3+, see license.mkd.
 # ---------------------------------------------------------------------------
 
+# Location of this script
+__exedir="$(dirname "$0")"
+
 # Architectures
 __archs="$(uname -m) ppc powerpc i386 amd64 x86_64"
 
@@ -89,8 +92,8 @@ __ji="$(__findinc)"
 __jl="$(__findlib)"
 echo ">> INC: $__ji"
 echo ">> LIB: $__jl"
-if make "JAVA_INCLUDE=$__ji" \
-	"JAVA_LIB=$__jl" DEBUG=1
+if "$__exedir/build.sh" -i "$__ji" \
+	-l "$__jl" DEBUG=1
 then
 	LD_LIBRARY_PATH="$__jl:." \
 		gdb --args bin/remood-dbg -nomouse -devparm $*

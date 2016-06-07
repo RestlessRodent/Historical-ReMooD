@@ -327,7 +327,7 @@ endif
 
 # Build All
 .PHONY: all
-all:						client remood.jar
+all:						client remood.jar 
 							-@:
 
 # Clean All
