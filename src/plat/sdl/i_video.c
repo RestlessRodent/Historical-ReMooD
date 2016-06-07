@@ -1486,6 +1486,7 @@ void I_VideoLockBuffer(const bool_t a_DoLock)
 static jclass __vdmanclass = NULL;
 static jclass __vdclass = NULL;
 static jobject __vdman = NULL;
+static jobject __vdinst = NULL;
 
 /* I_StartupGraphics() -- Initializes graphics */
 void I_StartupGraphics(void)
@@ -1512,6 +1513,8 @@ void I_StartupGraphics(void)
 		
 		// Construct manager
 		__vdman = J_NewObject(__vdmanclass, mancon, __vdclass);
+		
+		I_Error("TODO");
 	}
 	
 	/* Generic Init */
