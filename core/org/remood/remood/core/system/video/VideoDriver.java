@@ -20,5 +20,19 @@ import org.remood.remood.core.system.DeviceDriver;
 public interface VideoDriver
 	extends DeviceDriver
 {
+	/**
+	 * Attempts to create a video surface.
+	 *
+	 * @param __hw If {@code true} then the surface is a hardware accelerated
+	 * three dimensional surface. If a 3D accelerated surface is not possible
+	 * then a two dimensional software surface is created instead.
+	 * @param __w The framebuffer width.
+	 * @param __h The framebuffer height.
+	 * @return The created video surface.
+	 * @throws VideoException If the surface could not be created.,
+	 * @since 2016/06/07
+	 */
+	public abstract VideoSurface createSurface(boolean __hw, int __w, int __h)
+		throws VideoException;
 }
 

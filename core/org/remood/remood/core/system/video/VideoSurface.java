@@ -28,20 +28,50 @@ public abstract class VideoSurface
 	 *
 	 * @param __w The width.
 	 * @param __h The height.
-	 * @throws IllegalArgumentException If the width and/or height are zero
+	 * @throws VideoException If the width and/or height are zero
 	 * or negative.
 	 * @since 2016/06/07
 	 */
 	public VideoSurface(int __w, int __h)
-		throws IllegalArgumentException
+		throws VideoException
 	{
 		// Check
 		if (__w <= 0 || __h <= 0)
-			throw new IllegalArgumentException("");
+			throw new IllegalArgumentException();
 		
 		// Set
 		this.width = __w;
 		this.height = __h;
+	}
+	
+	/**
+	 * Returns {@code true} if this is a three dimensional hardware surface.
+	 *
+	 * @return {@code true} if a hardware surface.
+	 * @since 2016/06/07
+	 */
+	public abstract boolean isHardwareSurface();
+	
+	/**
+	 * Returns the height of the video surface.
+	 *
+	 * @return The surface height.
+	 * @since 2016/06/07
+	 */
+	public final int height()
+	{
+		return this.height;
+	}
+	
+	/**
+	 * Returns the width of the video surface.
+	 *
+	 * @return The surface width.
+	 * @since 2016/06/07
+	 */
+	public final int width()
+	{
+		return this.width;
 	}
 }
 
