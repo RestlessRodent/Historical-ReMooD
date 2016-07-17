@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import org.remood.remood.core.console.GameConsole;
 
 /**
  * This class contains some default command line arguments which may be used
@@ -33,15 +34,16 @@ public class CommandLineArguments
 	 * This parses the command line arguments which may be used when parsing
 	 * the configuration file.
 	 *
+	 * @param __gc The console to print messages to.
 	 * @param __args Program arguments.
 	 * @throws NullPointerException On null arguments.
 	 * @since 2016/07/16
 	 */
-	public CommandLineArguments(String... __args)
+	public CommandLineArguments(GameConsole __gc, String... __args)
 		throws NullPointerException
 	{
 		// Check
-		if (__args == null)
+		if (__gc == null || __args == null)
 			throw new NullPointerException();
 		
 		// Go through all arguments

@@ -12,6 +12,7 @@ package org.remood.remood.core;
 import java.io.PrintStream;
 import java.util.Arrays;
 import org.remood.remood.core.config.CommandLineArguments;
+import org.remood.remood.core.console.GameConsole;
 
 /**
  * This is the main ReMooD entry point.
@@ -65,9 +66,10 @@ public class Main
 	{
 		// Setup the core console that every instance will use (for debugging
 		// and game usage)
+		GameConsole gc = new GameConsole();
 		
 		// Parse the command line
-		CommandLineArguments cla = new CommandLineArguments(__args);
+		CommandLineArguments cla = new CommandLineArguments(gc, __args);
 		
 		throw new Error("TODO");
 	}
