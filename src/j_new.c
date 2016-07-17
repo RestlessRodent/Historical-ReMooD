@@ -82,7 +82,8 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	// Get framebuffer
 	fbd = (jintArray)J_CallObjectMethod(vss, gfbm);
 	
-	// Setup video surface
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false, 4);
+	// Setup video surface, use a software surface because the Java native
+	// one is 32-bit RGB.
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false, 1);
 }
 

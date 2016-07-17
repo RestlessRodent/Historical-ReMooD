@@ -2283,8 +2283,6 @@ void D_DoomMain(void)
 	// Replace old variable
 	dedicated = g_DedicatedServer;
 	
-	I_StartupGraphics();
-	
 	// GhostlyDeath <July 6, 2008> -- initialize fields
 	memset(player_names, 0, sizeof(player_names));
 	memset(team_names, 0, sizeof(team_names));
@@ -2311,6 +2309,9 @@ void D_DoomMain(void)
 	/* Core */
 	CONL_PrintF("Initializing the memory manager...\n");
 	Z_Init();
+	
+	// Start graphics
+	I_StartupGraphics();
 	
 	// Game Model to use
 	D_InitModelMode();
