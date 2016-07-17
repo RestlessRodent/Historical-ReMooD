@@ -20,5 +20,18 @@ import org.remood.remood.core.system.DeviceDriver;
 public interface VideoDriver
 	extends DeviceDriver
 {
+	/**
+	 * Creates a new video surface for displaying video.
+	 *
+	 * @param __hw Should hardware acceleration (3D) graphics be used?
+	 * @param __w The width of the screen.
+	 * @param __h The height of the screen.
+	 * @return The video surface.
+	 * @throws VideoException If the surface could not be created.
+	 * @since 2016/07/17
+	 */
+	public abstract VideoSurface selectVideoMode(boolean __hw, int __w,
+		int __h)
+		throws VideoException;
 }
 

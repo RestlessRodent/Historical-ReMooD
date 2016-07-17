@@ -63,6 +63,22 @@ public class VideoDriverManager
 	}
 	
 	/**
+	 * Selects a new video mode.
+	 *
+	 * @param __hw Use 3D mode?
+	 * @param __w The width.
+	 * @param __h The height.
+	 * @return The video surface.
+	 * @throws VideoException If the surface could not be created.
+	 * @since 2016/07/17
+	 */
+	public VideoSurface selectVideoMode(boolean __hw, int __w, int __h)
+		throws VideoException
+	{
+		return this._driver.selectVideoMode(__hw, __w, __h);
+	}
+	
+	/**
 	 * Switches to another video driver.
 	 *
 	 * @param __name The name of the video driver to switch to, may be

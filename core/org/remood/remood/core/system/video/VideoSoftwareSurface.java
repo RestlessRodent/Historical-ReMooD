@@ -28,7 +28,8 @@ public abstract class VideoSoftwareSurface
 	 *
 	 * @param __w The width.
 	 * @param __h The height.
-	 * @param __fb The raw framebuffer, these are used directly.
+	 * @param __fb The raw framebuffer, these are used directly, if
+	 * {@code null} one is created.
 	 * @param __p The framebuffer pitch, must be equal or greater than the
 	 * width.
 	 * @throws VideoException If the pitch is lower than the width.
@@ -41,14 +42,12 @@ public abstract class VideoSoftwareSurface
 		super(__w, __h);
 		
 		// Check
-		if (__fb == null)
-			throw new NullPointerException();
 		if (__p < __w)
 			throw new VideoException();
 		
 		// Set
-		this.pitch = __p;
-		this.framebuffer = __fb;
+		this.pitch = Math.max(__w, __p);
+		this.framebuffer = (__fb != null ? __fb : new int[__p * __w]);
 	}
 	
 	/**

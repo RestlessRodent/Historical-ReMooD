@@ -36,6 +36,9 @@ public class Main
 	/** Manager for video drivers. */
 	protected final VideoDriverManager videomanager;
 	
+	/** The current video surface. */
+	private volatile VideoSurface _surface;
+	
 	/**
 	 * Initialize some game details.
 	 *
@@ -60,6 +63,10 @@ public class Main
 		// Setup video manager
 		VideoDriverManager videomanager = new VideoDriverManager(gc, config);
 		this.videomanager = videomanager;
+		
+		// Create initial video surface
+		VideoSurface surface = videomanager.selectVideoMode(false, 320, 200);
+		this._surface = surface;
 	}
 	
 	/**

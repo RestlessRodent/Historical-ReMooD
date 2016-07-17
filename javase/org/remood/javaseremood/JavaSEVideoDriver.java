@@ -12,6 +12,8 @@ package org.remood.javaseremood;
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
 import org.remood.remood.core.system.video.VideoDriver;
+import org.remood.remood.core.system.video.VideoException;
+import org.remood.remood.core.system.video.VideoSurface;
 
 /**
  * This provides the capability of creating video surfaces which utilize
@@ -46,6 +48,17 @@ public class JavaSEVideoDriver
 		// Set
 		this.console = __gc;
 		this.config = __conf;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/17
+	 */
+	@Override
+	public VideoSurface selectVideoMode(boolean __hw, int __w, int __h)
+		throws VideoException
+	{
+		return new JavaSEVideoSurface(__w, __h);
 	}
 }
 
