@@ -7,7 +7,7 @@
 // ReMooD is under the GNU General Public License v3+, see license.mkd.
 // ---------------------------------------------------------------------------
 
-package org.remood.sdlremood;
+package org.remood.javaseremood;
 
 import org.remood.remood.core.system.input.InputDriver;
 import org.remood.remood.core.system.video.VideoDriver;
@@ -16,17 +16,17 @@ import org.remood.remood.core.system.video.VideoSoftwareSurface;
 import org.remood.remood.core.system.video.VideoSurface;
 
 /**
- * This class implements SDL so that it can display graphics to the user using
- * the common library SDL.
+ * This class implements a video driver which relies on standard Java SE
+ * classes.
  *
- * @since 2016/05/19
+ * @since 2016/07/16
  */
-public class SDLVideoDriver
+public class JavaSEVideoDriver
 	implements InputDriver, VideoDriver
 {
 	/**
 	 * {@inheritDoc}
-	 * @since 2016/06/07
+	 * @since 2016/07/16
 	 */
 	@Override
 	public VideoSurface createSurface(boolean __hw, int __w, int __h)
@@ -37,12 +37,12 @@ public class SDLVideoDriver
 	
 	/**
 	 * {@inheritDoc}
-	 * @since 2016/05/19
+	 * @since 2016/07/16
 	 */
 	@Override
 	public String name()
 	{
-		return "sdl-video";
+		return "javase-video";
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class SDLVideoDriver
 	@Override
 	public int priority()
 	{
-		return Integer.MIN_VALUE;
+		return Integer.MAX_VALUE;
 	}
 }
 
