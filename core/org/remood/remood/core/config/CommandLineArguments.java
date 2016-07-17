@@ -27,8 +27,17 @@ import org.remood.remood.core.console.GameConsole;
  */
 public class CommandLineArguments
 {
-	/** Console commands to execute in sequence. */
-	private final String[] _console;
+	/** Developer mode? */
+	protected final boolean devparm;
+	
+	/** No mouse. */
+	protected final boolean nomouse;
+	
+	/** Early console commands. */
+	private final String[] _earlyconsole;
+	
+	/** Late console commands. */
+	private final String[] _lateconsole;
 	
 	/**
 	 * This parses the command line arguments which may be used when parsing
@@ -46,6 +55,12 @@ public class CommandLineArguments
 		if (__gc == null || __args == null)
 			throw new NullPointerException();
 		
+		// Temporary hold
+		List<String> earlyconsole = new ArrayList<>();
+		List<String> lateconsole = new ArrayList<>();
+		boolean devparm = false;
+		boolean nomouse = false;
+		
 		// Go through all arguments
 		int n = __args.length;
 		List<String> sub = new ArrayList<>();
@@ -58,7 +73,7 @@ public class CommandLineArguments
 			
 			// Determine the sub-arguments to this argument
 			sub.clear();
-			for (int j = i + 1; i < n; i++)
+			for (int j = i + 1; j < n; j++)
 			{
 				String sx = __args[j];
 				
@@ -76,6 +91,20 @@ public class CommandLineArguments
 			// A normal command line switch?
 			switch (arg)
 			{
+					// Ignore these arguments
+				case "-java":
+					break;
+					
+					// Developer mode?
+				case "-devparm":
+					devparm = true;
+					break;
+					
+					// No mouse
+				case "-nomouse":
+					nomouse = true;
+					break;
+				
 					// Unknown, either an illegal switch or a console command
 				default:
 					// Unknown switch
@@ -87,7 +116,17 @@ public class CommandLineArguments
 					// Console command
 					else if (fc == '+')
 					{
-						throw new Error("TODO");
+						// ++ are late console commands to be executed at the
+						// titlescreen or before an actual game has been
+						// launched.
+						char sc = (an > 1 ? arg.charAt(1) : 0);
+						String m = __consoleMerge(arg, sub);
+						if (sc == '+')
+							lateconsole.add(m);
+						
+						// Otherwise execute following a configuration load
+						else
+							earlyconsole.add(m);
 					}
 					
 					// Assume -file
@@ -100,7 +139,89 @@ public class CommandLineArguments
 			}
 		}
 		
-		throw new Error("TODO");
+		// Set
+		this.devparm = devparm;
+		this.nomouse = nomouse;
+		this._earlyconsole = earlyconsole.<String>toArray(
+			new String[earlyconsole.size()]);
+		this._lateconsole = lateconsole.<String>toArray(
+			new String[lateconsole.size()]);
+	}
+	
+	/**
+	 * Allow mice to be used?
+	 *
+	 * @return {@code true} if mice are to be used.
+	 * @since 2016/07/16
+	 */
+	public boolean allowMouse()
+	{
+		return !this.nomouse;
+	}
+	
+	/**
+	 * Is this developer mode?
+	 *
+	 * @return {@code true} if this is developer mode.
+	 * @since 2016/07/16
+	 */
+	public boolean isDeveloper()
+	{
+		return this.devparm;
+	}
+	
+	/**
+	 * Merges all of the strings so that they may be used for input to the
+	 * console.
+	 *
+	 * @param __a The first string, may be {@code null}.
+	 * @param __b The remaining strings, may also be {@code null}.
+	 * @return A merged string which is suitable for usage by the console.
+	 * @since 2016/07/16
+	 */
+	private static String __consoleMerge(String __a, Iterable<String> __b)
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		// First string
+		if (__a != null)
+			sb.append(__a);
+		
+		// Add all b
+		if (__b != null)
+		{
+			for (String b : __b)
+			{
+				// Ignore null strings.
+				if (b == null)
+					continue;
+				
+				// Space and starting quote
+				sb.append(' ');
+				sb.append('"');
+				
+				// Need to escape slashes and quotes because input command
+				// line arguments tend to be pre-quoted.
+				int n = b.length();
+				for (int i = 0; i < n; i++)
+				{
+					char c = b.charAt(i);
+					
+					if (c == '"')
+						sb.append("\\\"");
+					else if (c == '\\')
+						sb.append("\\\\");
+					else
+						sb.append(c);
+				}
+				
+				// End quote
+				sb.append('"');
+			}
+		}
+		
+		// Done
+		return sb.toString();
 	}
 }
 

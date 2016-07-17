@@ -41,5 +41,15 @@ class __InputCommandConsole__
 		// Set
 		this.console = __gc;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/16
+	 */
+	@Override
+	public void write(int __b)
+	{
+		throw new Error("TODO");
+	}
 }
 

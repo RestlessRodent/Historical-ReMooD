@@ -48,5 +48,15 @@ class __OutputCommandConsole__
 		this._output = (__output == null ? new OutputStream[0] :
 			__output.clone());
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/16
+	 */
+	@Override
+	public void write(int __b)
+	{
+		throw new Error("TODO");
+	}
 }
 
