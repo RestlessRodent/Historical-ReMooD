@@ -10,6 +10,8 @@
 #include "j.h"
 
 #include "z_zone.h"
+#include "v_video.h"
+#include "i_util.h"
 
 /**
  * Prepares the video mode list.
@@ -45,7 +47,7 @@ void VID_PrepareModeList(void)
 	J_GetIntArrayRegion(modes, 0, n, cmodes);
 	
 	for (i = 0; i < n; i += 2)
-		VID_AddMode(cmodes[i], cmodes[i + 1]);
+		VID_AddMode(cmodes[i], cmodes[i + 1], false);
 	
 	Z_Free(cmodes);
 }
@@ -132,7 +134,7 @@ void I_FinishUpdate(void)
 	for (i = 0; i < n; i++)
 	{
 		// Get index
-		int pdx = buffer[i];
+		int pdx = buffer[i] * 3;
 		
 		// Set colors
 		rfb[i] = (((int)pal[pdx]) << 16) |
