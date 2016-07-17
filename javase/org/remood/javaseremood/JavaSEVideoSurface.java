@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.Rectangle;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.remood.remood.core.system.video.VideoDriver;
@@ -102,12 +103,20 @@ public class JavaSEVideoSurface
 			// Draw parent components
 			super.paintComponent(__g);
 			
+			// Get area which is being drawn
+			Rectangle re = __g.getClip().getBounds();
+			int bx = re.x;
+			int by = re.y;
+			int bw = re.width;
+			int bh = re.height;
+			
 			// Get video size
 			int w = JavaSEVideoSurface.this.width,
 				h = JavaSEVideoSurface.this.height;
 			
 			// Draw framebuffer
-			__g.drawImage(JavaSEVideoSurface.this._image, w, h, null);
+			__g.drawImage(JavaSEVideoSurface.this._image.getSubimage(
+				0, 0, bw, bh), bx, by, null);
 		}
 	}
 }
