@@ -18,10 +18,10 @@ package org.remood.remood.core.system.video;
 public abstract class VideoSurface
 {
 	/** The surface width. */
-	private final int width;
+	protected final int width;
 	
 	/** The surface height. */
-	private final int height;
+	protected final int height;
 	
 	/**
 	 * Initializes the video surface.
