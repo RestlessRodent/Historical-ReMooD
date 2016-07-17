@@ -953,6 +953,7 @@ void I_StartFrame(void)
 }
 
 /* I_FinishUpdate() -- Called after drawing a frame */
+#if 0
 void I_FinishUpdate(void)
 {
 	register uint32_t y;
@@ -999,6 +1000,7 @@ void I_FinishUpdate(void)
 	/* Update Rectangle */
 	SDL_Flip(l_SDLSurface);
 }
+#endif
 
 /* I_SetPalette() -- Sets the current palette */
 void I_SetPalette(RGBA_t* palette)

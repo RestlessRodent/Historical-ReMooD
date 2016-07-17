@@ -87,3 +87,13 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false, 1);
 }
 
+/**
+ * Blits the graphics to the screen.
+ *
+ * @since 2016/07/17
+ */
+void I_FinishUpdate(void)
+{
+	I_Error("TODO");
+}
+
