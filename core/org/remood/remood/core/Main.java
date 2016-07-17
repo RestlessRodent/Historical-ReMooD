@@ -31,11 +31,14 @@ public class Main
 	/** The default command line arguments. */
 	protected final CommandLineArguments commandline;
 	
-	/** The device manager for video modes. */
-	protected final DriverManager<VideoDriver> videomanager;
-	
 	/** The user's configuration. */
 	protected final GameConfiguration config;
+	
+	/** The device manager for video modes. */
+	protected final DriverManager<VideoDriverFactory> videomanager;
+	
+	/** The driver for video modes. */
+	protected final VideoDriver videodriver;
 	
 	/** The current video surface. */
 	private volatile VideoSurface _video;
@@ -65,6 +68,13 @@ public class Main
 		DriverManager<VideoDriver> videomanager =
 			new DriverManager<>(VideoDriver.class, gc, config);
 		this.videomanager = videomanager;
+		
+		// Setup video driver
+		VideoDriver videodriver = videomanager.createDriver(gc, config);
+		this.videodriver = videodriver;
+		
+		// Setup initial video mode (for the boot console)
+		this._video = videodriver.createSurface(false, 320, 200);
 	}
 	
 	/**

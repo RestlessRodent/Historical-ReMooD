@@ -19,7 +19,7 @@ import org.remood.remood.core.console.GameConsole;
  *
  * @since 2016/06/07
  */
-public class DriverManager<D extends DeviceDriver>
+public class DriverManager<D extends DeviceDriverFactory>
 {
 	/** The loader for driver services. */
 	protected final ServiceLoader<D> loader;
@@ -50,7 +50,7 @@ public class DriverManager<D extends DeviceDriver>
 		// Check
 		if (__cl == null || __gc == null || __conf == null)
 			throw new NullPointerException();
-		if (__cl.isAssignableFrom(DeviceDriver.class))
+		if (__cl.isAssignableFrom(DeviceDriverFactory.class))
 			throw new ClassCastException();
 		
 		// Setup loader

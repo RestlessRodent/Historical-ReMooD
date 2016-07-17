@@ -7,17 +7,17 @@
 // ReMooD is under the GNU General Public License v3+, see license.mkd.
 // ---------------------------------------------------------------------------
 
-package org.remood.remood.core.system;
+package org.remood.javaseremood;
 
-import org.remood.remood.core.config.GameConfiguration;
-import org.remood.remood.core.console.GameConsole;
+import org.remood.remood.core.system.DeviceDriverFactory;
+import org.remood.remood.core.system.video.VideoDriver;
 
 /**
- * This is the interface which acts as the base for all device drivers.
+ * This creates Java SE video drivers.
  *
- * @since 2016/05/19
+ * @since 2016/07/17
  */
-public interface DeviceDriver
+public class JavaSEVideoDriverFactory<VideoDriver>
 {
 }
 
