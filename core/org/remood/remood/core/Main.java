@@ -63,6 +63,9 @@ public class Main
 	 */
 	public static void main(String... __args)
 	{
+		// Setup the core console that every instance will use (for debugging
+		// and game usage)
+		
 		// Parse the command line
 		CommandLineArguments cla = new CommandLineArguments(__args);
 		
