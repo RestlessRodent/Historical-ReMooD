@@ -13,6 +13,10 @@
 	<!-- ReMooD sdl JAR -->
 	<property name="remood.jar.sdl"
 		value="${user.dir}/remood-sdl.jar" />
+		
+	<!-- ReMooD javase JAR -->
+	<property name="remood.jar.javase"
+		value="${user.dir}/remood-javase.jar" />
 	
 	<!-- Compile: ReMooD Core Library -->
 	<target name="compile-core">
@@ -96,14 +100,52 @@
 		<delete dir="${remood.jar.sdl}" />
 	</target>
 	
+		<!-- javase -->
+	
+	<!-- Compile: ReMooD javase Interface -->
+	<target name="compile-javase" depends="jar-core">
+		<mkdir dir="${remood.out}" />
+		<mkdir dir="${remood.out}/javase" />
+		<javac srcdir="${remood.src}/javase"
+			destdir="${remood.out}/javase"
+			includeantruntime="false"
+			classpath="${remood.jar.core}" debug="true">
+			<compilerarg value="-source" />
+			<compilerarg value="1.7" />
+			<compilerarg value="-target" />
+			<compilerarg value="1.7" />
+			<compilerarg value="-g" />
+		</javac>
+	</target>
+	
+	<!-- JAR: ReMooD javase Interface -->
+	<target name="jar-javase" depends="compile-javase">
+		<mkdir dir="${remood.out}" />
+		<jar destfile="${remood.jar.javase}"
+			filesetmanifest="merge"
+			indexMetaInf="true"
+			level="9">
+			<fileset dir="${remood.out}/javase" />
+			<fileset dir="${remood.src}/javase">
+				<exclude name="**/*.java" />
+			</fileset>
+		</jar>
+	</target>
+	
+	<!-- Clean: SDE -->
+	<target name="clean-javase">
+		<delete dir="${remood.out}/javase" />
+		<delete dir="${remood.jar.javase}" />
+	</target>
+	
 	<!-- ================================================================== -->
 	
 	<!-- Default JAR -->
-	<target name="jar" depends="jar-core,jar-sdl">
+	<target name="jar" depends="jar-core,jar-sdl,jar-javase">
 	</target>
 	
 	<!-- Default clean -->
-	<target name="clean" depends="clean-core,clean-sdl">
+	<target name="clean" depends="clean-core,clean-sdl,clean-javase">
 		<delete dir="${remood.out}" />
 	</target>
 	

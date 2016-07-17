@@ -50,7 +50,7 @@ bool_t J_Init()
 	
 	/* Setup options. */
     options.optionString = "-Djava.class.path=remood-core.jar" PATH_SEP
-    	"remood-sdl.jar";
+    	"remood-javase.jar" PATH_SEP "remood-sdl.jar";
     
     /* Setup the virtual machine. */
     rv = JNI_CreateJavaVM(&g_JVM, (void**)&g_Env, &args);
