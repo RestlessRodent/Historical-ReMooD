@@ -45,6 +45,13 @@ public abstract class VideoSurface
 	}
 	
 	/**
+	 * Destroys this video surface.
+	 *
+	 * @since 2016/07/17
+	 */
+	public abstract void destroy();
+	
+	/**
 	 * Returns {@code true} if this is a three dimensional hardware surface.
 	 *
 	 * @return {@code true} if a hardware surface.

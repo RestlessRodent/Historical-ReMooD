@@ -30,6 +30,9 @@ public class JavaSEVideoDriver
 	/** The game configuration. */
 	protected final GameConfiguration config;
 	
+	/** The current video surface. */
+	private volatile VideoSurface _surface;
+	
 	/**
 	 * Initializes the video driver.
 	 *
@@ -77,7 +80,15 @@ public class JavaSEVideoDriver
 	public VideoSurface selectVideoMode(boolean __hw, int __w, int __h)
 		throws VideoException
 	{
-		return new JavaSEVideoSurface(__w, __h);
+		// Clear the old surface
+		VideoSurface old = this._surface;
+		if (old != null)
+			old.destroy();
+		
+		// Setup new surface
+		VideoSurface rv = new JavaSEVideoSurface(__w, __h);
+		this._surface = rv;
+		return rv;
 	}
 }
 

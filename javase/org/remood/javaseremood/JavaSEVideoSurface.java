@@ -86,6 +86,25 @@ public class JavaSEVideoSurface
 	}
 	
 	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/17
+	 */
+	@Override
+	public void destroy()
+	{
+		// If the surface exists, remove it
+		JFrame frame = this._frame;
+		if (frame != null)
+		{
+			frame.setVisible(false);
+			frame.dispose();
+			
+			// Clear
+			this._frame = null;
+		}
+	}
+	
+	/**
 	 * Panel used for drawing.
 	 *
 	 * @since 2016/07/17
