@@ -111,6 +111,7 @@ void I_FinishUpdate(void)
 	uint32_t w, h, b, i, n;
 	jint* rfb;
 	uint8_t* buffer;
+	uint8_t* pal;
 	
 	// Get the 8-bit buffer
 	buffer = I_VideoSoftBuffer(&w, &h, &b, NULL);
@@ -123,10 +124,21 @@ void I_FinishUpdate(void)
 	// Get raw array
 	rfb = J_GetIntArrayElements(fbd, NULL);
 	
+	// Get the palette
+	pal = V_GetPalette(0);
+	
 	// Copy image data
 	n = w * h;
 	for (i = 0; i < n; i++)
-		rfb[i] = buffer[i];
+	{
+		// Get index
+		int pdx = buffer[i];
+		
+		// Set colors
+		rfb[i] = (((int)pal[pdx]) << 16) |
+			(((int)pal[pdx + 1]) << 8) |
+			(((int)pal[pdx + 2]));
+	}
 	
 	// Commit the array
 	J_ReleaseIntArrayElements(fbd, rfb, 0);

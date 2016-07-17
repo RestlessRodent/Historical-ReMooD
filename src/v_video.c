@@ -463,11 +463,17 @@ void V_SetPalette(int palettenum)
 		}
 }
 
+static uint8_t __voidpal[768];
+
 /* V_GetPalette() -- Gets palette */
 uint8_t* V_GetPalette(int palettenum)
 {
 	if (!l_DoomPals)
 		LoadPalette("PLAYPAL");
+	
+	// Still not loaded?
+	if (!l_DoomPals)
+		return __voidpal;
 		
 	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
 		return l_DoomPals[0];
