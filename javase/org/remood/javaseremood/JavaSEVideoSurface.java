@@ -107,7 +107,7 @@ public class JavaSEVideoSurface
 				h = JavaSEVideoSurface.this.height;
 			
 			// Draw framebuffer
-			__g.drawImage(this._image, w, h, null);
+			__g.drawImage(JavaSEVideoSurface.this._image, w, h, null);
 		}
 	}
 }
