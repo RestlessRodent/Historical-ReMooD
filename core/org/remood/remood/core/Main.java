@@ -11,6 +11,7 @@ package org.remood.remood.core;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import org.remood.remood.core.config.CommandLineArguments;
 
 /**
  * This is the main ReMooD entry point.
@@ -62,6 +63,9 @@ public class Main
 	 */
 	public static void main(String... __args)
 	{
+		// Parse the command line
+		CommandLineArguments cla = new CommandLineArguments(__args);
+		
 		throw new Error("TODO");
 	}
 }
