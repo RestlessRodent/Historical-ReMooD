@@ -2265,12 +2265,8 @@ void D_DoomMain(void)
 		return;
 	}
 	
-	if (M_CheckParm("-java"))
-	{
-		J_AltMain();
-		exit(0);
-		return;
-	}
+	// Setup virtually wrapped main class where new code goes into
+	J_AltMain();
 	
 	// GhostlyDeath <January 15, 2012> -- Check for dedicated server
 #if !defined(__REMOOD_DEDICATED)

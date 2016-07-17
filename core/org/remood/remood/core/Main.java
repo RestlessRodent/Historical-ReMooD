@@ -21,6 +21,30 @@ import org.remood.remood.core.console.GameConsole;
  */
 public class Main
 {
+	/** The primary game console. */
+	protected final GameConsole console;
+	
+	/** The default command line arguments. */
+	protected final CommandLineArguments commandline;
+	
+	/**
+	 * Initialize some game details.
+	 *
+	 * @param __args Program arguments.
+	 * @since 2016/07/17
+	 */
+	public Main(String... __args)
+	{
+		// Setup the core console that every instance will use (for debugging
+		// and game usage)
+		GameConsole gc = new GameConsole();
+		this.console = gc;
+		
+		// Parse the command line
+		CommandLineArguments cla = new CommandLineArguments(gc, __args);
+		this.commandline = cla;
+	}
+	
 	/**
 	 * This is called by the C code because it does not know anything about
 	 * Java exception handling.
@@ -64,14 +88,8 @@ public class Main
 	 */
 	public static void main(String... __args)
 	{
-		// Setup the core console that every instance will use (for debugging
-		// and game usage)
-		GameConsole gc = new GameConsole();
-		
-		// Parse the command line
-		CommandLineArguments cla = new CommandLineArguments(gc, __args);
-		
-		throw new Error("TODO");
+		// Create main class, which does everything
+		new Main(__args);
 	}
 }
 

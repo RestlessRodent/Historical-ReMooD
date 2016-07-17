@@ -25,6 +25,9 @@ JNIEnv* g_Env = NULL;
 	#define PATH_SEP ":"
 #endif
 
+/** The Main class. */
+jobject g_MainObject = NULL;
+
 /**
  * {@inheritDoc}
  * @since 2016/05/05
@@ -75,17 +78,10 @@ bool_t J_Init()
 extern int myargc;
 extern char** myargv;
 
-void J_AltMain()
+static jobjectArray __mainArguments()
 {
-	jclass mainclass;
-	jmethodID mainmethod;
 	jobjectArray cargs;
 	int i;
-	
-	// Find main class
-	mainclass = J_FindClass("org/remood/remood/core/Main");
-	mainmethod = J_GetStaticMethodID(mainclass, "catchMain",
-		"([Ljava/lang/String;)I");
 	
 	// Allocate array
 	cargs = J_NewObjectArray(myargc - 1, J_FindClass("java/lang/String"), NULL);
@@ -94,21 +90,69 @@ void J_AltMain()
 	for (i = 0; i < myargc - 1; i++)
 		J_SetObjectArrayElement(cargs, i, J_NewStringUTF(myargv[i + 1]));
 	
-	// Call main
-	if (!J_CallStaticIntMethod(mainclass, mainmethod, cargs))
-		I_Error("Failed in main method.");
+	return cargs;
+}
+
+void J_AltMain()
+{
+	jclass mainclass;
+	jmethodID mainmethod;
+	
+	// Find main class
+	mainclass = J_FindClass("org/remood/remood/core/Main");
+	mainmethod = J_GetMethodID(mainclass, "<init>",
+		"([Ljava/lang/String;)V");
+	
+	// Construct new main class
+	g_MainObject = J_NewObject(mainclass, mainmethod, __mainArguments());
+}
+
+/** Exceptions. */
+
+jthrowable J_ExceptionOccurred()
+{
+	return (*g_Env)->ExceptionOccurred(g_Env);
+}
+
+void J_ExceptionDescribe()
+{
+	return (*g_Env)->ExceptionDescribe(g_Env);
+}
+
+void __checkException()
+{
+	// See if one was thrown
+	jthrowable x = J_ExceptionOccurred();
+	
+	// One was
+	if (x != NULL)
+	{
+		// Describe it
+		J_ExceptionDescribe();
+		
+		// Then explode
+		I_Error("Exception thrown from Java code.");
+	}
 }
 
 /** JNI Mirrors. */
 
 jclass J_FindClass(const char *name)
 {
-	return (*g_Env)->FindClass(g_Env, name);
+	jclass rv = (*g_Env)->FindClass(g_Env, name);
+	
+	__checkException();
+	
+	return rv;
 }
 
 jmethodID J_GetMethodID(jclass clazz, const char *name, const char *sig)
 {
-	return (*g_Env)->GetMethodID(g_Env, clazz, name, sig);
+	jmethodID rv = (*g_Env)->GetMethodID(g_Env, clazz, name, sig);
+	
+	__checkException();
+	
+	return rv;
 }
 
 jobject J_NewObject(jclass clazz, jmethodID methodID, ...)
@@ -120,22 +164,34 @@ jobject J_NewObject(jclass clazz, jmethodID methodID, ...)
 	rv = (*g_Env)->NewObjectV(g_Env, clazz, methodID, ap);
 	va_end(ap);
 	
+	__checkException();
+	
 	return rv;
 }
 
 jobject J_GetStaticObjectField(jclass clazz, jfieldID fieldID)
 {
-	return (*g_Env)->GetStaticObjectField(g_Env, clazz, fieldID);
+	jobject rv = (*g_Env)->GetStaticObjectField(g_Env, clazz, fieldID);
+	
+	__checkException();
+	
+	return rv;
 }
 
 const char* J_GetStringUTFChars(jstring str, jboolean *isCopy)
 {
-	return (*g_Env)->GetStringUTFChars(g_Env, str, isCopy);
+	const char* rv = (*g_Env)->GetStringUTFChars(g_Env, str, isCopy);
+	
+	__checkException();
+	
+	return rv;
 }
 
 void J_ReleaseStringUTFChars(jstring str, const char* chars)
 {
 	(*g_Env)->ReleaseStringUTFChars(g_Env, str, chars);
+	
+	__checkException();
 }
 
 jint J_CallIntMethod(jobject obj, jmethodID methodID, ...)
@@ -146,6 +202,8 @@ jint J_CallIntMethod(jobject obj, jmethodID methodID, ...)
 	va_start(ap, methodID);
 	rv = (*g_Env)->CallIntMethodV(g_Env, obj, methodID, ap);
 	va_end(ap);
+	
+	__checkException();
 	
 	return rv;
 }
@@ -159,22 +217,36 @@ jobject J_CallObjectMethod(jobject obj, jmethodID methodID, ...)
 	rv = (*g_Env)->CallObjectMethodV(g_Env, obj, methodID, ap);
 	va_end(ap);
 	
+	__checkException();
+	
 	return rv;
 }
 
 jfieldID J_GetStaticFieldID(jclass clazz, const char *name, const char *sig)
 {
-	return (*g_Env)->GetStaticFieldID(g_Env, clazz, name, sig);
+	jfieldID rv = (*g_Env)->GetStaticFieldID(g_Env, clazz, name, sig);
+	
+	__checkException();
+	
+	return rv;
 }
 
 jstring J_NewStringUTF(const char* str)
 {
-	return (*g_Env)->NewStringUTF(g_Env, str);
+	jstring rv =  (*g_Env)->NewStringUTF(g_Env, str);
+	
+	__checkException();
+	
+	return rv;
 }
 
 jmethodID J_GetStaticMethodID(jclass clazz, const char *name, const char *sig)
 {
-	return (*g_Env)->GetStaticMethodID(g_Env, clazz, name, sig);
+	jmethodID rv = (*g_Env)->GetStaticMethodID(g_Env, clazz, name, sig);
+	
+	__checkException();
+	
+	return rv;
 }
 
 void J_CallStaticVoidMethod(jclass cls, jmethodID methodID, ...)
@@ -184,6 +256,8 @@ void J_CallStaticVoidMethod(jclass cls, jmethodID methodID, ...)
 	va_start(ap, methodID);
 	(*g_Env)->CallStaticVoidMethodV(g_Env, cls, methodID, ap);
 	va_end(ap);
+	
+	__checkException();
 }
 
 jlong J_CallStaticLongMethod(jclass cls, jmethodID methodID, ...)
@@ -195,19 +269,27 @@ jlong J_CallStaticLongMethod(jclass cls, jmethodID methodID, ...)
 	rv = (*g_Env)->CallStaticLongMethodV(g_Env, cls, methodID, ap);
 	va_end(ap);
 	
+	__checkException();
+	
 	return rv;
 }
 
 jobjectArray J_NewObjectArray(jsize length, jclass elementclass,
 	jobject initialelement)
 {
-	return (*g_Env)->NewObjectArray(g_Env, length, elementclass,
+	jobjectArray rv = (*g_Env)->NewObjectArray(g_Env, length, elementclass,
 		initialelement);
+	
+	__checkException();
+	
+	return rv;
 }
 
 void J_SetObjectArrayElement(jobjectArray array, jsize index, jobject value)
 {
 	(*g_Env)->SetObjectArrayElement(g_Env, array, index, value);
+	
+	__checkException();
 }
 
 jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...)
@@ -218,6 +300,8 @@ jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...)
 	va_start(ap, methodID);
 	rv = (*g_Env)->CallStaticIntMethodV(g_Env, cls, methodID, ap);
 	va_end(ap);
+	
+	__checkException();
 	
 	return rv;
 }

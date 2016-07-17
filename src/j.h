@@ -20,6 +20,9 @@ extern JavaVM* g_JVM;
 /** The global environment. */
 extern JNIEnv* g_Env;
 
+/** Main class. */
+extern jobject g_MainObject;
+
 /**
  * Initializes the Java interface.
  *
@@ -31,6 +34,8 @@ bool_t J_Init();
 void J_AltMain();
 
 /** Mirrors of JNI library (removes env). */
+jthrowable J_ExceptionOccurred();
+void J_ExceptionDescribe();
 jclass J_FindClass(const char *name);
 jmethodID J_GetMethodID(jclass clazz, const char *name, const char *sig);
 jobject J_NewObject(jclass clazz, jmethodID methodID, ...);
