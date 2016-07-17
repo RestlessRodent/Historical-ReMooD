@@ -12,7 +12,11 @@ package org.remood.remood.core;
 import java.io.PrintStream;
 import java.util.Arrays;
 import org.remood.remood.core.config.CommandLineArguments;
+import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
+import org.remood.remood.core.system.video.VideoDriver;
+import org.remood.remood.core.system.video.VideoSurface;
+import org.remood.remood.core.system.DriverManager;
 
 /**
  * This is the main ReMooD entry point.
@@ -26,6 +30,15 @@ public class Main
 	
 	/** The default command line arguments. */
 	protected final CommandLineArguments commandline;
+	
+	/** The device manager for video modes. */
+	protected final DriverManager<VideoDriver> videomanager;
+	
+	/** The user's configuration. */
+	protected final GameConfiguration config;
+	
+	/** The current video surface. */
+	private volatile VideoSurface _video;
 	
 	/**
 	 * Initialize some game details.
@@ -43,6 +56,26 @@ public class Main
 		// Parse the command line
 		CommandLineArguments cla = new CommandLineArguments(gc, __args);
 		this.commandline = cla;
+		
+		// Load the user configuration
+		GameConfiguration config = new GameConfiguration(gc, cla);
+		this.config = config;
+		
+		// Setup video manager for the early boot screen
+		DriverManager<VideoDriver> videomanager =
+			new DriverManager<>(VideoDriver.class, gc, config);
+		this.videomanager = videomanager;
+	}
+	
+	/**
+	 * Returns the current video surface being used.
+	 *
+	 * @return The current video surface.
+	 * @since 2016/07/17
+	 */
+	public final VideoSurface video()
+	{
+		return this._video;
 	}
 	
 	/**

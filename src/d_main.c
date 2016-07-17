@@ -2266,6 +2266,7 @@ void D_DoomMain(void)
 	}
 	
 	// Setup virtually wrapped main class where new code goes into
+	// This has new interfaces for some things.
 	J_AltMain();
 	
 	// GhostlyDeath <January 15, 2012> -- Check for dedicated server
@@ -2321,8 +2322,6 @@ void D_DoomMain(void)
 	/* Start Graphics REALLY early! */
 	VHW_Init(VHWMODE_IDXSOFT);			// Just in case!
 	SCR_SetDefaultMode();				// Screen Size
-	CONL_PrintF("I_StartupGraphics...\n");
-	I_StartupGraphics();
 	
 	// Make the console "started"
 	con_started = true;
