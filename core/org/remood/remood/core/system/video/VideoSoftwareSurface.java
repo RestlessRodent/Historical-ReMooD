@@ -62,6 +62,17 @@ public abstract class VideoSoftwareSurface
 	}
 	
 	/**
+	 * Returns the used framebuffer.
+	 *
+	 * @return The framebuffer.
+	 * @since 2016/07/17
+	 */
+	public int[] framebuffer()
+	{
+		return this.framebuffer;
+	}
+	
+	/**
 	 * {@inheritDoc}
 	 * @since 2016/06/07
 	 */

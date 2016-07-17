@@ -24,11 +24,11 @@ void VID_PrepareModeList(void)
 	jintArray modes;
 	int i, n;
 	jint* cmodes;
-	jclass vsc = J_FindClass(
+	jclass vdc = J_FindClass(
 		"org/remood/remood/core/system/video/VideoDriver");
 	jmethodID vmm = J_GetMethodID(g_MainClass, "videoDriver",
 		"()Lorg/remood/remood/core/system/video/VideoDriver;");
-	jmethodID lvm = J_GetMethodID(vsc, "listModes",
+	jmethodID lvm = J_GetMethodID(vdc, "listModes",
 		"()[I");
 	
 	// Get the video driver
@@ -48,5 +48,41 @@ void VID_PrepareModeList(void)
 		VID_AddMode(cmodes[i], cmodes[i + 1]);
 	
 	Z_Free(cmodes);
+}
+
+/* I_StartupGraphics() -- Initializes graphics */
+void I_StartupGraphics(void)
+{
+	/* Pre-initialize video */
+	if (!I_VideoPreInit())
+		return;
+	
+	/* Generic Init */
+	I_VideoGenericInit();
+}
+
+/**
+ * Sets the video mode.
+ *
+ * @sicne 2016/07/17
+ */
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen, const uint8_t a_Depth)
+{
+	jobject vss;
+	jintArray fbd;
+	jmethodID svmm = J_GetMethodID(g_MainClass, "selectVideoMode",
+		"(ZII)Lorg/remood/remood/core/system/video/VideoSurface;");
+	jmethodID gfbm = J_GetMethodID(J_FindClass(
+		"org/remood/remood/core/system/video/VideoSoftwareSurface"),
+		"framebuffer", "()[I");
+	
+	// Change video mode
+	vss = J_CallObjectMethod(g_MainObject, svmm, false, a_Width, a_Height);
+	
+	// Get framebuffer
+	fbd = (jintArray)J_CallObjectMethod(vss, gfbm);
+	
+	// Setup video surface
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false, 4);
 }
 

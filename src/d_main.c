@@ -2283,6 +2283,8 @@ void D_DoomMain(void)
 	// Replace old variable
 	dedicated = g_DedicatedServer;
 	
+	I_StartupGraphics();
+	
 	// GhostlyDeath <July 6, 2008> -- initialize fields
 	memset(player_names, 0, sizeof(player_names));
 	memset(team_names, 0, sizeof(team_names));

@@ -56,6 +56,7 @@ void J_SetObjectArrayElement(jobjectArray array, jsize index, jobject value);
 jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...);
 jsize J_GetArrayLength(jarray array);
 void J_GetIntArrayRegion(jintArray array, jsize start, jsize len, jint *buf);
+jboolean J_CallBooleanMethod(jobject obj, jmethodID methodID, ...);
 
 #endif /* REMOOD_J_H__ */
 

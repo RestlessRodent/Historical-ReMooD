@@ -322,3 +322,17 @@ void J_GetIntArrayRegion(jintArray array, jsize start, jsize len, jint *buf)
 	__checkException();
 }
 
+jboolean J_CallBooleanMethod(jobject obj, jmethodID methodID, ...)
+{
+	jboolean rv;
+	va_list ap;
+	
+	va_start(ap, methodID);
+	rv = (*g_Env)->CallBooleanMethodV(g_Env, obj, methodID, ap);
+	va_end(ap);
+	
+	__checkException();
+	
+	return rv;
+}
+

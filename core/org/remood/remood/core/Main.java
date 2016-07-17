@@ -66,8 +66,23 @@ public class Main
 		this.videomanager = videomanager;
 		
 		// Create initial video surface
-		VideoSurface surface = videomanager.selectVideoMode(false, 320, 200);
+		selectVideoMode(false, 320, 200);
+	}
+	
+	/**
+	 * Initializes a new video mode.
+	 *
+	 * @param __hw Hardware 3D graphics?
+	 * @param __w Surface width.
+	 * @param __h Surface height.
+	 * @return The video surface.
+	 * @since 2016/07/17
+	 */
+	public final VideoSurface selectVideoMode(boolean __hw, int __w, int __h)
+	{
+		VideoSurface surface = videomanager.selectVideoMode(__hw, __w, __h);
 		this._surface = surface;
+		return surface;
 	}
 	
 	/**
@@ -79,6 +94,17 @@ public class Main
 	public final VideoDriver videoDriver()
 	{
 		return this.videomanager.driver();
+	}
+	
+	/**
+	 * Returns the current video surface.
+	 *
+	 * @return The video surface to use.
+	 * @since 2016/07/17
+	 */
+	public final VideoSurface videoSurface()
+	{
+		return this._surface;
 	}
 	
 	/**

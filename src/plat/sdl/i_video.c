@@ -1023,6 +1023,7 @@ void I_SetPalette(RGBA_t* palette)
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
+#if 0
 bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen, const uint8_t a_Depth)
 {
 	uint32_t SDLFlags = 0;
@@ -1118,6 +1119,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	/* Success */
 	return true;
 }
+#endif
 
 /* I_ShutdownGraphics() -- Turns off graphics */
 void I_ShutdownGraphics(void)
@@ -1392,78 +1394,4 @@ static jclass __vdclass = NULL;
 static jobject __vdman = NULL;
 static jobject __vdinst = NULL;
 
-/* I_StartupGraphics() -- Initializes graphics */
-void I_StartupGraphics(void)
-{
-	jmethodID mancon;
-	
-	/* Pre-initialize video */
-	if (!I_VideoPreInit())
-		return;
-	
-	// Setup the display manager
-	if (__vdman == NULL)
-	{
-		// Find the manager class
-		__vdmanclass = J_FindClass(
-			"org/remood/remood/core/system/DriverManager");
-		
-		// Find the video driver class
-		__vdclass = J_FindClass(
-			"org/remood/remood/core/system/video/VideoDriver");
-		
-		// Find the manager constructor
-		mancon = J_GetMethodID(__vdmanclass, "<init>", "(Ljava/lang/Class;)V");
-		
-		// Construct manager
-		__vdman = J_NewObject(__vdmanclass, mancon, __vdclass);
-		
-		I_Error("TODO");
-	}
-	
-	/* Generic Init */
-	I_VideoGenericInit();
-	
-	I_Error("TODO");
-	
-#if 0
-	const union
-	{
-		uint8_t u8[4];
-		uint32_t u32;
-	} IcoMasks[4] =
-	{
-		{
-			255, 0, 0, 0
-		},
-		{
-			0, 255, 0, 0
-		},
-		{
-			0, 0, 255, 0
-		},
-		{
-			0, 0, 0, 255
-		}
-	};
-	
-	/* Register force internal double buffer */
-	CONL_VarRegister(&l_SDLInternalBuffer);
-		
-	/* Initialize SDL */
-	if (SDL_Init(SDL_INIT_VIDEO) == -1)
-	{
-		CONL_PrintF("I_StartupGraphics: Failed to initialize SDL graphics.\n");
-		return;
-	}
-	
-	// Set unicode mode and key repeating
-	SDL_EnableUNICODE(1);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	
-	/* Create Icon */
-	if (!l_Icon)
-		l_Icon = SDL_CreateRGBSurfaceFrom(c_ReMooDLogo, 32, 32, 32, 4 * 32, IcoMasks[0].u32, IcoMasks[1].u32, IcoMasks[2].u32, IcoMasks[3].u32);
-#endif
-}
 
