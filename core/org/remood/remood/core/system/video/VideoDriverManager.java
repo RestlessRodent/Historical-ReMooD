@@ -63,6 +63,17 @@ public class VideoDriverManager
 	}
 	
 	/**
+	 * Returns the currently selected driver.
+	 *
+	 * @return The current driver or {@code null} if one was not set.
+	 * @since 2016/07/17
+	 */
+	public VideoDriver driver()
+	{
+		return this._driver;
+	}
+	
+	/**
 	 * Selects a new video mode.
 	 *
 	 * @param __hw Use 3D mode?

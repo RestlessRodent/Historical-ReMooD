@@ -21,6 +21,7 @@ extern JavaVM* g_JVM;
 extern JNIEnv* g_Env;
 
 /** Main class. */
+extern jclass g_MainClass;
 extern jobject g_MainObject;
 
 /**
@@ -53,6 +54,8 @@ jobjectArray J_NewObjectArray(jsize length, jclass elementclass,
 	jobject initialelement);
 void J_SetObjectArrayElement(jobjectArray array, jsize index, jobject value);
 jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...);
+jsize J_GetArrayLength(jarray array);
+void J_GetIntArrayRegion(jintArray array, jsize start, jsize len, jint *buf);
 
 #endif /* REMOOD_J_H__ */
 

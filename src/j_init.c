@@ -26,6 +26,7 @@ JNIEnv* g_Env = NULL;
 #endif
 
 /** The Main class. */
+jclass g_MainClass = NULL;
 jobject g_MainObject = NULL;
 
 /**
@@ -95,16 +96,15 @@ static jobjectArray __mainArguments()
 
 void J_AltMain()
 {
-	jclass mainclass;
 	jmethodID mainmethod;
 	
 	// Find main class
-	mainclass = J_FindClass("org/remood/remood/core/Main");
-	mainmethod = J_GetMethodID(mainclass, "<init>",
+	g_MainClass = J_FindClass("org/remood/remood/core/Main");
+	mainmethod = J_GetMethodID(g_MainClass, "<init>",
 		"([Ljava/lang/String;)V");
 	
 	// Construct new main class
-	g_MainObject = J_NewObject(mainclass, mainmethod, __mainArguments());
+	g_MainObject = J_NewObject(g_MainClass, mainmethod, __mainArguments());
 }
 
 /** Exceptions. */
@@ -304,5 +304,21 @@ jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...)
 	__checkException();
 	
 	return rv;
+}
+
+jsize J_GetArrayLength(jarray array)
+{
+	jsize rv = (*g_Env)->GetArrayLength(g_Env, array);
+	
+	__checkException();
+	
+	return rv;
+}
+
+void J_GetIntArrayRegion(jintArray array, jsize start, jsize len, jint *buf)
+{
+	(*g_Env)->GetIntArrayRegion(g_Env, array, start, len, buf);
+	
+	__checkException();
 }
 

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import org.remood.remood.core.config.CommandLineArguments;
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
+import org.remood.remood.core.system.video.VideoDriver;
 import org.remood.remood.core.system.video.VideoDriverManager;
 import org.remood.remood.core.system.video.VideoSurface;
 
@@ -67,6 +68,17 @@ public class Main
 		// Create initial video surface
 		VideoSurface surface = videomanager.selectVideoMode(false, 320, 200);
 		this._surface = surface;
+	}
+	
+	/**
+	 * Returns the current video driver being used.
+	 *
+	 * @return The current video driver.
+	 * @since 2016/07/17
+	 */
+	public final VideoDriver videoDriver()
+	{
+		return this.videomanager.driver();
 	}
 	
 	/**
