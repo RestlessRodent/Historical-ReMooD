@@ -58,7 +58,7 @@ public abstract class VideoSoftwareSurface
 	 */
 	protected int[] createFramebuffer()
 	{
-		return new int[__p * __w];
+		return new int[this.pitch * this.height];
 	}
 	
 	/**

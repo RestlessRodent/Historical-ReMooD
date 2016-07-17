@@ -55,6 +55,25 @@ public class JavaSEVideoDriver
 	 * @since 2016/07/17
 	 */
 	@Override
+	public int[] listModes()
+	{
+		return new int[]
+			{
+				320, 200,
+				320, 240,
+				640, 400,
+				640, 480,
+				512, 384,
+				800, 600,
+				1024, 768
+			};
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/17
+	 */
+	@Override
 	public VideoSurface selectVideoMode(boolean __hw, int __w, int __h)
 		throws VideoException
 	{

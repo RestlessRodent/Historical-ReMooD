@@ -21,6 +21,15 @@ public interface VideoDriver
 	extends DeviceDriver
 {
 	/**
+	 * Lists all of the video modes which are available.
+	 *
+	 * @return The list of video modes, must be a multiple of two where the
+	 * width is followed by the height.
+	 * @since 2016/07/17
+	 */
+	public abstract int[] listModes();
+	
+	/**
 	 * Creates a new video surface for displaying video.
 	 *
 	 * @param __hw Should hardware acceleration (3D) graphics be used?

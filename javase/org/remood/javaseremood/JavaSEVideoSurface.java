@@ -13,6 +13,7 @@ import org.remood.remood.core.system.video.VideoDriver;
 import org.remood.remood.core.system.video.VideoException;
 import org.remood.remood.core.system.video.VideoSoftwareSurface;
 import org.remood.remood.core.system.video.VideoSurface;
+import javax.swing.JFrame;
 
 /**
  * This class provides a video surface which uses Swing.
@@ -42,7 +43,8 @@ public class JavaSEVideoSurface
 	@Override
 	protected int[] createFramebuffer()
 	{
-		throw new Error("TODO");
+		System.err.println("TODO -- Create framebuffer.");
+		return super.createFramebuffer();
 	}
 }
 
