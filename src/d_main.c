@@ -2265,6 +2265,13 @@ void D_DoomMain(void)
 		return;
 	}
 	
+	if (M_CheckParm("-java"))
+	{
+		J_AltMain();
+		exit(0);
+		return;
+	}
+	
 	// GhostlyDeath <January 15, 2012> -- Check for dedicated server
 #if !defined(__REMOOD_DEDICATED)
 	g_DedicatedServer = M_CheckParm("-dedicated");

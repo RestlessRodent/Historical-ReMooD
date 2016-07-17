@@ -72,6 +72,33 @@ bool_t J_Init()
 	return true;
 }
 
+extern int myargc;
+extern char** myargv;
+
+void J_AltMain()
+{
+	jclass mainclass;
+	jmethodID mainmethod;
+	jobjectArray cargs;
+	int i;
+	
+	// Find main class
+	mainclass = J_FindClass("org/remood/remood/core/Main");
+	mainmethod = J_GetStaticMethodID(mainclass, "catchMain",
+		"([Ljava/lang/String;)I");
+	
+	// Allocate array
+	cargs = J_NewObjectArray(myargc - 1, J_FindClass("java/lang/String"), NULL);
+	
+	// Set arguments
+	for (i = 0; i < myargc - 1; i++)
+		J_SetObjectArrayElement(cargs, i, J_NewStringUTF(myargv[i + 1]));
+	
+	// Call main
+	if (!J_CallStaticIntMethod(mainclass, mainmethod, cargs))
+		I_Error("Failed in main method.");
+}
+
 /** JNI Mirrors. */
 
 jclass J_FindClass(const char *name)
@@ -166,6 +193,30 @@ jlong J_CallStaticLongMethod(jclass cls, jmethodID methodID, ...)
 	
 	va_start(ap, methodID);
 	rv = (*g_Env)->CallStaticLongMethodV(g_Env, cls, methodID, ap);
+	va_end(ap);
+	
+	return rv;
+}
+
+jobjectArray J_NewObjectArray(jsize length, jclass elementclass,
+	jobject initialelement)
+{
+	return (*g_Env)->NewObjectArray(g_Env, length, elementclass,
+		initialelement);
+}
+
+void J_SetObjectArrayElement(jobjectArray array, jsize index, jobject value)
+{
+	(*g_Env)->SetObjectArrayElement(g_Env, array, index, value);
+}
+
+jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...)
+{
+	va_list ap;
+	jint rv;
+	
+	va_start(ap, methodID);
+	rv = (*g_Env)->CallStaticIntMethodV(g_Env, cls, methodID, ap);
 	va_end(ap);
 	
 	return rv;

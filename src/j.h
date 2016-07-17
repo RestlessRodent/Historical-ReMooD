@@ -28,6 +28,8 @@ extern JNIEnv* g_Env;
  */
 bool_t J_Init();
 
+void J_AltMain();
+
 /** Mirrors of JNI library (removes env). */
 jclass J_FindClass(const char *name);
 jmethodID J_GetMethodID(jclass clazz, const char *name, const char *sig);
@@ -42,6 +44,10 @@ jstring J_NewStringUTF(const char* str);
 jmethodID J_GetStaticMethodID(jclass clazz, const char *name, const char *sig);
 void J_CallStaticVoidMethod(jclass cls, jmethodID methodID, ...);
 jlong J_CallStaticLongMethod(jclass cls, jmethodID methodID, ...);
+jobjectArray J_NewObjectArray(jsize length, jclass elementclass,
+	jobject initialelement);
+void J_SetObjectArrayElement(jobjectArray array, jsize index, jobject value);
+jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...);
 
 #endif /* REMOOD_J_H__ */
 
