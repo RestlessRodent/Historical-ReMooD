@@ -63,17 +63,6 @@ public class Main
 	}
 	
 	/**
-	 * Returns the current video surface being used.
-	 *
-	 * @return The current video surface.
-	 * @since 2016/07/17
-	 */
-	public final VideoSurface video()
-	{
-		return this._video;
-	}
-	
-	/**
 	 * This is called by the C code because it does not know anything about
 	 * Java exception handling.
 	 *
