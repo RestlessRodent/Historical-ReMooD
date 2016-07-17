@@ -47,7 +47,18 @@ public abstract class VideoSoftwareSurface
 		
 		// Set
 		this.pitch = Math.max(__w, __p);
-		this.framebuffer = (__fb != null ? __fb : new int[__p * __w]);
+		this.framebuffer = (__fb != null ? __fb : createFramebuffer());
+	}
+	
+	/**
+	 * Creates a new framebuffer.
+	 *
+	 * @return A framebuffer.
+	 * @since 2016/07/17
+	 */
+	protected int[] createFramebuffer()
+	{
+		return new int[__p * __w];
 	}
 	
 	/**

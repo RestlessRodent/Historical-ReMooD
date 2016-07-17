@@ -34,5 +34,15 @@ public class JavaSEVideoSurface
 	{
 		super(__w, __h, null, __w);
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/17
+	 */
+	@Override
+	protected int[] createFramebuffer()
+	{
+		throw new Error("TODO");
+	}
 }
 
