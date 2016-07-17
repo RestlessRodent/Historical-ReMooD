@@ -9,6 +9,7 @@
 
 package org.remood.remood.core.system.video;
 
+import java.util.ServiceLoader;
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
 
@@ -25,6 +26,9 @@ public class VideoDriverManager
 	
 	/** The game configuration. */
 	protected final GameConfiguration config;
+	
+	/** The currently selected driver. */
+	private volatile VideoDriver _driver;
 	
 	/**
 	 * Initializes the video driver manager.
@@ -44,6 +48,14 @@ public class VideoDriverManager
 		// Set
 		this.console = __gc;
 		this.config = __conf;
+		
+		// Setup service loader to find video driver factories
+		ServiceLoader<VideoDriverFactory> services =
+			ServiceLoader.<VideoDriverFactory>load(VideoDriverFactory.class);
+		for (VideoDriverFactory f : services)
+		{
+			throw new Error("TODO");
+		}
 	}
 }
 
