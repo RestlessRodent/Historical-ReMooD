@@ -9,8 +9,11 @@
 
 package org.remood.javaseremood;
 
+import org.remood.remood.core.config.GameConfiguration;
+import org.remood.remood.core.console.GameConsole;
 import org.remood.remood.core.system.DeviceDriverFactory;
 import org.remood.remood.core.system.DeviceDriverIdentity;
+import org.remood.remood.core.system.video.VideoDriver;
 import org.remood.remood.core.system.video.VideoDriverFactory;
 
 /**
@@ -24,6 +27,22 @@ public class JavaSEVideoDriverFactory
 	/** The identity for this driver. */
 	private static final DeviceDriverIdentity _IDENTITY =
 		new DeviceDriverIdentity("javase-video", Integer.MAX_VALUE);
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/17
+	 */
+	@Override
+	public VideoDriver createDriver(GameConsole __gc,
+		GameConfiguration __conf)
+		throws NullPointerException
+	{
+		// Check
+		if (__gc == null || __conf == null)
+			throw new NullPointerException();
+		
+		throw new Error("TODO");
+	}
 	
 	/**
 	 * {@inheritDoc}

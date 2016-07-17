@@ -9,6 +9,8 @@
 
 package org.remood.remood.core.system.video;
 
+import org.remood.remood.core.config.GameConfiguration;
+import org.remood.remood.core.console.GameConsole;
 import org.remood.remood.core.system.DeviceDriverFactory;
 
 /**
@@ -19,5 +21,15 @@ import org.remood.remood.core.system.DeviceDriverFactory;
 public interface VideoDriverFactory
 	extends DeviceDriverFactory
 {
+	/**
+	 * Creates a new video driver instance.
+	 *
+	 * @param __gc The game console.
+	 * @param __conf The game configuration.
+	 * @return The instance of the driver.
+	 * @since 2016/07/17
+	 */
+	public abstract VideoDriver createDriver(GameConsole __gc,
+		GameConfiguration __conf);
 }
 

@@ -12,6 +12,7 @@ package org.remood.remood.core.system.video;
 import java.util.ServiceLoader;
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
+import org.remood.remood.core.system.DeviceDriverIdentity;
 
 /**
  * This class manages video drivers which are used to create game display
@@ -26,6 +27,10 @@ public class VideoDriverManager
 	
 	/** The game configuration. */
 	protected final GameConfiguration config;
+	
+	/** The service manager. */
+	private final ServiceLoader<VideoDriverFactory> _services =
+		ServiceLoader.<VideoDriverFactory>load(VideoDriverFactory.class);
 	
 	/** The currently selected driver. */
 	private volatile VideoDriver _driver;
@@ -49,12 +54,49 @@ public class VideoDriverManager
 		this.console = __gc;
 		this.config = __conf;
 		
+		// Locate the next driver to use
+		this._driver = switchDriver(null);
+		
 		// Setup service loader to find video driver factories
 		ServiceLoader<VideoDriverFactory> services =
 			ServiceLoader.<VideoDriverFactory>load(VideoDriverFactory.class);
-		for (VideoDriverFactory f : services)
+	}
+	
+	/**
+	 * Switches to another video driver.
+	 *
+	 * @param __name The name of the video driver to switch to, may be
+	 * {@code null} to choose any driver.
+	 * @return The video driver to use.
+	 * @throws IllegalStateException If no video driver was found.
+	 * @since 2016/07/17
+	 */
+	public VideoDriver switchDriver(String __name)
+	{
+		// Lock
+		ServiceLoader<VideoDriverFactory> services = this._services;
+		synchronized (services)
 		{
-			throw new Error("TODO");
+			VideoDriverFactory best = null;
+			for (VideoDriverFactory f : services)
+			{
+				// Get the identity
+				DeviceDriverIdentity id = f.identity();
+			
+				// For now just choose any driver
+				System.err.println("TODO -- Choose a better driver.");
+				best = f;
+				break;
+			}
+			
+			// Fail
+			if (best == null)
+				throw new IllegalStateException("No video driver found.");
+			
+			// Create the driver
+			VideoDriver rv = best.createDriver(this.console, this.config);
+			this._driver = rv;
+			return rv;
 		}
 	}
 }
