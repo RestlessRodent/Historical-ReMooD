@@ -9,6 +9,11 @@
 
 package org.remood.remood.core.config;
 
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * This class contains some default command line arguments which may be used
  * to initialize the game or setup some other state (such as playing a demo).
@@ -21,6 +26,9 @@ package org.remood.remood.core.config;
  */
 public class CommandLineArguments
 {
+	/** Console commands to execute in sequence. */
+	private final String[] _console;
+	
 	/**
 	 * This parses the command line arguments which may be used when parsing
 	 * the configuration file.
@@ -35,6 +43,60 @@ public class CommandLineArguments
 		// Check
 		if (__args == null)
 			throw new NullPointerException();
+		
+		// Go through all arguments
+		int n = __args.length;
+		List<String> sub = new ArrayList<>();
+		for (int i = 0; i < n; i += (1 + sub.size()))
+		{
+			// Get
+			String arg = __args[i];
+			int an = arg.length();
+			char fc = (an > 0 ? arg.charAt(0) : 0);
+			
+			// Determine the sub-arguments to this argument
+			sub.clear();
+			for (int j = i + 1; i < n; i++)
+			{
+				String sx = __args[j];
+				
+				// If it starts with a minus or plus then it is a new argument
+				// group
+				int sxn = sx.length();
+				char qq = (sxn > 0 ? sx.charAt(0) : 0);
+				if (qq == '-' || qq == '+')
+					break;
+				
+				// Add to list
+				sub.add(sx);
+			}
+			
+			// A normal command line switch?
+			switch (arg)
+			{
+					// Unknown, either an illegal switch or a console command
+				default:
+					// Unknown switch
+					if (fc == '-')
+					{
+						throw new Error("TODO");
+					}
+					
+					// Console command
+					else if (fc == '+')
+					{
+						throw new Error("TODO");
+					}
+					
+					// Assume -file
+					else
+					{
+						if (true)
+							throw new Error("TODO");
+					}
+					break;
+			}
+		}
 		
 		throw new Error("TODO");
 	}
