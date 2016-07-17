@@ -11,48 +11,41 @@ package org.remood.javaseremood;
 
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
-import org.remood.remood.core.system.DeviceDriverFactory;
-import org.remood.remood.core.system.DeviceDriverIdentity;
 import org.remood.remood.core.system.video.VideoDriver;
-import org.remood.remood.core.system.video.VideoDriverFactory;
 
 /**
- * This driver implements the factory for the video drivers.
+ * This provides the capability of creating video surfaces which utilize
+ * Swing.
  *
  * @since 2016/07/17
  */
-public class JavaSEVideoDriverFactory
-	implements VideoDriverFactory
+public class JavaSEVideoDriver
+	implements VideoDriver
 {
-	/** The identity for this driver. */
-	private static final DeviceDriverIdentity _IDENTITY =
-		new DeviceDriverIdentity("javase-video", Integer.MAX_VALUE);
+	/** The game console. */
+	protected final GameConsole console;
+	
+	/** The game configuration. */
+	protected final GameConfiguration config;
 	
 	/**
-	 * {@inheritDoc}
+	 * Initializes the video driver.
+	 *
+	 * @param __gc The game console.
+	 * @param __conf The game configuration.
+	 * @throws NullPointerException On null arguments.
 	 * @since 2016/07/17
 	 */
-	@Override
-	public VideoDriver createDriver(GameConsole __gc,
-		GameConfiguration __conf)
+	public JavaSEVideoDriver(GameConsole __gc, GameConfiguration __conf)
 		throws NullPointerException
 	{
 		// Check
 		if (__gc == null || __conf == null)
 			throw new NullPointerException();
 		
-		// Create
-		return new JavaSEVideoDriver(__gc, __conf);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 2016/07/17
-	 */
-	@Override
-	public final DeviceDriverIdentity identity()
-	{
-		return _IDENTITY;
+		// Set
+		this.console = __gc;
+		this.config = __conf;
 	}
 }
 
