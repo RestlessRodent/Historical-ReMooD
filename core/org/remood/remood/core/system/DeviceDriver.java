@@ -23,5 +23,14 @@ public interface DeviceDriver
 	 * @since 2016/05/19
 	 */
 	public abstract String name();
+	
+	/**
+	 * How important is this driver?
+	 *
+	 * @return The priority of this driver, the higher the more likely it is
+	 * to be chosen.
+	 * @since 2016/07/16
+	 */
+	public abstract int priority();
 }
 
