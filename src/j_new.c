@@ -69,18 +69,11 @@ void I_StartupGraphics(void)
 bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen, const uint8_t a_Depth)
 {
 	jobject vss;
-	jintArray fbd;
 	jmethodID svmm = J_GetMethodID(g_MainClass, "selectVideoMode",
 		"(ZII)Lorg/remood/remood/core/system/video/VideoSurface;");
-	jmethodID gfbm = J_GetMethodID(J_FindClass(
-		"org/remood/remood/core/system/video/VideoSoftwareSurface"),
-		"framebuffer", "()[I");
 	
 	// Change video mode
 	vss = J_CallObjectMethod(g_MainObject, svmm, false, a_Width, a_Height);
-	
-	// Get framebuffer
-	fbd = (jintArray)J_CallObjectMethod(vss, gfbm);
 	
 	// Setup video surface, use a software surface because the Java native
 	// one is 32-bit RGB.
@@ -94,6 +87,18 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
  */
 void I_FinishUpdate(void)
 {
+	jobject vss;
+	jintArray fbd;
+	jmethodID vsm = J_GetMethodID(g_MainClass, "videoSurface",
+		"()Lorg/remood/remood/core/system/video/VideoSurface;");
+	jmethodID gfbm = J_GetMethodID(J_FindClass(
+		"org/remood/remood/core/system/video/VideoSoftwareSurface"),
+		"framebuffer", "()[I");
+	
+	// Get framebuffer
+	fbd = (jintArray)J_CallObjectMethod(
+		J_CallObjectMethod(g_MainObject, vsm), gfbm);
+	
 	I_Error("TODO");
 }
 
