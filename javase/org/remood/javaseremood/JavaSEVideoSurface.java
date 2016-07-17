@@ -105,6 +105,16 @@ public class JavaSEVideoSurface
 	}
 	
 	/**
+	 * {@inheritDoc}
+	 * @since 2016/07/17
+	 */
+	@Override
+	public void refresh()
+	{
+		this._pane.repaint();
+	}
+	
+	/**
 	 * Panel used for drawing.
 	 *
 	 * @since 2016/07/17

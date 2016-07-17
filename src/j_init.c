@@ -29,6 +29,8 @@ JNIEnv* g_Env = NULL;
 jclass g_MainClass = NULL;
 jobject g_MainObject = NULL;
 
+void J_VideoQuickInit(void);
+
 /**
  * {@inheritDoc}
  * @since 2016/05/05
@@ -70,8 +72,6 @@ bool_t J_Init()
     printf("ReMooD Java Version: %s\n", jstr);
     J_ReleaseStringUTFChars((jstring)jvx, jstr);
     
-    // Initialize some things
-	
 	// Ok
 	return true;
 }
@@ -105,6 +105,9 @@ void J_AltMain()
 	
 	// Construct new main class
 	g_MainObject = J_NewObject(g_MainClass, mainmethod, __mainArguments());
+	
+	// Initialize some later things
+	J_VideoQuickInit();
 }
 
 /** Exceptions. */
@@ -335,4 +338,33 @@ jboolean J_CallBooleanMethod(jobject obj, jmethodID methodID, ...)
 	
 	return rv;
 }
+
+jint *J_GetIntArrayElements(jintArray array, jboolean *isCopy)
+{
+	jint* rv = (*g_Env)->GetIntArrayElements(g_Env, array, isCopy);
+	
+	__checkException();	
+	
+	return rv;
+}
+
+void J_ReleaseIntArrayElements(jintArray array, jint *elems, jint mode)
+{
+	(*g_Env)->ReleaseIntArrayElements(g_Env, array, elems, mode);
+	
+	__checkException();
+}
+
+void J_CallVoidMethod(jobject obj, jmethodID methodID, ...)
+{
+	va_list ap;
+	
+	va_start(ap, methodID);
+	(*g_Env)->CallVoidMethodV(g_Env, obj, methodID, ap);
+	va_end(ap);
+	
+	__checkException();
+}
+
+
 

@@ -60,6 +60,13 @@ public abstract class VideoSurface
 	public abstract boolean isHardwareSurface();
 	
 	/**
+	 * Refreshes the video surface.
+	 *
+	 * @since 2016/07/17
+	 */
+	public abstract void refresh();
+	
+	/**
 	 * Returns the height of the video surface.
 	 *
 	 * @return The surface height.

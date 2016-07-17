@@ -57,6 +57,10 @@ jint J_CallStaticIntMethod(jclass cls, jmethodID methodID, ...);
 jsize J_GetArrayLength(jarray array);
 void J_GetIntArrayRegion(jintArray array, jsize start, jsize len, jint *buf);
 jboolean J_CallBooleanMethod(jobject obj, jmethodID methodID, ...);
+jint *J_GetIntArrayElements(jintArray array, jboolean *isCopy);
+void J_ReleaseIntArrayElements(jintArray array, jint *elems, jint mode);
+void J_CallVoidMethod(jobject obj, jmethodID methodID, ...);
+
 
 #endif /* REMOOD_J_H__ */
 

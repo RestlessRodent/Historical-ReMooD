@@ -80,6 +80,25 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL, false, false, 1);
 }
 
+jclass __VSSClass;
+jclass __VSClass;
+jmethodID __VSRefreshM;
+jmethodID __MainVSGetM;
+jmethodID __VSFBGetM;
+
+void J_VideoQuickInit(void)
+{
+	__VSSClass = J_FindClass(
+		"org/remood/remood/core/system/video/VideoSoftwareSurface");
+	__VSClass = J_FindClass(
+		"org/remood/remood/core/system/video/VideoSurface");
+	__VSRefreshM = J_GetMethodID(__VSClass, "refresh", "()V");
+	__MainVSGetM = J_GetMethodID(g_MainClass, "videoSurface",
+		"()Lorg/remood/remood/core/system/video/VideoSurface;");
+	__VSFBGetM = J_GetMethodID(__VSSClass,
+		"framebuffer", "()[I");
+}
+
 /**
  * Blits the graphics to the screen.
  *
@@ -89,16 +108,30 @@ void I_FinishUpdate(void)
 {
 	jobject vss;
 	jintArray fbd;
-	jmethodID vsm = J_GetMethodID(g_MainClass, "videoSurface",
-		"()Lorg/remood/remood/core/system/video/VideoSurface;");
-	jmethodID gfbm = J_GetMethodID(J_FindClass(
-		"org/remood/remood/core/system/video/VideoSoftwareSurface"),
-		"framebuffer", "()[I");
+	uint32_t w, h, b, i, n;
+	jint* rfb;
+	uint8_t* buffer;
+	
+	// Get the 8-bit buffer
+	buffer = I_VideoSoftBuffer(&w, &h, &b, NULL);
+	w *= b;
 	
 	// Get framebuffer
-	fbd = (jintArray)J_CallObjectMethod(
-		J_CallObjectMethod(g_MainObject, vsm), gfbm);
+	vss = J_CallObjectMethod(g_MainObject, __MainVSGetM);
+	fbd = (jintArray)J_CallObjectMethod(vss, __VSFBGetM);
 	
-	I_Error("TODO");
+	// Get raw array
+	rfb = J_GetIntArrayElements(fbd, NULL);
+	
+	// Copy image data
+	n = w * h;
+	for (i = 0; i < n; i++)
+		rfb[i] = buffer[i];
+	
+	// Commit the array
+	J_ReleaseIntArrayElements(fbd, rfb, 0);
+	
+	// Tell the video surface to refresh
+	J_CallVoidMethod(vss, __VSRefreshM);
 }
 
