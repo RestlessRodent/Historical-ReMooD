@@ -14,9 +14,8 @@ import java.util.Arrays;
 import org.remood.remood.core.config.CommandLineArguments;
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
-import org.remood.remood.core.system.video.VideoDriver;
+import org.remood.remood.core.system.video.VideoDriverManager;
 import org.remood.remood.core.system.video.VideoSurface;
-import org.remood.remood.core.system.DriverManager;
 
 /**
  * This is the main ReMooD entry point.
@@ -34,14 +33,8 @@ public class Main
 	/** The user's configuration. */
 	protected final GameConfiguration config;
 	
-	/** The device manager for video modes. */
-	protected final DriverManager<VideoDriverFactory> videomanager;
-	
-	/** The driver for video modes. */
-	protected final VideoDriver videodriver;
-	
-	/** The current video surface. */
-	private volatile VideoSurface _video;
+	/** Manager for video drivers. */
+	protected final VideoDriverManager videomanager;
 	
 	/**
 	 * Initialize some game details.
@@ -64,17 +57,9 @@ public class Main
 		GameConfiguration config = new GameConfiguration(gc, cla);
 		this.config = config;
 		
-		// Setup video manager for the early boot screen
-		DriverManager<VideoDriver> videomanager =
-			new DriverManager<>(VideoDriver.class, gc, config);
+		// Setup video manager
+		VideoDriverManager videomanager = new VideoDriverManager(gc, config);
 		this.videomanager = videomanager;
-		
-		// Setup video driver
-		VideoDriver videodriver = videomanager.createDriver(gc, config);
-		this.videodriver = videodriver;
-		
-		// Setup initial video mode (for the boot console)
-		this._video = videodriver.createSurface(false, 320, 200);
 	}
 	
 	/**
