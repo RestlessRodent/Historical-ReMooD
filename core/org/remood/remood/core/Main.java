@@ -80,6 +80,20 @@ public class Main
 	}
 	
 	/**
+	 * Main game loop.
+	 *
+	 * @since 2016/07/31
+	 */
+	public final void loop()
+	{
+		// Usually never ends
+		for (;;)
+		{
+			throw new Error("TODO");
+		}
+	}
+	
+	/**
 	 * Returns the profile manager for the current game instance.
 	 *
 	 * @return The profile manager.
@@ -172,7 +186,7 @@ public class Main
 	public static void main(String... __args)
 	{
 		// Create main class, which does everything
-		new Main(__args);
+		new Main(__args).loop();
 	}
 }
 

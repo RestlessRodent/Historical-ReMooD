@@ -97,6 +97,7 @@ static jobjectArray __mainArguments()
 void J_AltMain()
 {
 	jmethodID mainmethod;
+	jmethodID mainloop;
 	
 	// Find main class
 	g_MainClass = J_FindClass("org/remood/remood/core/Main");
@@ -105,6 +106,18 @@ void J_AltMain()
 	
 	// Construct new main class
 	g_MainObject = J_NewObject(g_MainClass, mainmethod, __mainArguments());
+	
+	// If pure Java, just enter the loop
+	if (M_CheckParm("-java"))
+	{
+		mainloop = J_GetMethodID(g_MainClass, "loop", "()V");
+		
+		// Enter the main loop
+		J_CallVoidMethod(g_MainObject, mainloop);
+		
+		// Stop
+		I_Quit();
+	}
 	
 	// Initialize some later things
 	J_VideoQuickInit();
