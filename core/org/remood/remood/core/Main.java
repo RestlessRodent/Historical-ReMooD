@@ -10,10 +10,12 @@
 package org.remood.remood.core;
 
 import java.io.PrintStream;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import org.remood.remood.core.config.CommandLineArguments;
 import org.remood.remood.core.config.GameConfiguration;
 import org.remood.remood.core.console.GameConsole;
+import org.remood.remood.core.profile.ProfileManager;
 import org.remood.remood.core.system.video.VideoDriver;
 import org.remood.remood.core.system.video.VideoDriverManager;
 import org.remood.remood.core.system.video.VideoSurface;
@@ -36,6 +38,9 @@ public class Main
 	
 	/** Manager for video drivers. */
 	protected final VideoDriverManager videomanager;
+	
+	/** The profile manager to use for player configurations. */
+	protected final ProfileManager profilemanager;
 	
 	/** The current video surface. */
 	private volatile VideoSurface _surface;
@@ -61,12 +66,28 @@ public class Main
 		GameConfiguration config = new GameConfiguration(gc, cla);
 		this.config = config;
 		
+		// Setup profile manager
+		System.err.println("TODO -- Use config directory for profiles.");
+		ProfileManager profilemanager = new ProfileManager(Paths.get("."));
+		this.profilemanager = profilemanager;
+		
 		// Setup video manager
 		VideoDriverManager videomanager = new VideoDriverManager(gc, config);
 		this.videomanager = videomanager;
 		
 		// Create initial video surface
 		selectVideoMode(false, 320, 200);
+	}
+	
+	/**
+	 * Returns the profile manager for the current game instance.
+	 *
+	 * @return The profile manager.
+	 * @since 2016/07/31
+	 */
+	public final ProfileManager profileManager()
+	{
+		return this.profilemanager;
 	}
 	
 	/**

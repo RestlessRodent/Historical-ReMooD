@@ -28,17 +28,14 @@ D_Prof_t* g_KeyDefaultProfile = NULL;
 
 void J_InitProfiles(void)
 {
-	jmethodID con;
+	jmethodID getter;
 	
-	// Find and construct the profile manager
-	__profman_class =
-		J_FindClass("org/remood/remood/core/profile/ProfileManager");
+	// Find the getter
+	getter = J_GetMethodID(g_MainClass, "profileManager",
+		"()Lorg/remood/remood/core/profile/ProfileManager;");
 	
-	// Get the constructor
-	con = J_GetMethodID(__profman_class, "<init>", "(Ljava/lang/String;)V");
-	
-	// Construct profile manager
-	__profman = J_NewObject(__profman_class, con, J_NewStringUTF(g_ConfigDir));
+	// Get it
+	__profman = J_CallObjectMethod(g_MainObject, getter);
 }
 
 const char* D_ProfileDisplayName(D_Prof_t* __prof)
@@ -66,6 +63,10 @@ void D_ProfileRename(D_Prof_t* __prof, const char* __new)
 
 fixed_t D_ProfileViewHeight(D_Prof_t* __prof)
 {
+	// Default?
+	if (__prof == NULL)
+		return (41 << FRACBITS);
+	
 	I_Error("TODO");
 	return 0;
 }
@@ -78,12 +79,20 @@ const char* D_ProfileUUID(D_Prof_t* __prof)
 
 int D_ProfileBobMode(D_Prof_t* __prof)
 {
+	// Default?
+	if (__prof == NULL)
+		return 0;	
+	
 	I_Error("TODO");
 	return 0;
 }
 
 bool_t D_ProfileDrawGunSprite(D_Prof_t* __prof)
 {
+	// Default?
+	if (__prof == NULL)
+		return 1;
+	
 	I_Error("TODO");
 	return true;
 }

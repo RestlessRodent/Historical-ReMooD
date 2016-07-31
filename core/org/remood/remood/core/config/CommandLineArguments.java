@@ -110,7 +110,9 @@ public class CommandLineArguments
 					// Unknown switch
 					if (fc == '-')
 					{
-						throw new Error("TODO");
+						// Warn on it
+						System.err.printf("Unknown command line switch: %s%n",
+							arg);
 					}
 					
 					// Console command
